@@ -51,9 +51,32 @@ const SUGGESTED_ROLES = [
     'DJ & Animateur'
 ];
 
-const LOGO_URL = 'https://dropsiders.fr/Logo.png';
+const LOGO_DARK_URL = 'https://dropsiders.fr/logo_dark.png';
+const LOGO_WHITE_URL = 'https://dropsiders.fr/Logo.png';
+const LOGO_PRESENTATION_DARK_URL = 'https://dropsiders.fr/logo_presentation_dark.png';
+const LOGO_PRESENTATION_WHITE_URL = 'https://dropsiders.fr/logo_presentation.png';
 const OFFICIAL_INSTAGRAM = 'https://instagram.com/dropsiders.fr';
 const OFFICIAL_TIKTOK = 'https://www.tiktok.com/@dropsiders.fr';
+
+interface SignatureConfig {
+    name: string;
+    role: string;
+    email: string;
+    phone: string;
+    website: string;
+    instagram: string;
+    tiktok: string;
+    spotify: string;
+    youtube: string;
+    avatarUrl: string;
+    showAvatar: boolean;
+    showBadge: boolean;
+    showTagline: boolean;
+    showLegalDisclaimer: boolean;
+    accentColor: string;
+    template: 'neon' | 'minimal' | 'card';
+    logoTheme: 'negative' | 'white';
+}
 
 export function AdminSignatures() {
     const navigate = useNavigate();
@@ -77,40 +100,66 @@ export function AdminSignatures() {
     }, [canAccess, navigate]);
 
     // Initial config based on team member or defaults
-    const [selectedMemberId, setSelectedMemberId] = useState<number | 'custom'>('custom');
+    const [selectedMemberId, setSelectedMemberId] = useState<number | 'contact' | 'custom'>('contact');
     const [previewDevice, setPreviewDevice] = useState<'desktop' | 'iphone'>('desktop');
     const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light');
     const [activeGuideTab, setActiveGuideTab] = useState<'iphone' | 'email_trick' | 'webmail'>('iphone');
 
     const [config, setConfig] = useState<SignatureConfig>({
-        name: 'ALEXANDRE',
-        role: 'FONDATEUR & RÉDACTEUR',
-        email: 'alex@dropsiders.fr',
+        name: 'DROPSIDERS',
+        role: 'RÉDACTION & CONTACT OFFICIEL',
+        email: 'contact@dropsiders.fr',
         phone: '+33 7 62 05 45 89',
         website: 'https://dropsiders.fr',
         instagram: OFFICIAL_INSTAGRAM,
         tiktok: OFFICIAL_TIKTOK,
         spotify: 'https://open.spotify.com/user/dropsiders',
         youtube: 'https://youtube.com/@dropsiders',
-        avatarUrl: 'https://www.dropsiders.fr/uploads/migrated/dropsiders/wcyxatveeurgu5s1fi3s.jpg',
+        avatarUrl: 'https://dropsiders.fr/apple-touch-icon.png',
         showAvatar: true,
         showBadge: true,
         showTagline: true,
         showLegalDisclaimer: true,
         accentColor: '#ff3b14',
-        template: 'card'
+        template: 'card',
+        logoTheme: 'negative'
     });
 
     const [copyStatus, setCopyStatus] = useState<'idle' | 'rich_success' | 'html_success' | 'text_success' | 'selected'>('idle');
     const [showIphoneTroubleshootModal, setShowIphoneTroubleshootModal] = useState(false);
-    const [emailToSend, setEmailToSend] = useState('alex@dropsiders.fr');
+    const [emailToSend, setEmailToSend] = useState('contact@dropsiders.fr');
     const [sendingEmail, setSendingEmail] = useState(false);
     const [emailSentStatus, setEmailSentStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const signatureRef = useRef<HTMLDivElement>(null);
 
-    // Apply presets when selecting a member
-    const handleSelectMember = (memberId: number | 'custom') => {
+    // Apply presets when selecting a member or contact
+    const handleSelectMember = (memberId: number | 'contact' | 'custom') => {
         setSelectedMemberId(memberId);
+        if (memberId === 'contact') {
+            setConfig(prev => ({
+                ...prev,
+                name: 'DROPSIDERS',
+                role: 'RÉDACTION & CONTACT OFFICIEL',
+                email: 'contact@dropsiders.fr',
+                phone: '+33 7 62 05 45 89',
+                website: 'https://dropsiders.fr',
+                avatarUrl: 'https://dropsiders.fr/apple-touch-icon.png',
+                showAvatar: true,
+                showBadge: true,
+                showTagline: true,
+                showLegalDisclaimer: true,
+                accentColor: '#ff3b14',
+                template: 'card',
+                logoTheme: 'negative',
+                instagram: OFFICIAL_INSTAGRAM,
+                tiktok: OFFICIAL_TIKTOK,
+                spotify: 'https://open.spotify.com/user/dropsiders',
+                youtube: 'https://youtube.com/@dropsiders',
+            }));
+            setEmailToSend('contact@dropsiders.fr');
+            return;
+        }
+
         if (memberId === 'custom') {
             setConfig(prev => ({
                 ...prev,
@@ -118,8 +167,8 @@ export function AdminSignatures() {
                 role: 'Rédacteur Média',
                 email: 'contact@dropsiders.fr',
                 phone: '',
-                avatarUrl: '',
-                showAvatar: false,
+                avatarUrl: 'https://dropsiders.fr/apple-touch-icon.png',
+                showAvatar: true,
                 instagram: OFFICIAL_INSTAGRAM,
                 tiktok: OFFICIAL_TIKTOK,
             }));
@@ -168,8 +217,12 @@ export function AdminSignatures() {
             name, role, email, phone, website,
             spotify, avatarUrl,
             showAvatar, showBadge, showTagline, showLegalDisclaimer,
-            accentColor, template
+            accentColor, template, logoTheme
         } = config;
+
+        const isNegativeLogo = (logoTheme || 'negative') === 'negative';
+        const currentLogoUrl = isNegativeLogo ? LOGO_DARK_URL : LOGO_WHITE_URL;
+        const currentPresLogoUrl = isNegativeLogo ? LOGO_PRESENTATION_DARK_URL : LOGO_PRESENTATION_WHITE_URL;
 
         const cleanSite = website.replace(/^https?:\/\//, '');
 
@@ -186,18 +239,18 @@ export function AdminSignatures() {
 
         if (template === 'minimal') {
             return `
-<table cellpadding="0" cellspacing="0" border="0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.4; color: #1a1a1a; max-width: 520px;">
+<table cellpadding="0" cellspacing="0" border="0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.4; color: ${isNegativeLogo ? '#1a1a1a' : '#ffffff'}; max-width: 520px;">
     <tr>
         <td style="padding-bottom: 8px;">
-            <span style="font-size: 15px; font-weight: 900; color: #000000; text-transform: uppercase; letter-spacing: 0.5px;">${name || 'Dropsiders'}</span>
-            <span style="color: #999999; margin: 0 6px;">|</span>
+            <span style="font-size: 15px; font-weight: 900; color: ${isNegativeLogo ? '#000000' : '#ffffff'}; text-transform: uppercase; letter-spacing: 0.5px;">${name || 'Dropsiders'}</span>
+            <span style="color: ${isNegativeLogo ? '#999999' : '#555555'}; margin: 0 6px;">|</span>
             <span style="font-size: 12px; font-weight: 700; color: ${accentColor}; text-transform: uppercase;">${role}</span>
         </td>
     </tr>
     <tr>
-        <td style="border-top: 2px solid ${accentColor}; padding-top: 8px; font-size: 12px; color: #555555;">
-            <a href="mailto:${email}" style="color: #111111; text-decoration: none; font-weight: 600;">${email}</a>
-            ${phone ? ` &nbsp;•&nbsp; <span style="color: #555555;">${phone}</span>` : ''}
+        <td style="border-top: 2px solid ${accentColor}; padding-top: 8px; font-size: 12px; color: ${isNegativeLogo ? '#555555' : '#aaaaaa'};">
+            <a href="mailto:${email}" style="color: ${isNegativeLogo ? '#111111' : '#00e5ff'}; text-decoration: none; font-weight: 600;">${email}</a>
+            ${phone ? ` &nbsp;•&nbsp; <span style="color: ${isNegativeLogo ? '#555555' : '#cccccc'};">${phone}</span>` : ''}
             &nbsp;•&nbsp; <a href="${website}" target="_blank" style="color: ${accentColor}; text-decoration: none; font-weight: 700;">${cleanSite}</a>
         </td>
     </tr>
@@ -210,7 +263,78 @@ export function AdminSignatures() {
 </table>`.trim();
         }
 
+        const isLogoAvatar = Boolean(avatarUrl && (avatarUrl.includes('apple-touch-icon') || avatarUrl.includes('logo') || avatarUrl.includes('icon')));
+        const avatarRadius = isLogoAvatar ? '12px' : '50%';
+
         if (template === 'card') {
+            if (isNegativeLogo) {
+                // LIGHT CARD WITH NEGATIVE (BLACK) LOGO FOR WHITE/LIGHT BACKGROUNDS
+                return `
+<table cellpadding="0" cellspacing="0" border="0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.35; color: #111827; max-width: 600px; width: 100%; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px;">
+    <tr>
+        <td style="padding-bottom: 10px;">
+            <table cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+                <tr>
+                    ${showAvatar && avatarUrl ? `
+                    <td valign="top" style="padding-right: 14px; width: 56px;">
+                        <img src="${avatarUrl}" alt="${name}" width="52" height="52" style="display: block; width: 52px; height: 52px; border-radius: ${avatarRadius}; object-fit: cover; border: 2px solid ${accentColor}; background-color: #000000;" />
+                    </td>` : ''}
+                    <td valign="top">
+                        <table cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td>
+                                    <div style="font-size: 14px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.6px; line-height: 1.2;">${name || 'DROPSIDERS'}</div>
+                                    <div style="font-size: 11px; font-weight: 800; color: ${accentColor}; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px;">${role}</div>
+                                    ${showBadge ? `
+                                    <div style="margin-top: 5px;">
+                                        <span style="display: inline-block; background-color: #f1f5f9; border: 1px solid rgba(59, 130, 246, 0.4); color: #1e3a8a; font-size: 8.5px; font-weight: 800; padding: 2px 8px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.4px;">
+                                            🛡️ MÉDIAS &amp; PRESSE ACCRÉDITÉE
+                                        </span>
+                                    </div>` : ''}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding-top: 6px; font-size: 11px; line-height: 1.5;">
+                                    <div><span style="color: #64748b; margin-right: 6px;">✉</span><a href="mailto:${email}" style="color: #0284c7; text-decoration: none; font-weight: 600;">${email}</a></div>
+                                    ${phone ? `<div style="margin-top: 2px;"><span style="color: ${accentColor}; margin-right: 6px;">📞</span><span style="color: #0f172a; font-weight: 600;">${phone}</span></div>` : ''}
+                                    <div style="margin-top: 2px;"><span style="color: #64748b; margin-right: 6px;">🌐</span><a href="${website}" target="_blank" style="color: ${accentColor}; text-decoration: none; font-weight: 700;">${cleanSite}</a></div>
+                                </td>
+                            </tr>
+                            ${socialsList.length > 0 ? `
+                            <tr>
+                                <td style="padding-top: 8px;">
+                                    ${socialLinksHtml}
+                                </td>
+                            </tr>` : ''}
+                        </table>
+                    </td>
+                    <td valign="top" align="right" style="padding-left: 12px; width: 105px;">
+                        <a href="${website}" target="_blank" style="text-decoration: none; display: inline-block; text-align: center;">
+                            <img src="${currentPresLogoUrl}" alt="DROPSIDERS.FR" width="95" style="display: block; width: 95px; height: auto;" />
+                            <div style="font-size: 8px; font-weight: 800; color: #0f172a; text-align: center; letter-spacing: 0.5px; margin-top: 3px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">WWW.DROPSIDERS.FR</div>
+                        </a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    ${showTagline || showLegalDisclaimer ? `
+    <tr>
+        <td style="border-top: 1px solid #e2e8f0; padding-top: 8px;">
+            ${showTagline ? `
+            <div style="font-size: 9px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.4px;">
+                DROPSIDERS - LE MÉDIA 100% MUSIQUES ÉLECTRONIQUES, FESTIVALS &amp; CULTURE CLUBBING
+            </div>` : ''}
+            ${showLegalDisclaimer ? `
+            <div style="font-size: 8px; color: #94a3b8; margin-top: 4px; line-height: 1.35;">
+                Ce message et les pièces jointes sont confidentiels et destinés exclusivement au destinataire. Si vous avez reçu ce message par erreur, merci de le supprimer immédiatement.
+            </div>` : ''}
+        </td>
+    </tr>` : ''}
+</table>`.trim();
+            }
+
+            // DARK CARD WITH WHITE LOGO FOR DARK BACKGROUNDS
             return `
 <table cellpadding="0" cellspacing="0" border="0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.35; color: #ffffff; max-width: 600px; width: 100%; background-color: #0d0e12; border: 1px solid #23262f; border-radius: 12px; padding: 14px 18px;">
     <tr>
@@ -219,7 +343,7 @@ export function AdminSignatures() {
                 <tr>
                     ${showAvatar && avatarUrl ? `
                     <td valign="top" style="padding-right: 14px; width: 56px;">
-                        <img src="${avatarUrl}" alt="${name}" width="52" height="52" style="display: block; width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid ${accentColor};" />
+                        <img src="${avatarUrl}" alt="${name}" width="52" height="52" style="display: block; width: 52px; height: 52px; border-radius: ${avatarRadius}; object-fit: cover; border: 2px solid ${accentColor}; background-color: #000000;" />
                     </td>` : ''}
                     <td valign="top">
                         <table cellpadding="0" cellspacing="0" border="0">
@@ -252,7 +376,7 @@ export function AdminSignatures() {
                     </td>
                     <td valign="top" align="right" style="padding-left: 12px; width: 105px;">
                         <a href="${website}" target="_blank" style="text-decoration: none; display: inline-block; text-align: center;">
-                            <img src="https://dropsiders.fr/logo_presentation.png" alt="DROPSIDERS.FR" width="95" style="display: block; width: 95px; height: auto;" />
+                            <img src="${currentPresLogoUrl}" alt="DROPSIDERS.FR" width="95" style="display: block; width: 95px; height: auto;" />
                             <div style="font-size: 8px; font-weight: 800; color: #ffffff; text-align: center; letter-spacing: 0.5px; margin-top: 3px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">WWW.DROPSIDERS.FR</div>
                         </a>
                     </td>
@@ -278,16 +402,16 @@ export function AdminSignatures() {
 
         // DEFAULT TEMPLATE: 'neon' (Vertical accent line with Logo Dropsiders on the left)
         return `
-<table cellpadding="0" cellspacing="0" border="0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.35; color: #1a1a1a; max-width: 540px;">
+<table cellpadding="0" cellspacing="0" border="0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.35; color: ${isNegativeLogo ? '#1a1a1a' : '#ffffff'}; max-width: 540px;">
     <tr>
         <!-- LOGO DROPSIDERS -->
         <td valign="middle" align="center" style="padding-right: 18px; width: 85px;">
             <a href="${website}" target="_blank" style="text-decoration: none;">
-                <img src="${LOGO_URL}" alt="Dropsiders" width="80" style="display: block; width: 80px; height: auto;" />
+                <img src="${currentLogoUrl}" alt="Dropsiders" width="80" style="display: block; width: 80px; height: auto;" />
             </a>
             ${showAvatar && avatarUrl ? `
             <div style="margin-top: 8px;">
-                <img src="${avatarUrl}" alt="${name}" width="42" height="42" style="display: block; width: 42px; height: 42px; border-radius: 50%; object-fit: cover; margin: 0 auto; border: 1px solid ${accentColor};" />
+                <img src="${avatarUrl}" alt="${name}" width="42" height="42" style="display: block; width: 42px; height: 42px; border-radius: ${isLogoAvatar ? '10px' : '50%'}; object-fit: cover; margin: 0 auto; border: 1px solid ${accentColor}; background-color: #000000;" />
             </div>` : ''}
         </td>
 
@@ -296,7 +420,7 @@ export function AdminSignatures() {
 
         <!-- DETAILS -->
         <td valign="top" style="padding-left: 18px;">
-            <div style="font-size: 16px; font-weight: 900; color: #000000; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
+            <div style="font-size: 16px; font-weight: 900; color: ${isNegativeLogo ? '#000000' : '#ffffff'}; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
                 ${name || 'Dropsiders'}
             </div>
             <div style="font-size: 12px; font-weight: 800; color: ${accentColor}; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
@@ -305,23 +429,23 @@ export function AdminSignatures() {
 
             ${showBadge ? `
             <div style="margin-bottom: 6px;">
-                <span style="background-color: #050505; color: #ffffff; font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                <span style="background-color: ${isNegativeLogo ? '#050505' : '#ffffff'}; color: ${isNegativeLogo ? '#ffffff' : '#000000'}; font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
                     ⚡ Média Électronique Officiel
                 </span>
             </div>` : ''}
 
-            <table cellpadding="0" cellspacing="0" border="0" style="font-size: 12px; color: #374151; margin-top: 4px;">
+            <table cellpadding="0" cellspacing="0" border="0" style="font-size: 12px; color: ${isNegativeLogo ? '#374151' : '#d1d5db'}; margin-top: 4px;">
                 <tr>
                     <td style="padding: 1px 0;">
                         <span style="color: ${accentColor}; font-weight: 700;">Email:</span> 
-                        <a href="mailto:${email}" style="color: #111827; text-decoration: none; font-weight: 600; margin-left: 4px;">${email}</a>
+                        <a href="mailto:${email}" style="color: ${isNegativeLogo ? '#111827' : '#00e5ff'}; text-decoration: none; font-weight: 600; margin-left: 4px;">${email}</a>
                     </td>
                 </tr>
                 ${phone ? `
                 <tr>
                     <td style="padding: 1px 0;">
                         <span style="color: ${accentColor}; font-weight: 700;">Mobile:</span> 
-                        <span style="color: #374151; margin-left: 4px;">${phone}</span>
+                        <span style="color: ${isNegativeLogo ? '#374151' : '#ffffff'}; margin-left: 4px;">${phone}</span>
                     </td>
                 </tr>` : ''}
                 <tr>
@@ -333,7 +457,7 @@ export function AdminSignatures() {
             </table>
 
             ${socialsList.length > 0 ? `
-            <div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed #e5e7eb;">
+            <div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed ${isNegativeLogo ? '#e5e7eb' : 'rgba(255,255,255,0.15)'};">
                 ${socialLinksHtml}
             </div>` : ''}
         </td>
@@ -586,6 +710,31 @@ ${rawHtml}
                     </div>
 
                     <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/10">
+                        {/* 1. OFFICIEL CONTACT DROPSIDERS (AVEC LOGO) */}
+                        <button
+                            onClick={() => handleSelectMember('contact')}
+                            className={`flex items-center gap-2.5 px-3.5 py-2 rounded-2xl border text-xs font-bold uppercase transition-all shrink-0 ${
+                                selectedMemberId === 'contact'
+                                    ? 'bg-neon-orange/25 border-neon-orange text-white shadow-[0_0_20px_rgba(255,102,0,0.4)] ring-2 ring-neon-orange/40'
+                                    : 'bg-white/5 border-neon-orange/40 text-white hover:bg-neon-orange/15 hover:border-neon-orange'
+                            }`}
+                        >
+                            <img
+                                src="https://dropsiders.fr/apple-touch-icon.png"
+                                alt="Dropsiders"
+                                className="w-5 h-5 rounded-lg object-contain border border-neon-orange/60 shadow-sm"
+                            />
+                            <div className="text-left">
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-white font-black">Contact Général</span>
+                                    <span className="text-[9px] bg-neon-orange text-black font-black px-1.5 py-0.2 rounded-md">LOGO</span>
+                                </div>
+                                <div className="text-[9px] text-neon-orange font-mono lowercase font-semibold">contact@dropsiders.fr</div>
+                            </div>
+                        </button>
+
+                        <div className="h-7 w-[1px] bg-white/10 shrink-0 mx-1" />
+
                         {teamData.map((m: any) => {
                             const isSelected = selectedMemberId === m.id;
                             return (
@@ -682,6 +831,52 @@ ${rawHtml}
                                     ))}
                                 </div>
                             </div>
+
+                            {/* Style du Logo / Fond */}
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 flex items-center justify-between">
+                                    <span>Couleur du Logo (Fond Mail)</span>
+                                    <span className="text-[10px] text-neon-orange font-normal">Recommandé : Négatif</span>
+                                </label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setConfig(prev => ({ ...prev, logoTheme: 'negative' }));
+                                            setPreviewTheme('light');
+                                        }}
+                                        className={`p-3 rounded-2xl border text-left transition-all flex items-center gap-2.5 ${
+                                            config.logoTheme === 'negative'
+                                                ? 'bg-white/15 border-white text-white shadow-lg'
+                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <span className="w-5 h-5 rounded-full bg-white border border-gray-400 flex items-center justify-center text-[11px] text-black font-black shrink-0">●</span>
+                                        <div>
+                                            <div className="font-bold text-xs uppercase">Logo Négatif (Noir)</div>
+                                            <div className="text-[10px] text-gray-400 mt-0.5">Pour fond blanc / iOS / Gmail</div>
+                                        </div>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setConfig(prev => ({ ...prev, logoTheme: 'white' }));
+                                            setPreviewTheme('dark');
+                                        }}
+                                        className={`p-3 rounded-2xl border text-left transition-all flex items-center gap-2.5 ${
+                                            config.logoTheme === 'white'
+                                                ? 'bg-white/15 border-white text-white shadow-lg'
+                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <span className="w-5 h-5 rounded-full bg-black border border-white/40 flex items-center justify-center text-[11px] text-white font-black shrink-0">○</span>
+                                        <div>
+                                            <div className="font-bold text-xs uppercase">Logo Blanc</div>
+                                            <div className="text-[10px] text-gray-400 mt-0.5">Pour fond sombre / Dark mode</div>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         {/* 2. IDENTITÉ & CONTACT */}
@@ -766,7 +961,7 @@ ${rawHtml}
                             <div>
                                 <div className="flex items-center justify-between mb-1">
                                     <label className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                                        Photo de Profil / Avatar
+                                        Visuel Signature (Logo ou Photo)
                                     </label>
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input
@@ -775,17 +970,33 @@ ${rawHtml}
                                             onChange={e => setConfig(prev => ({ ...prev, showAvatar: e.target.checked }))}
                                             className="rounded border-white/20 bg-white/5 text-neon-orange focus:ring-0"
                                         />
-                                        <span className="text-[11px] text-gray-400">Afficher photo</span>
+                                        <span className="text-[11px] text-gray-400">Afficher</span>
                                     </label>
                                 </div>
                                 {config.showAvatar && (
-                                    <input
-                                        type="url"
-                                        value={config.avatarUrl}
-                                        onChange={e => setConfig(prev => ({ ...prev, avatarUrl: e.target.value }))}
-                                        placeholder="URL de l'image (https://...)"
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-2 text-xs text-white focus:outline-none focus:border-neon-orange transition-colors font-medium"
-                                    />
+                                    <div className="space-y-2">
+                                        <input
+                                            type="url"
+                                            value={config.avatarUrl}
+                                            onChange={e => setConfig(prev => ({ ...prev, avatarUrl: e.target.value }))}
+                                            placeholder="URL de l'image (https://...)"
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-2 text-xs text-white focus:outline-none focus:border-neon-orange transition-colors font-medium"
+                                        />
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <button
+                                                type="button"
+                                                onClick={() => setConfig(prev => ({ ...prev, avatarUrl: 'https://dropsiders.fr/apple-touch-icon.png' }))}
+                                                className={`px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase border transition-all flex items-center gap-1.5 ${
+                                                    config.avatarUrl === 'https://dropsiders.fr/apple-touch-icon.png'
+                                                        ? 'bg-neon-orange/20 border-neon-orange text-white shadow-sm'
+                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                }`}
+                                            >
+                                                <Sparkles className="w-3 h-3 text-neon-orange" />
+                                                ⚡ Utiliser le Logo Dropsiders
+                                            </button>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -962,20 +1173,26 @@ ${rawHtml}
                                     {/* Light vs Dark preview background */}
                                     <div className="flex items-center bg-black/40 border border-white/10 rounded-xl p-1">
                                         <button
-                                            onClick={() => setPreviewTheme('light')}
+                                            onClick={() => {
+                                                setPreviewTheme('light');
+                                                setConfig(prev => ({ ...prev, logoTheme: 'negative' }));
+                                            }}
                                             className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
                                                 previewTheme === 'light' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'
                                             }`}
-                                            title="Fond Clair (Standard email)"
+                                            title="Fond Clair (Standard email - Logo Négatif)"
                                         >
-                                            Clair
+                                            Clair (Négatif)
                                         </button>
                                         <button
-                                            onClick={() => setPreviewTheme('dark')}
+                                            onClick={() => {
+                                                setPreviewTheme('dark');
+                                                setConfig(prev => ({ ...prev, logoTheme: 'white' }));
+                                            }}
                                             className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
                                                 previewTheme === 'dark' ? 'bg-neutral-800 text-white' : 'text-gray-400 hover:text-white'
                                             }`}
-                                            title="Fond Sombre (Dark Mode)"
+                                            title="Fond Sombre (Dark Mode - Logo Blanc)"
                                         >
                                             Sombre
                                         </button>
