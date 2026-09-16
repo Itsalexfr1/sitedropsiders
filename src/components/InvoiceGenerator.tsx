@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Send, Loader, X, Mail, Save, History, CheckCircle, Clock, Download, Printer, ChevronRight, Building2, User, Users, Settings, BookOpen, RefreshCw, Calendar as CalendarIcon, ShieldCheck } from 'lucide-react';
+import { Plus, Trash2, Send, Loader, X, Mail, Save, History, CheckCircle, Clock, Download, Printer, ChevronRight, Building2, User, Users, Settings, BookOpen, RefreshCw, Calendar as CalendarIcon, ShieldCheck, Cloud } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { isSuperAdmin } from '../utils/auth';
 import { WorkPlanning } from './WorkPlanning';
@@ -310,8 +310,32 @@ export function InvoiceGenerator() {
         };
     };
 
+    const autoSaveInvoice = async (invData: any) => {
+        try {
+            const adminUser = localStorage.getItem('admin_user') || '';
+            const adminPass = localStorage.getItem('admin_password') || '';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
+            const res = await fetch('/api/invoices/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Admin-Username': adminUser,
+                    'X-Admin-Password': adminPass,
+                    'X-Session-ID': sessionId
+                },
+                body: JSON.stringify({ invoiceData: invData })
+            });
+            if (res.ok) {
+                fetchHistory();
+            }
+        } catch (e) {
+            console.error('Auto save invoice failed:', e);
+        }
+    };
+
     const downloadInvoicePDF = async (invData: any) => {
         await downloadInvoicePDFHelper(invData, buildInvoiceHTML);
+        await autoSaveInvoice(invData);
     };
 
     const downloadInvoiceHTMLFile = (invData: any) => {
@@ -360,12 +384,76 @@ export function InvoiceGenerator() {
     const [ncCity, setNcCity] = useState('');
     const [ncEmail, setNcEmail] = useState('');
 
+    const saveClientsToCloud = async (updated: SavedClient[]) => {
+        try {
+            const adminUser = localStorage.getItem('admin_user') || '';
+            const adminPass = localStorage.getItem('admin_password') || '';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
+            await fetch('/api/clients/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Admin-Username': adminUser,
+                    'X-Admin-Password': adminPass,
+                    'X-Session-ID': sessionId
+                },
+                body: JSON.stringify({ clients: updated })
+            });
+        } catch (e) {
+            console.error('Failed to sync clients to cloud:', e);
+        }
+    };
+
+    const fetchClients = async () => {
+        try {
+            const adminUser = localStorage.getItem('admin_user') || '';
+            const adminPass = localStorage.getItem('admin_password') || '';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
+            const res = await fetch('/api/clients?t=' + Date.now(), {
+                headers: { 
+                    'X-Admin-Username': adminUser, 
+                    'X-Admin-Password': adminPass,
+                    'X-Session-ID': sessionId
+                }
+            });
+            if (res.ok) {
+                const cloudClients: SavedClient[] = await res.json();
+                let localClients: SavedClient[] = [];
+                try { localClients = JSON.parse(localStorage.getItem('inv_clients') || '[]'); } catch {}
+                
+                const map = new Map<string, SavedClient>();
+                cloudClients.forEach(c => {
+                    if (c && c.name) map.set(c.name.trim().toLowerCase(), c);
+                });
+                let hasNewLocal = false;
+                localClients.forEach(c => {
+                    if (c && c.name) {
+                        const key = c.name.trim().toLowerCase();
+                        if (!map.has(key)) {
+                            map.set(key, c);
+                            hasNewLocal = true;
+                        }
+                    }
+                });
+                const merged = Array.from(map.values());
+                setSavedClients(merged);
+                localStorage.setItem('inv_clients', JSON.stringify(merged));
+                if (hasNewLocal && merged.length > cloudClients.length) {
+                    await saveClientsToCloud(merged);
+                }
+            }
+        } catch (e) {
+            console.error('Failed to fetch clients from cloud:', e);
+        }
+    };
+
     const addNewClient = () => {
         if (!ncName.trim()) return;
-        const nc = { id: Date.now().toString(), name: ncName, address: ncAddress, city: ncCity, email: ncEmail };
-        const updated = [nc, ...savedClients];
+        const nc = { id: Date.now().toString(), name: ncName.trim(), address: ncAddress, city: ncCity, email: ncEmail };
+        const updated = [nc, ...savedClients.filter(c => c.name.toLowerCase() !== ncName.trim().toLowerCase())];
         setSavedClients(updated);
         localStorage.setItem('inv_clients', JSON.stringify(updated));
+        saveClientsToCloud(updated);
         setNcName(''); setNcAddress(''); setNcCity(''); setNcEmail('');
     };
 
@@ -428,6 +516,7 @@ export function InvoiceGenerator() {
     };
     useEffect(() => { 
         fetchHistory(); 
+        fetchClients();
     }, []);
 
     const saveSenderSettings = () => {
@@ -444,13 +533,19 @@ export function InvoiceGenerator() {
 
     const saveClient = () => {
         if (!clientName.trim()) return;
-        const nc: SavedClient = { id: Date.now().toString(), name: clientName, address: clientAddress, email: clientEmail, city: clientCity } as any;
-        const updated = [nc, ...savedClients.filter(c => c.name !== clientName)];
+        const nc: SavedClient = { id: Date.now().toString(), name: clientName.trim(), address: clientAddress, email: clientEmail, city: clientCity } as any;
+        const updated = [nc, ...savedClients.filter(c => c.name.toLowerCase() !== clientName.trim().toLowerCase())];
         setSavedClients(updated);
         localStorage.setItem('inv_clients', JSON.stringify(updated));
+        saveClientsToCloud(updated);
     };
     const loadClient = (c: any) => { setClientName(c.name); setClientAddress(c.address); setClientEmail(c.email); setClientCity(c.city || ''); setShowClientPicker(false); };
-    const deleteClient = (id: string) => { const u = savedClients.filter(c => c.id !== id); setSavedClients(u); localStorage.setItem('inv_clients', JSON.stringify(u)); };
+    const deleteClient = (id: string) => { 
+        const u = savedClients.filter(c => c.id !== id); 
+        setSavedClients(u); 
+        localStorage.setItem('inv_clients', JSON.stringify(u)); 
+        saveClientsToCloud(u);
+    };
 
     const saveArticle = () => {
         if (!newArticleDesc.trim()) return;
@@ -496,7 +591,8 @@ export function InvoiceGenerator() {
     });
 
     const handlePrint = () => {
-        const html = buildInvoiceHTML(getInvoiceData());
+        const inv = getInvoiceData();
+        const html = buildInvoiceHTML(inv);
         const w = window.open('', '_blank', 'width=900,height=700');
         if (!w) {
             setConfirmModal({
@@ -509,6 +605,7 @@ export function InvoiceGenerator() {
         }
         w.document.write(html); w.document.close();
         w.onload = () => { w.focus(); w.print(); };
+        autoSaveInvoice(inv);
     };
 
     const handleDownload = () => {
@@ -574,7 +671,7 @@ export function InvoiceGenerator() {
             const adminPass = localStorage.getItem('admin_password') || '';
             const sessionId = localStorage.getItem('admin_session_id') || '';
             
-            const res = await fetch('/api/facture/send', {
+            const res = await fetch('/api/invoices/save', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json', 
@@ -583,8 +680,6 @@ export function InvoiceGenerator() {
                     'X-Session-ID': sessionId 
                 },
                 body: JSON.stringify({ 
-                    to: clientEmail || 'Archive Locale', 
-                    skipEmail: true,
                     invoiceData: getInvoiceData()
                 })
             });
@@ -741,7 +836,12 @@ export function InvoiceGenerator() {
                 <div className="flex items-center gap-6">
                     <div>
                         <h1 className="text-lg font-black uppercase tracking-tight text-white">Générateur de Factures & Devis</h1>
-                        <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">{sender.name} • {sender.siret}</p>
+                        <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest flex items-center gap-2">
+                            <span>{sender.name} • {sender.siret}</span>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] border border-emerald-500/20 font-bold lowercase">
+                                <Cloud className="w-2.5 h-2.5" /> sync cloud activée
+                            </span>
+                        </p>
                     </div>
                     <div className="flex items-center gap-1 p-1 bg-white/5 border border-white/10 rounded-xl ml-4">
                         {visibleTabs.map(t => (

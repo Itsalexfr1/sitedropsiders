@@ -235,7 +235,7 @@ async function fetchGitHubFile(filePath, config) {
     
     // Check in-memory cache first (contacts are dynamic, so bypass cache for them)
     const cacheKey = `${OWNER}/${REPO}/${filePath}`;
-    const shouldBypass = config.bypassCache || filePath.includes('contacts');
+    const shouldBypass = config.bypassCache || filePath.includes('contacts') || filePath.includes('invoices') || filePath.includes('clients');
     if (!shouldBypass) {
         const cached = githubCache.get(cacheKey);
         if (cached && (Date.now() - cached.time < 60000)) {
@@ -407,6 +407,7 @@ export default {
             path === '/api/avis/moderate' ||
             path === '/api/facture/send' ||
             path.startsWith('/api/invoices') ||
+            path.startsWith('/api/clients') ||
             path.startsWith('/api/pdfs') ||
             path.startsWith('/api/instagram-contest') ||
             path.startsWith('/api/quiz/contest') ||
@@ -530,8 +531,8 @@ export default {
                     return new Response(JSON.stringify({ error: 'Permission refusée : broadcast' }), { status: 403, headers });
                 }
 
-                // 6b. Invoices (Master Only - Alex)
-                if (path.startsWith('/api/invoices') && !hasAll) {
+                // 6b. Invoices & Clients (Master Only - Alex)
+                if ((path.startsWith('/api/invoices') || path.startsWith('/api/clients') || path === '/api/facture/send') && !hasAll) {
                     return new Response(JSON.stringify({ error: 'Permission refusée : facturation' }), { status: 403, headers });
                 }
 
@@ -6494,17 +6495,31 @@ ${urls.map(u => `  <url>
                 // If invoiceData is provided, auto-save to history
                 if (invoiceData) {
                     const INVOICE_FILE = 'src/data/invoices.json';
-                    const file = await fetchGitHubFile(INVOICE_FILE, gitConfig);
-                    const history = file?.content || [];
+                    const file = await fetchGitHubFile(INVOICE_FILE, { ...gitConfig, bypassCache: true });
+                    const history = Array.isArray(file?.content) ? file.content : [];
+                    const invNum = invoiceData.invoiceNumber || invoiceData.number;
                     const newInvoice = {
                         ...invoiceData,
-                        id: Date.now(),
-                        sentDate: new Date().toISOString(),
-                        paid: false,
+                        id: invoiceData.id || Date.now(),
+                        invoiceNumber: invNum,
+                        number: invNum,
+                        sentDate: invoiceData.sentDate || new Date().toISOString(),
+                        paid: invoiceData.paid ?? false,
                         emailTo: to,
-                        pdfUrl: pdfUrl
+                        pdfUrl: pdfUrl || invoiceData.pdfUrl || ''
                     };
-                    await saveGitHubFile(INVOICE_FILE, [newInvoice, ...history], `Save invoice: ${invoiceData.number}`, file?.sha, gitConfig);
+                    const existingIndex = history.findIndex((inv: any) => 
+                        ((inv.invoiceNumber === invNum || inv.number === invNum) && (inv.type || 'facture') === (invoiceData.type || 'facture')) ||
+                        (invoiceData.id && inv.id === invoiceData.id)
+                    );
+                    let updatedHistory;
+                    if (existingIndex >= 0) {
+                        updatedHistory = [...history];
+                        updatedHistory[existingIndex] = { ...updatedHistory[existingIndex], ...newInvoice };
+                    } else {
+                        updatedHistory = [newInvoice, ...history];
+                    }
+                    await saveGitHubFile(INVOICE_FILE, updatedHistory, `Save invoice: ${invNum || 'new'}`, file?.sha, gitConfig);
                 }
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
@@ -6536,19 +6551,108 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/invoices' && request.method === 'GET') {
             try {
-                const file = await fetchGitHubFile('src/data/invoices.json', gitConfig);
+                const file = await fetchGitHubFile('src/data/invoices.json', { ...gitConfig, bypassCache: true });
                 const responseData = file?.content || [];
                 return new Response(JSON.stringify(responseData), { 
                     status: 200, 
                     headers: { 
                         ...headers, 
-                        'X-Worker-Version': '1.0.6',
+                        'X-Worker-Version': '1.0.7',
                         'X-Debug-Time': Date.now().toString(),
                         'X-Debug-Auth': !!env.GITHUB_TOKEN ? 'YES' : 'NO'
                     } 
                 });
             } catch (e: any) {
                 return new Response(JSON.stringify([]), { status: 200, headers });
+            }
+        }
+
+        if (path === '/api/invoices/save' && request.method === 'POST') {
+            try {
+                const body = await request.json();
+                const invoiceData = body.invoiceData || body;
+                const INVOICE_FILE = 'src/data/invoices.json';
+                const file = await fetchGitHubFile(INVOICE_FILE, { ...gitConfig, bypassCache: true });
+                const history = Array.isArray(file?.content) ? file.content : [];
+                
+                const invNum = invoiceData.invoiceNumber || invoiceData.number;
+                if (!invNum) {
+                    return new Response(JSON.stringify({ error: 'Numéro de facture manquant' }), { status: 400, headers });
+                }
+                
+                const newInvoice = {
+                    ...invoiceData,
+                    id: invoiceData.id || Date.now(),
+                    invoiceNumber: invNum,
+                    number: invNum,
+                    sentDate: invoiceData.sentDate || new Date().toISOString(),
+                    paid: invoiceData.paid ?? false,
+                    emailTo: invoiceData.emailTo || invoiceData.clientEmail || 'Archive',
+                    pdfUrl: invoiceData.pdfUrl || ''
+                };
+
+                const existingIndex = history.findIndex((inv: any) => 
+                    ((inv.invoiceNumber === invNum || inv.number === invNum) && (inv.type || 'facture') === (invoiceData.type || 'facture')) ||
+                    (invoiceData.id && inv.id === invoiceData.id)
+                );
+
+                let updatedHistory;
+                if (existingIndex >= 0) {
+                    updatedHistory = [...history];
+                    updatedHistory[existingIndex] = { ...updatedHistory[existingIndex], ...newInvoice };
+                } else {
+                    updatedHistory = [newInvoice, ...history];
+                }
+
+                const saveRes = await saveGitHubFile(INVOICE_FILE, updatedHistory, `Save invoice: ${invNum}`, file?.sha, gitConfig);
+                if (!saveRes.ok) {
+                    return new Response(JSON.stringify({ error: 'Erreur lors de la sauvegarde GitHub' }), { status: 500, headers });
+                }
+                return new Response(JSON.stringify({ success: true, invoice: newInvoice }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/clients' && request.method === 'GET') {
+            try {
+                const CLIENTS_FILE = 'src/data/clients.json';
+                const file = await fetchGitHubFile(CLIENTS_FILE, { ...gitConfig, bypassCache: true });
+                const clients = Array.isArray(file?.content) ? file.content : [];
+                return new Response(JSON.stringify(clients), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify([]), { status: 200, headers });
+            }
+        }
+
+        if (path === '/api/clients/update' && request.method === 'POST') {
+            try {
+                const body = await request.json();
+                const CLIENTS_FILE = 'src/data/clients.json';
+                const file = await fetchGitHubFile(CLIENTS_FILE, { ...gitConfig, bypassCache: true });
+                let clients = Array.isArray(file?.content) ? file.content : [];
+
+                if (Array.isArray(body.clients)) {
+                    clients = body.clients;
+                } else if (body.client) {
+                    const nc = body.client;
+                    const idx = clients.findIndex((c: any) => c.id === nc.id || (c.name && nc.name && c.name.trim().toLowerCase() === nc.name.trim().toLowerCase()));
+                    if (idx >= 0) {
+                        clients[idx] = { ...clients[idx], ...nc };
+                    } else {
+                        clients = [nc, ...clients];
+                    }
+                } else if (body.deleteId) {
+                    clients = clients.filter((c: any) => c.id !== body.deleteId);
+                }
+
+                const saveRes = await saveGitHubFile(CLIENTS_FILE, clients, `Update clients list (${clients.length} clients)`, file?.sha, gitConfig);
+                if (!saveRes.ok) {
+                    return new Response(JSON.stringify({ error: 'Erreur lors de la sauvegarde des clients' }), { status: 500, headers });
+                }
+                return new Response(JSON.stringify({ success: true, clients }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
         }
 

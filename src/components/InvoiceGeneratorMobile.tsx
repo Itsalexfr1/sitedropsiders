@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, Settings, History, Save, Clock, Download, Printer, RefreshCw, BookOpen } from 'lucide-react';
+import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, Settings, History, Save, Clock, Download, Printer, RefreshCw, BookOpen, Cloud } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ConfirmationModal } from './ConfirmationModal';
@@ -190,12 +190,37 @@ export function InvoiceGeneratorMobile() {
         };
     };
 
+    const autoSaveInvoice = async (invData: any) => {
+        try {
+            const adminUser = localStorage.getItem('admin_user') || '';
+            const adminPass = localStorage.getItem('admin_password') || '';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
+            const res = await fetch('/api/invoices/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Admin-Username': adminUser,
+                    'X-Admin-Password': adminPass,
+                    'X-Session-ID': sessionId
+                },
+                body: JSON.stringify({ invoiceData: invData })
+            });
+            if (res.ok) {
+                fetchHistory();
+            }
+        } catch (e) {
+            console.error('Auto save invoice failed:', e);
+        }
+    };
+
     const downloadArchivePDF = async (invData: any) => {
         await downloadInvoicePDFHelper(invData, (d) => buildHTML(d));
     };
 
     const handleDownloadPDF = async () => {
-        await downloadInvoicePDFHelper(getInvoiceData(), (d) => buildHTML(d));
+        const inv = getInvoiceData();
+        await downloadInvoicePDFHelper(inv, (d) => buildHTML(d));
+        await autoSaveInvoice(inv);
     };
 
     useEffect(() => {
@@ -341,14 +366,81 @@ export function InvoiceGeneratorMobile() {
         } catch { }
     };
 
-    useEffect(() => { fetchHistory(); }, []);
+    const saveClientsToCloud = async (updated: SavedClient[]) => {
+        try {
+            const adminUser = localStorage.getItem('admin_user') || '';
+            const adminPass = localStorage.getItem('admin_password') || '';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
+            await fetch('/api/clients/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Admin-Username': adminUser,
+                    'X-Admin-Password': adminPass,
+                    'X-Session-ID': sessionId
+                },
+                body: JSON.stringify({ clients: updated })
+            });
+        } catch (e) {
+            console.error('Failed to sync clients to cloud:', e);
+        }
+    };
+
+    const fetchClients = async () => {
+        try {
+            const adminUser = localStorage.getItem('admin_user') || '';
+            const adminPass = localStorage.getItem('admin_password') || '';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
+            const res = await fetch('/api/clients?t=' + Date.now(), {
+                headers: { 
+                    'X-Admin-Username': adminUser, 
+                    'X-Admin-Password': adminPass,
+                    'X-Session-ID': sessionId
+                }
+            });
+            if (res.ok) {
+                const cloudClients: SavedClient[] = await res.json();
+                let localClients: SavedClient[] = [];
+                try { localClients = JSON.parse(localStorage.getItem('inv_clients') || '[]'); } catch {}
+                
+                const map = new Map<string, SavedClient>();
+                cloudClients.forEach(c => {
+                    if (c && c.name) map.set(c.name.trim().toLowerCase(), c);
+                });
+                let hasNewLocal = false;
+                localClients.forEach(c => {
+                    if (c && c.name) {
+                        const key = c.name.trim().toLowerCase();
+                        if (!map.has(key)) {
+                            map.set(key, c);
+                            hasNewLocal = true;
+                        }
+                    }
+                });
+                const merged = Array.from(map.values());
+                setSavedClients(merged);
+                localStorage.setItem('inv_clients', JSON.stringify(merged));
+                if (hasNewLocal && merged.length > cloudClients.length) {
+                    await saveClientsToCloud(merged);
+                }
+            }
+        } catch (e) {
+            console.error('Failed to fetch clients from cloud:', e);
+        }
+    };
+
+    useEffect(() => { 
+        fetchHistory(); 
+        fetchClients();
+    }, []);
 
     const addNewClient = () => {
         if (!ncName.trim()) return;
-        const nc = { id: Date.now().toString(), name: ncName, address: ncAddress, city: ncCity, email: ncEmail };
-        const updated = [nc, ...savedClients];
+        const nc = { id: Date.now().toString(), name: ncName.trim(), address: ncAddress, city: ncCity, email: ncEmail };
+        const updated = [nc, ...savedClients.filter(c => c.name.toLowerCase() !== ncName.trim().toLowerCase())];
         setSavedClients(updated);
         localStorage.setItem('inv_clients', JSON.stringify(updated));
+        saveClientsToCloud(updated);
         setNcName(''); setNcAddress(''); setNcCity(''); setNcEmail('');
         setSheet('none');
     };
@@ -373,7 +465,12 @@ export function InvoiceGeneratorMobile() {
 
     const addLine = () => { const nl: InvoiceLine = { id: Date.now().toString(), description: 'Prestation Light', quantity: 1, unitPrice: 0 }; setLines(p => [...p, nl]); setEditingLine(nl); setSheet('line'); };
     const deleteLine = (id: string) => setLines(p => p.filter(l => l.id !== id));
-    const deleteClient = (id: string) => { const u = savedClients.filter(c => c.id !== id); setSavedClients(u); localStorage.setItem('inv_clients', JSON.stringify(u)); };
+    const deleteClient = (id: string) => { 
+        const u = savedClients.filter(c => c.id !== id); 
+        setSavedClients(u); 
+        localStorage.setItem('inv_clients', JSON.stringify(u)); 
+        saveClientsToCloud(u);
+    };
     const updateEditingLine = (field: keyof InvoiceLine, value: string | number) => {
         if (!editingLine) return;
         const updated = { ...editingLine, [field]: value };
@@ -391,9 +488,11 @@ export function InvoiceGeneratorMobile() {
 
     const saveClient = () => {
         if (!clientName.trim()) return;
-        const nc: any = { id: Date.now().toString(), name: clientName, address: clientAddress, city: clientCity, email: clientEmail };
-        const updated = [nc, ...savedClients.filter((c: any) => c.name !== clientName)];
-        setSavedClients(updated); localStorage.setItem('inv_clients', JSON.stringify(updated));
+        const nc: any = { id: Date.now().toString(), name: clientName.trim(), address: clientAddress, city: clientCity, email: clientEmail };
+        const updated = [nc, ...savedClients.filter((c: any) => c.name.toLowerCase() !== clientName.trim().toLowerCase())];
+        setSavedClients(updated); 
+        localStorage.setItem('inv_clients', JSON.stringify(updated));
+        saveClientsToCloud(updated);
     };
 
     const saveSenderSettings = () => { setSender(senderDraft); localStorage.setItem('inv_sender', JSON.stringify(senderDraft)); setSettingsSaved(true); setTimeout(() => setSettingsSaved(false), 2000); };
@@ -528,12 +627,10 @@ export function InvoiceGeneratorMobile() {
             const adminPass = localStorage.getItem('admin_password') || '';
             const sessionId = localStorage.getItem('admin_session_id') || '';
             
-            const res = await fetch('/api/facture/send', { 
+            const res = await fetch('/api/invoices/save', { 
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass, 'X-Session-ID': sessionId }, 
                 body: JSON.stringify({ 
-                    to: clientEmail || 'Archive Mobile', 
-                    skipEmail: true,
                     invoiceData: getInvoiceData()
                 }) 
             });
