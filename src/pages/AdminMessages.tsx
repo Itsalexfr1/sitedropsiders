@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, CheckCircle2, Check, AlertCircle, ShieldAlert, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon, Eye, Ban, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, Calendar, MessageSquare, CheckCircle, CheckCircle2, Check, AlertCircle, ShieldAlert, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon, Eye, Ban, ShieldCheck } from 'lucide-react';
 import { getAuthHeaders, isSuperAdmin, apiFetch, hasPermission } from '../utils/auth';
 
 const EDITOR_COLORS = ['#FF1241', '#00FFFF', '#BF00FF', '#39FF14', '#FFF01F', '#FF5E00', '#E91E63', '#2196F3', '#FF9800', '#4CAF50'];
@@ -804,7 +804,20 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
             const artistName = dj || "[Nom de l’Artiste]";
             const festivalName = festival || "l'EDC Las Vegas";
             const location = festivalName.toLowerCase().includes('edc') ? "Las Vegas" : "le lieu du festival";
-            const dateInfo = date ? `(autour du ${date})` : '';
+            
+            let dateInfo = '';
+            if (date) {
+                const trimmed = date.trim();
+                if (/^(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)/i.test(trimmed)) {
+                    dateInfo = `(le ${trimmed})`;
+                } else if (/^(le |du |autour du |sur tout |tout le )/i.test(trimmed)) {
+                    dateInfo = `(${trimmed})`;
+                } else if (/^week-?end/i.test(trimmed)) {
+                    dateInfo = `(sur le ${trimmed})`;
+                } else {
+                    dateInfo = `(autour du ${trimmed})`;
+                }
+            }
             const formatText = isVideo ? "Interview Vidéo (format réseaux sociaux)" : "Interview Écrite";
 
             return `Hello,
@@ -834,7 +847,20 @@ Alex (Dropsiders)`;
             const artistNameEN = dj || "[Artist Name]";
             const festivalNameEN = festival || "EDC Las Vegas";
             const locationEN = festivalNameEN.toLowerCase().includes('edc') ? "Las Vegas" : "the festival location";
-            const dateInfoEN = date ? `(around ${date})` : '';
+            
+            let dateInfoEN = '';
+            if (date) {
+                const trimmed = date.trim();
+                if (/^(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i.test(trimmed)) {
+                    dateInfoEN = `(on ${trimmed})`;
+                } else if (/^(on |around |throughout |all )/i.test(trimmed)) {
+                    dateInfoEN = `(${trimmed})`;
+                } else if (/^weekend/i.test(trimmed)) {
+                    dateInfoEN = `(over the ${trimmed})`;
+                } else {
+                    dateInfoEN = `(around ${trimmed})`;
+                }
+            }
             const formatTextEN = isVideo ? "Video interview (social media format)" : "Written interview";
 
             return `Hello,
@@ -2006,15 +2032,80 @@ Alex (Dropsiders)`;
                                                                 placeholder="Tomorrowland, Paris, etc."
                                                             />
                                                         </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Date / Créneau</label>
-                                                            <input
-                                                                type="text"
-                                                                value={interviewDate}
-                                                                onChange={(e) => setInterviewDate(e.target.value)}
-                                                                className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-neon-red"
-                                                                placeholder="Samedi 12 Juillet - 18h"
-                                                            />
+                                                         <div className="space-y-1.5">
+                                                            <div className="flex items-center justify-between">
+                                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1">
+                                                                    <Clock className="w-3 h-3 text-neon-red" /> Date / Créneau
+                                                                </label>
+                                                                <label className="cursor-pointer flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-neon-red hover:text-white transition-colors bg-white/5 hover:bg-white/10 border border-white/10 px-2 py-0.5 rounded-lg">
+                                                                    <Calendar className="w-3 h-3" />
+                                                                    <span>Calendrier</span>
+                                                                    <input
+                                                                        type="date"
+                                                                        className="sr-only"
+                                                                        onChange={(e) => {
+                                                                            if (!e.target.value) return;
+                                                                            const [y, m, d] = e.target.value.split('-').map(Number);
+                                                                            const pickedDate = new Date(y, m - 1, d);
+                                                                            const formatted = pickedDate.toLocaleDateString(accreditationLang === 'FR' ? 'fr-FR' : 'en-US', {
+                                                                                weekday: 'long',
+                                                                                day: 'numeric',
+                                                                                month: 'long'
+                                                                            });
+                                                                            const capitalized = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+                                                                            setInterviewDate(capitalized);
+                                                                        }}
+                                                                    />
+                                                                </label>
+                                                            </div>
+
+                                                            {/* Sélecteur de jour rapide */}
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {(accreditationLang === 'FR'
+                                                                    ? ['Vendredi', 'Samedi', 'Dimanche', 'Jeudi', 'Week-end']
+                                                                    : ['Friday', 'Saturday', 'Sunday', 'Thursday', 'Weekend']
+                                                                ).map((day) => {
+                                                                    const isSelected = interviewDate.toLowerCase().includes(day.toLowerCase());
+                                                                    return (
+                                                                        <button
+                                                                            key={day}
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                const timeMatch = interviewDate.match(/(-.*|\d{1,2}h.*)/);
+                                                                                const timePart = timeMatch ? ` ${timeMatch[0].trim()}` : '';
+                                                                                setInterviewDate(`${day}${timePart}`);
+                                                                            }}
+                                                                            className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider transition-all border ${
+                                                                                isSelected
+                                                                                    ? 'bg-neon-red text-white border-neon-red shadow-[0_0_8px_rgba(255,18,65,0.4)]'
+                                                                                    : 'bg-black/40 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                                                            }`}
+                                                                        >
+                                                                            {day}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+
+                                                            <div className="relative">
+                                                                <input
+                                                                    type="text"
+                                                                    value={interviewDate}
+                                                                    onChange={(e) => setInterviewDate(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-neon-red placeholder:text-gray-600"
+                                                                    placeholder={accreditationLang === 'FR' ? "Ex: Samedi 12 Juillet - 18h" : "Ex: Saturday July 12 - 6pm"}
+                                                                />
+                                                                {interviewDate && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setInterviewDate('')}
+                                                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white p-1"
+                                                                        title="Effacer"
+                                                                    >
+                                                                        <X className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
