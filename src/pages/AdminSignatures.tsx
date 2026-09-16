@@ -234,21 +234,21 @@ export function AdminSignatures() {
         if (spotify && spotify !== '#') socialsList.push({ label: 'Spotify', url: spotify });
 
         const socialLinksHtml = socialsList.map(s => (
-            `<a href="${s.url}" target="_blank" style="color: ${accentColor}; font-weight: 700; text-decoration: none; font-size: 11px; margin-right: 10px; display: inline-block;">${s.label} &rarr;</a>`
+            `<a href="${s.url}" target="_blank" style="color: ${accentColor}; font-weight: 700; text-decoration: none; font-size: 9.5px; margin-right: 8px; display: inline-block;">${s.label} &rarr;</a>`
         )).join('');
 
         if (template === 'minimal') {
             return `
-<table cellpadding="0" cellspacing="0" border="0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.4; color: ${isNegativeLogo ? '#1a1a1a' : '#ffffff'}; max-width: 520px;">
+<table cellpadding="0" cellspacing="0" border="0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; line-height: 1.35; color: ${isNegativeLogo ? '#1a1a1a' : '#ffffff'}; max-width: 380px; width: 100%;">
     <tr>
-        <td style="padding-bottom: 8px;">
-            <span style="font-size: 15px; font-weight: 900; color: ${isNegativeLogo ? '#000000' : '#ffffff'}; text-transform: uppercase; letter-spacing: 0.5px;">${name || 'Dropsiders'}</span>
-            <span style="color: ${isNegativeLogo ? '#999999' : '#555555'}; margin: 0 6px;">|</span>
-            <span style="font-size: 12px; font-weight: 700; color: ${accentColor}; text-transform: uppercase;">${role}</span>
+        <td style="padding-bottom: 6px;">
+            <span style="font-size: 13px; font-weight: 900; color: ${isNegativeLogo ? '#000000' : '#ffffff'}; text-transform: uppercase; letter-spacing: 0.4px;">${name || 'Dropsiders'}</span>
+            <span style="color: ${isNegativeLogo ? '#999999' : '#555555'}; margin: 0 5px;">|</span>
+            <span style="font-size: 10px; font-weight: 700; color: ${accentColor}; text-transform: uppercase;">${role}</span>
         </td>
     </tr>
     <tr>
-        <td style="border-top: 2px solid ${accentColor}; padding-top: 8px; font-size: 12px; color: ${isNegativeLogo ? '#555555' : '#aaaaaa'};">
+        <td style="border-top: 2px solid ${accentColor}; padding-top: 6px; font-size: 10px; color: ${isNegativeLogo ? '#555555' : '#aaaaaa'};">
             <a href="mailto:${email}" style="color: ${isNegativeLogo ? '#111111' : '#00e5ff'}; text-decoration: none; font-weight: 600;">${email}</a>
             ${phone ? ` &nbsp;•&nbsp; <span style="color: ${isNegativeLogo ? '#555555' : '#cccccc'};">${phone}</span>` : ''}
             &nbsp;•&nbsp; <a href="${website}" target="_blank" style="color: ${accentColor}; text-decoration: none; font-weight: 700;">${cleanSite}</a>
@@ -256,7 +256,7 @@ export function AdminSignatures() {
     </tr>
     ${socialsList.length > 0 ? `
     <tr>
-        <td style="padding-top: 6px;">
+        <td style="padding-top: 5px;">
             ${socialLinksHtml}
         </td>
     </tr>` : ''}
@@ -264,54 +264,54 @@ export function AdminSignatures() {
         }
 
         const isLogoAvatar = Boolean(avatarUrl && (avatarUrl.includes('apple-touch-icon') || avatarUrl.includes('logo') || avatarUrl.includes('icon')));
-        const avatarRadius = isLogoAvatar ? '12px' : '50%';
+        const avatarRadius = isLogoAvatar ? '8px' : '50%';
 
         if (template === 'card') {
             if (isNegativeLogo) {
                 // LIGHT CARD WITH NEGATIVE (BLACK) LOGO FOR WHITE/LIGHT BACKGROUNDS
                 return `
-<table width="480" cellpadding="0" cellspacing="0" border="0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12.5px; line-height: 1.35; color: #111827; width: 480px; max-width: 480px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px;">
+<table width="380" cellpadding="0" cellspacing="0" border="0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; line-height: 1.35; color: #111827; width: 380px; max-width: 380px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 9px 12px;">
     <tr>
-        <td style="padding-bottom: 8px;">
+        <td style="padding-bottom: 6px;">
             <table cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
                 <tr>
                     ${showAvatar && avatarUrl ? `
-                    <td valign="top" style="padding-right: 12px; width: 52px;">
-                        <img src="${avatarUrl}" alt="${name}" width="48" height="48" style="display: block; width: 48px; height: 48px; border-radius: ${avatarRadius}; object-fit: cover; border: 2px solid ${accentColor}; background-color: #000000;" />
+                    <td valign="top" style="padding-right: 10px; width: 42px;">
+                        <img src="${avatarUrl}" alt="${name}" width="38" height="38" style="display: block; width: 38px; height: 38px; border-radius: ${avatarRadius}; object-fit: cover; border: 1.5px solid ${accentColor}; background-color: #000000;" />
                     </td>` : ''}
                     <td valign="top">
                         <table cellpadding="0" cellspacing="0" border="0">
                             <tr>
                                 <td>
-                                    <div style="font-size: 13.5px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2;">${name || 'DROPSIDERS'}</div>
-                                    <div style="font-size: 10.5px; font-weight: 800; color: ${accentColor}; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 2px;">${role}</div>
+                                    <div style="font-size: 12px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.4px; line-height: 1.2;">${name || 'DROPSIDERS'}</div>
+                                    <div style="font-size: 9.5px; font-weight: 800; color: ${accentColor}; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 1px;">${role}</div>
                                     ${showBadge ? `
-                                    <div style="margin-top: 4px;">
-                                        <span style="display: inline-block; background-color: #f1f5f9; border: 1px solid rgba(59, 130, 246, 0.4); color: #1e3a8a; font-size: 8px; font-weight: 800; padding: 2px 7px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.4px;">
+                                    <div style="margin-top: 3px;">
+                                        <span style="display: inline-block; background-color: #f1f5f9; border: 1px solid rgba(59, 130, 246, 0.4); color: #1e3a8a; font-size: 7px; font-weight: 800; padding: 1.5px 6px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.3px;">
                                             🛡️ MÉDIAS &amp; PRESSE ACCRÉDITÉE
                                         </span>
                                     </div>` : ''}
                                 </td>
                             </tr>
                             <tr>
-                                <td style="padding-top: 5px; font-size: 11px; line-height: 1.45;">
-                                    <div><span style="color: #64748b; margin-right: 6px;">✉</span><a href="mailto:${email}" style="color: #0284c7; text-decoration: none; font-weight: 600;">${email}</a></div>
-                                    ${phone ? `<div style="margin-top: 2px;"><span style="color: ${accentColor}; margin-right: 6px;">📞</span><span style="color: #0f172a; font-weight: 600;">${phone}</span></div>` : ''}
-                                    <div style="margin-top: 2px;"><span style="color: #64748b; margin-right: 6px;">🌐</span><a href="${website}" target="_blank" style="color: ${accentColor}; text-decoration: none; font-weight: 700;">${cleanSite}</a></div>
+                                <td style="padding-top: 4px; font-size: 10px; line-height: 1.4;">
+                                    <div><span style="color: #64748b; margin-right: 5px;">✉</span><a href="mailto:${email}" style="color: #0284c7; text-decoration: none; font-weight: 600;">${email}</a></div>
+                                    ${phone ? `<div style="margin-top: 1px;"><span style="color: ${accentColor}; margin-right: 5px;">📞</span><span style="color: #0f172a; font-weight: 600;">${phone}</span></div>` : ''}
+                                    <div style="margin-top: 1px;"><span style="color: #64748b; margin-right: 5px;">🌐</span><a href="${website}" target="_blank" style="color: ${accentColor}; text-decoration: none; font-weight: 700;">${cleanSite}</a></div>
                                 </td>
                             </tr>
                             ${socialsList.length > 0 ? `
                             <tr>
-                                <td style="padding-top: 6px;">
+                                <td style="padding-top: 5px;">
                                     ${socialLinksHtml}
                                 </td>
                             </tr>` : ''}
                         </table>
                     </td>
-                    <td valign="top" align="right" style="padding-left: 10px; width: 95px;">
+                    <td valign="top" align="right" style="padding-left: 8px; width: 72px;">
                         <a href="${website}" target="_blank" style="text-decoration: none; display: inline-block; text-align: center;">
-                            <img src="${currentPresLogoUrl}" alt="DROPSIDERS.FR" width="85" style="display: block; width: 85px; height: auto;" />
-                            <div style="font-size: 7.5px; font-weight: 800; color: #0f172a; text-align: center; letter-spacing: 0.5px; margin-top: 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">WWW.DROPSIDERS.FR</div>
+                            <img src="${currentPresLogoUrl}" alt="DROPSIDERS.FR" width="65" style="display: block; width: 65px; height: auto;" />
+                            <div style="font-size: 6.5px; font-weight: 800; color: #0f172a; text-align: center; letter-spacing: 0.4px; margin-top: 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">WWW.DROPSIDERS.FR</div>
                         </a>
                     </td>
                 </tr>
@@ -320,13 +320,13 @@ export function AdminSignatures() {
     </tr>
     ${showTagline || showLegalDisclaimer ? `
     <tr>
-        <td style="border-top: 1px solid #e2e8f0; padding-top: 6px;">
+        <td style="border-top: 1px solid #e2e8f0; padding-top: 5px;">
             ${showTagline ? `
-            <div style="font-size: 8.5px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.3px;">
+            <div style="font-size: 7.5px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.3px;">
                 DROPSIDERS - LE MÉDIA 100% MUSIQUES ÉLECTRONIQUES, FESTIVALS &amp; CULTURE CLUBBING
             </div>` : ''}
             ${showLegalDisclaimer ? `
-            <div style="font-size: 7.5px; color: #94a3b8; margin-top: 3px; line-height: 1.3;">
+            <div style="font-size: 6.8px; color: #94a3b8; margin-top: 2px; line-height: 1.25;">
                 Ce message et les pièces jointes sont confidentiels et destinés exclusivement au destinataire. Si vous avez reçu ce message par erreur, merci de le supprimer immédiatement.
             </div>` : ''}
         </td>
@@ -336,48 +336,48 @@ export function AdminSignatures() {
 
             // DARK CARD WITH WHITE LOGO FOR DARK BACKGROUNDS
             return `
-<table width="480" cellpadding="0" cellspacing="0" border="0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12.5px; line-height: 1.35; color: #ffffff; width: 480px; max-width: 480px; background-color: #0d0e12; border: 1px solid #23262f; border-radius: 12px; padding: 12px 14px;">
+<table width="380" cellpadding="0" cellspacing="0" border="0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; line-height: 1.35; color: #ffffff; width: 380px; max-width: 380px; background-color: #0d0e12; border: 1px solid #23262f; border-radius: 10px; padding: 9px 12px;">
     <tr>
-        <td style="padding-bottom: 8px;">
+        <td style="padding-bottom: 6px;">
             <table cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
                 <tr>
                     ${showAvatar && avatarUrl ? `
-                    <td valign="top" style="padding-right: 12px; width: 52px;">
-                        <img src="${avatarUrl}" alt="${name}" width="48" height="48" style="display: block; width: 48px; height: 48px; border-radius: ${avatarRadius}; object-fit: cover; border: 2px solid ${accentColor}; background-color: #000000;" />
+                    <td valign="top" style="padding-right: 10px; width: 42px;">
+                        <img src="${avatarUrl}" alt="${name}" width="38" height="38" style="display: block; width: 38px; height: 38px; border-radius: ${avatarRadius}; object-fit: cover; border: 1.5px solid ${accentColor}; background-color: #000000;" />
                     </td>` : ''}
                     <td valign="top">
                         <table cellpadding="0" cellspacing="0" border="0">
                             <tr>
                                 <td>
-                                    <div style="font-size: 13.5px; font-weight: 900; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2;">${name || 'ALEXANDRE'}</div>
-                                    <div style="font-size: 10.5px; font-weight: 800; color: ${accentColor}; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 2px;">${role}</div>
+                                    <div style="font-size: 12px; font-weight: 900; color: #ffffff; text-transform: uppercase; letter-spacing: 0.4px; line-height: 1.2;">${name || 'ALEXANDRE'}</div>
+                                    <div style="font-size: 9.5px; font-weight: 800; color: ${accentColor}; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 1px;">${role}</div>
                                     ${showBadge ? `
-                                    <div style="margin-top: 4px;">
-                                        <span style="display: inline-block; background-color: #080d16; border: 1px solid rgba(59, 130, 246, 0.4); color: #ffffff; font-size: 8px; font-weight: 800; padding: 2px 7px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.4px;">
+                                    <div style="margin-top: 3px;">
+                                        <span style="display: inline-block; background-color: #080d16; border: 1px solid rgba(59, 130, 246, 0.4); color: #ffffff; font-size: 7px; font-weight: 800; padding: 1.5px 6px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.3px;">
                                             🛡️ MÉDIAS &amp; PRESSE ACCRÉDITÉE
                                         </span>
                                     </div>` : ''}
                                 </td>
                             </tr>
                             <tr>
-                                <td style="padding-top: 5px; font-size: 11px; line-height: 1.45;">
-                                    <div><span style="color: #ffffff; margin-right: 6px;">✉</span><a href="mailto:${email}" style="color: #00f0ff; text-decoration: none; font-weight: 600;">${email}</a></div>
-                                    ${phone ? `<div style="margin-top: 2px;"><span style="color: ${accentColor}; margin-right: 6px;">📞</span><span style="color: #ffffff; font-weight: 600;">${phone}</span></div>` : ''}
-                                    <div style="margin-top: 2px;"><span style="color: #00f0ff; margin-right: 6px;">🌐</span><a href="${website}" target="_blank" style="color: ${accentColor}; text-decoration: none; font-weight: 700;">${cleanSite}</a></div>
+                                <td style="padding-top: 4px; font-size: 10px; line-height: 1.4;">
+                                    <div><span style="color: #ffffff; margin-right: 5px;">✉</span><a href="mailto:${email}" style="color: #00f0ff; text-decoration: none; font-weight: 600;">${email}</a></div>
+                                    ${phone ? `<div style="margin-top: 1px;"><span style="color: ${accentColor}; margin-right: 5px;">📞</span><span style="color: #ffffff; font-weight: 600;">${phone}</span></div>` : ''}
+                                    <div style="margin-top: 1px;"><span style="color: #00f0ff; margin-right: 5px;">🌐</span><a href="${website}" target="_blank" style="color: ${accentColor}; text-decoration: none; font-weight: 700;">${cleanSite}</a></div>
                                 </td>
                             </tr>
                             ${socialsList.length > 0 ? `
                             <tr>
-                                <td style="padding-top: 6px;">
+                                <td style="padding-top: 5px;">
                                     ${socialLinksHtml}
                                 </td>
                             </tr>` : ''}
                         </table>
                     </td>
-                    <td valign="top" align="right" style="padding-left: 10px; width: 95px;">
+                    <td valign="top" align="right" style="padding-left: 8px; width: 72px;">
                         <a href="${website}" target="_blank" style="text-decoration: none; display: inline-block; text-align: center;">
-                            <img src="${currentPresLogoUrl}" alt="DROPSIDERS.FR" width="85" style="display: block; width: 85px; height: auto;" />
-                            <div style="font-size: 7.5px; font-weight: 800; color: #ffffff; text-align: center; letter-spacing: 0.5px; margin-top: 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">WWW.DROPSIDERS.FR</div>
+                            <img src="${currentPresLogoUrl}" alt="DROPSIDERS.FR" width="65" style="display: block; width: 65px; height: auto;" />
+                            <div style="font-size: 6.5px; font-weight: 800; color: #ffffff; text-align: center; letter-spacing: 0.4px; margin-top: 2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">WWW.DROPSIDERS.FR</div>
                         </a>
                     </td>
                 </tr>
@@ -386,13 +386,13 @@ export function AdminSignatures() {
     </tr>
     ${showTagline || showLegalDisclaimer ? `
     <tr>
-        <td style="border-top: 1px solid rgba(255, 255, 255, 0.12); padding-top: 6px;">
+        <td style="border-top: 1px solid rgba(255, 255, 255, 0.12); padding-top: 5px;">
             ${showTagline ? `
-            <div style="font-size: 8.5px; font-weight: 800; color: #d1d5db; text-transform: uppercase; letter-spacing: 0.3px;">
+            <div style="font-size: 7.5px; font-weight: 800; color: #d1d5db; text-transform: uppercase; letter-spacing: 0.3px;">
                 DROPSIDERS - LE MÉDIA 100% MUSIQUES ÉLECTRONIQUES, FESTIVALS &amp; CULTURE CLUBBING
             </div>` : ''}
             ${showLegalDisclaimer ? `
-            <div style="font-size: 7.5px; color: #6b7280; margin-top: 3px; line-height: 1.3;">
+            <div style="font-size: 6.8px; color: #6b7280; margin-top: 2px; line-height: 1.25;">
                 Ce message et les pièces jointes sont confidentiels et destinés exclusivement au destinataire. Si vous avez reçu ce message par erreur, merci de le supprimer immédiatement.
             </div>` : ''}
         </td>
@@ -402,39 +402,39 @@ export function AdminSignatures() {
 
         // DEFAULT TEMPLATE: 'neon' (Vertical accent line with Logo Dropsiders on the left)
         return `
-<table width="460" cellpadding="0" cellspacing="0" border="0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12.5px; line-height: 1.35; color: ${isNegativeLogo ? '#1a1a1a' : '#ffffff'}; width: 460px; max-width: 460px;">
+<table width="380" cellpadding="0" cellspacing="0" border="0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; line-height: 1.35; color: ${isNegativeLogo ? '#1a1a1a' : '#ffffff'}; width: 380px; max-width: 380px;">
     <tr>
         <!-- LOGO DROPSIDERS -->
-        <td valign="middle" align="center" style="padding-right: 18px; width: 85px;">
+        <td valign="middle" align="center" style="padding-right: 12px; width: 72px;">
             <a href="${website}" target="_blank" style="text-decoration: none;">
-                <img src="${currentLogoUrl}" alt="Dropsiders" width="80" style="display: block; width: 80px; height: auto;" />
+                <img src="${currentLogoUrl}" alt="Dropsiders" width="65" style="display: block; width: 65px; height: auto;" />
             </a>
             ${showAvatar && avatarUrl ? `
-            <div style="margin-top: 8px;">
-                <img src="${avatarUrl}" alt="${name}" width="42" height="42" style="display: block; width: 42px; height: 42px; border-radius: ${isLogoAvatar ? '10px' : '50%'}; object-fit: cover; margin: 0 auto; border: 1px solid ${accentColor}; background-color: #000000;" />
+            <div style="margin-top: 6px;">
+                <img src="${avatarUrl}" alt="${name}" width="34" height="34" style="display: block; width: 34px; height: 34px; border-radius: ${isLogoAvatar ? '8px' : '50%'}; object-fit: cover; margin: 0 auto; border: 1px solid ${accentColor}; background-color: #000000;" />
             </div>` : ''}
         </td>
 
         <!-- ACCENT BAR -->
-        <td width="3" style="width: 3px; background-color: ${accentColor}; border-radius: 2px;"></td>
+        <td width="2" style="width: 2px; background-color: ${accentColor}; border-radius: 2px;"></td>
 
         <!-- DETAILS -->
-        <td valign="top" style="padding-left: 18px;">
-            <div style="font-size: 16px; font-weight: 900; color: ${isNegativeLogo ? '#000000' : '#ffffff'}; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
+        <td valign="top" style="padding-left: 12px;">
+            <div style="font-size: 13.5px; font-weight: 900; color: ${isNegativeLogo ? '#000000' : '#ffffff'}; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px;">
                 ${name || 'Dropsiders'}
             </div>
-            <div style="font-size: 12px; font-weight: 800; color: ${accentColor}; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+            <div style="font-size: 10px; font-weight: 800; color: ${accentColor}; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px;">
                 ${role}
             </div>
 
             ${showBadge ? `
-            <div style="margin-bottom: 6px;">
-                <span style="background-color: ${isNegativeLogo ? '#050505' : '#ffffff'}; color: ${isNegativeLogo ? '#ffffff' : '#000000'}; font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+            <div style="margin-bottom: 4px;">
+                <span style="background-color: ${isNegativeLogo ? '#050505' : '#ffffff'}; color: ${isNegativeLogo ? '#ffffff' : '#000000'}; font-size: 7.5px; font-weight: 800; padding: 1.5px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.4px;">
                     ⚡ Média Électronique Officiel
                 </span>
             </div>` : ''}
 
-            <table cellpadding="0" cellspacing="0" border="0" style="font-size: 12px; color: ${isNegativeLogo ? '#374151' : '#d1d5db'}; margin-top: 4px;">
+            <table cellpadding="0" cellspacing="0" border="0" style="font-size: 10px; color: ${isNegativeLogo ? '#374151' : '#d1d5db'}; margin-top: 3px;">
                 <tr>
                     <td style="padding: 1px 0;">
                         <span style="color: ${accentColor}; font-weight: 700;">Email:</span> 
@@ -457,20 +457,20 @@ export function AdminSignatures() {
             </table>
 
             ${socialsList.length > 0 ? `
-            <div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed ${isNegativeLogo ? '#e5e7eb' : 'rgba(255,255,255,0.15)'};">
+            <div style="margin-top: 6px; padding-top: 4px; border-top: 1px dashed ${isNegativeLogo ? '#e5e7eb' : 'rgba(255,255,255,0.15)'};">
                 ${socialLinksHtml}
             </div>` : ''}
         </td>
     </tr>
     ${showTagline ? `
     <tr>
-        <td colspan="3" style="padding-top: 10px; font-size: 10px; color: #9ca3af; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">
+        <td colspan="3" style="padding-top: 8px; font-size: 7.5px; color: #9ca3af; text-transform: uppercase; font-weight: 700; letter-spacing: 0.4px;">
             DROPSIDERS • Le média 100% musiques électroniques, festivals & culture clubbing
         </td>
     </tr>` : ''}
     ${showLegalDisclaimer ? `
     <tr>
-        <td colspan="3" style="padding-top: 6px; font-size: 9px; color: #9ca3af; line-height: 1.3;">
+        <td colspan="3" style="padding-top: 4px; font-size: 6.8px; color: #9ca3af; line-height: 1.25;">
             Ce message et toutes les pièces jointes sont confidentiels et destinés uniquement à leur destinataire. Si vous avez reçu ce courriel par erreur, veuillez en informer l'expéditeur et le supprimer.
         </td>
     </tr>` : ''}
@@ -1270,8 +1270,8 @@ ${rawHtml}
                                                 </div>
 
                                                 {/* RENDERED SIGNATURE IN IPHONE */}
-                                                <div className="pt-2 border-t border-dashed border-gray-200 dark:border-neutral-800 overflow-x-auto">
-                                                    <div dangerouslySetInnerHTML={{ __html: rawHtml }} />
+                                                <div className="pt-2 border-t border-dashed border-gray-200 dark:border-neutral-800 overflow-x-auto flex justify-center">
+                                                    <div dangerouslySetInnerHTML={{ __html: rawHtml }} className="max-w-full" />
                                                 </div>
                                             </div>
                                         </div>
