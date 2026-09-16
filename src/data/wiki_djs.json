@@ -24,7 +24,7 @@
     "bio": "Adam Beyer est un DJ et producteur suédois incontournable, figure de proue de la scène techno mondiale. Fondateur du prestigieux label Drumcode, il a façonné le son de la techno moderne par ses sets puissants et sa séléection rigoureuse. Son influence s'étend sur plusieurs décennies, faisant de lui l'un des artistes les plus respectés et une tête d'affiche permanente des clubs et festivals underground.",
     "country": "Intl",
     "image": "https://cdn-images.dzcdn.net/images/artist/d7734315ee4f0fa9e40cfd622c4ddf92/1000x1000-000000-80-0-0.jpg",
-    "rating": "0",
+    "rating": "1",
     "spotify": "https://open.spotify.com/search/Adam%20Beyer",
     "instagram": "https://instagram.com/adambeyer",
     "facebook": "https://facebook.com/adambeyer",
@@ -35,7 +35,8 @@
       "Lazer Beams",
       "Your Mind",
       "DNA"
-    ]
+    ],
+    "votes": 1
   },
   {
     "id": "7",
