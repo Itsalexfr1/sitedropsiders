@@ -1312,7 +1312,7 @@
     "recipient": "alex@dropsiders.fr",
     "attachments": [],
     "date": "2026-09-16T09:33:58.120Z",
-    "read": false,
+    "read": true,
     "replied": false
   }
 ]
