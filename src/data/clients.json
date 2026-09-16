@@ -12,5 +12,12 @@
     "address": "",
     "city": "",
     "email": ""
+  },
+  {
+    "id": "1773944049051",
+    "name": "Quai St Lazare - le Bokaos",
+    "address": "9 Impasse du Quai St Lazare",
+    "city": "84000 Avignon",
+    "email": "bureau.bokaos@gmail.com"
   }
 ]
