@@ -79,6 +79,7 @@ import {
   Tv,
   Radio,
   Music2,
+  Monitor,
 } from "lucide-react";
 
 
@@ -1180,7 +1181,7 @@ export function AdminDashboard() {
     };
   }, []);
 
-  const toggleRadioActive = (e?: React.MouseEvent) => {
+  const toggleRadioActive = async (e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -1189,6 +1190,15 @@ export function AdminDashboard() {
     setIsRadioActive(next);
     localStorage.setItem('dropsiders_radio_enabled', next ? 'true' : 'false');
     window.dispatchEvent(new Event('dropsiders_radio_toggle'));
+    // Persiste aussi côté serveur pour que TOUS les visiteurs voient la radio
+    try {
+      const adminPass = localStorage.getItem('admin_password') || '';
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Password': adminPass },
+        body: JSON.stringify({ radio_enabled: next })
+      });
+    } catch {}
   };
 
   const DASHBOARD_TABS = [
@@ -2585,7 +2595,7 @@ export function AdminDashboard() {
     {
       title: "Contenu",
       description: "News, Musique, Interviews...",
-      icon: "FileText",
+      icon: "Music2",
       category: "NEWS",
       link: "#",
       color: "border-neon-cyan/20 hover:border-neon-cyan",
@@ -2625,7 +2635,7 @@ export function AdminDashboard() {
     {
       title: "Dropsiders TV",
       description: "Programmation des liens YouTube & Diffusion TV",
-      icon: "Tv",
+      icon: "Monitor",
       category: "DROPSIDERS_TV",
       link: "#DROPSIDERS_TV",
       color: "border-neon-red/20 hover:border-neon-red",
@@ -2754,7 +2764,7 @@ export function AdminDashboard() {
     {
       title: "Documents PDF",
       description: "Hébergement & Partage",
-      icon: "Download",
+      icon: "Database",
       category: "WIKI",
       link: "/admin/pdfs",
       color: "border-neon-cyan/20 hover:border-neon-cyan",
@@ -2783,7 +2793,7 @@ export function AdminDashboard() {
     {
       title: "Accueil",
       description: "Sections & Vues",
-      icon: "LayoutDashboard",
+      icon: "Home",
       category: "ALL",
       link: "#",
       color: "border-neon-cyan/20 hover:border-neon-cyan",
@@ -2797,7 +2807,7 @@ export function AdminDashboard() {
     {
       title: "Top Dropsiders",
       description: "Résultats des votes",
-      icon: "Star",
+      icon: "Trophy",
       category: "WIKI",
       link: "#",
       color: "border-neon-yellow/20 hover:border-neon-yellow",
@@ -2978,6 +2988,30 @@ export function AdminDashboard() {
         );
       case "Palette":
         return <Palette className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+      case "Sparkles":
+        return <Sparkles className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+      case "HardDrive":
+        return <HardDrive className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+      case "Star":
+        return <Star className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+      case "Trophy":
+        return <Trophy className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+      case "Home":
+        return <Home className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+      case "Tv":
+        return <Tv className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+      case "Monitor":
+        return <Monitor className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+      case "Radio":
+        return <Radio className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+      case "Music2":
+        return <Music2 className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+      case "Database":
+        return <Database className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+      case "Globe":
+        return <Globe className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+      case "QrCode":
+        return <QrCode className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
       default:
         return (
           <FileText className={`w-8 h-8 ${colorClass}`} style={colorStyle} />

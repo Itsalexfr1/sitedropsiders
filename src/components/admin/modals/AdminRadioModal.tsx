@@ -15,7 +15,11 @@ import {
     Music2, 
     Search, 
     Check, 
-    Clock
+    Clock,
+    Tv,
+    Import,
+    Library,
+    ListPlus
 } from 'lucide-react';
 import { extractYouTubeId } from './AdminTVModal';
 import { DEFAULT_TV_BLOCKS, formatDurationExact, parseArtistAndEvent } from '../../../utils/tvSchedule';
@@ -89,6 +93,11 @@ export function AdminRadioModal({
     // Filtres & Recherche
     const [activeTab, setActiveTab] = useState<'all' | 'liveset' | 'clip'>('all');
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Onglet principal (Rotation | Bibliothèque TV)
+    const [mainTab, setMainTab] = useState<'rotation' | 'library'>('rotation');
+    const [libSearchQuery, setLibSearchQuery] = useState('');
+    const [libFilter, setLibFilter] = useState<'all' | 'liveset' | 'clip'>('all');
 
     // Édition inline
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -293,6 +302,75 @@ export function AdminRadioModal({
         });
     }, [tracks, activeTab, searchQuery]);
 
+    // Bibliothèque TV — toutes les vidéos disponibles dans DEFAULT_TV_BLOCKS
+    const tvLibrary = useMemo(() => {
+        const items: Array<{ block: string; blockColor: string; blockEmoji: string; track: RadioTrack }> = [];
+        DEFAULT_TV_BLOCKS.forEach(block => {
+            (block.videos || []).forEach(vid => {
+                if (!vid.youtubeId) return;
+                const { artist } = parseArtistAndEvent(vid.title);
+                const isClip = block.id === 'bloc_1' || vid.category === 'clip' || /clip|official video/i.test(vid.title);
+                const track: RadioTrack = {
+                    id: `lib_${vid.youtubeId}`,
+                    title: vid.title,
+                    artist: artist || 'Artiste',
+                    youtubeId: vid.youtubeId,
+                    duration: vid.duration || (isClip ? 240 : 3600),
+                    category: isClip ? 'clip' : 'liveset',
+                    addedAt: Date.now()
+                };
+                items.push({
+                    block: block.title,
+                    blockColor: block.color || '#00ffff',
+                    blockEmoji: block.emoji || '🎪',
+                    track
+                });
+            });
+        });
+        return items;
+    }, []);
+
+    const filteredLibrary = useMemo(() => {
+        return tvLibrary.filter(item => {
+            if (libFilter !== 'all' && item.track.category !== libFilter) return false;
+            if (libSearchQuery.trim()) {
+                const q = libSearchQuery.toLowerCase();
+                return item.track.title.toLowerCase().includes(q)
+                    || item.track.artist.toLowerCase().includes(q)
+                    || item.block.toLowerCase().includes(q);
+            }
+            return true;
+        });
+    }, [tvLibrary, libFilter, libSearchQuery]);
+
+    const isInRotation = (youtubeId: string) => tracks.some(t => t.youtubeId === youtubeId);
+
+    const handleImportFromLibrary = (item: typeof tvLibrary[0]) => {
+        if (isInRotation(item.track.youtubeId)) {
+            // Retirer de la rotation si déjà présent
+            const updated = tracks.filter(t => t.youtubeId !== item.track.youtubeId);
+            saveTracks(updated, `Retiré de la rotation : ${item.track.title}`);
+        } else {
+            const newTrack: RadioTrack = {
+                ...item.track,
+                id: `radio_${item.track.youtubeId}_${Date.now()}`,
+                addedAt: Date.now()
+            };
+            saveTracks([newTrack, ...tracks], `Ajouté à la rotation : ${item.track.title}`);
+        }
+    };
+
+    const handleImportBlock = (blockTitle: string) => {
+        const blockItems = filteredLibrary.filter(i => i.block === blockTitle && !isInRotation(i.track.youtubeId));
+        if (blockItems.length === 0) return;
+        const newTracks = blockItems.map(item => ({
+            ...item.track,
+            id: `radio_${item.track.youtubeId}_${Date.now()}_${Math.random().toString(36).slice(2,5)}`,
+            addedAt: Date.now()
+        }));
+        saveTracks([...newTracks, ...tracks], `${newTracks.length} vidéos importées depuis "${blockTitle}"`);
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -392,6 +470,37 @@ export function AdminRadioModal({
 
                     {/* Modal Body */}
                     <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 custom-scrollbar">
+
+                        {/* Onglets principaux */}
+                        <div className="flex gap-2 bg-white/5 p-1 rounded-2xl border border-white/10">
+                            <button
+                                type="button"
+                                onClick={() => setMainTab('rotation')}
+                                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                    mainTab === 'rotation'
+                                        ? 'bg-neon-cyan text-black shadow-[0_0_20px_rgba(0,255,255,0.3)]'
+                                        : 'text-white/60 hover:text-white'
+                                }`}
+                            >
+                                <Radio className="w-3.5 h-3.5" />
+                                <span>Ma Rotation ({tracks.length})</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setMainTab('library')}
+                                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                    mainTab === 'library'
+                                        ? 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.3)]'
+                                        : 'text-white/60 hover:text-white'
+                                }`}
+                            >
+                                <Tv className="w-3.5 h-3.5" />
+                                <span>Bibliothèque TV ({tvLibrary.length})</span>
+                            </button>
+                        </div>
+
+                        {mainTab === 'rotation' ? (
+                            <div className="space-y-6">
                         {/* Formulaire d'ajout rapide */}
                         <form onSubmit={handleAddTrack} className="bg-white/[0.03] border border-white/10 rounded-3xl p-5 space-y-4">
                             <div className="flex items-center justify-between">
@@ -705,6 +814,113 @@ export function AdminRadioModal({
                                 })
                             )}
                         </div>
+                            </div>
+                        ) : (
+                            // ── Bibliothèque TV ──────────────────────────────────────────
+                            <div className="space-y-4">
+                                <div className="flex flex-col sm:flex-row items-center gap-3">
+                                    <div className="relative flex-1">
+                                        <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
+                                        <input
+                                            type="text"
+                                            placeholder="Rechercher dans la bibliothèque TV..."
+                                            value={libSearchQuery}
+                                            onChange={e => setLibSearchQuery(e.target.value)}
+                                            className="w-full pl-9 pr-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs text-white placeholder-white/30 focus:outline-none focus:border-white/30"
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-2xl border border-white/10">
+                                        {(['all', 'liveset', 'clip'] as const).map(f => (
+                                            <button
+                                                key={f}
+                                                type="button"
+                                                onClick={() => setLibFilter(f)}
+                                                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase transition-all cursor-pointer ${
+                                                    libFilter === f ? 'bg-white text-black' : 'text-white/60 hover:text-white'
+                                                }`}
+                                            >
+                                                {f === 'all' ? 'Tous' : f === 'liveset' ? '🎪 Sets' : '🎬 Clips'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <p className="text-[10px] text-white/40 font-medium">
+                                    Cliquez sur une vidéo pour l'ajouter ou la retirer de votre rotation radio. Les vidéos déjà dans la rotation sont surlignées en cyan.
+                                </p>
+
+                                {/* Groupé par bloc TV */}
+                                {(() => {
+                                    const blocks = [...new Set(filteredLibrary.map(i => i.block))];
+                                    if (blocks.length === 0) return (
+                                        <div className="p-8 text-center text-white/30 text-xs">Aucune vidéo trouvée.</div>
+                                    );
+                                    return blocks.map(blockTitle => {
+                                        const blockItems = filteredLibrary.filter(i => i.block === blockTitle);
+                                        const blockColor = blockItems[0]?.blockColor || '#00ffff';
+                                        const blockEmoji = blockItems[0]?.blockEmoji || '🎪';
+                                        const notImported = blockItems.filter(i => !isInRotation(i.track.youtubeId));
+                                        return (
+                                            <div key={blockTitle} className="space-y-2">
+                                                <div className="flex items-center justify-between py-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-base">{blockEmoji}</span>
+                                                        <span className="text-xs font-black uppercase tracking-wider" style={{ color: blockColor }}>{blockTitle}</span>
+                                                        <span className="text-[10px] text-white/30 font-mono">{blockItems.length} vidéos</span>
+                                                    </div>
+                                                    {notImported.length > 0 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleImportBlock(blockTitle)}
+                                                            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/5 hover:bg-neon-cyan/20 border border-white/10 hover:border-neon-cyan/40 text-white/60 hover:text-neon-cyan text-[10px] font-black uppercase transition-all cursor-pointer"
+                                                        >
+                                                            <Plus className="w-3 h-3" />
+                                                            Tout importer ({notImported.length})
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    {blockItems.map(item => {
+                                                        const inRotation = isInRotation(item.track.youtubeId);
+                                                        return (
+                                                            <button
+                                                                key={item.track.youtubeId}
+                                                                type="button"
+                                                                onClick={() => handleImportFromLibrary(item)}
+                                                                className={`w-full flex items-center gap-3 p-2.5 rounded-2xl border transition-all cursor-pointer text-left group ${
+                                                                    inRotation
+                                                                        ? 'bg-neon-cyan/10 border-neon-cyan/40 hover:bg-red-500/10 hover:border-red-500/40'
+                                                                        : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.07] hover:border-white/20'
+                                                                }`}
+                                                            >
+                                                                <div className="relative w-14 h-9 rounded-lg overflow-hidden bg-black/60 shrink-0">
+                                                                    <img
+                                                                        src={`https://img.youtube.com/vi/${item.track.youtubeId}/mqdefault.jpg`}
+                                                                        alt={item.track.title}
+                                                                        className="w-full h-full object-cover"
+                                                                    />
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-xs font-bold text-white truncate">{item.track.title}</p>
+                                                                    <p className="text-[10px] text-white/40">{item.track.artist} · {formatDurationExact(item.track.duration)}</p>
+                                                                </div>
+                                                                <div className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs transition-all ${
+                                                                    inRotation
+                                                                        ? 'bg-neon-cyan text-black group-hover:bg-red-500 group-hover:text-white'
+                                                                        : 'bg-white/10 text-white/40 group-hover:bg-neon-cyan group-hover:text-black'
+                                                                }`}>
+                                                                    {inRotation ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        );
+                                    });
+                                })()}
+                            </div>
+                        )}
                     </div>
 
                     {/* Footer */}
