@@ -403,15 +403,24 @@ export function AdminRadioModal({
             const flatTracks = blocks.flatMap(b => b.tracks || []);
             localStorage.setItem(STORAGE_RADIO_TRACKS_KEY, JSON.stringify(flatTracks));
 
-            // 2. Sauvegarder sur le serveur /api/settings
-            await apiFetch('/api/settings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    radio_blocks: blocks,
-                    radio_tracks: flatTracks
-                })
-            });
+            // 2. Sauvegarder sur le serveur /api/settings/update
+            const payload = { 
+                radio_blocks: blocks,
+                radio_tracks: flatTracks
+            };
+            try {
+                await apiFetch('/api/settings/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch {
+                await apiFetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            }
 
             // 3. Diffuser les événements pour mise à jour immédiate
             window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
