@@ -1128,12 +1128,31 @@ export function AdminDashboard() {
     };
   }, [wikiFilter, wikiDjs, wikiClubs, wikiFestivals, isWikiExpanded]);
 
+  const [isRadioActive, setIsRadioActive] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('dropsiders_radio_enabled') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleRadioActive = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const next = !isRadioActive;
+    setIsRadioActive(next);
+    localStorage.setItem('dropsiders_radio_enabled', next ? 'true' : 'false');
+    window.dispatchEvent(new Event('dropsiders_radio_toggle'));
+  };
+
   const DASHBOARD_TABS = [
     { id: "ALL", label: "Tout" },
     { id: "TOP_DROPSIDERS", label: "Top Dropsiders" },
     { id: "NEWS", label: "Actualités" },
     { id: "COMMUNAUTÉ", label: "Communauté" },
-    { id: "DROPSIDERS_TV", label: "DropsidersTV" },
+    { id: "DROPSIDERS_TV", label: "Dropsiders TV" },
     { id: "SOCIAL_STUDIO", label: "Social Studio" },
     { id: "WIKI", label: "DJs / Clubs / Festivals" },
     { id: "STUDIO", label: "Studio" },
@@ -2558,9 +2577,9 @@ export function AdminDashboard() {
       columns: 2,
     },
 
-    // DROPSIDERS TV
+    // DROPSIDERS TV & RADIO
     {
-      title: "DropsidersTV",
+      title: "Dropsiders TV",
       description: "Programmation des liens YouTube & Diffusion TV",
       icon: "Tv",
       category: "DROPSIDERS_TV",
@@ -2569,6 +2588,20 @@ export function AdminDashboard() {
       bg: "bg-neon-red/5",
       permission: "settings",
       baseColor: "red",
+      columns: 1,
+    },
+    {
+      title: "Dropsiders Radio",
+      description: isRadioActive 
+        ? "Radio Active (Publique) · Diffusion audio 24/7" 
+        : "Radio Désactivée (Privée) · En pause",
+      icon: "Radio",
+      category: "DROPSIDERS_TV",
+      link: "#DROPSIDERS_RADIO",
+      color: isRadioActive ? "border-neon-cyan/50 hover:border-neon-cyan" : "border-white/10 hover:border-white/20",
+      bg: isRadioActive ? "bg-neon-cyan/10" : "bg-white/5",
+      permission: "settings",
+      baseColor: isRadioActive ? "cyan" : "white",
       columns: 1,
     },
 
@@ -3499,7 +3532,7 @@ export function AdminDashboard() {
                 <Tv className="w-12 h-12 text-neon-red" />
               </div>
               <h2 className="text-4xl md:text-5xl font-display font-black text-white italic uppercase tracking-tighter mb-4">
-                Gestion <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan">DropsidersTV</span>
+                Gestion <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan">Dropsiders TV</span>
               </h2>
               <p className="text-gray-400 max-w-lg mx-auto mb-8 font-medium leading-relaxed text-sm">
                 Ajoutez vos liens YouTube pour alimenter la chaîne TV continue du site. Les vidéos s'enchaînent automatiquement sans barre de progression ni avance manuelle.
@@ -4611,6 +4644,12 @@ export function AdminDashboard() {
                             ) {
                               e.preventDefault();
                               navigate('/tv?admin=true');
+                            } else if (
+                              action.title === "Dropsiders Radio" ||
+                              action.link === "#DROPSIDERS_RADIO"
+                            ) {
+                              e.preventDefault();
+                              toggleRadioActive();
                             } else if (action.title === "Agenda") {
                               e.preventDefault();
                               setIsAgendaModalOpen(true);
@@ -4847,6 +4886,27 @@ export function AdminDashboard() {
                           <p className="hidden md:block text-gray-400 font-medium">
                             {action.description}
                           </p>
+                          {action.title === "Dropsiders Radio" && (
+                            <div className="mt-4 flex items-center justify-between pt-3 border-t border-white/10" onClick={e => e.stopPropagation()}>
+                              <div className="flex items-center gap-2">
+                                <span className={`w-2.5 h-2.5 rounded-full ${isRadioActive ? 'bg-neon-cyan animate-pulse shadow-[0_0_10px_rgba(0,255,255,0.8)]' : 'bg-gray-600'}`} />
+                                <span className={`text-[10px] font-black uppercase tracking-wider ${isRadioActive ? 'text-neon-cyan' : 'text-gray-500'}`}>
+                                  {isRadioActive ? 'ACTIF (EN LIGNE)' : 'PRIVÉE (INACTIF)'}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={toggleRadioActive}
+                                className={`px-3.5 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all cursor-pointer shadow-lg active:scale-95 ${
+                                  isRadioActive
+                                    ? 'bg-neon-cyan text-black hover:bg-white'
+                                    : 'bg-white/10 hover:bg-neon-cyan hover:text-black text-white border border-white/15'
+                                }`}
+                              >
+                                {isRadioActive ? 'DÉSACTIVER' : 'ACTIVER'}
+                              </button>
+                            </div>
+                          )}
                         </Link>
                       </motion.div>
                     );

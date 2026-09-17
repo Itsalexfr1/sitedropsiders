@@ -13,6 +13,7 @@ import { lazyRetry } from './utils/lazyRetry';
 import { UserProvider } from './context/UserContext';
 import { PlayerProvider } from './context/PlayerContext';
 import { GlobalPlayerContainer } from './components/widgets/GlobalPlayerContainer';
+import { DropsidersRadioPlayer } from './components/radio/DropsidersRadioPlayer';
 
 // Lazy load pages for better mobile performance
 const Home = lazyRetry(() => import('./pages/Home').then(m => m.Home));
@@ -183,6 +184,7 @@ function Root() {
         onDismiss={dismissBooster}
       />
       <GlobalPlayerContainer />
+      <DropsidersRadioPlayer />
     </>
   );
 }

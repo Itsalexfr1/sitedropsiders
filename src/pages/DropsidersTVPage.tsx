@@ -6,7 +6,7 @@ import { SEO } from '../components/utils/SEO';
 import { apiFetch } from '../utils/auth';
 import { AdminTVModal } from '../components/admin/modals/AdminTVModal';
 import { TVShareScheduleModal } from '../components/tv/TVShareScheduleModal';
-import type { TVScheduleBlock } from '../utils/tvSchedule';
+import type { TVScheduleBlock, TVVideoCategory } from '../utils/tvSchedule';
 import { 
     DEFAULT_TV_BLOCKS, 
     STORAGE_TV_BLOCKS_KEY, 
@@ -18,7 +18,8 @@ import {
     DAYS_OF_WEEK,
     getBlocksForDay,
     formatBlockDays,
-    DEFAULT_DURATIONS
+    DEFAULT_DURATIONS,
+    detectVideoCategory
 } from '../utils/tvSchedule';
 
 const checkAdminAuth = () => {
@@ -76,6 +77,7 @@ export interface TVVideo {
     description: string;
     youtubeId: string;
     duration?: number;
+    category?: TVVideoCategory;
 }
 
 // ── EPG / 5 Time Blocks ──────────────────────────────────────────────────
@@ -408,6 +410,7 @@ export function DropsidersTVPage() {
     const [currentHourState, setCurrentHourState] = useState(() => new Date().getHours());
     const [currentDayState, setCurrentDayState] = useState(() => new Date().getDay());
     const [epgSelectedDay, setEpgSelectedDay] = useState<number>(() => new Date().getDay());
+    const [selectedCategory, setSelectedCategory] = useState<'all' | 'clip' | 'liveset' | 'interview'>('all');
 
     // Auto-update hour and day on 30s heartbeat to guarantee seamless show transitions
     useEffect(() => {
@@ -819,6 +822,14 @@ export function DropsidersTVPage() {
         }
         return result;
     }, [activeBlockVideos, nextMainIndex, epgTimeRemaining]);
+
+    const filteredUpcomingSets = useMemo(() => {
+        if (selectedCategory === 'all') return upcomingMainSets;
+        return upcomingMainSets.filter(({ video }) => {
+            const cat = video.category || detectVideoCategory(video.title, video.description);
+            return cat === selectedCategory;
+        });
+    }, [upcomingMainSets, selectedCategory]);
 
     // Next main video (skipping any active promo)
     const goNextMain = useCallback(() => {
@@ -1360,6 +1371,56 @@ export function DropsidersTVPage() {
                                     <span className="xs:hidden">Programme</span>
                                 </button>
 
+                                {/* Filtre de catégorie : Tout / Liveset / Clip / Interview */}
+                                <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/15 p-1 rounded-full shadow-lg">
+                                    <button
+                                        onClick={() => setSelectedCategory('all')}
+                                        className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                            selectedCategory === 'all'
+                                                ? 'bg-white text-black shadow'
+                                                : 'text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        Tout
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedCategory('liveset')}
+                                        className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 ${
+                                            selectedCategory === 'liveset'
+                                                ? 'bg-neon-cyan text-black shadow'
+                                                : 'text-gray-400 hover:text-white'
+                                        }`}
+                                        title="Filtrer les Livesets"
+                                    >
+                                        <span>🎪</span>
+                                        <span className="hidden sm:inline">Liveset</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedCategory('clip')}
+                                        className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 ${
+                                            selectedCategory === 'clip'
+                                                ? 'bg-neon-purple text-white shadow'
+                                                : 'text-gray-400 hover:text-white'
+                                        }`}
+                                        title="Filtrer les Clips"
+                                    >
+                                        <span>🎬</span>
+                                        <span className="hidden sm:inline">Clips</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedCategory('interview')}
+                                        className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 ${
+                                            selectedCategory === 'interview'
+                                                ? 'bg-neon-red text-white shadow'
+                                                : 'text-gray-400 hover:text-white'
+                                        }`}
+                                        title="Filtrer les Interviews"
+                                    >
+                                        <span>🎙️</span>
+                                        <span className="hidden sm:inline">Interviews</span>
+                                    </button>
+                                </div>
+
                                 {/* Programmation Button: only displayed for admins, hidden for regular visitors */}
                                 {isAdmin && (
                                     <button
@@ -1783,6 +1844,57 @@ export function DropsidersTVPage() {
 
                                     return (
                                         <>
+                                            {/* Category filter tabs */}
+                                            <div className="flex items-center gap-1.5 mb-3 bg-white/5 p-1 rounded-2xl border border-white/10 shrink-0">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedCategory('all')}
+                                                    className={`px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex-1 text-center cursor-pointer ${
+                                                        selectedCategory === 'all'
+                                                            ? 'bg-white text-black shadow font-black'
+                                                            : 'text-gray-400 hover:text-white'
+                                                    }`}
+                                                >
+                                                    Tout
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedCategory('liveset')}
+                                                    className={`px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex-1 text-center cursor-pointer flex items-center justify-center gap-1 ${
+                                                        selectedCategory === 'liveset'
+                                                            ? 'bg-neon-cyan text-black shadow font-black'
+                                                            : 'text-gray-400 hover:text-white'
+                                                    }`}
+                                                >
+                                                    <span>🎪</span>
+                                                    <span>Liveset</span>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedCategory('clip')}
+                                                    className={`px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex-1 text-center cursor-pointer flex items-center justify-center gap-1 ${
+                                                        selectedCategory === 'clip'
+                                                            ? 'bg-neon-purple text-white shadow font-black'
+                                                            : 'text-gray-400 hover:text-white'
+                                                    }`}
+                                                >
+                                                    <span>🎬</span>
+                                                    <span>Clip</span>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedCategory('interview')}
+                                                    className={`px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex-1 text-center cursor-pointer flex items-center justify-center gap-1 ${
+                                                        selectedCategory === 'interview'
+                                                            ? 'bg-neon-red text-white shadow font-black'
+                                                            : 'text-gray-400 hover:text-white'
+                                                    }`}
+                                                >
+                                                    <span>🎙️</span>
+                                                    <span>Interview</span>
+                                                </button>
+                                            </div>
+
                                             {/* Blocks timeline strip for the selected day */}
                                             <div className="flex gap-2 mb-4 overflow-x-auto pb-1 shrink-0 custom-scrollbar">
                                                 {epgDayBlocks.length === 0 && (
@@ -1845,37 +1957,60 @@ export function DropsidersTVPage() {
 
                                                     {/* Upcoming sets list */}
                                                     <div className="overflow-y-auto flex-1 space-y-1.5 pr-0.5 custom-scrollbar">
-                                                        <p className="text-white/25 text-[9px] font-black uppercase tracking-widest mb-2">À venir aujourd'hui</p>
-                                                        {upcomingMainSets.length === 0 && (
-                                                            <p className="text-white/25 text-xs text-center py-6">Calcul en cours…</p>
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <p className="text-white/25 text-[9px] font-black uppercase tracking-widest">
+                                                                À venir aujourd'hui {selectedCategory !== 'all' ? `(${selectedCategory})` : ''}
+                                                            </p>
+                                                            <span className="text-[8px] font-mono text-white/30">
+                                                                {filteredUpcomingSets.length} vidéo(s)
+                                                            </span>
+                                                        </div>
+                                                        {filteredUpcomingSets.length === 0 && (
+                                                            <p className="text-white/25 text-xs text-center py-6">
+                                                                Aucun élément trouvé pour cette catégorie dans la file d'attente immédiate.
+                                                            </p>
                                                         )}
-                                                        {upcomingMainSets.map(({ video, startAt }, i) => (
-                                                            <div
-                                                                key={`epg-${i}-${video.id}`}
-                                                                className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] transition-colors group"
-                                                            >
-                                                                <div className="flex flex-col items-center w-10 shrink-0">
-                                                                    <span className="text-[9px] font-black text-white/30 font-mono">{toHHMM(startAt)}</span>
-                                                                    {i === 0 && (
-                                                                        <ChevronRight className="w-3 h-3 mt-0.5" style={{ color: activeScheduleBlock.color }} />
+                                                        {filteredUpcomingSets.map(({ video, startAt }, i) => {
+                                                            const videoCat = video.category || detectVideoCategory(video.title, video.description);
+                                                            return (
+                                                                <div
+                                                                    key={`epg-${i}-${video.id}`}
+                                                                    className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] transition-colors group"
+                                                                >
+                                                                    <div className="flex flex-col items-center w-10 shrink-0">
+                                                                        <span className="text-[9px] font-black text-white/30 font-mono">{toHHMM(startAt)}</span>
+                                                                        {i === 0 && (
+                                                                            <ChevronRight className="w-3 h-3 mt-0.5" style={{ color: activeScheduleBlock.color }} />
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="w-12 h-8 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                                                                        <img
+                                                                            src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
+                                                                            alt={video.title}
+                                                                            className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
+                                                                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                                                                        />
+                                                                    </div>
+                                                                    <div className="flex-1 min-w-0 flex items-center gap-2">
+                                                                        <span className="text-white/65 text-xs font-semibold truncate group-hover:text-white transition-colors">
+                                                                            {video.title}
+                                                                        </span>
+                                                                        <span className={`text-[7px] font-black uppercase px-1.5 py-0.5 rounded shrink-0 border ${
+                                                                            videoCat === 'interview'
+                                                                                ? 'bg-neon-red/15 text-neon-red border-neon-red/30'
+                                                                                : videoCat === 'clip'
+                                                                                ? 'bg-neon-purple/15 text-neon-purple border-neon-purple/30'
+                                                                                : 'bg-neon-cyan/15 text-neon-cyan border-neon-cyan/30'
+                                                                        }`}>
+                                                                            {videoCat === 'interview' ? '🎙️ Interview' : videoCat === 'clip' ? '🎬 Clip' : '🎪 Liveset'}
+                                                                        </span>
+                                                                    </div>
+                                                                    {video.duration && (
+                                                                        <span className="text-white/20 text-[9px] font-mono shrink-0">{formatMins(video.duration)}</span>
                                                                     )}
                                                                 </div>
-                                                                <div className="w-12 h-8 rounded-lg overflow-hidden shrink-0 border border-white/10">
-                                                                    <img
-                                                                        src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
-                                                                        alt={video.title}
-                                                                        className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
-                                                                        onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                                                                    />
-                                                                </div>
-                                                                <span className="text-white/65 text-xs font-semibold truncate group-hover:text-white transition-colors flex-1 min-w-0">
-                                                                    {video.title}
-                                                                </span>
-                                                                {video.duration && (
-                                                                    <span className="text-white/20 text-[9px] font-mono shrink-0">{formatMins(video.duration)}</span>
-                                                                )}
-                                                            </div>
-                                                        ))}
+                                                            );
+                                                        })}
                                                     </div>
                                                 </>
                                             ) : (

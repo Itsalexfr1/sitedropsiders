@@ -24,7 +24,9 @@ import {
     WEEKEND_DAYS,
     formatBlockDays,
     isBlockActiveOnDay,
-    sortBlocksByBroadcastOrder
+    sortBlocksByBroadcastOrder,
+    detectVideoCategory,
+    type TVVideoCategory
 } from '../../../utils/tvSchedule';
 
 export type { TVVideo, PromoVideo, TVScheduleBlock };
@@ -329,6 +331,8 @@ export function AdminTVModal({
     // Add video to block form
     const [blockVideoUrl, setBlockVideoUrl] = useState('');
     const [blockVideoTitle, setBlockVideoTitle] = useState('');
+    const [blockVideoCategory, setBlockVideoCategory] = useState<TVVideoCategory>('liveset');
+    const [blockCategoryFilter, setBlockCategoryFilter] = useState<'all' | TVVideoCategory>('all');
     const [isFetchingBlockTitle, setIsFetchingBlockTitle] = useState(false);
 
     // Main Videos list
@@ -697,9 +701,10 @@ export function AdminTVModal({
         const newVid: TVVideo = {
             id: `bv_${Date.now()}`,
             title: blockVideoTitle.trim() || `Vidéo ${ytid}`,
-            description: `Diffusé sur DropsidersTV · ${block?.title || ''}`,
+            description: `Diffusé sur Dropsiders TV · ${block?.title || ''}`,
             youtubeId: ytid,
-            duration: 3600
+            duration: 3600,
+            category: blockVideoCategory
         };
         setBlocks(prev => prev.map(b => {
             if (b.id !== selectedBlockId) return b;
@@ -2116,8 +2121,48 @@ export function AdminTVModal({
                                                                 value={blockVideoTitle}
                                                                 onChange={(e) => setBlockVideoTitle(e.target.value)}
                                                                 placeholder="Titre de la vidéo (auto-détecté ou personnalisé)"
-                                                                className="w-72 md:w-96 px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-white/30"
+                                                                className="w-56 md:w-72 px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-white/30"
                                                             />
+
+                                                            {/* Sélecteur de catégorie : Clip / Liveset / Interview */}
+                                                            <div className="flex items-center gap-1 bg-black/40 p-0.5 rounded-md border border-white/10 shrink-0">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setBlockVideoCategory('clip')}
+                                                                    className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1 ${
+                                                                        blockVideoCategory === 'clip'
+                                                                            ? 'bg-neon-purple text-white shadow-sm'
+                                                                            : 'text-gray-400 hover:text-white'
+                                                                    }`}
+                                                                    title="Catégorie : Clip Vidéo"
+                                                                >
+                                                                    🎬 Clip
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setBlockVideoCategory('liveset')}
+                                                                    className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1 ${
+                                                                        blockVideoCategory === 'liveset'
+                                                                            ? 'bg-neon-cyan text-black shadow-sm'
+                                                                            : 'text-gray-400 hover:text-white'
+                                                                    }`}
+                                                                    title="Catégorie : Liveset Festival"
+                                                                >
+                                                                    🎪 Liveset
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setBlockVideoCategory('interview')}
+                                                                    className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1 ${
+                                                                        blockVideoCategory === 'interview'
+                                                                            ? 'bg-neon-red text-white shadow-sm'
+                                                                            : 'text-gray-400 hover:text-white'
+                                                                    }`}
+                                                                    title="Catégorie : Interview Artiste"
+                                                                >
+                                                                    🎙️ Interview
+                                                                </button>
+                                                            </div>
 
                                                             <button
                                                                 type="button"
@@ -2181,9 +2226,9 @@ export function AdminTVModal({
                                                     const blockDuplicateCount = Object.values(blockYtCounts).filter(c => c > 1).length;
 
                                                     return (
-                                                        <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-widest text-white/40 shrink-0">
+                                                        <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-widest text-white/40 shrink-0 gap-2 flex-wrap">
                                                             <div className="flex items-center gap-2">
-                                                                <span>Vidéos dans ce bloc ({currentBlock.videos?.length || 0})</span>
+                                                                <span>Vidéos ({currentBlock.videos?.length || 0})</span>
                                                                 {blockDuplicateCount > 0 && (
                                                                     <button
                                                                         type="button"
@@ -2196,7 +2241,57 @@ export function AdminTVModal({
                                                                     </button>
                                                                 )}
                                                             </div>
-                                                            <span>Tourne aléatoirement chaque jour si l'option est activée</span>
+
+                                                            {/* Filtre de tri Clip / Liveset / Interview dans la liste */}
+                                                            <div className="flex items-center gap-1 bg-white/5 p-0.5 rounded-lg border border-white/10">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setBlockCategoryFilter('all')}
+                                                                    className={`px-2 py-0.5 rounded text-[8px] font-black uppercase transition-all ${
+                                                                        blockCategoryFilter === 'all'
+                                                                            ? 'bg-white text-black shadow'
+                                                                            : 'text-gray-400 hover:text-white'
+                                                                    }`}
+                                                                >
+                                                                    Tous
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setBlockCategoryFilter('liveset')}
+                                                                    className={`px-2 py-0.5 rounded text-[8px] font-black uppercase transition-all flex items-center gap-1 ${
+                                                                        blockCategoryFilter === 'liveset'
+                                                                            ? 'bg-neon-cyan text-black shadow'
+                                                                            : 'text-gray-400 hover:text-white'
+                                                                    }`}
+                                                                >
+                                                                    <span>🎪</span>
+                                                                    <span>Livesets</span>
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setBlockCategoryFilter('clip')}
+                                                                    className={`px-2 py-0.5 rounded text-[8px] font-black uppercase transition-all flex items-center gap-1 ${
+                                                                        blockCategoryFilter === 'clip'
+                                                                            ? 'bg-neon-purple text-white shadow'
+                                                                            : 'text-gray-400 hover:text-white'
+                                                                    }`}
+                                                                >
+                                                                    <span>🎬</span>
+                                                                    <span>Clips</span>
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setBlockCategoryFilter('interview')}
+                                                                    className={`px-2 py-0.5 rounded text-[8px] font-black uppercase transition-all flex items-center gap-1 ${
+                                                                        blockCategoryFilter === 'interview'
+                                                                            ? 'bg-neon-red text-white shadow'
+                                                                            : 'text-gray-400 hover:text-white'
+                                                                    }`}
+                                                                >
+                                                                    <span>🎙️</span>
+                                                                    <span>Interviews</span>
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     );
                                                 })()}
@@ -2208,15 +2303,22 @@ export function AdminTVModal({
                                                     </div>
                                                 ) : (
                                                     <div className="space-y-1 flex-1 max-h-[460px] overflow-y-auto pr-1 custom-scrollbar">
-                                                        {currentBlock.videos.map((vid, idx) => {
+                                                        {currentBlock.videos
+                                                            .filter(v => {
+                                                                if (blockCategoryFilter === 'all') return true;
+                                                                const c = v.category || detectVideoCategory(v.title, v.description);
+                                                                return c === blockCategoryFilter;
+                                                            })
+                                                            .map((vid, idx) => {
                                                             const dur = durationsMap[vid.youtubeId] || vid.duration || 0;
+                                                            const vCat = vid.category || detectVideoCategory(vid.title, vid.description);
                                                             return (
                                                                 <div
                                                                     key={vid.id || idx}
                                                                     className="p-1 px-2 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 flex items-center justify-between gap-2 transition-colors group"
                                                                 >
                                                                     {/* Thumbnail + Index */}
-                                                                    <div className="flex items-center gap-2 min-w-0">
+                                                                    <div className="flex items-center gap-2 min-w-0 flex-1">
                                                                         <span className="text-[10px] font-black text-white/30 w-4 text-center shrink-0">
                                                                             {idx + 1}
                                                                         </span>
@@ -2258,9 +2360,20 @@ export function AdminTVModal({
                                                                                     </button>
                                                                                 </form>
                                                                             ) : (
-                                                                                <h5 className="text-xs font-bold text-white truncate" title={vid.title}>
-                                                                                    {vid.title}
-                                                                                </h5>
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <h5 className="text-xs font-bold text-white truncate" title={vid.title}>
+                                                                                        {vid.title}
+                                                                                    </h5>
+                                                                                    <span className={`text-[7px] font-black uppercase px-1.5 py-0.5 rounded border shrink-0 ${
+                                                                                        vCat === 'interview'
+                                                                                            ? 'bg-neon-red/15 text-neon-red border-neon-red/30'
+                                                                                            : vCat === 'clip'
+                                                                                            ? 'bg-neon-purple/15 text-neon-purple border-neon-purple/30'
+                                                                                            : 'bg-neon-cyan/15 text-neon-cyan border-neon-cyan/30'
+                                                                                    }`}>
+                                                                                        {vCat === 'interview' ? '🎙️ Interview' : vCat === 'clip' ? '🎬 Clip' : '🎪 Liveset'}
+                                                                                    </span>
+                                                                                </div>
                                                                             )}
                                                                             <div className="flex items-center gap-2 text-[9px] text-white/40">
                                                                                 <span className="font-mono">ID: {vid.youtubeId}</span>

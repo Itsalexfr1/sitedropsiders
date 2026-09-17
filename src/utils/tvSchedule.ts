@@ -1,9 +1,12 @@
+export type TVVideoCategory = 'clip' | 'liveset' | 'interview';
+
 export interface TVVideo {
     id: string;
     title: string;
     description: string;
     youtubeId: string;
     duration?: number;
+    category?: TVVideoCategory;
 }
 
 export interface PromoVideo {
@@ -574,6 +577,35 @@ export interface ComputedScheduleItem {
     durationSeconds: number;
     durationFormatted: string; // "1h15", "45min"
     isCurrentlyLive: boolean;
+    category: TVVideoCategory;
+}
+
+export function detectVideoCategory(title: string, description?: string): TVVideoCategory {
+    const text = `${title || ''} ${description || ''}`.toLowerCase();
+    if (
+        text.includes('interview') || 
+        text.includes('entretien') || 
+        text.includes('q&a') || 
+        text.includes('podcast') || 
+        text.includes('reportage') || 
+        text.includes('documentaire') || 
+        text.includes('coulisses') ||
+        text.includes('rencontre')
+    ) {
+        return 'interview';
+    }
+    if (
+        text.includes('clip') || 
+        text.includes('official music video') || 
+        text.includes('official video') || 
+        text.includes('visualizer') || 
+        text.includes('music video') || 
+        text.includes('aftermovie') || 
+        text.includes('teaser')
+    ) {
+        return 'clip';
+    }
+    return 'liveset';
 }
 
 export function formatDurationExact(seconds: number): string {
@@ -706,6 +738,7 @@ export function computeDaySchedule(
             }
 
             const { artist, event } = parseArtistAndEvent(vid.title);
+            const category = vid.category || detectVideoCategory(vid.title, vid.description);
 
             items.push({
                 id: `${block.id}_${vid.id || vid.youtubeId}_${i}`,
@@ -722,7 +755,8 @@ export function computeDaySchedule(
                 startSecondsFromMidnight: startSec,
                 durationSeconds: dur,
                 durationFormatted: formatDurationExact(dur),
-                isCurrentlyLive: isLive
+                isCurrentlyLive: isLive,
+                category
             });
 
             currentSec += dur;
