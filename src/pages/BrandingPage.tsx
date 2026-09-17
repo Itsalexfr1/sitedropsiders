@@ -279,7 +279,7 @@ export function BrandingPage() {
                                     DROPSIDERS RADIO
                                     <span className="text-[8px] bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/40 px-1.5 py-0.5 rounded-full font-black uppercase tracking-widest animate-pulse">LIVE 24/7</span>
                                 </h3>
-                                <p className="text-[10px] text-gray-400 truncate">Web Radio Electro 24/7 • Sets &amp; Bass Music</p>
+                                <p className="text-[10px] text-gray-400 truncate">Web Radio Electro 24/7 • Sets &amp; Electronic Music</p>
                             </div>
                         </div>
                         <div className="relative z-10 w-8 h-8 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center text-neon-cyan group-hover:bg-neon-cyan group-hover:text-black transition-all shrink-0">
