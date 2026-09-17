@@ -1,0 +1,32 @@
+{
+  "name": "Palette Personnalisée Alternative Social Studio",
+  "description": "Sauvegarde en mémoire de la palette de couleurs personnalisée pour les templates du générateur Social Studio",
+  "themes": {
+    "NEWS": { "label": "NEWS", "color": "#0066FF", "grad": "0, 102, 255", "name": "Bleu électrique" },
+    "REELS": { "label": "REELS", "color": "#FF1493", "grad": "255, 20, 147", "name": "Rose néon" },
+    "CONSEILS": { "label": "REELS", "color": "#FF1493", "grad": "255, 20, 147", "name": "Rose néon" },
+    "CONCOURS": { "label": "JEUX CONCOURS", "color": "#7C3AED", "grad": "124, 58, 237", "name": "Violet royal" },
+    "FOCUS": { "label": "FOCUS", "color": "#F97316", "grad": "249, 115, 22", "name": "Orange brûlé" },
+    "HIGHLIGHTS": { "label": "HIGHLIGHTS", "color": "#38BDF8", "grad": "56, 189, 248", "name": "Bleu ciel" },
+    "MUSIQUE": { "label": "MUSIQUE", "color": "#39FF14", "grad": "57, 255, 20", "name": "Vert néon" },
+    "RECAP": { "label": "RÉCAP", "color": "#86198F", "grad": "134, 25, 143", "name": "Prune" },
+    "LIVESTREAM": { "label": "DIRECT", "color": "#FFE600", "grad": "255, 230, 0", "name": "Jaune électrique" },
+    "INTERVIEW": { "label": "INTERVIEW", "color": "#FFFFFF", "grad": "148, 163, 184", "name": "Blanc → Argent (#FFFFFF → #94A3B8)" },
+    "PLANNING": { "label": "PLANNING", "color": "#172554", "grad": "23, 37, 84", "name": "Bleu nuit" },
+    "TOP 100 DROPSIDERS": { "label": "TOP 100 DROPSIDERS", "color": "#D4AF37", "grad": "212, 175, 55", "name": "Or métallique" },
+    "SPOTLIGHT": { "label": "SPOTLIGHT", "color": "#00A86B", "grad": "0, 168, 107", "name": "Émeraude" },
+    "CITATION": { "label": "CITATION", "color": "#CBD5E1", "grad": "203, 213, 225", "name": "Gris platine" },
+    "EVENT": { "label": "EVENT", "color": "#00C9A7", "grad": "0, 201, 167", "name": "Turquoise" },
+    "ARTISTE FESTIVAL": { "label": "LES 10 ARTISTES À NE PAS LOUPER", "color": "#000000", "grad": "55, 65, 81", "name": "Noir → Graphite (#000000 → #374151)" },
+    "PROMO": { "label": "PROMO", "color": "#FF00CC", "grad": "255, 0, 204", "name": "Fuchsia" },
+    "MAP": { "label": "MAP", "color": "#B45309", "grad": "180, 83, 9", "name": "Terre cuite" },
+    "CALENDRIER": { "label": "CALENDRIER", "color": "#FF6F61", "grad": "255, 111, 97", "name": "Corail" },
+    "JEU": { "label": "JEU", "color": "#B57EDC", "grad": "181, 126, 220", "name": "Lavande" },
+    "JEU_FESTIVAL": { "label": "JEU_FESTIVAL", "color": "#D9F000", "grad": "217, 240, 0", "name": "Citron" },
+    "TRACKLIST": { "label": "TRACKLIST", "color": "#C56A2D", "grad": "197, 106, 45", "name": "Cuivre" },
+    "INTRO": { "label": "INTRO", "color": "#4338CA", "grad": "67, 56, 202", "name": "Indigo" },
+    "TOP 5 ARTISTE": { "label": "TOP 5 ARTISTES", "color": "#FF7F7F", "grad": "255, 127, 127", "name": "Saumon" },
+    "TOP 5 STYLES": { "label": "TOP 5 STYLES", "color": "#5EEAD4", "grad": "94, 234, 212", "name": "Menthe" },
+    "TOP 10 FESTIVAL": { "label": "TOP 10 ARTISTES", "color": "#E30B5C", "grad": "227, 11, 92", "name": "Framboise" }
+  }
+}

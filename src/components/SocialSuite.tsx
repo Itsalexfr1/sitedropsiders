@@ -2639,7 +2639,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fill();
 
                 ctx.globalAlpha = 1;
-                ctx.fillStyle = (labelText === 'MUSIQUE' || labelText === 'TOP 100 DROPSIDERS' || labelText === 'EVENT') ? '#000' : '#FFF';
+                ctx.fillStyle = (labelText === 'TOP 100 DROPSIDERS' || labelText === 'EVENT') ? '#000' : '#FFF';
                 const labelFontSize = 42;
                 ctx.font = `900 italic ${labelFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 ctx.textBaseline = 'middle';
@@ -2759,8 +2759,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'bottom';
                 ctx.font = '900 italic 45px "Montserrat", sans-serif';
-                ctx.fillStyle = theme === 'MUSIQUE' ? '#000000' : '#ffffff';
-                ctx.shadowColor = theme === 'MUSIQUE' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.8)';
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
                 ctx.shadowBlur = 10;
                 ctx.fillText('>>', canvas.width - 40, canvas.height - 10);
                 ctx.restore();
@@ -2771,8 +2771,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'bottom';
                 ctx.font = '900 italic 24px "Montserrat", sans-serif'; // Réduit de 40% (40px -> 24px)
-                ctx.fillStyle = theme === 'MUSIQUE' ? '#000000' : '#ffffff';
-                ctx.shadowColor = theme === 'MUSIQUE' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.8)';
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
                 ctx.shadowBlur = 10;
                 ctx.fillText('ARTICLE COMPLET SUR DROPSIDERS.FR', 40, canvas.height - 10);
                 ctx.restore();
@@ -2783,8 +2783,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'bottom';
                 ctx.font = '900 italic 24px "Montserrat", sans-serif';
-                ctx.fillStyle = theme === 'MUSIQUE' ? '#000000' : '#ffffff';
-                ctx.shadowColor = theme === 'MUSIQUE' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.8)';
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
                 ctx.shadowBlur = 10;
                 ctx.fillText('VOTER SUR DROPSIDERS.FR', 40, canvas.height - (showArticleLink ? 45 : 10));
                 ctx.restore();
@@ -3322,7 +3322,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     // Themes that use a bright/light color and need black text on the canvas
-    const LIGHT_TEXT_THEMES: ThemeType[] = ['MUSIQUE', 'TOP 100 DROPSIDERS', 'EVENT', 'TOP 5 ARTISTE', 'TOP 5 STYLES'];
+    const LIGHT_TEXT_THEMES: ThemeType[] = ['TOP 100 DROPSIDERS', 'EVENT', 'TOP 5 ARTISTE', 'TOP 5 STYLES'];
 
     const handleSetTheme = (newTheme: ThemeType) => {
         if (newTheme === 'MAP') {
