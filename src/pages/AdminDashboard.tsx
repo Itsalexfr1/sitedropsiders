@@ -77,6 +77,8 @@ import {
   Phone,
   PenTool,
   Tv,
+  Radio,
+  Music2,
 } from "lucide-react";
 
 
@@ -99,6 +101,7 @@ import { AgendaModal } from "../components/AgendaModal";
 import { ImageUploadModal } from "../components/ImageUploadModal";
 import { ShopMenuModal } from "../components/admin/modals/ShopMenuModal";
 import { AdminTVModal } from "../components/admin/modals/AdminTVModal";
+import { AdminRadioModal } from "../components/admin/modals/AdminRadioModal";
 import { ScanMenuModal } from "../components/admin/modals/ScanMenuModal";
 import { R2PhotosMenuModal } from "../components/admin/modals/R2PhotosMenuModal";
 import { R2Explorer } from "../components/admin/R2Explorer";
@@ -1135,6 +1138,47 @@ export function AdminDashboard() {
       return false;
     }
   });
+
+  const [isRadioModalOpen, setIsRadioModalOpen] = useState(false);
+  const [radioStats, setRadioStats] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dropsiders_radio_tracks');
+      if (saved) {
+        const tracks = JSON.parse(saved);
+        if (Array.isArray(tracks) && tracks.length > 0) {
+          return {
+            sets: tracks.filter((t: any) => t.category === 'liveset').length,
+            clips: tracks.filter((t: any) => t.category === 'clip').length
+          };
+        }
+      }
+    } catch {}
+    return { sets: 14, clips: 8 };
+  });
+
+  useEffect(() => {
+    const handleRadioTracksUpdated = () => {
+      try {
+        const saved = localStorage.getItem('dropsiders_radio_tracks');
+        if (saved) {
+          const tracks = JSON.parse(saved);
+          if (Array.isArray(tracks)) {
+            setRadioStats({
+              sets: tracks.filter((t: any) => t.category === 'liveset').length,
+              clips: tracks.filter((t: any) => t.category === 'clip').length
+            });
+            return;
+          }
+        }
+      } catch {}
+    };
+    window.addEventListener('dropsiders_radio_tracks_updated', handleRadioTracksUpdated);
+    window.addEventListener('storage', handleRadioTracksUpdated);
+    return () => {
+      window.removeEventListener('dropsiders_radio_tracks_updated', handleRadioTracksUpdated);
+      window.removeEventListener('storage', handleRadioTracksUpdated);
+    };
+  }, []);
 
   const toggleRadioActive = (e?: React.MouseEvent) => {
     if (e) {
@@ -2593,8 +2637,8 @@ export function AdminDashboard() {
     {
       title: "Dropsiders Radio",
       description: isRadioActive 
-        ? "Radio Active (Publique) · Diffusion audio 24/7" 
-        : "Radio Désactivée (Privée) · En pause",
+        ? `Radio Active (En Ligne) · ${radioStats.sets} Sets & ${radioStats.clips} Clips` 
+        : `Radio Privée (Inactif) · ${radioStats.sets} Sets & ${radioStats.clips} Clips`,
       icon: "Radio",
       category: "DROPSIDERS_TV",
       link: "#DROPSIDERS_RADIO",
@@ -4649,7 +4693,7 @@ export function AdminDashboard() {
                               action.link === "#DROPSIDERS_RADIO"
                             ) {
                               e.preventDefault();
-                              toggleRadioActive();
+                              setIsRadioModalOpen(true);
                             } else if (action.title === "Agenda") {
                               e.preventDefault();
                               setIsAgendaModalOpen(true);
@@ -4887,24 +4931,38 @@ export function AdminDashboard() {
                             {action.description}
                           </p>
                           {action.title === "Dropsiders Radio" && (
-                            <div className="mt-4 flex items-center justify-between pt-3 border-t border-white/10" onClick={e => e.stopPropagation()}>
-                              <div className="flex items-center gap-2">
-                                <span className={`w-2.5 h-2.5 rounded-full ${isRadioActive ? 'bg-neon-cyan animate-pulse shadow-[0_0_10px_rgba(0,255,255,0.8)]' : 'bg-gray-600'}`} />
-                                <span className={`text-[10px] font-black uppercase tracking-wider ${isRadioActive ? 'text-neon-cyan' : 'text-gray-500'}`}>
-                                  {isRadioActive ? 'ACTIF (EN LIGNE)' : 'PRIVÉE (INACTIF)'}
-                                </span>
-                              </div>
+                            <div className="mt-4 pt-3 border-t border-white/10 space-y-2.5" onClick={e => e.stopPropagation()}>
                               <button
                                 type="button"
-                                onClick={toggleRadioActive}
-                                className={`px-3.5 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all cursor-pointer shadow-lg active:scale-95 ${
-                                  isRadioActive
-                                    ? 'bg-neon-cyan text-black hover:bg-white'
-                                    : 'bg-white/10 hover:bg-neon-cyan hover:text-black text-white border border-white/15'
-                                }`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setIsRadioModalOpen(true);
+                                }}
+                                className="w-full py-2 px-3 rounded-xl bg-neon-cyan/15 hover:bg-neon-cyan/25 border border-neon-cyan/35 text-neon-cyan font-bold text-xs flex items-center justify-center gap-2 transition-all hover:scale-[1.02] cursor-pointer shadow-lg"
                               >
-                                {isRadioActive ? 'DÉSACTIVER' : 'ACTIVER'}
+                                <Music2 className="w-3.5 h-3.5" />
+                                <span>Gérer Sets & Clips ({radioStats.sets} Sets · {radioStats.clips} Clips)</span>
                               </button>
+
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className={`w-2.5 h-2.5 rounded-full ${isRadioActive ? 'bg-neon-cyan animate-pulse shadow-[0_0_10px_rgba(0,255,255,0.8)]' : 'bg-gray-600'}`} />
+                                  <span className={`text-[10px] font-black uppercase tracking-wider ${isRadioActive ? 'text-neon-cyan' : 'text-gray-500'}`}>
+                                    {isRadioActive ? 'ACTIF (EN LIGNE)' : 'PRIVÉE (INACTIF)'}
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={toggleRadioActive}
+                                  className={`px-3.5 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all cursor-pointer shadow-lg active:scale-95 ${
+                                    isRadioActive
+                                      ? 'bg-neon-cyan text-black hover:bg-white'
+                                      : 'bg-white/10 hover:bg-neon-cyan hover:text-black text-white border border-white/15'
+                                  }`}
+                                >
+                                  {isRadioActive ? 'DÉSACTIVER' : 'ACTIVER'}
+                                </button>
+                              </div>
                             </div>
                           )}
                         </Link>
@@ -6611,6 +6669,13 @@ export function AdminDashboard() {
             onSaveTakeover={saveTakeoverSettings}
             onTakeoverChange={(updated) => setTakeoverState(updated as any)}
             isUpdatingTakeover={isUpdatingTakeover}
+          />
+          {/* Modal Dropsiders Radio · Sets & Clips */}
+          <AdminRadioModal
+            isOpen={isRadioModalOpen}
+            onClose={() => setIsRadioModalOpen(false)}
+            isRadioActive={isRadioActive}
+            onToggleRadio={toggleRadioActive}
           />
           {/* Modal Accueil */}
           <AnimatePresence>

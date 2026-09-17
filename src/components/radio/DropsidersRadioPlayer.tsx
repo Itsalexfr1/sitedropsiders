@@ -76,14 +76,91 @@ export function DropsidersRadioPlayer() {
         return () => clearInterval(interval);
     }, []);
 
-    // Calcul du programme du jour
-    const scheduleItems = useMemo(() => {
+    // Pistes personnalisées Radio (Sets & Clips gérés par l'admin)
+    const [customTracks, setCustomTracks] = useState<any[]>(() => {
+        try {
+            const saved = localStorage.getItem('dropsiders_radio_tracks');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch {}
+        return [];
+    });
+
+    // Écoute les mises à jour des sets et clips depuis le tableau de bord
+    useEffect(() => {
+        const handleTracksUpdate = () => {
+            try {
+                const saved = localStorage.getItem('dropsiders_radio_tracks');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        setCustomTracks(parsed);
+                        return;
+                    }
+                }
+                setCustomTracks([]);
+            } catch {}
+        };
+        window.addEventListener('dropsiders_radio_tracks_updated', handleTracksUpdate);
+        window.addEventListener('storage', handleTracksUpdate);
+        return () => {
+            window.removeEventListener('dropsiders_radio_tracks_updated', handleTracksUpdate);
+            window.removeEventListener('storage', handleTracksUpdate);
+        };
+    }, []);
+
+    // Calcul du programme de diffusion 24/7
+    const scheduleItems = useMemo<ComputedScheduleItem[]>(() => {
+        if (customTracks && customTracks.length > 0) {
+            let currentSec = 0;
+            const items: ComputedScheduleItem[] = [];
+            let i = 0;
+            while (currentSec < 86400 && i < 120) {
+                const track = customTracks[i % customTracks.length];
+                const dur = track.duration || (track.category === 'clip' ? 240 : 3600);
+                const startSec = currentSec;
+                const endSec = startSec + dur;
+
+                const startH = Math.floor(startSec / 3600) % 24;
+                const startM = Math.floor((startSec % 3600) / 60);
+                const endH = Math.floor(endSec / 3600) % 24;
+                const endM = Math.floor((endSec % 3600) / 60);
+
+                const isLive = currentTimeSec >= startSec && currentTimeSec < endSec;
+
+                items.push({
+                    id: `radio_${track.id}_${i}`,
+                    blockId: 'radio_rotation',
+                    blockTitle: track.category === 'clip' ? 'Clip Rotation' : 'Liveset 24/7',
+                    blockColor: track.category === 'clip' ? '#a855f7' : '#00ffff',
+                    blockEmoji: track.category === 'clip' ? '🎬' : '🎪',
+                    title: track.title,
+                    artist: track.artist || 'Artiste',
+                    event: track.category === 'clip' ? 'DROPSIDERS CLIP' : 'DROPSIDERS LIVE',
+                    youtubeId: track.youtubeId,
+                    startTime: `${String(startH).padStart(2, '0')}h${String(startM).padStart(2, '0')}`,
+                    endTime: `${String(endH).padStart(2, '0')}h${String(endM).padStart(2, '0')}`,
+                    startSecondsFromMidnight: startSec,
+                    durationSeconds: dur,
+                    durationFormatted: formatDurationExact(dur),
+                    isCurrentlyLive: isLive,
+                    category: track.category
+                });
+
+                currentSec += dur;
+                i++;
+            }
+            return items;
+        }
+
         try {
             return computeDaySchedule(DEFAULT_TV_BLOCKS);
         } catch {
             return [];
         }
-    }, []);
+    }, [customTracks, currentTimeSec]);
 
     // Détermination du set en cours de diffusion
     const currentSet = useMemo<ComputedScheduleItem | null>(() => {

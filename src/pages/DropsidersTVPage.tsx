@@ -1371,55 +1371,57 @@ export function DropsidersTVPage() {
                                     <span className="xs:hidden">Programme</span>
                                 </button>
 
-                                {/* Filtre de catégorie : Tout / Liveset / Clip / Interview */}
-                                <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/15 p-1 rounded-full shadow-lg">
-                                    <button
-                                        onClick={() => setSelectedCategory('all')}
-                                        className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer ${
-                                            selectedCategory === 'all'
-                                                ? 'bg-white text-black shadow'
-                                                : 'text-gray-400 hover:text-white'
-                                        }`}
-                                    >
-                                        Tout
-                                    </button>
-                                    <button
-                                        onClick={() => setSelectedCategory('liveset')}
-                                        className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 ${
-                                            selectedCategory === 'liveset'
-                                                ? 'bg-neon-cyan text-black shadow'
-                                                : 'text-gray-400 hover:text-white'
-                                        }`}
-                                        title="Filtrer les Livesets"
-                                    >
-                                        <span>🎪</span>
-                                        <span className="hidden sm:inline">Liveset</span>
-                                    </button>
-                                    <button
-                                        onClick={() => setSelectedCategory('clip')}
-                                        className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 ${
-                                            selectedCategory === 'clip'
-                                                ? 'bg-neon-purple text-white shadow'
-                                                : 'text-gray-400 hover:text-white'
-                                        }`}
-                                        title="Filtrer les Clips"
-                                    >
-                                        <span>🎬</span>
-                                        <span className="hidden sm:inline">Clips</span>
-                                    </button>
-                                    <button
-                                        onClick={() => setSelectedCategory('interview')}
-                                        className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 ${
-                                            selectedCategory === 'interview'
-                                                ? 'bg-neon-red text-white shadow'
-                                                : 'text-gray-400 hover:text-white'
-                                        }`}
-                                        title="Filtrer les Interviews"
-                                    >
-                                        <span>🎙️</span>
-                                        <span className="hidden sm:inline">Interviews</span>
-                                    </button>
-                                </div>
+                                {/* Filtre de catégorie : affiché uniquement pour les admins (masqué pour les viewers) */}
+                                {isAdmin && (
+                                    <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/15 p-1 rounded-full shadow-lg">
+                                        <button
+                                            onClick={() => setSelectedCategory('all')}
+                                            className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                                selectedCategory === 'all'
+                                                    ? 'bg-white text-black shadow'
+                                                    : 'text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            Tout
+                                        </button>
+                                        <button
+                                            onClick={() => setSelectedCategory('liveset')}
+                                            className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 ${
+                                                selectedCategory === 'liveset'
+                                                    ? 'bg-neon-cyan text-black shadow'
+                                                    : 'text-gray-400 hover:text-white'
+                                            }`}
+                                            title="Filtrer les Livesets"
+                                        >
+                                            <span>🎪</span>
+                                            <span className="hidden sm:inline">Liveset</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setSelectedCategory('clip')}
+                                            className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 ${
+                                                selectedCategory === 'clip'
+                                                    ? 'bg-neon-purple text-white shadow'
+                                                    : 'text-gray-400 hover:text-white'
+                                            }`}
+                                            title="Filtrer les Clips"
+                                        >
+                                            <span>🎬</span>
+                                            <span className="hidden sm:inline">Clips</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setSelectedCategory('interview')}
+                                            className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 ${
+                                                selectedCategory === 'interview'
+                                                    ? 'bg-neon-red text-white shadow'
+                                                    : 'text-gray-400 hover:text-white'
+                                            }`}
+                                            title="Filtrer les Interviews"
+                                        >
+                                            <span>🎙️</span>
+                                            <span className="hidden sm:inline">Interviews</span>
+                                        </button>
+                                    </div>
+                                )}
 
                                 {/* Programmation Button: only displayed for admins, hidden for regular visitors */}
                                 {isAdmin && (

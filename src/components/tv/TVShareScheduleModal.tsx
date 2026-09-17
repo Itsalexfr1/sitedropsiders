@@ -505,7 +505,7 @@ export function TVShareScheduleModal({
                                         </div>
 
                                         <div className="px-2 py-0.5 rounded-xl bg-white/5 border border-white/10 text-[7.5px] font-black uppercase tracking-widest text-neon-cyan">
-                                            @DROPSIDERS
+                                            @dropsiders.fr
                                         </div>
                                     </div>
                                 </div>

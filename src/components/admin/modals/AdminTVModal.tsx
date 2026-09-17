@@ -371,6 +371,7 @@ export function AdminTVModal({
     // Inline title editing state
     const [editingVideoId, setEditingVideoId] = useState<string | null>(null);
     const [editingVideoTitle, setEditingVideoTitle] = useState('');
+    const [editingVideoCategory, setEditingVideoCategory] = useState<TVVideoCategory>('liveset');
 
     // Modal Bibliothèque : Clips & Lives déjà programmés
     const [isLibraryOpen, setIsLibraryOpen] = useState(false);
@@ -761,19 +762,39 @@ export function AdminTVModal({
         }));
     };
 
-    // Rename video inside a block
-    const handleRenameVideoInBlock = (blockId: string, videoIdx: number, newTitle: string) => {
+    // Rename & style/category video inside a block
+    const handleRenameVideoInBlock = (blockId: string, videoIdx: number, newTitle: string, newCategory?: TVVideoCategory) => {
         if (!newTitle.trim()) return;
         setBlocks(prev => prev.map(b => {
             if (b.id !== blockId) return b;
             const nextVids = [...(b.videos || [])];
             if (nextVids[videoIdx]) {
-                nextVids[videoIdx] = { ...nextVids[videoIdx], title: newTitle.trim() };
+                nextVids[videoIdx] = { 
+                    ...nextVids[videoIdx], 
+                    title: newTitle.trim(),
+                    ...(newCategory ? { category: newCategory } : {})
+                };
             }
             return { ...b, videos: nextVids };
         }));
         setEditingVideoId(null);
         setEditingVideoTitle('');
+    };
+
+    // Cycle or set video category/style directly (Liveset -> Clip -> Interview)
+    const handleCycleVideoCategoryInBlock = (blockId: string, videoIdx: number, currentCategory?: TVVideoCategory) => {
+        const order: TVVideoCategory[] = ['liveset', 'clip', 'interview'];
+        const current = currentCategory || 'liveset';
+        const nextIndex = (order.indexOf(current) + 1) % order.length;
+        const nextCategory = order[nextIndex];
+        setBlocks(prev => prev.map(b => {
+            if (b.id !== blockId) return b;
+            const nextVids = [...(b.videos || [])];
+            if (nextVids[videoIdx]) {
+                nextVids[videoIdx] = { ...nextVids[videoIdx], category: nextCategory };
+            }
+            return { ...b, videos: nextVids };
+        }));
     };
 
     // Rename main video
@@ -2341,38 +2362,82 @@ export function AdminTVModal({
                                                                         <div className="min-w-0 flex-1">
                                                                             {editingVideoId === `block_${currentBlock.id}_${idx}` ? (
                                                                                 <form
-                                                                                    className="flex items-center gap-1"
-                                                                                    onSubmit={(e) => { e.preventDefault(); handleRenameVideoInBlock(currentBlock.id, idx, editingVideoTitle); }}
+                                                                                    className="flex flex-col gap-1.5 py-0.5"
+                                                                                    onSubmit={(e) => { e.preventDefault(); handleRenameVideoInBlock(currentBlock.id, idx, editingVideoTitle, editingVideoCategory); }}
                                                                                 >
-                                                                                    <input
-                                                                                        type="text"
-                                                                                        value={editingVideoTitle}
-                                                                                        onChange={(e) => setEditingVideoTitle(e.target.value)}
-                                                                                        className="flex-1 px-2 py-0.5 rounded bg-white/10 border border-white/20 text-white text-xs focus:outline-none focus:border-white/40"
-                                                                                        autoFocus
-                                                                                        onKeyDown={(e) => { if (e.key === 'Escape') { setEditingVideoId(null); setEditingVideoTitle(''); } }}
-                                                                                    />
-                                                                                    <button type="submit" className="p-0.5 rounded bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-all">
-                                                                                        <CheckCircle2 className="w-3 h-3" />
-                                                                                    </button>
-                                                                                    <button type="button" onClick={() => { setEditingVideoId(null); setEditingVideoTitle(''); }} className="p-0.5 rounded bg-white/5 text-white/40 hover:text-white transition-all">
-                                                                                        <X className="w-3 h-3" />
-                                                                                    </button>
+                                                                                    <div className="flex items-center gap-1">
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            value={editingVideoTitle}
+                                                                                            onChange={(e) => setEditingVideoTitle(e.target.value)}
+                                                                                            className="flex-1 px-2 py-0.5 rounded bg-white/10 border border-white/20 text-white text-xs focus:outline-none focus:border-white/40"
+                                                                                            autoFocus
+                                                                                            onKeyDown={(e) => { if (e.key === 'Escape') { setEditingVideoId(null); setEditingVideoTitle(''); } }}
+                                                                                        />
+                                                                                        <button type="submit" className="p-0.5 rounded bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-all" title="Sauvegarder">
+                                                                                            <CheckCircle2 className="w-3 h-3" />
+                                                                                        </button>
+                                                                                        <button type="button" onClick={() => { setEditingVideoId(null); setEditingVideoTitle(''); }} className="p-0.5 rounded bg-white/5 text-white/40 hover:text-white transition-all" title="Annuler">
+                                                                                            <X className="w-3 h-3" />
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    {/* Sélecteur de style / catégorie */}
+                                                                                    <div className="flex items-center gap-1">
+                                                                                        <span className="text-[8px] font-bold text-white/40 uppercase">Style :</span>
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={() => setEditingVideoCategory('liveset')}
+                                                                                            className={`px-1.5 py-0.5 rounded text-[7.5px] font-black uppercase transition-all cursor-pointer ${
+                                                                                                editingVideoCategory === 'liveset'
+                                                                                                    ? 'bg-neon-cyan text-black shadow'
+                                                                                                    : 'bg-white/5 text-white/40 hover:text-white'
+                                                                                            }`}
+                                                                                        >
+                                                                                            🎪 Liveset
+                                                                                        </button>
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={() => setEditingVideoCategory('clip')}
+                                                                                            className={`px-1.5 py-0.5 rounded text-[7.5px] font-black uppercase transition-all cursor-pointer ${
+                                                                                                editingVideoCategory === 'clip'
+                                                                                                    ? 'bg-neon-purple text-white shadow'
+                                                                                                    : 'bg-white/5 text-white/40 hover:text-white'
+                                                                                            }`}
+                                                                                        >
+                                                                                            🎬 Clip
+                                                                                        </button>
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={() => setEditingVideoCategory('interview')}
+                                                                                            className={`px-1.5 py-0.5 rounded text-[7.5px] font-black uppercase transition-all cursor-pointer ${
+                                                                                                editingVideoCategory === 'interview'
+                                                                                                    ? 'bg-neon-red text-white shadow'
+                                                                                                    : 'bg-white/5 text-white/40 hover:text-white'
+                                                                                            }`}
+                                                                                        >
+                                                                                            🎙️ Interview
+                                                                                        </button>
+                                                                                    </div>
                                                                                 </form>
                                                                             ) : (
                                                                                 <div className="flex items-center gap-2">
                                                                                     <h5 className="text-xs font-bold text-white truncate" title={vid.title}>
                                                                                         {vid.title}
                                                                                     </h5>
-                                                                                    <span className={`text-[7px] font-black uppercase px-1.5 py-0.5 rounded border shrink-0 ${
-                                                                                        vCat === 'interview'
-                                                                                            ? 'bg-neon-red/15 text-neon-red border-neon-red/30'
-                                                                                            : vCat === 'clip'
-                                                                                            ? 'bg-neon-purple/15 text-neon-purple border-neon-purple/30'
-                                                                                            : 'bg-neon-cyan/15 text-neon-cyan border-neon-cyan/30'
-                                                                                    }`}>
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => handleCycleVideoCategoryInBlock(currentBlock.id, idx, vCat)}
+                                                                                        className={`text-[7px] font-black uppercase px-1.5 py-0.5 rounded border shrink-0 transition-all cursor-pointer hover:scale-105 ${
+                                                                                            vCat === 'interview'
+                                                                                                ? 'bg-neon-red/15 text-neon-red border-neon-red/30 hover:bg-neon-red/25'
+                                                                                                : vCat === 'clip'
+                                                                                                ? 'bg-neon-purple/15 text-neon-purple border-neon-purple/30 hover:bg-neon-purple/25'
+                                                                                                : 'bg-neon-cyan/15 text-neon-cyan border-neon-cyan/30 hover:bg-neon-cyan/25'
+                                                                                        }`}
+                                                                                        title="Changer le style (cliquer pour basculer Liveset / Clip / Interview)"
+                                                                                    >
                                                                                         {vCat === 'interview' ? '🎙️ Interview' : vCat === 'clip' ? '🎬 Clip' : '🎪 Liveset'}
-                                                                                    </span>
+                                                                                    </button>
                                                                                 </div>
                                                                             )}
                                                                             <div className="flex items-center gap-2 text-[9px] text-white/40">
@@ -2401,9 +2466,21 @@ export function AdminTVModal({
                                                                     <div className="flex items-center gap-0.5 shrink-0">
                                                                         <button
                                                                             type="button"
-                                                                            onClick={() => { setEditingVideoId(`block_${currentBlock.id}_${idx}`); setEditingVideoTitle(vid.title); }}
-                                                                            className="p-1 rounded bg-white/5 hover:bg-white/10 text-white/50 hover:text-neon-cyan disabled:opacity-20 transition-all"
-                                                                            title="Modifier le titre"
+                                                                            onClick={() => handleCycleVideoCategoryInBlock(currentBlock.id, idx, vCat)}
+                                                                            className="p-1 rounded bg-white/5 hover:bg-white/10 text-white/50 hover:text-neon-purple transition-all cursor-pointer"
+                                                                            title={`Style actuel: ${vCat}. Cliquer pour changer (Liveset / Clip / Interview)`}
+                                                                        >
+                                                                            <Palette className="w-3 h-3" />
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => { 
+                                                                                setEditingVideoId(`block_${currentBlock.id}_${idx}`); 
+                                                                                setEditingVideoTitle(vid.title); 
+                                                                                setEditingVideoCategory(vCat);
+                                                                            }}
+                                                                            className="p-1 rounded bg-white/5 hover:bg-white/10 text-white/50 hover:text-neon-cyan disabled:opacity-20 transition-all cursor-pointer"
+                                                                            title="Modifier le titre et le style"
                                                                         >
                                                                             <Pencil className="w-3 h-3" />
                                                                         </button>
