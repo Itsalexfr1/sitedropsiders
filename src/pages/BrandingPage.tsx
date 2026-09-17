@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../utils/auth';
+import { DropsidersRadioCard } from '../components/radio/DropsidersRadioCard';
 
 const TiktokIcon = (props: any) => (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -452,6 +453,9 @@ export function BrandingPage() {
                         YouTube
                     </a>
                 </motion.div>
+
+                {/* 📻 DROPSIDERS RADIO 24/7 PLAYER (En bas de page) */}
+                <DropsidersRadioCard className="mt-1" />
 
             </main>
 

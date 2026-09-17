@@ -216,17 +216,63 @@ export function DropsidersRadioPlayer() {
         } catch {}
     }, [isMuted]);
 
+    // ─── Synchronisation avec composants externes (ex: DropsidersRadioCard sur /go) ─
+    useEffect(() => {
+        const broadcastState = () => {
+            window.dispatchEvent(new CustomEvent('dropsiders_radio_state', {
+                detail: {
+                    isPlaying,
+                    isMuted,
+                    volume,
+                    currentSet,
+                    uiOffset,
+                    isEnabled
+                }
+            }));
+        };
+
+        const onToggle = () => handlePlay();
+        const onPlay = () => { if (!isPlaying) handlePlay(); };
+        const onPause = () => { if (isPlaying) handlePlay(); };
+        const onStop = () => handleStop();
+        const onMute = () => toggleMute();
+        const onVolume = (e: any) => {
+            if (typeof e.detail === 'number') {
+                setVolume(e.detail);
+                if (isMuted) setIsMuted(false);
+            }
+        };
+
+        window.addEventListener('dropsiders_radio_cmd_toggle', onToggle);
+        window.addEventListener('dropsiders_radio_cmd_play', onPlay);
+        window.addEventListener('dropsiders_radio_cmd_pause', onPause);
+        window.addEventListener('dropsiders_radio_cmd_stop', onStop);
+        window.addEventListener('dropsiders_radio_cmd_mute', onMute);
+        window.addEventListener('dropsiders_radio_cmd_volume', onVolume);
+        window.addEventListener('dropsiders_radio_query_state', broadcastState);
+
+        broadcastState();
+
+        return () => {
+            window.removeEventListener('dropsiders_radio_cmd_toggle', onToggle);
+            window.removeEventListener('dropsiders_radio_cmd_play', onPlay);
+            window.removeEventListener('dropsiders_radio_cmd_pause', onPause);
+            window.removeEventListener('dropsiders_radio_cmd_stop', onStop);
+            window.removeEventListener('dropsiders_radio_cmd_mute', onMute);
+            window.removeEventListener('dropsiders_radio_cmd_volume', onVolume);
+            window.removeEventListener('dropsiders_radio_query_state', broadcastState);
+        };
+    }, [isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled]);
+
     // ─── Guard pages ───────────────────────────────────────────────────────────
     const isTVPage = location.pathname === '/tv';
+    const isGoPage = ['/go', '/link', '/drop', '/v', '/connect', '/bio', '/branding'].includes(location.pathname);
     if (!isEnabled || isTVPage || !currentSet) return null;
 
     return (
-        <aside
-            aria-label="Lecteur Dropsiders Radio"
-            className="fixed bottom-20 lg:bottom-4 left-4 z-[90] max-w-[calc(100vw-2rem)] select-none pointer-events-auto font-sans"
-        >
+        <>
             {/* Iframe audio - montee UNE FOIS, jamais rechargee tant que frozenSrc ne change pas */}
-            <div className="absolute w-0 h-0 overflow-hidden opacity-0 pointer-events-none" aria-hidden="true">
+            <div className="fixed top-0 left-0 w-0 h-0 overflow-hidden opacity-0 pointer-events-none" aria-hidden="true">
                 {isPlaying && frozenSrc && (
                     <iframe
                         ref={iframeRef}
@@ -239,10 +285,14 @@ export function DropsidersRadioPlayer() {
                 )}
             </div>
 
-            <AnimatePresence mode="wait">
-                {isMinimized ? (
-                    // ── Mini pill ──────────────────────────────────────────────────────────
-                    <motion.div
+            <aside
+                aria-label="Lecteur Dropsiders Radio"
+                className={`fixed ${isGoPage ? 'hidden lg:block' : ''} bottom-20 lg:bottom-4 left-4 z-[90] max-w-[calc(100vw-2rem)] select-none pointer-events-auto font-sans`}
+            >
+                <AnimatePresence mode="wait">
+                    {isMinimized ? (
+                        // ── Mini pill ──────────────────────────────────────────────────────────
+                        <motion.div
                         key="minimized-radio"
                         initial={{ opacity: 0, scale: 0.85, y: 15 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -413,5 +463,6 @@ export function DropsidersRadioPlayer() {
                 )}
             </AnimatePresence>
         </aside>
+        </>
     );
 }
