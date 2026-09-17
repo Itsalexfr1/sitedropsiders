@@ -15,7 +15,9 @@ import {
     Calendar, 
     Music, 
     Zap,
-    Tv
+    Tv,
+    Play,
+    Pause
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../utils/auth';
@@ -46,8 +48,19 @@ export function BrandingPage() {
         facebook: 8310
     });
     const [copied, setCopied] = useState(false);
+    const [isRadioPlaying, setIsRadioPlaying] = useState(false);
 
-    // Fetch live status & restored likes from localStorage
+    // Écouter l'état du lecteur radio pour basculer Play / Pause sur le cadre
+    useEffect(() => {
+        const handleRadioState = (e: any) => {
+            if (e.detail && typeof e.detail.isPlaying === 'boolean') {
+                setIsRadioPlaying(e.detail.isPlaying);
+            }
+        };
+        window.addEventListener('dropsiders_radio_state', handleRadioState);
+        window.dispatchEvent(new CustomEvent('dropsiders_radio_query_state'));
+        return () => window.removeEventListener('dropsiders_radio_state', handleRadioState);
+    }, []);
     useEffect(() => {
         const fetchLiveStatus = async () => {
             try {
@@ -247,6 +260,36 @@ export function BrandingPage() {
                             <div className="relative z-10 w-8 h-8 rounded-xl bg-neon-red/10 flex items-center justify-center text-neon-red group-hover:bg-neon-red group-hover:text-white transition-all">→</div>
                         </div>
                     </Link>
+
+                    {/* Dropsiders Radio 24/7 (Cadre comme TV) */}
+                    <div 
+                        onClick={() => {
+                            window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_toggle'));
+                        }}
+                        className="relative overflow-hidden bg-gradient-to-r from-[#00141a] via-[#000d12] to-[#0a0a0a] border border-neon-cyan/35 hover:border-neon-cyan/80 rounded-2xl p-4 flex items-center justify-between transition-all duration-300 shadow-xl shadow-neon-cyan/10 group-hover:scale-[1.01] group-hover:shadow-neon-cyan/30 cursor-pointer group"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-neon-cyan/5 to-transparent pointer-events-none" />
+                        <div className="flex items-center gap-3.5 relative z-10 min-w-0">
+                            <div className="relative w-10 h-10 rounded-xl bg-neon-cyan/15 border border-neon-cyan/40 flex items-center justify-center text-neon-cyan group-hover:bg-neon-cyan group-hover:text-black transition-colors shrink-0">
+                                <Radio className="w-5 h-5" />
+                                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-neon-cyan border-2 border-[#050505] animate-pulse" />
+                            </div>
+                            <div className="min-w-0">
+                                <h3 className="text-xs font-black text-white uppercase tracking-wider group-hover:text-neon-cyan transition-colors flex items-center gap-2">
+                                    DROPSIDERS RADIO
+                                    <span className="text-[8px] bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/40 px-1.5 py-0.5 rounded-full font-black uppercase tracking-widest animate-pulse">LIVE 24/7</span>
+                                </h3>
+                                <p className="text-[10px] text-gray-400 truncate">Web Radio Electro 24/7 • Sets &amp; Bass Music</p>
+                            </div>
+                        </div>
+                        <div className="relative z-10 w-8 h-8 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center text-neon-cyan group-hover:bg-neon-cyan group-hover:text-black transition-all shrink-0">
+                            {isRadioPlaying ? (
+                                <Pause className="w-3.5 h-3.5 fill-current" />
+                            ) : (
+                                <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                            )}
+                        </div>
+                    </div>
                 </motion.div>
 
                 {/* 📱 RÉSEAUX SOCIAUX */}
