@@ -1,26 +1,26 @@
 [
   {
-    "title": "DropsidersTV",
+    "title": "Dropsiders TV",
     "description": "Programmation des liens YouTube & Diffusion TV",
-    "icon": "Tv",
+    "icon": "Monitor",
     "category": "DROPSIDERS_TV",
     "link": "#DROPSIDERS_TV",
     "color": "border-neon-red/20 hover:border-neon-red",
     "bg": "bg-neon-red/5",
     "permission": "settings",
-    "baseColor": "red",
+    "baseColor": "#2b734e",
     "columns": 1
   },
   {
-    "title": "Accueil",
-    "description": "Spotify, Sections & Vues",
-    "icon": "LayoutDashboard",
-    "category": "ALL",
-    "link": "#",
-    "color": "border-neon-cyan/20 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/5",
-    "permission": "superadmin",
-    "baseColor": "#ffffff",
+    "title": "Dropsiders Radio",
+    "description": "Radio Active (En Ligne) · 22 Sets & 3 Clips",
+    "icon": "Radio",
+    "category": "DROPSIDERS_TV",
+    "link": "#DROPSIDERS_RADIO",
+    "color": "border-neon-cyan/50 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/10",
+    "permission": "settings",
+    "baseColor": "#9670ff",
     "columns": 1
   },
   {
@@ -38,7 +38,7 @@
   {
     "title": "Contenu",
     "description": "News, Musique, Interviews...",
-    "icon": "FileText",
+    "icon": "Music2",
     "category": "NEWS",
     "link": "#",
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
@@ -57,6 +57,18 @@
     "bg": "bg-neon-orange/5",
     "permission": "messages_contact",
     "baseColor": "#75ffd1",
+    "columns": 1
+  },
+  {
+    "title": "Accueil",
+    "description": "Spotify, Sections & Vues",
+    "icon": "Home",
+    "category": "ALL",
+    "link": "#",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "superadmin",
+    "baseColor": "#ffffff",
     "columns": 1
   },
   {
@@ -110,7 +122,7 @@
   {
     "title": "Top Dropsiders",
     "description": "DJs, Clubs & Festivals",
-    "icon": "Star",
+    "icon": "Trophy",
     "category": "WIKI",
     "link": "#TOP_DROPSIDERS_MODAL",
     "color": "border-neon-yellow/20 hover:border-neon-yellow",
@@ -168,7 +180,7 @@
   {
     "title": "Documents PDF",
     "description": "Hébergement & Partage",
-    "icon": "Download",
+    "icon": "Database",
     "category": "WIKI",
     "link": "/admin/pdfs",
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
