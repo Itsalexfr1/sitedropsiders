@@ -2587,7 +2587,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let curX = centerX - totalW / 2;
 
                     ctx.textAlign = 'left';
-                    ctx.fillStyle = '#000000'; // Noir pour lisibilité sur le dégradé jaune
+                    ctx.fillStyle = '#ffffff';
                     ctx.font = `600 ${ctaSize}px "Montserrat", sans-serif`;
                     ctx.fillText(prefix, curX, footerY);
                     curX += w1;
@@ -2596,7 +2596,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(domain, curX, footerY);
                     
                     ctx.beginPath();
-                    ctx.strokeStyle = '#000000'; // Noir pour soulignement
+                    ctx.strokeStyle = '#ffffff';
                     ctx.lineWidth = 2;
                     ctx.moveTo(curX, footerY + 8);
                     ctx.lineTo(curX + w2, footerY + 8);
@@ -2639,7 +2639,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fill();
 
                 ctx.globalAlpha = 1;
-                ctx.fillStyle = (labelText === 'TOP 100 DROPSIDERS' || labelText === 'EVENT') ? '#000' : '#FFF';
+                ctx.fillStyle = '#FFF';
                 const labelFontSize = 42;
                 ctx.font = `900 italic ${labelFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 ctx.textBaseline = 'middle';
@@ -3322,7 +3322,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     // Themes that use a bright/light color and need black text on the canvas
-    const LIGHT_TEXT_THEMES: ThemeType[] = ['TOP 100 DROPSIDERS', 'EVENT', 'TOP 5 ARTISTE', 'TOP 5 STYLES'];
+    const LIGHT_TEXT_THEMES: ThemeType[] = ['TOP 5 ARTISTE', 'TOP 5 STYLES'];
 
     const handleSetTheme = (newTheme: ThemeType) => {
         if (newTheme === 'MAP') {
