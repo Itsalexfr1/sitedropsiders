@@ -43,6 +43,7 @@ import {
     getActiveRadioBlock, 
     getParisSeconds, 
     getParisDayOfWeek,
+    buildDefaultRadioBlocksFromTV,
     type RadioScheduleBlock, 
     type RadioTrackItem 
 } from '../../../utils/radioSchedule';
@@ -434,6 +435,17 @@ export function AdminRadioModal({
         }
     };
 
+    const handleImportFullTVLibrary = () => {
+        if (!confirm('Voulez-vous synchroniser et importer l\'intégralité des 240 vidéos et créneaux de Dropsiders TV dans la radio ?')) return;
+        const defaultBlocks = buildDefaultRadioBlocksFromTV();
+        if (defaultBlocks.length > 0) {
+            const sorted = sortRadioBlocksByBroadcastOrder(defaultBlocks, true);
+            setBlocks(sorted);
+            setSelectedBlockId(sorted[0]?.id || '');
+            alert(`Succès : ${sorted.reduce((acc, b) => acc + (b.tracks?.length || 0), 0)} vidéos de la TV importées avec succès dans ${sorted.length} émissions radio ! Pensez à cliquer sur "Sauvegarder" pour propager à tous les auditeurs.`);
+        }
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -472,6 +484,18 @@ export function AdminRadioModal({
 
                         {/* Controls Header */}
                         <div className="flex items-center gap-2">
+                            {/* Bouton Importation TV */}
+                            <button
+                                type="button"
+                                onClick={handleImportFullTVLibrary}
+                                className="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 border border-purple-500/40 bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 hover:text-white transition-all shadow-md active:scale-95 cursor-pointer"
+                                title="Importer les 240 vidéos et créneaux horaires de Dropsiders TV"
+                            >
+                                <Tv className="w-3.5 h-3.5 text-purple-400" />
+                                <span className="hidden sm:inline">Importer TV (240 vidéos)</span>
+                                <span className="sm:hidden">Import TV</span>
+                            </button>
+
                             {/* Toggle Radio Active Button */}
                             <button
                                 type="button"
@@ -484,7 +508,7 @@ export function AdminRadioModal({
                                 title="Activer ou désactiver la radio pour tous les visiteurs du site"
                             >
                                 <span className={`w-2 h-2 rounded-full ${isRadioActive ? 'bg-emerald-400 animate-ping' : 'bg-red-500'}`} />
-                                {isRadioActive ? 'RADIO ACTIVE EN LIGNE' : 'RADIO HORS LIGNE (CLIC = ACTIVER)'}
+                                {isRadioActive ? 'RADIO ACTIVE' : 'RADIO HORS LIGNE'}
                             </button>
 
                             <button

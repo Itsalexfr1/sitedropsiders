@@ -5,8 +5,10 @@ import {
     DAYS_OF_WEEK, 
     ALL_DAYS, 
     WEEKDAYS, 
-    WEEKEND_DAYS 
+    WEEKEND_DAYS,
+    getSeededShuffle
 } from './tvSchedule';
+import settings from '../data/settings.json';
 
 export { DAYS_OF_WEEK, ALL_DAYS, WEEKDAYS, WEEKEND_DAYS, formatDurationExact };
 
@@ -55,111 +57,52 @@ export interface ComputedRadioScheduleItem {
     category?: 'liveset' | 'clip';
 }
 
-// Extraction de pistes vidéo par défaut pour alimenter les blocs de la radio
-function createTrack(id: string, title: string, youtubeId: string, duration: number, category: 'liveset' | 'clip'): RadioTrackItem {
-    const { artist } = parseArtistAndEvent(title);
-    return {
-        id,
-        title,
-        artist: artist || 'Artiste',
-        youtubeId,
-        duration,
-        category,
-        addedAt: Date.now()
-    };
+/**
+ * Construit les blocs radio par défaut en intégrant l'intégralité des 240 sets & clips de la TV
+ */
+export function buildDefaultRadioBlocksFromTV(): RadioScheduleBlock[] {
+    const rawTvBlocks = (settings as any)?.tv_blocks;
+    if (Array.isArray(rawTvBlocks) && rawTvBlocks.length > 0) {
+        return rawTvBlocks.map((b: any, idx: number) => {
+            const tracks: RadioTrackItem[] = (b.videos || []).map((v: any, vIdx: number) => {
+                const { artist } = parseArtistAndEvent(v.title || '');
+                return {
+                    id: `rt_${v.id || v.youtubeId || vIdx}`,
+                    title: v.title,
+                    artist: artist || 'Artiste',
+                    youtubeId: v.youtubeId,
+                    duration: v.duration || 3600,
+                    category: v.category || ((v.duration || 3600) < 1200 ? 'clip' : 'liveset')
+                };
+            });
+            return {
+                id: `radio_${b.id}`,
+                name: `Émission ${idx + 1} · ${b.title || b.name}`,
+                title: b.title || b.name,
+                timeSlot: b.timeSlot,
+                startHour: b.startHour,
+                endHour: b.endHour,
+                color: b.color || '#00ffff',
+                emoji: b.emoji || '📻',
+                randomize: b.randomize !== false,
+                days: b.days || [1, 2, 3, 4, 5, 6, 0],
+                tracks
+            };
+        });
+    }
+
+    return [];
 }
 
-export const DEFAULT_RADIO_BLOCKS: RadioScheduleBlock[] = [
-    {
-        id: 'radio_bloc_1',
-        name: 'Émission 1 · Morning Vibes',
-        title: 'Morning Vibes Electro',
-        timeSlot: '06h - 12h',
-        startHour: 6,
-        endHour: 12,
-        color: '#f59e0b',
-        emoji: '🌅',
-        randomize: true,
-        days: [1, 2, 3, 4, 5, 6, 0],
-        tracks: [
-            createTrack('rb_1_1', 'RÜFÜS DU SOL (DJ SET) - Mayan Warrior - Burning Man 2024', 'eQ-OVsdK-hM', 5400, 'liveset'),
-            createTrack('rb_1_2', 'Tomorrowland Belgium 2026 | Official Aftermovie', 'k5yQBhDnrvM', 900, 'clip'),
-            createTrack('rb_1_3', 'TOMAN | Awakenings Festival 2026', '5hj5UTZR_Ss', 5400, 'liveset'),
-            createTrack('rb_1_4', 'Mau P | Awakenings Festival 2026', 'CNGB66x4ygk', 5400, 'liveset')
-        ]
-    },
-    {
-        id: 'radio_bloc_2',
-        name: 'Émission 2 · Day Clubbing',
-        title: 'Day Vibes & Clubbing',
-        timeSlot: '12h - 18h',
-        startHour: 12,
-        endHour: 18,
-        color: '#06b6d4',
-        emoji: '☀️',
-        randomize: true,
-        days: [1, 2, 3, 4, 5, 6, 0],
-        tracks: [
-            createTrack('rb_2_1', 'Fisher WE2 | Tomorrowland 2026', 'DuXXMZLfAkQ', 3600, 'liveset'),
-            createTrack('rb_2_2', 'JOHN SUMMIT LIVE @ ULTRA MIAMI MAIN STAGE 2026', 'aloPGSlq31Y', 4500, 'liveset'),
-            createTrack('rb_2_3', 'The Chainsmokers Live at EDC Las Vegas 2026 (Official Full Set)', '3AQ_Srbe1lQ', 4500, 'liveset'),
-            createTrack('rb_2_4', 'Laidback Luke B2B Chuckie Live at EDC Las Vegas 2026', 'IzsShRhd5cw', 4500, 'liveset')
-        ]
-    },
-    {
-        id: 'radio_bloc_3',
-        name: 'Émission 3 · Sunset Warmup',
-        title: 'Sunset House & Warmup',
-        timeSlot: '18h - 22h',
-        startHour: 18,
-        endHour: 22,
-        color: '#f97316',
-        emoji: '🌇',
-        randomize: true,
-        days: [1, 2, 3, 4, 5, 6, 0],
-        tracks: [
-            createTrack('rb_3_1', 'Keinemusik (&ME, Rampa, Adam Port) - Mayan Warrior - Burning Man 2022', '2ECWX8GdDvA', 7200, 'liveset'),
-            createTrack('rb_3_2', 'Mita Gami & Meir Briskman Orchestra Set - Mayan Warrior', 'm8EAmSvzgAQ', 5400, 'liveset'),
-            createTrack('rb_3_3', 'Joris Voorn x Kevin de Vries | Awakenings Festival 2026', '_MqFasX6Fas', 5400, 'liveset')
-        ]
-    },
-    {
-        id: 'radio_bloc_4',
-        name: 'Émission 4 · Festival Peaktime',
-        title: 'Festival Peaktime 100%',
-        timeSlot: '22h - 02h',
-        startHour: 22,
-        endHour: 2,
-        color: '#ff1241',
-        emoji: '🎪',
-        randomize: true,
-        days: [1, 2, 3, 4, 5, 6, 0],
-        tracks: [
-            createTrack('rb_4_1', 'ERIC PRYDZ LIVE @ ULTRA MUSIC FESTIVAL MIAMI 2026', 'hU-z3iV0LOg', 3600, 'liveset'),
-            createTrack('rb_4_2', 'Kaskade Live at EDC Las Vegas 2026', 'l5wro3bMZWc', 4500, 'liveset'),
-            createTrack('rb_4_3', 'Dimitri Vegas B2B Nico Moreno WE2 | Tomorrowland 2026', 'OTKgBZS8if0', 3600, 'liveset'),
-            createTrack('rb_4_4', 'WORSHIP @ ULTRA MUSIC FESTIVAL MIAMI 2026 | UMF', 'V2lD_pq5c3M', 3600, 'liveset')
-        ]
-    },
-    {
-        id: 'radio_bloc_5',
-        name: 'Émission 5 · Afterhours Bass & Hard',
-        title: 'Afterhours Bass & Hard',
-        timeSlot: '02h - 06h',
-        startHour: 2,
-        endHour: 6,
-        color: '#8b5cf6',
-        emoji: '🌙',
-        randomize: true,
-        days: [1, 2, 3, 4, 5, 6, 0],
-        tracks: [
-            createTrack('rb_5_1', 'Wiley Live @ Lost Lands 2025 - Full Set', '8YbWq5urfww', 3600, 'liveset'),
-            createTrack('rb_5_2', 'Ray Volpe Live @ Lost Lands 2025 - Full Set', 'nyaGV-jeST8', 3600, 'liveset'),
-            createTrack('rb_5_3', 'D-Block & S-te-Fan | Defqon.1 2026', 'IEJUg98lIHs', 3600, 'liveset'),
-            createTrack('rb_5_4', 'Coone | Defqon.1 2026', 'fsHgYLT_FCc', 3600, 'liveset')
-        ]
+export const DEFAULT_RADIO_BLOCKS: RadioScheduleBlock[] = (() => {
+    const fromSettings = (settings as any)?.radio_blocks;
+    if (Array.isArray(fromSettings) && fromSettings.length > 0) {
+        return fromSettings;
     }
-];
+    const fromTv = buildDefaultRadioBlocksFromTV();
+    if (fromTv.length > 0) return fromTv;
+    return [];
+})();
 
 /**
  * Heure de Paris en secondes depuis minuit
@@ -172,6 +115,20 @@ export function getParisSeconds(): number {
         return p.getHours() * 3600 + p.getMinutes() * 60 + p.getSeconds();
     } catch {
         return now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+    }
+}
+
+/**
+ * Date du jour à Paris au format YYYY-MM-DD (pour seed deterministe)
+ */
+export function getParisTodayString(): string {
+    const now = new Date();
+    try {
+        const pStr = now.toLocaleString('en-US', { timeZone: 'Europe/Paris' });
+        const p = new Date(pStr);
+        return p.toISOString().slice(0, 10);
+    } catch {
+        return now.toISOString().slice(0, 10);
     }
 }
 
@@ -287,20 +244,119 @@ export function getActiveRadioBlock(blocks: RadioScheduleBlock[], currentHour?: 
     const anyMatch = list.find(b => isHourInRadioBlock(b, nowHour));
     if (anyMatch) return anyMatch;
 
-    return list[0];
+    return list[0] || DEFAULT_RADIO_BLOCKS[0];
+}
+
+export interface CurrentLiveRadioInfo {
+    item: ComputedRadioScheduleItem;
+    offsetSeconds: number;
 }
 
 /**
- * Calcule la grille 24/7 de la radio pour une journée donnée
+ * Calcul 100% déterministe et synchronisé du morceau en direct à l'instant T.
+ * F5 ne changera JAMAIS le morceau car le seed aléatoire est fixé sur la date du jour.
+ */
+export function getCurrentLiveRadioTrack(
+    blocks: RadioScheduleBlock[],
+    nowSec: number = getParisSeconds(),
+    nowDay: number = getParisDayOfWeek(),
+    todayStr: string = getParisTodayString()
+): CurrentLiveRadioInfo | null {
+    const list = Array.isArray(blocks) && blocks.length > 0 ? blocks : DEFAULT_RADIO_BLOCKS;
+    if (list.length === 0) return null;
+
+    const currentHour = Math.floor(nowSec / 3600);
+    const activeBlock = getActiveRadioBlock(list, currentHour, nowDay);
+    if (!activeBlock) return null;
+
+    const rawTracks = activeBlock.tracks && activeBlock.tracks.length > 0
+        ? activeBlock.tracks
+        : [{
+            id: `${activeBlock.id}_fallback`,
+            title: `${activeBlock.title} - Continuous Mix`,
+            artist: 'DROPSIDERS RADIO',
+            youtubeId: '8YbWq5urfww',
+            duration: 3600,
+            category: 'liveset' as const
+        }];
+
+    // Seeded shuffle par jour pour que l'ordre soit identique 100% du temps pour tous les utilisateurs toute la journée
+    const tracks = activeBlock.randomize === false
+        ? rawTracks
+        : getSeededShuffle(rawTracks, `${todayStr}_${activeBlock.id}`);
+
+    const startH = activeBlock.startHour ?? 0;
+    const blockStartSec = startH * 3600;
+    let elapsedInBlock = nowSec - blockStartSec;
+    if (elapsedInBlock < 0) elapsedInBlock += 86400;
+
+    const totalPlaylistSec = tracks.reduce((acc, t) => acc + (t.duration || 3600), 0) || 3600;
+    const cycleSec = elapsedInBlock % totalPlaylistSec;
+
+    let cursor = 0;
+    let selectedTrack = tracks[0];
+    let selectedTrackOffset = 0;
+    let selectedTrackIndex = 0;
+
+    for (let i = 0; i < tracks.length; i++) {
+        const t = tracks[i];
+        const dur = t.duration && t.duration > 0 ? t.duration : 3600;
+        if (cycleSec >= cursor && cycleSec < cursor + dur) {
+            selectedTrack = t;
+            selectedTrackOffset = cycleSec - cursor;
+            selectedTrackIndex = i;
+            break;
+        }
+        cursor += dur;
+    }
+
+    const { artist } = parseArtistAndEvent(selectedTrack.title);
+    const itemStartFromMidnight = (blockStartSec + (elapsedInBlock - selectedTrackOffset)) % 86400;
+    const dur = selectedTrack.duration || 3600;
+    const itemEndFromMidnight = (itemStartFromMidnight + dur) % 86400;
+
+    const sH = Math.floor(itemStartFromMidnight / 3600);
+    const sM = Math.floor((itemStartFromMidnight % 3600) / 60);
+    const eH = Math.floor(itemEndFromMidnight / 3600);
+    const eM = Math.floor((itemEndFromMidnight % 3600) / 60);
+
+    const item: ComputedRadioScheduleItem = {
+        id: `${activeBlock.id}_t_${selectedTrackIndex}_${selectedTrack.id || selectedTrack.youtubeId}`,
+        blockId: activeBlock.id,
+        blockTitle: activeBlock.title,
+        blockColor: activeBlock.color,
+        blockEmoji: activeBlock.emoji,
+        title: selectedTrack.title,
+        artist: selectedTrack.artist || artist || 'Artiste',
+        event: activeBlock.title,
+        youtubeId: selectedTrack.youtubeId,
+        startTime: `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}`,
+        endTime: `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}`,
+        startSecondsFromMidnight: itemStartFromMidnight,
+        durationSeconds: dur,
+        durationFormatted: formatDurationExact(dur),
+        isCurrentlyLive: true,
+        category: selectedTrack.category
+    };
+
+    return {
+        item,
+        offsetSeconds: Math.floor(selectedTrackOffset)
+    };
+}
+
+/**
+ * Calcule la grille 24/7 de la radio pour une journée donnée avec seeded shuffle identique
  */
 export function computeRadioDaySchedule(
     blocks: RadioScheduleBlock[],
     date: Date = new Date()
 ): ComputedRadioScheduleItem[] {
     const list = Array.isArray(blocks) && blocks.length > 0 ? blocks : DEFAULT_RADIO_BLOCKS;
-    const dayOfWeek = date.getDay();
+    const dayOfWeek = getParisDayOfWeek();
     const activeBlocks = list.filter(b => isRadioBlockActiveOnDay(b, dayOfWeek));
     const sorted = sortRadioBlocksByBroadcastOrder(activeBlocks.length > 0 ? activeBlocks : list);
+    const todayStr = getParisTodayString();
 
     const nowSec = getParisSeconds();
     const items: ComputedRadioScheduleItem[] = [];
@@ -315,9 +371,8 @@ export function computeRadioDaySchedule(
         const blockDurationSec = blockDurationHours * 3600;
 
         const blockStartSec = startH * 3600;
-        const blockEndSec = blockStartSec + blockDurationSec;
 
-        const tracks = block.tracks && block.tracks.length > 0
+        const rawTracks = block.tracks && block.tracks.length > 0
             ? block.tracks
             : [{
                 id: `${block.id}_fallback`,
@@ -327,6 +382,10 @@ export function computeRadioDaySchedule(
                 duration: 3600,
                 category: 'liveset' as const
             }];
+
+        const tracks = block.randomize === false
+            ? rawTracks
+            : getSeededShuffle(rawTracks, `${todayStr}_${block.id}`);
 
         let cursor = 0;
         let trackIdx = 0;
@@ -374,3 +433,4 @@ export function computeRadioDaySchedule(
 
     return items;
 }
+

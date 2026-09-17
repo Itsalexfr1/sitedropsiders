@@ -10,7 +10,12 @@ import {
     Disc3, 
     Clock 
 } from 'lucide-react';
-import { formatDurationExact, type ComputedRadioScheduleItem } from '../../utils/radioSchedule';
+import { 
+    formatDurationExact, 
+    getCurrentLiveRadioTrack, 
+    DEFAULT_RADIO_BLOCKS, 
+    type ComputedRadioScheduleItem 
+} from '../../utils/radioSchedule';
 
 export function DropsidersRadioCard({ className = '' }: { className?: string }) {
     const [isEnabled, setIsEnabled] = useState<boolean>(() => {
@@ -23,11 +28,19 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
         }
     });
 
+    const initialLive = getCurrentLiveRadioTrack(DEFAULT_RADIO_BLOCKS);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
-    const [volume, setVolume] = useState(80);
-    const [currentSet, setCurrentSet] = useState<ComputedRadioScheduleItem | null>(null);
-    const [uiOffset, setUiOffset] = useState(0);
+    const [volume, setVolume] = useState(() => {
+        try {
+            const saved = localStorage.getItem('dropsiders_radio_volume');
+            return saved !== null ? Math.max(0, Math.min(100, Number(saved))) : 80;
+        } catch {
+            return 80;
+        }
+    });
+    const [currentSet, setCurrentSet] = useState<ComputedRadioScheduleItem | null>(() => initialLive?.item || null);
+    const [uiOffset, setUiOffset] = useState(() => initialLive?.offsetSeconds || 0);
 
     // Synchronisation avec DropsidersRadioPlayer via custom events
     useEffect(() => {
