@@ -117,7 +117,13 @@ const lat2tile = (lat: number, zoom: number) => {
 
 export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab, onGeneratePromo, isGeneratingPromo }: SocialSuiteProps) {
     const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'PUBLICATION');
-    const [theme, setTheme] = useState<ThemeType>(initialTheme || 'NEWS');
+    const [theme, setTheme] = useState<ThemeType>(() => {
+        if (initialTheme) return initialTheme;
+        try {
+            if (localStorage.getItem('dropsiders_custom_planning_import')) return 'PLANNING';
+        } catch {}
+        return 'NEWS';
+    });
     const [showSwipe, setShowSwipe] = useState(false);
     const [showArticleLink, setShowArticleLink] = useState(false);
     const [showVoteLink, setShowVoteLink] = useState(false);
@@ -140,8 +146,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [recordingTimeLeft, setRecordingTimeLeft] = useState(0);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [showText, setShowText] = useState(true);
-    const [planningItems, setPlanningItems] = useState<{ time: string; artist: string }[]>(Array.from({ length: 8 }, () => ({ time: '00:00', artist: 'ARTISTE' })));
-    const [planningDate, setPlanningDate] = useState('21 MARS - 28 MARS');
+    const [planningItems, setPlanningItems] = useState<{ time: string; artist: string }[]>(() => {
+        try {
+            const imported = localStorage.getItem('dropsiders_custom_planning_import');
+            if (imported) {
+                const parsed = JSON.parse(imported);
+                if (Array.isArray(parsed.items) && parsed.items.length > 0) {
+                    return parsed.items;
+                }
+            }
+        } catch {}
+        return Array.from({ length: 8 }, () => ({ time: '00:00', artist: 'ARTISTE' }));
+    });
+    const [planningDate, setPlanningDate] = useState(() => {
+        try {
+            const imported = localStorage.getItem('dropsiders_custom_planning_import');
+            if (imported) {
+                const parsed = JSON.parse(imported);
+                if (parsed.date) return parsed.date;
+            }
+        } catch {}
+        return '21 MARS - 28 MARS';
+    });
     const [calendarMonth, setCalendarMonth] = useState('MARS 2025');
     const [calendarEvents, setCalendarEvents] = useState<{ date: string; label: string }[]>([
         { date: '1', label: 'FESTIVAL 1' },

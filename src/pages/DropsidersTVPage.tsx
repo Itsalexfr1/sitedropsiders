@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tv, Volume2, VolumeX, Volume1, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings, X, ListMusic, Home, Clock, CalendarDays, ChevronRight, Shuffle } from 'lucide-react';
+import { Tv, Volume2, VolumeX, Volume1, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings, X, ListMusic, Home, Clock, CalendarDays, ChevronRight, Shuffle, Share2, Sparkles } from 'lucide-react';
 import { SEO } from '../components/utils/SEO';
 import { apiFetch } from '../utils/auth';
 import { AdminTVModal } from '../components/admin/modals/AdminTVModal';
+import { TVShareScheduleModal } from '../components/tv/TVShareScheduleModal';
 import type { TVScheduleBlock } from '../utils/tvSchedule';
 import { 
     DEFAULT_TV_BLOCKS, 
@@ -16,7 +17,8 @@ import {
     getElapsedSecondsInBlock,
     DAYS_OF_WEEK,
     getBlocksForDay,
-    formatBlockDays
+    formatBlockDays,
+    DEFAULT_DURATIONS
 } from '../utils/tvSchedule';
 
 const checkAdminAuth = () => {
@@ -254,31 +256,6 @@ const DEFAULT_PROMO_PLAYLIST: PromoVideo[] = [
     }
 ];
 
-const DEFAULT_DURATIONS: Record<string, number> = {
-    '8YbWq5urfww': 3600,
-    'DuXXMZLfAkQ': 4500,
-    '3AQ_Srbe1lQ': 4200,
-    'eQ-OVsdK-hM': 5400,
-    'IEJUg98lIHs': 3600,
-    '5hj5UTZR_Ss': 5400,
-    'aloPGSlq31Y': 4500,
-    'nyaGV-jeST8': 3600,
-    'OTKgBZS8if0': 3600,
-    'l5wro3bMZWc': 4500,
-    'hU-z3iV0LOg': 4500,
-    '_MqFasX6Fas': 5400,
-    'w4QJvock5Rk': 3600,
-    'm8EAmSvzgAQ': 5400,
-    'k5yQBhDnrvM': 1200,
-    'IzsShRhd5cw': 4500,
-    'V2lD_pq5c3M': 3600,
-    'CNGB66x4ygk': 5400,
-    'fsHgYLT_FCc': 3600,
-    '2ECWX8GdDvA': 6300,
-    'pQdsHoG2yhw': 60,
-    '61tiIdIrjUQ': 60
-};
-
 const STORAGE_PLAYLIST_KEY = 'dropsiders_tv_playlist_v2';
 const STORAGE_PROMOS_KEY = 'dropsiders_tv_promos_v2';
 const STORAGE_START_TIME_KEY = 'dropsiders_tv_start_time';
@@ -509,6 +486,7 @@ export function DropsidersTVPage() {
     const [isAdmin, setIsAdmin] = useState(() => checkAdminAuth() || hasAdminParam);
     const [isAdminTVModalOpen, setIsAdminTVModalOpen] = useState(() => hasAdminParam);
     const [showSchedule, setShowSchedule] = useState(false);
+    const [isShareScheduleOpen, setIsShareScheduleOpen] = useState(false);
     const prevMuteStateRef = useRef<boolean | null>(hasAdminParam ? false : null);
 
     const isAdminTVModalOpenRef = useRef(isAdminTVModalOpen);
@@ -1371,6 +1349,17 @@ export function DropsidersTVPage() {
                                     </span>
                                 </div>
 
+                                {/* Partager le programme button: accessible to all viewers */}
+                                <button
+                                    onClick={() => setIsShareScheduleOpen(true)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest text-white hover:text-white bg-gradient-to-r from-neon-red/30 to-neon-purple/30 hover:from-neon-red/50 hover:to-neon-purple/50 border border-neon-red/40 backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto shadow-[0_0_15px_rgba(255,18,65,0.2)] hover:shadow-[0_0_20px_rgba(255,18,65,0.4)]"
+                                    title="Partager le programme du jour avec la vraie durée des sets"
+                                >
+                                    <Sparkles className="w-3 h-3 text-neon-cyan animate-pulse" />
+                                    <span className="hidden xs:inline">Partager le programme</span>
+                                    <span className="xs:hidden">Programme</span>
+                                </button>
+
                                 {/* Programmation Button: only displayed for admins, hidden for regular visitors */}
                                 {isAdmin && (
                                     <button
@@ -1581,9 +1570,16 @@ export function DropsidersTVPage() {
 
                                     <div className="flex items-center gap-2">
                                         <button
+                                            onClick={() => setIsShareScheduleOpen(true)}
+                                            title="Partager le programme du jour"
+                                            className="w-11 h-11 rounded-full flex items-center justify-center bg-white/10 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red/40 transition-all active:scale-95 text-white cursor-pointer shadow-lg"
+                                        >
+                                            <Share2 className="w-4 h-4 text-neon-cyan" />
+                                        </button>
+                                        <button
                                             onClick={toggleFullscreen}
                                             title="Plein écran (F)"
-                                            className="w-11 h-11 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/10 transition-all active:scale-95 text-white"
+                                            className="w-11 h-11 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/10 transition-all active:scale-95 text-white cursor-pointer"
                                         >
                                             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                                         </button>
@@ -1600,6 +1596,15 @@ export function DropsidersTVPage() {
                     onClose={closeAdminModal}
                     takeoverState={liveSettings}
                     onTakeoverChange={(updated) => setLiveSettings(updated)}
+                />
+
+                {/* Modal: Partager le Programme du Jour (Vraies durées des sets) */}
+                <TVShareScheduleModal
+                    isOpen={isShareScheduleOpen}
+                    onClose={() => setIsShareScheduleOpen(false)}
+                    tvBlocks={tvBlocks}
+                    durationsMap={durationsMap}
+                    promos={promos}
                 />
 
                 {/* Modal: Programmation Complète (Vidéos + Promos) */}

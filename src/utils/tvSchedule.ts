@@ -532,3 +532,206 @@ export function calculateBlockLivePosition(
         startSeconds: 0
     };
 }
+
+export const DEFAULT_DURATIONS: Record<string, number> = {
+    '8YbWq5urfww': 3600,
+    'DuXXMZLfAkQ': 4500,
+    '3AQ_Srbe1lQ': 4200,
+    'eQ-OVsdK-hM': 5400,
+    'IEJUg98lIHs': 3600,
+    '5hj5UTZR_Ss': 5400,
+    'aloPGSlq31Y': 4500,
+    'nyaGV-jeST8': 3600,
+    'OTKgBZS8if0': 3600,
+    'l5wro3bMZWc': 4500,
+    'hU-z3iV0LOg': 4500,
+    '_MqFasX6Fas': 5400,
+    'w4QJvock5Rk': 3600,
+    'm8EAmSvzgAQ': 5400,
+    'k5yQBhDnrvM': 1200,
+    'IzsShRhd5cw': 4500,
+    'V2lD_pq5c3M': 3600,
+    'CNGB66x4ygk': 5400,
+    'fsHgYLT_FCc': 3600,
+    '2ECWX8GdDvA': 6300,
+    'pQdsHoG2yhw': 60,
+    '61tiIdIrjUQ': 60
+};
+
+export interface ComputedScheduleItem {
+    id: string;
+    blockId: string;
+    blockTitle: string;
+    blockColor: string;
+    blockEmoji: string;
+    title: string;
+    artist: string;
+    event: string;
+    youtubeId: string;
+    startTime: string; // "18h00"
+    endTime: string;   // "19h15"
+    startSecondsFromMidnight: number;
+    durationSeconds: number;
+    durationFormatted: string; // "1h15", "45min"
+    isCurrentlyLive: boolean;
+}
+
+export function formatDurationExact(seconds: number): string {
+    const s = Math.max(0, Math.round(seconds));
+    const h = Math.floor(s / 3600);
+    const m = Math.round((s % 3600) / 60);
+    if (h > 0) {
+        return m > 0 ? `${h}h${String(m).padStart(2, '0')}` : `${h}h00`;
+    }
+    return `${Math.max(1, m)}min`;
+}
+
+export function parseArtistAndEvent(rawTitle: string): { artist: string; event: string } {
+    if (!rawTitle) return { artist: 'ARTISTE', event: 'DROPSIDERS TV' };
+    
+    // Nettoyage des suffixes fréquents YouTube
+    const clean = rawTitle
+        .replace(/\s*\(Official\s+Full\s+Set\)/gi, '')
+        .replace(/\s*\(Official\s+Video\)/gi, '')
+        .replace(/\s*\(DJ\s+SET\)/gi, '')
+        .replace(/\s*\|\s*UMF\b/gi, '')
+        .replace(/\s*WE\d\b/gi, '')
+        .trim();
+
+    // Séparateur "|"
+    if (clean.includes('|')) {
+        const parts = clean.split('|').map(p => p.trim());
+        return {
+            artist: parts[0] || 'ARTISTE',
+            event: parts.slice(1).join(' · ') || 'DROPSIDERS TV'
+        };
+    }
+
+    // Séparateur "@" ou "LIVE @"
+    if (/@/i.test(clean)) {
+        const parts = clean.split(/@/i).map(p => p.trim());
+        const artist = parts[0].replace(/\b(LIVE|Live|DJ SET)\b/gi, '').trim();
+        return {
+            artist: artist || parts[0],
+            event: parts.slice(1).join(' · ') || 'FESTIVAL LIVE'
+        };
+    }
+
+    // Séparateur "Live at"
+    const liveAtMatch = clean.match(/^(.*?)\s+live\s+at\s+(.*)$/i);
+    if (liveAtMatch) {
+        return {
+            artist: liveAtMatch[1].trim(),
+            event: liveAtMatch[2].trim()
+        };
+    }
+
+    // Séparateur " - "
+    if (clean.includes(' - ')) {
+        const parts = clean.split(' - ').map(p => p.trim());
+        return {
+            artist: parts[0] || 'ARTISTE',
+            event: parts.slice(1).join(' · ') || 'DROPSIDERS TV'
+        };
+    }
+
+    return {
+        artist: clean,
+        event: 'DROPSIDERS TV'
+    };
+}
+
+/**
+ * Calcule l'intégralité du programme chronologique de la journée avec la vraie durée de chaque set
+ */
+export function computeDaySchedule(
+    blocks: TVScheduleBlock[],
+    durationsMap: Record<string, number> = {},
+    promos: PromoVideo[] = [],
+    targetDay?: number
+): ComputedScheduleItem[] {
+    const now = new Date();
+    const currentDay = targetDay !== undefined ? targetDay : now.getDay();
+    const todayStr = now.toISOString().slice(0, 10);
+    const dayBlocks = getBlocksForDay(blocks, currentDay);
+    const currentSecondsFromMidnight = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+
+    const items: ComputedScheduleItem[] = [];
+
+    for (const block of dayBlocks) {
+        const rawVids = block.videos && block.videos.length > 0 ? block.videos : [];
+        if (rawVids.length === 0) continue;
+
+        const vids = block.randomize === false 
+            ? rawVids 
+            : getSeededShuffle(rawVids, `${todayStr}_${block.id}`);
+
+        let currentSec = (block.startHour ?? 0) * 3600;
+        const blockEndSec = ((block.endHour === 0 || block.endHour === 24) ? 24 : (block.endHour ?? 24)) * 3600;
+        const hasPromos = Array.isArray(promos) && promos.length > 0;
+
+        for (let i = 0; i < vids.length; i++) {
+            const vid = vids[i];
+            if (!vid) continue;
+
+            const dur = (durationsMap && durationsMap[vid.youtubeId]) || DEFAULT_DURATIONS[vid.youtubeId] || vid.duration || 3600;
+            const startSec = currentSec;
+            const endSec = startSec + dur;
+
+            const startH = Math.floor(startSec / 3600) % 24;
+            const startM = Math.floor((startSec % 3600) / 60);
+            const endH = Math.floor(endSec / 3600) % 24;
+            const endM = Math.floor((endSec % 3600) / 60);
+
+            const startTimeStr = `${String(startH).padStart(2, '0')}h${String(startM).padStart(2, '0')}`;
+            const endTimeStr = `${String(endH).padStart(2, '0')}h${String(endM).padStart(2, '0')}`;
+
+            // Détection du set actuellement en direct
+            let isLive = false;
+            if (currentDay === now.getDay()) {
+                // Gestion du cycle horaire normal et nuit après minuit
+                if (startSec <= endSec) {
+                    isLive = currentSecondsFromMidnight >= startSec && currentSecondsFromMidnight < endSec;
+                } else {
+                    isLive = currentSecondsFromMidnight >= startSec || currentSecondsFromMidnight < (endSec % 86400);
+                }
+            }
+
+            const { artist, event } = parseArtistAndEvent(vid.title);
+
+            items.push({
+                id: `${block.id}_${vid.id || vid.youtubeId}_${i}`,
+                blockId: block.id,
+                blockTitle: block.title || block.name,
+                blockColor: block.color || '#ff1241',
+                blockEmoji: block.emoji || '⚡',
+                title: vid.title,
+                artist,
+                event,
+                youtubeId: vid.youtubeId,
+                startTime: startTimeStr,
+                endTime: endTimeStr,
+                startSecondsFromMidnight: startSec,
+                durationSeconds: dur,
+                durationFormatted: formatDurationExact(dur),
+                isCurrentlyLive: isLive
+            });
+
+            currentSec += dur;
+
+            // Ajout du temps de promo intercalée si active
+            if (hasPromos) {
+                const p = promos[i % promos.length];
+                const pDur = (p && ((durationsMap && durationsMap[p.youtubeId]) || DEFAULT_DURATIONS[p.youtubeId] || p.duration)) || 60;
+                currentSec += pDur;
+            }
+
+            // Si le bloc suivant doit commencer ou qu'on dépasse l'heure de fin du bloc, on passe
+            if (currentSec >= blockEndSec && blockEndSec > (block.startHour ?? 0) * 3600) {
+                break;
+            }
+        }
+    }
+
+    return items;
+}
