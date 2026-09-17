@@ -642,7 +642,8 @@ export function parseArtistAndEvent(rawTitle: string): { artist: string; event: 
 }
 
 /**
- * Calcule l'intégralité du programme chronologique de la journée avec la vraie durée de chaque set
+ * Calcule l'intégralité du programme chronologique de la journée avec la vraie durée de chaque set.
+ * L'horloge de référence de la diffusion TV est calée sur l'heure de Paris (Europe/Paris).
  */
 export function computeDaySchedule(
     blocks: TVScheduleBlock[],
@@ -651,10 +652,18 @@ export function computeDaySchedule(
     targetDay?: number
 ): ComputedScheduleItem[] {
     const now = new Date();
-    const currentDay = targetDay !== undefined ? targetDay : now.getDay();
-    const todayStr = now.toISOString().slice(0, 10);
+    
+    // Ancrage sur l'heure de Paris pour la cohérence globale de la diffusion TV
+    let parisNow = now;
+    try {
+        const pStr = now.toLocaleString('en-US', { timeZone: 'Europe/Paris', hour12: false });
+        parisNow = new Date(pStr);
+    } catch {}
+
+    const currentDay = targetDay !== undefined ? targetDay : parisNow.getDay();
+    const todayStr = parisNow.toISOString().slice(0, 10);
     const dayBlocks = getBlocksForDay(blocks, currentDay);
-    const currentSecondsFromMidnight = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+    const currentSecondsFromMidnight = parisNow.getHours() * 3600 + parisNow.getMinutes() * 60 + parisNow.getSeconds();
 
     const items: ComputedScheduleItem[] = [];
 
@@ -688,8 +697,7 @@ export function computeDaySchedule(
 
             // Détection du set actuellement en direct
             let isLive = false;
-            if (currentDay === now.getDay()) {
-                // Gestion du cycle horaire normal et nuit après minuit
+            if (currentDay === parisNow.getDay()) {
                 if (startSec <= endSec) {
                     isLive = currentSecondsFromMidnight >= startSec && currentSecondsFromMidnight < endSec;
                 } else {
@@ -734,4 +742,117 @@ export function computeDaySchedule(
     }
 
     return items;
+}
+
+export interface TVTimezonePreset {
+    id: string;
+    label: string;
+    city: string;
+    flag: string;
+    tzId: string;
+    code: string;
+}
+
+export const TV_TIMEZONE_PRESETS: TVTimezonePreset[] = [
+    { id: 'paris', label: 'Paris (France)', city: 'Paris', flag: '🇫🇷', tzId: 'Europe/Paris', code: 'CET' },
+    { id: 'london', label: 'Londres (UK)', city: 'Londres', flag: '🇬🇧', tzId: 'Europe/London', code: 'BST' },
+    { id: 'ny', label: 'New York / Miami (US East)', city: 'New York', flag: '🇺🇸', tzId: 'America/New_York', code: 'EDT' },
+    { id: 'la', label: 'Los Angeles / Vegas (US West)', city: 'Vegas / LA', flag: '🌴', tzId: 'America/Los_Angeles', code: 'PDT' },
+    { id: 'saopaulo', label: 'São Paulo (Brésil)', city: 'São Paulo', flag: '🇧🇷', tzId: 'America/Sao_Paulo', code: 'BRT' },
+    { id: 'tokyo', label: 'Tokyo (Japon)', city: 'Tokyo', flag: '🇯🇵', tzId: 'Asia/Tokyo', code: 'JST' },
+    { id: 'sydney', label: 'Sydney (Australie)', city: 'Sydney', flag: '🇦🇺', tzId: 'Australia/Sydney', code: 'AEST' },
+];
+
+/**
+ * Détecte le fuseau horaire de l'appareil du visiteur
+ */
+export function getClientLocalTimezone(): { tzId: string; label: string; city: string; code: string } {
+    try {
+        const tzId = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Paris';
+        const parts = tzId.split('/');
+        const city = (parts[parts.length - 1] || 'Local').replace(/_/g, ' ');
+        return {
+            tzId,
+            label: `Heure locale (${city})`,
+            city,
+            code: 'LOC'
+        };
+    } catch {
+        return { tzId: 'Europe/Paris', label: 'Paris', city: 'Paris', code: 'CET' };
+    }
+}
+
+/**
+ * Calcule l'écart en minutes entre Paris (base de la TV) et le fuseau cible
+ */
+export function getTimezoneOffsetMinutesFromParis(targetTzId: string, baseDate: Date = new Date()): number {
+    try {
+        if (!targetTzId || targetTzId === 'Europe/Paris') return 0;
+        const pStr = baseDate.toLocaleString('en-US', { timeZone: 'Europe/Paris', hour12: false });
+        const tStr = baseDate.toLocaleString('en-US', { timeZone: targetTzId, hour12: false });
+        const pDate = new Date(pStr);
+        const tDate = new Date(tStr);
+        return Math.round((tDate.getTime() - pDate.getTime()) / (60 * 1000));
+    } catch {
+        return 0;
+    }
+}
+
+/**
+ * Convertit une heure "18h30" vers un fuseau horaire cible avec détection de passage au jour suivant / précédent
+ */
+export function convertTimeToTimezone(
+    timeStr: string,
+    targetTzId: string,
+    baseDate: Date = new Date()
+): { time: string; dayShift: number; dayBadge?: string } {
+    if (!timeStr) return { time: '', dayShift: 0 };
+    const offsetMin = getTimezoneOffsetMinutesFromParis(targetTzId, baseDate);
+    const cleaned = timeStr.replace('h', ':').replace('.', ':');
+    const [rawH, rawM] = cleaned.split(':').map(Number);
+    const totalMin = (rawH || 0) * 60 + (rawM || 0) + offsetMin;
+
+    let dayShift = 0;
+    let normMin = totalMin;
+    while (normMin >= 1440) {
+        normMin -= 1440;
+        dayShift += 1;
+    }
+    while (normMin < 0) {
+        normMin += 1440;
+        dayShift -= 1;
+    }
+
+    const h = Math.floor(normMin / 60);
+    const m = normMin % 60;
+    const formatted = `${String(h).padStart(2, '0')}h${String(m).padStart(2, '0')}`;
+
+    let dayBadge: string | undefined;
+    if (dayShift > 0) dayBadge = `+${dayShift}j`;
+    else if (dayShift < 0) dayBadge = `${dayShift}j`;
+
+    return {
+        time: formatted,
+        dayShift,
+        dayBadge
+    };
+}
+
+/**
+ * Formate l'heure courante de génération dans le fuseau horaire spécifié (ex: "17h30")
+ */
+export function formatTimeInTimezone(targetTzId: string, baseDate: Date = new Date()): string {
+    try {
+        const parts = new Intl.DateTimeFormat('fr-FR', {
+            timeZone: targetTzId || 'Europe/Paris',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        }).format(baseDate);
+        return parts.replace(':', 'h');
+    } catch {
+        const h = String(baseDate.getHours()).padStart(2, '0');
+        const m = String(baseDate.getMinutes()).padStart(2, '0');
+        return `${h}h${m}`;
+    }
 }

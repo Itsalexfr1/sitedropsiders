@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useCallback } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     X, 
@@ -14,11 +14,19 @@ import {
     Palette, 
     Loader2,
     Calendar,
-    Flame
+    Flame,
+    Globe,
+    RotateCcw
 } from 'lucide-react';
 import { toPng, toBlob } from 'html-to-image';
 import type { TVScheduleBlock, PromoVideo, ComputedScheduleItem } from '../../utils/tvSchedule';
-import { computeDaySchedule } from '../../utils/tvSchedule';
+import { 
+    computeDaySchedule, 
+    TV_TIMEZONE_PRESETS, 
+    getClientLocalTimezone, 
+    convertTimeToTimezone, 
+    formatTimeInTimezone 
+} from '../../utils/tvSchedule';
 import { useNavigate } from 'react-router-dom';
 
 interface TVShareScheduleModalProps {
@@ -41,52 +49,154 @@ export function TVShareScheduleModal({
 
     const [isGenerating, setIsGenerating] = useState(false);
     const [copiedText, setCopiedText] = useState(false);
-    const [filterMode, setFilterMode] = useState<'all' | 'evening' | 'highlight'>('all');
-    const [aspectRatio, setAspectRatio] = useState<'story' | 'square'>('story'); // 9:16 or 1:1
+    
+    // Heure à laquelle on génère le programme
+    const [generationDate, setGenerationDate] = useState<Date>(() => new Date());
 
-    // Calcul de la date du jour en français
+    // Filtrage dynamique : par défaut "now_and_next" pour afficher ce qui passe maintenant et ce soir
+    const [filterMode, setFilterMode] = useState<'now_and_next' | 'evening' | 'all'>('now_and_next');
+    const [aspectRatio, setAspectRatio] = useState<'story' | 'square'>('story'); // 9:16 ou 1:1
+
+    // Fuseau horaire sélectionné
+    const [selectedTimezoneId, setSelectedTimezoneId] = useState<string>('paris');
+
+    // Rafraîchir l'heure de génération à chaque ouverture du modal
+    useEffect(() => {
+        if (isOpen) {
+            setGenerationDate(new Date());
+        }
+    }, [isOpen]);
+
+    // Détection automatique du fuseau local du visiteur
+    const localTz = useMemo(() => getClientLocalTimezone(), []);
+
+    // Liste consolidée des fuseaux horaires disponibles
+    const timezoneList = useMemo(() => {
+        const list = [...TV_TIMEZONE_PRESETS];
+        // Si le fuseau local n'est pas déjà Paris ou l'un des presets, on l'ajoute en tête de liste
+        const alreadyExists = list.some(tz => tz.tzId === localTz.tzId);
+        if (!alreadyExists && localTz.tzId) {
+            list.unshift({
+                id: 'local',
+                label: localTz.label,
+                city: localTz.city,
+                flag: '🌐',
+                tzId: localTz.tzId,
+                code: localTz.code
+            });
+        }
+        return list;
+    }, [localTz]);
+
+    const activeTz = useMemo(() => {
+        return timezoneList.find(t => t.id === selectedTimezoneId) || timezoneList[0];
+    }, [timezoneList, selectedTimezoneId]);
+
+    // Heure de génération formatée dans le fuseau sélectionné (ex: "17h35")
+    const genTimeFormatted = useMemo(() => {
+        return formatTimeInTimezone(activeTz.tzId, generationDate);
+    }, [activeTz, generationDate]);
+
+    // Date du jour formatée dans le fuseau sélectionné
     const todayFormatted = useMemo(() => {
-        const now = new Date();
-        return now.toLocaleDateString('fr-FR', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        }).toUpperCase();
-    }, []);
+        try {
+            return generationDate.toLocaleDateString('fr-FR', {
+                timeZone: activeTz.tzId,
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            }).toUpperCase();
+        } catch {
+            return generationDate.toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            }).toUpperCase();
+        }
+    }, [generationDate, activeTz]);
 
-    // Calcul des sets du jour avec leurs vraies durées et horaires exacts
+    // Calcul de l'intégralité du programme du jour calé sur l'horloge TV
     const scheduleItems = useMemo(() => {
         return computeDaySchedule(tvBlocks, durationsMap, promos);
     }, [tvBlocks, durationsMap, promos]);
 
-    // Filtrage pour la mise en page de la Story (afin que le visuel reste lisible et percutant)
-    const displayItems = useMemo(() => {
+    // Filtrage dynamique en fonction de l'heure actuelle de génération
+    const baseItemsToDisplay = useMemo(() => {
+        const maxCount = aspectRatio === 'square' ? 4 : 6;
+        if (!scheduleItems || scheduleItems.length === 0) return [];
+
+        if (filterMode === 'now_and_next') {
+            // Cherche le set actuellement en direct
+            let startIdx = scheduleItems.findIndex(i => i.isCurrentlyLive);
+
+            if (startIdx === -1) {
+                // Fallback : cherche le premier set dont l'heure de fin n'est pas encore passée en heure de Paris
+                try {
+                    const pStr = generationDate.toLocaleString('en-US', { timeZone: 'Europe/Paris', hour12: false });
+                    const parisNow = new Date(pStr);
+                    const currentParisSec = parisNow.getHours() * 3600 + parisNow.getMinutes() * 60 + parisNow.getSeconds();
+                    startIdx = scheduleItems.findIndex(i => (i.startSecondsFromMidnight + i.durationSeconds) >= currentParisSec);
+                } catch {
+                    startIdx = 0;
+                }
+                if (startIdx === -1) startIdx = 0;
+            }
+
+            // Sélectionne le set en direct et les suivants (avec boucle fluide si fin de journée)
+            const result: ComputedScheduleItem[] = [];
+            for (let i = 0; i < Math.min(scheduleItems.length, maxCount); i++) {
+                result.push(scheduleItems[(startIdx + i) % scheduleItems.length]);
+            }
+            return result;
+        }
+
         if (filterMode === 'evening') {
-            // Soirée à partir de 18h
+            // Soirée à partir de 18h jusqu'à la fin de nuit
             const evening = scheduleItems.filter(item => {
                 const hour = parseInt(item.startTime.split('h')[0], 10);
                 return hour >= 18 || hour < 6;
             });
-            return evening.length > 0 ? evening.slice(0, 6) : scheduleItems.slice(0, 6);
+            return (evening.length > 0 ? evening : scheduleItems).slice(0, maxCount);
         }
-        if (filterMode === 'highlight') {
-            // Sélection des sets les plus longs / têtes d'affiche
-            const sortedByDur = [...scheduleItems].sort((a, b) => b.durationSeconds - a.durationSeconds);
-            const top = sortedByDur.slice(0, 5).sort((a, b) => a.startSecondsFromMidnight - b.startSecondsFromMidnight);
-            return top.length > 0 ? top : scheduleItems.slice(0, 6);
-        }
-        // Tous les sets ou les 6 prochains si la journée est chargée
-        return scheduleItems.slice(0, 6);
-    }, [scheduleItems, filterMode]);
 
-    // Génération du texte à copier/partager
+        // Journée complète
+        return scheduleItems.slice(0, maxCount);
+    }, [scheduleItems, filterMode, generationDate, aspectRatio]);
+
+    // Conversion de chaque horaire selon le fuseau horaire choisi
+    const displayItems = useMemo(() => {
+        return baseItemsToDisplay.map(item => {
+            const startConv = convertTimeToTimezone(item.startTime, activeTz.tzId, generationDate);
+            const endConv = convertTimeToTimezone(item.endTime, activeTz.tzId, generationDate);
+            return {
+                ...item,
+                tzStartTime: startConv.time,
+                tzEndTime: endConv.time,
+                tzDayBadge: startConv.dayBadge
+            };
+        });
+    }, [baseItemsToDisplay, activeTz, generationDate]);
+
+    // Texte formaté pour le partage (WhatsApp, SMS, Telegram, Discord...)
     const shareText = useMemo(() => {
+        const titleLine = filterMode === 'now_and_next'
+            ? `🔥 EN CE MOMENT & CE SOIR SUR DROPSIDERS TV`
+            : filterMode === 'evening'
+            ? `🌙 CE SOIR SUR DROPSIDERS TV`
+            : `🔥 AUJOURD'HUI SUR DROPSIDERS TV`;
+
+        const tzInfo = activeTz.id === 'paris'
+            ? `(Généré à ${genTimeFormatted} · Heure de Paris)`
+            : `(Généré à ${genTimeFormatted} · ${activeTz.flag} ${activeTz.label})`;
+
         const lines = displayItems.map(
-            item => `• ${item.startTime} : ${item.artist} (${item.durationFormatted})${item.isCurrentlyLive ? ' 🔴 EN DIRECT' : ''}`
+            item => `• ${item.tzStartTime}${item.tzDayBadge ? ` (${item.tzDayBadge})` : ''} : ${item.artist} (${item.durationFormatted})${item.isCurrentlyLive ? ' 🔴 EN DIRECT' : ''}`
         );
-        return `🔥 AUJOURD'HUI SUR DROPSIDERS TV (${todayFormatted}) :\n\n${lines.join('\n')}\n\n👉 Regarde en direct gratuitement sur https://dropsiders.com/tv`;
-    }, [displayItems, todayFormatted]);
+
+        return `${titleLine} ${tzInfo} :\n\n${lines.join('\n')}\n\n👉 Regarde en direct gratuitement sur https://dropsiders.com/tv`;
+    }, [displayItems, activeTz, genTimeFormatted, filterMode]);
 
     // Copier le texte
     const handleCopyText = async () => {
@@ -97,6 +207,11 @@ export function TVShareScheduleModal({
         } catch {
             // Fallback
         }
+    };
+
+    // Actualiser l'heure de génération à l'instant présent
+    const handleRefreshTime = () => {
+        setGenerationDate(new Date());
     };
 
     // Télécharger l'image PNG haute résolution (1080x1920 pour story 9:16)
@@ -115,8 +230,8 @@ export function TVShareScheduleModal({
             });
 
             const link = document.createElement('a');
-            const cleanDate = new Date().toISOString().slice(0, 10);
-            link.download = `dropsiders-tv-programme-${cleanDate}.png`;
+            const cleanDate = generationDate.toISOString().slice(0, 10);
+            link.download = `dropsiders-tv-programme-${activeTz.code.toLowerCase()}-${cleanDate}.png`;
             link.href = dataUrl;
             link.click();
         } catch (err) {
@@ -126,13 +241,12 @@ export function TVShareScheduleModal({
         }
     };
 
-    // Partage natif mobile (WhatsApp, Instagram, Telegram...)
+    // Partage natif mobile (WhatsApp, Instagram Stories, Telegram...)
     const handleNativeShare = async () => {
         if (!cardRef.current || isGenerating) return;
         setIsGenerating(true);
 
         try {
-            // Essai de génération de blob pour partage direct de l'image
             const blob = await toBlob(cardRef.current, {
                 pixelRatio: 2,
                 quality: 0.95,
@@ -140,9 +254,9 @@ export function TVShareScheduleModal({
             });
 
             if (blob && navigator.canShare && navigator.canShare({ files: [new File([blob], 'programme.png', { type: 'image/png' })] })) {
-                const file = new File([blob], 'dropsiders-programme-tv.png', { type: 'image/png' });
+                const file = new File([blob], `programme-tv-${activeTz.code.toLowerCase()}.png`, { type: 'image/png' });
                 await navigator.share({
-                    title: 'Programme du jour · Dropsiders TV',
+                    title: 'Programme · Dropsiders TV',
                     text: shareText,
                     files: [file]
                 });
@@ -153,12 +267,11 @@ export function TVShareScheduleModal({
             // Fallback: Partage natif texte + lien
             if (navigator.share) {
                 await navigator.share({
-                    title: 'Programme du jour · Dropsiders TV',
+                    title: 'Programme · Dropsiders TV',
                     text: shareText,
                     url: 'https://dropsiders.com/tv'
                 });
             } else {
-                // Fallback presse-papier si non supporté
                 handleCopyText();
             }
         } catch (err: any) {
@@ -171,14 +284,14 @@ export function TVShareScheduleModal({
         }
     };
 
-    // Passerelle vers Social Studio
+    // Passerelle vers Social Studio avec conversion horaire
     const handleOpenInSocialStudio = () => {
         try {
             const planningPayload = {
-                title: `AUJOURD'HUI SUR DROPSIDERS TV`,
-                date: todayFormatted,
+                title: filterMode === 'now_and_next' ? `EN DIRECT DÈS MAINTENANT` : `AUJOURD'HUI SUR DROPSIDERS TV`,
+                date: `${todayFormatted} (${activeTz.flag} ${activeTz.code})`,
                 items: displayItems.map(item => ({
-                    time: item.startTime,
+                    time: `${item.tzStartTime}${item.tzDayBadge ? ` ${item.tzDayBadge}` : ''}`,
                     artist: `${item.artist} (${item.durationFormatted})`
                 }))
             };
@@ -197,7 +310,7 @@ export function TVShareScheduleModal({
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.94, y: 20 }}
                     transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                    className="bg-[#0b0b0f] border border-white/10 rounded-[2.5rem] w-full max-w-5xl shadow-[0_0_80px_rgba(255,18,65,0.15)] flex flex-col max-h-[92vh] overflow-hidden my-auto"
+                    className="bg-[#0b0b0f] border border-white/10 rounded-[2.5rem] w-full max-w-5xl shadow-[0_0_80px_rgba(255,18,65,0.15)] flex flex-col max-h-[94vh] overflow-hidden my-auto"
                 >
                     {/* Top Bar Modal */}
                     <div className="p-4 sm:p-6 border-b border-white/10 flex items-center justify-between bg-black/40">
@@ -206,16 +319,20 @@ export function TVShareScheduleModal({
                                 <Sparkles className="w-5 h-5 text-neon-red animate-pulse" />
                             </div>
                             <div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
                                     <h2 className="text-white font-display font-black text-lg sm:text-xl uppercase italic tracking-tight">
                                         Partager le programme <span className="text-neon-red">TV</span>
                                     </h2>
-                                    <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full bg-neon-cyan/10 border border-neon-cyan/30 text-[9px] font-black text-neon-cyan uppercase tracking-wider">
-                                        Vraies durées
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-neon-cyan/10 border border-neon-cyan/30 text-[9px] font-black text-neon-cyan uppercase tracking-wider">
+                                        <Clock className="w-2.5 h-2.5" />
+                                        Heure exacte : {genTimeFormatted}
+                                    </span>
+                                    <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full bg-white/10 border border-white/15 text-[9px] font-black text-gray-300 uppercase tracking-wider">
+                                        {activeTz.flag} {activeTz.code}
                                     </span>
                                 </div>
-                                <p className="text-gray-400 text-xs font-semibold">
-                                    Génère le visuel officiel du jour avec les horaires et durées réels des sets
+                                <p className="text-gray-400 text-xs font-semibold mt-0.5">
+                                    Génère le visuel selon l'heure de diffusion et converti dans ton fuseau horaire
                                 </p>
                             </div>
                         </div>
@@ -231,7 +348,7 @@ export function TVShareScheduleModal({
                     {/* Modal Content : 2 Columns (Preview & Controls) */}
                     <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start custom-scrollbar">
                         
-                        {/* Colonne Gauche : Aperçu Carte Story (9:16) */}
+                        {/* Colonne Gauche : Aperçu Carte Story (9:16 ou 1:1) */}
                         <div className="lg:col-span-6 flex flex-col items-center justify-center">
                             <div className="w-full flex items-center justify-between mb-3 px-1">
                                 <span className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400 flex items-center gap-1.5">
@@ -241,7 +358,7 @@ export function TVShareScheduleModal({
                                 <div className="flex gap-1.5 bg-white/5 p-1 rounded-xl border border-white/10">
                                     <button
                                         onClick={() => setAspectRatio('story')}
-                                        className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${
+                                        className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer ${
                                             aspectRatio === 'story'
                                                 ? 'bg-neon-red text-white shadow-md'
                                                 : 'text-gray-400 hover:text-white'
@@ -251,7 +368,7 @@ export function TVShareScheduleModal({
                                     </button>
                                     <button
                                         onClick={() => setAspectRatio('square')}
-                                        className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${
+                                        className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer ${
                                             aspectRatio === 'square'
                                                 ? 'bg-neon-red text-white shadow-md'
                                                 : 'text-gray-400 hover:text-white'
@@ -267,7 +384,7 @@ export function TVShareScheduleModal({
                                 <div
                                     ref={cardRef}
                                     style={{
-                                        width: aspectRatio === 'story' ? '340px' : '340px',
+                                        width: '340px',
                                         height: aspectRatio === 'story' ? '604px' : '340px'
                                     }}
                                     className="bg-gradient-to-b from-[#09090d] via-[#0d0714] to-[#050508] p-5 flex flex-col justify-between relative select-none overflow-hidden"
@@ -279,7 +396,7 @@ export function TVShareScheduleModal({
 
                                     {/* Header de la carte */}
                                     <div className="relative z-10">
-                                        <div className="flex items-center justify-between mb-3 border-b border-white/10 pb-3">
+                                        <div className="flex items-center justify-between mb-2.5 border-b border-white/10 pb-2.5">
                                             <div className="flex items-center gap-2">
                                                 <div className="w-7 h-7 rounded-xl bg-neon-red/20 border border-neon-red/40 flex items-center justify-center shadow-[0_0_12px_rgba(255,18,65,0.4)]">
                                                     <Tv className="w-3.5 h-3.5 text-neon-red" />
@@ -294,66 +411,81 @@ export function TVShareScheduleModal({
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-neon-red/20 border border-neon-red/40 text-neon-red text-[8px] font-black uppercase tracking-wider animate-pulse">
+                                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-neon-red/20 border border-neon-red/40 text-neon-red text-[8px] font-black uppercase tracking-wider animate-pulse">
                                                 <Radio className="w-2.5 h-2.5" />
                                                 <span>DIRECT</span>
                                             </div>
                                         </div>
 
-                                        <div className="text-center my-1.5">
-                                            <div className="inline-block px-3 py-0.5 rounded-full bg-white/10 border border-white/15 text-[8px] font-black uppercase tracking-[0.25em] text-white/90 mb-1">
-                                                PROGRAMME DU JOUR
+                                        <div className="text-center my-1">
+                                            <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/10 border border-white/15 text-[7.5px] font-black uppercase tracking-[0.2em] text-white/90 mb-1">
+                                                <Clock className="w-2.5 h-2.5 text-neon-cyan" />
+                                                <span>DÈS {genTimeFormatted} · {activeTz.flag} {activeTz.code}</span>
                                             </div>
-                                            <div className="text-[9px] font-black uppercase tracking-widest text-gray-400">
+                                            <div className="text-[10px] font-black uppercase tracking-wider text-white font-display">
+                                                {filterMode === 'now_and_next'
+                                                    ? 'EN CE MOMENT & CE SOIR'
+                                                    : filterMode === 'evening'
+                                                    ? 'PROGRAMME DE LA SOIRÉE'
+                                                    : 'PROGRAMME DU JOUR'}
+                                            </div>
+                                            <div className="text-[7.5px] font-semibold uppercase tracking-widest text-gray-400 mt-0.5">
                                                 {todayFormatted}
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Liste des Sets avec Horaires et Vraies Durées */}
-                                    <div className="relative z-10 flex-1 my-2 flex flex-col justify-center gap-2 overflow-hidden">
+                                    {/* Liste des Sets avec Horaires Convertis et Vraies Durées */}
+                                    <div className="relative z-10 flex-1 my-1.5 flex flex-col justify-center gap-1.5 overflow-hidden">
                                         {displayItems.map((item, idx) => (
                                             <div
                                                 key={item.id || idx}
-                                                className={`p-2.5 rounded-2xl border transition-all flex items-center justify-between ${
+                                                className={`p-2 rounded-2xl border transition-all flex items-center justify-between ${
                                                     item.isCurrentlyLive
                                                         ? 'bg-neon-red/15 border-neon-red/50 shadow-[0_0_20px_rgba(255,18,65,0.25)]'
                                                         : 'bg-white/5 border-white/10 hover:border-white/20'
                                                 }`}
                                             >
-                                                {/* Heure et badge */}
-                                                <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
-                                                    <div className="flex flex-col items-center justify-center px-2 py-1 rounded-xl bg-black/60 border border-white/15 min-w-[48px]">
-                                                        <span className="text-[10px] font-black text-white font-mono tracking-tight leading-none">
-                                                            {item.startTime}
-                                                        </span>
-                                                        <span className="text-[7px] font-bold text-gray-400 uppercase mt-0.5">
-                                                            DÉBUT
+                                                {/* Heure convertie et badge de début */}
+                                                <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
+                                                    <div className="flex flex-col items-center justify-center px-1.5 py-0.5 rounded-xl bg-black/60 border border-white/15 min-w-[46px]">
+                                                        <div className="flex items-center gap-0.5">
+                                                            <span className="text-[10px] font-black text-white font-mono tracking-tight leading-none">
+                                                                {item.tzStartTime}
+                                                            </span>
+                                                            {item.tzDayBadge && (
+                                                                <span className="text-[6px] font-black text-neon-cyan bg-neon-cyan/20 px-0.5 rounded">
+                                                                    {item.tzDayBadge}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <span className="text-[6.5px] font-bold text-gray-400 uppercase mt-0.5">
+                                                            {item.isCurrentlyLive ? 'LIVE' : 'DÉBUT'}
                                                         </span>
                                                     </div>
 
                                                     <div className="min-w-0 flex-1">
                                                         <div className="flex items-center gap-1.5">
-                                                            <span className="text-[11px] font-black text-white uppercase italic tracking-tight truncate">
+                                                            <span className="text-[10.5px] font-black text-white uppercase italic tracking-tight truncate">
                                                                 {item.artist}
                                                             </span>
                                                             {item.isCurrentlyLive && (
-                                                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-neon-red text-white text-[7px] font-black uppercase tracking-wider animate-pulse shrink-0">
+                                                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-neon-red text-white text-[6.5px] font-black uppercase tracking-wider animate-pulse shrink-0">
                                                                     <span className="w-1 h-1 rounded-full bg-white" />
                                                                     LIVE
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <div className="text-[8px] font-bold text-gray-400 uppercase tracking-wider truncate">
+                                                        <div className="text-[7.5px] font-bold text-gray-400 uppercase tracking-wider truncate">
                                                             {item.event}
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 {/* Vraie durée du set */}
-                                                <div className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-xl bg-white/10 border border-white/15 text-white/90">
+                                                <div className="shrink-0 flex items-center gap-1 px-1.5 py-0.5 rounded-xl bg-white/10 border border-white/15 text-white/90">
                                                     <Clock className="w-2.5 h-2.5 text-neon-cyan" />
-                                                    <span className="text-[9px] font-black font-mono tracking-tight text-white">
+                                                    <span className="text-[8.5px] font-black font-mono tracking-tight text-white">
                                                         {item.durationFormatted}
                                                     </span>
                                                 </div>
@@ -362,17 +494,17 @@ export function TVShareScheduleModal({
                                     </div>
 
                                     {/* Footer de la carte */}
-                                    <div className="relative z-10 pt-3 border-t border-white/10 flex items-center justify-between text-center">
+                                    <div className="relative z-10 pt-2 border-t border-white/10 flex items-center justify-between text-center">
                                         <div className="text-left">
-                                            <div className="text-[7px] font-black uppercase tracking-[0.2em] text-gray-400">
+                                            <div className="text-[6.5px] font-black uppercase tracking-[0.2em] text-gray-400">
                                                 À REGARDER EN DIRECT SUR
                                             </div>
-                                            <div className="text-[10px] font-black text-white tracking-tight font-mono">
+                                            <div className="text-[9.5px] font-black text-white tracking-tight font-mono">
                                                 DROPSIDERS.<span className="text-neon-red">COM/TV</span>
                                             </div>
                                         </div>
 
-                                        <div className="px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-[8px] font-black uppercase tracking-widest text-neon-cyan">
+                                        <div className="px-2 py-0.5 rounded-xl bg-white/5 border border-white/10 text-[7.5px] font-black uppercase tracking-widest text-neon-cyan">
                                             @DROPSIDERS
                                         </div>
                                     </div>
@@ -380,63 +512,111 @@ export function TVShareScheduleModal({
                             </div>
                         </div>
 
-                        {/* Colonne Droite : Filtres et Actions */}
-                        <div className="lg:col-span-6 flex flex-col gap-6">
+                        {/* Colonne Droite : Fuseaux Horaires, Filtres et Actions */}
+                        <div className="lg:col-span-6 flex flex-col gap-5">
                             
-                            {/* Filtres de sélection */}
-                            <div className="bg-white/5 border border-white/10 rounded-3xl p-5 space-y-4">
-                                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white flex items-center gap-2">
-                                    <Palette className="w-3.5 h-3.5 text-neon-red" />
-                                    Personnaliser la sélection
-                                </h3>
+                            {/* 1. Sélection du Fuseau Horaire */}
+                            <div className="bg-white/5 border border-white/10 rounded-3xl p-4 sm:p-5 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white flex items-center gap-2">
+                                        <Globe className="w-3.5 h-3.5 text-neon-cyan" />
+                                        Fuseau Horaire ({activeTz.city})
+                                    </h3>
+                                    <span className="text-[10px] font-mono text-neon-cyan font-black bg-neon-cyan/10 px-2 py-0.5 rounded-full border border-neon-cyan/30">
+                                        {activeTz.code}
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                                    {timezoneList.map(tz => {
+                                        const isSelected = tz.id === selectedTimezoneId;
+                                        return (
+                                            <button
+                                                key={tz.id}
+                                                onClick={() => setSelectedTimezoneId(tz.id)}
+                                                className={`p-2 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-2 ${
+                                                    isSelected
+                                                        ? 'bg-neon-cyan/20 border-neon-cyan text-white shadow-[0_0_15px_rgba(0,255,255,0.2)]'
+                                                        : 'bg-black/40 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                                }`}
+                                            >
+                                                <span className="text-sm">{tz.flag}</span>
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="text-[9.5px] font-black truncate">{tz.city}</div>
+                                                    <div className="text-[7.5px] font-mono text-gray-400">{tz.code}</div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* 2. Filtres selon l'heure de génération */}
+                            <div className="bg-white/5 border border-white/10 rounded-3xl p-4 sm:p-5 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white flex items-center gap-2">
+                                        <Palette className="w-3.5 h-3.5 text-neon-red" />
+                                        Sélection du programme
+                                    </h3>
+
+                                    {/* Bouton pour réactualiser l'heure */}
+                                    <button
+                                        onClick={handleRefreshTime}
+                                        title="Actualiser selon l'heure présente"
+                                        className="text-[9px] font-black uppercase tracking-wider text-gray-400 hover:text-white flex items-center gap-1 cursor-pointer bg-white/5 px-2 py-1 rounded-lg border border-white/10 hover:border-white/20"
+                                    >
+                                        <RotateCcw className="w-3 h-3 text-neon-cyan" />
+                                        <span>Actualiser ({genTimeFormatted})</span>
+                                    </button>
+                                </div>
 
                                 <div className="grid grid-cols-3 gap-2">
                                     <button
-                                        onClick={() => setFilterMode('all')}
-                                        className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
-                                            filterMode === 'all'
+                                        onClick={() => setFilterMode('now_and_next')}
+                                        className={`p-2.5 rounded-2xl border text-center transition-all cursor-pointer ${
+                                            filterMode === 'now_and_next'
                                                 ? 'bg-neon-red/20 border-neon-red text-white shadow-lg'
                                                 : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'
                                         }`}
                                     >
-                                        <Calendar className="w-4 h-4 mx-auto mb-1 text-neon-red" />
-                                        <div className="text-[10px] font-black uppercase">Journée</div>
-                                        <div className="text-[8px] text-gray-500 font-semibold">Tous les blocs</div>
+                                        <Radio className="w-4 h-4 mx-auto mb-1 text-neon-red animate-pulse" />
+                                        <div className="text-[9.5px] font-black uppercase leading-tight">En Direct</div>
+                                        <div className="text-[7.5px] text-gray-500 font-semibold mt-0.5">Dès maintenant</div>
                                     </button>
 
                                     <button
                                         onClick={() => setFilterMode('evening')}
-                                        className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
+                                        className={`p-2.5 rounded-2xl border text-center transition-all cursor-pointer ${
                                             filterMode === 'evening'
                                                 ? 'bg-neon-purple/20 border-neon-purple text-white shadow-lg'
                                                 : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'
                                         }`}
                                     >
-                                        <Radio className="w-4 h-4 mx-auto mb-1 text-neon-purple" />
-                                        <div className="text-[10px] font-black uppercase">Soirée</div>
-                                        <div className="text-[8px] text-gray-500 font-semibold">18h à 06h</div>
+                                        <Flame className="w-4 h-4 mx-auto mb-1 text-neon-purple" />
+                                        <div className="text-[9.5px] font-black uppercase leading-tight">Soirée</div>
+                                        <div className="text-[7.5px] text-gray-500 font-semibold mt-0.5">18h à la nuit</div>
                                     </button>
 
                                     <button
-                                        onClick={() => setFilterMode('highlight')}
-                                        className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
-                                            filterMode === 'highlight'
+                                        onClick={() => setFilterMode('all')}
+                                        className={`p-2.5 rounded-2xl border text-center transition-all cursor-pointer ${
+                                            filterMode === 'all'
                                                 ? 'bg-neon-cyan/20 border-neon-cyan text-white shadow-lg'
                                                 : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'
                                         }`}
                                     >
-                                        <Flame className="w-4 h-4 mx-auto mb-1 text-neon-cyan" />
-                                        <div className="text-[10px] font-black uppercase">Top Sets</div>
-                                        <div className="text-[8px] text-gray-500 font-semibold">Plus longs sets</div>
+                                        <Calendar className="w-4 h-4 mx-auto mb-1 text-neon-cyan" />
+                                        <div className="text-[9.5px] font-black uppercase leading-tight">Journée</div>
+                                        <div className="text-[7.5px] text-gray-500 font-semibold mt-0.5">Vue 24 heures</div>
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Résumé textuel */}
-                            <div className="bg-white/5 border border-white/10 rounded-3xl p-5 space-y-3">
+                            {/* 3. Résumé textuel */}
+                            <div className="bg-white/5 border border-white/10 rounded-3xl p-4 sm:p-5 space-y-2.5">
                                 <div className="flex items-center justify-between">
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
-                                        Texte à envoyer à tes potes
+                                        Message pour tes amis ({activeTz.code})
                                     </span>
                                     <button
                                         onClick={handleCopyText}
@@ -456,18 +636,18 @@ export function TVShareScheduleModal({
                                     </button>
                                 </div>
 
-                                <div className="p-3 bg-black/60 rounded-2xl border border-white/10 text-gray-300 text-xs font-mono whitespace-pre-line leading-relaxed max-h-36 overflow-y-auto custom-scrollbar">
+                                <div className="p-3 bg-black/60 rounded-2xl border border-white/10 text-gray-300 text-xs font-mono whitespace-pre-line leading-relaxed max-h-32 overflow-y-auto custom-scrollbar">
                                     {shareText}
                                 </div>
                             </div>
 
-                            {/* Boutons d'Action Principaux */}
-                            <div className="space-y-3 pt-2">
+                            {/* 4. Boutons d'Action Principaux */}
+                            <div className="space-y-2.5 pt-1">
                                 {/* Bouton Partage Mobile Natif */}
                                 <button
                                     onClick={handleNativeShare}
                                     disabled={isGenerating}
-                                    className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan text-white font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:opacity-95 transition-all flex items-center justify-center gap-3 cursor-pointer active:scale-98 disabled:opacity-50"
+                                    className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan text-white font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:opacity-95 transition-all flex items-center justify-center gap-3 cursor-pointer active:scale-98 disabled:opacity-50"
                                 >
                                     {isGenerating ? (
                                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -478,36 +658,36 @@ export function TVShareScheduleModal({
                                 </button>
 
                                 {/* Bouton Télécharger l'image Story */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                     <button
                                         onClick={handleDownloadImage}
                                         disabled={isGenerating}
-                                        className="py-3.5 px-4 rounded-2xl bg-white text-black hover:bg-neon-cyan hover:text-black font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-98 disabled:opacity-50"
+                                        className="py-3 px-4 rounded-2xl bg-white text-black hover:bg-neon-cyan hover:text-black font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-98 disabled:opacity-50"
                                     >
                                         <Download className="w-4 h-4" />
-                                        <span>Télécharger la Story</span>
+                                        <span>Télécharger l'image</span>
                                     </button>
 
                                     <button
                                         onClick={handleCopyText}
-                                        className="py-3.5 px-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                                        className="py-3 px-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                                     >
                                         {copiedText ? (
                                             <Check className="w-4 h-4 text-neon-green" />
                                         ) : (
                                             <Copy className="w-4 h-4" />
                                         )}
-                                        <span>{copiedText ? 'Copié dans le presse-papier' : 'Copier le texte'}</span>
+                                        <span>{copiedText ? 'Texte copié !' : 'Copier le texte'}</span>
                                     </button>
                                 </div>
 
                                 {/* Passerelle Social Studio */}
                                 <button
                                     onClick={handleOpenInSocialStudio}
-                                    className="w-full py-3 px-4 rounded-2xl bg-white/5 hover:bg-neon-purple/20 border border-white/10 hover:border-neon-purple/40 text-gray-400 hover:text-white text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                    className="w-full py-2.5 px-4 rounded-2xl bg-white/5 hover:bg-neon-purple/20 border border-white/10 hover:border-neon-purple/40 text-gray-400 hover:text-white text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 cursor-pointer"
                                 >
                                     <Sparkles className="w-3.5 h-3.5 text-neon-purple" />
-                                    <span>Personnaliser dans le Social Studio</span>
+                                    <span>Ouvrir dans le Social Studio ({activeTz.code})</span>
                                 </button>
                             </div>
                         </div>
