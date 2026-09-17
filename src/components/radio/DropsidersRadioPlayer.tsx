@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Radio,
@@ -27,7 +27,7 @@ export function DropsidersRadioPlayer() {
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const loadedTrackIdRef = useRef<string | null>(null);
 
-    // ─── Activation ────────────────────────────────────────────────────────────
+    // ─── Activation (visible dès que la radio est activée côté serveur) ─────────
     const [isEnabled, setIsEnabled] = useState<boolean>(() => {
         try {
             const params = new URLSearchParams(window.location.search);
@@ -105,7 +105,7 @@ export function DropsidersRadioPlayer() {
         return () => clearInterval(id);
     }, []);
 
-    // ─── Morceau live calculé 100% déterministe (F5 ne changera jamais le morceau) ──
+    // ─── Morceau live calculé 100% déterministe ──────────────────────────────────
     const liveInfo = useMemo(() => {
         return getCurrentLiveRadioTrack(radioBlocks, uiTimeSec);
     }, [radioBlocks, uiTimeSec]);
@@ -113,7 +113,7 @@ export function DropsidersRadioPlayer() {
     const currentSet = liveInfo?.item || null;
     const uiOffset = liveInfo?.offsetSeconds ?? 0;
 
-    // ─── Source audio iframe ───────────────────────────────────────────────────
+    // ─── État de lecture ─────────────────────────────────────────────────────────
     const [frozenSrc, setFrozenSrc] = useState<string | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
@@ -127,8 +127,16 @@ export function DropsidersRadioPlayer() {
     });
     const [isMinimized, setIsMinimized] = useState(false);
 
-    // Commandes postMessage vers YouTube
-    const sendIframeCommand = (func: string, args: any = '') => {
+    // ─── Détection mobile ────────────────────────────────────────────────────────
+    const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
+    useEffect(() => {
+        const onResize = () => setIsMobile(window.innerWidth < 1024);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
+
+    // ─── Commandes postMessage vers YouTube ──────────────────────────────────────
+    const sendIframeCommand = useCallback((func: string, args: any = '') => {
         if (!iframeRef.current?.contentWindow) return;
         try {
             iframeRef.current.contentWindow.postMessage(
@@ -136,7 +144,7 @@ export function DropsidersRadioPlayer() {
                 '*'
             );
         } catch {}
-    };
+    }, []);
 
     // Gestion du volume et mute via postMessage
     useEffect(() => {
@@ -150,38 +158,38 @@ export function DropsidersRadioPlayer() {
             sendIframeCommand('unMute');
             sendIframeCommand('setVolume', [volume]);
         }
-    }, [isMuted, volume]);
+    }, [isMuted, volume, sendIframeCommand]);
 
-    const handleIframeLoad = () => {
-        if (isMuted) {
-            sendIframeCommand('mute');
-        } else {
+    const handleIframeLoad = useCallback(() => {
+        // Sur mobile YouTube requiert une interaction utilisateur — on ne force pas l'autoplay
+        if (!isMuted) {
             sendIframeCommand('unMute');
             sendIframeCommand('setVolume', [volume]);
+        } else {
+            sendIframeCommand('mute');
         }
-        if (isPlaying) {
-            sendIframeCommand('playVideo');
-        }
-    };
+    }, [isMuted, volume, sendIframeCommand]);
 
     // Transition automatique lorsque le set se termine
     useEffect(() => {
         if (!isPlaying || !liveInfo?.item?.youtubeId) return;
         if (loadedTrackIdRef.current && loadedTrackIdRef.current !== liveInfo.item.youtubeId) {
             const origin = typeof window !== 'undefined' ? window.location.origin : '';
-            const src = `https://www.youtube-nocookie.com/embed/${liveInfo.item.youtubeId}?autoplay=1&start=${liveInfo.offsetSeconds}&enablejsapi=1&controls=0&mute=${isMuted ? 1 : 0}&playsinline=1&rel=0&origin=${encodeURIComponent(origin)}`;
+            const src = `https://www.youtube-nocookie.com/embed/${liveInfo.item.youtubeId}?autoplay=1&start=${liveInfo.offsetSeconds}&enablejsapi=1&controls=0&mute=0&playsinline=1&rel=0&origin=${encodeURIComponent(origin)}`;
             loadedTrackIdRef.current = liveInfo.item.youtubeId;
             setFrozenSrc(src);
         }
-    }, [isPlaying, liveInfo?.item?.youtubeId, liveInfo?.offsetSeconds, isMuted]);
+    }, [isPlaying, liveInfo?.item?.youtubeId, liveInfo?.offsetSeconds]);
 
-    const handlePlay = () => {
+    const handlePlay = useCallback(() => {
         if (!liveInfo?.item?.youtubeId) return;
 
         if (!isPlaying) {
             if (!frozenSrc || loadedTrackIdRef.current !== liveInfo.item.youtubeId) {
                 const origin = typeof window !== 'undefined' ? window.location.origin : '';
-                const src = `https://www.youtube-nocookie.com/embed/${liveInfo.item.youtubeId}?autoplay=1&start=${liveInfo.offsetSeconds}&enablejsapi=1&controls=0&mute=${isMuted ? 1 : 0}&playsinline=1&rel=0&origin=${encodeURIComponent(origin)}`;
+                // playsinline=1 est CRUCIAL pour iOS (sinon lecture plein écran forcée)
+                // mute=0 car l'user a tapé sur Play (geste utilisateur = autoplay autorisé)
+                const src = `https://www.youtube-nocookie.com/embed/${liveInfo.item.youtubeId}?autoplay=1&start=${liveInfo.offsetSeconds}&enablejsapi=1&controls=0&mute=${isMuted ? 1 : 0}&playsinline=1&rel=0&fs=0&origin=${encodeURIComponent(origin)}`;
                 loadedTrackIdRef.current = liveInfo.item.youtubeId;
                 setFrozenSrc(src);
             } else {
@@ -192,19 +200,19 @@ export function DropsidersRadioPlayer() {
             sendIframeCommand('pauseVideo');
             setIsPlaying(false);
         }
-    };
+    }, [liveInfo, isPlaying, frozenSrc, isMuted, sendIframeCommand]);
 
-    const handleStop = () => {
+    const handleStop = useCallback(() => {
         sendIframeCommand('pauseVideo');
         setIsPlaying(false);
         setFrozenSrc(null);
         loadedTrackIdRef.current = null;
         setIsMinimized(true);
-    };
+    }, [sendIframeCommand]);
 
-    const toggleMute = () => setIsMuted(prev => !prev);
+    const toggleMute = useCallback(() => setIsMuted(prev => !prev), []);
 
-    // ─── Synchronisation avec DropsidersRadioCard et événements globaux ─────────
+    // ─── Synchronisation avec DropsidersRadioCard et événements globaux ──────────
     const stateRef = useRef({ isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled });
     useEffect(() => {
         stateRef.current = { isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled };
@@ -249,7 +257,7 @@ export function DropsidersRadioPlayer() {
             window.removeEventListener('dropsiders_radio_cmd_volume', onVolume);
             window.removeEventListener('dropsiders_radio_query_state', broadcast);
         };
-    }, [liveInfo]);
+    }, [handlePlay, handleStop, toggleMute, isMuted, liveInfo]);
 
     // Broadcast à chaque changement d'état
     useEffect(() => {
@@ -258,13 +266,13 @@ export function DropsidersRadioPlayer() {
         }));
     }, [isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled]);
 
-    // ─── Guard pages ───────────────────────────────────────────────────────────
+    // ─── Guard pages ────────────────────────────────────────────────────────────
     const isTVPage = location.pathname === '/tv';
     if (!isEnabled || isTVPage || !currentSet) return null;
 
     return (
         <>
-            {/* Iframe audio offscreen - dimensions réelles pour empêcher le throttling du navigateur */}
+            {/* Iframe audio offscreen - dimensions réelles pour empêcher le throttling */}
             <div
                 style={{
                     position: 'fixed',
@@ -291,14 +299,20 @@ export function DropsidersRadioPlayer() {
                 )}
             </div>
 
-            {/* Lecteur radio flottant - Visible sur Desktop & Mobile au-dessus de la barre de navigation */}
+            {/* ── Lecteur flottant ── au-dessus de la navbar mobile (z-[100]) ─── */}
             <aside
                 aria-label="Lecteur Dropsiders Radio"
-                className="fixed bottom-[74px] lg:bottom-4 left-3 right-3 sm:right-auto sm:left-4 z-[100000] max-w-[calc(100vw-1.5rem)] sm:max-w-sm select-none pointer-events-auto font-sans"
+                style={{
+                    zIndex: 100000,
+                    bottom: isMobile ? 'calc(64px + env(safe-area-inset-bottom, 0px))' : '1rem',
+                    left: isMobile ? '0.5rem' : '1rem',
+                    right: isMobile ? '0.5rem' : 'auto',
+                }}
+                className="fixed pointer-events-auto font-sans select-none"
             >
                 <AnimatePresence mode="wait">
                     {isMinimized ? (
-                        // ── Mini pill flottante ──────────────────────────────────────────────────
+                        // ── Mini pill flottante ──────────────────────────────────────────────
                         <motion.div
                             key="minimized-radio"
                             initial={{ opacity: 0, scale: 0.88, y: 15 }}
@@ -325,7 +339,7 @@ export function DropsidersRadioPlayer() {
                                 </span>
                             </div>
                             {isPlaying && (
-                                <div className="hidden xs:flex items-end gap-0.5 h-3 ml-1 shrink-0">
+                                <div className="flex items-end gap-0.5 h-3 ml-1 shrink-0">
                                     <span className="w-0.5 bg-neon-cyan rounded-full animate-pulse" style={{ height: '60%', animationDuration: '450ms' }} />
                                     <span className="w-0.5 bg-neon-cyan rounded-full animate-pulse" style={{ height: '100%', animationDuration: '320ms' }} />
                                     <span className="w-0.5 bg-neon-cyan rounded-full animate-pulse" style={{ height: '40%', animationDuration: '550ms' }} />
@@ -333,7 +347,7 @@ export function DropsidersRadioPlayer() {
                             )}
                             <button
                                 onClick={e => { e.stopPropagation(); handlePlay(); }}
-                                className="w-7 h-7 rounded-full bg-neon-cyan/25 hover:bg-neon-cyan hover:text-black text-neon-cyan flex items-center justify-center transition-all cursor-pointer ml-1 shrink-0"
+                                className="w-8 h-8 rounded-full bg-neon-cyan/25 hover:bg-neon-cyan hover:text-black text-neon-cyan flex items-center justify-center transition-all cursor-pointer ml-1 shrink-0 active:scale-90"
                                 title={isPlaying ? 'Mettre en pause' : 'Écouter la radio'}
                             >
                                 {isPlaying
@@ -343,13 +357,15 @@ export function DropsidersRadioPlayer() {
                             </button>
                         </motion.div>
                     ) : (
-                        // ── Lecteur complet développé ───────────────────────────────────────────
+                        // ── Lecteur complet développé ──────────────────────────────────────────
                         <motion.div
                             key="expanded-radio"
                             initial={{ opacity: 0, scale: 0.92, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.92, y: 20 }}
-                            className="w-full sm:w-80 bg-gradient-to-b from-[#0e0e16] via-[#090912] to-[#040409] border border-white/20 rounded-3xl p-3.5 sm:p-4 shadow-[0_15px_50px_rgba(0,0,0,0.9),0_0_35px_rgba(0,255,255,0.2)] flex flex-col gap-3 relative overflow-hidden backdrop-blur-2xl"
+                            className={`bg-gradient-to-b from-[#0e0e16] via-[#090912] to-[#040409] border border-white/20 rounded-3xl p-3.5 shadow-[0_15px_50px_rgba(0,0,0,0.9),0_0_35px_rgba(0,255,255,0.2)] flex flex-col gap-3 relative overflow-hidden backdrop-blur-2xl ${
+                                isMobile ? 'w-full' : 'w-80'
+                            }`}
                         >
                             {/* Lueurs */}
                             <div className="absolute top-0 right-0 w-32 h-32 bg-neon-cyan/20 rounded-full blur-2xl pointer-events-none -mr-10 -mt-10" />
@@ -379,14 +395,14 @@ export function DropsidersRadioPlayer() {
                                 <div className="flex items-center gap-1">
                                     <button
                                         onClick={() => setIsMinimized(true)}
-                                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all cursor-pointer"
+                                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all cursor-pointer active:scale-90"
                                         title="Réduire le lecteur"
                                     >
                                         <Minimize2 className="w-3.5 h-3.5" />
                                     </button>
                                     <button
                                         onClick={handleStop}
-                                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-red-400 transition-all cursor-pointer"
+                                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-red-400 transition-all cursor-pointer active:scale-90"
                                         title="Arrêter et fermer"
                                     >
                                         <X className="w-3.5 h-3.5" />
@@ -405,7 +421,7 @@ export function DropsidersRadioPlayer() {
                                         {currentSet.artist}
                                     </h4>
                                     <p className="text-[8.5px] font-semibold text-gray-300 truncate mt-0.5">
-                                        {currentSet.title || currentSet.event}
+                                        {currentSet.title || (currentSet as any).event}
                                     </p>
                                 </div>
                                 <div className="shrink-0 flex flex-col items-end justify-center pl-2 border-l border-white/10">
@@ -435,24 +451,26 @@ export function DropsidersRadioPlayer() {
 
                             {/* Commandes de lecture et volume */}
                             <div className="flex items-center justify-between gap-3 relative z-10 pt-1.5 border-t border-white/10">
+                                {/* Bouton Play/Pause — GRAND pour le tap mobile */}
                                 <button
                                     onClick={handlePlay}
-                                    className={`px-4 py-2 rounded-xl font-black text-[10.5px] uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg active:scale-95 ${
+                                    className={`flex-shrink-0 px-5 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg active:scale-95 ${
                                         isPlaying
                                             ? 'bg-neon-cyan text-black shadow-neon-cyan/40'
                                             : 'bg-white text-black hover:bg-neon-cyan'
                                     }`}
                                 >
                                     {isPlaying
-                                        ? <><Pause className="w-3.5 h-3.5 fill-current" /><span>PAUSE</span></>
-                                        : <><Play className="w-3.5 h-3.5 fill-current ml-0.5" /><span>ÉCOUTER</span></>
+                                        ? <><Pause className="w-4 h-4 fill-current" /><span>PAUSE</span></>
+                                        : <><Play className="w-4 h-4 fill-current ml-0.5" /><span>ÉCOUTER</span></>
                                     }
                                 </button>
 
-                                <div className="flex items-center gap-2 flex-1 max-w-[130px]">
+                                {/* Volume (caché sur mobile pour gagner de la place) */}
+                                <div className={`flex items-center gap-2 flex-1 ${isMobile ? 'max-w-[90px]' : 'max-w-[130px]'}`}>
                                     <button
                                         onClick={toggleMute}
-                                        className="p-1 text-gray-300 hover:text-white transition-colors cursor-pointer"
+                                        className="p-1.5 text-gray-300 hover:text-white transition-colors cursor-pointer active:scale-90"
                                         title={isMuted ? 'Activer le son' : 'Couper le son'}
                                     >
                                         {isMuted || volume === 0
@@ -460,27 +478,37 @@ export function DropsidersRadioPlayer() {
                                             : <Volume2 className="w-4 h-4 text-neon-cyan" />
                                         }
                                     </button>
-                                    <input
-                                        type="range"
-                                        min="0"
-                                        max="100"
-                                        value={isMuted ? 0 : volume}
-                                        onChange={e => {
-                                            const v = Number(e.target.value);
-                                            setVolume(v);
-                                            if (isMuted) setIsMuted(false);
-                                        }}
-                                        className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
-                                        title={`Volume : ${volume}%`}
-                                    />
+                                    {!isMobile && (
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="100"
+                                            value={isMuted ? 0 : volume}
+                                            onChange={e => {
+                                                const v = Number(e.target.value);
+                                                setVolume(v);
+                                                if (isMuted) setIsMuted(false);
+                                            }}
+                                            className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
+                                            title={`Volume : ${volume}%`}
+                                        />
+                                    )}
                                 </div>
 
-                                <div className="flex items-end gap-0.5 h-4 w-6 justify-end">
+                                {/* Barres d'animation */}
+                                <div className="flex items-end gap-0.5 h-4 w-6 justify-end shrink-0">
                                     <span className={`w-0.5 rounded-full ${isPlaying ? 'bg-neon-cyan animate-pulse' : 'bg-white/20'}`} style={{ height: isPlaying ? '70%' : '20%', animationDuration: '400ms' }} />
                                     <span className={`w-0.5 rounded-full ${isPlaying ? 'bg-neon-purple animate-pulse' : 'bg-white/20'}`} style={{ height: isPlaying ? '100%' : '20%', animationDuration: '280ms' }} />
                                     <span className={`w-0.5 rounded-full ${isPlaying ? 'bg-neon-red animate-pulse' : 'bg-white/20'}`} style={{ height: isPlaying ? '50%' : '20%', animationDuration: '520ms' }} />
                                 </div>
                             </div>
+
+                            {/* Astuce tap sur mobile */}
+                            {isMobile && !isPlaying && (
+                                <p className="text-[7.5px] text-center text-gray-500 font-bold uppercase tracking-widest -mt-1 relative z-10">
+                                    Appuie sur ÉCOUTER pour démarrer
+                                </p>
+                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>
