@@ -13,24 +13,15 @@ import {
     Disc3
 } from 'lucide-react';
 import {
-    computeDaySchedule,
-    DEFAULT_TV_BLOCKS,
+    DEFAULT_RADIO_BLOCKS,
+    STORAGE_RADIO_BLOCKS_KEY,
+    computeRadioDaySchedule,
+    getParisSeconds,
     formatDurationExact,
-    type ComputedScheduleItem
-} from '../../utils/tvSchedule';
+    type RadioScheduleBlock,
+    type ComputedRadioScheduleItem
+} from '../../utils/radioSchedule';
 import { useLocation } from 'react-router-dom';
-
-// Helper: heure Paris en secondes depuis minuit
-function getParisSec(): number {
-    const now = new Date();
-    try {
-        const pStr = now.toLocaleString('en-US', { timeZone: 'Europe/Paris', hour12: false });
-        const p = new Date(pStr);
-        return p.getHours() * 3600 + p.getMinutes() * 60 + p.getSeconds();
-    } catch {
-        return now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-    }
-}
 
 export function DropsidersRadioPlayer() {
     const location = useLocation();
@@ -57,103 +48,70 @@ export function DropsidersRadioPlayer() {
         };
     }, []);
 
-    // Vérifie aussi côté serveur au montage — permet à TOUS les visiteurs de voir
-    // la radio quand l'admin l'active (pas seulement le navigateur de l'admin)
+    // ─── Blocs d'émissions radio ───────────────────────────────────────────────
+    const [radioBlocks, setRadioBlocks] = useState<RadioScheduleBlock[]>(() => {
+        try {
+            const saved = localStorage.getItem(STORAGE_RADIO_BLOCKS_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch {}
+        return DEFAULT_RADIO_BLOCKS;
+    });
+
+    useEffect(() => {
+        const handle = () => {
+            try {
+                const saved = localStorage.getItem(STORAGE_RADIO_BLOCKS_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) setRadioBlocks(parsed);
+                }
+            } catch {}
+        };
+        window.addEventListener('dropsiders_radio_blocks_updated', handle);
+        window.addEventListener('storage', handle);
+        return () => {
+            window.removeEventListener('dropsiders_radio_blocks_updated', handle);
+            window.removeEventListener('storage', handle);
+        };
+    }, []);
+
+    // Vérifie aussi côté serveur au montage
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
-        if (params.get('radio') === '1' || params.get('radio_preview') === 'true') return;
         fetch('/api/settings')
             .then(r => r.ok ? r.json() : null)
             .then(data => {
-                if (data && typeof data.radio_enabled === 'boolean') {
-                    setIsEnabled(data.radio_enabled);
-                    localStorage.setItem('dropsiders_radio_enabled', data.radio_enabled ? 'true' : 'false');
+                if (data) {
+                    if (params.get('radio') !== '1' && params.get('radio_preview') !== 'true' && typeof data.radio_enabled === 'boolean') {
+                        setIsEnabled(data.radio_enabled);
+                        localStorage.setItem('dropsiders_radio_enabled', data.radio_enabled ? 'true' : 'false');
+                    }
+                    if (Array.isArray(data.radio_blocks) && data.radio_blocks.length > 0) {
+                        setRadioBlocks(data.radio_blocks);
+                        localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(data.radio_blocks));
+                    }
                 }
             })
             .catch(() => {});
     }, []);
 
     // ─── UI clock (seulement pour la progress bar, jamais pour l'iframe) ───────
-    const [uiTimeSec, setUiTimeSec] = useState<number>(getParisSec);
+    const [uiTimeSec, setUiTimeSec] = useState<number>(getParisSeconds);
     useEffect(() => {
-        const id = setInterval(() => setUiTimeSec(getParisSec()), 5000);
+        const id = setInterval(() => setUiTimeSec(getParisSeconds()), 5000);
         return () => clearInterval(id);
     }, []);
 
-    // ─── Pistes custom ─────────────────────────────────────────────────────────
-    const [customTracks, setCustomTracks] = useState<any[]>(() => {
-        try {
-            const saved = localStorage.getItem('dropsiders_radio_tracks');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-            }
-        } catch {}
-        return [];
-    });
-
-    useEffect(() => {
-        const handle = () => {
-            try {
-                const saved = localStorage.getItem('dropsiders_radio_tracks');
-                const parsed = saved ? JSON.parse(saved) : [];
-                setCustomTracks(Array.isArray(parsed) && parsed.length > 0 ? parsed : []);
-            } catch {}
-        };
-        window.addEventListener('dropsiders_radio_tracks_updated', handle);
-        window.addEventListener('storage', handle);
-        return () => {
-            window.removeEventListener('dropsiders_radio_tracks_updated', handle);
-            window.removeEventListener('storage', handle);
-        };
-    }, []);
-
-    // ─── Programme 24/7 — recalcule UNIQUEMENT quand les pistes changent ───────
-    // N'utilise PAS uiTimeSec: ca evite de recalculer/remonter l'iframe toutes
-    // les 5s => micro-coupures supprimees.
-    const scheduleItems = useMemo<ComputedScheduleItem[]>(() => {
-        const nowSec = getParisSec();
-        if (customTracks.length > 0) {
-            let cursor = 0;
-            const items: ComputedScheduleItem[] = [];
-            let i = 0;
-            while (cursor < 86400 && i < 120) {
-                const track = customTracks[i % customTracks.length];
-                const dur = track.duration || (track.category === 'clip' ? 240 : 3600);
-                const start = cursor;
-                const end = start + dur;
-                const sH = Math.floor(start / 3600) % 24;
-                const sM = Math.floor((start % 3600) / 60);
-                const eH = Math.floor(end / 3600) % 24;
-                const eM = Math.floor((end % 3600) / 60);
-                items.push({
-                    id: `radio_${track.id}_${i}`,
-                    blockId: 'radio_rotation',
-                    blockTitle: track.category === 'clip' ? 'Clip Rotation' : 'Liveset 24/7',
-                    blockColor: track.category === 'clip' ? '#a855f7' : '#00ffff',
-                    blockEmoji: track.category === 'clip' ? '🎬' : '🎪',
-                    title: track.title,
-                    artist: track.artist || 'Artiste',
-                    event: track.category === 'clip' ? 'DROPSIDERS CLIP' : 'DROPSIDERS LIVE',
-                    youtubeId: track.youtubeId,
-                    startTime: `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}`,
-                    endTime: `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}`,
-                    startSecondsFromMidnight: start,
-                    durationSeconds: dur,
-                    durationFormatted: formatDurationExact(dur),
-                    isCurrentlyLive: nowSec >= start && nowSec < end,
-                    category: track.category
-                });
-                cursor += dur;
-                i++;
-            }
-            return items;
-        }
-        try { return computeDaySchedule(DEFAULT_TV_BLOCKS); } catch { return []; }
-    }, [customTracks]); // ← PAS de uiTimeSec ici
+    // ─── Programme 24/7 calculé selon le jour et l'heure ──────────────────────
+    const scheduleItems = useMemo<ComputedRadioScheduleItem[]>(() => {
+        return computeRadioDaySchedule(radioBlocks, new Date());
+    }, [radioBlocks]);
 
     // ─── Set actuellement diffuse (suit uiTimeSec pour l'affichage) ────────────
-    const currentSet = useMemo<ComputedScheduleItem | null>(() => {
+    const currentSet = useMemo<ComputedRadioScheduleItem | null>(() => {
         if (!scheduleItems.length) return null;
         const live = scheduleItems.find(item => item.isCurrentlyLive);
         if (live) return live;
@@ -185,7 +143,7 @@ export function DropsidersRadioPlayer() {
     const handlePlay = () => {
         if (!isPlaying && currentSet?.youtubeId) {
             // Capturer l'offset MAINTENANT et le geler definitivement
-            const nowSec = getParisSec();
+            const nowSec = getParisSeconds();
             let diff = nowSec - currentSet.startSecondsFromMidnight;
             if (diff < 0) diff += 86400;
             const offset = Math.max(0, Math.min(diff, currentSet.durationSeconds || 3600));

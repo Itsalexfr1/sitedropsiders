@@ -10,7 +10,7 @@ import {
     Disc3, 
     Clock 
 } from 'lucide-react';
-import { formatDurationExact, type ComputedScheduleItem } from '../../utils/tvSchedule';
+import { formatDurationExact, type ComputedRadioScheduleItem } from '../../utils/radioSchedule';
 
 export function DropsidersRadioCard({ className = '' }: { className?: string }) {
     const [isEnabled, setIsEnabled] = useState<boolean>(() => {
@@ -26,7 +26,7 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [volume, setVolume] = useState(80);
-    const [currentSet, setCurrentSet] = useState<ComputedScheduleItem | null>(null);
+    const [currentSet, setCurrentSet] = useState<ComputedRadioScheduleItem | null>(null);
     const [uiOffset, setUiOffset] = useState(0);
 
     // Synchronisation avec DropsidersRadioPlayer via custom events
