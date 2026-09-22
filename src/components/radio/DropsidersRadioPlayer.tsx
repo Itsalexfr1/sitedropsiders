@@ -35,17 +35,23 @@ function AudioBars({ playing }: { playing: boolean }) {
     );
 }
 
-// ─── Hook logique audio partagée ─────────────────────────────────────────────
+// ─── Hook logique audio ───────────────────────────────────────────────────────
 /**
- * STRATÉGIE MOBILE-FIRST :
- * 1. L'iframe se charge immédiatement avec mute=1 + autoplay=1 (autorisé sur tous les navigateurs mobiles)
- * 2. Au premier tap "Play" de l'utilisateur → on envoie unMute via postMessage (geste utilisateur = autorisé)
- * 3. Pour pause/play suivants → on envoie pauseVideo/playVideo + (un)mute
- * Cette approche fonctionne sur iOS Safari, Android Chrome, etc.
+ * STRATÉGIE MOBILE-FIRST (iOS Safe) :
+ * 1. L'iframe se précharge MUET (mute=1, autoplay=1) dès que la radio est activée
+ *    → autorisé sur tous les navigateurs y compris iOS Safari
+ * 2. Au premier tap "Play" de l'utilisateur → on recharge l'iframe avec mute=0
+ *    → c'est un geste utilisateur → iOS l'autorise
+ * 3. Pour les pauses suivantes → postMessage pauseVideo/playVideo
+ *    → à ce stade l'API YT est initialisée et les commandes passent
+ *
+ * IMPORTANT : ce hook ne doit être instancié QU'UNE SEULE FOIS dans le composant
+ * parent DropsidersRadioPlayer et partagé via props — jamais deux instances simultanées.
  */
 function useRadioAudio() {
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const currentYtIdRef = useRef<string | null>(null);
+    const hasUnmutedRef = useRef(false); // true une fois que l'user a tapé Play et qu'on a rechargé en unmuted
 
     // ─── Activation ──────────────────────────────────────────────────────────
     const [isEnabled, setIsEnabled] = useState<boolean>(() => {
@@ -113,7 +119,7 @@ function useRadioAudio() {
     // ─── État audio ──────────────────────────────────────────────────────────
     const [iframeSrc, setIframeSrc] = useState<string | null>(null);
     const [iframeReady, setIframeReady] = useState(false);
-    const [isPlaying, setIsPlaying] = useState(false);  // audio démuté et actif
+    const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [volume, setVolume] = useState<number>(() => {
         try { const s = localStorage.getItem('dropsiders_radio_volume'); return s ? Math.max(0, Math.min(100, Number(s))) : 80; }
@@ -130,81 +136,73 @@ function useRadioAudio() {
     }, []);
 
     // ─── Préchargement muet dès que la radio est activée ─────────────────────
-    // L'iframe se charge avec mute=1 → autoplay autorisé sur tous les navigateurs
+    // mute=1 → autoplay autorisé sur tous les navigateurs mobiles
     useEffect(() => {
         if (!isEnabled || !currentSet?.youtubeId) return;
-        if (currentYtIdRef.current === currentSet.youtubeId) return; // déjà chargé
+        if (currentYtIdRef.current === currentSet.youtubeId) return;
 
         currentYtIdRef.current = currentSet.youtubeId;
+        hasUnmutedRef.current = false;
         setIframeReady(false);
         setIsPlaying(false);
-        // mute=1 : préchargement silencieux autorisé
-        setIframeSrc(buildSrc(currentSet.youtubeId, uiOffset, 1));
+        setIframeSrc(buildSrc(currentSet.youtubeId, uiOffset, 1)); // muted preload
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isEnabled, currentSet?.youtubeId]);
 
     const handleIframeLoad = useCallback(() => {
         setIframeReady(true);
-        // Si l'user avait déjà cliqué Play, on désourdine tout de suite
-        if (isPlaying) {
-            setTimeout(() => {
-                sendCmd('unMute');
-                sendCmd('setVolume', [isMuted ? 0 : volume]);
-            }, 300);
-        }
-    }, [isPlaying, isMuted, volume, sendCmd]);
+    }, []);
 
-    // ─── Gestion volume/mute ─────────────────────────────────────────────────
+    // ─── Volume/mute sync ────────────────────────────────────────────────────
     useEffect(() => {
         try { localStorage.setItem('dropsiders_radio_volume', String(volume)); } catch {}
-        if (!iframeReady || !isPlaying) return;
+        if (!iframeReady || !isPlaying || !hasUnmutedRef.current) return;
         if (isMuted) { sendCmd('mute'); }
         else { sendCmd('unMute'); sendCmd('setVolume', [volume]); }
     }, [isMuted, volume, iframeReady, isPlaying, sendCmd]);
 
     // ─── Play / Pause ────────────────────────────────────────────────────────
     /**
-     * Premier tap : l'iframe tourne déjà en muet → on désourdine (geste utilisateur = ok)
-     * Taps suivants : on pause/reprend
+     * iOS-SAFE: Premier tap → on recharge l'iframe avec mute=0
+     * C'est un geste utilisateur direct → iOS autorise le son
+     * Taps suivants → postMessage (l'API YT est déjà initialisée)
      */
     const handlePlay = useCallback(() => {
         if (!currentSet?.youtubeId) return;
 
-        if (!iframeSrc) {
-            // Cas extrême : pas encore chargé, on charge maintenant avec mute=0
-            // (le tap de l'utilisateur rend ça légal)
-            currentYtIdRef.current = currentSet.youtubeId;
-            setIframeSrc(buildSrc(currentSet.youtubeId, uiOffset, 0));
-            setIsPlaying(true);
-            return;
-        }
-
         if (!isPlaying) {
-            // L'iframe tourne en muet → désourdiner + play
-            sendCmd('playVideo');
-            sendCmd('unMute');
-            sendCmd('setVolume', [isMuted ? 0 : volume]);
-            setIsPlaying(true);
+            if (!hasUnmutedRef.current) {
+                // 🍎 iOS Fix: recharger avec mute=0 pendant le geste utilisateur
+                hasUnmutedRef.current = true;
+                setIframeReady(false);
+                setIframeSrc(buildSrc(currentSet.youtubeId, uiOffset, 0));
+                setIsPlaying(true);
+            } else {
+                // Déjà unmuted → simple postMessage
+                sendCmd('playVideo');
+                sendCmd('unMute');
+                sendCmd('setVolume', [isMuted ? 0 : volume]);
+                setIsPlaying(true);
+            }
         } else {
             sendCmd('pauseVideo');
-            sendCmd('mute'); // aussi muter pour ne pas avoir de son résiduel
             setIsPlaying(false);
         }
-    }, [currentSet, iframeSrc, uiOffset, isPlaying, isMuted, volume, sendCmd]);
+    }, [currentSet, uiOffset, isPlaying, isMuted, volume, sendCmd]);
 
     const handleStop = useCallback(() => {
         sendCmd('pauseVideo');
-        sendCmd('mute');
         setIsPlaying(false);
         setIframeSrc(null);
         setIframeReady(false);
         currentYtIdRef.current = null;
+        hasUnmutedRef.current = false;
     }, [sendCmd]);
 
     const toggleMute = useCallback(() => {
         setIsMuted(prev => {
             const next = !prev;
-            if (isPlaying) {
+            if (isPlaying && hasUnmutedRef.current) {
                 if (next) sendCmd('mute');
                 else { sendCmd('unMute'); sendCmd('setVolume', [volume]); }
             }
@@ -213,15 +211,15 @@ function useRadioAudio() {
     }, [isPlaying, volume, sendCmd]);
 
     // ─── Broadcast vers autres composants ────────────────────────────────────
+    const stateRef = useRef({ isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled });
+    useEffect(() => { stateRef.current = { isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled }; },
+        [isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled]);
+
     useEffect(() => {
         window.dispatchEvent(new CustomEvent('dropsiders_radio_state', {
             detail: { isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled }
         }));
     }, [isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled]);
-
-    const stateRef = useRef({ isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled });
-    useEffect(() => { stateRef.current = { isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled }; },
-        [isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled]);
 
     useEffect(() => {
         const broadcast = () => window.dispatchEvent(new CustomEvent('dropsiders_radio_state', { detail: stateRef.current }));
@@ -259,7 +257,10 @@ function useRadioAudio() {
     };
 }
 
-// ─── Iframe partagée (offscreen mais dans le viewport pour éviter le throttling) ──
+type AudioState = ReturnType<typeof useRadioAudio>;
+
+// ─── Iframe unique partagée ───────────────────────────────────────────────────
+// Positionnée hors écran mais dans le viewport (pas zIndex:-1 qui throttle sur iOS)
 function RadioIframe({ iframeSrc, iframeRef, onLoad }: {
     iframeSrc: string | null;
     iframeRef: React.RefObject<HTMLIFrameElement | null>;
@@ -267,12 +268,16 @@ function RadioIframe({ iframeSrc, iframeRef, onLoad }: {
 }) {
     if (!iframeSrc) return null;
     return (
-        // Toujours dans le viewport mais invisible — évite le throttling iOS/Android
         <div style={{
-            position: 'fixed', right: 0, bottom: 0,
-            width: 1, height: 1,
-            overflow: 'hidden', opacity: 0,
-            pointerEvents: 'none', zIndex: -1
+            position: 'fixed',
+            left: '-9999px',
+            top: 0,
+            width: 1,
+            height: 1,
+            overflow: 'hidden',
+            pointerEvents: 'none',
+            // zIndex 1 (pas -1) : iOS ne throttle pas les éléments à zIndex >= 0
+            zIndex: 1,
         }} aria-hidden="true">
             <iframe
                 ref={iframeRef as React.RefObject<HTMLIFrameElement>}
@@ -280,7 +285,7 @@ function RadioIframe({ iframeSrc, iframeRef, onLoad }: {
                 onLoad={onLoad}
                 allow="autoplay; encrypted-media; picture-in-picture"
                 title="Dropsiders Radio"
-                style={{ width: 320, height: 180, border: 'none', position: 'absolute' }}
+                style={{ width: 320, height: 180, border: 'none' }}
             />
         </div>
     );
@@ -289,8 +294,7 @@ function RadioIframe({ iframeSrc, iframeRef, onLoad }: {
 // ═══════════════════════════════════════════════════════════════════════════════
 // PLAYER MOBILE — Barre Spotify + panneau expansible
 // ═══════════════════════════════════════════════════════════════════════════════
-function MobileRadioPlayer() {
-    const audio = useRadioAudio();
+function MobileRadioPlayer({ audio }: { audio: AudioState }) {
     const [expanded, setExpanded] = useState(false);
     const [dismissed, setDismissed] = useState(false);
 
@@ -301,8 +305,6 @@ function MobileRadioPlayer() {
 
     return (
         <>
-            <RadioIframe iframeSrc={audio.iframeSrc} iframeRef={audio.iframeRef} onLoad={audio.handleIframeLoad} />
-
             {/* ── Panneau expansible ── */}
             <AnimatePresence>
                 {expanded && (
@@ -314,7 +316,7 @@ function MobileRadioPlayer() {
                         <motion.div key="panel"
                             initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
                             transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-                            style={{ zIndex: 99995, bottom: 'calc(62px + env(safe-area-inset-bottom, 0px))' }}
+                            style={{ zIndex: 99995, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 70px)' }}
                             className="fixed left-0 right-0 rounded-t-[2rem] overflow-hidden"
                         >
                             <div className="relative bg-gradient-to-b from-[#0d0d18] to-[#050508] border-t border-white/10 px-6 pt-5 pb-10">
@@ -429,8 +431,9 @@ function MobileRadioPlayer() {
             </AnimatePresence>
 
             {/* ── Barre compacte permanente (Spotify-style) ── */}
+            {/* bottom: juste au-dessus de la MobileNavbar (~70px) + safe area */}
             <div
-                style={{ zIndex: 99998, bottom: 'calc(62px + env(safe-area-inset-bottom, 0px))' }}
+                style={{ zIndex: 99998, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 70px)' }}
                 className="fixed left-0 right-0 lg:hidden"
             >
                 {/* Progression ultra-fine */}
@@ -481,8 +484,7 @@ function MobileRadioPlayer() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // PLAYER DESKTOP — Carte flottante
 // ═══════════════════════════════════════════════════════════════════════════════
-function DesktopRadioPlayer() {
-    const audio = useRadioAudio();
+function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
     const [isMinimized, setIsMinimized] = useState(false);
 
     if (!audio.isEnabled || !audio.currentSet) return null;
@@ -492,121 +494,127 @@ function DesktopRadioPlayer() {
     const progress = Math.min(100, Math.max(0, (uiOffset / (currentSet.durationSeconds || 3600)) * 100));
 
     return (
-        <>
-            <RadioIframe iframeSrc={audio.iframeSrc} iframeRef={audio.iframeRef} onLoad={audio.handleIframeLoad} />
-
-            <aside className="hidden lg:block fixed bottom-4 left-4 z-[100000] w-80 select-none pointer-events-auto font-sans">
-                <AnimatePresence mode="wait">
-                    {isMinimized ? (
-                        <motion.div key="mini"
-                            initial={{ opacity: 0, scale: 0.88, y: 15 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.88, y: 15 }}
-                            onClick={() => setIsMinimized(false)}
-                            className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-full bg-[#0a0b12]/95 backdrop-blur-2xl border border-neon-cyan/50 shadow-[0_0_30px_rgba(0,255,255,0.3)] hover:border-neon-cyan transition-all cursor-pointer"
-                        >
-                            <div className="relative shrink-0">
-                                <Disc3 className={`w-4 h-4 text-neon-cyan ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '3s' }} />
-                                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red animate-ping" />
-                                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red" />
+        <aside className="hidden lg:block fixed bottom-4 left-4 z-[100000] w-80 select-none pointer-events-auto font-sans">
+            <AnimatePresence mode="wait">
+                {isMinimized ? (
+                    <motion.div key="mini"
+                        initial={{ opacity: 0, scale: 0.88, y: 15 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.88, y: 15 }}
+                        onClick={() => setIsMinimized(false)}
+                        className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-full bg-[#0a0b12]/95 backdrop-blur-2xl border border-neon-cyan/50 shadow-[0_0_30px_rgba(0,255,255,0.3)] hover:border-neon-cyan transition-all cursor-pointer"
+                    >
+                        <div className="relative shrink-0">
+                            <Disc3 className={`w-4 h-4 text-neon-cyan ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '3s' }} />
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red animate-ping" />
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red" />
+                        </div>
+                        <div className="flex flex-col min-w-0 flex-1">
+                            <span className="text-[9px] font-black uppercase tracking-wider text-white leading-none">DROPSIDERS RADIO <span className="text-neon-cyan text-[8px] font-mono">24/7</span></span>
+                            <span className="text-[8.5px] font-bold text-gray-300 truncate mt-0.5">{currentSet.artist}</span>
+                        </div>
+                        {isPlaying && (
+                            <div className="flex items-end gap-0.5 h-3 ml-1 shrink-0">
+                                {[{ h: '60%', d: '450ms' }, { h: '100%', d: '320ms' }, { h: '40%', d: '550ms' }].map((b, i) => (
+                                    <span key={i} className="w-0.5 bg-neon-cyan rounded-full animate-pulse" style={{ height: b.h, animationDuration: b.d }} />
+                                ))}
                             </div>
-                            <div className="flex flex-col min-w-0 flex-1">
-                                <span className="text-[9px] font-black uppercase tracking-wider text-white leading-none">DROPSIDERS RADIO <span className="text-neon-cyan text-[8px] font-mono">24/7</span></span>
-                                <span className="text-[8.5px] font-bold text-gray-300 truncate mt-0.5">{currentSet.artist}</span>
-                            </div>
-                            {isPlaying && (
-                                <div className="flex items-end gap-0.5 h-3 ml-1 shrink-0">
-                                    {[{ h: '60%', d: '450ms' }, { h: '100%', d: '320ms' }, { h: '40%', d: '550ms' }].map((b, i) => (
-                                        <span key={i} className="w-0.5 bg-neon-cyan rounded-full animate-pulse" style={{ height: b.h, animationDuration: b.d }} />
-                                    ))}
-                                </div>
-                            )}
-                            <button onClick={e => { e.stopPropagation(); handlePlay(); }}
-                                className="w-8 h-8 rounded-full bg-neon-cyan/25 hover:bg-neon-cyan text-neon-cyan hover:text-black flex items-center justify-center transition-all cursor-pointer ml-1 shrink-0 active:scale-90">
-                                {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current ml-0.5" />}
-                            </button>
-                        </motion.div>
-                    ) : (
-                        <motion.div key="full"
-                            initial={{ opacity: 0, scale: 0.92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92, y: 20 }}
-                            className="w-full bg-gradient-to-b from-[#0e0e16] via-[#090912] to-[#040409] border border-white/20 rounded-3xl p-4 shadow-[0_15px_50px_rgba(0,0,0,0.9),0_0_35px_rgba(0,255,255,0.2)] flex flex-col gap-3 relative overflow-hidden backdrop-blur-2xl"
-                        >
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-neon-cyan/20 rounded-full blur-2xl pointer-events-none -mr-10 -mt-10" />
-                            <div className="absolute bottom-0 left-0 w-32 h-32 bg-neon-red/15 rounded-full blur-2xl pointer-events-none -ml-10 -mb-10" />
+                        )}
+                        <button onClick={e => { e.stopPropagation(); handlePlay(); }}
+                            className="w-8 h-8 rounded-full bg-neon-cyan/25 hover:bg-neon-cyan text-neon-cyan hover:text-black flex items-center justify-center transition-all cursor-pointer ml-1 shrink-0 active:scale-90">
+                            {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current ml-0.5" />}
+                        </button>
+                    </motion.div>
+                ) : (
+                    <motion.div key="full"
+                        initial={{ opacity: 0, scale: 0.92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92, y: 20 }}
+                        className="w-full bg-gradient-to-b from-[#0e0e16] via-[#090912] to-[#040409] border border-white/20 rounded-3xl p-4 shadow-[0_15px_50px_rgba(0,0,0,0.9),0_0_35px_rgba(0,255,255,0.2)] flex flex-col gap-3 relative overflow-hidden backdrop-blur-2xl"
+                    >
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-neon-cyan/20 rounded-full blur-2xl pointer-events-none -mr-10 -mt-10" />
+                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-neon-red/15 rounded-full blur-2xl pointer-events-none -ml-10 -mb-10" />
 
-                            <div className="flex items-center justify-between relative z-10">
-                                <div className="flex items-center gap-2">
-                                    <div className="p-1.5 rounded-xl bg-neon-cyan/15 border border-neon-cyan/40 text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.35)]"><Radio className="w-4 h-4" /></div>
-                                    <div>
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="text-[11px] font-display font-black text-white uppercase italic tracking-tight">DROPSIDERS <span className="text-neon-cyan">RADIO</span></span>
-                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-neon-red/25 text-neon-red border border-neon-red/50 text-[7.5px] font-black uppercase animate-pulse">
-                                                <span className="w-1 h-1 rounded-full bg-neon-red" />LIVE
-                                            </span>
-                                        </div>
-                                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Web Radio Electro 24/7</p>
+                        <div className="flex items-center justify-between relative z-10">
+                            <div className="flex items-center gap-2">
+                                <div className="p-1.5 rounded-xl bg-neon-cyan/15 border border-neon-cyan/40 text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.35)]"><Radio className="w-4 h-4" /></div>
+                                <div>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-[11px] font-display font-black text-white uppercase italic tracking-tight">DROPSIDERS <span className="text-neon-cyan">RADIO</span></span>
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-neon-red/25 text-neon-red border border-neon-red/50 text-[7.5px] font-black uppercase animate-pulse">
+                                            <span className="w-1 h-1 rounded-full bg-neon-red" />LIVE
+                                        </span>
                                     </div>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <button onClick={() => setIsMinimized(true)} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all cursor-pointer"><Minimize2 className="w-3.5 h-3.5" /></button>
-                                    <button onClick={handleStop} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-red-400 transition-all cursor-pointer"><X className="w-3.5 h-3.5" /></button>
+                                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Web Radio Electro 24/7</p>
                                 </div>
                             </div>
-
-                            <div className="bg-black/50 border border-white/15 rounded-2xl p-3 relative z-10 flex items-center justify-between gap-2.5">
-                                <div className="min-w-0 flex-1">
-                                    <div className="text-[7.5px] font-black uppercase tracking-widest text-neon-cyan mb-0.5 flex items-center gap-1"><Sparkles className="w-2.5 h-2.5" /><span>EN CE MOMENT</span></div>
-                                    <h4 className="text-[12px] font-black text-white uppercase italic tracking-tight truncate">{currentSet.artist}</h4>
-                                    <p className="text-[8.5px] font-semibold text-gray-300 truncate mt-0.5">{currentSet.title || (currentSet as any).event}</p>
-                                </div>
-                                <div className="shrink-0 flex flex-col items-end justify-center pl-2 border-l border-white/10">
-                                    <span className="text-[7px] font-bold text-gray-400 uppercase">DURÉE</span>
-                                    <span className="text-[9.5px] font-mono font-black text-white/90">{currentSet.durationFormatted}</span>
-                                </div>
+                            <div className="flex items-center gap-1">
+                                <button onClick={() => setIsMinimized(true)} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all cursor-pointer"><Minimize2 className="w-3.5 h-3.5" /></button>
+                                <button onClick={handleStop} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-red-400 transition-all cursor-pointer"><X className="w-3.5 h-3.5" /></button>
                             </div>
+                        </div>
 
-                            <div className="relative z-10 space-y-1">
-                                <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                    <div className="h-full bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-red rounded-full transition-all duration-1000" style={{ width: `${progress}%` }} />
-                                </div>
-                                <div className="flex items-center justify-between text-[7.5px] font-mono text-gray-400">
-                                    <span>{formatDurationExact(uiOffset)}</span>
-                                    <span className="flex items-center gap-1 text-neon-cyan font-semibold"><Clock className="w-2 h-2" /> {currentSet.startTime}</span>
-                                    <span>{currentSet.durationFormatted}</span>
-                                </div>
+                        <div className="bg-black/50 border border-white/15 rounded-2xl p-3 relative z-10 flex items-center justify-between gap-2.5">
+                            <div className="min-w-0 flex-1">
+                                <div className="text-[7.5px] font-black uppercase tracking-widest text-neon-cyan mb-0.5 flex items-center gap-1"><Sparkles className="w-2.5 h-2.5" /><span>EN CE MOMENT</span></div>
+                                <h4 className="text-[12px] font-black text-white uppercase italic tracking-tight truncate">{currentSet.artist}</h4>
+                                <p className="text-[8.5px] font-semibold text-gray-300 truncate mt-0.5">{currentSet.title || (currentSet as any).event}</p>
                             </div>
+                            <div className="shrink-0 flex flex-col items-end justify-center pl-2 border-l border-white/10">
+                                <span className="text-[7px] font-bold text-gray-400 uppercase">DURÉE</span>
+                                <span className="text-[9.5px] font-mono font-black text-white/90">{currentSet.durationFormatted}</span>
+                            </div>
+                        </div>
 
-                            <div className="flex items-center justify-between gap-3 relative z-10 pt-1.5 border-t border-white/10">
-                                <button onClick={handlePlay}
-                                    className={`px-4 py-2 rounded-xl font-black text-[10.5px] uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg active:scale-95 ${isPlaying ? 'bg-neon-cyan text-black' : 'bg-white text-black hover:bg-neon-cyan'}`}>
-                                    {isPlaying ? <><Pause className="w-3.5 h-3.5 fill-current" /><span>PAUSE</span></> : <><Play className="w-3.5 h-3.5 fill-current ml-0.5" /><span>ÉCOUTER</span></>}
+                        <div className="relative z-10 space-y-1">
+                            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                <div className="h-full bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-red rounded-full transition-all duration-1000" style={{ width: `${progress}%` }} />
+                            </div>
+                            <div className="flex items-center justify-between text-[7.5px] font-mono text-gray-400">
+                                <span>{formatDurationExact(uiOffset)}</span>
+                                <span className="flex items-center gap-1 text-neon-cyan font-semibold"><Clock className="w-2 h-2" /> {currentSet.startTime}</span>
+                                <span>{currentSet.durationFormatted}</span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-3 relative z-10 pt-1.5 border-t border-white/10">
+                            <button onClick={handlePlay}
+                                className={`px-4 py-2 rounded-xl font-black text-[10.5px] uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg active:scale-95 ${isPlaying ? 'bg-neon-cyan text-black' : 'bg-white text-black hover:bg-neon-cyan'}`}>
+                                {isPlaying ? <><Pause className="w-3.5 h-3.5 fill-current" /><span>PAUSE</span></> : <><Play className="w-3.5 h-3.5 fill-current ml-0.5" /><span>ÉCOUTER</span></>}
+                            </button>
+                            <div className="flex items-center gap-2 flex-1 max-w-[130px]">
+                                <button onClick={toggleMute} className="p-1 text-gray-300 hover:text-white transition-colors cursor-pointer">
+                                    {isMuted || volume === 0 ? <VolumeX className="w-4 h-4 text-neon-red" /> : <Volume2 className="w-4 h-4 text-neon-cyan" />}
                                 </button>
-                                <div className="flex items-center gap-2 flex-1 max-w-[130px]">
-                                    <button onClick={toggleMute} className="p-1 text-gray-300 hover:text-white transition-colors cursor-pointer">
-                                        {isMuted || volume === 0 ? <VolumeX className="w-4 h-4 text-neon-red" /> : <Volume2 className="w-4 h-4 text-neon-cyan" />}
-                                    </button>
-                                    <input type="range" min="0" max="100" value={isMuted ? 0 : volume}
-                                        onChange={e => { setVolume(Number(e.target.value)); if (isMuted) setIsMuted(false); }}
-                                        className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
-                                </div>
-                                <AudioBars playing={isPlaying} />
+                                <input type="range" min="0" max="100" value={isMuted ? 0 : volume}
+                                    onChange={e => { setVolume(Number(e.target.value)); if (isMuted) setIsMuted(false); }}
+                                    className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
                             </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </aside>
-        </>
+                            <AudioBars playing={isPlaying} />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </aside>
     );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// EXPORT
+// EXPORT — Hook instancié UNE SEULE FOIS ici, partagé via props
 // ═══════════════════════════════════════════════════════════════════════════════
 export function DropsidersRadioPlayer() {
     const location = useLocation();
+    // Hook instancié une seule fois → une seule iframe, pas de conflit audio
+    const audio = useRadioAudio();
+
     if (location.pathname === '/tv') return null;
+
     return (
         <>
-            <MobileRadioPlayer />
-            <DesktopRadioPlayer />
+            {/* Iframe unique partagée par mobile et desktop */}
+            <RadioIframe
+                iframeSrc={audio.iframeSrc}
+                iframeRef={audio.iframeRef}
+                onLoad={audio.handleIframeLoad}
+            />
+            <MobileRadioPlayer audio={audio} />
+            <DesktopRadioPlayer audio={audio} />
         </>
     );
 }
