@@ -262,7 +262,7 @@ function useRadioAudio() {
 // ─── Iframe partagée (offscreen mais dans le viewport pour éviter le throttling) ──
 function RadioIframe({ iframeSrc, iframeRef, onLoad }: {
     iframeSrc: string | null;
-    iframeRef: React.RefObject<HTMLIFrameElement>;
+    iframeRef: React.RefObject<HTMLIFrameElement | null>;
     onLoad: () => void;
 }) {
     if (!iframeSrc) return null;
@@ -275,7 +275,7 @@ function RadioIframe({ iframeSrc, iframeRef, onLoad }: {
             pointerEvents: 'none', zIndex: -1
         }} aria-hidden="true">
             <iframe
-                ref={iframeRef}
+                ref={iframeRef as React.RefObject<HTMLIFrameElement>}
                 src={iframeSrc}
                 onLoad={onLoad}
                 allow="autoplay; encrypted-media; picture-in-picture"
