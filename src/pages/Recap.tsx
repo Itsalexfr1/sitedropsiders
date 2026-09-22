@@ -2,8 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Edit2, Loader2, Filter, Video, ArrowRight, Calendar } from 'lucide-react';
-import recapsData from '../data/recaps.json';
-import galerieData from '../data/galerie.json';
+// recapsData & galerieData are now fetched live from the API (no static import)
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { getRecapLink, getGalleryLink } from '../utils/slugify';
@@ -28,10 +27,34 @@ export function Recap() {
     const [direction, setDirection] = useState(0);
     const [activeTab, setActiveTab] = useState<TabKey>('all');
     const [isAdmin, setIsAdmin] = useState(false);
+    const [recapsData, setRecapsData] = useState<any[]>([]);
+    const [galerieData, setGalerieData] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         setIsAdmin(localStorage.getItem('admin_auth_v2') === 'true');
     }, []);
+
+    // Fetch recaps & galerie live so new content appears without a redeploy
+    useEffect(() => {
+        const loadData = async () => {
+            setIsLoading(true);
+            try {
+                const [recapsRes, galerieRes] = await Promise.all([
+                    fetch('/api/recaps'),
+                    fetch('/api/galerie'),
+                ]);
+                if (recapsRes.ok) setRecapsData(await recapsRes.json());
+                if (galerieRes.ok) setGalerieData(await galerieRes.json());
+            } catch (e) {
+                console.error('[Recap] Failed to fetch data:', e);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadData();
+    }, []);
+
     const [mainMode, setMainMode] = useState<'WRITTEN' | 'PHOTOS'>('WRITTEN');
     const [loadingEditId, setLoadingEditId] = useState<number | null>(null);
 
@@ -114,7 +137,7 @@ export function Recap() {
                 year: y,
                 items: groups[y]
             }));
-    }, [activeTab, mainMode]);
+    }, [activeTab, mainMode, recapsData, galerieData]);
 
     const totalArticles = useMemo(() => recapsByYear.reduce((acc, group) => acc + group.items.length, 0), [recapsByYear]);
     const totalPages = Math.ceil(totalArticles / articlesPerPage);
@@ -303,6 +326,15 @@ export function Recap() {
                 </AnimatePresence>
 
                 <div className="min-h-[600px] w-full overflow-hidden">
+                    {isLoading ? (
+                        <div className="flex flex-col items-center justify-center py-32 gap-6">
+                            <div className="relative">
+                                <div className="w-16 h-16 border-4 border-neon-orange/10 rounded-full" />
+                                <div className="absolute inset-0 w-16 h-16 border-t-4 border-neon-orange rounded-full animate-spin" />
+                            </div>
+                            <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.5em] animate-pulse">Chargement des récaps...</span>
+                        </div>
+                    ) : (
                     <AnimatePresence mode="wait" custom={direction}>
                         <motion.div
                             key={currentPage}
@@ -436,6 +468,7 @@ export function Recap() {
                             )}
                         </motion.div>
                     </AnimatePresence>
+                    )}
                 </div>
 
                 {/* Right Arrow */}
