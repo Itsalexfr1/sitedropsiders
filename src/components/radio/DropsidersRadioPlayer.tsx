@@ -7,7 +7,7 @@ import {
 import {
     DEFAULT_RADIO_BLOCKS, STORAGE_RADIO_BLOCKS_KEY,
     getParisSeconds, formatDurationExact, getCurrentLiveRadioTrack,
-    type RadioScheduleBlock
+    type RadioScheduleBlock, type ComputedRadioScheduleItem
 } from '../../utils/radioSchedule';
 import { useLocation } from 'react-router-dom';
 
@@ -50,9 +50,8 @@ function AudioBars({ playing }: { playing: boolean }) {
  */
 function useRadioAudio() {
     const iframeRef = useRef<HTMLIFrameElement>(null);
-    const currentYtIdRef = useRef<string | null>(null);
-    // true une fois que l'audio a été déverrouillé (premier Play de l'user)
-    const audioUnlockedRef = useRef(false);
+    // Ref vers le set courant — toujours à jour, accessible en synchrone dans le click handler
+    const currentSetRef = useRef<ComputedRadioScheduleItem | null>(null);
 
     // ─── Activation ──────────────────────────────────────────────────────────
     const [isEnabled, setIsEnabled] = useState<boolean>(() => {
@@ -118,6 +117,8 @@ function useRadioAudio() {
     const uiOffset = liveInfo?.offsetSeconds ?? 0;
     const uiOffsetRef = useRef(uiOffset);
     useEffect(() => { uiOffsetRef.current = uiOffset; }, [uiOffset]);
+    // Garde currentSetRef toujours à jour (pas de stale closure dans handlePlay)
+    useEffect(() => { currentSetRef.current = currentSet; }, [currentSet]);
 
     // ─── État audio (UI only) ─────────────────────────────────────────────────
     const [isPlaying, setIsPlaying] = useState(false);
@@ -127,84 +128,58 @@ function useRadioAudio() {
         catch { return 80; }
     });
 
-    // ─── postMessage vers YouTube (pour pause/resume APRÈS premier unlock) ────
+    // ─── postMessage vers YouTube ────────────────────────────────────────────
     const sendCmd = useCallback((func: string, args: any = '') => {
         try {
             iframeRef.current?.contentWindow?.postMessage(
-                JSON.stringify({ event: 'command', func, args }),
-                'https://www.youtube.com'
+                JSON.stringify({ event: 'command', func, args }), '*'
             );
         } catch {}
     }, []);
 
-    // ─── Mise en place de la src initiale muette ──────────────────────────────
-    // Précharge en muet si radio activée, SANS modifier l'iframe si déjà chargée
-    const currentSetIdRef = useRef<string | null>(null);
-    useEffect(() => {
-        if (!isEnabled || !currentSet?.youtubeId) return;
-        if (currentSetIdRef.current === currentSet.youtubeId) return;
-        currentSetIdRef.current = currentSet.youtubeId;
-        currentYtIdRef.current = currentSet.youtubeId;
-        audioUnlockedRef.current = false;
-
-        // Préchargement muet SEULEMENT si l'user n'a pas encore joué
-        // (on ne réinitialise pas pendant la lecture)
-        if (!isPlaying && iframeRef.current) {
-            iframeRef.current.src = buildSrc(currentSet.youtubeId, uiOffsetRef.current, 1);
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isEnabled, currentSet?.youtubeId]);
+    // ─── Pas de préchargement muet : on attend le tap user pour charger ──────
+    // (évite les conflits entre préchargement et déverrouillage iOS)
 
     // ─── Play / Pause ─────────────────────────────────────────────────────────
     /**
-     * 🔑 CLÉ IOS : iframeRef.current.src est modifié SYNCHRONEMENT ici,
-     * à l'intérieur du call stack du click event.
-     * iOS considère ce changement comme un geste utilisateur → autorise le son.
-     * On NE passe PAS par setState pour déclencher l'audio.
+     * 🔑 IOS-SAFE : on lit currentSetRef.current (toujours à jour) et on
+     * modifie iframeRef.current.src DIRECTEMENT et SYNCHRONEMENT dans le
+     * call stack du click → iOS autorise le son.
+     *
+     * Play   → recharge l'iframe avec mute=0 (position recalculée en live)
+     * Pause  → vide l'iframe (about:blank = stop garanti sur tous les browsers)
      */
     const handlePlay = useCallback(() => {
-        if (!currentYtIdRef.current) return;
+        const set = currentSetRef.current;
+        if (!set?.youtubeId) return;
 
         if (!isPlaying) {
-            if (!audioUnlockedRef.current) {
-                // ── PREMIER PLAY : déverrouillage iOS synchrone ──────────────
-                audioUnlockedRef.current = true;
-                const src = buildSrc(currentYtIdRef.current, uiOffsetRef.current, 0);
-
-                // ⚡ Manipulation DOM directe et synchrone (dans le call stack du click)
-                if (iframeRef.current) {
-                    iframeRef.current.src = src;
-                }
-                setIsPlaying(true);
-            } else {
-                // ── RESUME après pause : postMessage (API déjà initialisée) ──
-                sendCmd('playVideo');
-                sendCmd('unMute');
-                sendCmd('setVolume', [isMuted ? 0 : volume]);
-                setIsPlaying(true);
+            // ⚡ Synchrone — DOIT rester dans le call stack du click event
+            const src = buildSrc(set.youtubeId, uiOffsetRef.current, 0);
+            if (iframeRef.current) {
+                iframeRef.current.src = src;
             }
+            setIsPlaying(true);
         } else {
-            // ── PAUSE ────────────────────────────────────────────────────────
-            sendCmd('pauseVideo');
+            // Stop propre : vider le src (fonctionne même sans postMessage)
+            if (iframeRef.current) {
+                iframeRef.current.src = 'about:blank';
+            }
+            sendCmd('pauseVideo'); // tentative postMessage en bonus
             setIsPlaying(false);
         }
-    }, [isPlaying, isMuted, volume, sendCmd]);
+    }, [isPlaying, sendCmd]);
 
     const handleStop = useCallback(() => {
+        if (iframeRef.current) iframeRef.current.src = 'about:blank';
         sendCmd('pauseVideo');
         setIsPlaying(false);
-        audioUnlockedRef.current = false;
-        currentYtIdRef.current = null;
-        currentSetIdRef.current = null;
-        if (iframeRef.current) {
-            iframeRef.current.src = 'about:blank';
-        }
     }, [sendCmd]);
 
     const toggleMute = useCallback(() => {
         setIsMuted(prev => {
             const next = !prev;
-            if (isPlaying && audioUnlockedRef.current) {
+            if (isPlaying) {
                 if (next) sendCmd('mute');
                 else { sendCmd('unMute'); sendCmd('setVolume', [volume]); }
             }
@@ -215,7 +190,7 @@ function useRadioAudio() {
     // ─── Volume sync ─────────────────────────────────────────────────────────
     useEffect(() => {
         try { localStorage.setItem('dropsiders_radio_volume', String(volume)); } catch {}
-        if (!isPlaying || !audioUnlockedRef.current) return;
+        if (!isPlaying) return;
         if (!isMuted) sendCmd('setVolume', [volume]);
     }, [volume, isPlaying, isMuted, sendCmd]);
 
