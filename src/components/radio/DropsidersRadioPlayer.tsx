@@ -14,7 +14,7 @@ import { useLocation } from 'react-router-dom';
 // ─── URL YouTube embed ────────────────────────────────────────────────────────
 function buildSrc(youtubeId: string, start: number, muted: 0 | 1) {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    return `https://www.youtube-nocookie.com/embed/${youtubeId}`
+    return `https://www.youtube.com/embed/${youtubeId}`
         + `?autoplay=1&start=${Math.floor(start)}&enablejsapi=1&controls=0`
         + `&mute=${muted}&playsinline=1&rel=0&fs=0`
         + `&origin=${encodeURIComponent(origin)}`;
@@ -37,21 +37,22 @@ function AudioBars({ playing }: { playing: boolean }) {
 
 // ─── Hook logique audio ───────────────────────────────────────────────────────
 /**
- * STRATÉGIE MOBILE-FIRST (iOS Safe) :
- * 1. L'iframe se précharge MUET (mute=1, autoplay=1) dès que la radio est activée
- *    → autorisé sur tous les navigateurs y compris iOS Safari
- * 2. Au premier tap "Play" de l'utilisateur → on recharge l'iframe avec mute=0
- *    → c'est un geste utilisateur → iOS l'autorise
- * 3. Pour les pauses suivantes → postMessage pauseVideo/playVideo
- *    → à ce stade l'API YT est initialisée et les commandes passent
+ * STRATÉGIE IOS-SAFE (manipulation DOM synchrone) :
  *
- * IMPORTANT : ce hook ne doit être instancié QU'UNE SEULE FOIS dans le composant
- * parent DropsidersRadioPlayer et partagé via props — jamais deux instances simultanées.
+ * Le problème fondamental avec iOS Safari :
+ * - Le contexte "user gesture" expire dès qu'on sort du handler de click synchrone
+ * - React setState() est async → le re-render qui change iframe.src arrive APRÈS
+ *   l'expiration du geste → iOS bloque le son
+ *
+ * SOLUTION : on manipule iframeRef.current.src DIRECTEMENT et SYNCHRONEMENT
+ * dans le handler onClick, SANS passer par React state pour le déclenchement audio.
+ * Le state React suit juste pour l'UI.
  */
 function useRadioAudio() {
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const currentYtIdRef = useRef<string | null>(null);
-    const hasUnmutedRef = useRef(false); // true une fois que l'user a tapé Play et qu'on a rechargé en unmuted
+    // true une fois que l'audio a été déverrouillé (premier Play de l'user)
+    const audioUnlockedRef = useRef(false);
 
     // ─── Activation ──────────────────────────────────────────────────────────
     const [isEnabled, setIsEnabled] = useState<boolean>(() => {
@@ -115,10 +116,10 @@ function useRadioAudio() {
     const liveInfo = useMemo(() => getCurrentLiveRadioTrack(radioBlocks, uiTimeSec), [radioBlocks, uiTimeSec]);
     const currentSet = liveInfo?.item || null;
     const uiOffset = liveInfo?.offsetSeconds ?? 0;
+    const uiOffsetRef = useRef(uiOffset);
+    useEffect(() => { uiOffsetRef.current = uiOffset; }, [uiOffset]);
 
-    // ─── État audio ──────────────────────────────────────────────────────────
-    const [iframeSrc, setIframeSrc] = useState<string | null>(null);
-    const [iframeReady, setIframeReady] = useState(false);
+    // ─── État audio (UI only) ─────────────────────────────────────────────────
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [volume, setVolume] = useState<number>(() => {
@@ -126,89 +127,97 @@ function useRadioAudio() {
         catch { return 80; }
     });
 
-    // ─── postMessage vers YouTube ─────────────────────────────────────────────
+    // ─── postMessage vers YouTube (pour pause/resume APRÈS premier unlock) ────
     const sendCmd = useCallback((func: string, args: any = '') => {
         try {
             iframeRef.current?.contentWindow?.postMessage(
-                JSON.stringify({ event: 'command', func, args }), '*'
+                JSON.stringify({ event: 'command', func, args }),
+                'https://www.youtube.com'
             );
         } catch {}
     }, []);
 
-    // ─── Préchargement muet dès que la radio est activée ─────────────────────
-    // mute=1 → autoplay autorisé sur tous les navigateurs mobiles
+    // ─── Mise en place de la src initiale muette ──────────────────────────────
+    // Précharge en muet si radio activée, SANS modifier l'iframe si déjà chargée
+    const currentSetIdRef = useRef<string | null>(null);
     useEffect(() => {
         if (!isEnabled || !currentSet?.youtubeId) return;
-        if (currentYtIdRef.current === currentSet.youtubeId) return;
-
+        if (currentSetIdRef.current === currentSet.youtubeId) return;
+        currentSetIdRef.current = currentSet.youtubeId;
         currentYtIdRef.current = currentSet.youtubeId;
-        hasUnmutedRef.current = false;
-        setIframeReady(false);
-        setIsPlaying(false);
-        setIframeSrc(buildSrc(currentSet.youtubeId, uiOffset, 1)); // muted preload
+        audioUnlockedRef.current = false;
+
+        // Préchargement muet SEULEMENT si l'user n'a pas encore joué
+        // (on ne réinitialise pas pendant la lecture)
+        if (!isPlaying && iframeRef.current) {
+            iframeRef.current.src = buildSrc(currentSet.youtubeId, uiOffsetRef.current, 1);
+        }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isEnabled, currentSet?.youtubeId]);
 
-    const handleIframeLoad = useCallback(() => {
-        setIframeReady(true);
-    }, []);
-
-    // ─── Volume/mute sync ────────────────────────────────────────────────────
-    useEffect(() => {
-        try { localStorage.setItem('dropsiders_radio_volume', String(volume)); } catch {}
-        if (!iframeReady || !isPlaying || !hasUnmutedRef.current) return;
-        if (isMuted) { sendCmd('mute'); }
-        else { sendCmd('unMute'); sendCmd('setVolume', [volume]); }
-    }, [isMuted, volume, iframeReady, isPlaying, sendCmd]);
-
-    // ─── Play / Pause ────────────────────────────────────────────────────────
+    // ─── Play / Pause ─────────────────────────────────────────────────────────
     /**
-     * iOS-SAFE: Premier tap → on recharge l'iframe avec mute=0
-     * C'est un geste utilisateur direct → iOS autorise le son
-     * Taps suivants → postMessage (l'API YT est déjà initialisée)
+     * 🔑 CLÉ IOS : iframeRef.current.src est modifié SYNCHRONEMENT ici,
+     * à l'intérieur du call stack du click event.
+     * iOS considère ce changement comme un geste utilisateur → autorise le son.
+     * On NE passe PAS par setState pour déclencher l'audio.
      */
     const handlePlay = useCallback(() => {
-        if (!currentSet?.youtubeId) return;
+        if (!currentYtIdRef.current) return;
 
         if (!isPlaying) {
-            if (!hasUnmutedRef.current) {
-                // 🍎 iOS Fix: recharger avec mute=0 pendant le geste utilisateur
-                hasUnmutedRef.current = true;
-                setIframeReady(false);
-                setIframeSrc(buildSrc(currentSet.youtubeId, uiOffset, 0));
+            if (!audioUnlockedRef.current) {
+                // ── PREMIER PLAY : déverrouillage iOS synchrone ──────────────
+                audioUnlockedRef.current = true;
+                const src = buildSrc(currentYtIdRef.current, uiOffsetRef.current, 0);
+
+                // ⚡ Manipulation DOM directe et synchrone (dans le call stack du click)
+                if (iframeRef.current) {
+                    iframeRef.current.src = src;
+                }
                 setIsPlaying(true);
             } else {
-                // Déjà unmuted → simple postMessage
+                // ── RESUME après pause : postMessage (API déjà initialisée) ──
                 sendCmd('playVideo');
                 sendCmd('unMute');
                 sendCmd('setVolume', [isMuted ? 0 : volume]);
                 setIsPlaying(true);
             }
         } else {
+            // ── PAUSE ────────────────────────────────────────────────────────
             sendCmd('pauseVideo');
             setIsPlaying(false);
         }
-    }, [currentSet, uiOffset, isPlaying, isMuted, volume, sendCmd]);
+    }, [isPlaying, isMuted, volume, sendCmd]);
 
     const handleStop = useCallback(() => {
         sendCmd('pauseVideo');
         setIsPlaying(false);
-        setIframeSrc(null);
-        setIframeReady(false);
+        audioUnlockedRef.current = false;
         currentYtIdRef.current = null;
-        hasUnmutedRef.current = false;
+        currentSetIdRef.current = null;
+        if (iframeRef.current) {
+            iframeRef.current.src = 'about:blank';
+        }
     }, [sendCmd]);
 
     const toggleMute = useCallback(() => {
         setIsMuted(prev => {
             const next = !prev;
-            if (isPlaying && hasUnmutedRef.current) {
+            if (isPlaying && audioUnlockedRef.current) {
                 if (next) sendCmd('mute');
                 else { sendCmd('unMute'); sendCmd('setVolume', [volume]); }
             }
             return next;
         });
     }, [isPlaying, volume, sendCmd]);
+
+    // ─── Volume sync ─────────────────────────────────────────────────────────
+    useEffect(() => {
+        try { localStorage.setItem('dropsiders_radio_volume', String(volume)); } catch {}
+        if (!isPlaying || !audioUnlockedRef.current) return;
+        if (!isMuted) sendCmd('setVolume', [volume]);
+    }, [volume, isPlaying, isMuted, sendCmd]);
 
     // ─── Broadcast vers autres composants ────────────────────────────────────
     const stateRef = useRef({ isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled });
@@ -251,39 +260,38 @@ function useRadioAudio() {
     }, [handlePlay, handleStop, toggleMute, isMuted]);
 
     return {
-        isEnabled, currentSet, uiOffset, iframeSrc, iframeRef, iframeReady,
+        isEnabled, currentSet, uiOffset, iframeRef,
         isPlaying, isMuted, volume, setVolume, setIsMuted,
-        handlePlay, handleStop, handleIframeLoad, toggleMute,
+        handlePlay, handleStop, toggleMute,
     };
 }
 
 type AudioState = ReturnType<typeof useRadioAudio>;
 
-// ─── Iframe unique partagée ───────────────────────────────────────────────────
-// Positionnée hors écran mais dans le viewport (pas zIndex:-1 qui throttle sur iOS)
-function RadioIframe({ iframeSrc, iframeRef, onLoad }: {
-    iframeSrc: string | null;
+// ─── Iframe unique — toujours montée, jamais démontée ────────────────────────
+// Toujours dans le coin inférieur droit du viewport (1×1px)
+// iOS ne throttle PAS les éléments dans le viewport.
+// On ne retourne JAMAIS null — l'élément doit rester dans le DOM pour que
+// iframeRef.current soit accessible au moment du click.
+function RadioIframe({ iframeRef }: {
     iframeRef: React.RefObject<HTMLIFrameElement | null>;
-    onLoad: () => void;
 }) {
-    if (!iframeSrc) return null;
     return (
         <div style={{
             position: 'fixed',
-            left: '-9999px',
-            top: 0,
+            bottom: 0,
+            right: 0,
             width: 1,
             height: 1,
             overflow: 'hidden',
+            opacity: 0,
             pointerEvents: 'none',
-            // zIndex 1 (pas -1) : iOS ne throttle pas les éléments à zIndex >= 0
-            zIndex: 1,
+            zIndex: 1,  // pas -1 : iOS ne throttle pas à zIndex ≥ 0
         }} aria-hidden="true">
             <iframe
                 ref={iframeRef as React.RefObject<HTMLIFrameElement>}
-                src={iframeSrc}
-                onLoad={onLoad}
                 allow="autoplay; encrypted-media; picture-in-picture"
+                allowFullScreen
                 title="Dropsiders Radio"
                 style={{ width: 320, height: 180, border: 'none' }}
             />
@@ -292,7 +300,7 @@ function RadioIframe({ iframeSrc, iframeRef, onLoad }: {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// PLAYER MOBILE — Barre Spotify + panneau expansible
+// PLAYER MOBILE
 // ═══════════════════════════════════════════════════════════════════════════════
 function MobileRadioPlayer({ audio }: { audio: AudioState }) {
     const [expanded, setExpanded] = useState(false);
@@ -320,14 +328,11 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                             className="fixed left-0 right-0 rounded-t-[2rem] overflow-hidden"
                         >
                             <div className="relative bg-gradient-to-b from-[#0d0d18] to-[#050508] border-t border-white/10 px-6 pt-5 pb-10">
-                                {/* Lueurs */}
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-28 bg-neon-cyan/10 rounded-full blur-3xl pointer-events-none" />
                                 <div className="absolute bottom-0 right-0 w-40 h-40 bg-neon-red/8 rounded-full blur-3xl pointer-events-none" />
 
-                                {/* Handle */}
                                 <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-5" />
 
-                                {/* Header */}
                                 <div className="flex items-center justify-between mb-5 relative z-10">
                                     <div className="flex items-center gap-2.5">
                                         <div className="p-2 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.25)]">
@@ -351,7 +356,6 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                     </div>
                                 </div>
 
-                                {/* Infos set */}
                                 <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-4 mb-5 relative z-10">
                                     <p className="text-[8px] font-black uppercase tracking-widest text-neon-cyan mb-1.5 flex items-center gap-1">
                                         <Sparkles className="w-2.5 h-2.5" /> EN CE MOMENT
@@ -370,7 +374,6 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                     </div>
                                 </div>
 
-                                {/* Progression */}
                                 <div className="mb-6 relative z-10">
                                     <div className="w-full h-[3px] bg-white/10 rounded-full overflow-hidden">
                                         <div className="h-full bg-gradient-to-r from-neon-cyan to-neon-red rounded-full transition-all duration-1000"
@@ -382,9 +385,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                     </div>
                                 </div>
 
-                                {/* Contrôles principaux */}
                                 <div className="flex items-center justify-center gap-8 relative z-10 mb-5">
-                                    {/* Mute */}
                                     <button onClick={toggleMute}
                                         className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-300 active:scale-90 active:bg-white/10 transition-all">
                                         {isMuted
@@ -393,7 +394,6 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                         }
                                     </button>
 
-                                    {/* Play / Pause */}
                                     <button onClick={handlePlay}
                                         className={`w-[76px] h-[76px] rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-90 ${
                                             isPlaying
@@ -407,7 +407,6 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                         }
                                     </button>
 
-                                    {/* Barres animées */}
                                     <div className="w-12 h-12 flex items-center justify-center">
                                         <AudioBars playing={isPlaying} />
                                     </div>
@@ -419,7 +418,6 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                     </p>
                                 )}
 
-                                {/* Fermer */}
                                 <button onClick={() => setExpanded(false)}
                                     className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[9px] text-gray-600 font-bold uppercase tracking-widest active:text-white transition-colors relative z-10">
                                     <ChevronDown className="w-3.5 h-3.5" />Réduire
@@ -430,13 +428,11 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                 )}
             </AnimatePresence>
 
-            {/* ── Barre compacte permanente (Spotify-style) ── */}
-            {/* bottom: juste au-dessus de la MobileNavbar (~70px) + safe area */}
+            {/* ── Barre compacte Spotify-style ── */}
             <div
                 style={{ zIndex: 99998, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 70px)' }}
                 className="fixed left-0 right-0 lg:hidden"
             >
-                {/* Progression ultra-fine */}
                 <div className="h-[2px] bg-white/5">
                     <div className="h-full bg-gradient-to-r from-neon-cyan to-neon-red transition-all duration-1000" style={{ width: `${progress}%` }} />
                 </div>
@@ -444,7 +440,6 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                 <div className="flex items-center gap-3 px-4 py-2.5 bg-[#0d0d18]/98 backdrop-blur-xl border-t border-white/[0.07] cursor-pointer"
                     onClick={() => setExpanded(true)}>
 
-                    {/* Disque animé */}
                     <div className="relative shrink-0">
                         <div className={`w-10 h-10 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center ${isPlaying ? 'shadow-[0_0_16px_rgba(0,255,255,0.4)]' : ''}`}>
                             <Disc3 className={`w-5 h-5 text-neon-cyan ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
@@ -453,7 +448,6 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                         <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red" />
                     </div>
 
-                    {/* Texte */}
                     <div className="flex-1 min-w-0">
                         <p className="text-[10.5px] font-black text-white uppercase italic truncate leading-tight">{currentSet.artist}</p>
                         <p className="text-[8px] text-gray-500 font-bold uppercase tracking-wider truncate">DROPSIDERS RADIO · 24/7</p>
@@ -461,7 +455,6 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
 
                     <AudioBars playing={isPlaying} />
 
-                    {/* Bouton Play/Pause */}
                     <button
                         onClick={e => { e.stopPropagation(); handlePlay(); }}
                         className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 shadow-lg ${
@@ -482,7 +475,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// PLAYER DESKTOP — Carte flottante
+// PLAYER DESKTOP
 // ═══════════════════════════════════════════════════════════════════════════════
 function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
     const [isMinimized, setIsMinimized] = useState(false);
@@ -596,23 +589,18 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// EXPORT — Hook instancié UNE SEULE FOIS ici, partagé via props
+// EXPORT — Un seul hook, une seule iframe, partagés
 // ═══════════════════════════════════════════════════════════════════════════════
 export function DropsidersRadioPlayer() {
     const location = useLocation();
-    // Hook instancié une seule fois → une seule iframe, pas de conflit audio
     const audio = useRadioAudio();
 
     if (location.pathname === '/tv') return null;
 
     return (
         <>
-            {/* Iframe unique partagée par mobile et desktop */}
-            <RadioIframe
-                iframeSrc={audio.iframeSrc}
-                iframeRef={audio.iframeRef}
-                onLoad={audio.handleIframeLoad}
-            />
+            {/* Iframe TOUJOURS montée (jamais null) — dans le viewport, opacité 0 */}
+            <RadioIframe iframeRef={audio.iframeRef} />
             <MobileRadioPlayer audio={audio} />
             <DesktopRadioPlayer audio={audio} />
         </>
