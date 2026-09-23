@@ -697,11 +697,14 @@ export function computeDaySchedule(
     const dayBlocks = getBlocksForDay(blocks, currentDay);
     const currentSecondsFromMidnight = parisNow.getHours() * 3600 + parisNow.getMinutes() * 60 + parisNow.getSeconds();
 
+    const activeBlock = getActiveTVBlock(blocks, parisNow.getHours(), currentDay);
     const items: ComputedScheduleItem[] = [];
 
     for (const block of dayBlocks) {
         const rawVids = block.videos && block.videos.length > 0 ? block.videos : [];
         if (rawVids.length === 0) continue;
+
+        const isCurrentActiveBlock = currentDay === parisNow.getDay() && activeBlock && activeBlock.id === block.id;
 
         const vids = block.randomize === false 
             ? rawVids 
@@ -727,9 +730,9 @@ export function computeDaySchedule(
             const startTimeStr = `${String(startH).padStart(2, '0')}h${String(startM).padStart(2, '0')}`;
             const endTimeStr = `${String(endH).padStart(2, '0')}h${String(endM).padStart(2, '0')}`;
 
-            // Détection du set actuellement en direct
+            // Détection du set actuellement en direct (uniquement sur le bloc TV actif en cours)
             let isLive = false;
-            if (currentDay === parisNow.getDay()) {
+            if (isCurrentActiveBlock) {
                 if (startSec <= endSec) {
                     isLive = currentSecondsFromMidnight >= startSec && currentSecondsFromMidnight < endSec;
                 } else {
@@ -773,6 +776,14 @@ export function computeDaySchedule(
                 break;
             }
         }
+    }
+
+    // Sécurité absolue : garantir qu'au maximum 1 seul set est marqué 'isCurrentlyLive' sur la grille
+    const liveIndices = items.map((it, idx) => it.isCurrentlyLive ? idx : -1).filter(idx => idx !== -1);
+    if (liveIndices.length > 1) {
+        liveIndices.slice(0, -1).forEach(idx => {
+            items[idx].isCurrentlyLive = false;
+        });
     }
 
     return items;

@@ -195,7 +195,7 @@ export function TVShareScheduleModal({
             item => `• ${item.tzStartTime}${item.tzDayBadge ? ` (${item.tzDayBadge})` : ''} : ${item.artist} (${item.durationFormatted})${item.isCurrentlyLive ? ' 🔴 EN DIRECT' : ''}`
         );
 
-        return `${titleLine} ${tzInfo} :\n\n${lines.join('\n')}\n\n👉 Regarde en direct gratuitement sur https://dropsiders.com/tv`;
+        return `${titleLine} ${tzInfo} :\n\n${lines.join('\n')}\n\n👉 Regarde en direct gratuitement sur https://dropsiders.fr/tv`;
     }, [displayItems, activeTz, genTimeFormatted, filterMode]);
 
     // Copier le texte
@@ -269,7 +269,7 @@ export function TVShareScheduleModal({
                 await navigator.share({
                     title: 'Programme · Dropsiders TV',
                     text: shareText,
-                    url: 'https://dropsiders.com/tv'
+                    url: 'https://dropsiders.fr/tv'
                 });
             } else {
                 handleCopyText();
@@ -500,7 +500,7 @@ export function TVShareScheduleModal({
                                                 À REGARDER EN DIRECT SUR
                                             </div>
                                             <div className="text-[9.5px] font-black text-white tracking-tight font-mono">
-                                                DROPSIDERS.<span className="text-neon-red">COM/TV</span>
+                                                DROPSIDERS.<span className="text-neon-red">FR/TV</span>
                                             </div>
                                         </div>
 

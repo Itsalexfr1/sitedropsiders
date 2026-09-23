@@ -10,7 +10,7 @@ export function QrCodePage() {
         qrCode.current = new QRCodeStyling({
             width: 1024,
             height: 1024,
-            data: "https://dropsiders.com",
+            data: "https://dropsiders.fr",
             image: "/Logo.png",
             dotsOptions: {
                 color: "#ff0033",
