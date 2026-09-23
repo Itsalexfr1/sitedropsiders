@@ -11,7 +11,7 @@
   },
   {
     "id": 3,
-    "name": "TIFFANY ",
+    "name": "TIFFANY",
     "role": "RÉDACTRICE",
     "image": "https://www.dropsiders.fr/uploads/migrated/dropsiders/txunljvoqbpi1k49nt2w.jpg",
     "socials": {
@@ -31,10 +31,9 @@
   },
   {
     "id": 5,
-    "name": "TANGUY ",
+    "name": "TANGUY",
     "role": "RÉDACTEUR",
     "image": "https://www.dropsiders.fr/uploads/migrated/dropsiders/ihz3zw9dcgn0bwtcftn9.jpg",
-    "email": "tanguypollet98@gmail.com",
     "socials": {
       "instagram": "https://www.instagram.com/tanguy_pllt",
       "tiktok": "#"
@@ -45,10 +44,19 @@
     "name": "GUILLAUME (GUYHOME)",
     "role": "VIDÉASTE",
     "image": "https://www.dropsiders.fr/uploads/migrated/dropsiders/iu8hxmmrcts4cigtuosz.jpg",
-    "email": "guillaume.chery.naumont@gmail.com",
     "socials": {
       "instagram": "https://www.instagram.com/guiyoome",
       "tiktok": "#"
+    }
+  },
+  {
+    "id": 1790177697461,
+    "name": "Timeo",
+    "role": "RÉDACTEUR",
+    "image": "/uploads/525d8c0ba90843fb-819014165_1105982521875401_701.jpg",
+    "socials": {
+      "instagram": "https://www.instagram.com/timeo_lmbrt/",
+      "tiktok": "https://www.tiktok.com/@timzo__34?_r=1&_t=ZG-99yZNU65Wev"
     }
   }
 ]
