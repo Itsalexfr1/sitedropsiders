@@ -109,5 +109,22 @@
     ],
     "created": "2026-07-20T18:40:54.345Z",
     "verified": true
+  },
+  {
+    "email": "timeolambert91@gmail.com",
+    "username": "Timeo",
+    "pseudo": "Timeo",
+    "role": "RÉDACTEUR",
+    "permissions": [
+      "news_focus",
+      "musique_releases",
+      "interviews_video",
+      "recaps_festivals",
+      "agenda_events",
+      "social_studio",
+      "messages_contact"
+    ],
+    "created": "2026-09-23T15:35:47.234Z",
+    "verified": false
   }
 ]
