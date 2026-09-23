@@ -674,6 +674,117 @@ export function parseArtistAndEvent(rawTitle: string): { artist: string; event: 
 }
 
 /**
+ * Extrait les phrases / noms d'artistes normalisés pour détecter les artistes identiques
+ * même en cas de collaborations, duos, remixes ou B2B (ex: "Dimitri Vegas" et "Dimitri Vegas B2B Nico Moreno").
+ */
+export function extractArtistPhrases(titleOrArtist: string): string[] {
+    if (!titleOrArtist) return [];
+    const { artist } = parseArtistAndEvent(titleOrArtist);
+    const text = (artist || titleOrArtist).trim();
+
+    // Découper sur les délimiteurs de duos / b2b / collabs
+    const rawParts = text
+        .split(/\s+(?:b2b2b|b2b|feat\.?|ft\.?|vs\.?|x|&|and|\/)\s+/i)
+        .flatMap(p => p.split(/[,+]/));
+
+    const ignoredWords = /\b(live|dj|set|full|official|festival|mainstage|stage|we1|we2|umf|edc|tomorrowland)\b/gi;
+
+    return rawParts
+        .map(p => p.replace(ignoredWords, '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim())
+        .filter(p => p.length >= 2);
+}
+
+/**
+ * Détermine si deux titres partagent un ou plusieurs artistes en commun.
+ */
+export function shareSameArtist(titleA: string, titleB: string): boolean {
+    if (!titleA || !titleB) return false;
+    const phrasesA = extractArtistPhrases(titleA);
+    const phrasesB = extractArtistPhrases(titleB);
+    if (phrasesA.length === 0 || phrasesB.length === 0) return false;
+
+    return phrasesA.some(pA =>
+        phrasesB.some(pB => pA === pB || pA.includes(pB) || pB.includes(pA))
+    );
+}
+
+/**
+ * Réorganise une liste de vidéos pour respecter les règles strictes :
+ * 1. Jamais 2 fois le même artiste d'affilée (anti-doublon consécutif).
+ * 2. Espacement maximal entre deux passages du même artiste (minimum 1 heure d'intervalle).
+ */
+export function separateConsecutiveArtists<T extends { title?: string; duration?: number }>(
+    videos: T[],
+    previousBlockLastTitle?: string
+): T[] {
+    if (!videos || videos.length <= 1) return videos || [];
+
+    const remaining = [...videos];
+    const ordered: T[] = [];
+    
+    // Garder l'historique des derniers titres placés pour calculer la distance
+    const recentTitles: string[] = previousBlockLastTitle ? [previousBlockLastTitle] : [];
+
+    while (remaining.length > 0) {
+        const lastTitle = recentTitles.length > 0 ? recentTitles[recentTitles.length - 1] : '';
+
+        // 1. Filtrer les candidats qui ne partagent PAS le même artiste que le tout dernier titre
+        let candidates = remaining.filter(v => !shareSameArtist(v.title || '', lastTitle));
+
+        // Si aucun candidat sans conflit (cas où il ne reste que le même artiste), fallback
+        if (candidates.length === 0) {
+            candidates = remaining;
+        }
+
+        // 2. Parmi les candidats valides, choisir celui dont l'artiste a été joué le moins récemment (ou jamais joué)
+        let bestCandidate = candidates[0];
+        let bestDistance = -1;
+
+        for (const cand of candidates) {
+            const candTitle = cand.title || '';
+            let dist = Infinity;
+            for (let i = recentTitles.length - 1; i >= 0; i--) {
+                if (shareSameArtist(candTitle, recentTitles[i])) {
+                    dist = recentTitles.length - 1 - i;
+                    break;
+                }
+            }
+            if (dist > bestDistance) {
+                bestDistance = dist;
+                bestCandidate = cand;
+            }
+        }
+
+        const chosenIdx = remaining.indexOf(bestCandidate);
+        remaining.splice(chosenIdx, 1);
+        ordered.push(bestCandidate);
+        recentTitles.push(bestCandidate.title || '');
+    }
+
+    return ordered;
+}
+
+/**
+ * Récupère les vidéos ordonnées d'un bloc TV en appliquant :
+ * - Le shuffle déterministe si actif
+ * - L'algorithme d'espacement des artistes (pas de doublon consécutif, min 1h d'écart)
+ */
+export function getOrderedBlockVideos(
+    block: TVScheduleBlock,
+    seedStr: string,
+    previousBlockLastTitle?: string
+): TVVideo[] {
+    const rawVids = block.videos && block.videos.length > 0 ? block.videos : [];
+    if (rawVids.length <= 1) return rawVids;
+
+    const baseList = block.randomize === false 
+        ? rawVids 
+        : getSeededShuffle(rawVids, seedStr);
+
+    return separateConsecutiveArtists(baseList, previousBlockLastTitle);
+}
+
+/**
  * Calcule l'intégralité du programme chronologique de la journée avec la vraie durée de chaque set.
  * L'horloge de référence de la diffusion TV est calée sur l'heure de Paris (Europe/Paris).
  */
@@ -699,6 +810,7 @@ export function computeDaySchedule(
 
     const activeBlock = getActiveTVBlock(blocks, parisNow.getHours(), currentDay);
     const items: ComputedScheduleItem[] = [];
+    let lastScheduledVideoTitle: string | undefined = undefined;
 
     for (const block of dayBlocks) {
         const rawVids = block.videos && block.videos.length > 0 ? block.videos : [];
@@ -706,9 +818,7 @@ export function computeDaySchedule(
 
         const isCurrentActiveBlock = currentDay === parisNow.getDay() && activeBlock && activeBlock.id === block.id;
 
-        const vids = block.randomize === false 
-            ? rawVids 
-            : getSeededShuffle(rawVids, `${todayStr}_${block.id}`);
+        const vids = getOrderedBlockVideos(block, `${todayStr}_${block.id}`, lastScheduledVideoTitle);
 
         let currentSec = (block.startHour ?? 0) * 3600;
         const blockEndSec = ((block.endHour === 0 || block.endHour === 24) ? 24 : (block.endHour ?? 24)) * 3600;
@@ -717,6 +827,8 @@ export function computeDaySchedule(
         for (let i = 0; i < vids.length; i++) {
             const vid = vids[i];
             if (!vid) continue;
+
+            lastScheduledVideoTitle = vid.title;
 
             const dur = (durationsMap && durationsMap[vid.youtubeId]) || DEFAULT_DURATIONS[vid.youtubeId] || vid.duration || 3600;
             const startSec = currentSec;

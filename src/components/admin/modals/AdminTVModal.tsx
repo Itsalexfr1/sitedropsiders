@@ -26,6 +26,7 @@ import {
     isBlockActiveOnDay,
     sortBlocksByBroadcastOrder,
     detectVideoCategory,
+    shareSameArtist,
     type TVVideoCategory
 } from '../../../utils/tvSchedule';
 
@@ -2446,6 +2447,12 @@ export function AdminTVModal({
                                                                                     <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[8px] font-black uppercase tracking-wider flex items-center gap-1 shrink-0">
                                                                                         <ShieldAlert className="w-2.5 h-2.5 text-amber-400" />
                                                                                         Doublon
+                                                                                    </span>
+                                                                                )}
+                                                                                {idx > 0 && shareSameArtist(currentBlock.videos?.[idx - 1]?.title || '', vid.title || '') && (
+                                                                                    <span className="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[8px] font-black uppercase tracking-wider flex items-center gap-1 shrink-0" title="Même artiste consécutif (espacé automatiquement en diffusion TV)">
+                                                                                        <AlertCircle className="w-2.5 h-2.5 text-rose-400" />
+                                                                                        Même artiste consécutif
                                                                                     </span>
                                                                                 )}
                                                                                 <a

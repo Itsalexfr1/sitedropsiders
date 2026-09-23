@@ -11,7 +11,7 @@ import {
     DEFAULT_TV_BLOCKS, 
     STORAGE_TV_BLOCKS_KEY, 
     getActiveTVBlock, 
-    getSeededShuffle, 
+    getOrderedBlockVideos, 
     buildBlockSegments, 
     calculateBlockLivePosition,
     getElapsedSecondsInBlock,
@@ -432,9 +432,8 @@ export function DropsidersTVPage() {
         const raw = activeScheduleBlock.videos && activeScheduleBlock.videos.length > 0 
             ? activeScheduleBlock.videos 
             : playlist;
-        if (activeScheduleBlock.randomize === false) return raw;
         const todayStr = new Date().toISOString().slice(0, 10);
-        return getSeededShuffle(raw, `${todayStr}_${activeScheduleBlock.id}`);
+        return getOrderedBlockVideos({ ...activeScheduleBlock, videos: raw }, `${todayStr}_${activeScheduleBlock.id}`);
     }, [activeScheduleBlock, playlist]);
 
     // Compute initial live position in the active block
@@ -448,7 +447,7 @@ export function DropsidersTVPage() {
             const pl = savedPl ? JSON.parse(savedPl) : DEFAULT_MAIN_PLAYLIST;
             const rawVids = curBlk.videos && curBlk.videos.length > 0 ? curBlk.videos : pl;
             const todayStr = now.toISOString().slice(0, 10);
-            const vids = curBlk.randomize === false ? rawVids : getSeededShuffle(rawVids, `${todayStr}_${curBlk.id}`);
+            const vids = getOrderedBlockVideos({ ...curBlk, videos: rawVids }, `${todayStr}_${curBlk.id}`);
 
             const savedPr = localStorage.getItem(STORAGE_PROMOS_KEY);
             const pr = savedPr ? JSON.parse(savedPr) : DEFAULT_PROMO_PLAYLIST;
