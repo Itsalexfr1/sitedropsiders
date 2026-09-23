@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
 interface ProtectedRouteProps {
@@ -7,6 +7,7 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+    const location = useLocation();
 
     useEffect(() => {
         const auth = localStorage.getItem('admin_auth_v2');
@@ -22,6 +23,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
 
     if (!isAuthenticated) {
+        if (location.pathname === '/admin' || location.pathname === '/admin/') {
+            return <>{children}</>;
+        }
         return <Navigate to="/admin" replace />;
     }
 

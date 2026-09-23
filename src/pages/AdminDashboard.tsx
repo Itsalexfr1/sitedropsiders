@@ -80,6 +80,7 @@ import {
   Radio,
   Music2,
   Monitor,
+  UserCheck,
 } from "lucide-react";
 
 
@@ -2757,7 +2758,19 @@ export function AdminDashboard() {
       bg: "bg-neon-purple/5",
       permission: "all",
       baseColor: "purple",
-      columns: 2,
+      columns: 1,
+    },
+    {
+      title: "MEMBRES DU SITE",
+      description: "Comptes & Droits",
+      icon: "UserCheck",
+      category: "TEAM",
+      link: "/admin/team?tab=community",
+      color: "border-neon-cyan/20 hover:border-neon-cyan",
+      bg: "bg-neon-cyan/5",
+      permission: "all",
+      baseColor: "cyan",
+      columns: 1,
     },
 
     // PDF & DOCUMENTS
@@ -2924,6 +2937,13 @@ export function AdminDashboard() {
         return <PenTool className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
       case "Users":
         return <Users className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+      case "UserCheck":
+        return (
+          <UserCheck
+            className={`w-8 h-8 ${colorClass}`}
+            style={colorStyle}
+          />
+        );
       case "Lock":
         return <Lock className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
       case "Settings2":
@@ -4769,10 +4789,12 @@ export function AdminDashboard() {
                               action.link === "#TEAM_MANAGEMENT_MODAL" ||
                               action.title === "MEMBRES & TEAM" ||
                               action.link === "/admin/team" ||
+                              action.link === "/admin/team?tab=community" ||
+                              action.title === "MEMBRES DU SITE" ||
                               action.title === "Comptes Membres"
                             ) {
                               e.preventDefault();
-                              navigate("/admin/team");
+                              navigate(action.link && action.link.startsWith("/admin/team") ? action.link : "/admin/team");
                             } else if (
                               action.title === "Story Grid Generator" ||
                               action.title === "Story Grid" ||

@@ -166,6 +166,18 @@
     "columns": 1
   },
   {
+    "title": "MEMBRES DU SITE",
+    "description": "Comptes & Droits",
+    "icon": "UserCheck",
+    "category": "TEAM",
+    "link": "/admin/team?tab=community",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "all",
+    "baseColor": "#00f0ff",
+    "columns": 1
+  },
+  {
     "title": "Fichiers Cloudflare",
     "description": "Images, Vidéos, MP3",
     "icon": "HardDrive",

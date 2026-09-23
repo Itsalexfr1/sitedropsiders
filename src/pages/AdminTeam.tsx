@@ -3,9 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Users, Plus, Save, ArrowLeft, Loader2, Instagram, Trash2, CheckCircle2, 
     Mail, Shield, Globe, Lock, Sparkles, Send, RefreshCw, Search, 
-    UserCheck, ExternalLink, AlertTriangle, ChevronDown, ChevronUp, Check, X, Upload
+    UserCheck, ExternalLink, AlertTriangle, ChevronDown, ChevronUp, Check, X, Upload,
+    User, Calendar
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { getAuthHeaders, apiFetch, isSuperAdmin, hasPermission } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
@@ -147,6 +148,32 @@ const SUGGESTED_ROLES = [
     'GRAPHISTE'
 ];
 
+export const isRoleActive = (currentRole: string = '', targetRole: string): boolean => {
+    if (!currentRole || !targetRole) return false;
+    const cur = currentRole.trim().toUpperCase();
+    const target = targetRole.trim().toUpperCase();
+    if (cur === target) return true;
+    
+    const regex = new RegExp(`(^|[&+/•,]\\s*)${target.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}(\\s*($|[&+/•,]))`, 'i');
+    return regex.test(cur);
+};
+
+export const toggleRoleSelection = (currentRole: string = '', roleToToggle: string): string => {
+    const cur = currentRole.trim();
+    if (!cur) return roleToToggle;
+
+    if (isRoleActive(cur, roleToToggle)) {
+        let next = cur
+            .replace(new RegExp(`\\s*(?:&|\\+|/|•)\\s*${roleToToggle.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}`, 'i'), '')
+            .replace(new RegExp(`${roleToToggle.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*(?:&|\\+|/|•)\\s*`, 'i'), '')
+            .replace(new RegExp(roleToToggle.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'), 'i'), '')
+            .trim();
+        return next;
+    } else {
+        return `${cur} & ${roleToToggle}`;
+    }
+};
+
 function detectPreset(permissions: string[] = []): 'admin' | 'editorial' | 'moderator' | 'marketing' | 'custom' {
     if (permissions.includes('all')) return 'admin';
     if (!permissions.length) return 'custom';
@@ -185,12 +212,20 @@ export function AdminTeam() {
     const [unifiedList, setUnifiedList] = useState<UnifiedPerson[]>([]);
     const [rawTeam, setRawTeam] = useState<any[]>([]);
     const [rawEditors, setRawEditors] = useState<any[]>([]);
+    const [communityUsers, setCommunityUsers] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
-    // Filters
-    const [filterTab, setFilterTab] = useState<'all' | 'public' | 'admins'>('all');
+    // Filters & URL search params
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [filterTab, setFilterTab] = useState<'all' | 'public' | 'admins' | 'community'>(() => {
+        const tab = searchParams.get('tab');
+        if (tab === 'community') return 'community';
+        if (tab === 'public') return 'public';
+        if (tab === 'admins') return 'admins';
+        return 'all';
+    });
     const [searchQuery, setSearchQuery] = useState('');
 
     // Modal
@@ -207,13 +242,14 @@ export function AdminTeam() {
     const [communityResults, setCommunityResults] = useState<any[]>([]);
     const [isSearchingCommunity, setIsSearchingCommunity] = useState(false);
 
-    // Fetch both team and editors
+    // Fetch team, editors, and community members
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const [teamRes, editorsRes] = await Promise.all([
+            const [teamRes, editorsRes, commRes] = await Promise.all([
                 fetch('/api/team', { headers: getAuthHeaders(null) }),
-                apiFetch('/api/editors', { headers: getAuthHeaders() })
+                apiFetch('/api/editors', { headers: getAuthHeaders() }),
+                apiFetch('/api/users/list', { headers: getAuthHeaders() })
             ]);
 
             let teamData: any[] = [];
@@ -226,6 +262,10 @@ export function AdminTeam() {
             if (editorsRes.ok) {
                 editorsData = await editorsRes.json();
                 setRawEditors(Array.isArray(editorsData) ? editorsData : []);
+            }
+            if (commRes.ok) {
+                const commData = await commRes.json();
+                setCommunityUsers(Array.isArray(commData) ? commData : []);
             }
 
             mergeData(Array.isArray(teamData) ? teamData : [], Array.isArray(editorsData) ? editorsData : []);
@@ -339,6 +379,65 @@ export function AdminTeam() {
             return true;
         });
     }, [unifiedList, filterTab, searchQuery]);
+
+    // Filtered community users
+    const filteredCommunityUsers = useMemo(() => {
+        if (!communityUsers.length) return [];
+        const q = searchQuery.toLowerCase().trim();
+        return communityUsers.filter((u) => {
+            if (!q) return true;
+            const name = (u.username || u.pseudo || u.name || '').toLowerCase();
+            const email = (u.email || '').toLowerCase();
+            const provider = (u.provider || '').toLowerCase();
+            return name.includes(q) || email.includes(q) || provider.includes(q);
+        });
+    }, [communityUsers, searchQuery]);
+
+    const getUnifiedForCommunityUser = (commUser: any): UnifiedPerson | undefined => {
+        const userEmail = (commUser.email || '').toLowerCase().trim();
+        const userName = (commUser.username || commUser.pseudo || commUser.name || '').toLowerCase().trim();
+        return unifiedList.find(p => {
+            const pEmail = (p.email || '').toLowerCase().trim();
+            const pName = (p.name || '').toLowerCase().trim();
+            if (userEmail && pEmail === userEmail) return true;
+            if (userName && pName === userName) return true;
+            return false;
+        });
+    };
+
+    const openAddModalForCommunityUser = (user: any) => {
+        const existing = getUnifiedForCommunityUser(user);
+        if (existing) {
+            openEditModal(existing);
+            return;
+        }
+
+        setEditingPerson({
+            id: Date.now(),
+            name: user.username || user.pseudo || user.name || (user.email ? user.email.split('@')[0] : 'Membre'),
+            role: 'RÉDACTEUR',
+            image: user.avatar || '/images/team/default.jpg',
+            socials: { instagram: user.instagram || '', tiktok: '' },
+            showOnPublicSite: false,
+            hasAdminAccess: true,
+            email: user.email || '',
+            preset: 'editorial',
+            permissions: [...ROLE_PRESETS.find(p => p.id === 'editorial')!.permissions],
+            verified: true
+        });
+        setActiveModalTab('access');
+        setShowCustomPerms(false);
+        setIsModalOpen(true);
+    };
+
+    const handleTabClick = (tabId: 'all' | 'public' | 'admins' | 'community') => {
+        setFilterTab(tabId);
+        if (tabId === 'community') {
+            setSearchParams({ tab: 'community' });
+        } else {
+            setSearchParams({});
+        }
+    };
 
     // Community Search
     const searchCommunity = async (q: string) => {
@@ -473,6 +572,44 @@ export function AdminTeam() {
         }
     };
 
+    // Validate Team Member Account directly (1-click validation)
+    const handleValidateAccount = async (person: UnifiedPerson, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        if (!person.email) {
+            setStatusMessage({ text: 'Aucune adresse e-mail pour ce membre.', type: 'error' });
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const perms = person.permissions.length > 0 ? person.permissions : ['all'];
+            const res = await apiFetch('/api/editors/update-permissions', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    email: person.email.trim(),
+                    pseudo: person.name.trim(),
+                    role: person.role.trim(),
+                    permissions: perms,
+                    isInvite: false,
+                    verified: true
+                })
+            });
+
+            if (res.ok) {
+                setStatusMessage({ text: `Compte de ${person.name} validé avec succès !`, type: 'success' });
+                setUnifiedList(prev => prev.map(p => p.id === person.id ? { ...p, verified: true } : p));
+            } else {
+                setStatusMessage({ text: 'Erreur lors de la validation du compte.', type: 'error' });
+            }
+        } catch {
+            setStatusMessage({ text: 'Erreur réseau lors de la validation.', type: 'error' });
+        } finally {
+            setIsSaving(false);
+            setTimeout(() => setStatusMessage(null), 4000);
+        }
+    };
+
     // Save Single Member from Modal
     const handleSavePerson = async () => {
         if (!editingPerson) return;
@@ -538,7 +675,8 @@ export function AdminTeam() {
                         pseudo: editingPerson.name.trim(),
                         role: editingPerson.role.trim(),
                         permissions: permsToSave,
-                        isInvite: !editingPerson.verified
+                        isInvite: editingPerson.verified === false,
+                        verified: editingPerson.verified !== false
                     })
                 });
 
@@ -686,21 +824,25 @@ export function AdminTeam() {
                 {/* Filters & Search Toolbar */}
                 <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 mb-8">
                     {/* Filter Pills */}
-                    <div className="flex items-center bg-black/40 border border-white/10 p-1.5 rounded-2xl gap-1">
+                    <div className="flex items-center bg-black/40 border border-white/10 p-1.5 rounded-2xl gap-1 overflow-x-auto max-w-full">
                         {[
                             { id: 'all', label: 'Tous', count: unifiedList.length },
                             { id: 'public', label: 'Site Public', count: unifiedList.filter(p => p.showOnPublicSite).length },
-                            { id: 'admins', label: 'Accès Admin', count: unifiedList.filter(p => p.hasAdminAccess).length }
+                            { id: 'admins', label: 'Accès Admin', count: unifiedList.filter(p => p.hasAdminAccess).length },
+                            { id: 'community', label: 'Membres Inscrits', count: communityUsers.length }
                         ].map(tab => (
                             <button
                                 key={tab.id}
-                                onClick={() => setFilterTab(tab.id as any)}
-                                className={`px-5 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all flex items-center gap-2 ${
+                                onClick={() => handleTabClick(tab.id as any)}
+                                className={`px-4 md:px-5 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all flex items-center gap-2 whitespace-nowrap ${
                                     filterTab === tab.id
-                                        ? 'bg-white text-black shadow-lg shadow-white/10'
+                                        ? tab.id === 'community'
+                                            ? 'bg-gradient-to-r from-neon-cyan to-blue-500 text-black shadow-lg shadow-neon-cyan/20'
+                                            : 'bg-white text-black shadow-lg shadow-white/10'
                                         : 'text-gray-400 hover:text-white'
                                 }`}
                             >
+                                {tab.id === 'community' && <UserCheck className="w-3.5 h-3.5" />}
                                 {tab.label}
                                 <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-mono ${
                                     filterTab === tab.id ? 'bg-black/20 text-black' : 'bg-white/10 text-gray-400'
@@ -738,6 +880,123 @@ export function AdminTeam() {
                         <Loader2 className="w-10 h-10 text-neon-red animate-spin" />
                         <p className="text-gray-500 text-xs uppercase tracking-widest font-bold">Chargement des membres et des droits...</p>
                     </div>
+                ) : filterTab === 'community' ? (
+                    /* Community Members View */
+                    filteredCommunityUsers.length === 0 ? (
+                        <div className="p-16 border border-dashed border-white/10 rounded-3xl text-center bg-white/[0.02]">
+                            <Users className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                            <h3 className="text-lg font-bold text-white uppercase italic mb-1">Aucun membre inscrit trouvé</h3>
+                            <p className="text-gray-500 text-xs">Aucun compte ne correspond à votre recherche.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            <AnimatePresence>
+                                {filteredCommunityUsers.map((commUser) => {
+                                    const existingStaff = getUnifiedForCommunityUser(commUser);
+                                    const provider = (commUser.provider || 'email').toLowerCase();
+                                    const providerBadge = 
+                                        provider === 'google' ? 'bg-red-500/10 text-red-400 border-red-500/30' :
+                                        provider === 'discord' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' :
+                                        'bg-white/10 text-gray-300 border-white/20';
+
+                                    return (
+                                        <motion.div
+                                            key={commUser.id || commUser.email}
+                                            layout
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.95 }}
+                                            className="bg-gradient-to-b from-white/[0.07] to-white/[0.02] border border-white/10 rounded-[2.5rem] p-5 group hover:border-neon-cyan/40 transition-all flex flex-col justify-between relative overflow-hidden shadow-xl"
+                                        >
+                                            <div>
+                                                {/* Top Row: Provider & Rights Status */}
+                                                <div className="flex items-center justify-between gap-2 mb-4">
+                                                    <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border ${providerBadge}`}>
+                                                        {commUser.provider || 'Site'}
+                                                    </span>
+                                                    {existingStaff ? (
+                                                        <span className="px-2.5 py-1 bg-neon-purple/20 text-neon-purple border border-neon-purple/40 text-[9px] font-black uppercase tracking-wider rounded-lg flex items-center gap-1 shadow-lg">
+                                                            <Shield className="w-3 h-3" /> Accès Admin
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-2.5 py-1 bg-white/5 text-gray-400 border border-white/10 text-[9px] font-bold uppercase tracking-wider rounded-lg">
+                                                            Visiteur Inscrit
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {/* User Avatar & Info */}
+                                                <div className="flex items-center gap-4 mb-4">
+                                                    <div className="w-14 h-14 rounded-2xl overflow-hidden bg-black/60 border border-white/10 shrink-0 relative flex items-center justify-center">
+                                                        {commUser.avatar ? (
+                                                            <img 
+                                                                src={commUser.avatar} 
+                                                                alt={commUser.username || ''} 
+                                                                className="w-full h-full object-cover" 
+                                                                onError={(e) => {
+                                                                    (e.target as HTMLElement).style.display = 'none';
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <User className="w-6 h-6 text-gray-500" />
+                                                        )}
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <h3 className="text-base font-bold text-white uppercase italic tracking-tight truncate group-hover:text-neon-cyan transition-colors">
+                                                            {commUser.username || commUser.pseudo || commUser.name || 'Membre'}
+                                                        </h3>
+                                                        <p className="text-[11px] text-gray-400 font-mono truncate" title={commUser.email}>
+                                                            {commUser.email}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Staff Info pill if already has rights */}
+                                                {existingStaff && (
+                                                    <div className="p-3 bg-neon-purple/10 border border-neon-purple/20 rounded-2xl mb-4">
+                                                        <p className="text-[9px] font-black text-neon-purple uppercase tracking-wider flex items-center gap-1.5">
+                                                            <Sparkles className="w-3 h-3 text-neon-purple" /> {existingStaff.role || 'Éditeur'}
+                                                        </p>
+                                                        <p className="text-[10px] text-gray-400 font-medium truncate mt-0.5">
+                                                            {existingStaff.permissions.includes('all') ? '👑 Administrateur Total' : `${existingStaff.permissions.length} permission(s) accordée(s)`}
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {commUser.lastSeen && (
+                                                    <p className="text-[10px] text-gray-500 font-medium flex items-center gap-1.5 mb-2">
+                                                        <Calendar className="w-3 h-3 text-gray-600" />
+                                                        Dernière visite : {new Date(commUser.lastSeen).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            {/* Action Button: Give rights or modify rights */}
+                                            <div className="pt-3 border-t border-white/5 mt-2">
+                                                {existingStaff ? (
+                                                    <button
+                                                        onClick={() => openEditModal(existingStaff)}
+                                                        className="w-full py-2.5 px-4 bg-neon-purple/15 hover:bg-neon-purple border border-neon-purple/40 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 group-hover:shadow-[0_0_15px_rgba(191,0,255,0.3)]"
+                                                    >
+                                                        <Shield className="w-3.5 h-3.5" />
+                                                        Modifier les Droits
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => openAddModalForCommunityUser(commUser)}
+                                                        className="w-full py-2.5 px-4 bg-gradient-to-r from-neon-cyan to-blue-500 text-black hover:text-white font-black rounded-xl text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:scale-[1.02] shadow-[0_0_20px_rgba(0,255,255,0.25)]"
+                                                    >
+                                                        <Plus className="w-3.5 h-3.5" />
+                                                        Donner les Droits Admin
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+                            </AnimatePresence>
+                        </div>
+                    )
                 ) : filteredList.length === 0 ? (
                     <div className="p-16 border border-dashed border-white/10 rounded-3xl text-center bg-white/[0.02]">
                         <Users className="w-12 h-12 text-gray-600 mx-auto mb-4" />
@@ -851,14 +1110,23 @@ export function AdminTeam() {
                                                         </span>
 
                                                         {person.verified === false && (
-                                                            <button
-                                                                onClick={(e) => handleSendInvite(person, e)}
-                                                                disabled={sendingInviteEmail === person.email}
-                                                                className="text-[9px] text-neon-cyan hover:underline font-black uppercase tracking-widest flex items-center gap-1 disabled:opacity-50"
-                                                            >
-                                                                <Send className="w-2.5 h-2.5" />
-                                                                {sendingInviteEmail === person.email ? 'Envoi...' : 'Renvoyer'}
-                                                            </button>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <button
+                                                                    onClick={(e) => handleValidateAccount(person, e)}
+                                                                    className="px-2 py-0.5 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-emerald-500/40 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1 shadow-sm"
+                                                                    title="Valider ce compte immédiatement"
+                                                                >
+                                                                    <Check className="w-2.5 h-2.5" /> Valider
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => handleSendInvite(person, e)}
+                                                                    disabled={sendingInviteEmail === person.email}
+                                                                    className="text-[9px] text-neon-cyan hover:underline font-black uppercase tracking-widest flex items-center gap-1 disabled:opacity-50"
+                                                                >
+                                                                    <Send className="w-2.5 h-2.5" />
+                                                                    {sendingInviteEmail === person.email ? '...' : 'Renvoyer'}
+                                                                </button>
+                                                            </div>
                                                         )}
                                                     </div>
                                                 )}
@@ -1046,29 +1314,56 @@ export function AdminTeam() {
                                                 </div>
 
                                                 <div>
-                                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">
-                                                        Rôle affiché publiquement *
-                                                    </label>
+                                                    <div className="flex items-center justify-between mb-1.5">
+                                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                                            Rôle(s) du membre *
+                                                        </label>
+                                                        {editingPerson.role && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setEditingPerson({ ...editingPerson, role: '' })}
+                                                                className="text-[9px] text-gray-500 hover:text-neon-red font-mono uppercase transition-colors"
+                                                            >
+                                                                Effacer
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                     <input
                                                         type="text"
                                                         value={editingPerson.role}
                                                         onChange={(e) => setEditingPerson({ ...editingPerson, role: e.target.value })}
-                                                        placeholder="Ex: FONDATEUR & DJ, PHOTOGRAPHE..."
-                                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-medium focus:outline-none focus:border-neon-purple transition-all"
+                                                        placeholder="Ex: RÉDACTEUR & PHOTOGRAPHE..."
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-neon-purple transition-all"
                                                     />
 
-                                                    {/* Suggestions pills */}
-                                                    <div className="flex flex-wrap gap-1.5 mt-2">
-                                                        {SUGGESTED_ROLES.map((sr) => (
-                                                            <button
-                                                                key={sr}
-                                                                type="button"
-                                                                onClick={() => setEditingPerson({ ...editingPerson, role: sr })}
-                                                                className="px-2.5 py-1 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg text-[9px] font-mono text-gray-400 hover:text-white transition-all"
-                                                            >
-                                                                {sr}
-                                                            </button>
-                                                        ))}
+                                                    {/* Multi-role selection pills */}
+                                                    <div className="mt-2.5 space-y-1.5">
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {SUGGESTED_ROLES.map((sr) => {
+                                                                const active = isRoleActive(editingPerson.role, sr);
+                                                                return (
+                                                                    <button
+                                                                        key={sr}
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const nextRole = toggleRoleSelection(editingPerson.role, sr);
+                                                                            setEditingPerson({ ...editingPerson, role: nextRole });
+                                                                        }}
+                                                                        className={`px-2.5 py-1 rounded-lg text-[9px] font-mono uppercase tracking-wider transition-all flex items-center gap-1.5 border ${
+                                                                            active
+                                                                                ? 'bg-neon-purple/25 border-neon-purple text-neon-purple font-bold shadow-[0_0_12px_rgba(191,0,255,0.25)]'
+                                                                                : 'bg-white/5 hover:bg-white/10 border-white/10 text-gray-400 hover:text-white'
+                                                                        }`}
+                                                                    >
+                                                                        {active ? <Check className="w-3 h-3 text-neon-purple" /> : <Plus className="w-3 h-3 text-gray-500" />}
+                                                                        {sr}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                        <p className="text-[10px] text-gray-500 font-medium">
+                                                            💡 Cliquez pour combiner plusieurs rôles (ex: <b>RÉDACTEUR & PHOTOGRAPHE</b>), ou tapez librement votre titre ci-dessus.
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1187,6 +1482,51 @@ export function AdminTeam() {
                                                     <p className="text-[10px] text-gray-500 mt-1">
                                                         Cette adresse e-mail sera utilisée pour recevoir l'invitation et valider la connexion Google ou mot de passe.
                                                     </p>
+                                                </div>
+
+                                                {/* Compte Validé / En attente Toggle */}
+                                                <div className="p-4 bg-white/[0.03] border border-white/10 rounded-2xl flex items-center justify-between">
+                                                    <div>
+                                                        <h5 className="text-xs font-bold text-white uppercase italic flex items-center gap-2">
+                                                            Statut du compte :
+                                                            {editingPerson.verified !== false ? (
+                                                                <span className="text-emerald-400 font-bold flex items-center gap-1 text-[11px]">
+                                                                    <CheckCircle2 className="w-3.5 h-3.5" /> Validé
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-neon-cyan font-bold flex items-center gap-1 text-[11px]">
+                                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> En attente d'activation
+                                                                </span>
+                                                            )}
+                                                        </h5>
+                                                        <p className="text-[10px] text-gray-400 mt-0.5">
+                                                            {editingPerson.verified !== false 
+                                                                ? "Le compte est actif et le membre peut immédiatement accéder à son espace."
+                                                                : "Le compte est en attente d'invitation. Activez pour lui donner un accès direct immédiat."}
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setEditingPerson({
+                                                            ...editingPerson,
+                                                            verified: !(editingPerson.verified !== false)
+                                                        })}
+                                                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border flex items-center gap-1.5 ${
+                                                            editingPerson.verified !== false
+                                                                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-lg shadow-emerald-500/10'
+                                                                : 'bg-white/5 text-gray-400 border-white/10 hover:text-white hover:border-white/30'
+                                                        }`}
+                                                    >
+                                                        {editingPerson.verified !== false ? (
+                                                            <>
+                                                                <Check className="w-3.5 h-3.5" /> Compte Validé
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Plus className="w-3.5 h-3.5" /> Valider le Compte
+                                                            </>
+                                                        )}
+                                                    </button>
                                                 </div>
 
                                                 {/* 1-Click Role Presets */}

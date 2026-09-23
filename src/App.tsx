@@ -228,11 +228,12 @@ const router = createBrowserRouter([
       { path: "pro/boutique", element: <ProShop /> },
 
       
+      { path: "admin", element: <AdminDashboard /> },
+      
       // Protected Area Group (Shared Authentication Context)
       {
         element: <ProtectedRoute><Outlet /></ProtectedRoute>,
         children: [
-          { path: "admin", element: <AdminDashboard /> },
           { path: "admin/manage", element: <AdminManage /> },
           { path: "admin/team", element: <AdminTeam /> },
           { path: "admin/editors", element: <AdminTeam /> },

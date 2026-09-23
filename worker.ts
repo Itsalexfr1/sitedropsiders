@@ -3429,7 +3429,7 @@ ${urls.map(u => `  <url>
         }
 
         if (path === '/api/editors/update-permissions' && request.method === 'POST') {
-            const { email, permissions, pseudo, role, isInvite } = await request.json();
+            const { email, permissions, pseudo, role, isInvite, verified } = await request.json();
             const cleanEmail = email.toLowerCase().trim();
             const file = await fetchGitHubFile(EDITORS_PATH, gitConfig) || { content: [], sha: null };
 
@@ -3443,6 +3443,11 @@ ${urls.map(u => `  <url>
                     file.content[index].pseudo = pseudo;
                 }
                 if (role !== undefined) file.content[index].role = role;
+                if (verified !== undefined) {
+                    file.content[index].verified = verified;
+                } else if (isInvite !== undefined) {
+                    file.content[index].verified = !isInvite;
+                }
             } else {
                 // Create new editor mapping
                 file.content.push({
@@ -3452,7 +3457,7 @@ ${urls.map(u => `  <url>
                     role: role || '',
                     permissions: permissions || [],
                     created: new Date().toISOString(),
-                    verified: !isInvite // If it's a direct invitation, it needs verification
+                    verified: verified !== undefined ? verified : !isInvite // If it's a direct invitation, it needs verification
                 });
             }
 
