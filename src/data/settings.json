@@ -3745,6 +3745,487 @@
           "addedAt": 1790257229068
         }
       ]
+    },
+    {
+      "id": "radio_bloc_1790257291397_4y1e",
+      "name": "ZONE ROUGE",
+      "title": "ZONE ROUGE",
+      "timeSlot": "00h - 06h",
+      "startHour": 0,
+      "endHour": 6,
+      "color": "#ff1241",
+      "emoji": "🎵",
+      "randomize": true,
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        0
+      ],
+      "tracks": [
+        {
+          "id": "rt_tv_1790257302402_26gf",
+          "title": "Angerfist",
+          "artist": "Qlimax 2016",
+          "youtubeId": "bEGSijQFIDg",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257302403
+        },
+        {
+          "id": "rt_tv_1790257303915_e7vt",
+          "title": "Defqon.1 2025",
+          "artist": "Wildstylez",
+          "youtubeId": "h_0bARrg2sg",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257303915
+        },
+        {
+          "id": "rt_tv_1790257304611_9mao",
+          "title": "Headhunterz 2-Hour Set",
+          "artist": "Return of Headhunterz 2017",
+          "youtubeId": "mmBeR56zgGI",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257304611
+        },
+        {
+          "id": "rt_tv_1790257305761_uzsi",
+          "title": "Qlimax 2024",
+          "artist": "Deepack, Luna & Zany",
+          "youtubeId": "go9jzCz8Lxc",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257305761
+        },
+        {
+          "id": "rt_tv_1790257306432_2ksl",
+          "title": "Project One",
+          "artist": "Qlimax 2016",
+          "youtubeId": "R5sQx_UwYnk",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257306432
+        },
+        {
+          "id": "rt_tv_1790257307803_pkny",
+          "title": "Atmozfears",
+          "artist": "Q-BASE 2016",
+          "youtubeId": "7zsd_KbkoQo",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257307803
+        },
+        {
+          "id": "rt_tv_1790257308419_b1y4",
+          "title": "Frequencerz",
+          "artist": "Q-BASE 2016",
+          "youtubeId": "NfdBtcAHEF0",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257308419
+        },
+        {
+          "id": "rt_tv_1790257309809_ad2n",
+          "title": "Korsakoff",
+          "artist": "Q-BASE 2016",
+          "youtubeId": "K5iiEybdq6o",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257309809
+        },
+        {
+          "id": "rt_tv_1790257310340_zu6n",
+          "title": "Noisecontrollers",
+          "artist": "Q-BASE 2018",
+          "youtubeId": "5HFR3lnfHeM",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257310340
+        },
+        {
+          "id": "rt_tv_1790257310845_ie5i",
+          "title": "Enter the Void",
+          "artist": "Brennan Heart presents Blademasterz I Qlimax 2023",
+          "youtubeId": "EBO4id1eSSs",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257310845
+        },
+        {
+          "id": "rt_tv_1790257313033_89x5",
+          "title": "DROPSIDERS TV",
+          "artist": "Rave Rebels présents Klangkuenstler",
+          "youtubeId": "MZZes5kr69E",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257313033
+        },
+        {
+          "id": "rt_tv_1790257313552_wgjd",
+          "title": "DROPSIDERS TV",
+          "artist": "Rave Rebels présent TRYM",
+          "youtubeId": "cJ6Twz6iH8o",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257313552
+        },
+        {
+          "id": "rt_tv_1790257314165_r5vu",
+          "title": "DROPSIDERS TV",
+          "artist": "Rave Rebels presents: Patrick Mason (FULL SET)",
+          "youtubeId": "1xO4ZxFvu1Y",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257314165
+        },
+        {
+          "id": "rt_tv_1790257315977_1ybl",
+          "title": "Showcase · Defqon.1 2026",
+          "artist": "4444 OF A KIND",
+          "youtubeId": "k0_DCdIj7j8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257315977
+        },
+        {
+          "id": "rt_tv_1790257316791_fage",
+          "title": "Defqon.1 2026",
+          "artist": "Coone",
+          "youtubeId": "fsHgYLT_FCc",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257316791
+        },
+        {
+          "id": "rt_tv_1790257317457_5l9n",
+          "title": "Defqon.1 2025",
+          "artist": "DJ Isaac",
+          "youtubeId": "NChSQpkWEKc",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257317457
+        },
+        {
+          "id": "rt_tv_1790257318003_92yy",
+          "title": "Defqon.1 2025",
+          "artist": "Code Black",
+          "youtubeId": "p8IxnjD0e8A",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257318003
+        },
+        {
+          "id": "rt_tv_1790257318692_345u",
+          "title": "Defqon.1 2026",
+          "artist": "Ran-D & Adaro",
+          "youtubeId": "w4QJvock5Rk",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257318692
+        },
+        {
+          "id": "rt_tv_1790257319570_fviw",
+          "title": "DROPSIDERS TV",
+          "artist": "Rave Rebels presents: I Hate Models (FULL SET)",
+          "youtubeId": "ip9UY6YqLVA",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257319570
+        },
+        {
+          "id": "rt_tv_1790257320099_qmlv",
+          "title": "DROPSIDERS TV",
+          "artist": "Rave Rebels presents: 999999999 (FULL SET)",
+          "youtubeId": "meHW6iAyUXQ",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257320099
+        },
+        {
+          "id": "rt_tv_1790257324344_mieu",
+          "title": "Ziggo Dome, Amsterdam",
+          "artist": "FENRICK b2b DURDENHAUER @ Verknipt Ziggo Dome 2025",
+          "youtubeId": "ujL5W6dEV5A",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257324344
+        },
+        {
+          "id": "rt_tv_1790257325037_0nxd",
+          "title": "World's biggest 360° rave",
+          "artist": "DYEN b2b FANTASM @ Verknipt ArenA 2025",
+          "youtubeId": "1_P5LzX5vwE",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257325037
+        },
+        {
+          "id": "rt_tv_1790257326011_6a51",
+          "title": "World's biggest 360° rave",
+          "artist": "Aphøtic b3b NYCO b3b XRTN - Opening set @ Verknipt ArenA 2025",
+          "youtubeId": "OD_Z5P7bfG8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257326011
+        },
+        {
+          "id": "rt_tv_1790257326873_sv2b",
+          "title": "Strijkviertelplas, Utrecht",
+          "artist": "6EJOU b2b MYU:SA @ Verknipt Festival 2025 Day 1",
+          "youtubeId": "U1I2Mbenpf0",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257326873
+        },
+        {
+          "id": "rt_tv_1790257327634_jezi",
+          "title": "Verknipt Festival 2026 - Day 2",
+          "artist": "HARDSOK",
+          "youtubeId": "mm74kq4Rtz8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257327634
+        },
+        {
+          "id": "rt_tv_1790257328267_x1yt",
+          "title": "Intents Festival 2025",
+          "artist": "B-Front vs Phuture Noize",
+          "youtubeId": "w6ZWvgAC6OQ",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257328267
+        },
+        {
+          "id": "rt_tv_1790257328785_tsgm",
+          "title": "Intents Festival 2025",
+          "artist": "Noxiouz vs The Dark Horror",
+          "youtubeId": "IwwhUGWdB-E",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257328785
+        },
+        {
+          "id": "rt_tv_1790257329372_bzez",
+          "title": "Intents Festival 2026",
+          "artist": "Phuture Noize: Journey",
+          "youtubeId": "m7g7QBhN8eM",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257329372
+        },
+        {
+          "id": "rt_tv_1790257330357_2c0l",
+          "title": "Intents Festival 2025",
+          "artist": "D-Sturb",
+          "youtubeId": "B7CfZkZPjMw",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257330357
+        },
+        {
+          "id": "rt_tv_1790257331017_755v",
+          "title": "The Opening · Intents Festival 2026",
+          "artist": "Radical Redemption vs Regain",
+          "youtubeId": "mx9PuORBDw0",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257331017
+        },
+        {
+          "id": "rt_tv_1790257338005_hhyt",
+          "title": "Halloween 2024",
+          "artist": "CLOUDY B2B KUKO @ Blackworks Festival - The Purgatory",
+          "youtubeId": "eLsREd3QqSU",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257338005
+        },
+        {
+          "id": "rt_tv_1790257338604_xea2",
+          "title": "BLACKWORKS FIREFIELD NYD 2025",
+          "artist": "DION B2B PAWLOWSKI",
+          "youtubeId": "LAsCRWFnxbI",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257338604
+        },
+        {
+          "id": "rt_tv_1790257339667_501j",
+          "title": "BLACKWORKS WEEKEND FESTIVAL - REBIRTH EDITION",
+          "artist": "FANTASM",
+          "youtubeId": "l6cWbRpFOco",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257339667
+        },
+        {
+          "id": "rt_tv_1790257340343_xg3p",
+          "title": "FULL VIDEOSET",
+          "artist": "DEXPHASE B2B OGUZ @ BLACKWORKS WEEKEND FESTIVAL 2026: DIMENSION",
+          "youtubeId": "nj0rTJ1CfAQ",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257340343
+        },
+        {
+          "id": "rt_tv_1790257340990_hfsb",
+          "title": "Pat B",
+          "artist": "Reverze 2026",
+          "youtubeId": "Bs4cZ9SFAqI",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257340990
+        },
+        {
+          "id": "rt_tv_1790257341633_8odl",
+          "title": "Brennan Heart vs Coone",
+          "artist": "Reverze 2026",
+          "youtubeId": "vqun0DuD50Y",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257341633
+        },
+        {
+          "id": "rt_tv_1790257342181_uuhe",
+          "title": "Ruthless vs The Darkraver",
+          "artist": "Reverze 2026",
+          "youtubeId": "FkXBhkSRVu8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257342181
+        },
+        {
+          "id": "rt_tv_1790257342808_8d6l",
+          "title": "B-Front",
+          "artist": "Reverze 2026",
+          "youtubeId": "H7f_gznlCKA",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257342808
+        },
+        {
+          "id": "rt_tv_1790257343370_27v0",
+          "title": "Frontliner Live",
+          "artist": "Reverze 2026",
+          "youtubeId": "kJA_kyG2YLs",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257343370
+        },
+        {
+          "id": "rt_tv_1790257345650_r61c",
+          "title": "WASTELAND 2026",
+          "artist": "LIL TEXAS B2B YOSUF",
+          "youtubeId": "0yP1FO31tmM",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257345650
+        },
+        {
+          "id": "rt_tv_1790257346715_ie50",
+          "title": "Decibel outdoor 2025",
+          "artist": "Ran-D LIVE",
+          "youtubeId": "UyEjhlTjyC8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257346715
+        },
+        {
+          "id": "rt_tv_1790257349628_6yye",
+          "title": "Halloween 2024",
+          "artist": "THAM B2B KRL MX @ Blackworks Festival - The Purgatory",
+          "youtubeId": "x8DqwF_GaYM",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257349628
+        },
+        {
+          "id": "rt_tv_1790257350257_6wce",
+          "title": "Decibel outdoor 2025",
+          "artist": "Dual Damage",
+          "youtubeId": "3oB8RpeM2pQ",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257350257
+        },
+        {
+          "id": "rt_tv_1790257350832_d0ua",
+          "title": "Decibel outdoor 2025",
+          "artist": "Crypsis",
+          "youtubeId": "-UD7ldGoiB8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257350832
+        },
+        {
+          "id": "rt_tv_1790257351396_w4wn",
+          "title": "Decibel outdoor 2025",
+          "artist": "Gezellige Uptempo",
+          "youtubeId": "S2zL0pD4DEE",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257351396
+        },
+        {
+          "id": "rt_tv_1790257351972_b3er",
+          "title": "Decibel outdoor 2025",
+          "artist": "Angerfist LIVE: Closing Session",
+          "youtubeId": "QHUGte7ohQU",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257351972
+        },
+        {
+          "id": "rt_tv_1790257354766_bohj",
+          "title": "ESCAPE HALLOWEEN ( HARD TECHNO )",
+          "artist": "DØMINA",
+          "youtubeId": "D1O9K7EmINQ",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257354766
+        },
+        {
+          "id": "rt_tv_1790257356210_is2d",
+          "title": "DROPSIDERS TV",
+          "artist": "Anoluxx Wasteland Full Set 2025",
+          "youtubeId": "8bl0PcaO_4k",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257356210
+        },
+        {
+          "id": "rt_tv_1790257357115_oz2l",
+          "title": "Insomniac · Basscon",
+          "artist": "JUNKIE KID  - PRESENTS THE PARADOX -  FROM WASTELAND 2025 (FULL SET)",
+          "youtubeId": "IPHt8lM7epo",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257357115
+        },
+        {
+          "id": "rt_tv_1790257357834_05b2",
+          "title": "WASTELAND FESTIVAL 2025 - FULL SET [HARD TECHNO]",
+          "artist": "CLAWZ -",
+          "youtubeId": "tj7IqyCaE0U",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257357834
+        },
+        {
+          "id": "rt_tv_1790257358790_sbns",
+          "title": "WASTELAND 2026 · FULL SET",
+          "artist": "CUTDWN",
+          "youtubeId": "0C-F7iPWQno",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257358790
+        }
+      ]
     }
   ],
   "radio_tracks": [
@@ -5322,6 +5803,465 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790257229068
+    },
+    {
+      "id": "rt_tv_1790257302402_26gf",
+      "title": "Angerfist",
+      "artist": "Qlimax 2016",
+      "youtubeId": "bEGSijQFIDg",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257302403
+    },
+    {
+      "id": "rt_tv_1790257303915_e7vt",
+      "title": "Defqon.1 2025",
+      "artist": "Wildstylez",
+      "youtubeId": "h_0bARrg2sg",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257303915
+    },
+    {
+      "id": "rt_tv_1790257304611_9mao",
+      "title": "Headhunterz 2-Hour Set",
+      "artist": "Return of Headhunterz 2017",
+      "youtubeId": "mmBeR56zgGI",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257304611
+    },
+    {
+      "id": "rt_tv_1790257305761_uzsi",
+      "title": "Qlimax 2024",
+      "artist": "Deepack, Luna & Zany",
+      "youtubeId": "go9jzCz8Lxc",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257305761
+    },
+    {
+      "id": "rt_tv_1790257306432_2ksl",
+      "title": "Project One",
+      "artist": "Qlimax 2016",
+      "youtubeId": "R5sQx_UwYnk",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257306432
+    },
+    {
+      "id": "rt_tv_1790257307803_pkny",
+      "title": "Atmozfears",
+      "artist": "Q-BASE 2016",
+      "youtubeId": "7zsd_KbkoQo",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257307803
+    },
+    {
+      "id": "rt_tv_1790257308419_b1y4",
+      "title": "Frequencerz",
+      "artist": "Q-BASE 2016",
+      "youtubeId": "NfdBtcAHEF0",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257308419
+    },
+    {
+      "id": "rt_tv_1790257309809_ad2n",
+      "title": "Korsakoff",
+      "artist": "Q-BASE 2016",
+      "youtubeId": "K5iiEybdq6o",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257309809
+    },
+    {
+      "id": "rt_tv_1790257310340_zu6n",
+      "title": "Noisecontrollers",
+      "artist": "Q-BASE 2018",
+      "youtubeId": "5HFR3lnfHeM",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257310340
+    },
+    {
+      "id": "rt_tv_1790257310845_ie5i",
+      "title": "Enter the Void",
+      "artist": "Brennan Heart presents Blademasterz I Qlimax 2023",
+      "youtubeId": "EBO4id1eSSs",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257310845
+    },
+    {
+      "id": "rt_tv_1790257313033_89x5",
+      "title": "DROPSIDERS TV",
+      "artist": "Rave Rebels présents Klangkuenstler",
+      "youtubeId": "MZZes5kr69E",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257313033
+    },
+    {
+      "id": "rt_tv_1790257313552_wgjd",
+      "title": "DROPSIDERS TV",
+      "artist": "Rave Rebels présent TRYM",
+      "youtubeId": "cJ6Twz6iH8o",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257313552
+    },
+    {
+      "id": "rt_tv_1790257314165_r5vu",
+      "title": "DROPSIDERS TV",
+      "artist": "Rave Rebels presents: Patrick Mason (FULL SET)",
+      "youtubeId": "1xO4ZxFvu1Y",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257314165
+    },
+    {
+      "id": "rt_tv_1790257315977_1ybl",
+      "title": "Showcase · Defqon.1 2026",
+      "artist": "4444 OF A KIND",
+      "youtubeId": "k0_DCdIj7j8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257315977
+    },
+    {
+      "id": "rt_tv_1790257316791_fage",
+      "title": "Defqon.1 2026",
+      "artist": "Coone",
+      "youtubeId": "fsHgYLT_FCc",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257316791
+    },
+    {
+      "id": "rt_tv_1790257317457_5l9n",
+      "title": "Defqon.1 2025",
+      "artist": "DJ Isaac",
+      "youtubeId": "NChSQpkWEKc",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257317457
+    },
+    {
+      "id": "rt_tv_1790257318003_92yy",
+      "title": "Defqon.1 2025",
+      "artist": "Code Black",
+      "youtubeId": "p8IxnjD0e8A",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257318003
+    },
+    {
+      "id": "rt_tv_1790257318692_345u",
+      "title": "Defqon.1 2026",
+      "artist": "Ran-D & Adaro",
+      "youtubeId": "w4QJvock5Rk",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257318692
+    },
+    {
+      "id": "rt_tv_1790257319570_fviw",
+      "title": "DROPSIDERS TV",
+      "artist": "Rave Rebels presents: I Hate Models (FULL SET)",
+      "youtubeId": "ip9UY6YqLVA",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257319570
+    },
+    {
+      "id": "rt_tv_1790257320099_qmlv",
+      "title": "DROPSIDERS TV",
+      "artist": "Rave Rebels presents: 999999999 (FULL SET)",
+      "youtubeId": "meHW6iAyUXQ",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257320099
+    },
+    {
+      "id": "rt_tv_1790257324344_mieu",
+      "title": "Ziggo Dome, Amsterdam",
+      "artist": "FENRICK b2b DURDENHAUER @ Verknipt Ziggo Dome 2025",
+      "youtubeId": "ujL5W6dEV5A",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257324344
+    },
+    {
+      "id": "rt_tv_1790257325037_0nxd",
+      "title": "World's biggest 360° rave",
+      "artist": "DYEN b2b FANTASM @ Verknipt ArenA 2025",
+      "youtubeId": "1_P5LzX5vwE",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257325037
+    },
+    {
+      "id": "rt_tv_1790257326011_6a51",
+      "title": "World's biggest 360° rave",
+      "artist": "Aphøtic b3b NYCO b3b XRTN - Opening set @ Verknipt ArenA 2025",
+      "youtubeId": "OD_Z5P7bfG8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257326011
+    },
+    {
+      "id": "rt_tv_1790257326873_sv2b",
+      "title": "Strijkviertelplas, Utrecht",
+      "artist": "6EJOU b2b MYU:SA @ Verknipt Festival 2025 Day 1",
+      "youtubeId": "U1I2Mbenpf0",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257326873
+    },
+    {
+      "id": "rt_tv_1790257327634_jezi",
+      "title": "Verknipt Festival 2026 - Day 2",
+      "artist": "HARDSOK",
+      "youtubeId": "mm74kq4Rtz8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257327634
+    },
+    {
+      "id": "rt_tv_1790257328267_x1yt",
+      "title": "Intents Festival 2025",
+      "artist": "B-Front vs Phuture Noize",
+      "youtubeId": "w6ZWvgAC6OQ",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257328267
+    },
+    {
+      "id": "rt_tv_1790257328785_tsgm",
+      "title": "Intents Festival 2025",
+      "artist": "Noxiouz vs The Dark Horror",
+      "youtubeId": "IwwhUGWdB-E",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257328785
+    },
+    {
+      "id": "rt_tv_1790257329372_bzez",
+      "title": "Intents Festival 2026",
+      "artist": "Phuture Noize: Journey",
+      "youtubeId": "m7g7QBhN8eM",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257329372
+    },
+    {
+      "id": "rt_tv_1790257330357_2c0l",
+      "title": "Intents Festival 2025",
+      "artist": "D-Sturb",
+      "youtubeId": "B7CfZkZPjMw",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257330357
+    },
+    {
+      "id": "rt_tv_1790257331017_755v",
+      "title": "The Opening · Intents Festival 2026",
+      "artist": "Radical Redemption vs Regain",
+      "youtubeId": "mx9PuORBDw0",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257331017
+    },
+    {
+      "id": "rt_tv_1790257338005_hhyt",
+      "title": "Halloween 2024",
+      "artist": "CLOUDY B2B KUKO @ Blackworks Festival - The Purgatory",
+      "youtubeId": "eLsREd3QqSU",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257338005
+    },
+    {
+      "id": "rt_tv_1790257338604_xea2",
+      "title": "BLACKWORKS FIREFIELD NYD 2025",
+      "artist": "DION B2B PAWLOWSKI",
+      "youtubeId": "LAsCRWFnxbI",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257338604
+    },
+    {
+      "id": "rt_tv_1790257339667_501j",
+      "title": "BLACKWORKS WEEKEND FESTIVAL - REBIRTH EDITION",
+      "artist": "FANTASM",
+      "youtubeId": "l6cWbRpFOco",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257339667
+    },
+    {
+      "id": "rt_tv_1790257340343_xg3p",
+      "title": "FULL VIDEOSET",
+      "artist": "DEXPHASE B2B OGUZ @ BLACKWORKS WEEKEND FESTIVAL 2026: DIMENSION",
+      "youtubeId": "nj0rTJ1CfAQ",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257340343
+    },
+    {
+      "id": "rt_tv_1790257340990_hfsb",
+      "title": "Pat B",
+      "artist": "Reverze 2026",
+      "youtubeId": "Bs4cZ9SFAqI",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257340990
+    },
+    {
+      "id": "rt_tv_1790257341633_8odl",
+      "title": "Brennan Heart vs Coone",
+      "artist": "Reverze 2026",
+      "youtubeId": "vqun0DuD50Y",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257341633
+    },
+    {
+      "id": "rt_tv_1790257342181_uuhe",
+      "title": "Ruthless vs The Darkraver",
+      "artist": "Reverze 2026",
+      "youtubeId": "FkXBhkSRVu8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257342181
+    },
+    {
+      "id": "rt_tv_1790257342808_8d6l",
+      "title": "B-Front",
+      "artist": "Reverze 2026",
+      "youtubeId": "H7f_gznlCKA",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257342808
+    },
+    {
+      "id": "rt_tv_1790257343370_27v0",
+      "title": "Frontliner Live",
+      "artist": "Reverze 2026",
+      "youtubeId": "kJA_kyG2YLs",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257343370
+    },
+    {
+      "id": "rt_tv_1790257345650_r61c",
+      "title": "WASTELAND 2026",
+      "artist": "LIL TEXAS B2B YOSUF",
+      "youtubeId": "0yP1FO31tmM",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257345650
+    },
+    {
+      "id": "rt_tv_1790257346715_ie50",
+      "title": "Decibel outdoor 2025",
+      "artist": "Ran-D LIVE",
+      "youtubeId": "UyEjhlTjyC8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257346715
+    },
+    {
+      "id": "rt_tv_1790257349628_6yye",
+      "title": "Halloween 2024",
+      "artist": "THAM B2B KRL MX @ Blackworks Festival - The Purgatory",
+      "youtubeId": "x8DqwF_GaYM",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257349628
+    },
+    {
+      "id": "rt_tv_1790257350257_6wce",
+      "title": "Decibel outdoor 2025",
+      "artist": "Dual Damage",
+      "youtubeId": "3oB8RpeM2pQ",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257350257
+    },
+    {
+      "id": "rt_tv_1790257350832_d0ua",
+      "title": "Decibel outdoor 2025",
+      "artist": "Crypsis",
+      "youtubeId": "-UD7ldGoiB8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257350832
+    },
+    {
+      "id": "rt_tv_1790257351396_w4wn",
+      "title": "Decibel outdoor 2025",
+      "artist": "Gezellige Uptempo",
+      "youtubeId": "S2zL0pD4DEE",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257351396
+    },
+    {
+      "id": "rt_tv_1790257351972_b3er",
+      "title": "Decibel outdoor 2025",
+      "artist": "Angerfist LIVE: Closing Session",
+      "youtubeId": "QHUGte7ohQU",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257351972
+    },
+    {
+      "id": "rt_tv_1790257354766_bohj",
+      "title": "ESCAPE HALLOWEEN ( HARD TECHNO )",
+      "artist": "DØMINA",
+      "youtubeId": "D1O9K7EmINQ",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257354766
+    },
+    {
+      "id": "rt_tv_1790257356210_is2d",
+      "title": "DROPSIDERS TV",
+      "artist": "Anoluxx Wasteland Full Set 2025",
+      "youtubeId": "8bl0PcaO_4k",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257356210
+    },
+    {
+      "id": "rt_tv_1790257357115_oz2l",
+      "title": "Insomniac · Basscon",
+      "artist": "JUNKIE KID  - PRESENTS THE PARADOX -  FROM WASTELAND 2025 (FULL SET)",
+      "youtubeId": "IPHt8lM7epo",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257357115
+    },
+    {
+      "id": "rt_tv_1790257357834_05b2",
+      "title": "WASTELAND FESTIVAL 2025 - FULL SET [HARD TECHNO]",
+      "artist": "CLAWZ -",
+      "youtubeId": "tj7IqyCaE0U",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257357834
+    },
+    {
+      "id": "rt_tv_1790257358790_sbns",
+      "title": "WASTELAND 2026 · FULL SET",
+      "artist": "CUTDWN",
+      "youtubeId": "0C-F7iPWQno",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257358790
     }
   ]
 }
