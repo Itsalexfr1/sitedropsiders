@@ -112,3 +112,81 @@ export const hasPermission = (storedPermissions: string[], p: string, isAlex: bo
     const alt = mapping[p];
     return storedPermissions.includes(p) || (alt ? storedPermissions.includes(alt) : false);
 };
+
+export const canUserDelete = (user?: string | null, permissions: string[] = []): boolean => {
+    if (isSuperAdmin(user)) return true;
+    if (permissions && permissions.includes('all')) return true;
+    return false;
+};
+
+export const isAuthorMatch = (
+    authorName?: string | null,
+    currentUser?: string | null,
+    editorsList?: any[]
+): boolean => {
+    if (!currentUser) return false;
+    if (isSuperAdmin(currentUser)) return true;
+    if (!authorName) return false;
+
+    const normAuthor = authorName.toLowerCase().trim();
+    const normUser = currentUser.toLowerCase().trim();
+
+    // Direct match
+    if (normAuthor === normUser) return true;
+
+    // Check with editors list if provided
+    if (editorsList && Array.isArray(editorsList) && editorsList.length > 0) {
+        const editor = editorsList.find((e: any) => {
+            const u = (e.username || '').toLowerCase().trim();
+            const p = (e.pseudo || '').toLowerCase().trim();
+            const n = (e.name || '').toLowerCase().trim();
+            const em = (e.email || '').toLowerCase().trim();
+            return normUser === u || normUser === p || normUser === n || normUser === em;
+        });
+
+        if (editor) {
+            const editorAliases = [
+                (editor.username || '').toLowerCase().trim(),
+                (editor.pseudo || '').toLowerCase().trim(),
+                (editor.name || '').toLowerCase().trim(),
+                (editor.email || '').toLowerCase().trim(),
+            ].filter(Boolean);
+
+            if (editorAliases.some(alias => normAuthor === alias || normAuthor.includes(alias) || alias.includes(normAuthor))) {
+                return true;
+            }
+        }
+    }
+
+    // Email prefix matching fallback
+    const emailPrefix = normUser.split('@')[0];
+    if (emailPrefix && emailPrefix.length >= 3 && (normAuthor.includes(emailPrefix) || emailPrefix.includes(normAuthor))) {
+        return true;
+    }
+
+    return false;
+};
+
+export const canUserEditItem = (
+    item: any,
+    user?: string | null,
+    permissions: string[] = [],
+    editorsList: any[] = [],
+    activeTab?: string
+): boolean => {
+    if (isSuperAdmin(user) || permissions.includes('all')) return true;
+
+    // Non-news tabs are completely restricted for editors
+    const nonNewsTabs = ['Recaps', 'Agenda', 'Communauté', 'Membres'];
+    if (activeTab && nonNewsTabs.includes(activeTab)) {
+        return false;
+    }
+
+    // If item is from recaps, agenda, or galerie (not a news article)
+    if (item && (item.festival || item.isWeekly || item.type === 'Residence' || item.uploader)) {
+        return false;
+    }
+
+    // For news articles, user can only edit if they are the author
+    return isAuthorMatch(item?.author, user, editorsList);
+};

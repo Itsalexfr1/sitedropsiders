@@ -546,6 +546,40 @@ export default {
                 // --- PERMISSIONS MAPPING & CHECKS ---
                 const hasAll = userPermissions.includes('all');
 
+                // --- STRICT PERMISSION: EDITORS CAN NEVER DELETE ANYTHING ---
+                const isDeletePath = path.endsWith('/delete') || 
+                    path.includes('/delete') || 
+                    path === '/api/photos/delete' || 
+                    path === '/api/shop/delete' || 
+                    path === '/api/r2/delete' || 
+                    path === '/api/wiki/delete' || 
+                    path === '/api/quiz/delete' || 
+                    path === '/api/invoices/delete' || 
+                    path === '/api/editors/delete' ||
+                    path === '/api/pdfs/delete' ||
+                    path === '/api/contacts/delete' ||
+                    path === '/api/music/delete';
+
+                if (isDeletePath && !hasAll) {
+                    return new Response(JSON.stringify({ 
+                        error: "Action refusée : les éditeurs ne peuvent rien supprimer sur le site." 
+                    }), { status: 403, headers });
+                }
+
+                // --- STRICT PERMISSION: EDITORS CANNOT EDIT NON-NEWS CONTENT ---
+                const isNonNewsContentUpdate = path.startsWith('/api/recaps/update') ||
+                    path.startsWith('/api/agenda/update') ||
+                    path.startsWith('/api/galerie/update') ||
+                    path.startsWith('/api/recaps/create') ||
+                    (path.startsWith('/api/agenda') && request.method === 'POST') ||
+                    path.startsWith('/api/galerie/create');
+
+                if (isNonNewsContentUpdate && !hasAll) {
+                    return new Response(JSON.stringify({
+                        error: "Permission refusée : les éditeurs peuvent uniquement éditer les articles news qu'ils ont créés."
+                    }), { status: 403, headers });
+                }
+
                 // 1. News
                 if (path.startsWith('/api/news') && !hasAll && !userPermissions.includes('news') && !userPermissions.includes('news_focus') && !userPermissions.includes('news_editorial')) {
                     return new Response(JSON.stringify({ error: 'Permission refusée : news' }), { status: 403, headers });
@@ -5053,7 +5087,10 @@ ${urls.map(u => `  <url>
                     isReview: isReview || false,
                     year: year || undefined,
                     link: `https://dropsiders.fr/news/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-                    author: author || requestUsername || 'Alex'
+                    author: (() => {
+                        if (hasAll) return author || requestUsername || 'Alex';
+                        return requestUsername || 'Editeur';
+                    })()
                 };
 
                 const updatedNews = [newArticle, ...currentNews];
@@ -5180,6 +5217,46 @@ ${urls.map(u => `  <url>
                 const { images, youtubeId: extractedYoutubeId } = extractMetadata(content || '');
 
                 const existing = currentData[index];
+
+                // Verification: Editors can ONLY edit articles created by themselves
+                if (!hasAll) {
+                    const editorsFile = await fetchGitHubFile(EDITORS_PATH, gitConfig);
+                    const editors = editorsFile?.content || [];
+                    const reqUserNorm = (requestUsername || '').toLowerCase().trim();
+                    const currentEditor = editors.find((e: any) => 
+                        (e.username || '').toLowerCase().trim() === reqUserNorm || 
+                        (e.email || '').toLowerCase().trim() === reqUserNorm ||
+                        (e.pseudo || '').toLowerCase().trim() === reqUserNorm ||
+                        (e.name || '').toLowerCase().trim() === reqUserNorm
+                    );
+
+                    const editorAliases = [
+                        reqUserNorm,
+                        (currentEditor?.username || '').toLowerCase().trim(),
+                        (currentEditor?.pseudo || '').toLowerCase().trim(),
+                        (currentEditor?.name || '').toLowerCase().trim(),
+                        (currentEditor?.email || '').toLowerCase().trim(),
+                    ].filter(Boolean);
+
+                    const emailPrefix = reqUserNorm.split('@')[0];
+                    if (emailPrefix && emailPrefix.length >= 3) {
+                        editorAliases.push(emailPrefix);
+                    }
+
+                    const existingAuthor = (existing.author || '').toLowerCase().trim();
+                    const isOwner = editorAliases.some(alias => 
+                        existingAuthor === alias || 
+                        existingAuthor.includes(alias) || 
+                        alias.includes(existingAuthor)
+                    );
+
+                    if (!isOwner) {
+                        return new Response(JSON.stringify({ 
+                            error: "Permission refusée : vous pouvez uniquement éditer les articles créés par vous-même." 
+                        }), { status: 403, headers });
+                    }
+                }
+
                 currentData[index] = {
                     ...existing,
                     title: cleanStr(title) || existing.title,
@@ -5196,7 +5273,7 @@ ${urls.map(u => `  <url>
                     isDraft: isDraft !== undefined ? isDraft : existing.isDraft,
                     isReview: isReview !== undefined ? isReview : existing.isReview,
                     year: year !== undefined ? (year || undefined) : existing.year,
-                    author: author || existing.author || requestUsername || 'Alex'
+                    author: hasAll ? (author || existing.author || requestUsername || 'Alex') : (existing.author || requestUsername)
                 };
 
                 await saveGitHubFile(FILE_PATH, currentData, `Update news: ${title || existing.title}`, newsFile.sha, gitConfig);
@@ -6751,6 +6828,7 @@ ${urls.map(u => `  <url>
         const contentDeletePaths = ['/api/news/delete', '/api/recaps/delete', '/api/agenda/delete', '/api/galerie/delete'];
         if (contentDeletePaths.includes(path) && request.method === 'POST') {
             if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            if (!hasAll) return new Response(JSON.stringify({ error: "Permission refusée : les éditeurs ne peuvent rien supprimer." }), { status: 403, headers });
 
             try {
                 const { id, ids } = await request.json();

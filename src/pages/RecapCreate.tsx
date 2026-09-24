@@ -2,14 +2,13 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, CheckCircle2, Clock, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Underline as UnderlineIcon, Upload, User, Wand2, X, Youtube, Globe, Facebook, Instagram, ChevronUp, ChevronDown, Check, AlignLeft, AlignCenter, AlignRight, Palette } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
-import { getAuthHeaders } from '../utils/auth';
+import { getAuthHeaders, isSuperAdmin, canUserDelete, apiFetch } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { PromptModal } from '../components/ui/PromptModal';
 import { fixEncoding, standardizeContent } from '../utils/standardizer';
 import recapsData from '../data/recaps.json';
 import agendaData from '../data/agenda.json';
-import { apiFetch } from '../utils/auth';
 
 import '../styles/article-premium.css';
 
@@ -130,6 +129,17 @@ export function RecapCreate() {
     const id = searchParams.get('id');
     const isEditing = !!id;
     const editingItem = location.state?.item;
+
+    const currentUser = localStorage.getItem('admin_user') || '';
+    const storedPermissions: string[] = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
+    const isSuper = isSuperAdmin(currentUser) || storedPermissions.includes('all');
+    const canDelete = isSuper;
+
+    useEffect(() => {
+        if (isEditing && !isSuper) {
+            navigate('/admin/manage');
+        }
+    }, [isEditing, isSuper, navigate]);
 
     const [title, setTitle] = useState('');
     const [coverImage, setCoverImage] = useState('');
@@ -1206,7 +1216,12 @@ export function RecapCreate() {
     };
 
     const handleDelete = async () => {
-        if (!id) return;
+        if (!id || !canDelete) {
+            setStatus('error');
+            setMessage("Action non autorisée : les éditeurs ne peuvent rien supprimer.");
+            setShowDeleteConfirm(false);
+            return;
+        }
         setStatus('loading');
         try {
             const response = await fetch('/api/recaps/delete', {
@@ -1322,7 +1337,7 @@ export function RecapCreate() {
                             <Calendar className="w-4 h-4" />
                             <span>{status === 'loading' ? 'EN COURS...' : 'PROGRAMMER'}</span>
                         </button>
-                        {isEditing && (
+                        {isEditing && canDelete && (
                             <button
                                 type="button"
                                 onClick={() => setShowDeleteConfirm(true)}

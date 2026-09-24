@@ -8,7 +8,7 @@ import {
     ChevronUp, ChevronDown, Link2, Palette, X, Eye, Quote, Save,
 } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
-import { getAuthHeaders } from '../utils/auth';
+import { getAuthHeaders, isSuperAdmin, isAuthorMatch, canUserDelete } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { PromptModal } from '../components/PromptModal';
@@ -238,6 +238,11 @@ export function NewsCreate() {
     const type = searchParams.get('type') || 'News'; // 'News' or 'Interview'
     const id = searchParams.get('id');
     const isEditing = !!id;
+
+    const currentUser = localStorage.getItem('admin_user') || '';
+    const storedPermissions: string[] = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
+    const isSuper = isSuperAdmin(currentUser) || storedPermissions.includes('all');
+    const canDelete = isSuper;
 
     // Strip HTML tags from text (e.g. answers pasted from rich editors)
     const stripHtml = (html: string): string => {
@@ -965,6 +970,17 @@ export function NewsCreate() {
         }
 
         const parseAndInitialize = (articleData: any, fullContent: string) => {
+            // Strict security check: editors can ONLY edit their own articles
+            if (currentId && !isSuper && !isAuthorMatch(articleData.author, currentUser, editorsList)) {
+                setIsLoading(false);
+                setStatus('error');
+                setMessage("Accès refusé : vous pouvez uniquement éditer les articles créés par vous-même.");
+                setTimeout(() => {
+                    navigate('/admin/manage');
+                }, 2000);
+                return;
+            }
+
             if (articleData.title) setTitle(articleData.title);
             if (articleData.isDraft !== undefined) setIsDraft(articleData.isDraft);
             if (articleData.location) setLocationInput(articleData.location);
@@ -1998,7 +2014,12 @@ ${items}
     };
 
     const handleDelete = async () => {
-        if (!id) return;
+        if (!id || !canDelete) {
+            setStatus('error');
+            setMessage("Action non autorisée : les éditeurs ne peuvent rien supprimer.");
+            setShowDeleteConfirm(false);
+            return;
+        }
         setStatus('loading');
         try {
             const response = await fetch('/api/news/delete', {
@@ -2292,7 +2313,13 @@ ${generateSocialsHtml()}
                 isFeatured,
                 isReview: activeTab === 'Review',
                 isDraft: finalIsDraft,
-                author
+                author: (() => {
+                    if (isSuper) return author;
+                    const myEditor = editorsList.find((e: any) => 
+                        isAuthorMatch(e.username || e.name || e.email || e.pseudo, currentUser, editorsList)
+                    );
+                    return myEditor?.username || myEditor?.pseudo || myEditor?.name || author;
+                })()
             };
 
             const endpoint = isEditing ? '/api/news/update' : '/api/news/create';
@@ -2566,7 +2593,7 @@ ${generateSocialsHtml()}
                                 <Save className="w-4 h-4" />
                                 <span>BROUILLON</span>
                             </button>
-                            {isEditing && (
+                            {isEditing && canDelete && (
                                 <button
                                     type="button"
                                     onClick={() => setShowDeleteConfirm(true)}
@@ -2760,10 +2787,11 @@ ${generateSocialsHtml()}
                         <div data-section="editor-selection" className="space-y-6">
                             <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
                                 <User className="w-3 h-3 text-neon-cyan" /> Choisir l'Éditeur <span className="text-neon-red">*</span>
+                                {!isSuper && <span className="text-neon-yellow text-[9px] font-bold normal-case tracking-normal">(Verrouillé sur votre compte éditeur)</span>}
                             </label>
 
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                                {editorsList.map((editor: any) => {
+                                {(isSuper ? editorsList : editorsList.filter((e: any) => isAuthorMatch(e.username || e.name || e.email || e.pseudo, currentUser, editorsList))).map((editor: any) => {
                                     const editorDisplay = editor.username || editor.name || editor.email;
                                     const editorColor = getEditorColor(editorDisplay.toLowerCase());
                                     const isSelected = author === editorDisplay || author === editor.name || author === editor.username || author === editor.email;
@@ -2771,11 +2799,13 @@ ${generateSocialsHtml()}
                                         <button
                                             key={editor.email || editor.username}
                                             type="button"
+                                            disabled={!isSuper}
                                             onClick={() => {
+                                                if (!isSuper) return;
                                                 setAuthor(editorDisplay);
                                                 setIsAuthorConfirmed(false);
                                             }}
-                                            className={`relative group p-4 rounded-3xl border transition-all duration-300 flex flex-col items-center gap-3 active:scale-95 ${isSelected
+                                            className={`relative group p-4 rounded-3xl border transition-all duration-300 flex flex-col items-center gap-3 ${!isSuper ? 'cursor-default' : 'active:scale-95'} ${isSelected
                                                 ? 'bg-white/[0.05] border-white/20'
                                                 : 'bg-black/20 border-white/5 hover:border-white/10 grayscale hover:grayscale-0'
                                                 }`}
@@ -5219,7 +5249,7 @@ ${generateSocialsHtml()}
                             </button>
                         </div>
 
-                        {isEditing && (
+                        {isEditing && canDelete && (
                             <button
                                 onClick={() => setShowDeleteConfirm(true)}
                                 type="button"

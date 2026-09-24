@@ -8,7 +8,7 @@ import { getArticleLink } from '../utils/slugify';
 import { standardizeContent } from '../utils/standardizer';
 import { Pagination } from '../components/ui/Pagination';
 import { translateText } from '../utils/translate';
-import { getAuthHeaders } from '../utils/auth';
+import { getAuthHeaders, isSuperAdmin, isAuthorMatch } from '../utils/auth';
 import { SEO } from '../components/utils/SEO';
 import { AdminEditBar } from '../components/admin/AdminEditBar';
 import { resolveImageUrl } from '../utils/image';
@@ -40,9 +40,31 @@ export function News() {
     const [tabs, setTabs] = useState(DEFAULT_TABS);
     const [agendaData, setAgendaData] = useState<any[]>([]);
     const [recapsData, setRecapsData] = useState<any[]>([]);
+    const [editorsList, setEditorsList] = useState<any[]>([]);
+
+    const currentUser = localStorage.getItem('admin_user') || '';
+    const storedPermissions: string[] = useMemo(() => {
+        try {
+            return JSON.parse(localStorage.getItem('admin_permissions') || '[]');
+        } catch {
+            return [];
+        }
+    }, []);
+    const isSuper = isSuperAdmin(currentUser) || storedPermissions.includes('all');
+
+    const canEditCard = useCallback((item: any) => {
+        if (!isAdmin) return false;
+        if (isSuper) return true;
+        return isAuthorMatch(item?.author, currentUser, editorsList);
+    }, [isAdmin, isSuper, currentUser, editorsList]);
 
     useEffect(() => {
         setIsAdmin(localStorage.getItem('admin_auth_v2') === 'true');
+
+        fetch('/api/editors', { headers: getAuthHeaders() })
+            .then(res => res.json())
+            .then(data => setEditorsList(Array.isArray(data) ? data : (data.editors || data.content || [])))
+            .catch(() => {});
 
         const fetchNews = async () => {
             try {
@@ -134,6 +156,7 @@ export function News() {
     }, [themePopover]);
 
     const handleChangeCategory = useCallback(async (item: any, newCategory: string) => {
+        if (!canEditCard(item)) return;
         if (savingCategoryId === item.id) return;
         setSavingCategoryId(item.id);
         setThemePopover(null);
@@ -197,6 +220,7 @@ export function News() {
     );
 
     const handleEdit = async (item: any) => {
+        if (!canEditCard(item)) return;
         setLoadingEditId(item.id);
         try {
             const res = await fetch(`/api/news/content?id=${item.id}`, { headers: getAuthHeaders() });
@@ -381,7 +405,7 @@ export function News() {
                                 }}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/50 to-transparent" />
-                            {isAdmin && (
+                            {canEditCard(heroArticle) && (
                                 <div className="absolute top-3 right-3 z-20 flex gap-1.5">
                                     <ThemeButton item={heroArticle} />
                                     <button
@@ -451,7 +475,7 @@ export function News() {
                                     }}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent" />
-                                {isAdmin && (
+                                {canEditCard(item) && (
                                     <div className="absolute top-2 right-2 z-20 flex gap-1">
                                         <ThemeButton item={item} />
                                         <button
@@ -669,7 +693,7 @@ export function News() {
                                             onMouseEnter={playHoverSound}
                                             className="group relative rounded-[2rem] overflow-hidden transition-all duration-500 w-[85vw] flex-shrink-0 snap-center aspect-square md:aspect-auto md:w-auto md:flex-shrink-1 md:bg-dark-card md:border md:border-white/5 md:rounded-3xl hover:border-neon-red/50 hover:shadow-[0_0_40px_rgba(255,0,51,0.2)] md:flex md:flex-col"
                                         >
-                                            {isAdmin && (
+                                            {canEditCard(item) && (
                                                 <div className="absolute top-4 right-4 z-20 flex gap-2">
                                                     <ThemeButton item={item} />
                                                     <button

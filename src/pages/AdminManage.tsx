@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Trash2, Search, Calendar, FileText, Video, Mic, Music, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Image as ImageIcon, X, Pencil, Star, ExternalLink, Camera, RefreshCw, ChevronUp, ChevronDown, Save, Instagram, Sparkles, Users, Mail, ShieldCheck, User, ShieldAlert, ArrowRight, Shield } from 'lucide-react';
+import { Trash2, Search, Calendar, FileText, Video, Mic, Music, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Image as ImageIcon, X, Pencil, Star, ExternalLink, Camera, RefreshCw, ChevronUp, ChevronDown, Save, Instagram, Sparkles, Users, Mail, ShieldCheck, User, ShieldAlert, ArrowRight, Shield, Lock } from 'lucide-react';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { SocialSuite } from '../components/SocialSuite';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { resolveImageUrl } from '../utils/image';
-import { getAuthHeaders, isSuperAdmin, hasPermission as checkPerm } from '../utils/auth';
+import { getAuthHeaders, isSuperAdmin, hasPermission as checkPerm, canUserDelete, isAuthorMatch, canUserEditItem as checkCanEditItem } from '../utils/auth';
 import { FlagIcon } from '../components/ui/FlagIcon';
 import { AgendaModal } from '../components/AgendaModal';
 import { fetchWithFallback } from '../utils/fetcher';
@@ -144,6 +144,22 @@ export function AdminManage() {
         fetchTeam();
     }, []);
 
+    const [editorsList, setEditorsList] = useState<any[]>([]);
+    useEffect(() => {
+        const fetchEditors = async () => {
+            try {
+                const res = await fetch('/api/editors', { headers: getAuthHeaders() });
+                if (res.ok) {
+                    const data = await res.json();
+                    setEditorsList(Array.isArray(data) ? data : (data.editors || data.content || []));
+                }
+            } catch (e) {
+                console.error("Error fetching editors:", e);
+            }
+        };
+        fetchEditors();
+    }, []);
+
     const getAuthorInsta = (authorName: string) => {
         if (!authorName) return null;
         const normalized = authorName.trim().toLowerCase();
@@ -175,8 +191,13 @@ export function AdminManage() {
     const isAdmin = hasPermission('all');
     const permissionToCheck = activeTab === 'Brouillons' ? 'News' : activeTab;
     const canCreate = hasPermission(permissionToCheck);
-    const canEdit = hasPermission(permissionToCheck);
-    const canDelete = hasPermission(permissionToCheck);
+    // Strict permissions: editors can NEVER delete anything on the site
+    const canDelete = isAdmin;
+    
+    // Editors can ONLY edit news articles created by themselves
+    const canEditItem = (item: any) => {
+        return checkCanEditItem(item, storedUser, storedPermissions, editorsList, activeTab);
+    };
 
     // Initial access check: if not Alex and has zero permissions, redirect
     useEffect(() => {
@@ -209,6 +230,12 @@ export function AdminManage() {
     }, [activeTab]);
 
     const handleBulkDelete = async () => {
+        if (!canDelete) {
+            setDeleteStatus('error');
+            setMessage("Action non autorisée : les éditeurs ne peuvent rien supprimer.");
+            setTimeout(() => setDeleteStatus('idle'), 3000);
+            return;
+        }
         setBulkDeleteConfirm(false);
         setDeleteStatus('loading');
         setMessage(`Suppression de ${selectedIds.length} éléments...`);
@@ -278,6 +305,12 @@ export function AdminManage() {
     };
 
     const handleDelete = async (id: number | string) => {
+        if (!canDelete) {
+            setDeleteStatus('error');
+            setMessage("Action non autorisée : les éditeurs ne peuvent rien supprimer.");
+            setTimeout(() => setDeleteStatus('idle'), 3000);
+            return;
+        }
         setDeleteStatus('loading');
         try {
             const endpoint = (activeTab === 'Interviews' || activeTab === 'Musique' || activeTab === 'Focus' || activeTab === 'News' || activeTab === 'Brouillons') ? '/api/news/delete' :
@@ -309,6 +342,12 @@ export function AdminManage() {
     };
 
     const handleEdit = (item: any) => {
+        if (!canEditItem(item)) {
+            setDeleteStatus('error');
+            setMessage("Action refusée : vous pouvez uniquement éditer les articles créés par vous-même.");
+            setTimeout(() => setDeleteStatus('idle'), 3500);
+            return;
+        }
         const isInterview = item.category === 'Interview' || item.category === 'Interviews' || item.category === 'Interview Video' || activeTab === 'Interviews';
         const isMusique = item.category === 'Musique' || item.category === 'Sets-Mixes' || activeTab === 'Musique';
         const isFocus = item.isFocus || activeTab === 'Focus';
@@ -1203,14 +1242,23 @@ export function AdminManage() {
                                                     )}
                                                     {['News', 'Musique', 'Interviews', 'Recaps', 'Focus'].includes(activeTab) && (
                                                         <button
-                                                            onClick={() => setFeaturedTarget(item)}
-                                                            className={`p-3 rounded-xl transition-all ${item.isFeatured ? 'text-yellow-500 bg-yellow-500/10' : 'text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10'}`}
-                                                            title={item.isFeatured ? "Retirer de la une" : "Mettre à la une"}
+                                                            onClick={() => {
+                                                                if (!canEditItem(item)) {
+                                                                    setMessage("Action réservée à l'auteur de l'article");
+                                                                    setDeleteStatus('error');
+                                                                    setTimeout(() => setDeleteStatus('idle'), 3000);
+                                                                    return;
+                                                                }
+                                                                setFeaturedTarget(item);
+                                                            }}
+                                                            disabled={!canEditItem(item)}
+                                                            className={`p-3 rounded-xl transition-all ${item.isFeatured ? 'text-yellow-500 bg-yellow-500/10' : 'text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10'} ${!canEditItem(item) ? 'opacity-20 cursor-not-allowed' : ''}`}
+                                                            title={!canEditItem(item) ? "Réservé à l'auteur" : item.isFeatured ? "Retirer de la une" : "Mettre à la une"}
                                                         >
                                                             <Star className={`w-5 h-5 ${item.isFeatured ? 'fill-current' : ''}`} />
                                                         </button>
                                                     )}
-                                                    {canEdit && (
+                                                    {canEditItem(item) ? (
                                                         <button
                                                             onClick={() => handleEdit(item)}
                                                             className="p-3 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-xl transition-all"
@@ -1218,8 +1266,15 @@ export function AdminManage() {
                                                         >
                                                             <Pencil className="w-5 h-5" />
                                                         </button>
+                                                    ) : (
+                                                        <span
+                                                            className="p-3 text-gray-600/40 cursor-not-allowed inline-flex items-center justify-center"
+                                                            title="Modification réservée à l'auteur de l'article"
+                                                        >
+                                                            <Lock className="w-4 h-4" />
+                                                        </span>
                                                     )}
-                                                    {(activeTab === 'Interviews' || activeTab === 'Agenda') && (
+                                                    {(activeTab === 'Interviews' || activeTab === 'Agenda') && canEditItem(item) && (
                                                         <div className="flex items-center gap-1">
                                                             <button
                                                                 onClick={() => {
