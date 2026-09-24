@@ -126,6 +126,7 @@ export function AdminRadioModal({
     const [tvSearch, setTvSearch] = useState('');
     const [tvFilter, setTvFilter] = useState<'all' | 'liveset' | 'clip'>('all');
     const [tvSelectedBlockId, setTvSelectedBlockId] = useState<string>('all');
+    const [tvHideUsed, setTvHideUsed] = useState(false);
 
     // ─── Drag and Drop ────────────────────────────────────────────────────────
     const [draggingVideo, setDraggingVideo] = useState<TVVideoItem | null>(null);
@@ -431,6 +432,18 @@ export function AdminRadioModal({
         const cleanYt = extractYouTubeId(editingTrack.youtubeId) || editingTrack.youtubeId.trim();
         const durSec = Math.max(30, (editingTrack.durationMinutes || 60) * 60);
 
+        // Vérification doublon cross-émissions pour le nouvel ID YouTube
+        if (cleanYt && cleanYt !== editingTrack.youtubeId) {
+            const otherBlock = blocks.find(b =>
+                b.id !== selectedBlock.id &&
+                b.tracks?.some(t => t.youtubeId === cleanYt)
+            );
+            if (otherBlock) {
+                showToast(`🚫 Cet ID YouTube est déjà dans « ${otherBlock.title} »`, 'warn');
+                return;
+            }
+        }
+
         setBlocks(prev => prev.map(b => {
             if (b.id !== selectedBlock.id) return b;
             return {
@@ -498,9 +511,17 @@ export function AdminRadioModal({
         const target = blocks.find(b => b.id === blockId);
         if (!target) return;
 
-        const alreadyIn = target.tracks?.some(t => t.youtubeId === vid.youtubeId);
-        if (alreadyIn) {
-            showToast(`« ${vid.title.slice(0, 28)}... » est déjà dans cette émission`, 'info');
+        // Vérifie si déjà dans CETTE émission
+        const alreadyInTarget = target.tracks?.some(t => t.youtubeId === vid.youtubeId);
+        if (alreadyInTarget) {
+            showToast(`⚠️ Ce set est déjà dans « ${target.title} »`, 'warn');
+            return;
+        }
+
+        // Vérifie si déjà utilisé dans UNE AUTRE émission
+        const otherBlock = blocks.find(b => b.id !== blockId && b.tracks?.some(t => t.youtubeId === vid.youtubeId));
+        if (otherBlock) {
+            showToast(`🚫 Ce set est déjà dans « ${otherBlock.title} » — retirez-le d'abord`, 'warn');
             return;
         }
 
@@ -533,9 +554,11 @@ export function AdminRadioModal({
             showToast('Sélectionnez d\'abord une émission', 'warn');
             return;
         }
-        const currentIds = new Set((selectedBlock.tracks || []).map(t => t.youtubeId));
+        // Exclure les vidéos déjà utilisées dans N'IMPORTE QUELLE émission
+        const allUsedIds = new Set(blocks.flatMap(b => (b.tracks || []).map(t => t.youtubeId)));
+        const skipped = tvBlock.videos.filter(v => allUsedIds.has(v.youtubeId)).length;
         const toAdd: RadioTrackItem[] = tvBlock.videos
-            .filter(v => !currentIds.has(v.youtubeId))
+            .filter(v => !allUsedIds.has(v.youtubeId))
             .map(v => {
                 const { artist, event } = parseArtistAndEvent(v.title);
                 return {
@@ -550,7 +573,7 @@ export function AdminRadioModal({
             });
 
         if (toAdd.length === 0) {
-            showToast('Toutes les vidéos de ce bloc sont déjà ajoutées', 'info');
+            showToast('Toutes les vidéos de ce bloc sont déjà dans une émission', 'info');
             return;
         }
 
@@ -559,7 +582,8 @@ export function AdminRadioModal({
                 ? { ...b, tracks: [...(b.tracks || []), ...toAdd] }
                 : b
         ));
-        showToast(`🎉 ${toAdd.length} vidéos importées dans « ${selectedBlock.title} » !`);
+        const skipMsg = skipped > 0 ? ` (${skipped} déjà utilisé${skipped > 1 ? 's' : ''} ignoré${skipped > 1 ? 's' : ''})` : '';
+        showToast(`🎉 ${toAdd.length} vidéos importées dans « ${selectedBlock.title} »${skipMsg} !`);
     };
 
     // ─── Ajout manuel URL YouTube ─────────────────────────────────────────────
@@ -592,6 +616,18 @@ export function AdminRadioModal({
         }
         if (!selectedBlock) {
             showToast('Sélectionnez d\'abord une émission', 'warn');
+            return;
+        }
+
+        // Vérification doublon cross-émissions
+        const otherBlock = blocks.find(b => b.id !== selectedBlock.id && b.tracks?.some(t => t.youtubeId === ytid));
+        if (otherBlock) {
+            showToast(`🚫 Ce set est déjà dans « ${otherBlock.title} » — retirez-le d'abord`, 'warn');
+            return;
+        }
+        const alreadyInCurrent = selectedBlock.tracks?.some(t => t.youtubeId === ytid);
+        if (alreadyInCurrent) {
+            showToast(`⚠️ Ce set est déjà dans « ${selectedBlock.title} »`, 'warn');
             return;
         }
 
@@ -660,6 +696,17 @@ export function AdminRadioModal({
         }
     };
 
+    // ─── Map youtubeId -> nom d'émission (toutes les émissions) ───────────────
+    const allUsedIdToBlock = useMemo(() => {
+        const map = new Map<string, string>();
+        blocks.forEach(b => {
+            (b.tracks || []).forEach(t => {
+                if (t.youtubeId) map.set(t.youtubeId, b.title);
+            });
+        });
+        return map;
+    }, [blocks]);
+
     // ─── Vidéos TV filtrées pour la bibliothèque ──────────────────────────────
     const filteredTVVideos = useMemo(() => {
         const q = tvSearch.toLowerCase().trim();
@@ -669,6 +716,7 @@ export function AdminRadioModal({
             if (tvSelectedBlockId !== 'all' && b.id !== tvSelectedBlockId) return;
             b.videos.forEach(v => {
                 if (tvFilter !== 'all' && v.category !== tvFilter) return;
+                if (tvHideUsed && allUsedIdToBlock.has(v.youtubeId)) return;
                 if (q) {
                     const matchTitle = v.title.toLowerCase().includes(q);
                     const matchYt = v.youtubeId.toLowerCase().includes(q);
@@ -679,7 +727,7 @@ export function AdminRadioModal({
         });
 
         return result;
-    }, [tvBlocks, tvSearch, tvFilter, tvSelectedBlockId]);
+    }, [tvBlocks, tvSearch, tvFilter, tvSelectedBlockId, tvHideUsed, allUsedIdToBlock]);
 
     const totalTracks = useMemo(() => blocks.reduce((acc, b) => acc + (b.tracks?.length || 0), 0), [blocks]);
 
@@ -1561,6 +1609,23 @@ export function AdminRadioModal({
                                         </select>
                                     </div>
 
+                                    {/* Filtre masquer/montrer les sets déjà utilisés */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setTvHideUsed(v => !v)}
+                                        className={`w-full py-1.5 rounded-xl text-[9px] font-display font-black uppercase italic tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 border ${
+                                            tvHideUsed
+                                                ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                                                : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'
+                                        }`}
+                                    >
+                                        <AlertTriangle className="w-3 h-3" />
+                                        {tvHideUsed
+                                            ? `Masquer utilisés (${allUsedIdToBlock.size})`
+                                            : `Masquer les ${allUsedIdToBlock.size} déjà assignés`
+                                        }
+                                    </button>
+
                                     {/* Bouton pour tout importer si un bloc spécifique est filtré */}
                                     {tvSelectedBlockId !== 'all' && selectedBlock && (
                                         <div className="pt-1">
@@ -1591,18 +1656,22 @@ export function AdminRadioModal({
 
                                     {filteredTVVideos.length === 0 ? (
                                         <div className="text-center text-gray-500 text-xs py-8">
-                                            Aucune vidéo ne correspond à votre recherche.
+                                            {tvHideUsed ? 'Toutes les vidéos sont déjà assignées à une émission.' : 'Aucune vidéo ne correspond à votre recherche.'}
                                         </div>
                                     ) : (
                                         filteredTVVideos.map(vid => {
                                             const isAlreadyInSelected = selectedBlock?.tracks?.some(t => t.youtubeId === vid.youtubeId);
+                                            // Émission qui utilise cette vidéo (toutes émissions confondues)
+                                            const usedInBlockName = allUsedIdToBlock.get(vid.youtubeId) ?? null;
+                                            const isUsedInAnyBlock = usedInBlockName !== null;
                                             const isBeingDragged = draggingVideo?.id === vid.id;
 
                                             return (
                                                 <div
                                                     key={vid.id}
-                                                    draggable
+                                                    draggable={!isUsedInAnyBlock}
                                                     onDragStart={(e) => {
+                                                        if (isUsedInAnyBlock) { e.preventDefault(); return; }
                                                         e.dataTransfer.setData('application/json', JSON.stringify(vid));
                                                         e.dataTransfer.setData('text/plain', vid.id);
                                                         e.dataTransfer.effectAllowed = 'copy';
@@ -1613,16 +1682,19 @@ export function AdminRadioModal({
                                                         setDragOverBlockId(null);
                                                         setIsDragOverMainArea(false);
                                                     }}
-                                                    className={`p-2.5 rounded-2xl border transition-all cursor-grab active:cursor-grabbing flex items-center gap-2.5 group relative select-none ${
+                                                    title={isUsedInAnyBlock ? `Déjà assigné à « ${usedInBlockName} »` : undefined}
+                                                    className={`p-2.5 rounded-2xl border transition-all flex items-center gap-2.5 group relative select-none ${
                                                         isBeingDragged
-                                                            ? 'opacity-40 border-dashed border-neon-cyan'
-                                                            : isAlreadyInSelected
-                                                                ? 'bg-emerald-500/[0.04] border-emerald-500/20 hover:border-emerald-500/40'
-                                                                : 'bg-black/40 border-white/5 hover:border-neon-cyan/50 hover:bg-white/[0.04]'
+                                                            ? 'opacity-40 border-dashed border-neon-cyan cursor-grab active:cursor-grabbing'
+                                                            : isUsedInAnyBlock
+                                                                ? 'opacity-40 cursor-not-allowed bg-black/20 border-white/5'
+                                                                : isAlreadyInSelected
+                                                                    ? 'bg-emerald-500/[0.04] border-emerald-500/20 hover:border-emerald-500/40 cursor-grab active:cursor-grabbing'
+                                                                    : 'bg-black/40 border-white/5 hover:border-neon-cyan/50 hover:bg-white/[0.04] cursor-grab active:cursor-grabbing'
                                                     }`}
                                                 >
                                                     {/* Poignée de drag */}
-                                                    <div className="text-gray-600 group-hover:text-neon-cyan shrink-0 transition-colors">
+                                                    <div className={`shrink-0 transition-colors ${isUsedInAnyBlock ? 'text-gray-700' : 'text-gray-600 group-hover:text-neon-cyan'}`}>
                                                         <GripVertical className="w-4 h-4" />
                                                     </div>
 
@@ -1631,7 +1703,7 @@ export function AdminRadioModal({
                                                         <img
                                                             src={`https://img.youtube.com/vi/${vid.youtubeId}/default.jpg`}
                                                             alt=""
-                                                            className="w-13 h-8.5 rounded-xl object-cover bg-black border border-white/10"
+                                                            className={`w-13 h-8.5 rounded-xl object-cover bg-black border border-white/10 ${isUsedInAnyBlock ? 'grayscale' : ''}`}
                                                         />
                                                         <span className="absolute bottom-0.5 right-0.5 text-[7px] font-mono bg-black/85 px-1 rounded text-gray-300">
                                                             {formatDurationExact(vid.duration || 3600)}
@@ -1640,10 +1712,12 @@ export function AdminRadioModal({
 
                                                     {/* Titre & Bloc d'origine */}
                                                     <div className="min-w-0 flex-1">
-                                                        <p className="text-[10.5px] font-display font-black text-white italic uppercase truncate leading-tight group-hover:text-neon-cyan transition-colors">
+                                                        <p className={`text-[10.5px] font-display font-black italic uppercase truncate leading-tight transition-colors ${
+                                                            isUsedInAnyBlock ? 'text-gray-600' : 'text-white group-hover:text-neon-cyan'
+                                                        }`}>
                                                             {vid.title}
                                                         </p>
-                                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                                                             <span className={`text-[7px] font-display font-black uppercase italic px-1.5 py-0.2 rounded ${
                                                                 vid.category === 'clip'
                                                                     ? 'bg-purple-500/20 text-purple-300'
@@ -1651,26 +1725,36 @@ export function AdminRadioModal({
                                                             }`}>
                                                                 {vid.category === 'clip' ? 'CLIP' : 'SET'}
                                                             </span>
-                                                            {vid.blockTitle && (
+                                                            {/* Badge émission d'assignation */}
+                                                            {isUsedInAnyBlock ? (
+                                                                <span className="text-[7px] font-display font-black uppercase italic px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 truncate max-w-[100px]">
+                                                                    ✓ {usedInBlockName}
+                                                                </span>
+                                                            ) : vid.blockTitle ? (
                                                                 <span className="text-[8px] text-gray-500 truncate font-mono">
                                                                     {vid.blockTitle}
                                                                 </span>
-                                                            )}
+                                                            ) : null}
                                                         </div>
                                                     </div>
 
-                                                    {/* Bouton Ajouter (+) */}
+                                                    {/* Bouton Ajouter (+) — désactivé si déjà utilisé */}
                                                     <button
                                                         type="button"
-                                                        onClick={() => handleImportFromTV(vid, selectedBlockId)}
-                                                        className={`shrink-0 p-1.5 rounded-xl transition-all cursor-pointer ${
-                                                            isAlreadyInSelected
-                                                                ? 'text-emerald-400 hover:bg-emerald-500/20'
-                                                                : 'bg-white/5 hover:bg-neon-cyan hover:text-black text-gray-300'
+                                                        disabled={isUsedInAnyBlock}
+                                                        onClick={() => !isUsedInAnyBlock && handleImportFromTV(vid, selectedBlockId)}
+                                                        className={`shrink-0 p-1.5 rounded-xl transition-all ${
+                                                            isUsedInAnyBlock
+                                                                ? 'cursor-not-allowed text-gray-700'
+                                                                : isAlreadyInSelected
+                                                                    ? 'cursor-pointer text-emerald-400 hover:bg-emerald-500/20'
+                                                                    : 'cursor-pointer bg-white/5 hover:bg-neon-cyan hover:text-black text-gray-300'
                                                         }`}
-                                                        title={isAlreadyInSelected ? "Déjà dans l'émission (cliquez pour ajouter à nouveau)" : "Ajouter à l'émission sélectionnée"}
+                                                        title={isUsedInAnyBlock ? `Déjà dans « ${usedInBlockName} »` : isAlreadyInSelected ? "Déjà dans cette émission" : "Ajouter à l'émission sélectionnée"}
                                                     >
-                                                        {isAlreadyInSelected ? (
+                                                        {isUsedInAnyBlock ? (
+                                                            <AlertTriangle className="w-4 h-4 text-amber-500/50" />
+                                                        ) : isAlreadyInSelected ? (
                                                             <Check className="w-4 h-4 text-emerald-400" />
                                                         ) : (
                                                             <Plus className="w-4 h-4" />

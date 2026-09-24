@@ -86,7 +86,7 @@ export function ConfirmModal({
                             {title}
                         </h3>
 
-                        <p className="text-gray-400 font-medium leading-relaxed mb-10">
+                        <p className="text-gray-400 font-medium leading-relaxed mb-10 whitespace-pre-line">
                             {message}
                         </p>
 
