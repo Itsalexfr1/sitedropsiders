@@ -478,13 +478,6 @@
           "duration": 3600
         },
         {
-          "id": "bv_1789459046371",
-          "title": "Mau P | Awakenings Festival 2026",
-          "description": "Diffusé sur DropsidersTV · Relive Festivals",
-          "youtubeId": "CNGB66x4ygk",
-          "duration": 3600
-        },
-        {
           "id": "bv_1789459060875",
           "title": "D-Block & S-te-Fan | Defqon.1 2026",
           "description": "Diffusé sur DropsidersTV · Relive Festivals",
@@ -800,13 +793,6 @@
           "duration": 3600
         },
         {
-          "id": "bv_1789462003270",
-          "title": "RÜFÜS DU SOL (DJ SET) - Mayan Warrior - Burning Man 2024",
-          "description": "Diffusé sur DropsidersTV · Relive Festivals",
-          "youtubeId": "eQ-OVsdK-hM",
-          "duration": 3600
-        },
-        {
           "id": "bv_1789462010383",
           "title": "Keinemusik (&ME, Rampa, Adam Port) - Mayan Warrior - Burning Man 2022",
           "description": "Diffusé sur DropsidersTV · Relive Festivals",
@@ -825,13 +811,6 @@
           "title": "Monolink (live) - Mayan Warrior - Burning Man 2018",
           "description": "Diffusé sur DropsidersTV · Relive Festivals",
           "youtubeId": "IvwS6BYjHG0",
-          "duration": 3600
-        },
-        {
-          "id": "bv_1789462035287",
-          "title": "Vidéo mBR6FccSbDM",
-          "description": "Diffusé sur DropsidersTV · Relive Festivals",
-          "youtubeId": "mBR6FccSbDM",
           "duration": 3600
         },
         {
@@ -1323,20 +1302,6 @@
           "duration": 3600
         },
         {
-          "id": "bv_1789460340873",
-          "title": "Porter Robinson Live at EDC Las Vegas 2026 (Official Full Set)",
-          "description": "Diffusé sur DropsidersTV · Prime Time Dropsiders",
-          "youtubeId": "zkT8FjfBjYI",
-          "duration": 3600
-        },
-        {
-          "id": "bv_1789460352401",
-          "title": "The Chainsmokers Live at EDC Las Vegas 2026 (Official Full Set)",
-          "description": "Diffusé sur DropsidersTV · Prime Time Dropsiders",
-          "youtubeId": "3AQ_Srbe1lQ",
-          "duration": 3600
-        },
-        {
           "id": "bv_1789460363001",
           "title": "HAYLA Live at EDC Las Vegas 2026 (Official Full Set)",
           "description": "Diffusé sur DropsidersTV · Prime Time Dropsiders",
@@ -1453,13 +1418,6 @@
           "title": "WhoMadeWho live at Mayan Warrior, Burning Man, 2019",
           "description": "Diffusé sur DropsidersTV · Prime Time Dropsiders",
           "youtubeId": "9lboizp9Kzc",
-          "duration": 3600
-        },
-        {
-          "id": "bv_1789460677201",
-          "title": "RÜFÜS DU SOL (DJ SET) - Mayan Warrior - Burning Man 2024",
-          "description": "Diffusé sur DropsidersTV · Prime Time Dropsiders",
-          "youtubeId": "eQ-OVsdK-hM",
           "duration": 3600
         }
       ]
