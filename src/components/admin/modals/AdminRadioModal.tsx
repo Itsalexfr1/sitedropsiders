@@ -25,12 +25,14 @@ import {
     PanelRightClose,
     PanelRightOpen,
     AlertTriangle,
-    Shuffle
+    Shuffle,
+    ArrowUpFromLine
 } from 'lucide-react';
 import { extractYouTubeId, fetchYouTubeTitle } from './AdminTVModal';
 import { apiFetch, getAuthHeaders } from '../../../utils/auth';
 import defaultSettings from '../../../data/settings.json';
 import { ConfirmModal } from '../../ui/ConfirmModal';
+import { DuplicateAuditModal, detectRadioDuplicates, type DuplicateEntry } from '../../ui/DuplicateAuditModal';
 import {
     STORAGE_RADIO_BLOCKS_KEY,
     DAYS_OF_WEEK,
@@ -153,6 +155,14 @@ export function AdminRadioModal({
         onConfirm: () => {},
     });
 
+    // ─── Audit doublons ───────────────────────────────────────────────────────
+    const [radioDuplicates, setRadioDuplicates] = useState<DuplicateEntry[]>([]);
+    const [showDuplicateAudit, setShowDuplicateAudit] = useState(false);
+
+    // ─── Modal "Envoyer vers TV" ──────────────────────────────────────────────
+    const [sendToTVTrack, setSendToTVTrack] = useState<RadioTrackItem | null>(null);
+    const [sendToTVBlockId, setSendToTVBlockId] = useState<string>('');
+
     // ─── Formulaire nouvelle piste manuelle (rétractable) ─────────────────────
     const [showManualAdd, setShowManualAdd] = useState(false);
     const [trackUrl, setTrackUrl] = useState('');
@@ -245,7 +255,17 @@ export function AdminRadioModal({
                 console.error('Erreur chargement radio:', e);
             }
         };
-        fetchSettings();
+        fetchSettings().then(() => {
+            // Audit doublons après chargement
+            setBlocks(prev => {
+                const dups = detectRadioDuplicates(prev);
+                if (dups.length > 0) {
+                    setRadioDuplicates(dups);
+                    setShowDuplicateAudit(true);
+                }
+                return prev;
+            });
+        });
     }, [isOpen]);
 
     // Bloc sélectionné
@@ -260,6 +280,59 @@ export function AdminRadioModal({
     const totalTVVideos = useMemo(() => {
         return tvBlocks.reduce((acc, b) => acc + b.videos.length, 0);
     }, [tvBlocks]);
+
+    // ─── Résolution doublon radio ─────────────────────────────────────────────
+    const handleResolveRadioDuplicate = (youtubeId: string, keepBlockId: string, removeFromBlockIds: string[]) => {
+        setBlocks(prev => prev.map(b => {
+            if (!removeFromBlockIds.includes(b.id)) return b;
+            return { ...b, tracks: (b.tracks || []).filter(t => t.youtubeId !== youtubeId) };
+        }));
+        setRadioDuplicates(prev => prev.filter(d => d.youtubeId !== youtubeId));
+        showToast(`✅ Doublon résolu : set conservé dans l'émission choisie`);
+    };
+
+    // ─── Envoyer un track Radio vers un bloc TV ───────────────────────────────
+    const handleSendTrackToTV = (track: RadioTrackItem, targetTVBlockId: string) => {
+        const targetTV = tvBlocks.find(b => b.id === targetTVBlockId);
+        if (!targetTV) return;
+
+        const alreadyIn = targetTV.videos.some(v => v.youtubeId === track.youtubeId);
+        if (alreadyIn) {
+            showToast(`⚠️ Ce set est déjà dans le bloc TV « ${targetTV.title} »`, 'warn');
+            return;
+        }
+
+        const newVid = {
+            id: `tv_from_radio_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+            title: `${track.artist} - ${track.title}`,
+            youtubeId: track.youtubeId,
+            duration: track.duration || 3600,
+            category: track.category || 'liveset',
+            blockTitle: targetTV.title,
+        };
+
+        setTvBlocks(prev => prev.map(b =>
+            b.id === targetTVBlockId
+                ? { ...b, videos: [...b.videos, newVid] }
+                : b
+        ));
+
+        showToast(`📺 Ajouté au bloc TV « ${targetTV.title} » !`);
+        setSendToTVTrack(null);
+
+        // Sauvegarde immédiate des tv_blocks mis à jour
+        setTvBlocks(prev => {
+            const updated = prev.map(b =>
+                b.id === targetTVBlockId ? { ...b, videos: [...b.videos, newVid] } : b
+            );
+            apiFetch('/api/settings/update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ tv_blocks: updated }),
+            }).catch(e => console.error('Erreur sync TV blocks:', e));
+            return updated;
+        });
+    };
 
     // Notification toast Dropsiders
     const showToast = (text: string, type: 'success' | 'warn' | 'info' = 'success') => {
@@ -1501,6 +1574,15 @@ export function AdminRadioModal({
                                                             >
                                                                 <Pencil className="w-3.5 h-3.5" />
                                                             </button>
+                                                            {/* Bouton Envoyer vers TV */}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setSendToTVTrack(track)}
+                                                                className="p-1.5 rounded-xl bg-white/5 hover:bg-amber-500/20 text-gray-400 hover:text-amber-400 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                                                                title="Envoyer ce set vers la TV"
+                                                            >
+                                                                <ArrowUpFromLine className="w-3.5 h-3.5" />
+                                                            </button>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleDeleteTrack(track.id, `${track.artist} - ${track.title}`)}
@@ -1938,6 +2020,88 @@ export function AdminRadioModal({
                     }}
                     onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
                 />
+
+                {/* ── AUDIT DOUBLONS RADIO ── */}
+                <DuplicateAuditModal
+                    isOpen={showDuplicateAudit && radioDuplicates.length > 0}
+                    mode="radio"
+                    duplicates={radioDuplicates}
+                    onResolve={handleResolveRadioDuplicate}
+                    onClose={() => setShowDuplicateAudit(false)}
+                />
+
+                {/* ── MODAL ENVOYER VERS TV ── */}
+                {sendToTVTrack && (
+                    <div
+                        className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+                        onClick={e => { if (e.target === e.currentTarget) setSendToTVTrack(null); }}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                            className="bg-[#0b0c14] border border-amber-500/40 rounded-3xl p-6 w-full max-w-md shadow-[0_0_50px_rgba(245,158,11,0.2)] space-y-5 relative"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 rounded-t-3xl" />
+                            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                                <h3 className="text-base font-display font-black text-white uppercase italic tracking-tight flex items-center gap-2">
+                                    <ArrowUpFromLine className="w-4 h-4 text-amber-400" />
+                                    Envoyer vers la TV
+                                </h3>
+                                <button type="button" onClick={() => setSendToTVTrack(null)} className="text-gray-400 hover:text-white p-1 cursor-pointer">
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {/* Track info */}
+                            <div className="flex items-center gap-3 bg-white/5 rounded-2xl p-3">
+                                <img
+                                    src={`https://img.youtube.com/vi/${sendToTVTrack.youtubeId}/default.jpg`}
+                                    alt=""
+                                    className="w-16 h-11 rounded-xl object-cover bg-black border border-white/10 shrink-0"
+                                />
+                                <div className="min-w-0">
+                                    <p className="text-xs font-display font-black text-white italic uppercase truncate">{sendToTVTrack.artist}</p>
+                                    <p className="text-[10px] text-gray-400 truncate">{sendToTVTrack.title}</p>
+                                </div>
+                            </div>
+
+                            {/* Choose TV block */}
+                            <div className="space-y-2">
+                                <label className="text-[9px] font-mono text-gray-400 uppercase tracking-widest">Dans quel bloc TV ?</label>
+                                <select
+                                    value={sendToTVBlockId}
+                                    onChange={e => setSendToTVBlockId(e.target.value)}
+                                    className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white text-xs focus:outline-none focus:border-amber-500 cursor-pointer"
+                                >
+                                    <option value="">-- Choisir un bloc TV --</option>
+                                    {tvBlocks.map(tb => (
+                                        <option key={tb.id} value={tb.id}>{tb.emoji} {tb.title} ({tb.videos.length} vidéos)</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setSendToTVTrack(null)}
+                                    className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-[10px] font-display font-black uppercase italic hover:bg-white/10 transition-all cursor-pointer"
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={!sendToTVBlockId}
+                                    onClick={() => handleSendTrackToTV(sendToTVTrack!, sendToTVBlockId)}
+                                    className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-display font-black uppercase italic transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 cursor-pointer"
+                                >
+                                    <ArrowUpFromLine className="w-3.5 h-3.5" />
+                                    Envoyer vers TV
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
             </div>
         </AnimatePresence>
     );

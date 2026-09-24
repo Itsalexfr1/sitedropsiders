@@ -7,12 +7,14 @@ import {
     Sparkles, Radio, Zap, Eye, Calendar, Home, Video, Shield, ShieldAlert, 
     Pin, PinOff, MessageSquare, Clock, Lock, User, Upload, 
     Image as ImageIcon, Pencil, LayoutDashboard, Globe, Activity,
-    Layers, Palette, Sliders, Search, Check, ListPlus, ArrowUpDown
+    Layers, Palette, Sliders, Search, Check, ListPlus, ArrowUpDown,
+    ArrowDownToLine
 } from 'lucide-react';
 import { apiFetch, getAuthHeaders } from '../../../utils/auth';
 import { uploadFile } from '../../../utils/uploadService';
 import type { TVVideo, PromoVideo } from '../../../pages/DropsidersTVPage';
 import type { TVScheduleBlock } from '../../../utils/tvSchedule';
+import { DuplicateAuditModal, detectTVDuplicates, type DuplicateEntry } from '../../ui/DuplicateAuditModal';
 import { 
     DEFAULT_TV_BLOCKS, 
     STORAGE_TV_BLOCKS_KEY, 
@@ -381,6 +383,15 @@ export function AdminTVModal({
     const [libraryFilter, setLibraryFilter] = useState<string>('all');
     const [selectedLibraryIds, setSelectedLibraryIds] = useState<string[]>([]);
 
+    // Audit doublons TV
+    const [tvDuplicates, setTvDuplicates] = useState<DuplicateEntry[]>([]);
+    const [showTVDuplicateAudit, setShowTVDuplicateAudit] = useState(false);
+
+    // Blocks radio chargés (pour la feature 'Ajouter depuis Radio')
+    const [radioBlocks, setRadioBlocks] = useState<Array<{ id: string; title: string; emoji?: string; color?: string; tracks?: Array<{ id: string; title?: string; artist?: string; youtubeId: string; duration?: number; category?: string }> }>>([]);
+    const [showAddFromRadio, setShowAddFromRadio] = useState(false);
+    const [radioLibSearch, setRadioLibSearch] = useState('');
+
     // Catalogue complet et dédoublonné de tous les clips & lives déjà programmés
     const availableLibraryVideos = useMemo<LibraryVideoItem[]>(() => {
         const map = new Map<string, LibraryVideoItem>();
@@ -645,12 +656,53 @@ export function AdminTVModal({
             }
         };
         fetchSettings();
+
+        // Détection doublons TV après chargement
+        setTimeout(() => {
+            setBlocks(prev => {
+                const dups = detectTVDuplicates(prev);
+                if (dups.length > 0) {
+                    setTvDuplicates(dups);
+                    setShowTVDuplicateAudit(true);
+                }
+                return prev;
+            });
+        }, 1500);
+
         // Refresh durationsMap from localStorage each time modal opens
         try {
             const saved = localStorage.getItem('dropsiders_tv_durations');
             if (saved) setDurationsMap(JSON.parse(saved));
         } catch {}
     }, [isOpen]);
+
+    // Résolution doublon TV
+    const handleResolveTVDuplicate = (youtubeId: string, keepBlockId: string, removeFromBlockIds: string[]) => {
+        setBlocks(prev => prev.map(b => {
+            if (!removeFromBlockIds.includes(b.id)) return b;
+            return { ...b, videos: (b.videos || []).filter(v => v.youtubeId !== youtubeId) };
+        }));
+        setTvDuplicates(prev => prev.filter(d => d.youtubeId !== youtubeId));
+    };
+
+    // Ajouter une piste radio dans un bloc TV
+    const handleAddRadioTrackToTV = (track: { id: string; title?: string; artist?: string; youtubeId: string; duration?: number; category?: string }, targetBlockId: string) => {
+        const targetBlock = blocks.find(b => b.id === targetBlockId);
+        if (!targetBlock) return;
+        if (targetBlock.videos?.some(v => v.youtubeId === track.youtubeId)) return; // doublon
+        const newVid: TVVideo = {
+            id: `bv_from_radio_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+            title: track.artist ? `${track.artist} - ${track.title || track.youtubeId}` : (track.title || track.youtubeId),
+            description: `Importé depuis la Radio · ${targetBlock.title || ''}`,
+            youtubeId: track.youtubeId,
+            duration: track.duration || 3600,
+            category: (track.category as any) || 'liveset',
+        };
+        setBlocks(prev => prev.map(b => {
+            if (b.id !== targetBlockId) return b;
+            return { ...b, videos: [...(b.videos || []), newVid] };
+        }));
+    };
 
     // Auto-fetch Title on main URL input
     const handleMainUrlChange = async (val: string) => {
@@ -4376,5 +4428,14 @@ export function AdminTVModal({
                 </div>
             )}
         </AnimatePresence>
+
+        {/* ── AUDIT DOUBLONS TV ── */}
+        <DuplicateAuditModal
+            isOpen={showTVDuplicateAudit && tvDuplicates.length > 0}
+            mode="tv"
+            duplicates={tvDuplicates}
+            onResolve={handleResolveTVDuplicate}
+            onClose={() => setShowTVDuplicateAudit(false)}
+        />
     );
 }
