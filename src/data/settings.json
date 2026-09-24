@@ -2824,6 +2824,298 @@
           "addedAt": 1790256614566
         }
       ]
+    },
+    {
+      "id": "radio_bloc_1790256648831_kmgn",
+      "name": "ÉMISSION 2",
+      "title": "ÉMISSION 2",
+      "timeSlot": "12h - 16h",
+      "startHour": 12,
+      "endHour": 16,
+      "color": "#8b5cf6",
+      "emoji": "🔥",
+      "randomize": true,
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        0
+      ],
+      "tracks": [
+        {
+          "id": "rt_tv_1790256655246_6ilu",
+          "title": "Tomorrowland 2026 (Freedom Stage Weekend 2) [Full DJ Live Set]",
+          "artist": "Alesso",
+          "youtubeId": "fhiZ1Rj9o-A",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256655246
+        },
+        {
+          "id": "rt_tv_1790256655953_skfz",
+          "title": "Tomorrowland 2026",
+          "artist": "ILLENIUM",
+          "youtubeId": "E1WH0nvaxAw",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256655953
+        },
+        {
+          "id": "rt_tv_1790256656892_gbmn",
+          "title": "Tomorrowland 2026",
+          "artist": "Novah",
+          "youtubeId": "sFPyP_qgLGU",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256656892
+        },
+        {
+          "id": "rt_tv_1790256657652_u94f",
+          "title": "DROPSIDERS TV",
+          "artist": "Keinemusik at Coachella 2025",
+          "youtubeId": "5vX5XUGDEKY",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256657652
+        },
+        {
+          "id": "rt_tv_1790256662679_6gjz",
+          "title": "COACHELLA 2026 -  2026.04.17",
+          "artist": "HUGEL -",
+          "youtubeId": "Xs187meJrMs",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256662679
+        },
+        {
+          "id": "rt_tv_1790256663484_h8ux",
+          "title": "Sahara Stage",
+          "artist": "Duke Dumont @ Coachella 2026",
+          "youtubeId": "-_0BL6xXt4E",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256663485
+        },
+        {
+          "id": "rt_tv_1790256664253_8rci",
+          "title": "Coachella 2026 - Sahara Stage",
+          "artist": "Mochakk",
+          "youtubeId": "3d0dq69Jp4g",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256664253
+        },
+        {
+          "id": "rt_tv_1790256664979_b5fy",
+          "title": "COACHELLA MUSIC AND ARTS FESTIVAL 2026 (WEEKEND 1)",
+          "artist": "SUBTRONICS",
+          "youtubeId": "aR3Q5QJTtnU",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256664979
+        },
+        {
+          "id": "rt_tv_1790256667226_s1lx",
+          "title": "DROPSIDERS TV",
+          "artist": "Kaskade x Coachella 2026",
+          "youtubeId": "I3ErnkE3pGM",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256667226
+        },
+        {
+          "id": "rt_tv_1790256667964_9jjt",
+          "title": "Coachella 2026",
+          "artist": "Fatboy Slim",
+          "youtubeId": "fQqusBEnwM4",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256667964
+        },
+        {
+          "id": "rt_tv_1790256668801_h0h5",
+          "title": "Experts Only Festival, New York",
+          "artist": "Cassian B2B Kaskade",
+          "youtubeId": "riNz-JwzV24",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256668801
+        },
+        {
+          "id": "rt_tv_1790256673140_79rh",
+          "title": "EDC Las Vegas 2026",
+          "artist": "Mathame",
+          "youtubeId": "i7PGl_PyHvI",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256673140
+        },
+        {
+          "id": "rt_tv_1790256674020_2ldz",
+          "title": "Tomorrowland Brasil 2025",
+          "artist": "Kölsch",
+          "youtubeId": "mSVIWbJdewM",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256674020
+        },
+        {
+          "id": "rt_tv_1790256675205_7gi8",
+          "title": "Ultra Music Festival (Miami 2026)",
+          "artist": "Swedish House Mafia",
+          "youtubeId": "byHTUyYS7bA",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256675205
+        },
+        {
+          "id": "rt_tv_1790256676052_kio7",
+          "title": "COACHELLA 2026 DO LAB",
+          "artist": "JOHN SUMMIT",
+          "youtubeId": "Cx5FXDTQ__M",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256676052
+        },
+        {
+          "id": "rt_tv_1790256676605_rtyx",
+          "title": "Awakenings Festival 2026",
+          "artist": "Mau P",
+          "youtubeId": "CNGB66x4ygk",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256676610
+        },
+        {
+          "id": "rt_tv_1790256690027_mrmu",
+          "title": "DROPSIDERS TV",
+          "artist": "BUNT. at COACHELLA 2026",
+          "youtubeId": "2BKazr739po",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256690027
+        },
+        {
+          "id": "rt_tv_1790256690808_nukq",
+          "title": "Sahara Stage",
+          "artist": "ADRIATIQUE LIVE @ COACHELLA 2026",
+          "youtubeId": "1UHSnpfO4J8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256690808
+        },
+        {
+          "id": "rt_tv_1790256692685_zxpr",
+          "title": "Yuma Tent",
+          "artist": "Max Dean B2B Luke Dean at Coachella 2026",
+          "youtubeId": "WoR8pdr07V0",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256692685
+        },
+        {
+          "id": "rt_tv_1790256694653_89ig",
+          "title": "Coachella Day 0 2026",
+          "artist": "Disco Lines",
+          "youtubeId": "pbu_4KBVQW4",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256694653
+        },
+        {
+          "id": "rt_tv_1790256703698_zobb",
+          "title": "Yuma · Coachella 2026",
+          "artist": "Josh Baker b2b Carlita",
+          "youtubeId": "7EtYEtkS_bs",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256703698
+        },
+        {
+          "id": "rt_tv_1790256704737_tprl",
+          "title": "Coachella 2026 - Yuma Tent",
+          "artist": "Prospa",
+          "youtubeId": "bWIth_h1s-E",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256704737
+        },
+        {
+          "id": "rt_tv_1790256710831_6dyt",
+          "title": "Live Set at Experience Festival 2026",
+          "artist": "Stephan Bodzin",
+          "youtubeId": "57S5jbA-giY",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256710831
+        },
+        {
+          "id": "rt_tv_1790256711796_z284",
+          "title": "TOMORROWLAND 2026 (W2)",
+          "artist": "MARTIN GARRIX",
+          "youtubeId": "sqxFW3RXGdo",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256711796
+        },
+        {
+          "id": "rt_tv_1790256712763_8g7o",
+          "title": "ULTRA 2026 · FULL SET",
+          "artist": "AMELIE LENS B2B SARA LANDRY",
+          "youtubeId": "PmYE3d0GeLQ",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256712763
+        },
+        {
+          "id": "rt_tv_1790256713755_yj94",
+          "title": "DROPSIDERS TV",
+          "artist": "Format:B live from Berlin at Ritter Butzke",
+          "youtubeId": "mny8WwKtjds",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256713755
+        },
+        {
+          "id": "rt_tv_1790256725148_fn55",
+          "title": "Epic 2-Hour DJ Set from Marquee Skydeck (Heights Warning!)[4K]",
+          "artist": "Oliver Heldens Live at The Edge NYC",
+          "youtubeId": "98u3AJVEL8Q",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256725148
+        },
+        {
+          "id": "rt_tv_1790256726020_y8hc",
+          "title": "DROPSIDERS TV",
+          "artist": "David Guetta Presents Galactic Circus Live From [UNVRS] Ibiza",
+          "youtubeId": "lSk-DWAJPbA",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256726020
+        },
+        {
+          "id": "rt_tv_1790256729924_i2c1",
+          "title": "DROPSIDERS TV",
+          "artist": "FISHER PRESENTS OUT 2 LUNCH FESTIVAL [DAY 2- FULL LIVE SET]",
+          "youtubeId": "3YctdJP8_eo",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256729924
+        },
+        {
+          "id": "rt_tv_1790256730781_q1ms",
+          "title": "BONNAROO 2026",
+          "artist": "SIDEPIECE",
+          "youtubeId": "KLpgzqS1o28",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256730781
+        }
+      ]
     }
   ],
   "radio_tracks": [
@@ -3546,6 +3838,276 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256614566
+    },
+    {
+      "id": "rt_tv_1790256655246_6ilu",
+      "title": "Tomorrowland 2026 (Freedom Stage Weekend 2) [Full DJ Live Set]",
+      "artist": "Alesso",
+      "youtubeId": "fhiZ1Rj9o-A",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256655246
+    },
+    {
+      "id": "rt_tv_1790256655953_skfz",
+      "title": "Tomorrowland 2026",
+      "artist": "ILLENIUM",
+      "youtubeId": "E1WH0nvaxAw",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256655953
+    },
+    {
+      "id": "rt_tv_1790256656892_gbmn",
+      "title": "Tomorrowland 2026",
+      "artist": "Novah",
+      "youtubeId": "sFPyP_qgLGU",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256656892
+    },
+    {
+      "id": "rt_tv_1790256657652_u94f",
+      "title": "DROPSIDERS TV",
+      "artist": "Keinemusik at Coachella 2025",
+      "youtubeId": "5vX5XUGDEKY",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256657652
+    },
+    {
+      "id": "rt_tv_1790256662679_6gjz",
+      "title": "COACHELLA 2026 -  2026.04.17",
+      "artist": "HUGEL -",
+      "youtubeId": "Xs187meJrMs",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256662679
+    },
+    {
+      "id": "rt_tv_1790256663484_h8ux",
+      "title": "Sahara Stage",
+      "artist": "Duke Dumont @ Coachella 2026",
+      "youtubeId": "-_0BL6xXt4E",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256663485
+    },
+    {
+      "id": "rt_tv_1790256664253_8rci",
+      "title": "Coachella 2026 - Sahara Stage",
+      "artist": "Mochakk",
+      "youtubeId": "3d0dq69Jp4g",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256664253
+    },
+    {
+      "id": "rt_tv_1790256664979_b5fy",
+      "title": "COACHELLA MUSIC AND ARTS FESTIVAL 2026 (WEEKEND 1)",
+      "artist": "SUBTRONICS",
+      "youtubeId": "aR3Q5QJTtnU",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256664979
+    },
+    {
+      "id": "rt_tv_1790256667226_s1lx",
+      "title": "DROPSIDERS TV",
+      "artist": "Kaskade x Coachella 2026",
+      "youtubeId": "I3ErnkE3pGM",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256667226
+    },
+    {
+      "id": "rt_tv_1790256667964_9jjt",
+      "title": "Coachella 2026",
+      "artist": "Fatboy Slim",
+      "youtubeId": "fQqusBEnwM4",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256667964
+    },
+    {
+      "id": "rt_tv_1790256668801_h0h5",
+      "title": "Experts Only Festival, New York",
+      "artist": "Cassian B2B Kaskade",
+      "youtubeId": "riNz-JwzV24",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256668801
+    },
+    {
+      "id": "rt_tv_1790256673140_79rh",
+      "title": "EDC Las Vegas 2026",
+      "artist": "Mathame",
+      "youtubeId": "i7PGl_PyHvI",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256673140
+    },
+    {
+      "id": "rt_tv_1790256674020_2ldz",
+      "title": "Tomorrowland Brasil 2025",
+      "artist": "Kölsch",
+      "youtubeId": "mSVIWbJdewM",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256674020
+    },
+    {
+      "id": "rt_tv_1790256675205_7gi8",
+      "title": "Ultra Music Festival (Miami 2026)",
+      "artist": "Swedish House Mafia",
+      "youtubeId": "byHTUyYS7bA",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256675205
+    },
+    {
+      "id": "rt_tv_1790256676052_kio7",
+      "title": "COACHELLA 2026 DO LAB",
+      "artist": "JOHN SUMMIT",
+      "youtubeId": "Cx5FXDTQ__M",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256676052
+    },
+    {
+      "id": "rt_tv_1790256676605_rtyx",
+      "title": "Awakenings Festival 2026",
+      "artist": "Mau P",
+      "youtubeId": "CNGB66x4ygk",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256676610
+    },
+    {
+      "id": "rt_tv_1790256690027_mrmu",
+      "title": "DROPSIDERS TV",
+      "artist": "BUNT. at COACHELLA 2026",
+      "youtubeId": "2BKazr739po",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256690027
+    },
+    {
+      "id": "rt_tv_1790256690808_nukq",
+      "title": "Sahara Stage",
+      "artist": "ADRIATIQUE LIVE @ COACHELLA 2026",
+      "youtubeId": "1UHSnpfO4J8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256690808
+    },
+    {
+      "id": "rt_tv_1790256692685_zxpr",
+      "title": "Yuma Tent",
+      "artist": "Max Dean B2B Luke Dean at Coachella 2026",
+      "youtubeId": "WoR8pdr07V0",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256692685
+    },
+    {
+      "id": "rt_tv_1790256694653_89ig",
+      "title": "Coachella Day 0 2026",
+      "artist": "Disco Lines",
+      "youtubeId": "pbu_4KBVQW4",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256694653
+    },
+    {
+      "id": "rt_tv_1790256703698_zobb",
+      "title": "Yuma · Coachella 2026",
+      "artist": "Josh Baker b2b Carlita",
+      "youtubeId": "7EtYEtkS_bs",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256703698
+    },
+    {
+      "id": "rt_tv_1790256704737_tprl",
+      "title": "Coachella 2026 - Yuma Tent",
+      "artist": "Prospa",
+      "youtubeId": "bWIth_h1s-E",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256704737
+    },
+    {
+      "id": "rt_tv_1790256710831_6dyt",
+      "title": "Live Set at Experience Festival 2026",
+      "artist": "Stephan Bodzin",
+      "youtubeId": "57S5jbA-giY",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256710831
+    },
+    {
+      "id": "rt_tv_1790256711796_z284",
+      "title": "TOMORROWLAND 2026 (W2)",
+      "artist": "MARTIN GARRIX",
+      "youtubeId": "sqxFW3RXGdo",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256711796
+    },
+    {
+      "id": "rt_tv_1790256712763_8g7o",
+      "title": "ULTRA 2026 · FULL SET",
+      "artist": "AMELIE LENS B2B SARA LANDRY",
+      "youtubeId": "PmYE3d0GeLQ",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256712763
+    },
+    {
+      "id": "rt_tv_1790256713755_yj94",
+      "title": "DROPSIDERS TV",
+      "artist": "Format:B live from Berlin at Ritter Butzke",
+      "youtubeId": "mny8WwKtjds",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256713755
+    },
+    {
+      "id": "rt_tv_1790256725148_fn55",
+      "title": "Epic 2-Hour DJ Set from Marquee Skydeck (Heights Warning!)[4K]",
+      "artist": "Oliver Heldens Live at The Edge NYC",
+      "youtubeId": "98u3AJVEL8Q",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256725148
+    },
+    {
+      "id": "rt_tv_1790256726020_y8hc",
+      "title": "DROPSIDERS TV",
+      "artist": "David Guetta Presents Galactic Circus Live From [UNVRS] Ibiza",
+      "youtubeId": "lSk-DWAJPbA",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256726020
+    },
+    {
+      "id": "rt_tv_1790256729924_i2c1",
+      "title": "DROPSIDERS TV",
+      "artist": "FISHER PRESENTS OUT 2 LUNCH FESTIVAL [DAY 2- FULL LIVE SET]",
+      "youtubeId": "3YctdJP8_eo",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256729924
+    },
+    {
+      "id": "rt_tv_1790256730781_q1ms",
+      "title": "BONNAROO 2026",
+      "artist": "SIDEPIECE",
+      "youtubeId": "KLpgzqS1o28",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256730781
     }
   ]
 }
