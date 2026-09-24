@@ -4,7 +4,7 @@ import {
     Users, Plus, Save, ArrowLeft, Loader2, Instagram, Trash2, CheckCircle2, 
     Mail, Shield, Globe, Lock, Sparkles, Send, RefreshCw, Search, 
     UserCheck, ExternalLink, AlertTriangle, ChevronDown, ChevronUp, Check, X, Upload,
-    User, Calendar
+    User, Calendar, Radio
 } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { getAuthHeaders, apiFetch, isSuperAdmin, hasPermission } from '../utils/auth';
@@ -70,6 +70,18 @@ export const ROLE_PRESETS = [
         permissions: ['community_mod', 'live']
     },
     {
+        id: 'radio_tv',
+        label: 'Animateur Radio & TV',
+        badge: '📻 Radio & TV',
+        icon: Radio,
+        color: 'from-neon-cyan to-neon-purple',
+        textColor: 'text-neon-cyan',
+        borderColor: 'border-neon-cyan/40 hover:border-neon-cyan',
+        activeBg: 'bg-neon-cyan/15 border-neon-cyan shadow-[0_0_25px_rgba(0,255,255,0.25)]',
+        description: 'Gérer la programmation de la Dropsiders Radio et de la DropsidersTV (grilles, émissions, sets).',
+        permissions: ['radio', 'tv_schedule']
+    },
+    {
         id: 'marketing',
         label: 'Marketing & Studio',
         badge: '🎨 Marketing',
@@ -124,6 +136,14 @@ export const PERMISSION_CATEGORIES = [
         ]
     },
     {
+        id: 'radio_tv',
+        label: '📻 Radio & TV',
+        permissions: [
+            { id: 'radio', label: 'Dropsiders Radio', description: 'Gérer la grille de programmation de la Radio : émissions, sets, ordre de diffusion.' },
+            { id: 'tv_schedule', label: 'DropsidersTV', description: 'Gérer la grille de la TV : blocs vidéo, playlists et programmation 24/7.' }
+        ]
+    },
+    {
         id: 'marketing',
         label: 'Marketing & Business',
         permissions: [
@@ -174,7 +194,7 @@ export const toggleRoleSelection = (currentRole: string = '', roleToToggle: stri
     }
 };
 
-function detectPreset(permissions: string[] = []): 'admin' | 'editorial' | 'moderator' | 'marketing' | 'custom' {
+function detectPreset(permissions: string[] = []): 'admin' | 'editorial' | 'moderator' | 'radio_tv' | 'marketing' | 'custom' {
     if (permissions.includes('all')) return 'admin';
     if (!permissions.length) return 'custom';
     
@@ -186,6 +206,9 @@ function detectPreset(permissions: string[] = []): 'admin' | 'editorial' | 'mode
 
     const moderator = ROLE_PRESETS.find(p => p.id === 'moderator')!.permissions;
     if (matchesAll(moderator)) return 'moderator';
+
+    const radioTv = ROLE_PRESETS.find(p => p.id === 'radio_tv')!.permissions;
+    if (matchesAll(radioTv)) return 'radio_tv';
 
     const marketing = ROLE_PRESETS.find(p => p.id === 'marketing')!.permissions;
     if (matchesAll(marketing)) return 'marketing';

@@ -86,6 +86,9 @@ export const hasPermission = (storedPermissions: string[], p: string, isAlex: bo
       team: "all",
       publications: "news",
       galeries: "community",
+      // Radio & TV
+      radio: "tv_schedule",
+      tv_schedule: "radio",
       // Tab names to Permission IDs
       News: "news",
       Focus: "news",
@@ -94,6 +97,8 @@ export const hasPermission = (storedPermissions: string[], p: string, isAlex: bo
       Interviews: "interviews",
       Agenda: "agenda",
       Communauté: "community",
+      Radio: "radio",
+      TV: "tv_schedule",
       // Old to New
       social: "social_studio",
       news: "news_focus",
