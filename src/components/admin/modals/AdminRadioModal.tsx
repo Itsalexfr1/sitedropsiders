@@ -161,6 +161,17 @@ export function AdminRadioModal({
     const [trackDuration, setTrackDuration] = useState('60');
     const [isFetchingTitle, setIsFetchingTitle] = useState(false);
 
+    // ─── Modal Édition d'un clip / set dans l'émission ────────────────────────
+    const [editingTrack, setEditingTrack] = useState<{
+        trackId: string;
+        artist: string;
+        title: string;
+        category: 'liveset' | 'clip';
+        durationMinutes: number;
+        youtubeId: string;
+    } | null>(null);
+    const [isFetchingEditTitle, setIsFetchingEditTitle] = useState(false);
+
     // ─── Edition émission ─────────────────────────────────────────────────────
     const [isEditingBlock, setIsEditingBlock] = useState(false);
     const [editBlockForm, setEditBlockForm] = useState({
@@ -407,6 +418,62 @@ export function AdminRadioModal({
                 showToast('Piste retirée de l\'émission');
             }
         });
+    };
+
+    // Sauvegarder les modifications d'une piste
+    const handleSaveTrackEdit = () => {
+        if (!editingTrack || !selectedBlock) return;
+        if (!editingTrack.title.trim()) {
+            showToast('Le titre ne peut pas être vide', 'warn');
+            return;
+        }
+
+        const cleanYt = extractYouTubeId(editingTrack.youtubeId) || editingTrack.youtubeId.trim();
+        const durSec = Math.max(30, (editingTrack.durationMinutes || 60) * 60);
+
+        setBlocks(prev => prev.map(b => {
+            if (b.id !== selectedBlock.id) return b;
+            return {
+                ...b,
+                tracks: (b.tracks || []).map(t => {
+                    if (t.id !== editingTrack.trackId) return t;
+                    return {
+                        ...t,
+                        artist: editingTrack.artist.trim() || 'Artiste',
+                        title: editingTrack.title.trim() || 'Titre',
+                        category: editingTrack.category,
+                        duration: durSec,
+                        youtubeId: cleanYt || t.youtubeId,
+                    };
+                })
+            };
+        }));
+
+        showToast(`Piste « ${editingTrack.artist} - ${editingTrack.title} » modifiée !`);
+        setEditingTrack(null);
+    };
+
+    const handleFetchEditYouTube = async () => {
+        if (!editingTrack) return;
+        const ytid = extractYouTubeId(editingTrack.youtubeId) || editingTrack.youtubeId.trim();
+        if (!ytid) { showToast('Lien YouTube non valide', 'warn'); return; }
+        setIsFetchingEditTitle(true);
+        try {
+            const fetched = await fetchYouTubeTitle(ytid);
+            if (fetched) {
+                const { artist, event } = parseArtistAndEvent(fetched);
+                setEditingTrack(t => t ? {
+                    ...t,
+                    youtubeId: ytid,
+                    artist: artist || t.artist,
+                    title: event || fetched,
+                } : null);
+            }
+        } catch (e) {
+            console.error('Erreur titre auto:', e);
+        } finally {
+            setIsFetchingEditTitle(false);
+        }
     };
 
     const handleToggleDay = (day: number) => {
@@ -1361,7 +1428,7 @@ export function AdminRadioModal({
                                                         </div>
 
                                                         {/* Durée & Actions */}
-                                                        <div className="flex items-center gap-2 shrink-0">
+                                                        <div className="flex items-center gap-1.5 shrink-0">
                                                             <a
                                                                 href={`https://www.youtube.com/watch?v=${track.youtubeId}`}
                                                                 target="_blank"
@@ -1371,6 +1438,21 @@ export function AdminRadioModal({
                                                             >
                                                                 <ExternalLink className="w-3.5 h-3.5" />
                                                             </a>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setEditingTrack({
+                                                                    trackId: track.id,
+                                                                    artist: track.artist || '',
+                                                                    title: track.title || '',
+                                                                    category: track.category || 'liveset',
+                                                                    durationMinutes: Math.round((track.duration || 3600) / 60),
+                                                                    youtubeId: track.youtubeId,
+                                                                })}
+                                                                className="p-1.5 rounded-xl bg-white/5 hover:bg-neon-cyan/20 text-gray-400 hover:text-neon-cyan transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                                                                title="Modifier ce titre / clip"
+                                                            >
+                                                                <Pencil className="w-3.5 h-3.5" />
+                                                            </button>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleDeleteTrack(track.id, `${track.artist} - ${track.title}`)}
@@ -1603,6 +1685,160 @@ export function AdminRadioModal({
                         )}
                     </div>
                 </motion.div>
+
+                {/* ── MODALE ÉDITION D'UNE PISTE (Dropsiders Style) ── */}
+                <AnimatePresence>
+                    {editingTrack && (
+                        <div
+                            className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+                            onClick={e => { if (e.target === e.currentTarget) setEditingTrack(null); }}
+                        >
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                                className="bg-[#0b0c14] border border-neon-cyan/40 rounded-3xl p-6 w-full max-w-lg shadow-[0_0_50px_rgba(0,240,255,0.2)] space-y-5 relative"
+                            >
+                                <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                                    <h3 className="text-base font-display font-black text-white uppercase italic tracking-tight flex items-center gap-2">
+                                        <Pencil className="w-4 h-4 text-neon-cyan" />
+                                        Modifier le clip / set
+                                    </h3>
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditingTrack(null)}
+                                        className="text-gray-400 hover:text-white p-1 cursor-pointer"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                {/* Miniature */}
+                                <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.02] border border-white/10">
+                                    <img
+                                        src={`https://img.youtube.com/vi/${editingTrack.youtubeId}/default.jpg`}
+                                        alt=""
+                                        className="w-16 h-10 rounded-xl object-cover bg-black border border-white/10 shrink-0"
+                                    />
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-xs font-display font-black text-white uppercase italic truncate">
+                                            {editingTrack.artist || 'Artiste'} - {editingTrack.title || 'Titre'}
+                                        </p>
+                                        <p className="text-[9px] font-mono text-gray-500">ID: {editingTrack.youtubeId}</p>
+                                    </div>
+                                </div>
+
+                                {/* Formulaire */}
+                                <div className="space-y-3.5">
+                                    <div>
+                                        <label className="text-[10px] font-display font-black text-gray-400 uppercase italic tracking-wider block mb-1">
+                                            Artiste / DJ
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={editingTrack.artist}
+                                            onChange={e => setEditingTrack(t => t ? { ...t, artist: e.target.value } : null)}
+                                            placeholder="Ex: Martin Garrix..."
+                                            className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white text-xs font-bold focus:outline-none focus:border-neon-cyan"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="text-[10px] font-display font-black text-gray-400 uppercase italic tracking-wider block mb-1">
+                                            Titre / Événement
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={editingTrack.title}
+                                            onChange={e => setEditingTrack(t => t ? { ...t, title: e.target.value } : null)}
+                                            placeholder="Ex: Live @ Tomorrowland 2026..."
+                                            className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white text-xs font-bold focus:outline-none focus:border-neon-cyan"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-[10px] font-display font-black text-gray-400 uppercase italic tracking-wider block mb-1">
+                                                Type
+                                            </label>
+                                            <select
+                                                value={editingTrack.category}
+                                                onChange={e => {
+                                                    const cat = e.target.value as 'liveset' | 'clip';
+                                                    setEditingTrack(t => t ? {
+                                                        ...t,
+                                                        category: cat,
+                                                        durationMinutes: cat === 'clip' && t.durationMinutes > 15 ? 4 : t.durationMinutes
+                                                    } : null);
+                                                }}
+                                                className="w-full px-3 py-2.5 rounded-xl bg-[#14141e] border border-white/15 text-white text-xs font-display font-black uppercase italic cursor-pointer"
+                                            >
+                                                <option value="liveset">Liveset / DJ Set</option>
+                                                <option value="clip">Clip Vidéo</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label className="text-[10px] font-display font-black text-gray-400 uppercase italic tracking-wider block mb-1">
+                                                Durée (minutes)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min={1}
+                                                max={600}
+                                                value={editingTrack.durationMinutes}
+                                                onChange={e => setEditingTrack(t => t ? { ...t, durationMinutes: parseInt(e.target.value) || 1 } : null)}
+                                                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white text-xs font-mono font-bold focus:outline-none focus:border-neon-cyan"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-[10px] font-display font-black text-gray-400 uppercase italic tracking-wider block mb-1">
+                                            Lien YouTube / ID
+                                        </label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={editingTrack.youtubeId}
+                                                onChange={e => setEditingTrack(t => t ? { ...t, youtubeId: e.target.value } : null)}
+                                                placeholder="https://youtube.com/watch?v=... ou ID"
+                                                className="flex-1 px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-neon-cyan"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleFetchEditYouTube}
+                                                disabled={isFetchingEditTitle || !editingTrack.youtubeId}
+                                                className="px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-[9px] font-display font-black uppercase italic disabled:opacity-40 transition-all cursor-pointer whitespace-nowrap"
+                                            >
+                                                {isFetchingEditTitle ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Auto Titre'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex gap-3 pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleSaveTrackEdit}
+                                        className="flex-1 py-3 rounded-2xl bg-neon-cyan text-black font-display font-black text-xs uppercase italic tracking-wider hover:bg-white transition-all shadow-[0_0_20px_rgba(0,240,255,0.3)] flex items-center justify-center gap-2 cursor-pointer"
+                                    >
+                                        <Check className="w-4 h-4" />
+                                        Enregistrer
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditingTrack(null)}
+                                        className="px-5 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-display font-black text-xs uppercase italic transition-all cursor-pointer"
+                                    >
+                                        Annuler
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
 
                 {/* ── MODALE DE CONFIRMATION DROPSIDERS (ConfirmModal) ── */}
                 <ConfirmModal
