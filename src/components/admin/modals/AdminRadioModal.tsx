@@ -28,7 +28,7 @@ import {
     Shuffle
 } from 'lucide-react';
 import { extractYouTubeId, fetchYouTubeTitle } from './AdminTVModal';
-import { apiFetch } from '../../../utils/auth';
+import { apiFetch, getAuthHeaders } from '../../../utils/auth';
 import defaultSettings from '../../../data/settings.json';
 import { ConfirmModal } from '../../ui/ConfirmModal';
 import {
@@ -180,7 +180,9 @@ export function AdminRadioModal({
         if (!isOpen) return;
         const fetchSettings = async () => {
             try {
-                const res = await apiFetch('/api/settings');
+                const res = await apiFetch('/api/settings', {
+                    headers: getAuthHeaders()
+                });
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data?.radio_blocks) && data.radio_blocks.length > 0) {
@@ -529,15 +531,20 @@ export function AdminRadioModal({
         try {
             localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(blocks));
             const flatTracks = blocks.flatMap(b => b.tracks || []);
-            await apiFetch('/api/settings/update', {
+            const res = await apiFetch('/api/settings/update', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders(),
                 body: JSON.stringify({ radio_blocks: blocks, radio_tracks: flatTracks }),
             });
-            window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
-            setSaveSuccess(true);
-            showToast('Programmation radio enregistrée');
-            setTimeout(() => setSaveSuccess(false), 3000);
+            if (res.ok) {
+                window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+                setSaveSuccess(true);
+                showToast('Programmation radio enregistrée avec succès !');
+                setTimeout(() => setSaveSuccess(false), 3000);
+            } else {
+                console.error('Erreur API sauvegarde radio status:', res.status);
+                showToast('Erreur lors de la sauvegarde sur le serveur', 'warn');
+            }
         } catch (e) {
             console.error('Erreur sauvegarde radio:', e);
             showToast('Erreur sauvegarde. Données gardées en local.', 'warn');
