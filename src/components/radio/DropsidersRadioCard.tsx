@@ -22,9 +22,9 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
         try {
             const params = new URLSearchParams(window.location.search);
             if (params.get('radio') === '1' || params.get('radio_preview') === 'true') return true;
-            return localStorage.getItem('dropsiders_radio_enabled') === 'true';
+            return localStorage.getItem('dropsiders_radio_enabled') !== 'false';
         } catch {
-            return false;
+            return true;
         }
     });
 
@@ -55,7 +55,7 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
         };
 
         const handleToggle = () => {
-            const enabled = localStorage.getItem('dropsiders_radio_enabled') === 'true';
+            const enabled = localStorage.getItem('dropsiders_radio_enabled') !== 'false';
             setIsEnabled(enabled);
         };
 

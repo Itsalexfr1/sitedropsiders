@@ -61,7 +61,7 @@ export interface ComputedRadioScheduleItem {
  * Construit les blocs radio par défaut en intégrant l'intégralité des 240 sets & clips de la TV
  */
 export function buildDefaultRadioBlocksFromTV(): RadioScheduleBlock[] {
-    const rawTvBlocks = (settings as any)?.tv_blocks;
+    const rawTvBlocks = (settings as any)?.tv_blocks || DEFAULT_TV_BLOCKS;
     if (Array.isArray(rawTvBlocks) && rawTvBlocks.length > 0) {
         return rawTvBlocks.map((b: any, idx: number) => {
             const tracks: RadioTrackItem[] = (b.videos || []).map((v: any, vIdx: number) => {
@@ -96,10 +96,10 @@ export function buildDefaultRadioBlocksFromTV(): RadioScheduleBlock[] {
 
 export const DEFAULT_RADIO_BLOCKS: RadioScheduleBlock[] = (() => {
     const fromSettings = (settings as any)?.radio_blocks;
-    if (Array.isArray(fromSettings)) {
+    if (Array.isArray(fromSettings) && fromSettings.length > 0) {
         return fromSettings;
     }
-    return [];
+    return buildDefaultRadioBlocksFromTV();
 })();
 
 /**

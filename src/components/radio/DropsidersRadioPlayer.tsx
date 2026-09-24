@@ -58,12 +58,12 @@ function useRadioAudio() {
         try {
             const p = new URLSearchParams(window.location.search);
             if (p.get('radio') === '1' || p.get('radio_preview') === 'true') return true;
-            return localStorage.getItem('dropsiders_radio_enabled') === 'true';
-        } catch { return false; }
+            return localStorage.getItem('dropsiders_radio_enabled') !== 'false';
+        } catch { return true; }
     });
 
     useEffect(() => {
-        const h = () => setIsEnabled(localStorage.getItem('dropsiders_radio_enabled') === 'true');
+        const h = () => setIsEnabled(localStorage.getItem('dropsiders_radio_enabled') !== 'false');
         window.addEventListener('dropsiders_radio_toggle', h);
         window.addEventListener('storage', h);
         return () => { window.removeEventListener('dropsiders_radio_toggle', h); window.removeEventListener('storage', h); };
@@ -140,6 +140,18 @@ function useRadioAudio() {
     // ─── Pas de préchargement muet : on attend le tap user pour charger ──────
     // (évite les conflits entre préchargement et déverrouillage iOS)
 
+    // Transition automatique vers le nouveau track si le live change pendant l'écoute
+    const currentVideoId = currentSet?.youtubeId;
+    const isPlayingRef = useRef(isPlaying);
+    useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
+
+    useEffect(() => {
+        if (!currentVideoId || !isPlayingRef.current) return;
+        if (iframeRef.current && iframeRef.current.src && !iframeRef.current.src.includes(currentVideoId)) {
+            iframeRef.current.src = buildSrc(currentVideoId, uiOffsetRef.current, isMuted ? 1 : 0);
+        }
+    }, [currentVideoId, isMuted]);
+
     // ─── Play / Pause ─────────────────────────────────────────────────────────
     /**
      * 🔑 IOS-SAFE : on lit currentSetRef.current (toujours à jour) et on
@@ -159,6 +171,9 @@ function useRadioAudio() {
             if (iframeRef.current) {
                 iframeRef.current.src = src;
             }
+            sendCmd('unMute');
+            sendCmd('setVolume', [volume]);
+            sendCmd('playVideo');
             setIsPlaying(true);
         } else {
             // Stop propre : vider le src (fonctionne même sans postMessage)
@@ -168,7 +183,7 @@ function useRadioAudio() {
             sendCmd('pauseVideo'); // tentative postMessage en bonus
             setIsPlaying(false);
         }
-    }, [isPlaying, sendCmd]);
+    }, [isPlaying, volume, sendCmd]);
 
     const handleStop = useCallback(() => {
         if (iframeRef.current) iframeRef.current.src = 'about:blank';
@@ -244,10 +259,8 @@ function useRadioAudio() {
 type AudioState = ReturnType<typeof useRadioAudio>;
 
 // ─── Iframe unique — toujours montée, jamais démontée ────────────────────────
-// Toujours dans le coin inférieur droit du viewport (1×1px)
-// iOS ne throttle PAS les éléments dans le viewport.
-// On ne retourne JAMAIS null — l'élément doit rester dans le DOM pour que
-// iframeRef.current soit accessible au moment du click.
+// Toujours dans le coin inférieur droit du viewport (240×140px, opacité 0.01)
+// WebKit et Blink autorisent l'audio car l'élément a des dimensions réelles et n'est pas à opacité 0
 function RadioIframe({ iframeRef }: {
     iframeRef: React.RefObject<HTMLIFrameElement | null>;
 }) {
@@ -256,19 +269,19 @@ function RadioIframe({ iframeRef }: {
             position: 'fixed',
             bottom: 0,
             right: 0,
-            width: 1,
-            height: 1,
+            width: 240,
+            height: 140,
             overflow: 'hidden',
-            opacity: 0,
+            opacity: 0.01,
             pointerEvents: 'none',
-            zIndex: 1,  // pas -1 : iOS ne throttle pas à zIndex ≥ 0
+            zIndex: 1,  // zIndex ≥ 0 pour éviter tout throttling en arrière-plan
         }} aria-hidden="true">
             <iframe
                 ref={iframeRef as React.RefObject<HTMLIFrameElement>}
                 allow="autoplay; encrypted-media; picture-in-picture"
                 allowFullScreen
                 title="Dropsiders Radio"
-                style={{ width: 320, height: 180, border: 'none' }}
+                style={{ width: '100%', height: '100%', border: 'none' }}
             />
         </div>
     );
