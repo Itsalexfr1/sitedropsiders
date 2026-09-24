@@ -2082,6 +2082,1470 @@
       "youtubeId": "NsBiI-LyVm4"
     }
   ],
-  "radio_blocks": [],
-  "radio_tracks": []
+  "radio_blocks": [
+    {
+      "id": "radio_bloc_1790255595165_5mni",
+      "name": "LE MORNING DROPSIDERS",
+      "title": "LE MORNING DROPSIDERS",
+      "timeSlot": "06h - 12h",
+      "startHour": 6,
+      "endHour": 12,
+      "color": "#00f0ff",
+      "emoji": "🎧",
+      "randomize": true,
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        0,
+        6
+      ],
+      "tracks": [
+        {
+          "id": "rt_tv_1790255600257_jbmf",
+          "title": "JUST A LITTLE BIT MORE",
+          "artist": "Mau P",
+          "youtubeId": "ke6hDTz3OoY",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255600257
+        },
+        {
+          "id": "rt_tv_1790255611613_hych",
+          "title": "Movin’ To The Sun (Performance Clip)",
+          "artist": "ULTRA NATÉ",
+          "youtubeId": "bJ7yyX4Qic4",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255611613
+        },
+        {
+          "id": "rt_tv_1790255617206_jnj3",
+          "title": "WHAT A LIFE (ft. Florence Arman)",
+          "artist": "FISHER",
+          "youtubeId": "CsRTKXYEhOM",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255617206
+        },
+        {
+          "id": "rt_1790255659500",
+          "title": "What A Life ft. Stevie Appleton",
+          "artist": "John Summit, Guz",
+          "youtubeId": "a6nw8XxdDu4",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255659500
+        },
+        {
+          "id": "rt_tv_1790255666383_erfo",
+          "title": "Kackvogel (music video)",
+          "artist": "Solomun",
+          "youtubeId": "9tBOtSPrNik",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255666383
+        },
+        {
+          "id": "rt_tv_1790255667651_2ov0",
+          "title": "High On Life",
+          "artist": "Martin Garrix feat. Bonn",
+          "youtubeId": "Lpjcm1F8tY8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255667651
+        },
+        {
+          "id": "rt_tv_1790255668796_f75q",
+          "title": "Happiness Is So Sad (Official Audio)",
+          "artist": "Swedish House Mafia, Lykke Li",
+          "youtubeId": "5N5RfaCyD-Y",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255668796
+        },
+        {
+          "id": "rt_tv_1790255671397_4tjs",
+          "title": "Deep In The Bottom (of Africa)",
+          "artist": "Monique Bingham, Black Coffee",
+          "youtubeId": "BEKiRcCC1XY",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255671397
+        },
+        {
+          "id": "rt_tv_1790255672563_uqru",
+          "title": "QUE CE SOIT CLAIR",
+          "artist": "Paul Kalkbrenner x Stromae",
+          "youtubeId": "YQM7DKi11ho",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255672563
+        },
+        {
+          "id": "rt_tv_1790255675199_zvfq",
+          "title": "Rumpta (Official Audio)",
+          "artist": "Solomun, Skrillex",
+          "youtubeId": "aFUqsPHEXhA",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255675199
+        },
+        {
+          "id": "rt_tv_1790255680923_1axj",
+          "title": "Bangarang feat. Sirah [Official Music Video]",
+          "artist": "SKRILLEX",
+          "youtubeId": "YJVmu6yttiw",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255680923
+        },
+        {
+          "id": "rt_tv_1790255682374_m8xf",
+          "title": "We Could Be Dancing ft. Molly Hammar",
+          "artist": "Bob Sinclar",
+          "youtubeId": "kauqBzcqPFM",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255682374
+        },
+        {
+          "id": "rt_tv_1790255683756_1bw0",
+          "title": "Beautiful (Official Music Video)",
+          "artist": "Anyma, Joji",
+          "youtubeId": "DnTC2P9kxO8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255683756
+        },
+        {
+          "id": "rt_tv_1790255685077_tzod",
+          "title": "Born Like That",
+          "artist": "Kevin de Vries & Jast",
+          "youtubeId": "BG0PN9Xcho8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255685077
+        },
+        {
+          "id": "rt_1790255712927",
+          "title": "Feel The Vibe (Original)",
+          "artist": "Axwell",
+          "youtubeId": "889H0Am7vFo",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255712927
+        },
+        {
+          "id": "rt_1790255779415",
+          "title": "Beat Goes On",
+          "artist": "Adam Ten",
+          "youtubeId": "2I0jW--BOzE",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255779415
+        },
+        {
+          "id": "rt_1790255829690",
+          "title": "Nothing Wrong (Love Mix)",
+          "artist": "Omri",
+          "youtubeId": "QuHJZCbrI38",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255829690
+        },
+        {
+          "id": "rt_1790255881886",
+          "title": "The Present (Extended Mix)",
+          "artist": "Goodboys, Korolova",
+          "youtubeId": "BLQaxpCAOKE",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255881886
+        },
+        {
+          "id": "rt_1790255910132",
+          "title": "BOUNCE MUSIC (Official Music Video)",
+          "artist": "INNELLEA",
+          "youtubeId": "vgHasjtd0NQ",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255910133
+        },
+        {
+          "id": "rt_1790255974618",
+          "title": "Swagon",
+          "artist": "Detlef",
+          "youtubeId": "1p6JePMTJVE",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790255974618
+        },
+        {
+          "id": "rt_1790256008619",
+          "title": "Innerbloom",
+          "artist": "RÜFÜS DU SOL",
+          "youtubeId": "Tx9zMFodNtA",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256008619
+        },
+        {
+          "id": "rt_1790256040583",
+          "title": "In the Moment (Adriatique Remix)",
+          "artist": "RÜFÜS DU SOL",
+          "youtubeId": "qP6xBFfTGeI",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256040583
+        },
+        {
+          "id": "rt_1790256092462",
+          "title": "Polka",
+          "artist": "OMMA",
+          "youtubeId": "D8uZsgs6Woo",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256092462
+        },
+        {
+          "id": "rt_1790256131260",
+          "title": "Out Of Touch",
+          "artist": "Daryl Hall & John Oates",
+          "youtubeId": "D00M2KZH1J0",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256131260
+        },
+        {
+          "id": "rt_1790256149615",
+          "title": "4Get The Girl (Samm Remix)",
+          "artist": "Route 94",
+          "youtubeId": "R4aJA0XA-Bk",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256149615
+        },
+        {
+          "id": "rt_1790256167935",
+          "title": "You Make Me Fall In Love",
+          "artist": "Ajna feat. abrahamblue",
+          "youtubeId": "YCqCBviJoGg",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256167935
+        },
+        {
+          "id": "rt_1790256193204",
+          "title": "Baby Do You Wanna Bump [AFFAIRS 017]",
+          "artist": "JØRD",
+          "youtubeId": "cQEnrHD91R8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256193204
+        },
+        {
+          "id": "rt_1790256215019",
+          "title": "Lost [AFFAIRS 006]",
+          "artist": "Vintage Culture, Gabss",
+          "youtubeId": "wNoZnhsB2XA",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256215019
+        },
+        {
+          "id": "rt_1790256226318",
+          "title": "Analog Ascent",
+          "artist": "Vintage Culture, Roddy Lima",
+          "youtubeId": "uJM4b-BRTWI",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256226318
+        },
+        {
+          "id": "rt_1790256245692",
+          "title": "Turn The Tide (ft. Sylver)",
+          "artist": "Dimitri Vegas, Sylver & Pat B",
+          "youtubeId": "hFG5ZPtnxsw",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256245692
+        },
+        {
+          "id": "rt_1790256261370",
+          "title": "Makina Time",
+          "artist": "Dimitri Vegas & Like Mike x Marlon Hoffstadt x DJ Konik",
+          "youtubeId": "jEIMDLAbOD0",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256261370
+        },
+        {
+          "id": "rt_1790256278044",
+          "title": "It's That Time (FISHER Remix)",
+          "artist": "Marlon Hoffstadt",
+          "youtubeId": "GDWdul0nrYw",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256278044
+        },
+        {
+          "id": "rt_1790256302438",
+          "title": "Hello",
+          "artist": "Martin Solveig & Dragonette",
+          "youtubeId": "kK42LZqO0wA",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256302438
+        },
+        {
+          "id": "rt_1790256323478",
+          "title": "Titanium ft. Sia",
+          "artist": "David Guetta",
+          "youtubeId": "JRfuAukYTKg",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256323478
+        },
+        {
+          "id": "rt_tv_1790256329104_fza5",
+          "title": "Carry You (feat. Oaks & Declan J Donovan) [",
+          "artist": "Martin Garrix & Third ≡ Party",
+          "youtubeId": "xVGoGYb55NI",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256329104
+        },
+        {
+          "id": "rt_tv_1790256330392_7qxb",
+          "title": "Medellin, Colombia (",
+          "artist": "DJ Snake - Club Soda",
+          "youtubeId": "csd9gajWjxE",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256330392
+        },
+        {
+          "id": "rt_tv_1790256332123_2ai2",
+          "title": "Places ft. Ina Wroldsen",
+          "artist": "Martin Solveig",
+          "youtubeId": "NJlOmDWyoA8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256332123
+        },
+        {
+          "id": "rt_tv_1790256333666_lum0",
+          "title": "SHADOWS (feat. LAVINIA)",
+          "artist": "John Summit",
+          "youtubeId": "TSZo2eZzD6s",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256333666
+        },
+        {
+          "id": "rt_tv_1790256342181_7vz8",
+          "title": "Pull Up (feat. Scrufizzer)",
+          "artist": "Matisse & Sadko, Vion Konger",
+          "youtubeId": "0ibQSd4pFBI",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256342181
+        },
+        {
+          "id": "rt_tv_1790256343654_ze2a",
+          "title": "Rotation",
+          "artist": "MORTEN",
+          "youtubeId": "B8ogM1VKlH8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256343654
+        },
+        {
+          "id": "rt_tv_1790256344591_qpb3",
+          "title": "“Without You”",
+          "artist": "Kygo, HAYLA",
+          "youtubeId": "w304OXHrDmg",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256344591
+        },
+        {
+          "id": "rt_tv_1790256345565_xsri",
+          "title": "All That Matters (ARTBAT remix)",
+          "artist": "Kolsch",
+          "youtubeId": "iosaSwiYp4E",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256345565
+        },
+        {
+          "id": "rt_tv_1790256347744_uz2a",
+          "title": "March (Visualizer)",
+          "artist": "Goom Gum",
+          "youtubeId": "NtMZ1IsxOxQ",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256347744
+        },
+        {
+          "id": "rt_tv_1790256349445_74pd",
+          "title": "DROPSIDERS TV",
+          "artist": "Stylo, Q.U.A.K.E, Eli & Dani – On The Ground [Live from ÆDEN Mexico City]",
+          "youtubeId": "pKcV-69i-gY",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256349445
+        },
+        {
+          "id": "rt_tv_1790256351317_yfz4",
+          "title": "DROPSIDERS TV",
+          "artist": "Kevin de Vries & Platero – Man Like Me (Visualizer)",
+          "youtubeId": "mRZROQT4KSY",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256351317
+        },
+        {
+          "id": "rt_tv_1790256352324_d5nt",
+          "title": "DROPSIDERS TV",
+          "artist": "Argy & 7 SKIES – Murda (Visualizer)",
+          "youtubeId": "hUyIHwHNpWQ",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256352324
+        },
+        {
+          "id": "rt_tv_1790256354754_ob1y",
+          "title": "DROPSIDERS TV",
+          "artist": "SLVR – Say Less (Visualizer)",
+          "youtubeId": "VhXPrapMuPU",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256354754
+        },
+        {
+          "id": "rt_tv_1790256355604_df0t",
+          "title": "DROPSIDERS TV",
+          "artist": "Jast – Dancin (Visualizer)",
+          "youtubeId": "2InKUbzf0aw",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256355604
+        },
+        {
+          "id": "rt_tv_1790256356223_3bu0",
+          "title": "DROPSIDERS TV",
+          "artist": "Massano & Humans Musik – Underground (Visualizer)",
+          "youtubeId": "7HisqZ0QFtU",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256356223
+        },
+        {
+          "id": "rt_tv_1790256357137_mts2",
+          "title": "DROPSIDERS TV",
+          "artist": "Colyn – When The Fire Starts To Burn (Visualizer)",
+          "youtubeId": "3CgZrNlFsTQ",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256357137
+        },
+        {
+          "id": "rt_tv_1790256357818_owne",
+          "title": "DROPSIDERS TV",
+          "artist": "Skuro & Final Request – F*ck The Club (Visualizer)",
+          "youtubeId": "R6gptKelYK0",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256357818
+        },
+        {
+          "id": "rt_tv_1790256360443_f866",
+          "title": "Eternity (Massano Remix) [Live from Afterlife Chile]",
+          "artist": "Anyma & Chris Avantgarde",
+          "youtubeId": "_V_5YoOoV28",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256360443
+        },
+        {
+          "id": "rt_tv_1790256361116_dxw5",
+          "title": "Entropy (feat. fknsyd) [Live at Sphere Las Vegas]",
+          "artist": "Anyma, Rezz",
+          "youtubeId": "8Yq3cnS6W-U",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256361116
+        },
+        {
+          "id": "rt_tv_1790256361700_9fml",
+          "title": "EDC Las Vegas 2026",
+          "artist": "Kaskade & Natalie Jane Perform “Meet Again”",
+          "youtubeId": "J1yT2WhrrrA",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256361700
+        },
+        {
+          "id": "rt_tv_1790256362357_b4yy",
+          "title": "Mockingbird (LIVE Tomorrowland Winter 2024)",
+          "artist": "Tiësto & Dimitri Vegas & Like Mike & Gabry Ponte",
+          "youtubeId": "dI94MEJUuHc",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256362357
+        },
+        {
+          "id": "rt_tv_1790256362966_anlf",
+          "title": "Fireworks (Ft. Moss Kena & The Knocks) · Official Video",
+          "artist": "Purple Disco Machine",
+          "youtubeId": "8tcYQEk1EVQ",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256362966
+        },
+        {
+          "id": "rt_tv_1790256363593_0qfa",
+          "title": "Stade de France 2026)",
+          "artist": "ARTBAT, David Guetta, Gotye - Somebody That I Used To Know (",
+          "youtubeId": "R2ZeYn8x2fg",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256363593
+        },
+        {
+          "id": "rt_tv_1790256366356_npiu",
+          "title": "Other Dimension [Live from ÆDEN Brussels]",
+          "artist": "Anyma, Volkoder",
+          "youtubeId": "Mz7QKZgk7j0",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256366356
+        },
+        {
+          "id": "rt_tv_1790256366901_zy67",
+          "title": "Silence (ft. Sarah McLachlan) [John Summit Remix]",
+          "artist": "Delerium",
+          "youtubeId": "XSKweg0app8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256366901
+        },
+        {
+          "id": "rt_tv_1790256367494_en08",
+          "title": "I Need Your Lovin'",
+          "artist": "Matroda",
+          "youtubeId": "U6OBHb0iJDA",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256367494
+        },
+        {
+          "id": "rt_tv_1790256368196_5liu",
+          "title": "Blind feat. Emmi",
+          "artist": "Feder",
+          "youtubeId": "RONI_t9AU3k",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256368196
+        },
+        {
+          "id": "rt_tv_1790256368853_ztkv",
+          "title": "Love (Live at Pillars of Creation)",
+          "artist": "Armin van Buuren & Omnia",
+          "youtubeId": "M5YiOqIIjxc",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256368853
+        },
+        {
+          "id": "rt_1790256384500",
+          "title": "This Is What You Came For",
+          "artist": "Calvin Harris, Rihanna",
+          "youtubeId": "kOkQ4T5WO9E",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256384500
+        },
+        {
+          "id": "rt_1790256402933",
+          "title": "The World is Mine",
+          "artist": "David Guetta",
+          "youtubeId": "13EsiCjsssY",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256402933
+        },
+        {
+          "id": "rt_1790256416815",
+          "title": "Music Sounds Better With You (Official Music Video)",
+          "artist": "Stardust",
+          "youtubeId": "FQlAEiCb8m0",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256416815
+        },
+        {
+          "id": "rt_tv_1790256423885_i2v6",
+          "title": "Neverland (From Japan) [Live at Sphere Vegas]",
+          "artist": "Anyma, Baset",
+          "youtubeId": "2ydtr7J0n6A",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256423885
+        },
+        {
+          "id": "rt_tv_1790256426835_zip0",
+          "title": "Bad Angel (Live from Coachella)",
+          "artist": "Anyma, LISA",
+          "youtubeId": "LHDaa04ue6Q",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256426835
+        },
+        {
+          "id": "rt_tv_1790256427473_9bb6",
+          "title": "Quantum [Live from [UNVRS] Ibiza]",
+          "artist": "Anyma, Chris Avantgarde",
+          "youtubeId": "vjbO4bOoQ8E",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256427473
+        },
+        {
+          "id": "rt_tv_1790256428125_ncyh",
+          "title": "In My Mind [Live at Sphere Las Vegas]",
+          "artist": "Anyma, SCRIPT",
+          "youtubeId": "15NDQ9kWW-s",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256428125
+        },
+        {
+          "id": "rt_tv_1790256428805_hfr3",
+          "title": "The End Of Genesys (New Year's Eve Intro) [Live at Sphere Las Vegas]",
+          "artist": "Anyma, Y do I",
+          "youtubeId": "tIkEPMzrq38",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256428805
+        },
+        {
+          "id": "rt_tv_1790256429479_cdij",
+          "title": "Human Now (feat. Luke Steele) [Live at Sphere Las Vegas]",
+          "artist": "Anyma",
+          "youtubeId": "_FeDZOKGTOg",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256429479
+        },
+        {
+          "id": "rt_tv_1790256445718_96dx",
+          "title": "Go Back (feat. Julia Church) [Live at Sphere Las Vegas]",
+          "artist": "John Summit & Sub Focus",
+          "youtubeId": "9TLNDJH9E98",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256445718
+        },
+        {
+          "id": "rt_1790256500279",
+          "title": "E Samba",
+          "artist": "Junior Jack",
+          "youtubeId": "8vNN6PXm5q8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256500279
+        },
+        {
+          "id": "rt_1790256510461",
+          "title": "Thrill Me",
+          "artist": "Junior Jack",
+          "youtubeId": "C-NJ-B8ex0c",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256510461
+        },
+        {
+          "id": "rt_1790256525142",
+          "title": "Dare Me (Stupidisco)",
+          "artist": "Junior Jack",
+          "youtubeId": "oDIJJHm0rqM",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256525142
+        },
+        {
+          "id": "rt_1790256537909",
+          "title": "Da Hype",
+          "artist": "Junior Jack feat Robert Smith",
+          "youtubeId": "eNK6GWOVpQ4",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256537909
+        },
+        {
+          "id": "rt_1790256557829",
+          "title": "Take Our Time (Extended Mix)",
+          "artist": "Oden & Fatzo x ASTELS",
+          "youtubeId": "Bc3dI-xLYLM",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256557829
+        },
+        {
+          "id": "rt_1790256581300",
+          "title": "Push The Tempo (Extended Mix)",
+          "artist": "Denis Sulta & Capri",
+          "youtubeId": "FjF0tMr0B18",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256581300
+        },
+        {
+          "id": "rt_1790256593118",
+          "title": "The Cure & The Cause",
+          "artist": "Fish Go Deep & Tracey K X Shy FX",
+          "youtubeId": "DKf6g9OjDwI",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256593118
+        },
+        {
+          "id": "rt_1790256614566",
+          "title": "Stamina (Extended Mix)",
+          "artist": "LEYO & Thierry Ganz",
+          "youtubeId": "a5A6fDVOojk",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256614566
+        }
+      ]
+    }
+  ],
+  "radio_tracks": [
+    {
+      "id": "rt_tv_1790255600257_jbmf",
+      "title": "JUST A LITTLE BIT MORE",
+      "artist": "Mau P",
+      "youtubeId": "ke6hDTz3OoY",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255600257
+    },
+    {
+      "id": "rt_tv_1790255611613_hych",
+      "title": "Movin’ To The Sun (Performance Clip)",
+      "artist": "ULTRA NATÉ",
+      "youtubeId": "bJ7yyX4Qic4",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255611613
+    },
+    {
+      "id": "rt_tv_1790255617206_jnj3",
+      "title": "WHAT A LIFE (ft. Florence Arman)",
+      "artist": "FISHER",
+      "youtubeId": "CsRTKXYEhOM",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255617206
+    },
+    {
+      "id": "rt_1790255659500",
+      "title": "What A Life ft. Stevie Appleton",
+      "artist": "John Summit, Guz",
+      "youtubeId": "a6nw8XxdDu4",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255659500
+    },
+    {
+      "id": "rt_tv_1790255666383_erfo",
+      "title": "Kackvogel (music video)",
+      "artist": "Solomun",
+      "youtubeId": "9tBOtSPrNik",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255666383
+    },
+    {
+      "id": "rt_tv_1790255667651_2ov0",
+      "title": "High On Life",
+      "artist": "Martin Garrix feat. Bonn",
+      "youtubeId": "Lpjcm1F8tY8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255667651
+    },
+    {
+      "id": "rt_tv_1790255668796_f75q",
+      "title": "Happiness Is So Sad (Official Audio)",
+      "artist": "Swedish House Mafia, Lykke Li",
+      "youtubeId": "5N5RfaCyD-Y",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255668796
+    },
+    {
+      "id": "rt_tv_1790255671397_4tjs",
+      "title": "Deep In The Bottom (of Africa)",
+      "artist": "Monique Bingham, Black Coffee",
+      "youtubeId": "BEKiRcCC1XY",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255671397
+    },
+    {
+      "id": "rt_tv_1790255672563_uqru",
+      "title": "QUE CE SOIT CLAIR",
+      "artist": "Paul Kalkbrenner x Stromae",
+      "youtubeId": "YQM7DKi11ho",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255672563
+    },
+    {
+      "id": "rt_tv_1790255675199_zvfq",
+      "title": "Rumpta (Official Audio)",
+      "artist": "Solomun, Skrillex",
+      "youtubeId": "aFUqsPHEXhA",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255675199
+    },
+    {
+      "id": "rt_tv_1790255680923_1axj",
+      "title": "Bangarang feat. Sirah [Official Music Video]",
+      "artist": "SKRILLEX",
+      "youtubeId": "YJVmu6yttiw",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255680923
+    },
+    {
+      "id": "rt_tv_1790255682374_m8xf",
+      "title": "We Could Be Dancing ft. Molly Hammar",
+      "artist": "Bob Sinclar",
+      "youtubeId": "kauqBzcqPFM",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255682374
+    },
+    {
+      "id": "rt_tv_1790255683756_1bw0",
+      "title": "Beautiful (Official Music Video)",
+      "artist": "Anyma, Joji",
+      "youtubeId": "DnTC2P9kxO8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255683756
+    },
+    {
+      "id": "rt_tv_1790255685077_tzod",
+      "title": "Born Like That",
+      "artist": "Kevin de Vries & Jast",
+      "youtubeId": "BG0PN9Xcho8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255685077
+    },
+    {
+      "id": "rt_1790255712927",
+      "title": "Feel The Vibe (Original)",
+      "artist": "Axwell",
+      "youtubeId": "889H0Am7vFo",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255712927
+    },
+    {
+      "id": "rt_1790255779415",
+      "title": "Beat Goes On",
+      "artist": "Adam Ten",
+      "youtubeId": "2I0jW--BOzE",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255779415
+    },
+    {
+      "id": "rt_1790255829690",
+      "title": "Nothing Wrong (Love Mix)",
+      "artist": "Omri",
+      "youtubeId": "QuHJZCbrI38",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255829690
+    },
+    {
+      "id": "rt_1790255881886",
+      "title": "The Present (Extended Mix)",
+      "artist": "Goodboys, Korolova",
+      "youtubeId": "BLQaxpCAOKE",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255881886
+    },
+    {
+      "id": "rt_1790255910132",
+      "title": "BOUNCE MUSIC (Official Music Video)",
+      "artist": "INNELLEA",
+      "youtubeId": "vgHasjtd0NQ",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255910133
+    },
+    {
+      "id": "rt_1790255974618",
+      "title": "Swagon",
+      "artist": "Detlef",
+      "youtubeId": "1p6JePMTJVE",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790255974618
+    },
+    {
+      "id": "rt_1790256008619",
+      "title": "Innerbloom",
+      "artist": "RÜFÜS DU SOL",
+      "youtubeId": "Tx9zMFodNtA",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256008619
+    },
+    {
+      "id": "rt_1790256040583",
+      "title": "In the Moment (Adriatique Remix)",
+      "artist": "RÜFÜS DU SOL",
+      "youtubeId": "qP6xBFfTGeI",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256040583
+    },
+    {
+      "id": "rt_1790256092462",
+      "title": "Polka",
+      "artist": "OMMA",
+      "youtubeId": "D8uZsgs6Woo",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256092462
+    },
+    {
+      "id": "rt_1790256131260",
+      "title": "Out Of Touch",
+      "artist": "Daryl Hall & John Oates",
+      "youtubeId": "D00M2KZH1J0",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256131260
+    },
+    {
+      "id": "rt_1790256149615",
+      "title": "4Get The Girl (Samm Remix)",
+      "artist": "Route 94",
+      "youtubeId": "R4aJA0XA-Bk",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256149615
+    },
+    {
+      "id": "rt_1790256167935",
+      "title": "You Make Me Fall In Love",
+      "artist": "Ajna feat. abrahamblue",
+      "youtubeId": "YCqCBviJoGg",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256167935
+    },
+    {
+      "id": "rt_1790256193204",
+      "title": "Baby Do You Wanna Bump [AFFAIRS 017]",
+      "artist": "JØRD",
+      "youtubeId": "cQEnrHD91R8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256193204
+    },
+    {
+      "id": "rt_1790256215019",
+      "title": "Lost [AFFAIRS 006]",
+      "artist": "Vintage Culture, Gabss",
+      "youtubeId": "wNoZnhsB2XA",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256215019
+    },
+    {
+      "id": "rt_1790256226318",
+      "title": "Analog Ascent",
+      "artist": "Vintage Culture, Roddy Lima",
+      "youtubeId": "uJM4b-BRTWI",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256226318
+    },
+    {
+      "id": "rt_1790256245692",
+      "title": "Turn The Tide (ft. Sylver)",
+      "artist": "Dimitri Vegas, Sylver & Pat B",
+      "youtubeId": "hFG5ZPtnxsw",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256245692
+    },
+    {
+      "id": "rt_1790256261370",
+      "title": "Makina Time",
+      "artist": "Dimitri Vegas & Like Mike x Marlon Hoffstadt x DJ Konik",
+      "youtubeId": "jEIMDLAbOD0",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256261370
+    },
+    {
+      "id": "rt_1790256278044",
+      "title": "It's That Time (FISHER Remix)",
+      "artist": "Marlon Hoffstadt",
+      "youtubeId": "GDWdul0nrYw",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256278044
+    },
+    {
+      "id": "rt_1790256302438",
+      "title": "Hello",
+      "artist": "Martin Solveig & Dragonette",
+      "youtubeId": "kK42LZqO0wA",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256302438
+    },
+    {
+      "id": "rt_1790256323478",
+      "title": "Titanium ft. Sia",
+      "artist": "David Guetta",
+      "youtubeId": "JRfuAukYTKg",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256323478
+    },
+    {
+      "id": "rt_tv_1790256329104_fza5",
+      "title": "Carry You (feat. Oaks & Declan J Donovan) [",
+      "artist": "Martin Garrix & Third ≡ Party",
+      "youtubeId": "xVGoGYb55NI",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256329104
+    },
+    {
+      "id": "rt_tv_1790256330392_7qxb",
+      "title": "Medellin, Colombia (",
+      "artist": "DJ Snake - Club Soda",
+      "youtubeId": "csd9gajWjxE",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256330392
+    },
+    {
+      "id": "rt_tv_1790256332123_2ai2",
+      "title": "Places ft. Ina Wroldsen",
+      "artist": "Martin Solveig",
+      "youtubeId": "NJlOmDWyoA8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256332123
+    },
+    {
+      "id": "rt_tv_1790256333666_lum0",
+      "title": "SHADOWS (feat. LAVINIA)",
+      "artist": "John Summit",
+      "youtubeId": "TSZo2eZzD6s",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256333666
+    },
+    {
+      "id": "rt_tv_1790256342181_7vz8",
+      "title": "Pull Up (feat. Scrufizzer)",
+      "artist": "Matisse & Sadko, Vion Konger",
+      "youtubeId": "0ibQSd4pFBI",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256342181
+    },
+    {
+      "id": "rt_tv_1790256343654_ze2a",
+      "title": "Rotation",
+      "artist": "MORTEN",
+      "youtubeId": "B8ogM1VKlH8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256343654
+    },
+    {
+      "id": "rt_tv_1790256344591_qpb3",
+      "title": "“Without You”",
+      "artist": "Kygo, HAYLA",
+      "youtubeId": "w304OXHrDmg",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256344591
+    },
+    {
+      "id": "rt_tv_1790256345565_xsri",
+      "title": "All That Matters (ARTBAT remix)",
+      "artist": "Kolsch",
+      "youtubeId": "iosaSwiYp4E",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256345565
+    },
+    {
+      "id": "rt_tv_1790256347744_uz2a",
+      "title": "March (Visualizer)",
+      "artist": "Goom Gum",
+      "youtubeId": "NtMZ1IsxOxQ",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256347744
+    },
+    {
+      "id": "rt_tv_1790256349445_74pd",
+      "title": "DROPSIDERS TV",
+      "artist": "Stylo, Q.U.A.K.E, Eli & Dani – On The Ground [Live from ÆDEN Mexico City]",
+      "youtubeId": "pKcV-69i-gY",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256349445
+    },
+    {
+      "id": "rt_tv_1790256351317_yfz4",
+      "title": "DROPSIDERS TV",
+      "artist": "Kevin de Vries & Platero – Man Like Me (Visualizer)",
+      "youtubeId": "mRZROQT4KSY",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256351317
+    },
+    {
+      "id": "rt_tv_1790256352324_d5nt",
+      "title": "DROPSIDERS TV",
+      "artist": "Argy & 7 SKIES – Murda (Visualizer)",
+      "youtubeId": "hUyIHwHNpWQ",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256352324
+    },
+    {
+      "id": "rt_tv_1790256354754_ob1y",
+      "title": "DROPSIDERS TV",
+      "artist": "SLVR – Say Less (Visualizer)",
+      "youtubeId": "VhXPrapMuPU",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256354754
+    },
+    {
+      "id": "rt_tv_1790256355604_df0t",
+      "title": "DROPSIDERS TV",
+      "artist": "Jast – Dancin (Visualizer)",
+      "youtubeId": "2InKUbzf0aw",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256355604
+    },
+    {
+      "id": "rt_tv_1790256356223_3bu0",
+      "title": "DROPSIDERS TV",
+      "artist": "Massano & Humans Musik – Underground (Visualizer)",
+      "youtubeId": "7HisqZ0QFtU",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256356223
+    },
+    {
+      "id": "rt_tv_1790256357137_mts2",
+      "title": "DROPSIDERS TV",
+      "artist": "Colyn – When The Fire Starts To Burn (Visualizer)",
+      "youtubeId": "3CgZrNlFsTQ",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256357137
+    },
+    {
+      "id": "rt_tv_1790256357818_owne",
+      "title": "DROPSIDERS TV",
+      "artist": "Skuro & Final Request – F*ck The Club (Visualizer)",
+      "youtubeId": "R6gptKelYK0",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256357818
+    },
+    {
+      "id": "rt_tv_1790256360443_f866",
+      "title": "Eternity (Massano Remix) [Live from Afterlife Chile]",
+      "artist": "Anyma & Chris Avantgarde",
+      "youtubeId": "_V_5YoOoV28",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256360443
+    },
+    {
+      "id": "rt_tv_1790256361116_dxw5",
+      "title": "Entropy (feat. fknsyd) [Live at Sphere Las Vegas]",
+      "artist": "Anyma, Rezz",
+      "youtubeId": "8Yq3cnS6W-U",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256361116
+    },
+    {
+      "id": "rt_tv_1790256361700_9fml",
+      "title": "EDC Las Vegas 2026",
+      "artist": "Kaskade & Natalie Jane Perform “Meet Again”",
+      "youtubeId": "J1yT2WhrrrA",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256361700
+    },
+    {
+      "id": "rt_tv_1790256362357_b4yy",
+      "title": "Mockingbird (LIVE Tomorrowland Winter 2024)",
+      "artist": "Tiësto & Dimitri Vegas & Like Mike & Gabry Ponte",
+      "youtubeId": "dI94MEJUuHc",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256362357
+    },
+    {
+      "id": "rt_tv_1790256362966_anlf",
+      "title": "Fireworks (Ft. Moss Kena & The Knocks) · Official Video",
+      "artist": "Purple Disco Machine",
+      "youtubeId": "8tcYQEk1EVQ",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256362966
+    },
+    {
+      "id": "rt_tv_1790256363593_0qfa",
+      "title": "Stade de France 2026)",
+      "artist": "ARTBAT, David Guetta, Gotye - Somebody That I Used To Know (",
+      "youtubeId": "R2ZeYn8x2fg",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256363593
+    },
+    {
+      "id": "rt_tv_1790256366356_npiu",
+      "title": "Other Dimension [Live from ÆDEN Brussels]",
+      "artist": "Anyma, Volkoder",
+      "youtubeId": "Mz7QKZgk7j0",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256366356
+    },
+    {
+      "id": "rt_tv_1790256366901_zy67",
+      "title": "Silence (ft. Sarah McLachlan) [John Summit Remix]",
+      "artist": "Delerium",
+      "youtubeId": "XSKweg0app8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256366901
+    },
+    {
+      "id": "rt_tv_1790256367494_en08",
+      "title": "I Need Your Lovin'",
+      "artist": "Matroda",
+      "youtubeId": "U6OBHb0iJDA",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256367494
+    },
+    {
+      "id": "rt_tv_1790256368196_5liu",
+      "title": "Blind feat. Emmi",
+      "artist": "Feder",
+      "youtubeId": "RONI_t9AU3k",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256368196
+    },
+    {
+      "id": "rt_tv_1790256368853_ztkv",
+      "title": "Love (Live at Pillars of Creation)",
+      "artist": "Armin van Buuren & Omnia",
+      "youtubeId": "M5YiOqIIjxc",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256368853
+    },
+    {
+      "id": "rt_1790256384500",
+      "title": "This Is What You Came For",
+      "artist": "Calvin Harris, Rihanna",
+      "youtubeId": "kOkQ4T5WO9E",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256384500
+    },
+    {
+      "id": "rt_1790256402933",
+      "title": "The World is Mine",
+      "artist": "David Guetta",
+      "youtubeId": "13EsiCjsssY",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256402933
+    },
+    {
+      "id": "rt_1790256416815",
+      "title": "Music Sounds Better With You (Official Music Video)",
+      "artist": "Stardust",
+      "youtubeId": "FQlAEiCb8m0",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256416815
+    },
+    {
+      "id": "rt_tv_1790256423885_i2v6",
+      "title": "Neverland (From Japan) [Live at Sphere Vegas]",
+      "artist": "Anyma, Baset",
+      "youtubeId": "2ydtr7J0n6A",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256423885
+    },
+    {
+      "id": "rt_tv_1790256426835_zip0",
+      "title": "Bad Angel (Live from Coachella)",
+      "artist": "Anyma, LISA",
+      "youtubeId": "LHDaa04ue6Q",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256426835
+    },
+    {
+      "id": "rt_tv_1790256427473_9bb6",
+      "title": "Quantum [Live from [UNVRS] Ibiza]",
+      "artist": "Anyma, Chris Avantgarde",
+      "youtubeId": "vjbO4bOoQ8E",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256427473
+    },
+    {
+      "id": "rt_tv_1790256428125_ncyh",
+      "title": "In My Mind [Live at Sphere Las Vegas]",
+      "artist": "Anyma, SCRIPT",
+      "youtubeId": "15NDQ9kWW-s",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256428125
+    },
+    {
+      "id": "rt_tv_1790256428805_hfr3",
+      "title": "The End Of Genesys (New Year's Eve Intro) [Live at Sphere Las Vegas]",
+      "artist": "Anyma, Y do I",
+      "youtubeId": "tIkEPMzrq38",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256428805
+    },
+    {
+      "id": "rt_tv_1790256429479_cdij",
+      "title": "Human Now (feat. Luke Steele) [Live at Sphere Las Vegas]",
+      "artist": "Anyma",
+      "youtubeId": "_FeDZOKGTOg",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256429479
+    },
+    {
+      "id": "rt_tv_1790256445718_96dx",
+      "title": "Go Back (feat. Julia Church) [Live at Sphere Las Vegas]",
+      "artist": "John Summit & Sub Focus",
+      "youtubeId": "9TLNDJH9E98",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256445718
+    },
+    {
+      "id": "rt_1790256500279",
+      "title": "E Samba",
+      "artist": "Junior Jack",
+      "youtubeId": "8vNN6PXm5q8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256500279
+    },
+    {
+      "id": "rt_1790256510461",
+      "title": "Thrill Me",
+      "artist": "Junior Jack",
+      "youtubeId": "C-NJ-B8ex0c",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256510461
+    },
+    {
+      "id": "rt_1790256525142",
+      "title": "Dare Me (Stupidisco)",
+      "artist": "Junior Jack",
+      "youtubeId": "oDIJJHm0rqM",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256525142
+    },
+    {
+      "id": "rt_1790256537909",
+      "title": "Da Hype",
+      "artist": "Junior Jack feat Robert Smith",
+      "youtubeId": "eNK6GWOVpQ4",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256537909
+    },
+    {
+      "id": "rt_1790256557829",
+      "title": "Take Our Time (Extended Mix)",
+      "artist": "Oden & Fatzo x ASTELS",
+      "youtubeId": "Bc3dI-xLYLM",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256557829
+    },
+    {
+      "id": "rt_1790256581300",
+      "title": "Push The Tempo (Extended Mix)",
+      "artist": "Denis Sulta & Capri",
+      "youtubeId": "FjF0tMr0B18",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256581300
+    },
+    {
+      "id": "rt_1790256593118",
+      "title": "The Cure & The Cause",
+      "artist": "Fish Go Deep & Tracey K X Shy FX",
+      "youtubeId": "DKf6g9OjDwI",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256593118
+    },
+    {
+      "id": "rt_1790256614566",
+      "title": "Stamina (Extended Mix)",
+      "artist": "LEYO & Thierry Ganz",
+      "youtubeId": "a5A6fDVOojk",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256614566
+    }
+  ]
 }
