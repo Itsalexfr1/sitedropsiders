@@ -361,6 +361,28 @@ function RadioIframe({ iframeRef }: {
 function MobileRadioPlayer({ audio }: { audio: AudioState }) {
     const [expanded, setExpanded] = useState(false);
     const [dismissed, setDismissed] = useState(false);
+    // Sur les pages admin, réduction automatique en mini-bouton
+    const location = useLocation();
+    const isAdminPage = location.pathname.startsWith('/admin');
+    const [miniOnAdmin, setMiniOnAdmin] = useState<boolean>(() => {
+        try { return sessionStorage.getItem('radio_mini_admin') === 'true'; } catch { return false; }
+    });
+
+    useEffect(() => {
+        if (isAdminPage && !miniOnAdmin) {
+            setMiniOnAdmin(true);
+            try { sessionStorage.setItem('radio_mini_admin', 'true'); } catch {}
+        } else if (!isAdminPage && miniOnAdmin) {
+            setMiniOnAdmin(false);
+            try { sessionStorage.removeItem('radio_mini_admin'); } catch {}
+        }
+    }, [isAdminPage]);
+
+    const handleToggleMini = () => {
+        const next = !miniOnAdmin;
+        setMiniOnAdmin(next);
+        try { next ? sessionStorage.setItem('radio_mini_admin', 'true') : sessionStorage.removeItem('radio_mini_admin'); } catch {}
+    };
 
     if (!audio.isEnabled || !audio.currentSet || dismissed) return null;
 
@@ -484,48 +506,84 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                 )}
             </AnimatePresence>
 
-            {/* ── Barre compacte Spotify-style ── */}
-            <div
-                style={{ zIndex: 99998, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 70px)' }}
-                className="fixed left-0 right-0 lg:hidden"
-            >
-                <div className="h-[2px] bg-white/5">
-                    <div className="h-full bg-gradient-to-r from-neon-cyan to-neon-red transition-all duration-1000" style={{ width: `${progress}%` }} />
-                </div>
-
-                <div className="flex items-center gap-3 px-4 py-2.5 bg-[#0d0d18]/98 backdrop-blur-xl border-t border-white/[0.07] cursor-pointer"
-                    onClick={() => setExpanded(true)}>
-
-                    <div className="relative shrink-0">
-                        <div className={`w-10 h-10 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center ${isPlaying ? 'shadow-[0_0_16px_rgba(0,255,255,0.4)]' : ''}`}>
-                            <Disc3 className={`w-5 h-5 text-neon-cyan ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
-                        </div>
-                        <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red animate-ping" />
-                        <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red" />
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                        <p className="text-[10.5px] font-black text-white uppercase italic truncate leading-tight">{currentSet.artist}</p>
-                        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-wider truncate">DROPSIDERS RADIO · 24/7</p>
-                    </div>
-
-                    <AudioBars playing={isPlaying} />
-
-                    <button
-                        onClick={e => { e.stopPropagation(); handlePlay(); }}
-                        className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 shadow-lg ${
-                            isPlaying ? 'bg-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.5)]' : 'bg-white'
-                        }`}
+            {/* ── Mini-bouton flottant (mode mini activé) ── */}
+            <AnimatePresence>
+                {miniOnAdmin && !expanded && (
+                    <motion.button
+                        key="mini-float"
+                        initial={{ opacity: 0, scale: 0.7, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.7, y: 10 }}
+                        transition={{ type: 'spring', damping: 22, stiffness: 280 }}
+                        onClick={handleToggleMini}
+                        style={{ zIndex: 99998, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)' }}
+                        className="fixed right-3 lg:hidden flex items-center gap-2 px-3 py-2 rounded-2xl bg-[#0d0d18]/95 backdrop-blur-xl border border-neon-cyan/40 shadow-[0_0_18px_rgba(0,255,255,0.2)] active:scale-95 transition-all"
+                        aria-label="Afficher la radio"
                     >
-                        {isPlaying
-                            ? <Pause className="w-5 h-5 text-black fill-black" />
-                            : <Play className="w-5 h-5 text-black fill-black ml-0.5" />
-                        }
-                    </button>
+                        <div className="relative shrink-0">
+                            <Disc3 className={`w-4 h-4 text-neon-cyan ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
+                            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-neon-red animate-ping" />
+                            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-neon-red" />
+                        </div>
+                        <AudioBars playing={isPlaying} />
+                        <ChevronUp className="w-3 h-3 text-white/40" />
+                    </motion.button>
+                )}
+            </AnimatePresence>
 
-                    <ChevronUp className="w-4 h-4 text-white/25 shrink-0" />
+            {/* ── Barre compacte Spotify-style (visible seulement si pas en mode mini) ── */}
+            {!miniOnAdmin && (
+                <div
+                    style={{ zIndex: 99998, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 70px)' }}
+                    className="fixed left-0 right-0 lg:hidden"
+                >
+                    <div className="h-[2px] bg-white/5">
+                        <div className="h-full bg-gradient-to-r from-neon-cyan to-neon-red transition-all duration-1000" style={{ width: `${progress}%` }} />
+                    </div>
+
+                    <div className="flex items-center gap-3 px-4 py-2.5 bg-[#0d0d18]/98 backdrop-blur-xl border-t border-white/[0.07] cursor-pointer"
+                        onClick={() => setExpanded(true)}>
+
+                        <div className="relative shrink-0">
+                            <div className={`w-10 h-10 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center ${isPlaying ? 'shadow-[0_0_16px_rgba(0,255,255,0.4)]' : ''}`}>
+                                <Disc3 className={`w-5 h-5 text-neon-cyan ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
+                            </div>
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red animate-ping" />
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red" />
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[10.5px] font-black text-white uppercase italic truncate leading-tight">{currentSet.artist}</p>
+                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-wider truncate">DROPSIDERS RADIO · 24/7</p>
+                        </div>
+
+                        <AudioBars playing={isPlaying} />
+
+                        <button
+                            onClick={e => { e.stopPropagation(); handlePlay(); }}
+                            className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 shadow-lg ${
+                                isPlaying ? 'bg-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.5)]' : 'bg-white'
+                            }`}
+                        >
+                            {isPlaying
+                                ? <Pause className="w-5 h-5 text-black fill-black" />
+                                : <Play className="w-5 h-5 text-black fill-black ml-0.5" />
+                            }
+                        </button>
+
+                        {/* Bouton réduire en mini-bouton */}
+                        <button
+                            onClick={e => { e.stopPropagation(); handleToggleMini(); }}
+                            className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 active:scale-90 active:bg-white/10 transition-all shrink-0"
+                            title="Réduire la radio"
+                        >
+                            <Minimize2 className="w-3.5 h-3.5" />
+                        </button>
+
+                        <ChevronUp className="w-4 h-4 text-white/25 shrink-0" />
+                    </div>
                 </div>
-            </div>
+            )}
         </>
     );
 }
