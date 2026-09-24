@@ -759,5 +759,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1113,
+    "title": "Prospa x Josh Baker x Kettama ",
+    "date": "2027-07-03",
+    "startDate": "2027-07-03",
+    "endDate": "2027-07-03",
+    "venue": "Finsbury Park",
+    "location": "LONDRES",
+    "country": "ROYAUME-UNI",
+    "type": "Events",
+    "image": "/uploads/uploads/c3c01f5e17db16b8-819603231_1121629383534534_876.jpg",
+    "url": "https://www.livenation.co.uk/event/josh-baker-kettama-and-prospa-london-tickets-edp1699674?",
+    "genre": "House",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
