@@ -4988,18 +4988,6 @@ export function AdminDashboard() {
                           </p>
                           {action.title === "Dropsiders Radio" && (
                             <div className="mt-4 pt-3 border-t border-white/10 space-y-2.5" onClick={e => e.stopPropagation()}>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setIsRadioModalOpen(true);
-                                }}
-                                className="w-full py-2 px-3 rounded-xl bg-neon-cyan/15 hover:bg-neon-cyan/25 border border-neon-cyan/35 text-neon-cyan font-bold text-xs flex items-center justify-center gap-2 transition-all hover:scale-[1.02] cursor-pointer shadow-lg"
-                              >
-                                <Music2 className="w-3.5 h-3.5" />
-                                <span>Gérer Sets & Clips ({radioStats.sets} Sets · {radioStats.clips} Clips)</span>
-                              </button>
-
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   <span className={`w-2.5 h-2.5 rounded-full ${isRadioActive ? 'bg-neon-cyan animate-pulse shadow-[0_0_10px_rgba(0,255,255,0.8)]' : 'bg-gray-600'}`} />
