@@ -26,7 +26,7 @@ export interface UnifiedPerson {
     hasAdminAccess: boolean;
     email: string;
     originalEmail?: string;
-    preset: 'admin' | 'editorial' | 'moderator' | 'marketing' | 'custom';
+    preset: 'admin' | 'editorial' | 'moderator' | 'radio_tv' | 'marketing' | 'custom';
     permissions: string[];
     verified?: boolean;
     created?: string;
