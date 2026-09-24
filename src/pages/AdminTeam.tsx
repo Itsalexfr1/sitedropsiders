@@ -526,7 +526,7 @@ export function AdminTeam() {
     };
 
     // Handle Preset Selection
-    const selectPreset = (presetId: 'admin' | 'editorial' | 'moderator' | 'marketing' | 'custom') => {
+    const selectPreset = (presetId: 'admin' | 'editorial' | 'moderator' | 'radio_tv' | 'marketing' | 'custom') => {
         if (!editingPerson) return;
         const presetObj = ROLE_PRESETS.find(p => p.id === presetId);
         if (!presetObj) return;

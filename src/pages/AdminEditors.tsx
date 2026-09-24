@@ -49,6 +49,14 @@ const PERMISSION_CATEGORIES = [
         ]
     },
     {
+        id: 'radio_tv',
+        label: '📻 Radio & TV',
+        permissions: [
+            { id: 'radio', label: 'Dropsiders Radio', description: 'Gérer la grille de programmation de la Radio : émissions, sets, ordre de diffusion.' },
+            { id: 'tv_schedule', label: 'DropsidersTV', description: 'Gérer la grille de la TV : blocs vidéo, playlists et programmation 24/7.' }
+        ]
+    },
+    {
         id: 'marketing',
         label: 'Marketing & Business',
         permissions: [
