@@ -360,33 +360,64 @@ function RadioIframe({ iframeRef }: {
 // ═══════════════════════════════════════════════════════════════════════════════
 function MobileRadioPlayer({ audio }: { audio: AudioState }) {
     const [expanded, setExpanded] = useState(false);
-    const [dismissed, setDismissed] = useState(false);
-    // Sur les pages admin, réduction automatique en mini-bouton
     const location = useLocation();
     const isAdminPage = location.pathname.startsWith('/admin');
-    const [miniOnAdmin, setMiniOnAdmin] = useState<boolean>(() => {
-        try { return sessionStorage.getItem('radio_mini_admin') === 'true'; } catch { return false; }
+
+    // Mode mini : bouton flottant compact (sur admin ou après avoir cliqué sur la croix/réduire)
+    const [isMini, setIsMini] = useState<boolean>(() => {
+        try {
+            if (location.pathname.startsWith('/admin')) return true;
+            return sessionStorage.getItem('radio_mobile_mini') === 'true';
+        } catch {
+            return location.pathname.startsWith('/admin');
+        }
     });
 
+    // Auto-réduire sur les pages admin
     useEffect(() => {
-        if (isAdminPage && !miniOnAdmin) {
-            setMiniOnAdmin(true);
-            try { sessionStorage.setItem('radio_mini_admin', 'true'); } catch {}
-        } else if (!isAdminPage && miniOnAdmin) {
-            setMiniOnAdmin(false);
-            try { sessionStorage.removeItem('radio_mini_admin'); } catch {}
+        if (isAdminPage && !isMini) {
+            setIsMini(true);
         }
     }, [isAdminPage]);
 
+    // Écouter les événements globaux pour réafficher ou minimiser la radio
+    useEffect(() => {
+        const handleShow = () => {
+            setIsMini(false);
+            try { sessionStorage.setItem('radio_mobile_mini', 'false'); } catch {}
+        };
+        const handleHide = () => {
+            setIsMini(true);
+            setExpanded(false);
+            try { sessionStorage.setItem('radio_mobile_mini', 'true'); } catch {}
+        };
+        window.addEventListener('dropsiders_radio_show', handleShow);
+        window.addEventListener('dropsiders_radio_minimize', handleHide);
+        return () => {
+            window.removeEventListener('dropsiders_radio_show', handleShow);
+            window.removeEventListener('dropsiders_radio_minimize', handleHide);
+        };
+    }, []);
+
     const handleToggleMini = () => {
-        const next = !miniOnAdmin;
-        setMiniOnAdmin(next);
-        try { next ? sessionStorage.setItem('radio_mini_admin', 'true') : sessionStorage.removeItem('radio_mini_admin'); } catch {}
+        const next = !isMini;
+        setIsMini(next);
+        if (next) setExpanded(false);
+        try {
+            sessionStorage.setItem('radio_mobile_mini', next ? 'true' : 'false');
+        } catch {}
     };
 
-    if (!audio.isEnabled || !audio.currentSet || dismissed) return null;
+    const handleRestore = () => {
+        setIsMini(false);
+        try {
+            sessionStorage.setItem('radio_mobile_mini', 'false');
+        } catch {}
+    };
 
-    const { currentSet, uiOffset, isPlaying, isMuted, handlePlay, handleStop, toggleMute } = audio;
+    if (!audio.isEnabled || !audio.currentSet) return null;
+
+    const { currentSet, uiOffset, isPlaying, isMuted, handlePlay, toggleMute } = audio;
     const progress = Math.min(100, Math.max(0, (uiOffset / (currentSet.durationSeconds || 3600)) * 100));
 
     return (
@@ -427,8 +458,11 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                         <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-neon-red/20 text-neon-red border border-neon-red/40 text-[7px] font-black uppercase animate-pulse">
                                             <span className="w-1.5 h-1.5 rounded-full bg-neon-red" />LIVE
                                         </span>
-                                        <button onClick={() => { handleStop(); setDismissed(true); setExpanded(false); }}
-                                            className="p-1.5 rounded-xl bg-white/5 text-gray-400 active:bg-white/10 active:scale-90 transition-all">
+                                        {/* La croix réduit la radio en mini-bouton flottant au lieu de la détruire */}
+                                        <button onClick={handleToggleMini}
+                                            title="Réduire la radio"
+                                            aria-label="Réduire la radio"
+                                            className="p-1.5 rounded-xl bg-white/5 text-gray-400 active:bg-white/10 active:scale-90 transition-all hover:text-white">
                                             <X className="w-4 h-4" />
                                         </button>
                                     </div>
@@ -506,33 +540,41 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                 )}
             </AnimatePresence>
 
-            {/* ── Mini-bouton flottant (mode mini activé) ── */}
+            {/* ── Mini-bouton flottant (mode mini activé : toujours accessible et cliquable) ── */}
             <AnimatePresence>
-                {miniOnAdmin && !expanded && (
+                {isMini && !expanded && (
                     <motion.button
                         key="mini-float"
                         initial={{ opacity: 0, scale: 0.7, y: 10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.7, y: 10 }}
                         transition={{ type: 'spring', damping: 22, stiffness: 280 }}
-                        onClick={handleToggleMini}
-                        style={{ zIndex: 99998, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)' }}
-                        className="fixed right-3 lg:hidden flex items-center gap-2 px-3 py-2 rounded-2xl bg-[#0d0d18]/95 backdrop-blur-xl border border-neon-cyan/40 shadow-[0_0_18px_rgba(0,255,255,0.2)] active:scale-95 transition-all"
-                        aria-label="Afficher la radio"
+                        onClick={handleRestore}
+                        style={{ zIndex: 99998, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 75px)' }}
+                        className="fixed right-3 lg:hidden flex items-center gap-2.5 px-3 py-2 rounded-2xl bg-[#0d0d18]/95 backdrop-blur-xl border border-neon-cyan/40 shadow-[0_0_20px_rgba(0,255,255,0.25)] active:scale-95 transition-all group"
+                        aria-label="Réafficher la radio"
                     >
                         <div className="relative shrink-0">
-                            <Disc3 className={`w-4 h-4 text-neon-cyan ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
-                            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-neon-red animate-ping" />
-                            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-neon-red" />
+                            <div className={`w-7 h-7 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center ${isPlaying ? 'shadow-[0_0_12px_rgba(0,255,255,0.4)]' : ''}`}>
+                                <Disc3 className={`w-4 h-4 text-neon-cyan ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
+                            </div>
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red animate-ping" />
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red" />
+                        </div>
+                        <div className="flex flex-col items-start leading-none pr-0.5">
+                            <span className="text-[9px] font-black text-white tracking-wider uppercase flex items-center gap-1">
+                                RADIO <span className="text-neon-cyan">LIVE</span>
+                            </span>
+                            <span className="text-[7.5px] text-gray-400 font-bold uppercase tracking-tight">Tap pour ouvrir</span>
                         </div>
                         <AudioBars playing={isPlaying} />
-                        <ChevronUp className="w-3 h-3 text-white/40" />
+                        <ChevronUp className="w-3.5 h-3.5 text-neon-cyan/70 group-hover:text-neon-cyan transition-colors" />
                     </motion.button>
                 )}
             </AnimatePresence>
 
             {/* ── Barre compacte Spotify-style (visible seulement si pas en mode mini) ── */}
-            {!miniOnAdmin && (
+            {!isMini && (
                 <div
                     style={{ zIndex: 99998, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 70px)' }}
                     className="fixed left-0 right-0 lg:hidden"
@@ -574,8 +616,9 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                         {/* Bouton réduire en mini-bouton */}
                         <button
                             onClick={e => { e.stopPropagation(); handleToggleMini(); }}
-                            className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 active:scale-90 active:bg-white/10 transition-all shrink-0"
+                            className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 active:scale-90 active:bg-white/10 transition-all shrink-0 hover:text-white"
                             title="Réduire la radio"
+                            aria-label="Réduire la radio"
                         >
                             <Minimize2 className="w-3.5 h-3.5" />
                         </button>
