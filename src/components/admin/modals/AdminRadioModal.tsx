@@ -40,6 +40,7 @@ import {
     formatRadioTimeSlot,
     formatDurationExact,
     isRadioBlockActiveOnDay,
+    isRadioBlockActiveNow,
     sortRadioBlocksByBroadcastOrder,
     getActiveRadioBlock,
     type RadioScheduleBlock,
@@ -117,6 +118,7 @@ export function AdminRadioModal({
     // ─── Émissions radio ───────────────────────────────────────────────────────
     const [blocks, setBlocks] = useState<RadioScheduleBlock[]>([]);
     const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+    const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
 
     // ─── Bibliothèque TV (240 vidéos toujours prêtes) ──────────────────────────
     const [tvBlocks, setTvBlocks] = useState<TVBlock[]>(getInitialTVBlocks);
@@ -255,6 +257,7 @@ export function AdminRadioModal({
 
     // ─── Actions émissions ────────────────────────────────────────────────────
     const openNewBlockForm = () => {
+        setEditingBlockId(null); // CRUCIAL: null = Création d'une NOUVELLE émission
         setEditBlockForm({
             title: `ÉMISSION ${blocks.length + 1}`,
             emoji: PRESET_EMOJIS[blocks.length % PRESET_EMOJIS.length],
@@ -268,6 +271,8 @@ export function AdminRadioModal({
     };
 
     const openEditBlockForm = (block: RadioScheduleBlock) => {
+        setEditingBlockId(block.id); // CRUCIAL: ID de l'émission à modifier
+        setSelectedBlockId(block.id);
         setEditBlockForm({
             title: block.title,
             emoji: block.emoji,
@@ -286,9 +291,10 @@ export function AdminRadioModal({
             return;
         }
 
-        if (selectedBlockId && isEditingBlock && blocks.find(b => b.id === selectedBlockId)) {
+        if (editingBlockId) {
+            // MODE MODIFICATION d'une émission existante
             const updated = blocks.map(b => {
-                if (b.id !== selectedBlockId) return b;
+                if (b.id !== editingBlockId) return b;
                 return {
                     ...b,
                     title: editBlockForm.title.trim().toUpperCase(),
@@ -302,10 +308,13 @@ export function AdminRadioModal({
                     timeSlot: formatRadioTimeSlot(editBlockForm.startHour, editBlockForm.endHour),
                 };
             });
-            setBlocks(sortRadioBlocksByBroadcastOrder(updated, true));
+            const sorted = sortRadioBlocksByBroadcastOrder(updated, false);
+            setBlocks(sorted);
+            setSelectedBlockId(editingBlockId);
             showToast(`Émission « ${editBlockForm.title} » mise à jour`);
         } else {
-            const newId = `radio_bloc_${Date.now()}`;
+            // MODE CRÉATION d'une NOUVELLE émission distincte
+            const newId = `radio_bloc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
             const newBlock: RadioScheduleBlock = {
                 id: newId,
                 name: editBlockForm.title.trim().toUpperCase(),
@@ -319,12 +328,43 @@ export function AdminRadioModal({
                 days: editBlockForm.days,
                 tracks: [],
             };
-            const updated = sortRadioBlocksByBroadcastOrder([...blocks, newBlock], true);
-            setBlocks(updated);
+            const sorted = sortRadioBlocksByBroadcastOrder([...blocks, newBlock], false);
+            setBlocks(sorted);
             setSelectedBlockId(newId);
             showToast(`Émission « ${newBlock.title} » créée avec succès !`);
         }
         setIsEditingBlock(false);
+        setEditingBlockId(null);
+    };
+
+    // Remettre à zéro toute la grille radio
+    const handleResetGrid = () => {
+        setConfirmModal({
+            isOpen: true,
+            title: "RÉINITIALISER LA GRILLE RADIO",
+            message: "Voulez-vous vraiment remettre la grille radio à zéro (supprimer toutes les émissions) ? Vous pourrez ensuite recréer vos propres émissions de A à Z.",
+            type: "danger",
+            confirmText: "TOUT EFFACER (0 ÉMISSION)",
+            cancelText: "ANNULER",
+            onConfirm: async () => {
+                setBlocks([]);
+                setSelectedBlockId(null);
+                setEditingBlockId(null);
+                setIsEditingBlock(false);
+                localStorage.removeItem(STORAGE_RADIO_BLOCKS_KEY);
+                try {
+                    await apiFetch('/api/settings/update', {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({ radio_blocks: [], radio_tracks: [] }),
+                    });
+                    window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+                    showToast('Grille radio remise à zéro (0 émission)', 'success');
+                } catch (e) {
+                    console.error('Erreur reset grille:', e);
+                }
+            }
+        });
     };
 
     // Suppression d'émission avec la modal Dropsiders ConfirmModal
@@ -705,14 +745,27 @@ export function AdminRadioModal({
                                     <Calendar className="w-3.5 h-3.5 text-neon-cyan" />
                                     Émissions ({blocks.length})
                                 </span>
-                                <button
-                                    type="button"
-                                    onClick={openNewBlockForm}
-                                    className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-neon-cyan/15 hover:bg-neon-cyan text-neon-cyan hover:text-black border border-neon-cyan/40 text-[9px] font-display font-black uppercase italic tracking-wider transition-all shadow-[0_0_12px_rgba(0,240,255,0.15)] cursor-pointer"
-                                >
-                                    <Plus className="w-3.5 h-3.5" />
-                                    Créer
-                                </button>
+                                <div className="flex items-center gap-1.5">
+                                    {blocks.length > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={handleResetGrid}
+                                            className="flex items-center gap-1 px-2 py-1 rounded-xl bg-red-500/10 hover:bg-red-500/25 text-neon-red border border-red-500/30 text-[8.5px] font-display font-black uppercase italic tracking-wider transition-all cursor-pointer"
+                                            title="Remettre la grille à zéro"
+                                        >
+                                            <Trash2 className="w-3 h-3" />
+                                            Reset
+                                        </button>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={openNewBlockForm}
+                                        className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-neon-cyan/15 hover:bg-neon-cyan text-neon-cyan hover:text-black border border-neon-cyan/40 text-[9px] font-display font-black uppercase italic tracking-wider transition-all shadow-[0_0_12px_rgba(0,240,255,0.15)] cursor-pointer"
+                                    >
+                                        <Plus className="w-3.5 h-3.5" />
+                                        Créer
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-2.5 space-y-2">
@@ -726,7 +779,7 @@ export function AdminRadioModal({
 
                                 {blocks.map(b => {
                                     const isSelected = b.id === selectedBlockId;
-                                    const isLive = liveBlockNow.id === b.id;
+                                    const isLive = isRadioBlockActiveNow(b);
                                     const isDragTarget = dragOverBlockId === b.id;
 
                                     return (

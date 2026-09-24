@@ -96,11 +96,9 @@ export function buildDefaultRadioBlocksFromTV(): RadioScheduleBlock[] {
 
 export const DEFAULT_RADIO_BLOCKS: RadioScheduleBlock[] = (() => {
     const fromSettings = (settings as any)?.radio_blocks;
-    if (Array.isArray(fromSettings) && fromSettings.length > 0) {
+    if (Array.isArray(fromSettings)) {
         return fromSettings;
     }
-    const fromTv = buildDefaultRadioBlocksFromTV();
-    if (fromTv.length > 0) return fromTv;
     return [];
 })();
 
@@ -228,10 +226,20 @@ export function sortRadioBlocksByBroadcastOrder(blocks: RadioScheduleBlock[], au
 }
 
 /**
- * Retourne le bloc actuellement en direct selon le jour et l'heure
+ * Vérifie si une émission est active MAINTENANT à l'instant T
  */
-export function getActiveRadioBlock(blocks: RadioScheduleBlock[], currentHour?: number, currentDay?: number): RadioScheduleBlock {
+export function isRadioBlockActiveNow(b: RadioScheduleBlock, nowHour?: number, nowDay?: number): boolean {
+    const h = nowHour !== undefined ? nowHour : Math.floor(getParisSeconds() / 3600);
+    const d = nowDay !== undefined ? nowDay : getParisDayOfWeek();
+    return isRadioBlockActiveOnDay(b, d) && isHourInRadioBlock(b, h);
+}
+
+/**
+ * Retourne le bloc actuellement en direct selon le jour et l'heure (ou null si aucun)
+ */
+export function getActiveRadioBlock(blocks: RadioScheduleBlock[], currentHour?: number, currentDay?: number): RadioScheduleBlock | null {
     const list = Array.isArray(blocks) && blocks.length > 0 ? blocks : DEFAULT_RADIO_BLOCKS;
+    if (list.length === 0) return null;
     const nowHour = currentHour !== undefined ? currentHour : Math.floor(getParisSeconds() / 3600);
     const nowDay = currentDay !== undefined ? currentDay : getParisDayOfWeek();
 
@@ -244,7 +252,7 @@ export function getActiveRadioBlock(blocks: RadioScheduleBlock[], currentHour?: 
     const anyMatch = list.find(b => isHourInRadioBlock(b, nowHour));
     if (anyMatch) return anyMatch;
 
-    return list[0] || DEFAULT_RADIO_BLOCKS[0];
+    return null;
 }
 
 export interface CurrentLiveRadioInfo {
