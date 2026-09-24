@@ -1410,7 +1410,8 @@ export function AdminTVModal({
     const bgVideoId = playlist?.[0]?.youtubeId || 'H5QLyGiDr_0';
 
     return (
-        <AnimatePresence>
+        <>
+            <AnimatePresence>
             {isOpen && (
                 <div
                     className="fixed inset-0 z-[120] flex items-center justify-center p-1 sm:p-2 md:p-2.5 bg-black/85 backdrop-blur-md overflow-hidden"
@@ -4457,5 +4458,6 @@ export function AdminTVModal({
             onResolve={handleResolveTVDuplicate}
             onClose={() => setShowTVDuplicateAudit(false)}
         />
+        </>
     );
 }

@@ -3014,8 +3014,6 @@ export function AdminDashboard() {
         return <HardDrive className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
       case "Star":
         return <Star className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
-      case "Trophy":
-        return <Trophy className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
       case "Home":
         return <Home className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
       case "Tv":
