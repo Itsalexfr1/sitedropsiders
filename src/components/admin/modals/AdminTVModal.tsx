@@ -516,6 +516,16 @@ export function AdminTVModal({
         }
     };
 
+    // Style et couleur d'une source (émission TV ou Radio) pour l'affichage des badges
+    const getSourceStyle = (sourceName: string) => {
+        const tvBlock = (blocks || []).find(b => (b.title || b.name) === sourceName);
+        if (tvBlock) return { color: tvBlock.color || '#00f0ff', emoji: tvBlock.emoji || '📺' };
+        const rBlock = (radioBlocks || []).find(r => r.title === sourceName);
+        if (rBlock) return { color: rBlock.color || '#f59e0b', emoji: rBlock.emoji || '📻' };
+        if (sourceName === 'Programmation principale') return { color: '#ff1241', emoji: '🎬' };
+        return { color: '#94a3b8', emoji: '📁' };
+    };
+
     // Ouverture de la bibliothèque avec initialisation de la cible
     const handleOpenLibrary = (target: 'block' | 'main') => {
         setLibraryTarget(target);
@@ -4356,14 +4366,24 @@ export function AdminTVModal({
                                                         <span className="text-[10px] font-mono text-white/40">
                                                             {item.youtubeId}
                                                         </span>
-                                                        {item.sources.map((s, idx) => (
-                                                            <span
-                                                                key={idx}
-                                                                className="text-[9px] px-1.5 py-0.2 rounded bg-white/5 border border-white/10 text-white/60 truncate max-w-[130px]"
-                                                            >
-                                                                {s}
-                                                            </span>
-                                                        ))}
+                                                        {item.sources.map((s, idx) => {
+                                                            const style = getSourceStyle(s);
+                                                            return (
+                                                                <span
+                                                                    key={idx}
+                                                                    className="inline-flex items-center gap-1 text-[8px] font-display font-black uppercase italic px-1.5 py-0.5 rounded border truncate max-w-[130px]"
+                                                                    style={{
+                                                                        backgroundColor: `${style.color}18`,
+                                                                        borderColor: `${style.color}45`,
+                                                                        color: style.color,
+                                                                    }}
+                                                                    title={s}
+                                                                >
+                                                                    <span className="w-1.5 h-1.5 rounded-full shrink-0 shadow-[0_0_4px_currentColor]" style={{ backgroundColor: style.color }} />
+                                                                    <span className="truncate">{style.emoji} {s}</span>
+                                                                </span>
+                                                            );
+                                                        })}
                                                     </div>
                                                 </div>
 

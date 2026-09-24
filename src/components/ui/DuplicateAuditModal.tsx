@@ -86,9 +86,27 @@ export function DuplicateAuditModal({
                                         <p className="text-[11px] font-display font-black text-white italic uppercase truncate leading-tight">
                                             {dup.title || dup.youtubeId}
                                         </p>
-                                        <p className="text-[9px] font-mono text-amber-400 mt-0.5">
-                                            Présent dans {dup.occurrences.length} {label}{dup.occurrences.length > 1 ? 's' : ''} simultanément
-                                        </p>
+                                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                            <span className="text-[8px] font-mono text-amber-400">
+                                                Présent dans {dup.occurrences.length} {label}{dup.occurrences.length > 1 ? 's' : ''} :
+                                            </span>
+                                            {dup.occurrences.map((occ) => (
+                                                <span
+                                                    key={occ.blockId}
+                                                    className="inline-flex items-center gap-1 text-[8px] font-display font-black uppercase italic px-1.5 py-0.5 rounded-md border"
+                                                    style={{
+                                                        backgroundColor: occ.blockColor ? `${occ.blockColor}18` : 'rgba(255,255,255,0.05)',
+                                                        borderColor: occ.blockColor ? `${occ.blockColor}40` : 'rgba(255,255,255,0.1)',
+                                                        color: occ.blockColor || '#f59e0b',
+                                                    }}
+                                                >
+                                                    {occ.blockColor && (
+                                                        <span className="w-1.5 h-1.5 rounded-full shrink-0 shadow-[0_0_5px_currentColor]" style={{ backgroundColor: occ.blockColor }} />
+                                                    )}
+                                                    <span className="truncate">{occ.blockEmoji || '📻'} {occ.blockTitle}</span>
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
                                     <a href={`https://www.youtube.com/watch?v=${dup.youtubeId}`} target="_blank" rel="noreferrer" className="shrink-0 text-gray-600 hover:text-white transition-colors">
                                         <ChevronRight className="w-4 h-4" />
@@ -111,17 +129,28 @@ export function DuplicateAuditModal({
                                                         .map(o => o.blockId);
                                                     onResolve(dup.youtubeId, occ.blockId, removeFrom);
                                                 }}
-                                                className="flex items-center gap-2.5 w-full text-left px-3 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-emerald-500/15 hover:border-emerald-500/40 transition-all group cursor-pointer"
+                                                className="flex items-center gap-2.5 w-full text-left px-3 py-2.5 rounded-xl border transition-all group cursor-pointer hover:scale-[1.005]"
+                                                style={{
+                                                    backgroundColor: occ.blockColor ? `${occ.blockColor}0d` : 'rgba(255,255,255,0.03)',
+                                                    borderColor: occ.blockColor ? `${occ.blockColor}30` : 'rgba(255,255,255,0.1)',
+                                                }}
                                             >
-                                                {occ.blockEmoji && <span className="text-sm shrink-0">{occ.blockEmoji}</span>}
+                                                {occ.blockEmoji && <span className="text-base shrink-0">{occ.blockEmoji}</span>}
                                                 {occ.blockColor && (
-                                                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: occ.blockColor }} />
+                                                    <span
+                                                        className="w-2.5 h-2.5 rounded-full shrink-0 shadow-[0_0_8px_currentColor]"
+                                                        style={{ backgroundColor: occ.blockColor, color: occ.blockColor }}
+                                                    />
                                                 )}
-                                                <span className="text-[10px] font-display font-black text-gray-300 group-hover:text-white uppercase italic tracking-wider transition-colors flex-1 truncate">
+                                                <span
+                                                    className="text-[10.5px] font-display font-black uppercase italic tracking-wider transition-colors flex-1 truncate"
+                                                    style={{ color: occ.blockColor || '#fff' }}
+                                                >
                                                     {occ.blockTitle}
                                                 </span>
-                                                <span className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                                <span className="shrink-0 text-[8.5px] font-display font-black uppercase italic px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 opacity-80 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
+                                                    <Check className="w-3 h-3 text-emerald-400 stroke-[3]" />
+                                                    Garder ici
                                                 </span>
                                             </button>
                                         ))}

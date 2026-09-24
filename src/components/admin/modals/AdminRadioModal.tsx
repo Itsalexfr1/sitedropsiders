@@ -77,12 +77,15 @@ export interface TVVideoItem {
     duration?: number;
     category?: 'liveset' | 'clip';
     blockTitle?: string;
+    blockColor?: string;
+    blockEmoji?: string;
 }
 
 // Bloc TV avec ses vidéos
 export interface TVBlock {
     id: string;
     title: string;
+    color?: string;
     emoji?: string;
     timeSlot?: string;
     videos: TVVideoItem[];
@@ -95,6 +98,7 @@ function getInitialTVBlocks(): TVBlock[] {
         return raw.map((b: any) => ({
             id: b.id,
             title: b.title || b.name || 'Bloc TV',
+            color: b.color || '#00f0ff',
             emoji: b.emoji || '📺',
             timeSlot: b.timeSlot || '',
             videos: (b.videos || []).map((v: any) => ({
@@ -103,7 +107,9 @@ function getInitialTVBlocks(): TVBlock[] {
                 youtubeId: v.youtubeId,
                 duration: v.duration || 3600,
                 category: v.category || ((v.duration || 3600) < 1200 ? 'clip' : 'liveset'),
-                blockTitle: b.title || b.name || 'Bloc TV'
+                blockTitle: b.title || b.name || 'Bloc TV',
+                blockColor: b.color || '#00f0ff',
+                blockEmoji: b.emoji || '📺'
             }))
         }));
     }
@@ -235,6 +241,7 @@ export function AdminRadioModal({
                         const loadedTV: TVBlock[] = data.tv_blocks.map((b: any) => ({
                             id: b.id,
                             title: b.title || b.name || 'Bloc TV',
+                            color: b.color || '#00f0ff',
                             emoji: b.emoji || '📺',
                             timeSlot: b.timeSlot || '',
                             videos: (b.videos || []).map((v: any) => ({
@@ -243,7 +250,9 @@ export function AdminRadioModal({
                                 youtubeId: v.youtubeId,
                                 duration: v.duration || 3600,
                                 category: v.category || ((v.duration || 3600) < 1200 ? 'clip' : 'liveset'),
-                                blockTitle: b.title || b.name || 'Bloc TV'
+                                blockTitle: b.title || b.name || 'Bloc TV',
+                                blockColor: b.color || '#00f0ff',
+                                blockEmoji: b.emoji || '📺'
                             }))
                         }));
                         if (loadedTV.reduce((a, b) => a + b.videos.length, 0) > 0) {
@@ -302,13 +311,15 @@ export function AdminRadioModal({
             return;
         }
 
-        const newVid = {
+        const newVid: TVVideoItem = {
             id: `tv_from_radio_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
             title: `${track.artist} - ${track.title}`,
             youtubeId: track.youtubeId,
             duration: track.duration || 3600,
             category: track.category || 'liveset',
             blockTitle: targetTV.title,
+            blockColor: targetTV.color || '#00f0ff',
+            blockEmoji: targetTV.emoji || '📺',
         };
 
         setTvBlocks(prev => prev.map(b =>
@@ -769,12 +780,19 @@ export function AdminRadioModal({
         }
     };
 
-    // ─── Map youtubeId -> nom d'émission (toutes les émissions) ───────────────
+    // ─── Map youtubeId -> infos émission (titre, couleur, emoji) ─────────────
     const allUsedIdToBlock = useMemo(() => {
-        const map = new Map<string, string>();
+        const map = new Map<string, { id: string; title: string; color: string; emoji: string }>();
         blocks.forEach(b => {
             (b.tracks || []).forEach(t => {
-                if (t.youtubeId) map.set(t.youtubeId, b.title);
+                if (t.youtubeId) {
+                    map.set(t.youtubeId, {
+                        id: b.id,
+                        title: b.title,
+                        color: b.color || '#00f0ff',
+                        emoji: b.emoji || '📻'
+                    });
+                }
             });
         });
         return map;
@@ -795,7 +813,12 @@ export function AdminRadioModal({
                     const matchYt = v.youtubeId.toLowerCase().includes(q);
                     if (!matchTitle && !matchYt) return;
                 }
-                result.push({ ...v, blockTitle: b.title });
+                result.push({
+                    ...v,
+                    blockTitle: b.title,
+                    blockColor: b.color || '#00f0ff',
+                    blockEmoji: b.emoji || '📺'
+                });
             });
         });
 
@@ -1744,8 +1767,9 @@ export function AdminRadioModal({
                                         filteredTVVideos.map(vid => {
                                             const isAlreadyInSelected = selectedBlock?.tracks?.some(t => t.youtubeId === vid.youtubeId);
                                             // Émission qui utilise cette vidéo (toutes émissions confondues)
-                                            const usedInBlockName = allUsedIdToBlock.get(vid.youtubeId) ?? null;
-                                            const isUsedInAnyBlock = usedInBlockName !== null;
+                                            const usedInBlock = allUsedIdToBlock.get(vid.youtubeId) ?? null;
+                                            const isUsedInAnyBlock = usedInBlock !== null;
+                                            const usedInBlockName = usedInBlock?.title ?? '';
                                             const isBeingDragged = draggingVideo?.id === vid.id;
 
                                             return (
@@ -1807,14 +1831,44 @@ export function AdminRadioModal({
                                                             }`}>
                                                                 {vid.category === 'clip' ? 'CLIP' : 'SET'}
                                                             </span>
-                                                            {/* Badge émission d'assignation */}
-                                                            {isUsedInAnyBlock ? (
-                                                                <span className="text-[7px] font-display font-black uppercase italic px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 truncate max-w-[100px]">
-                                                                    ✓ {usedInBlockName}
+                                                            {/* Badge émission d'assignation ou bloc TV d'origine avec COULEUR */}
+                                                            {isUsedInAnyBlock && usedInBlock ? (
+                                                                <span
+                                                                    className="inline-flex items-center gap-1 text-[7px] font-display font-black uppercase italic px-1.5 py-0.5 rounded border truncate max-w-[125px] shadow-sm"
+                                                                    style={{
+                                                                        backgroundColor: `${usedInBlock.color}20`,
+                                                                        borderColor: `${usedInBlock.color}50`,
+                                                                        color: usedInBlock.color,
+                                                                    }}
+                                                                    title={`Déjà assigné à l'émission « ${usedInBlock.title} »`}
+                                                                >
+                                                                    <span
+                                                                        className="w-1.5 h-1.5 rounded-full shrink-0 shadow-[0_0_5px_currentColor]"
+                                                                        style={{ backgroundColor: usedInBlock.color }}
+                                                                    />
+                                                                    <span className="truncate">✓ {usedInBlock.emoji} {usedInBlock.title}</span>
                                                                 </span>
                                                             ) : vid.blockTitle ? (
-                                                                <span className="text-[8px] text-gray-500 truncate font-mono">
-                                                                    {vid.blockTitle}
+                                                                <span
+                                                                    className="inline-flex items-center gap-1 text-[7px] font-display font-black uppercase italic px-1.5 py-0.5 rounded border truncate max-w-[125px]"
+                                                                    style={vid.blockColor ? {
+                                                                        backgroundColor: `${vid.blockColor}15`,
+                                                                        borderColor: `${vid.blockColor}35`,
+                                                                        color: vid.blockColor,
+                                                                    } : {
+                                                                        backgroundColor: 'rgba(255,255,255,0.05)',
+                                                                        borderColor: 'rgba(255,255,255,0.1)',
+                                                                        color: '#9ca3af'
+                                                                    }}
+                                                                    title={`Bloc TV source : ${vid.blockTitle}`}
+                                                                >
+                                                                    {vid.blockColor && (
+                                                                        <span
+                                                                            className="w-1.5 h-1.5 rounded-full shrink-0"
+                                                                            style={{ backgroundColor: vid.blockColor }}
+                                                                        />
+                                                                    )}
+                                                                    <span className="truncate">{vid.blockEmoji || '📺'} {vid.blockTitle}</span>
                                                                 </span>
                                                             ) : null}
                                                         </div>
