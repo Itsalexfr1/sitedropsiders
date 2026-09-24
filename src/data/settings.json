@@ -2827,8 +2827,8 @@
     },
     {
       "id": "radio_bloc_1790256648831_kmgn",
-      "name": "ÉMISSION 2",
-      "title": "ÉMISSION 2",
+      "name": "LE 12 - 16",
+      "title": "LE 12 - 16",
       "timeSlot": "12h - 16h",
       "startHour": 12,
       "endHour": 16,
@@ -3114,6 +3114,433 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790256730781
+        }
+      ]
+    },
+    {
+      "id": "radio_bloc_1790256873762_k89p",
+      "name": "L'AFTER WORK",
+      "title": "L'AFTER WORK",
+      "timeSlot": "16h - 20h",
+      "startHour": 16,
+      "endHour": 20,
+      "color": "#f59e0b",
+      "emoji": "⚡",
+      "randomize": true,
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        0
+      ],
+      "tracks": [
+        {
+          "id": "rt_tv_1790256878961_ckdk",
+          "title": "DROPSIDERS TV",
+          "artist": "COMMENT ON PASSE D'UN BAR EN STATION À TOMORROWLAND ? (avec Thomas Moulène)",
+          "youtubeId": "xNVyYYvso6U",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256878961
+        },
+        {
+          "id": "rt_tv_1790256883130_vh4i",
+          "title": "Full Set at Ritter Butzke",
+          "artist": "Pretty Pink live from Berlin",
+          "youtubeId": "qbvk83Au_rE",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256883130
+        },
+        {
+          "id": "rt_tv_1790256883899_43rv",
+          "title": "Objectif DJ Ep. 5",
+          "artist": "Aazar : \"Le game des featuring c'est la mafia !\"",
+          "youtubeId": "mVi4RgfsqI4",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256883899
+        },
+        {
+          "id": "rt_tv_1790256886549_6i49",
+          "title": "DROPSIDERS TV",
+          "artist": "Afrojack B2B Shimza at Coachella 2026",
+          "youtubeId": "hJWNAznIj-I",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256886549
+        },
+        {
+          "id": "rt_tv_1790256887258_osmk",
+          "title": "DROPSIDERS TV",
+          "artist": "TRINIX : LES COULISSES DE LEURS SUCCÈS… ET LES GALÈRES",
+          "youtubeId": "RmR74Vj6vlA",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256887258
+        },
+        {
+          "id": "rt_tv_1790256888086_budn",
+          "title": "Green Valley - Camboriú, Brasil [2026 Full Set]",
+          "artist": "Joris Voorn",
+          "youtubeId": "yQXb-bD8w1c",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256888086
+        },
+        {
+          "id": "rt_tv_1790256888634_oyul",
+          "title": "Objectif DJ Ep. 3",
+          "artist": "Upsilone  : « Je voulais pas qu'on me catalogue DJ Peignoir... »",
+          "youtubeId": "paPKaGxWHuk",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256888634
+        },
+        {
+          "id": "rt_tv_1790256890720_05vo",
+          "title": "Ritter Butzke - Live Set",
+          "artist": "Nicole Moudaber Rave The Planet Berlin 2026 afterparty",
+          "youtubeId": "NuQk0nx2OQQ",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256890720
+        },
+        {
+          "id": "rt_tv_1790256891869_dl9g",
+          "title": "DROPSIDERS TV",
+          "artist": "PHILIPPE B : D.A. DE L'AMNÉSIA ET CO-CRÉATEUR DU WAREHOUSE NANTES !",
+          "youtubeId": "hwY-2ghn9-Q",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256891869
+        },
+        {
+          "id": "rt_tv_1790256896322_ly1g",
+          "title": "BURNING MAN 2025 · LONG FENG ART CAR",
+          "artist": "VINTAGE CULTURE B2B DOOZIE",
+          "youtubeId": "NBCyIHraayE",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256896322
+        },
+        {
+          "id": "rt_tv_1790256897051_zb23",
+          "title": "Mayan Warrior · Burning Man 2025",
+          "artist": "JOHN SUMMIT",
+          "youtubeId": "d8zUK6nAbr8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256897051
+        },
+        {
+          "id": "rt_tv_1790256898997_o9nt",
+          "title": "Tomorrowland 2026",
+          "artist": "HALŌ MAINSTAGE",
+          "youtubeId": "4uHPAUR9bfk",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256898997
+        },
+        {
+          "id": "rt_tv_1790256899771_olbi",
+          "title": "Tomorrowland 2026",
+          "artist": "Steve Angello",
+          "youtubeId": "eir5Sh_gHbo",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256899771
+        },
+        {
+          "id": "rt_tv_1790256901001_hllh",
+          "title": "DROPSIDERS TV",
+          "artist": "ÊTRE RÉSIDENT DE L'OPIUM ET DU PONEY CLUB, ÇA CHANGE QUOI ? (avec Thomas Pasko)",
+          "youtubeId": "1w8LxYPTwu0",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256901001
+        },
+        {
+          "id": "rt_tv_1790256902828_s7je",
+          "title": "Objectif DJ Ep. 12",
+          "artist": "A-Trak : \"J'ai fais découvrir les Daft Punk à Kanye West...\"",
+          "youtubeId": "e2MTjWxP_NU",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256902828
+        },
+        {
+          "id": "rt_tv_1790256906483_vhlw",
+          "title": "MAXA x BiPolar Express Link up · Burning Man 2025",
+          "artist": "Adam Ten",
+          "youtubeId": "mBR6FccSbDM",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256906483
+        },
+        {
+          "id": "rt_tv_1790256907122_wcdf",
+          "title": "Objectif DJ Ep. 1",
+          "artist": "Mercer : « Je me dis que c’est fini, faut que je trouve un taf normal »",
+          "youtubeId": "4xOY5ga6b9U",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256907122
+        },
+        {
+          "id": "rt_tv_1790256907948_tuyn",
+          "title": "Mayan Warrior · Burning Man 2024",
+          "artist": "RÜFÜS DU SOL",
+          "youtubeId": "eQ-OVsdK-hM",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256907948
+        },
+        {
+          "id": "rt_tv_1790256910097_05yw",
+          "title": "DROPSIDERS TV",
+          "artist": "TONY ROMERA: DE SES PREMIÈRES PRODS AUX PLUS GRANDES SALLES, LE PARCOURS SANS FILTRE DE TONY ROMERA.",
+          "youtubeId": "w025jWxEvNQ",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256910097
+        },
+        {
+          "id": "rt_tv_1790256910777_b4ws",
+          "title": "Burning Man 2025",
+          "artist": "Carl Cox x Playground",
+          "youtubeId": "iyCsXPYxa6k",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256910777
+        },
+        {
+          "id": "rt_tv_1790256911364_cdpc",
+          "title": "DROPSIDERS TV",
+          "artist": "Immersion au cœur d'une édition exceptionnelle de Burning Man -Documentaire complet",
+          "youtubeId": "OpsQPFpHdx0",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256911364
+        },
+        {
+          "id": "rt_tv_1790256914295_qka1",
+          "title": "ANTS 2024 - Live at Ushuaïa Ibiza #Livestream",
+          "artist": "Nic Fanciulli",
+          "youtubeId": "8YpBhuKfqb8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256914295
+        },
+        {
+          "id": "rt_tv_1790256914912_dvcn",
+          "title": "DROPSIDERS TV",
+          "artist": "David Guetta toutes les questions qu'on se pose sur les DJ",
+          "youtubeId": "dNmk5Rd-e4g",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256914912
+        },
+        {
+          "id": "rt_tv_1790256915495_6svs",
+          "title": "ANTS 2025 - Live at Ushuaïa Ibiza #Livestream",
+          "artist": "Green Velvet B2B Skepta",
+          "youtubeId": "mmtU9LG9hB0",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256915495
+        },
+        {
+          "id": "rt_tv_1790256916256_1qsu",
+          "title": "DROPSIDERS TV",
+          "artist": "BOB SINCLAR : CE QU'IL A VU DE PLUS INCROYABLE DANS SA CARRIÈRE (MANOIR PLAYBOY, DR0GUE, DÉPENSES)",
+          "youtubeId": "upEEu3GJWEw",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256916256
+        },
+        {
+          "id": "rt_tv_1790256917092_8c2t",
+          "title": "Live Audio Mix from ANTS - Ushuaïa Ibiza 2025",
+          "artist": "Manda Moor",
+          "youtubeId": "c5Jh4DKCrc8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256917092
+        },
+        {
+          "id": "rt_tv_1790256918361_s3uj",
+          "title": "DROPSIDERS TV",
+          "artist": "LOBENZMUSIC : \"Les Daft Punk...Je me dis, c'est quoi cette m**de?\" Objectif DJ Ep.15",
+          "youtubeId": "RKkYVQRDDc8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256918361
+        },
+        {
+          "id": "rt_tv_1790256919031_wpta",
+          "title": "ANTS 2026 - Live at Ushuaïa Ibiza #Livestream",
+          "artist": "CamelPhat",
+          "youtubeId": "xhN3x5itcJ8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256919031
+        },
+        {
+          "id": "rt_tv_1790256921987_4shq",
+          "title": "DROPSIDERS TV",
+          "artist": "DJ Snake me dévoile l'envers du décor (tournée, Avicii, risques...)",
+          "youtubeId": "SV_lv1lBhMs",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256921987
+        },
+        {
+          "id": "rt_tv_1790256922634_ied9",
+          "title": "ANTS 2024 - Live at Ushuaïa Ibiza #Livestream",
+          "artist": "Mau P",
+          "youtubeId": "YSMdqIRH7Pg",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256922634
+        },
+        {
+          "id": "rt_tv_1790256923356_vqcx",
+          "title": "DROPSIDERS TV",
+          "artist": "PHOTOGRAPHE DE DJ SNAKE : COMMENT IL A RÉUSSI À TRAVAILLER AVEC UNE DES PLUS GRANDES STARS DU MONDE",
+          "youtubeId": "VQlK0UWGw2c",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256923356
+        },
+        {
+          "id": "rt_tv_1790256926733_wnhk",
+          "title": "DROPSIDERS TV",
+          "artist": "David Guetta, Aya Nakamura : Il produit les plus grands shows",
+          "youtubeId": "zonzHr0_gPg",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256926733
+        },
+        {
+          "id": "rt_tv_1790256927558_021q",
+          "title": "DROPSIDERS TV",
+          "artist": "Paco Osuna Live From Elrow at [UNVRS] Ibiza",
+          "youtubeId": "dI4-uIO5j2k",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256927558
+        },
+        {
+          "id": "rt_tv_1790256931699_lozg",
+          "title": "elrow at Ushuaïa Ibiza 2023",
+          "artist": "Wade",
+          "youtubeId": "maedoaD539M",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256931699
+        },
+        {
+          "id": "rt_tv_1790256939283_etit",
+          "title": "DROPSIDERS TV",
+          "artist": "Réussir dans la vie vs. réussir Sa vie. Épisode spécial avec Martin Solveig & Léa Dassonville",
+          "youtubeId": "bZrC31wF9-I",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256939283
+        },
+        {
+          "id": "rt_tv_1790256941065_wigv",
+          "title": "Psychrowdelic Trip Stage - elrow Town Madrid 2026",
+          "artist": "Bastian Bux",
+          "youtubeId": "tIreQEIRLdE",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256941065
+        },
+        {
+          "id": "rt_tv_1790256942158_1k39",
+          "title": "DROPSIDERS TV",
+          "artist": "Il rachète une boîte de nuit mythique à Paris pour 500 000€",
+          "youtubeId": "zpp1Vm1jHjs",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256942158
+        },
+        {
+          "id": "rt_tv_1790256944668_nyro",
+          "title": "Paris L'Olympia",
+          "artist": "Paul Kalkbrenner",
+          "youtubeId": "LSLITRUecOo",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256944668
+        },
+        {
+          "id": "rt_tv_1790256945578_n86w",
+          "title": "HUGEL",
+          "artist": "Comment ce Français est devenu l’un des DJ les plus chers de la planète ?",
+          "youtubeId": "uuPenQH6oNA",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256945578
+        },
+        {
+          "id": "rt_tv_1790256953963_r0nn",
+          "title": "Main Stage. elrow Town Madrid 2026",
+          "artist": "Nic Fanciulli b2b Butch",
+          "youtubeId": "Ua0q4NKDXyQ",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256953963
+        },
+        {
+          "id": "rt_tv_1790256956630_we2g",
+          "title": "DROPSIDERS TV",
+          "artist": "LA VRAIE VIE DU DJ KUNGS",
+          "youtubeId": "LxXQ8mRju58",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256956630
+        },
+        {
+          "id": "rt_tv_1790256960189_s9xz",
+          "title": "RESISTANCE MEGASTRUCTURE",
+          "artist": "ERIC PRYDZ LIVE @ ULTRA MUSIC FESTIVAL MIAMI 2026",
+          "youtubeId": "hU-z3iV0LOg",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256960189
+        },
+        {
+          "id": "rt_tv_1790256972956_z2ar",
+          "title": "EDC LAS VEGAS 2024",
+          "artist": "JOHN SUMMIT B2B GREEN VELVET",
+          "youtubeId": "xfjj8C_QkcQ",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256972956
+        },
+        {
+          "id": "rt_tv_1790256975482_2io5",
+          "title": "Awakenings Festival 2026",
+          "artist": "TOMAN",
+          "youtubeId": "5hj5UTZR_Ss",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256975482
+        },
+        {
+          "id": "rt_tv_1790256976974_19x2",
+          "title": "Awakenings Festival 2026",
+          "artist": "Joris Voorn x Kevin de Vries",
+          "youtubeId": "_MqFasX6Fas",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256976974
         }
       ]
     }
@@ -4108,6 +4535,411 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256730781
+    },
+    {
+      "id": "rt_tv_1790256878961_ckdk",
+      "title": "DROPSIDERS TV",
+      "artist": "COMMENT ON PASSE D'UN BAR EN STATION À TOMORROWLAND ? (avec Thomas Moulène)",
+      "youtubeId": "xNVyYYvso6U",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256878961
+    },
+    {
+      "id": "rt_tv_1790256883130_vh4i",
+      "title": "Full Set at Ritter Butzke",
+      "artist": "Pretty Pink live from Berlin",
+      "youtubeId": "qbvk83Au_rE",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256883130
+    },
+    {
+      "id": "rt_tv_1790256883899_43rv",
+      "title": "Objectif DJ Ep. 5",
+      "artist": "Aazar : \"Le game des featuring c'est la mafia !\"",
+      "youtubeId": "mVi4RgfsqI4",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256883899
+    },
+    {
+      "id": "rt_tv_1790256886549_6i49",
+      "title": "DROPSIDERS TV",
+      "artist": "Afrojack B2B Shimza at Coachella 2026",
+      "youtubeId": "hJWNAznIj-I",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256886549
+    },
+    {
+      "id": "rt_tv_1790256887258_osmk",
+      "title": "DROPSIDERS TV",
+      "artist": "TRINIX : LES COULISSES DE LEURS SUCCÈS… ET LES GALÈRES",
+      "youtubeId": "RmR74Vj6vlA",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256887258
+    },
+    {
+      "id": "rt_tv_1790256888086_budn",
+      "title": "Green Valley - Camboriú, Brasil [2026 Full Set]",
+      "artist": "Joris Voorn",
+      "youtubeId": "yQXb-bD8w1c",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256888086
+    },
+    {
+      "id": "rt_tv_1790256888634_oyul",
+      "title": "Objectif DJ Ep. 3",
+      "artist": "Upsilone  : « Je voulais pas qu'on me catalogue DJ Peignoir... »",
+      "youtubeId": "paPKaGxWHuk",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256888634
+    },
+    {
+      "id": "rt_tv_1790256890720_05vo",
+      "title": "Ritter Butzke - Live Set",
+      "artist": "Nicole Moudaber Rave The Planet Berlin 2026 afterparty",
+      "youtubeId": "NuQk0nx2OQQ",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256890720
+    },
+    {
+      "id": "rt_tv_1790256891869_dl9g",
+      "title": "DROPSIDERS TV",
+      "artist": "PHILIPPE B : D.A. DE L'AMNÉSIA ET CO-CRÉATEUR DU WAREHOUSE NANTES !",
+      "youtubeId": "hwY-2ghn9-Q",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256891869
+    },
+    {
+      "id": "rt_tv_1790256896322_ly1g",
+      "title": "BURNING MAN 2025 · LONG FENG ART CAR",
+      "artist": "VINTAGE CULTURE B2B DOOZIE",
+      "youtubeId": "NBCyIHraayE",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256896322
+    },
+    {
+      "id": "rt_tv_1790256897051_zb23",
+      "title": "Mayan Warrior · Burning Man 2025",
+      "artist": "JOHN SUMMIT",
+      "youtubeId": "d8zUK6nAbr8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256897051
+    },
+    {
+      "id": "rt_tv_1790256898997_o9nt",
+      "title": "Tomorrowland 2026",
+      "artist": "HALŌ MAINSTAGE",
+      "youtubeId": "4uHPAUR9bfk",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256898997
+    },
+    {
+      "id": "rt_tv_1790256899771_olbi",
+      "title": "Tomorrowland 2026",
+      "artist": "Steve Angello",
+      "youtubeId": "eir5Sh_gHbo",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256899771
+    },
+    {
+      "id": "rt_tv_1790256901001_hllh",
+      "title": "DROPSIDERS TV",
+      "artist": "ÊTRE RÉSIDENT DE L'OPIUM ET DU PONEY CLUB, ÇA CHANGE QUOI ? (avec Thomas Pasko)",
+      "youtubeId": "1w8LxYPTwu0",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256901001
+    },
+    {
+      "id": "rt_tv_1790256902828_s7je",
+      "title": "Objectif DJ Ep. 12",
+      "artist": "A-Trak : \"J'ai fais découvrir les Daft Punk à Kanye West...\"",
+      "youtubeId": "e2MTjWxP_NU",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256902828
+    },
+    {
+      "id": "rt_tv_1790256906483_vhlw",
+      "title": "MAXA x BiPolar Express Link up · Burning Man 2025",
+      "artist": "Adam Ten",
+      "youtubeId": "mBR6FccSbDM",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256906483
+    },
+    {
+      "id": "rt_tv_1790256907122_wcdf",
+      "title": "Objectif DJ Ep. 1",
+      "artist": "Mercer : « Je me dis que c’est fini, faut que je trouve un taf normal »",
+      "youtubeId": "4xOY5ga6b9U",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256907122
+    },
+    {
+      "id": "rt_tv_1790256907948_tuyn",
+      "title": "Mayan Warrior · Burning Man 2024",
+      "artist": "RÜFÜS DU SOL",
+      "youtubeId": "eQ-OVsdK-hM",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256907948
+    },
+    {
+      "id": "rt_tv_1790256910097_05yw",
+      "title": "DROPSIDERS TV",
+      "artist": "TONY ROMERA: DE SES PREMIÈRES PRODS AUX PLUS GRANDES SALLES, LE PARCOURS SANS FILTRE DE TONY ROMERA.",
+      "youtubeId": "w025jWxEvNQ",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256910097
+    },
+    {
+      "id": "rt_tv_1790256910777_b4ws",
+      "title": "Burning Man 2025",
+      "artist": "Carl Cox x Playground",
+      "youtubeId": "iyCsXPYxa6k",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256910777
+    },
+    {
+      "id": "rt_tv_1790256911364_cdpc",
+      "title": "DROPSIDERS TV",
+      "artist": "Immersion au cœur d'une édition exceptionnelle de Burning Man -Documentaire complet",
+      "youtubeId": "OpsQPFpHdx0",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256911364
+    },
+    {
+      "id": "rt_tv_1790256914295_qka1",
+      "title": "ANTS 2024 - Live at Ushuaïa Ibiza #Livestream",
+      "artist": "Nic Fanciulli",
+      "youtubeId": "8YpBhuKfqb8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256914295
+    },
+    {
+      "id": "rt_tv_1790256914912_dvcn",
+      "title": "DROPSIDERS TV",
+      "artist": "David Guetta toutes les questions qu'on se pose sur les DJ",
+      "youtubeId": "dNmk5Rd-e4g",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256914912
+    },
+    {
+      "id": "rt_tv_1790256915495_6svs",
+      "title": "ANTS 2025 - Live at Ushuaïa Ibiza #Livestream",
+      "artist": "Green Velvet B2B Skepta",
+      "youtubeId": "mmtU9LG9hB0",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256915495
+    },
+    {
+      "id": "rt_tv_1790256916256_1qsu",
+      "title": "DROPSIDERS TV",
+      "artist": "BOB SINCLAR : CE QU'IL A VU DE PLUS INCROYABLE DANS SA CARRIÈRE (MANOIR PLAYBOY, DR0GUE, DÉPENSES)",
+      "youtubeId": "upEEu3GJWEw",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256916256
+    },
+    {
+      "id": "rt_tv_1790256917092_8c2t",
+      "title": "Live Audio Mix from ANTS - Ushuaïa Ibiza 2025",
+      "artist": "Manda Moor",
+      "youtubeId": "c5Jh4DKCrc8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256917092
+    },
+    {
+      "id": "rt_tv_1790256918361_s3uj",
+      "title": "DROPSIDERS TV",
+      "artist": "LOBENZMUSIC : \"Les Daft Punk...Je me dis, c'est quoi cette m**de?\" Objectif DJ Ep.15",
+      "youtubeId": "RKkYVQRDDc8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256918361
+    },
+    {
+      "id": "rt_tv_1790256919031_wpta",
+      "title": "ANTS 2026 - Live at Ushuaïa Ibiza #Livestream",
+      "artist": "CamelPhat",
+      "youtubeId": "xhN3x5itcJ8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256919031
+    },
+    {
+      "id": "rt_tv_1790256921987_4shq",
+      "title": "DROPSIDERS TV",
+      "artist": "DJ Snake me dévoile l'envers du décor (tournée, Avicii, risques...)",
+      "youtubeId": "SV_lv1lBhMs",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256921987
+    },
+    {
+      "id": "rt_tv_1790256922634_ied9",
+      "title": "ANTS 2024 - Live at Ushuaïa Ibiza #Livestream",
+      "artist": "Mau P",
+      "youtubeId": "YSMdqIRH7Pg",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256922634
+    },
+    {
+      "id": "rt_tv_1790256923356_vqcx",
+      "title": "DROPSIDERS TV",
+      "artist": "PHOTOGRAPHE DE DJ SNAKE : COMMENT IL A RÉUSSI À TRAVAILLER AVEC UNE DES PLUS GRANDES STARS DU MONDE",
+      "youtubeId": "VQlK0UWGw2c",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256923356
+    },
+    {
+      "id": "rt_tv_1790256926733_wnhk",
+      "title": "DROPSIDERS TV",
+      "artist": "David Guetta, Aya Nakamura : Il produit les plus grands shows",
+      "youtubeId": "zonzHr0_gPg",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256926733
+    },
+    {
+      "id": "rt_tv_1790256927558_021q",
+      "title": "DROPSIDERS TV",
+      "artist": "Paco Osuna Live From Elrow at [UNVRS] Ibiza",
+      "youtubeId": "dI4-uIO5j2k",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256927558
+    },
+    {
+      "id": "rt_tv_1790256931699_lozg",
+      "title": "elrow at Ushuaïa Ibiza 2023",
+      "artist": "Wade",
+      "youtubeId": "maedoaD539M",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256931699
+    },
+    {
+      "id": "rt_tv_1790256939283_etit",
+      "title": "DROPSIDERS TV",
+      "artist": "Réussir dans la vie vs. réussir Sa vie. Épisode spécial avec Martin Solveig & Léa Dassonville",
+      "youtubeId": "bZrC31wF9-I",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256939283
+    },
+    {
+      "id": "rt_tv_1790256941065_wigv",
+      "title": "Psychrowdelic Trip Stage - elrow Town Madrid 2026",
+      "artist": "Bastian Bux",
+      "youtubeId": "tIreQEIRLdE",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256941065
+    },
+    {
+      "id": "rt_tv_1790256942158_1k39",
+      "title": "DROPSIDERS TV",
+      "artist": "Il rachète une boîte de nuit mythique à Paris pour 500 000€",
+      "youtubeId": "zpp1Vm1jHjs",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256942158
+    },
+    {
+      "id": "rt_tv_1790256944668_nyro",
+      "title": "Paris L'Olympia",
+      "artist": "Paul Kalkbrenner",
+      "youtubeId": "LSLITRUecOo",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256944668
+    },
+    {
+      "id": "rt_tv_1790256945578_n86w",
+      "title": "HUGEL",
+      "artist": "Comment ce Français est devenu l’un des DJ les plus chers de la planète ?",
+      "youtubeId": "uuPenQH6oNA",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256945578
+    },
+    {
+      "id": "rt_tv_1790256953963_r0nn",
+      "title": "Main Stage. elrow Town Madrid 2026",
+      "artist": "Nic Fanciulli b2b Butch",
+      "youtubeId": "Ua0q4NKDXyQ",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256953963
+    },
+    {
+      "id": "rt_tv_1790256956630_we2g",
+      "title": "DROPSIDERS TV",
+      "artist": "LA VRAIE VIE DU DJ KUNGS",
+      "youtubeId": "LxXQ8mRju58",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256956630
+    },
+    {
+      "id": "rt_tv_1790256960189_s9xz",
+      "title": "RESISTANCE MEGASTRUCTURE",
+      "artist": "ERIC PRYDZ LIVE @ ULTRA MUSIC FESTIVAL MIAMI 2026",
+      "youtubeId": "hU-z3iV0LOg",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256960189
+    },
+    {
+      "id": "rt_tv_1790256972956_z2ar",
+      "title": "EDC LAS VEGAS 2024",
+      "artist": "JOHN SUMMIT B2B GREEN VELVET",
+      "youtubeId": "xfjj8C_QkcQ",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256972956
+    },
+    {
+      "id": "rt_tv_1790256975482_2io5",
+      "title": "Awakenings Festival 2026",
+      "artist": "TOMAN",
+      "youtubeId": "5hj5UTZR_Ss",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256975482
+    },
+    {
+      "id": "rt_tv_1790256976974_19x2",
+      "title": "Awakenings Festival 2026",
+      "artist": "Joris Voorn x Kevin de Vries",
+      "youtubeId": "_MqFasX6Fas",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256976974
     }
   ]
 }
