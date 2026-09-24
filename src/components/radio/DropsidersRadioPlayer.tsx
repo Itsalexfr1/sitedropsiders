@@ -20,17 +20,56 @@ function buildSrc(youtubeId: string, start: number, muted: 0 | 1) {
         + `&origin=${encodeURIComponent(origin)}`;
 }
 
-// ─── Barres audio animées ─────────────────────────────────────────────────────
+// ─── Barres audio animées (vraie animation égaliseur) ────────────────────────
+const EQ_KEYFRAMES = `
+@keyframes eq-bar-1 {
+  0%,100% { height: 25%; } 25% { height: 80%; } 50% { height: 45%; } 75% { height: 95%; }
+}
+@keyframes eq-bar-2 {
+  0%,100% { height: 65%; } 20% { height: 30%; } 50% { height: 100%; } 80% { height: 50%; }
+}
+@keyframes eq-bar-3 {
+  0%,100% { height: 40%; } 30% { height: 90%; } 60% { height: 20%; } 85% { height: 75%; }
+}
+@keyframes eq-bar-4 {
+  0%,100% { height: 70%; } 15% { height: 35%; } 45% { height: 100%; } 70% { height: 55%; }
+}
+`;
+
+let _eqStyleInjected = false;
+function injectEqStyle() {
+    if (_eqStyleInjected || typeof document === 'undefined') return;
+    _eqStyleInjected = true;
+    const s = document.createElement('style');
+    s.textContent = EQ_KEYFRAMES;
+    document.head.appendChild(s);
+}
+injectEqStyle();
+
+const EQ_BARS = [
+    { anim: 'eq-bar-1', dur: '0.55s' },
+    { anim: 'eq-bar-2', dur: '0.38s' },
+    { anim: 'eq-bar-3', dur: '0.62s' },
+    { anim: 'eq-bar-4', dur: '0.44s' },
+];
+
 function AudioBars({ playing }: { playing: boolean }) {
     return (
-        <div className="flex items-end gap-[2px] h-4 shrink-0">
-            {[{ h: '70%', d: '420ms' }, { h: '100%', d: '280ms' }, { h: '55%', d: '560ms' }, { h: '85%', d: '340ms' }]
-                .map((b, i) => (
-                    <span key={i}
-                        className={`w-[2.5px] rounded-full ${playing ? 'bg-neon-cyan animate-pulse' : 'bg-white/25'}`}
-                        style={{ height: playing ? b.h : '20%', animationDuration: b.d }}
-                    />
-                ))}
+        <div className="flex items-end gap-[2.5px] h-4 shrink-0">
+            {EQ_BARS.map((b, i) => (
+                <span
+                    key={i}
+                    style={{
+                        display: 'block',
+                        width: '3px',
+                        height: playing ? '60%' : '20%',
+                        borderRadius: '2px',
+                        backgroundColor: playing ? 'rgb(0,255,255)' : 'rgba(255,255,255,0.25)',
+                        animation: playing ? `${b.anim} ${b.dur} ease-in-out infinite alternate` : 'none',
+                        transition: 'background-color 0.3s',
+                    }}
+                />
+            ))}
         </div>
     );
 }
@@ -137,29 +176,48 @@ function useRadioAudio() {
         } catch {}
     }, []);
 
-    // ─── Pas de préchargement muet : on attend le tap user pour charger ──────
-    // (évite les conflits entre préchargement et déverrouillage iOS)
-
-    // Transition automatique vers le nouveau track si le live change pendant l'écoute
+    // ─── Références stables ──────────────────────────────────────────────────
     const currentVideoId = currentSet?.youtubeId;
     const isPlayingRef = useRef(isPlaying);
+    const isMutedRef = useRef(isMuted);
+    const volumeRef = useRef(volume);
     useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
+    useEffect(() => { isMutedRef.current = isMuted; }, [isMuted]);
+    useEffect(() => { volumeRef.current = volume; }, [volume]);
 
+    // ─── Préchargement muet dès qu'un set est disponible ────────────────────
+    // iOS Safari autorise l'audio si l'iframe a déjà commencé à charger (même muet).
+    // Le vrai déverrouillage audio se fait sur le tap utilisateur (sendCmd unMute).
+    const preloadedVideoIdRef = useRef<string | null>(null);
+    useEffect(() => {
+        if (!currentVideoId) return;
+        if (isPlayingRef.current) return; // déjà en cours, ne pas écraser
+        if (preloadedVideoIdRef.current === currentVideoId) return; // déjà préchargé
+        preloadedVideoIdRef.current = currentVideoId;
+        if (iframeRef.current) {
+            // Charger avec mute=1 : iOS considère l'iframe comme "activée"
+            iframeRef.current.src = buildSrc(currentVideoId, uiOffsetRef.current, 1);
+        }
+    }, [currentVideoId]);
+
+    // Transition automatique si le track live change pendant l'écoute
     useEffect(() => {
         if (!currentVideoId || !isPlayingRef.current) return;
         if (iframeRef.current && iframeRef.current.src && !iframeRef.current.src.includes(currentVideoId)) {
-            iframeRef.current.src = buildSrc(currentVideoId, uiOffsetRef.current, isMuted ? 1 : 0);
+            iframeRef.current.src = buildSrc(currentVideoId, uiOffsetRef.current, isMutedRef.current ? 1 : 0);
+            preloadedVideoIdRef.current = currentVideoId;
         }
-    }, [currentVideoId, isMuted]);
+    }, [currentVideoId]);
 
     // ─── Play / Pause ─────────────────────────────────────────────────────────
     /**
-     * 🔑 IOS-SAFE : on lit currentSetRef.current (toujours à jour) et on
-     * modifie iframeRef.current.src DIRECTEMENT et SYNCHRONEMENT dans le
-     * call stack du click → iOS autorise le son.
+     * 🔑 IOS-SAFE : L'iframe est déjà chargée (muette) avant le tap.
+     * Sur le tap user, on envoie SYNCHRONEMENT unMute + setVolume + playVideo
+     * dans le call stack du click event → iOS autorise le son.
      *
-     * Play   → recharge l'iframe avec mute=0 (position recalculée en live)
-     * Pause  → vide l'iframe (about:blank = stop garanti sur tous les browsers)
+     * Play  → si l'iframe est déjà sur le bon video (préchargé), on unmute
+     *         sinon on recharge avec mute=0 (fallback)
+     * Pause → vide l'iframe (about:blank = stop garanti)
      */
     const handlePlay = useCallback(() => {
         const set = currentSetRef.current;
@@ -167,20 +225,30 @@ function useRadioAudio() {
 
         if (!isPlaying) {
             // ⚡ Synchrone — DOIT rester dans le call stack du click event
-            const src = buildSrc(set.youtubeId, uiOffsetRef.current, 0);
-            if (iframeRef.current) {
-                iframeRef.current.src = src;
+            const alreadyLoaded = iframeRef.current?.src?.includes(set.youtubeId);
+            if (alreadyLoaded) {
+                // Iframe déjà préchargée → unmute direct (iOS-safe)
+                sendCmd('unMute');
+                sendCmd('setVolume', [volume]);
+                sendCmd('playVideo');
+            } else {
+                // Fallback : recharger avec mute=0
+                const src = buildSrc(set.youtubeId, uiOffsetRef.current, 0);
+                if (iframeRef.current) iframeRef.current.src = src;
+                preloadedVideoIdRef.current = set.youtubeId;
+                // Tenter les commandes après un court délai (iframe en cours de chargement)
+                setTimeout(() => {
+                    sendCmd('unMute');
+                    sendCmd('setVolume', [volumeRef.current]);
+                    sendCmd('playVideo');
+                }, 800);
             }
-            sendCmd('unMute');
-            sendCmd('setVolume', [volume]);
-            sendCmd('playVideo');
             setIsPlaying(true);
         } else {
-            // Stop propre : vider le src (fonctionne même sans postMessage)
-            if (iframeRef.current) {
-                iframeRef.current.src = 'about:blank';
-            }
-            sendCmd('pauseVideo'); // tentative postMessage en bonus
+            // Stop propre : vider le src
+            if (iframeRef.current) iframeRef.current.src = 'about:blank';
+            preloadedVideoIdRef.current = null;
+            sendCmd('pauseVideo');
             setIsPlaying(false);
         }
     }, [isPlaying, volume, sendCmd]);
