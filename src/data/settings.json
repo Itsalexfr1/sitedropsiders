@@ -3543,6 +3543,208 @@
           "addedAt": 1790256976974
         }
       ]
+    },
+    {
+      "id": "radio_bloc_1790257094891_kg2l",
+      "name": "DROP TIME",
+      "title": "DROP TIME",
+      "timeSlot": "20h - 00h",
+      "startHour": 20,
+      "endHour": 24,
+      "color": "#10b981",
+      "emoji": "🚀",
+      "randomize": true,
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        0
+      ],
+      "tracks": [
+        {
+          "id": "rt_tv_1790257135996_delk",
+          "title": "Ultra Music Festival 2026 (FULL SET)",
+          "artist": "ILLENIUM",
+          "youtubeId": "9i8XVK77EH8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257135996
+        },
+        {
+          "id": "rt_tv_1790257137362_glos",
+          "title": "ULTRA MIAMI MAIN STAGE 2026",
+          "artist": "DJ SNAKE",
+          "youtubeId": "hSq5aGvBJ04",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257137362
+        },
+        {
+          "id": "rt_tv_1790257139686_ojmz",
+          "title": "EDC Las Vegas 2026",
+          "artist": "Porter Robinson",
+          "youtubeId": "zkT8FjfBjYI",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257139686
+        },
+        {
+          "id": "rt_tv_1790257140539_e5kd",
+          "title": "EDC Las Vegas 2026",
+          "artist": "The Chainsmokers",
+          "youtubeId": "3AQ_Srbe1lQ",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257140539
+        },
+        {
+          "id": "rt_tv_1790257155002_gv5t",
+          "title": "DROPSIDERS TV",
+          "artist": "Rave Rebels presents: I Hate Models (FULL SET)",
+          "youtubeId": "ip9UY6YqLVA",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257155002
+        },
+        {
+          "id": "rt_tv_1790257168521_kind",
+          "title": "Tomorrowland 2026 Mainstage (FULL SET 4K UHD)",
+          "artist": "Dimitri Vegas -",
+          "youtubeId": "3o0T4z6oT4Y",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257168521
+        },
+        {
+          "id": "rt_tv_1790257169686_frwp",
+          "title": "MainStage",
+          "artist": "David Guetta live @ Tomorrowland 2026",
+          "youtubeId": "GSnPwle4FOE",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257169686
+        },
+        {
+          "id": "rt_tv_1790257171395_mp87",
+          "title": "Tomorrowland 2025",
+          "artist": "Swedish House Mafia",
+          "youtubeId": "AFC6wKUQKAI",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257171395
+        },
+        {
+          "id": "rt_tv_1790257172969_r65d",
+          "title": "ULTRA MUSIC FESTIVAL MIAMI 2026",
+          "artist": "MARTIN GARRIX B2B ALESSO",
+          "youtubeId": "vBvZaydcCzc",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257172969
+        },
+        {
+          "id": "rt_tv_1790257173917_6ks0",
+          "title": "RESISTANCE MEGASTRUCTURE",
+          "artist": "ERIC PRYDZ LIVE @ ULTRA MUSIC FESTIVAL MIAMI 2026",
+          "youtubeId": "hU-z3iV0LOg",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257173917
+        },
+        {
+          "id": "rt_tv_1790257185678_w9hc",
+          "title": "Tomorrowland 2025",
+          "artist": "Anyma",
+          "youtubeId": "D0MgHnTcYKc",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257185678
+        },
+        {
+          "id": "rt_tv_1790257200990_dxtb",
+          "title": "SANDER VAN DOORN",
+          "artist": "PAROOKAVILLE 2026",
+          "youtubeId": "m8-x1RAO-IA",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257200990
+        },
+        {
+          "id": "rt_tv_1790257201635_ikpd",
+          "title": "JOEL CORRY",
+          "artist": "PAROOKAVILLE 2026",
+          "youtubeId": "FMmCbqNvNc8",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257201635
+        },
+        {
+          "id": "rt_tv_1790257202682_wekq",
+          "title": "DENIZ KOYU",
+          "artist": "PAROOKAVILLE 2026",
+          "youtubeId": "nb0ZuAVradI",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257202682
+        },
+        {
+          "id": "rt_tv_1790257203483_n49u",
+          "title": "DYRO X DANNIC",
+          "artist": "PAROOKAVILLE 2026",
+          "youtubeId": "B7zXYX2Zzww",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257203483
+        },
+        {
+          "id": "rt_tv_1790257215146_hcrb",
+          "title": "Tomorrowland 2026",
+          "artist": "HALŌ MAINSTAGE",
+          "youtubeId": "4uHPAUR9bfk",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257215146
+        },
+        {
+          "id": "rt_tv_1790257216011_lque",
+          "title": "Tomorrowland 2026",
+          "artist": "Steve Angello",
+          "youtubeId": "eir5Sh_gHbo",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257216011
+        },
+        {
+          "id": "rt_tv_1790257216754_e3cs",
+          "title": "Full Set at Ritter Butzke",
+          "artist": "Will Sparks live from Berlin",
+          "youtubeId": "tJzeG3rymfM",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257216754
+        },
+        {
+          "id": "rt_tv_1790257226256_bxsv",
+          "title": "DROPSIDERS TV",
+          "artist": "Above & Beyond: Live from EDC Las Vegas 2026",
+          "youtubeId": "OI02QgEA1Zw",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257226256
+        },
+        {
+          "id": "rt_tv_1790257229068_03ef",
+          "title": "quantumVALLEY",
+          "artist": "Maddix live @ EDC Las Vegas 2026",
+          "youtubeId": "okj8arPC3-k",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790257229068
+        }
+      ]
     }
   ],
   "radio_tracks": [
@@ -4940,6 +5142,186 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256976974
+    },
+    {
+      "id": "rt_tv_1790257135996_delk",
+      "title": "Ultra Music Festival 2026 (FULL SET)",
+      "artist": "ILLENIUM",
+      "youtubeId": "9i8XVK77EH8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257135996
+    },
+    {
+      "id": "rt_tv_1790257137362_glos",
+      "title": "ULTRA MIAMI MAIN STAGE 2026",
+      "artist": "DJ SNAKE",
+      "youtubeId": "hSq5aGvBJ04",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257137362
+    },
+    {
+      "id": "rt_tv_1790257139686_ojmz",
+      "title": "EDC Las Vegas 2026",
+      "artist": "Porter Robinson",
+      "youtubeId": "zkT8FjfBjYI",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257139686
+    },
+    {
+      "id": "rt_tv_1790257140539_e5kd",
+      "title": "EDC Las Vegas 2026",
+      "artist": "The Chainsmokers",
+      "youtubeId": "3AQ_Srbe1lQ",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257140539
+    },
+    {
+      "id": "rt_tv_1790257155002_gv5t",
+      "title": "DROPSIDERS TV",
+      "artist": "Rave Rebels presents: I Hate Models (FULL SET)",
+      "youtubeId": "ip9UY6YqLVA",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257155002
+    },
+    {
+      "id": "rt_tv_1790257168521_kind",
+      "title": "Tomorrowland 2026 Mainstage (FULL SET 4K UHD)",
+      "artist": "Dimitri Vegas -",
+      "youtubeId": "3o0T4z6oT4Y",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257168521
+    },
+    {
+      "id": "rt_tv_1790257169686_frwp",
+      "title": "MainStage",
+      "artist": "David Guetta live @ Tomorrowland 2026",
+      "youtubeId": "GSnPwle4FOE",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257169686
+    },
+    {
+      "id": "rt_tv_1790257171395_mp87",
+      "title": "Tomorrowland 2025",
+      "artist": "Swedish House Mafia",
+      "youtubeId": "AFC6wKUQKAI",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257171395
+    },
+    {
+      "id": "rt_tv_1790257172969_r65d",
+      "title": "ULTRA MUSIC FESTIVAL MIAMI 2026",
+      "artist": "MARTIN GARRIX B2B ALESSO",
+      "youtubeId": "vBvZaydcCzc",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257172969
+    },
+    {
+      "id": "rt_tv_1790257173917_6ks0",
+      "title": "RESISTANCE MEGASTRUCTURE",
+      "artist": "ERIC PRYDZ LIVE @ ULTRA MUSIC FESTIVAL MIAMI 2026",
+      "youtubeId": "hU-z3iV0LOg",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257173917
+    },
+    {
+      "id": "rt_tv_1790257185678_w9hc",
+      "title": "Tomorrowland 2025",
+      "artist": "Anyma",
+      "youtubeId": "D0MgHnTcYKc",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257185678
+    },
+    {
+      "id": "rt_tv_1790257200990_dxtb",
+      "title": "SANDER VAN DOORN",
+      "artist": "PAROOKAVILLE 2026",
+      "youtubeId": "m8-x1RAO-IA",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257200990
+    },
+    {
+      "id": "rt_tv_1790257201635_ikpd",
+      "title": "JOEL CORRY",
+      "artist": "PAROOKAVILLE 2026",
+      "youtubeId": "FMmCbqNvNc8",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257201635
+    },
+    {
+      "id": "rt_tv_1790257202682_wekq",
+      "title": "DENIZ KOYU",
+      "artist": "PAROOKAVILLE 2026",
+      "youtubeId": "nb0ZuAVradI",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257202682
+    },
+    {
+      "id": "rt_tv_1790257203483_n49u",
+      "title": "DYRO X DANNIC",
+      "artist": "PAROOKAVILLE 2026",
+      "youtubeId": "B7zXYX2Zzww",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257203483
+    },
+    {
+      "id": "rt_tv_1790257215146_hcrb",
+      "title": "Tomorrowland 2026",
+      "artist": "HALŌ MAINSTAGE",
+      "youtubeId": "4uHPAUR9bfk",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257215146
+    },
+    {
+      "id": "rt_tv_1790257216011_lque",
+      "title": "Tomorrowland 2026",
+      "artist": "Steve Angello",
+      "youtubeId": "eir5Sh_gHbo",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257216011
+    },
+    {
+      "id": "rt_tv_1790257216754_e3cs",
+      "title": "Full Set at Ritter Butzke",
+      "artist": "Will Sparks live from Berlin",
+      "youtubeId": "tJzeG3rymfM",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257216754
+    },
+    {
+      "id": "rt_tv_1790257226256_bxsv",
+      "title": "DROPSIDERS TV",
+      "artist": "Above & Beyond: Live from EDC Las Vegas 2026",
+      "youtubeId": "OI02QgEA1Zw",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257226256
+    },
+    {
+      "id": "rt_tv_1790257229068_03ef",
+      "title": "quantumVALLEY",
+      "artist": "Maddix live @ EDC Las Vegas 2026",
+      "youtubeId": "okj8arPC3-k",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790257229068
     }
   ]
 }
