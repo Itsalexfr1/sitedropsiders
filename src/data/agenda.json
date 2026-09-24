@@ -778,5 +778,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1114,
+    "title": "Tomorrowland Winter 2027",
+    "date": "2027-03-20",
+    "startDate": "2027-03-20",
+    "endDate": "2027-03-27",
+    "venue": "",
+    "location": "ALPE D'HUEZ",
+    "country": "FRANCE",
+    "type": "Festival",
+    "image": "/uploads/uploads/53677d62c33c98d1-images__1_.jpg",
+    "url": "https://winter.tomorrowland.com/fr/bienvenue/",
+    "genre": "Hybride",
+    "month": "MARS",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
