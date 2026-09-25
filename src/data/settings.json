@@ -3740,6 +3740,15 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790259815757
+        },
+        {
+          "id": "rt_1790342700439",
+          "title": "Anotr Live @ Alexandra Palace - Londres (2026)",
+          "artist": "ANOTR",
+          "youtubeId": "Ka29Wt4OlWI",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790342700439
         }
       ]
     },
@@ -6164,6 +6173,15 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790259815757
+    },
+    {
+      "id": "rt_1790342700439",
+      "title": "Anotr Live @ Alexandra Palace - Londres (2026)",
+      "artist": "ANOTR",
+      "youtubeId": "Ka29Wt4OlWI",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790342700439
     },
     {
       "id": "rt_tv_1790257135996_delk",
