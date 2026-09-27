@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePlayer } from '../../context/PlayerContext';
 import { CustomMixPlayer } from './CustomMixPlayer';
-import { Play, Pause, Maximize2, X, Music, Minimize2, SkipForward, SkipBack, Sparkles } from 'lucide-react';
+import { Play, Pause, Maximize2, X, Music, Minimize2, SkipForward, SkipBack, Sparkles, RotateCcw, RotateCw } from 'lucide-react';
 import { ExportSuccessModal } from '../ExportSuccessModal';
 
 export function GlobalPlayerContainer() {
@@ -13,12 +13,15 @@ export function GlobalPlayerContainer() {
         togglePlay,
         currentTime,
         duration,
-        seekTo
+        seekTo,
+        seekRelative
     } = usePlayer();
     const [isMinimized, setIsMinimized] = useState(true);
     const [isGeneratingStory, setIsGeneratingStory] = useState(false);
     const [storyProgress, setStoryProgress] = useState(0);
     const [toastMessage, setToastMessage] = useState('');
+    const [dragTime, setDragTime] = useState<number | null>(null);
+    const isDraggingRef = useRef(false);
     
     // ExportSuccessModal state
     const [showExportModal, setShowExportModal] = useState(false);
@@ -430,19 +433,21 @@ export function GlobalPlayerContainer() {
 
                                     {/* Right: playback controls */}
                                     <div className="flex items-center gap-2 flex-shrink-0">
-                                        {activeTrack.tracks && activeTrack.tracks.length > 0 && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
+                                        {/* Bouton Reculer (-15s) ou Piste précédente si tracklist */}
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (activeTrack.tracks && activeTrack.tracks.length > 0 && currentTrackIndexInMini > 0 && (currentTime - parseTimeToSeconds(activeTrack.tracks[currentTrackIndexInMini].time) < 3)) {
                                                     playPreviousTrackInMini();
-                                                }}
-                                                disabled={currentTrackIndexInMini <= 0}
-                                                className="w-8 h-8 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-lg text-white disabled:opacity-20 transition-all cursor-pointer"
-                                                title="Piste précédente"
-                                            >
-                                                <SkipBack className="w-4 h-4" />
-                                            </button>
-                                        )}
+                                                } else {
+                                                    seekRelative(-15);
+                                                }
+                                            }}
+                                            className="w-8 h-8 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-lg text-white transition-all active:scale-90 cursor-pointer"
+                                            title="Reculer de 15s"
+                                        >
+                                            <RotateCcw className="w-3.5 h-3.5" />
+                                        </button>
 
                                         <button
                                             onClick={(e) => {
@@ -458,6 +463,18 @@ export function GlobalPlayerContainer() {
                                             }
                                         </button>
 
+                                        {/* Bouton Avancer (+15s) */}
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                seekRelative(15);
+                                            }}
+                                            className="w-8 h-8 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-lg text-white transition-all active:scale-90 cursor-pointer"
+                                            title="Avancer de 15s"
+                                        >
+                                            <RotateCw className="w-3.5 h-3.5" />
+                                        </button>
+
                                         {activeTrack.tracks && activeTrack.tracks.length > 0 && (
                                             <button
                                                 onClick={(e) => {
@@ -465,7 +482,7 @@ export function GlobalPlayerContainer() {
                                                     playNextTrackInMini();
                                                 }}
                                                 disabled={currentTrackIndexInMini >= activeTrack.tracks.length - 1}
-                                                className="w-8 h-8 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-lg text-white disabled:opacity-20 transition-all cursor-pointer"
+                                                className="w-8 h-8 hidden sm:flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-lg text-white disabled:opacity-20 transition-all cursor-pointer"
                                                 title="Piste suivante"
                                             >
                                                 <SkipForward className="w-4 h-4" />
@@ -516,22 +533,38 @@ export function GlobalPlayerContainer() {
 
                                 {/* Bottom Row: Navigation / Timeline Seek Bar */}
                                 <div className="flex items-center gap-3 px-1 mt-1 z-10" onClick={(e) => e.stopPropagation()}>
-                                    <span className="text-[10px] font-black text-white/40 font-mono tabular-nums">{formatSeconds(currentTime)}</span>
+                                    <span className="text-[10px] font-black text-white/40 font-mono tabular-nums">{formatSeconds(dragTime !== null ? dragTime : currentTime)}</span>
                                     <div className="flex-1 relative group cursor-pointer py-2">
                                         <input 
                                             type="range"
                                             min={0}
-                                            max={duration || 100}
-                                            value={currentTime}
+                                            max={duration && duration > 0 ? duration : 100}
+                                            value={dragTime !== null ? dragTime : currentTime}
+                                            onMouseDown={() => { isDraggingRef.current = true; }}
+                                            onTouchStart={() => { isDraggingRef.current = true; }}
                                             onChange={(e) => {
-                                                seekTo(parseFloat(e.target.value));
+                                                const val = parseFloat(e.target.value);
+                                                setDragTime(val);
                                             }}
-                                            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer focus:outline-none accent-neon-purple [&::-webkit-slider-runnable-track]:bg-white/10 [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:bg-neon-purple [&::-webkit-slider-thumb]:shadow-[0_0_8px_rgba(168,85,247,0.8)]"
+                                            onMouseUp={(e) => {
+                                                isDraggingRef.current = false;
+                                                const val = parseFloat((e.target as HTMLInputElement).value);
+                                                seekTo(val);
+                                                setDragTime(null);
+                                            }}
+                                            onTouchEnd={() => {
+                                                isDraggingRef.current = false;
+                                                if (dragTime !== null) {
+                                                    seekTo(dragTime);
+                                                    setDragTime(null);
+                                                }
+                                            }}
+                                            className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer focus:outline-none accent-neon-purple [&::-webkit-slider-runnable-track]:bg-white/10 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:bg-neon-purple [&::-webkit-slider-thumb]:shadow-[0_0_8px_rgba(168,85,247,0.8)]"
                                         />
                                         <div 
-                                            className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-neon-purple to-neon-cyan rounded-lg pointer-events-none"
+                                            className="absolute left-0 top-1/2 -translate-y-1/2 h-1.5 bg-gradient-to-r from-neon-purple to-neon-cyan rounded-lg pointer-events-none"
                                             style={{
-                                                width: `${duration ? (currentTime / duration) * 100 : 0}%`
+                                                width: `${duration ? ((dragTime !== null ? dragTime : currentTime) / duration) * 100 : 0}%`
                                             }}
                                         />
                                     </div>

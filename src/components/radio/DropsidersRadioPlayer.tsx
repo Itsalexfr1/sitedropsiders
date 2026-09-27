@@ -10,6 +10,7 @@ import {
     type RadioScheduleBlock, type ComputedRadioScheduleItem
 } from '../../utils/radioSchedule';
 import { useLocation } from 'react-router-dom';
+import { usePlayer } from '../../context/PlayerContext';
 
 // ─── URL YouTube embed ────────────────────────────────────────────────────────
 function buildSrc(youtubeId: string, start: number, muted: 0 | 1) {
@@ -751,6 +752,17 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
 export function DropsidersRadioPlayer() {
     const location = useLocation();
     const audio = useRadioAudio();
+    const { activeTrack } = usePlayer();
+
+    const isMixPage = location.pathname.startsWith('/mix');
+    const isMixActive = !!activeTrack || isMixPage;
+
+    // Quand un mix est lancé et que la radio est en cours de lecture, couper la radio
+    useEffect(() => {
+        if (isMixActive && audio.isPlaying) {
+            audio.handleStop();
+        }
+    }, [isMixActive, audio.isPlaying]);
 
     if (location.pathname === '/tv') return null;
 
@@ -758,7 +770,8 @@ export function DropsidersRadioPlayer() {
         <>
             {/* Iframe TOUJOURS montée (jamais null) — dans le viewport, opacité 0 */}
             <RadioIframe iframeRef={audio.iframeRef} />
-            <MobileRadioPlayer audio={audio} />
+            {/* Sur version mobile : dès qu'un mix est en route, masquer la radio */}
+            {!isMixActive && <MobileRadioPlayer audio={audio} />}
             <DesktopRadioPlayer audio={audio} />
         </>
     );

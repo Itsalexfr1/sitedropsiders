@@ -35,6 +35,7 @@ interface PlayerContextType {
     registerSeekTo: (fn: (s: number) => void) => void;
     togglePlay: () => void;
     seekTo: (seconds: number) => void;
+    seekRelative: (deltaSeconds: number) => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -66,6 +67,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const registerSeekTo = (fn: (s: number) => void) => { seekToRef.current = fn; };
     const togglePlay = () => togglePlayRef.current();
     const seekTo = (seconds: number) => seekToRef.current(seconds);
+    const seekRelative = (deltaSeconds: number) => {
+        const maxDur = duration && duration > 0 ? duration : Infinity;
+        const target = Math.max(0, Math.min(currentTime + deltaSeconds, maxDur));
+        seekTo(target);
+    };
 
     return (
         <PlayerContext.Provider value={{
@@ -73,7 +79,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             isPlaying, setIsPlaying,
             currentTime, duration, setCurrentTime, setDuration,
             registerTogglePlay, registerSeekTo,
-            togglePlay, seekTo,
+            togglePlay, seekTo, seekRelative,
         }}>
             {children}
         </PlayerContext.Provider>

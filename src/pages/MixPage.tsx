@@ -49,9 +49,11 @@ export function MixPage() {
     const [copiedLink, setCopiedLink] = useState(false);
     const [likesCount, setLikesCount] = useState(0);
     const [hasLiked, setHasLiked] = useState(false);
+    const [dragSeekTime, setDragSeekTime] = useState<number | null>(null);
 
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const initialTimeSetRef = useRef(false);
+    const isSeekingRef = useRef(false);
 
     // Fetch Mix details (public endpoint)
     useEffect(() => {
@@ -160,7 +162,7 @@ export function MixPage() {
     };
 
     const handleTimeUpdate = () => {
-        if (!audioRef.current) return;
+        if (!audioRef.current || isSeekingRef.current) return;
         const curr = audioRef.current.currentTime;
         setCurrentTime(curr);
         if ('mediaSession' in navigator && isFinite(audioRef.current.duration) && audioRef.current.duration > 0) {
@@ -184,7 +186,12 @@ export function MixPage() {
 
     const handleSkip = (seconds: number) => {
         if (audioRef.current) {
-            audioRef.current.currentTime = Math.max(0, Math.min(audioRef.current.currentTime + seconds, duration || 0));
+            const maxDuration = (isFinite(audioRef.current.duration) && audioRef.current.duration > 0)
+                ? audioRef.current.duration 
+                : (duration > 0 ? duration : Infinity);
+            const newTime = Math.max(0, Math.min(audioRef.current.currentTime + seconds, maxDuration));
+            audioRef.current.currentTime = newTime;
+            setCurrentTime(newTime);
         }
     };
 
@@ -382,51 +389,77 @@ export function MixPage() {
                 <div className="relative w-[270px] h-[270px] sm:w-[320px] sm:h-[320px] my-2 flex items-center justify-center group">
                     {/* Background Pulsing Neon Glow */}
                     <div className={`absolute inset-0 rounded-full blur-[40px] transition-all duration-700 ${
-                        isPlaying ? 'bg-neon-purple/25 scale-110' : 'bg-transparent scale-95'
+                        isPlaying 
+                            ? 'bg-gradient-to-tr from-neon-cyan/30 via-neon-red/20 to-neon-purple/30 scale-110 opacity-70' 
+                            : 'bg-transparent scale-95 opacity-0'
                     }`} />
 
                     {/* Outer Steel / Vinyl Base Ring */}
-                    <div className="absolute inset-0 rounded-full border-[8px] border-white/5 bg-[#0a0a10] shadow-[0_20px_60px_rgba(0,0,0,0.8)] flex items-center justify-center">
+                    <div className="absolute inset-0 rounded-full border-[8px] border-white/10 bg-[#0a0a10] shadow-[0_20px_60px_rgba(0,0,0,0.9)] flex items-center justify-center">
                         {/* Grooves */}
-                        <div className="absolute inset-[18px] rounded-full border border-white/5 bg-[#0e0e16]">
-                            <div className="absolute inset-[25px] rounded-full border border-white/[0.03]">
-                                <div className="absolute inset-[30px] rounded-full border border-white/[0.02]" />
-                            </div>
-                        </div>
+                        <div className="absolute inset-[14px] rounded-full border border-white/5 bg-[#0e0e16]" />
 
                         {/* Interactive Rotating Vinyl Record */}
                         <motion.div
                             animate={isPlaying ? { rotate: 360 } : {}}
                             transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
-                            className="w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] rounded-full bg-[#12121e] border-2 border-white/10 flex items-center justify-center relative cursor-pointer shadow-2xl overflow-hidden"
+                            className="w-[230px] h-[230px] sm:w-[270px] sm:h-[270px] rounded-full bg-[#12121e] border-2 border-white/20 flex items-center justify-center relative cursor-pointer shadow-2xl overflow-hidden"
                             onClick={togglePlay}
                         >
-                            {/* Inner Vinyl Grooves */}
-                            <div className="absolute inset-6 rounded-full border border-white/5" />
-                            <div className="absolute inset-12 rounded-full border border-white/[0.02]" />
-
-                            {/* LED Neon Light Ring on Rim */}
-                            <div className={`absolute inset-1 rounded-full border-2 border-dashed transition-opacity duration-500 ${
-                                isPlaying ? 'border-neon-purple/60 opacity-100' : 'border-transparent opacity-0'
-                            }`} />
-
-                            {/* Center Vinyl Cover Art / DS Label */}
+                            {/* IF COVER EXISTS: FULL PICTURE DISC VINYL */}
                             {mix.cover ? (
-                                <div className="w-[95px] h-[95px] sm:w-[110px] sm:h-[110px] rounded-full overflow-hidden border-2 border-white/30 shadow-2xl relative flex items-center justify-center bg-black">
+                                <>
+                                    {/* Full disc image taking the ENTIRE surface */}
                                     <img 
                                         src={mix.cover} 
                                         alt={mix.title} 
-                                        className="w-full h-full object-cover rounded-full select-none pointer-events-none" 
+                                        className="absolute inset-0 w-full h-full object-cover rounded-full select-none pointer-events-none" 
                                     />
+                                    {/* Vinyl glossy grooves texture overlay */}
+                                    <div 
+                                        className="absolute inset-0 rounded-full pointer-events-none"
+                                        style={{
+                                            background: 'radial-gradient(circle, transparent 20%, rgba(0,0,0,0.12) 40%, rgba(0,0,0,0.28) 60%, rgba(0,0,0,0.45) 85%, rgba(0,0,0,0.7) 100%)'
+                                        }}
+                                    />
+                                    {/* Circular vinyl groove lines */}
+                                    <div className="absolute inset-4 rounded-full border border-white/10 pointer-events-none" />
+                                    <div className="absolute inset-8 rounded-full border border-white/10 pointer-events-none" />
+                                    <div className="absolute inset-14 rounded-full border border-white/10 pointer-events-none" />
+                                    <div className="absolute inset-20 rounded-full border border-white/15 pointer-events-none" />
+                                    {/* Light sheen reflection on vinyl */}
+                                    <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 via-transparent to-black/40 pointer-events-none" />
+                                    
+                                    {/* Equalizer Rim / LED Light Strobe Ring on edge */}
+                                    <div className={`absolute inset-1.5 rounded-full border-2 border-dashed transition-opacity duration-500 pointer-events-none ${
+                                        isPlaying 
+                                            ? 'border-neon-cyan/70 shadow-[0_0_12px_rgba(0,240,255,0.6)] opacity-100' 
+                                            : 'border-transparent opacity-0'
+                                    }`} />
+
                                     {/* Spindle center hole */}
-                                    <div className="w-4 h-4 rounded-full bg-[#08080c] border border-white/50 absolute shadow-inner z-10" />
-                                </div>
+                                    <div className="w-5 h-5 rounded-full bg-[#08080c] border-2 border-white/70 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),0_0_8px_rgba(255,255,255,0.3)] absolute z-20 flex items-center justify-center pointer-events-none">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
+                                    </div>
+                                </>
                             ) : (
-                                <div className="w-[80px] h-[80px] sm:w-[95px] sm:h-[95px] rounded-full bg-neon-purple flex flex-col items-center justify-center text-center shadow-2xl border border-black/30 relative">
-                                    <span className="text-white font-black text-sm uppercase tracking-wider italic leading-none">DS</span>
-                                    <span className="text-white/50 text-[7px] font-black uppercase mt-1 leading-none">STUDIO</span>
-                                    <div className="w-3.5 h-3.5 rounded-full bg-[#08080c] border border-white/40 absolute shadow-inner" />
-                                </div>
+                                <>
+                                    {/* Standard vinyl grooves */}
+                                    <div className="absolute inset-6 rounded-full border border-white/5" />
+                                    <div className="absolute inset-12 rounded-full border border-white/[0.02]" />
+
+                                    {/* Equalizer Rim on edge */}
+                                    <div className={`absolute inset-1.5 rounded-full border-2 border-dashed transition-opacity duration-500 ${
+                                        isPlaying ? 'border-neon-cyan/70 shadow-[0_0_12px_rgba(0,240,255,0.5)] opacity-100' : 'border-transparent opacity-0'
+                                    }`} />
+
+                                    {/* Center DS Studio label */}
+                                    <div className="w-[80px] h-[80px] sm:w-[95px] sm:h-[95px] rounded-full bg-gradient-to-br from-neon-purple to-neon-red flex flex-col items-center justify-center text-center shadow-2xl border border-black/30 relative">
+                                        <span className="text-white font-black text-sm uppercase tracking-wider italic leading-none">DS</span>
+                                        <span className="text-white/70 text-[7px] font-black uppercase mt-1 leading-none">STUDIO</span>
+                                        <div className="w-3.5 h-3.5 rounded-full bg-[#08080c] border border-white/40 absolute shadow-inner" />
+                                    </div>
+                                </>
                             )}
                         </motion.div>
                     </div>
@@ -488,7 +521,7 @@ export function MixPage() {
                             key={i}
                             className={`w-1.5 rounded-full transition-all duration-300 ${
                                 isPlaying 
-                                    ? 'bg-gradient-to-t from-neon-purple to-neon-cyan animate-pulse' 
+                                    ? 'bg-gradient-to-t from-neon-red via-neon-cyan to-white shadow-[0_0_8px_rgba(0,240,255,0.4)] animate-pulse' 
                                     : 'bg-white/10'
                             }`}
                             style={{
@@ -504,13 +537,34 @@ export function MixPage() {
                     <input
                         type="range"
                         min={0}
-                        max={duration || 100}
-                        value={currentTime}
-                        onChange={handleSeek}
+                        max={duration && duration > 0 ? duration : 100}
+                        value={dragSeekTime !== null ? dragSeekTime : currentTime}
+                        onMouseDown={() => { isSeekingRef.current = true; }}
+                        onTouchStart={() => { isSeekingRef.current = true; }}
+                        onChange={(e) => {
+                            setDragSeekTime(parseFloat(e.target.value));
+                        }}
+                        onMouseUp={(e) => {
+                            isSeekingRef.current = false;
+                            const target = parseFloat((e.target as HTMLInputElement).value);
+                            if (audioRef.current) {
+                                audioRef.current.currentTime = target;
+                                setCurrentTime(target);
+                            }
+                            setDragSeekTime(null);
+                        }}
+                        onTouchEnd={() => {
+                            isSeekingRef.current = false;
+                            if (dragSeekTime !== null && audioRef.current) {
+                                audioRef.current.currentTime = dragSeekTime;
+                                setCurrentTime(dragSeekTime);
+                            }
+                            setDragSeekTime(null);
+                        }}
                         className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-neon-cyan focus:outline-none"
                     />
                     <div className="flex justify-between items-center text-[10px] font-black uppercase text-gray-500 tracking-wider">
-                        <span className={isPlaying ? 'text-neon-cyan font-bold' : ''}>{formatTime(currentTime)}</span>
+                        <span className={isPlaying ? 'text-neon-cyan font-bold' : ''}>{formatTime(dragSeekTime !== null ? dragSeekTime : currentTime)}</span>
                         <span>{formatTime(duration)}</span>
                     </div>
                 </div>

@@ -836,18 +836,29 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                                         <motion.div 
                                                             animate={{ rotate: 360 }}
                                                             transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
-                                                            className="w-16 h-16 rounded-full bg-[#12121b] border border-white/20 flex items-center justify-center shadow-lg relative overflow-hidden"
+                                                            className="w-16 h-16 rounded-full bg-[#0f0f17] border border-white/20 flex items-center justify-center shadow-xl relative overflow-hidden"
                                                         >
-                                                            <div className="absolute inset-2 rounded-full border border-white/5" />
                                                             {coverPreview ? (
-                                                                <div className="w-8 h-8 rounded-full overflow-hidden border border-white/40 relative z-10 flex items-center justify-center bg-black">
-                                                                    <img src={coverPreview} alt="Cover Preview" className="w-full h-full object-cover" />
-                                                                    <div className="w-1.5 h-1.5 rounded-full bg-black border border-white/50 absolute" />
-                                                                </div>
+                                                                <>
+                                                                    {/* Full Picture Disc Vinyl */}
+                                                                    <img src={coverPreview} alt="Cover Preview" className="absolute inset-0 w-full h-full object-cover" />
+                                                                    {/* Vinyl glossy grooves texture overlay */}
+                                                                    <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,transparent_20%,rgba(0,0,0,0.45)_70%,rgba(0,0,0,0.85)_100%)] pointer-events-none" />
+                                                                    {/* Circular vinyl groove lines */}
+                                                                    <div className="absolute inset-1.5 rounded-full border border-white/15 pointer-events-none" />
+                                                                    <div className="absolute inset-3 rounded-full border border-white/10 pointer-events-none" />
+                                                                    {/* Center spindle hole */}
+                                                                    <div className="w-2.5 h-2.5 rounded-full bg-[#0a0a12] border border-white/70 shadow-inner relative z-10 flex items-center justify-center">
+                                                                        <div className="w-1 h-1 rounded-full bg-black/90" />
+                                                                    </div>
+                                                                </>
                                                             ) : (
-                                                                <div className="w-6 h-6 rounded-full bg-neon-purple/80 flex items-center justify-center text-[7px] font-black text-white italic relative z-10">
-                                                                    DS
-                                                                </div>
+                                                                <>
+                                                                    <div className="absolute inset-2 rounded-full border border-white/5" />
+                                                                    <div className="w-6 h-6 rounded-full bg-neon-purple/80 flex items-center justify-center text-[7px] font-black text-white italic relative z-10">
+                                                                        DS
+                                                                    </div>
+                                                                </>
                                                             )}
                                                         </motion.div>
                                                         {isUploadingCover && (
@@ -859,10 +870,10 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
 
                                                     <div className="min-w-0">
                                                         <p className="text-xs font-black text-white uppercase tracking-wider truncate">
-                                                            {coverPreview ? "Cover intégrée au disque vinyle" : "Ajouter une cover au vinyle"}
+                                                            {coverPreview ? "Cover Vinyle Intégrale (Picture Disc)" : "Ajouter une cover au vinyle"}
                                                         </p>
                                                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">
-                                                            {coverPreview ? "L'image tournera au centre du vinyle dans le player" : "PNG, JPG, WEBP • S'affiche au centre du vinyle tournant"}
+                                                            {coverPreview ? "L'image prend tout le disque tournant dans le player" : "PNG, JPG, WEBP • S'affiche sur l'intégralité du vinyle"}
                                                         </p>
                                                     </div>
                                                 </div>

@@ -5,7 +5,8 @@ import type { MixTrack } from '../../context/PlayerContext';
 import { 
     Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, 
     Share2, Disc, ExternalLink, X, Clock, Sparkles, 
-    Download, Video, Layers, Instagram, Twitter, Minimize2 
+    Download, Video, Layers, Instagram, Twitter, Minimize2,
+    RotateCcw, RotateCw
 } from 'lucide-react';
 import { ExportSuccessModal } from '../ExportSuccessModal';
 
@@ -223,7 +224,9 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                     widget.bind(SC.Widget.Events.FINISH, () => setIsPlaying(false));
 
                     widget.bind(SC.Widget.Events.PLAY_PROGRESS, (progress: any) => {
-                        setCurrentTime(progress.currentPosition / 1000);
+                        if (!isSeekingRef.current) {
+                            setCurrentTime(progress.currentPosition / 1000);
+                        }
                         if (progress.relativePosition === 0) return;
                         widget.getDuration((d: number) => setDuration(d / 1000));
                     });
@@ -301,8 +304,10 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
         const ytPollInterval = setInterval(() => {
             if (ytPlayerRef.current && ytPlayerRef.current.getCurrentTime) {
                 try {
-                    const t = ytPlayerRef.current.getCurrentTime();
-                    if (typeof t === 'number') setCurrentTime(t);
+                    if (!isSeekingRef.current) {
+                        const t = ytPlayerRef.current.getCurrentTime();
+                        if (typeof t === 'number') setCurrentTime(t);
+                    }
                     const d = ytPlayerRef.current.getDuration?.();
                     if (d) setDuration(d);
                 } catch (_) {}
@@ -1460,50 +1465,77 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                     <div className="relative w-[220px] h-[220px] md:w-[260px] md:h-[260px] flex items-center justify-center my-4 group">
                         
                         {/* Spinning visual glow behind deck */}
-                        <div className={`absolute inset-0 rounded-full blur-[30px] opacity-10 transition-all duration-1000 ${
-                            isPlaying ? 'bg-neon-purple scale-110' : 'bg-transparent scale-95'
+                        <div className={`absolute inset-0 rounded-full blur-[35px] transition-all duration-1000 ${
+                            isPlaying 
+                                ? 'bg-gradient-to-tr from-neon-cyan/30 via-neon-red/20 to-neon-purple/30 scale-110 opacity-70' 
+                                : 'bg-transparent scale-95 opacity-0'
                         }`} />
 
                         {/* Outer steel ring */}
-                        <div className="absolute inset-0 rounded-full border-[6px] border-white/5 bg-[#08080c] shadow-[0_15px_40px_rgba(0,0,0,0.6)] flex items-center justify-center">
+                        <div className="absolute inset-0 rounded-full border-[6px] border-white/10 bg-[#08080c] shadow-[0_15px_40px_rgba(0,0,0,0.8)] flex items-center justify-center">
                             
                             {/* Vinyl surface grooves */}
-                            <div className="absolute inset-[15px] rounded-full border border-white/5 bg-[#0c0c12]">
-                                <div className="absolute inset-[20px] rounded-full border border-white/[0.03]">
-                                    <div className="absolute inset-[25px] rounded-full border border-white/[0.03]" />
-                                </div>
-                            </div>
+                            <div className="absolute inset-[12px] rounded-full border border-white/5 bg-[#0c0c12]" />
 
                             {/* Rotating Vinyl Record */}
                             <motion.div 
                                 animate={isPlaying ? { rotate: 360 } : {}}
                                 transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
-                                className="w-[180px] h-[180px] md:w-[210px] md:h-[210px] rounded-full bg-[#12121b] border-2 border-white/10 flex items-center justify-center relative cursor-pointer"
+                                className="w-[190px] h-[190px] md:w-[225px] md:h-[225px] rounded-full bg-[#12121b] border-2 border-white/15 flex items-center justify-center relative cursor-pointer overflow-hidden shadow-2xl"
                                 onClick={togglePlay}
                             >
-                                {/* Grooves on rotation vinyl */}
-                                <div className="absolute inset-4 rounded-full border border-white/5">
-                                    <div className="absolute inset-6 rounded-full border border-white/[0.02]" />
-                                </div>
-
-                                {/* LED active light ring on vinyl edge */}
-                                <div className={`absolute inset-1 rounded-full border-2 border-dashed transition-opacity duration-500 ${
-                                    isPlaying ? 'border-neon-purple/50 opacity-100' : 'border-transparent opacity-0'
-                                }`} />
-
-                                {/* Vinyl center label or Cover Art */}
+                                {/* IF COVER EXISTS: FULL PICTURE DISC VINYL */}
                                 {track.cover ? (
-                                    <div className="w-[74px] h-[74px] md:w-[86px] md:h-[86px] rounded-full overflow-hidden border-2 border-white/20 shadow-2xl relative flex items-center justify-center bg-black group-hover:scale-105 transition-transform">
-                                        <img src={track.cover} alt={track.title} className="w-full h-full object-cover rounded-full select-none pointer-events-none" />
+                                    <>
+                                        {/* Full disc image taking the ENTIRE surface */}
+                                        <img 
+                                            src={track.cover} 
+                                            alt={track.title} 
+                                            className="absolute inset-0 w-full h-full object-cover rounded-full select-none pointer-events-none" 
+                                        />
+                                        {/* Vinyl glossy grooves texture overlay */}
+                                        <div 
+                                            className="absolute inset-0 rounded-full pointer-events-none"
+                                            style={{
+                                                background: 'radial-gradient(circle, transparent 20%, rgba(0,0,0,0.12) 40%, rgba(0,0,0,0.28) 60%, rgba(0,0,0,0.45) 85%, rgba(0,0,0,0.7) 100%)'
+                                            }}
+                                        />
+                                        {/* Circular vinyl groove lines */}
+                                        <div className="absolute inset-3 rounded-full border border-white/10 pointer-events-none" />
+                                        <div className="absolute inset-7 rounded-full border border-white/10 pointer-events-none" />
+                                        <div className="absolute inset-12 rounded-full border border-white/10 pointer-events-none" />
+                                        <div className="absolute inset-16 rounded-full border border-white/15 pointer-events-none" />
+                                        {/* Sheen reflection */}
+                                        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 via-transparent to-black/40 pointer-events-none" />
+
+                                        {/* Equalizer Rim / LED Light Ring on edge */}
+                                        <div className={`absolute inset-1.5 rounded-full border-2 border-dashed transition-opacity duration-500 pointer-events-none ${
+                                            isPlaying 
+                                                ? 'border-neon-cyan/70 shadow-[0_0_12px_rgba(0,240,255,0.6)] opacity-100' 
+                                                : 'border-transparent opacity-0'
+                                        }`} />
+
                                         {/* Center Spindle Hole */}
-                                        <div className="w-3.5 h-3.5 rounded-full bg-[#08080c] border border-white/40 absolute shadow-inner z-10" />
-                                    </div>
+                                        <div className="w-5 h-5 rounded-full bg-[#08080c] border-2 border-white/70 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),0_0_8px_rgba(255,255,255,0.3)] absolute z-20 flex items-center justify-center pointer-events-none">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
+                                        </div>
+                                    </>
                                 ) : (
-                                    <div className="w-[60px] h-[60px] md:w-[70px] md:h-[70px] rounded-full bg-neon-purple flex flex-col items-center justify-center text-center shadow-lg border border-black/20 relative">
-                                        <span className="text-white font-black text-[9px] uppercase tracking-wider italic leading-none">DS</span>
-                                        <span className="text-white/40 text-[5px] font-black uppercase mt-1 leading-none">DECK</span>
-                                        <div className="w-2.5 h-2.5 rounded-full bg-[#08080c] border border-white/30 absolute" />
-                                    </div>
+                                    <>
+                                        <div className="absolute inset-4 rounded-full border border-white/5" />
+                                        <div className="absolute inset-6 rounded-full border border-white/[0.02]" />
+
+                                        {/* LED active light ring on vinyl edge */}
+                                        <div className={`absolute inset-1.5 rounded-full border-2 border-dashed transition-opacity duration-500 ${
+                                            isPlaying ? 'border-neon-cyan/70 shadow-[0_0_12px_rgba(0,240,255,0.5)] opacity-100' : 'border-transparent opacity-0'
+                                        }`} />
+
+                                        <div className="w-[60px] h-[60px] md:w-[70px] md:h-[70px] rounded-full bg-gradient-to-br from-neon-purple to-neon-red flex flex-col items-center justify-center text-center shadow-lg border border-black/20 relative">
+                                            <span className="text-white font-black text-[9px] uppercase tracking-wider italic leading-none">DS</span>
+                                            <span className="text-white/60 text-[5px] font-black uppercase mt-1 leading-none">DECK</span>
+                                            <div className="w-2.5 h-2.5 rounded-full bg-[#08080c] border border-white/30 absolute" />
+                                        </div>
+                                    </>
                                 )}
                             </motion.div>
                         </div>
@@ -1549,9 +1581,7 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                                 key={i}
                                 animate={{ height: h }}
                                 transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-                                className={`w-2 rounded-t-lg ${
-                                    i % 2 === 0 ? 'bg-neon-purple shadow-[0_0_10px_rgba(168,85,247,0.4)]' : 'bg-neon-cyan shadow-[0_0_10px_rgba(0,229,255,0.4)]'
-                                }`}
+                                className="w-2 rounded-t-lg bg-gradient-to-t from-neon-red via-neon-cyan to-white shadow-[0_0_10px_rgba(0,240,255,0.4)]"
                                 style={{ height: '4px' }}
                             />
                         ))}
@@ -1600,17 +1630,27 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
 
                     {/* DJ CONSOLE BUTTON CONTROLS */}
                     <div className="w-full flex items-center justify-between mt-4">
-                        {/* Audio track skipping */}
-                        <div className="flex items-center gap-3">
+                        {/* Audio track skipping & fast seek */}
+                        <div className="flex items-center gap-2">
                             {hasTracklist && (
                                 <button 
                                     onClick={playPreviousTrack}
                                     disabled={currentTrackIndex <= 0}
-                                    className="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-20 disabled:pointer-events-none"
+                                    className="p-3.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-20 disabled:pointer-events-none"
+                                    title="Piste précédente"
                                 >
                                     <SkipBack className="w-4 h-4" />
                                 </button>
                             )}
+
+                            {/* Fast Rewind -15s */}
+                            <button 
+                                onClick={() => handleSeekToSeconds(Math.max(0, currentTime - 15))}
+                                className="p-3.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                                title="Reculer de 15s"
+                            >
+                                <RotateCcw className="w-4 h-4" />
+                            </button>
                             
                             {/* Giant Primary Play Button */}
                             <button 
@@ -1624,11 +1664,21 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                                 {isPlaying ? <Pause className="w-5 h-5 fill-black" /> : <Play className="w-5 h-5 fill-black" />}
                             </button>
 
+                            {/* Fast Forward +15s */}
+                            <button 
+                                onClick={() => handleSeekToSeconds(Math.min(duration || Infinity, currentTime + 15))}
+                                className="p-3.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                                title="Avancer de 15s"
+                            >
+                                <RotateCw className="w-4 h-4" />
+                            </button>
+
                             {hasTracklist && (
                                 <button 
                                     onClick={playNextTrack}
                                     disabled={currentTrackIndex >= (track.tracks ? track.tracks.length - 1 : 0)}
-                                    className="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-20 disabled:pointer-events-none"
+                                    className="p-3.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-20 disabled:pointer-events-none"
+                                    title="Piste suivante"
                                 >
                                     <SkipForward className="w-4 h-4" />
                                 </button>
