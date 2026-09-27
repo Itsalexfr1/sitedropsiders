@@ -495,7 +495,8 @@ export default {
         );
 
         let authenticated = false;
-        let userPermissions = [];
+        let userPermissions: string[] = [];
+        let hasAll = false;
 
         const requestSessionId = request.headers.get('X-Session-ID');
         const hasAuthHeaders = !!(requestSessionId || requestPassword || requestUsername);
@@ -536,6 +537,8 @@ export default {
                 }
             }
 
+            hasAll = userPermissions.includes('all');
+
             if (isAuthRoute) {
                 if (!authenticated) {
                     return new Response(JSON.stringify({
@@ -544,7 +547,6 @@ export default {
                 }
 
                 // --- PERMISSIONS MAPPING & CHECKS ---
-                const hasAll = userPermissions.includes('all');
 
                 // --- STRICT PERMISSION: EDITORS CAN NEVER DELETE ANYTHING ---
                 const isDeletePath = path.endsWith('/delete') || 
