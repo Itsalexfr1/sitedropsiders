@@ -499,6 +499,14 @@ export function DropsidersTVPage() {
     volumeRef.current = volume;
     const currentLoadedVideoIdRef = useRef<string | null>(null);
 
+    // ── Fix: always hold the latest handleVideoEnded in a ref so the YT
+    //    onStateChange closure never captures a stale version of the function.
+    //    Without this, transitioning from promo → next video required F5.
+    const handleVideoEndedRef = useRef<() => void>(() => {});
+
+    // Overlay to hide YouTube end-screen suggestions immediately when video ends
+    const [showEndscreenOverlay, setShowEndscreenOverlay] = useState(false);
+
     const [isYtApiReady, setIsYtApiReady] = useState(() => {
         return !!(typeof window !== 'undefined' && window.YT && window.YT.Player);
     });
@@ -853,6 +861,7 @@ export function DropsidersTVPage() {
     // Video 1 ends -> Promo 1 -> Video 2 -> Promo 2 -> Video 3 -> Promo 3 (or 1)
     const handleVideoEnded = useCallback(() => {
         pendingSeekRef.current = 0;
+        setShowEndscreenOverlay(false); // reset before new video starts
         if (isPlayingPromo) {
             // Promo just ended: move to the next main video!
             goNextMain();
@@ -865,6 +874,11 @@ export function DropsidersTVPage() {
             }
         }
     }, [isPlayingPromo, promos.length, goNextMain]);
+
+    // Keep the ref up-to-date on every render so onStateChange closure is never stale
+    useEffect(() => {
+        handleVideoEndedRef.current = handleVideoEnded;
+    }, [handleVideoEnded]);
 
     // Heartbeat: continuously record the current TV playback position every 2s
     useEffect(() => {
@@ -1068,8 +1082,13 @@ export function DropsidersTVPage() {
                     onStateChange: (event: any) => {
                         disableCaptions(event.target);
                         if (event.data === 0) {
-                            handleVideoEnded();
+                            // Show black overlay IMMEDIATELY to hide YouTube end-screen suggestions
+                            setShowEndscreenOverlay(true);
+                            // Use the ref so we always get the latest handler, never a stale closure
+                            handleVideoEndedRef.current();
                         } else if (event.data === 1) {
+                            // Video is playing: hide the overlay
+                            setShowEndscreenOverlay(false);
                             setIsPlaying(true);
                             // Keep muted if admin modal is open
                             if (isAdminTVModalOpenRef.current) {
@@ -1496,6 +1515,17 @@ export function DropsidersTVPage() {
                             <div id="tv-yt-player" className="w-full h-full" />
                         </div>
                     </div>
+
+                    {/* ── End-Screen Blackout Overlay ──────────────────────────────────
+                         Appears instantly when a video finishes (state === 0) to block
+                         YouTube's "suggestions" panel before the next video loads.
+                         z-index 15 places it above the shield (z-10) but below controls. */}
+                    {showEndscreenOverlay && (
+                        <div
+                            className="absolute inset-0 z-15 bg-black pointer-events-none"
+                            style={{ zIndex: 15 }}
+                        />
+                    )}
 
                     {/* Transparent Click Shield: on tap or click, ensures playback starts & un-mutes, double click toggles fullscreen */}
                     <div
