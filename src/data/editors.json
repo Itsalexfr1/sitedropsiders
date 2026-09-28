@@ -126,5 +126,17 @@
     ],
     "created": "2026-09-23T15:35:47.234Z",
     "verified": false
+  },
+  {
+    "email": "justinche17@yahoo.com",
+    "username": "Justin",
+    "pseudo": "Justin",
+    "role": "RÉDACTEUR",
+    "permissions": [
+      "social_studio",
+      "news_focus"
+    ],
+    "created": "2026-09-28T21:38:39.678Z",
+    "verified": false
   }
 ]
