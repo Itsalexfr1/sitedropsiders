@@ -26,9 +26,14 @@ import {
     PanelRightOpen,
     AlertTriangle,
     Shuffle,
-    ArrowUpFromLine
+    ArrowUpFromLine,
+    Maximize2,
+    Minimize2,
+    Sliders
 } from 'lucide-react';
 import { extractYouTubeId, fetchYouTubeTitle } from './AdminTVModal';
+import { RadionomyJinglesBox, type RadionomyItem } from './RadionomyJinglesBox';
+import { YouTubeSearchModal } from './YouTubeSearchModal';
 import { apiFetch, getAuthHeaders } from '../../../utils/auth';
 import defaultSettings from '../../../data/settings.json';
 import { ConfirmModal } from '../../ui/ConfirmModal';
@@ -204,6 +209,11 @@ export function AdminRadioModal({
     // ─── Sauvegarde ───────────────────────────────────────────────────────────
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
+
+    // ─── Mode Plein Écran & Radionomy & Recherche YouTube ─────────────────────
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isRadionomyOpen, setIsRadionomyOpen] = useState(false);
+    const [isYouTubeSearchOpen, setIsYouTubeSearchOpen] = useState(false);
 
     // ─── Chargement depuis l'API ──────────────────────────────────────────────
     useEffect(() => {
@@ -751,6 +761,127 @@ export function AdminRadioModal({
         }));
     };
 
+    // ─── Radionomy : Insertion d'un jingle / pub / élément ─────────────────────
+    const handleInsertRadionomyItem = (item: RadionomyItem) => {
+        if (!selectedBlockId) {
+            showToast('Sélectionnez d\'abord une émission', 'warn');
+            return;
+        }
+        const { artist, event } = parseArtistAndEvent(item.title);
+        const newTrack: RadioTrackItem = {
+            id: `rad_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            artist: artist || (item.category === 'jingle' ? 'DROPSIDERS' : item.category === 'pub' ? 'SPONSOR' : 'DROPSIDERS RADIO'),
+            title: event || item.title,
+            youtubeId: item.youtubeId,
+            category: 'clip',
+            duration: item.duration || 15,
+            addedAt: Date.now()
+        };
+        setBlocks(prev => prev.map(b => {
+            if (b.id !== selectedBlockId) return b;
+            return {
+                ...b,
+                tracks: [...(b.tracks || []), newTrack]
+            };
+        }));
+        showToast(`✓ ${item.category === 'jingle' ? 'Jingle' : 'Élément'} « ${item.title} » ajouté à l'émission !`);
+    };
+
+    // ─── Radionomy : Règle Horloge (Jingle tous les N titres / Pubs) ───────────
+    const handleApplyRadionomyRule = ({ jingleEveryN, pubEveryN }: { jingleEveryN: number; pubEveryN: number }) => {
+        if (!selectedBlockId) {
+            showToast('Sélectionnez d\'abord une émission', 'warn');
+            return;
+        }
+        let palette: RadionomyItem[] = [];
+        try {
+            const saved = localStorage.getItem('dropsiders_radionomy_palette');
+            if (saved) palette = JSON.parse(saved);
+        } catch {}
+        const jingles = palette.filter(p => p.category === 'jingle');
+        const pubs = palette.filter(p => p.category === 'pub');
+
+        if (jingles.length === 0 && pubs.length === 0) {
+            showToast('Ajoutez d\'abord au moins un jingle ou une pub dans la boîte Radionomy !', 'warn');
+            return;
+        }
+
+        setBlocks(prev => prev.map(b => {
+            if (b.id !== selectedBlockId) return b;
+            // Ne garder que les vraies pistes de musique pour réinsérer proprement
+            const pureTracks = (b.tracks || []).filter(t => !t.id.startsWith('rad_'));
+            if (pureTracks.length === 0) return b;
+
+            const newTracks: RadioTrackItem[] = [];
+            let jingleIdx = 0;
+            let pubIdx = 0;
+
+            pureTracks.forEach((track, index) => {
+                newTracks.push(track);
+                const pos = index + 1;
+                if (pubEveryN > 0 && pos % pubEveryN === 0 && pubs.length > 0) {
+                    const pub = pubs[pubIdx % pubs.length];
+                    pubIdx++;
+                    newTracks.push({
+                        id: `rad_pub_${Date.now()}_${pos}`,
+                        artist: 'SPONSOR',
+                        title: pub.title,
+                        youtubeId: pub.youtubeId,
+                        category: 'clip',
+                        duration: pub.duration || 30,
+                        addedAt: Date.now()
+                    });
+                } else if (jingleEveryN > 0 && pos % jingleEveryN === 0 && jingles.length > 0) {
+                    const jing = jingles[jingleIdx % jingles.length];
+                    jingleIdx++;
+                    newTracks.push({
+                        id: `rad_jing_${Date.now()}_${pos}`,
+                        artist: 'DROPSIDERS JINGLE',
+                        title: jing.title,
+                        youtubeId: jing.youtubeId,
+                        category: 'clip',
+                        duration: jing.duration || 15,
+                        addedAt: Date.now()
+                    });
+                }
+            });
+
+            return { ...b, tracks: newTracks };
+        }));
+        showToast('✓ Règle Horloge Radionomy appliquée avec succès !');
+    };
+
+    // ─── Recherche YouTube directe : Ajout d'une vidéo ─────────────────────────
+    const handleYouTubeAddVideo = (video: {
+        youtubeId: string;
+        title: string;
+        duration: number;
+        category: any;
+    }) => {
+        if (!selectedBlockId) {
+            showToast('Sélectionnez d\'abord une émission', 'warn');
+            return;
+        }
+        const { artist, event } = parseArtistAndEvent(video.title);
+        const newTrack: RadioTrackItem = {
+            id: `yt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            artist: artist || 'Artiste',
+            title: event || video.title,
+            youtubeId: video.youtubeId,
+            category: (video.category === 'clip' || video.category === 'jingle' || video.category === 'pub') ? 'clip' : 'liveset',
+            duration: video.duration || 3600,
+            addedAt: Date.now()
+        };
+        setBlocks(prev => prev.map(b => {
+            if (b.id !== selectedBlockId) return b;
+            return {
+                ...b,
+                tracks: [...(b.tracks || []), newTrack]
+            };
+        }));
+        showToast(`✓ « ${newTrack.artist} - ${newTrack.title} » ajouté depuis YouTube !`);
+    };
+
     // ─── Sauvegarde globale ───────────────────────────────────────────────────
     const handleSave = async () => {
         setIsSaving(true);
@@ -832,14 +963,20 @@ export function AdminRadioModal({
     return (
         <AnimatePresence>
             <div
-                className="fixed inset-0 z-[120] flex items-center justify-center p-2 md:p-4 bg-black/90 backdrop-blur-xl"
-                onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+                className={`fixed inset-0 z-[120] flex items-center justify-center bg-black/90 backdrop-blur-xl ${
+                    isFullscreen ? 'p-0' : 'p-2 md:p-4'
+                }`}
+                onClick={e => { if (e.target === e.currentTarget && !isFullscreen) onClose(); }}
             >
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95, y: 15 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                    className="bg-[#07080c]/98 backdrop-blur-3xl border border-white/10 rounded-3xl w-[99vw] max-w-[1540px] h-[95vh] shadow-[0_0_80px_rgba(0,0,0,0.9)] relative overflow-hidden flex flex-col font-sans"
+                    className={`bg-[#07080c]/98 backdrop-blur-3xl border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.9)] relative overflow-hidden flex flex-col font-sans transition-all duration-200 ${
+                        isFullscreen
+                            ? 'w-screen h-screen max-w-none rounded-none border-none'
+                            : 'rounded-3xl w-[99vw] max-w-[1540px] h-[95vh]'
+                    }`}
                 >
                     {/* Ligne néon Dropsiders Signature en haut */}
                     <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-neon-cyan via-purple-500 to-neon-red shadow-[0_0_15px_rgba(0,240,255,0.6)]" />
@@ -890,19 +1027,43 @@ export function AdminRadioModal({
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-2">
+                            {/* Radionomy · Jingles & Pubs */}
+                            <button
+                                type="button"
+                                onClick={() => setIsRadionomyOpen(true)}
+                                className="px-3 py-2 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-2 border bg-gradient-to-r from-purple-900/40 via-purple-700/30 to-pink-900/30 border-purple-500/50 text-purple-200 hover:text-white hover:border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)] transition-all cursor-pointer group"
+                                title="Boîte à Jingles, Pubs et Règle Horloge façon Radionomy"
+                            >
+                                <Sliders className="w-3.5 h-3.5 text-purple-400 group-hover:rotate-90 transition-transform duration-300" />
+                                <span className="hidden sm:inline">Radionomy</span>
+                                <span className="text-[9px] text-purple-300 font-mono normal-case hidden md:inline">· Jingles/Pubs</span>
+                            </button>
+
+                            {/* Recherche YouTube directe */}
+                            <button
+                                type="button"
+                                onClick={() => setIsYouTubeSearchOpen(true)}
+                                className="px-3 py-2 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-2 border bg-red-600/20 border-red-500/40 text-red-300 hover:text-white hover:bg-red-600/30 shadow-[0_0_15px_rgba(239,68,68,0.25)] transition-all cursor-pointer"
+                                title="Recherche YouTube intégrée pour sets et clips"
+                            >
+                                <Search className="w-3.5 h-3.5 text-red-400" />
+                                <span className="hidden sm:inline">Recherche YouTube</span>
+                            </button>
+
                             {/* Volet Bibliothèque TV */}
                             <button
                                 type="button"
                                 onClick={() => setIsTVLibOpen(!isTVLibOpen)}
-                                className={`px-3.5 py-2 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-2 border transition-all cursor-pointer ${
+                                className={`px-3 py-2 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-2 border transition-all cursor-pointer ${
                                     isTVLibOpen
                                         ? 'bg-purple-600/20 border-purple-500/50 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.2)]'
                                         : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                             >
                                 <Tv className="w-3.5 h-3.5 text-purple-400" />
-                                <span>Bibliothèque TV ({totalTVVideos})</span>
+                                <span className="hidden md:inline">Bibliothèque TV ({totalTVVideos})</span>
+                                <span className="md:hidden">TV ({totalTVVideos})</span>
                                 {isTVLibOpen ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
                             </button>
 
@@ -910,7 +1071,7 @@ export function AdminRadioModal({
                             <button
                                 type="button"
                                 onClick={onToggleRadio}
-                                className={`px-3.5 py-2 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-2 border transition-all cursor-pointer ${
+                                className={`px-3 py-2 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-2 border transition-all cursor-pointer ${
                                     isRadioActive
                                         ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
                                         : 'bg-red-500/15 border-red-500/40 text-red-400 hover:bg-red-500/25'
@@ -925,14 +1086,28 @@ export function AdminRadioModal({
                                 type="button"
                                 onClick={handleSave}
                                 disabled={isSaving}
-                                className={`px-5 py-2 rounded-xl text-[11px] font-display font-black uppercase italic tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
+                                className={`px-4 py-2 rounded-xl text-[11px] font-display font-black uppercase italic tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
                                     saveSuccess
                                         ? 'bg-emerald-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)]'
                                         : 'bg-neon-cyan text-black hover:bg-white shadow-[0_0_25px_rgba(0,240,255,0.4)]'
                                 }`}
                             >
                                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : saveSuccess ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-                                {isSaving ? 'Enregistrement...' : saveSuccess ? 'Sauvegardé !' : 'Sauvegarder'}
+                                <span className="hidden sm:inline">{isSaving ? 'Enregistrement...' : saveSuccess ? 'Sauvegardé !' : 'Sauvegarder'}</span>
+                            </button>
+
+                            {/* Plein Écran */}
+                            <button
+                                type="button"
+                                onClick={() => setIsFullscreen(!isFullscreen)}
+                                className={`p-2 border rounded-xl transition-all cursor-pointer ${
+                                    isFullscreen
+                                        ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.3)]'
+                                        : 'bg-white/5 hover:bg-white/10 border-white/10 text-gray-400 hover:text-white'
+                                }`}
+                                title={isFullscreen ? "Quitter le plein écran" : "Passer en plein écran"}
+                            >
+                                {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                             </button>
 
                             <button
@@ -1307,11 +1482,33 @@ export function AdminRadioModal({
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-2.5">
+                                        <div className="flex items-center gap-2">
+                                            {/* Recherche YouTube directe pour cette émission */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsYouTubeSearchOpen(true)}
+                                                className="px-3 py-1.5 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider transition-all flex items-center gap-1.5 border bg-red-600/20 hover:bg-red-600/30 border-red-500/40 text-red-300 hover:text-white shadow-[0_0_12px_rgba(239,68,68,0.2)] cursor-pointer"
+                                                title="Rechercher sur YouTube et ajouter directement"
+                                            >
+                                                <Search className="w-3.5 h-3.5 text-red-400" />
+                                                <span className="hidden sm:inline">YouTube</span>
+                                            </button>
+
+                                            {/* Jingles & Pubs Radionomy */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsRadionomyOpen(true)}
+                                                className="px-3 py-1.5 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider transition-all flex items-center gap-1.5 border bg-purple-600/20 hover:bg-purple-600/30 border-purple-500/40 text-purple-300 hover:text-white shadow-[0_0_12px_rgba(168,85,247,0.2)] cursor-pointer"
+                                                title="Ajouter des Jingles ou appliquer la règle horloge"
+                                            >
+                                                <Sliders className="w-3.5 h-3.5 text-purple-400" />
+                                                <span className="hidden sm:inline">Jingles</span>
+                                            </button>
+
                                             <button
                                                 type="button"
                                                 onClick={() => setShowManualAdd(!showManualAdd)}
-                                                className={`px-3.5 py-2 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider transition-all flex items-center gap-1.5 border cursor-pointer ${
+                                                className={`px-3 py-1.5 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider transition-all flex items-center gap-1.5 border cursor-pointer ${
                                                     showManualAdd
                                                         ? 'bg-neon-cyan/20 border-neon-cyan/40 text-neon-cyan'
                                                         : 'bg-white/5 hover:bg-white/10 border-white/10 text-gray-400 hover:text-white'
@@ -2156,6 +2353,28 @@ export function AdminRadioModal({
                         </motion.div>
                     </div>
                 )}
+
+                {/* ── RADIONOMY JINGLES & PUBS MANAGER ─────────────────────── */}
+                <RadionomyJinglesBox
+                    isOpen={isRadionomyOpen}
+                    onClose={() => setIsRadionomyOpen(false)}
+                    currentBlockTitle={selectedBlock?.title}
+                    onInsertItem={handleInsertRadionomyItem}
+                    onApplyRadionomyRule={handleApplyRadionomyRule}
+                    onOpenYouTubeSearch={() => {
+                        setIsRadionomyOpen(false);
+                        setIsYouTubeSearchOpen(true);
+                    }}
+                />
+
+                {/* ── RECHERCHE YOUTUBE DIRECTE ─────────────────────────────── */}
+                <YouTubeSearchModal
+                    isOpen={isYouTubeSearchOpen}
+                    onClose={() => setIsYouTubeSearchOpen(false)}
+                    mode="radio"
+                    blockTitle={selectedBlock?.title}
+                    onAddVideo={handleYouTubeAddVideo}
+                />
             </div>
         </AnimatePresence>
     );

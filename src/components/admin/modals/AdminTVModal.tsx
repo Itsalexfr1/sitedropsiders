@@ -8,8 +8,10 @@ import {
     Pin, PinOff, MessageSquare, Clock, Lock, User, Upload, 
     Image as ImageIcon, Pencil, LayoutDashboard, Globe, Activity,
     Layers, Palette, Sliders, Search, Check, ListPlus, ArrowUpDown,
-    ArrowDownToLine
+    ArrowDownToLine, Maximize2, Minimize2
 } from 'lucide-react';
+import { RadionomyJinglesBox, type RadionomyItem } from './RadionomyJinglesBox';
+import { YouTubeSearchModal } from './YouTubeSearchModal';
 import { apiFetch, getAuthHeaders } from '../../../utils/auth';
 import { uploadFile } from '../../../utils/uploadService';
 import type { TVVideo, PromoVideo } from '../../../pages/DropsidersTVPage';
@@ -312,6 +314,11 @@ export function AdminTVModal({
     const [liveSubTab, setLiveSubTab] = useState<'general' | 'planning' | 'moderation' | 'ticker' | 'bot' | 'mods' | 'access'>('general');
     const [liveSaving, setLiveSaving] = useState(false);
     const [liveSaved, setLiveSaved] = useState(false);
+
+    // ─── Mode Plein Écran & Radionomy & Recherche YouTube ─────────────────────
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isRadionomyOpen, setIsRadionomyOpen] = useState(false);
+    const [isYouTubeSearchOpen, setIsYouTubeSearchOpen] = useState(false);
 
     // 5 Time Blocks Schedule
     // 5 Time Blocks Schedule (trié automatiquement selon l'ordre chronologique de passage 06h -> 06h)
@@ -1391,6 +1398,161 @@ export function AdminTVModal({
         input.click();
     };
 
+    // ─── Radionomy : Insertion d'un jingle / pub / élément ─────────────────────
+    const handleInsertRadionomyItem = (item: RadionomyItem) => {
+        const prefix = item.category === 'jingle' ? '🔔 [JINGLE]' : item.category === 'pub' ? '📢 [PUB]' : '✨';
+        const newVid: TVVideo = {
+            id: `rad_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            title: `${prefix} ${item.title}`,
+            description: 'Diffusé sur Dropsiders TV',
+            youtubeId: item.youtubeId,
+            duration: item.duration || 15,
+            category: 'clip'
+        };
+
+        if (activeTab === 'blocks') {
+            if (!selectedBlockId) return;
+            setBlocks(prev => prev.map(b => {
+                if (b.id !== selectedBlockId) return b;
+                return { ...b, videos: [...(b.videos || []), newVid] };
+            }));
+            const targetB = blocks.find(b => b.id === selectedBlockId);
+            setSaveMessage(`✓ ${item.category === 'jingle' ? 'Jingle' : 'Élément'} ajouté à « ${targetB?.title || 'Créneau'} » !`);
+        } else {
+            setPlaylist(prev => [...prev, newVid]);
+            setSaveMessage(`✓ ${item.category === 'jingle' ? 'Jingle' : 'Élément'} ajouté à la playlist TV !`);
+        }
+        setTimeout(() => setSaveMessage(null), 3000);
+    };
+
+    // ─── Radionomy : Règle Horloge (Jingle tous les N sets / Pubs) ─────────────
+    const handleApplyRadionomyRule = ({ jingleEveryN, pubEveryN }: { jingleEveryN: number; pubEveryN: number }) => {
+        let palette: RadionomyItem[] = [];
+        try {
+            const saved = localStorage.getItem('dropsiders_radionomy_palette');
+            if (saved) palette = JSON.parse(saved);
+        } catch {}
+        const jingles = palette.filter(p => p.category === 'jingle');
+        const pubs = palette.filter(p => p.category === 'pub');
+
+        if (jingles.length === 0 && pubs.length === 0) {
+            alert('Ajoutez d\'abord au moins un jingle ou une pub dans la boîte Radionomy !');
+            return;
+        }
+
+        if (activeTab === 'blocks') {
+            if (!selectedBlockId) return;
+            setBlocks(prev => prev.map(b => {
+                if (b.id !== selectedBlockId) return b;
+                const pureVideos = (b.videos || []).filter(v => !v.id?.startsWith('rad_'));
+                if (pureVideos.length === 0) return b;
+
+                const newVideos: TVVideo[] = [];
+                let jingleIdx = 0;
+                let pubIdx = 0;
+
+                pureVideos.forEach((vid, index) => {
+                    newVideos.push(vid);
+                    const pos = index + 1;
+                    if (pubEveryN > 0 && pos % pubEveryN === 0 && pubs.length > 0) {
+                        const pub = pubs[pubIdx % pubs.length];
+                        pubIdx++;
+                        newVideos.push({
+                            id: `rad_pub_${Date.now()}_${pos}`,
+                            title: `📢 [PUB] ${pub.title}`,
+                            description: 'Diffusé sur Dropsiders TV',
+                            youtubeId: pub.youtubeId,
+                            duration: pub.duration || 30,
+                            category: 'clip'
+                        });
+                    } else if (jingleEveryN > 0 && pos % jingleEveryN === 0 && jingles.length > 0) {
+                        const jing = jingles[jingleIdx % jingles.length];
+                        jingleIdx++;
+                        newVideos.push({
+                            id: `rad_jing_${Date.now()}_${pos}`,
+                            title: `🔔 [JINGLE] ${jing.title}`,
+                            description: 'Diffusé sur Dropsiders TV',
+                            youtubeId: jing.youtubeId,
+                            duration: jing.duration || 15,
+                            category: 'clip'
+                        });
+                    }
+                });
+
+                return { ...b, videos: newVideos };
+            }));
+            setSaveMessage('✓ Règle Horloge Radionomy appliquée au créneau TV !');
+        } else {
+            const purePlaylist = playlist.filter(v => !v.id?.startsWith('rad_'));
+            if (purePlaylist.length === 0) return;
+            const newVideos: TVVideo[] = [];
+            let jingleIdx = 0;
+            let pubIdx = 0;
+
+            purePlaylist.forEach((vid, index) => {
+                newVideos.push(vid);
+                const pos = index + 1;
+                if (pubEveryN > 0 && pos % pubEveryN === 0 && pubs.length > 0) {
+                    const pub = pubs[pubIdx % pubs.length];
+                    pubIdx++;
+                    newVideos.push({
+                        id: `rad_pub_${Date.now()}_${pos}`,
+                        title: `📢 [PUB] ${pub.title}`,
+                        description: 'Diffusé sur Dropsiders TV',
+                        youtubeId: pub.youtubeId,
+                        duration: pub.duration || 30,
+                        category: 'clip'
+                    });
+                } else if (jingleEveryN > 0 && pos % jingleEveryN === 0 && jingles.length > 0) {
+                    const jing = jingles[jingleIdx % jingles.length];
+                    jingleIdx++;
+                    newVideos.push({
+                        id: `rad_jing_${Date.now()}_${pos}`,
+                        title: `🔔 [JINGLE] ${jing.title}`,
+                        description: 'Diffusé sur Dropsiders TV',
+                        youtubeId: jing.youtubeId,
+                        duration: jing.duration || 15,
+                        category: 'clip'
+                    });
+                }
+            });
+            setPlaylist(newVideos);
+            setSaveMessage('✓ Règle Horloge Radionomy appliquée à la playlist TV !');
+        }
+        setTimeout(() => setSaveMessage(null), 3000);
+    };
+
+    // ─── Recherche YouTube directe : Ajout d'une vidéo ─────────────────────────
+    const handleYouTubeAddVideo = (video: {
+        youtubeId: string;
+        title: string;
+        duration: number;
+        category: any;
+    }) => {
+        const newVid: TVVideo = {
+            id: `yt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            title: video.title,
+            description: 'Diffusé sur Dropsiders TV',
+            youtubeId: video.youtubeId,
+            duration: video.duration || 240,
+            category: video.category === 'clip' ? 'clip' : 'liveset'
+        };
+
+        if (activeTab === 'blocks') {
+            if (!selectedBlockId) return;
+            setBlocks(prev => prev.map(b => {
+                if (b.id !== selectedBlockId) return b;
+                return { ...b, videos: [...(b.videos || []), newVid] };
+            }));
+            const targetB = blocks.find(b => b.id === selectedBlockId);
+            setSaveMessage(`✓ « ${video.title} » ajouté à « ${targetB?.title || 'Créneau'} » !`);
+        } else {
+            setPlaylist(prev => [...prev, newVid]);
+            setSaveMessage(`✓ « ${video.title} » ajouté à la playlist TV !`);
+        }
+        setTimeout(() => setSaveMessage(null), 3000);
+    };
+
     const location = useLocation();
     const isOnTvPage = typeof window !== 'undefined' && (location.pathname.startsWith('/tv') || window.location.pathname.startsWith('/tv'));
 
@@ -1414,8 +1576,10 @@ export function AdminTVModal({
             <AnimatePresence>
             {isOpen && (
                 <div
-                    className="fixed inset-0 z-[120] flex items-center justify-center p-1 sm:p-2 md:p-2.5 bg-black/85 backdrop-blur-md overflow-hidden"
-                    onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+                    className={`fixed inset-0 z-[120] flex items-center justify-center bg-black/85 backdrop-blur-md overflow-hidden ${
+                        isFullscreen ? 'p-0' : 'p-1 sm:p-2 md:p-2.5'
+                    }`}
+                    onClick={(e) => { if (e.target === e.currentTarget && !isFullscreen) onClose(); }}
                 >
                     {/* Live TV Background (blurred, muted, ambient backdrop when opened from Admin) */}
                     {!isOnTvPage && (
@@ -1440,7 +1604,11 @@ export function AdminTVModal({
                         initial={{ opacity: 0, scale: 0.96, y: 15 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.96, y: 15 }}
-                        className="bg-[#0c0c0c]/95 backdrop-blur-2xl border border-white/10 rounded-2xl md:rounded-[1.75rem] p-3 sm:p-4 md:p-5 w-[99vw] max-w-[1720px] h-[97vh] max-h-[98vh] shadow-2xl relative overflow-hidden flex flex-col z-10"
+                        className={`bg-[#0c0c0c]/95 backdrop-blur-2xl border border-white/10 shadow-2xl relative overflow-hidden flex flex-col z-10 transition-all duration-200 ${
+                            isFullscreen
+                                ? 'w-screen h-screen max-w-none max-h-none rounded-none border-none p-3 sm:p-4 md:p-6'
+                                : 'rounded-2xl md:rounded-[1.75rem] p-3 sm:p-4 md:p-5 w-[99vw] max-w-[1720px] h-[97vh] max-h-[98vh]'
+                        }`}
                     >
                         {/* Red Accent top line */}
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan" />
@@ -1461,6 +1629,29 @@ export function AdminTVModal({
                                 </div>
                             </div>
                             <div className="flex items-center gap-1.5">
+                                {/* Radionomy · Jingles & Pubs */}
+                                <button
+                                    type="button"
+                                    onClick={() => setIsRadionomyOpen(true)}
+                                    className="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border bg-gradient-to-r from-purple-900/40 via-purple-700/30 to-pink-900/30 border-purple-500/50 text-purple-200 hover:text-white hover:border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)] transition-all cursor-pointer group"
+                                    title="Boîte à Jingles, Pubs et Règle Horloge façon Radionomy"
+                                >
+                                    <Sliders className="w-3 h-3 text-purple-400 group-hover:rotate-90 transition-transform duration-300" />
+                                    <span className="hidden sm:inline">Radionomy</span>
+                                    <span className="text-[8px] text-purple-300 font-mono normal-case hidden md:inline">· Jingles/Pubs</span>
+                                </button>
+
+                                {/* Recherche YouTube directe */}
+                                <button
+                                    type="button"
+                                    onClick={() => setIsYouTubeSearchOpen(true)}
+                                    className="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border bg-red-600/20 border-red-500/40 text-red-300 hover:text-white hover:bg-red-600/30 shadow-[0_0_12px_rgba(239,68,68,0.25)] transition-all cursor-pointer"
+                                    title="Recherche YouTube intégrée pour sets et clips"
+                                >
+                                    <Search className="w-3 h-3 text-red-400" />
+                                    <span className="hidden sm:inline">Recherche YouTube</span>
+                                </button>
+
                                 {!isOnTvPage && (
                                     <a
                                         href="/tv"
@@ -1481,6 +1672,21 @@ export function AdminTVModal({
                                     <Radio className="w-3 h-3" />
                                     Voir le Live
                                 </a>
+
+                                {/* Plein Écran */}
+                                <button
+                                    type="button"
+                                    onClick={() => setIsFullscreen(!isFullscreen)}
+                                    className={`p-2 border rounded-xl transition-all cursor-pointer ${
+                                        isFullscreen
+                                            ? 'bg-neon-red/20 border-neon-red/50 text-neon-red shadow-[0_0_15px_rgba(255,18,65,0.3)]'
+                                            : 'bg-white/5 hover:bg-white/10 border-white/10 text-gray-400 hover:text-white'
+                                    }`}
+                                    title={isFullscreen ? "Quitter le plein écran" : "Passer en plein écran"}
+                                >
+                                    {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                                </button>
+
                                 <button
                                     onClick={onClose}
                                     className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-all"
@@ -2279,6 +2485,26 @@ export function AdminTVModal({
                                                                 <ListPlus className="w-3.5 h-3.5 text-neon-cyan" />
                                                                 <span className="hidden sm:inline">Bibliothèque ({availableLibraryVideos.length})</span>
                                                                 <span className="sm:hidden">Bibliothèque</span>
+                                                            </button>
+
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setIsYouTubeSearchOpen(true)}
+                                                                className="h-8 px-2.5 rounded-md bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-300 hover:text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm shrink-0 active:scale-95"
+                                                                title="Recherche YouTube intégrée pour ce créneau"
+                                                            >
+                                                                <Search className="w-3.5 h-3.5 text-red-400" />
+                                                                <span className="hidden sm:inline">YouTube</span>
+                                                            </button>
+
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setIsRadionomyOpen(true)}
+                                                                className="h-8 px-2.5 rounded-md bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 hover:text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm shrink-0 active:scale-95"
+                                                                title="Ajouter un jingle ou une pub façon Radionomy"
+                                                            >
+                                                                <Sliders className="w-3.5 h-3.5 text-purple-400" />
+                                                                <span className="hidden sm:inline">Jingles</span>
                                                             </button>
                                                         </div>
 
@@ -4457,6 +4683,28 @@ export function AdminTVModal({
             duplicates={tvDuplicates}
             onResolve={handleResolveTVDuplicate}
             onClose={() => setShowTVDuplicateAudit(false)}
+        />
+
+        {/* ── RADIONOMY JINGLES & PUBS MANAGER (TV) ── */}
+        <RadionomyJinglesBox
+            isOpen={isRadionomyOpen}
+            onClose={() => setIsRadionomyOpen(false)}
+            currentBlockTitle={blocks.find(b => b.id === selectedBlockId)?.title || 'Programmation TV'}
+            onInsertItem={handleInsertRadionomyItem}
+            onApplyRadionomyRule={handleApplyRadionomyRule}
+            onOpenYouTubeSearch={() => {
+                setIsRadionomyOpen(false);
+                setIsYouTubeSearchOpen(true);
+            }}
+        />
+
+        {/* ── RECHERCHE YOUTUBE DIRECTE (TV) ── */}
+        <YouTubeSearchModal
+            isOpen={isYouTubeSearchOpen}
+            onClose={() => setIsYouTubeSearchOpen(false)}
+            mode="tv"
+            blockTitle={blocks.find(b => b.id === selectedBlockId)?.title || 'Programmation TV'}
+            onAddVideo={handleYouTubeAddVideo}
         />
         </>
     );
