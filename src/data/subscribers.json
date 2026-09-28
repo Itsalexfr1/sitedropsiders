@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "email": "lightalex3034@icloud.com",
     "firstName": null,
@@ -16,6 +16,11 @@
     "firstName": null,
     "lastName": null,
     "subscribedAt": "2026-02-24T15:32:29.856Z"
+  },
+  {
+    "id": "106429983580635348236",
+    "email": "justinche17@yahoo.com",
+    "date": "2026-09-28T22:21:08.383Z",
+    "source": "google"
   }
 ]
-
