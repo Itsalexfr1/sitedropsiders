@@ -3765,6 +3765,15 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790342700439
+        },
+        {
+          "id": "rt_1790556066536",
+          "title": "Live from Reframe Studios",
+          "artist": "Disco Dom presents: INFERNO",
+          "youtubeId": "rnPzS6Ri4lI",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790556066536
         }
       ]
     },
@@ -6207,6 +6216,15 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790342700439
+    },
+    {
+      "id": "rt_1790556066536",
+      "title": "Live from Reframe Studios",
+      "artist": "Disco Dom presents: INFERNO",
+      "youtubeId": "rnPzS6Ri4lI",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790556066536
     },
     {
       "id": "rt_tv_1790257135996_delk",
