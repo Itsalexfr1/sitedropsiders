@@ -135,7 +135,8 @@
     "permissions": [
       "social_studio",
       "news_focus",
-      "messages_contact"
+      "messages_contact",
+      "agenda_events"
     ],
     "created": "2026-09-28T21:38:39.678Z",
     "verified": false
