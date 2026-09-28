@@ -118,17 +118,26 @@ export function RadionomyJinglesBox({
     const [showAddDrawer, setShowAddDrawer] = useState(false);
     const [addSourceType, setAddSourceType] = useState<'upload' | 'youtube'>('upload');
 
-    // Form state
+    // Form state (YouTube single mode)
     const [newTitle, setNewTitle] = useState('');
     const [newUrl, setNewUrl] = useState('');
     const [newDuration, setNewDuration] = useState('12');
     const [newCategory, setNewCategory] = useState<'jingle' | 'top_horaire' | 'generique' | 'pub' | 'promo'>('jingle');
     const [isFetchingTitle, setIsFetchingTitle] = useState(false);
 
-    // Audio upload state
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+    // Multi-file upload queue
+    type FileQueueItem = {
+        id: string;
+        file: File;
+        title: string;
+        duration: number;
+        status: 'pending' | 'uploading' | 'done' | 'error';
+        progress: number;
+        audioUrl?: string;
+        error?: string;
+    };
+    const [fileQueue, setFileQueue] = useState<FileQueueItem[]>([]);
+    const [isUploadingAll, setIsUploadingAll] = useState(false);
     const [dragActive, setDragActive] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -190,31 +199,67 @@ export function RadionomyJinglesBox({
         }
     };
 
-    const handleFileChosen = (file: File) => {
-        if (!file) return;
-        const validExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac'];
-        const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
-        if (!validExtensions.includes(ext) && !file.type.startsWith('audio/')) {
-            alert('Format audio non supporté. Veuillez choisir un fichier MP3, WAV ou OGG.');
+    const VALID_AUDIO_EXTS = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac'];
+
+    const getAudioDuration = (file: File): Promise<number> =>
+        new Promise((resolve) => {
+            const objUrl = URL.createObjectURL(file);
+            const audio = new Audio(objUrl);
+            audio.addEventListener('loadedmetadata', () => {
+                URL.revokeObjectURL(objUrl);
+                resolve(isFinite(audio.duration) && !isNaN(audio.duration) ? Math.max(1, Math.round(audio.duration)) : 12);
+            });
+            audio.addEventListener('error', () => { URL.revokeObjectURL(objUrl); resolve(12); });
+        });
+
+    const addFilesToQueue = async (files: FileList | File[]) => {
+        const validFiles = Array.from(files).filter(f => {
+            const ext = f.name.slice(f.name.lastIndexOf('.')).toLowerCase();
+            return VALID_AUDIO_EXTS.includes(ext) || f.type.startsWith('audio/');
+        });
+        if (validFiles.length === 0) return;
+
+        const newItems = await Promise.all(validFiles.map(async (file) => {
+            const duration = await getAudioDuration(file);
+            const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]+/g, ' ').trim();
+            return {
+                id: `q_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+                file,
+                title: cleanName,
+                duration,
+                status: 'pending' as const,
+                progress: 0,
+            };
+        }));
+        setFileQueue(prev => [...prev, ...newItems]);
+    };
+
+    const handleTogglePreview = (item: RadionomyItem) => {
+        if (playingItemId === item.id) {
+            if (previewAudioRef.current) {
+                previewAudioRef.current.pause();
+                previewAudioRef.current = null;
+            }
+            setPlayingItemId(null);
             return;
         }
 
-        setSelectedFile(file);
-        const cleanName = file.name
-            .replace(/\.[^/.]+$/, '')
-            .replace(/[_-]+/g, ' ')
-            .trim();
-        if (!newTitle) {
-            setNewTitle(cleanName);
+        if (previewAudioRef.current) {
+            previewAudioRef.current.pause();
+            previewAudioRef.current = null;
         }
 
-        const objUrl = URL.createObjectURL(file);
-        const audio = new Audio(objUrl);
-        audio.addEventListener('loadedmetadata', () => {
-            if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
-                setNewDuration(String(Math.max(1, Math.round(audio.duration))));
-            }
-        });
+        if (item.audioUrl) {
+            const audio = new Audio(item.audioUrl);
+            audio.volume = 0.85;
+            audio.onended = () => setPlayingItemId(null);
+            audio.onerror = () => setPlayingItemId(null);
+            audio.play().catch(() => setPlayingItemId(null));
+            previewAudioRef.current = audio;
+            setPlayingItemId(item.id);
+        } else if (item.youtubeId) {
+            window.open(`https://www.youtube.com/watch?v=${item.youtubeId}`, '_blank');
+        }
     };
 
     const handleUrlBlur = async () => {
@@ -227,64 +272,71 @@ export function RadionomyJinglesBox({
         setIsFetchingTitle(false);
     };
 
-    const handleSaveItem = async (e: React.FormEvent) => {
+    // Upload tous les fichiers de la queue en parallèle
+    const handleUploadAll = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        let finalAudioUrl: string | undefined = undefined;
-        let finalYoutubeId: string | undefined = undefined;
-
-        if (addSourceType === 'upload') {
-            if (!selectedFile) {
-                alert('Veuillez sélectionner un fichier audio (WAV ou MP3).');
-                return;
-            }
-
-            setIsUploading(true);
-            try {
-                // Essayer l'upload R2 serveur en premier
-                finalAudioUrl = await uploadFile(selectedFile, 'radio/jingles', (p) => setUploadProgress(p));
-            } catch (err) {
-                console.warn('Repli vers Data URL locale:', err);
-                // Repli direct base64 data URL
-                finalAudioUrl = await new Promise<string>((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result as string);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(selectedFile);
-                });
-            } finally {
-                setIsUploading(false);
-                setUploadProgress(null);
-            }
-        } else {
+        if (addSourceType === 'youtube') {
+            // Mode YouTube (single)
             const ytid = extractYouTubeId(newUrl) || newUrl.trim();
-            if (!ytid) {
-                alert('Veuillez entrer une URL YouTube valide.');
-                return;
-            }
-            finalYoutubeId = ytid;
+            if (!ytid) { alert('Veuillez entrer une URL YouTube valide.'); return; }
+            const dur = parseInt(newDuration, 10) || 12;
+            const newItem: RadionomyItem = {
+                id: `rad_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+                title: newTitle.trim() || `Jingle ${newCategory.toUpperCase()}`,
+                youtubeId: ytid,
+                duration: dur,
+                category: newCategory,
+                isCustom: true,
+            };
+            setItems(prev => [newItem, ...prev]);
+            setNewTitle(''); setNewUrl(''); setNewDuration('12'); setShowAddDrawer(false);
+            return;
         }
 
-        const dur = parseInt(newDuration, 10) || 12;
+        if (fileQueue.length === 0) { alert('Ajoutez au moins un fichier audio.'); return; }
 
-        const newItem: RadionomyItem = {
-            id: `rad_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-            title: newTitle.trim() || (selectedFile ? selectedFile.name : `Jingle ${newCategory.toUpperCase()}`),
-            youtubeId: finalYoutubeId,
-            audioUrl: finalAudioUrl,
-            duration: dur,
-            category: newCategory,
-            isCustom: true,
-            fileName: selectedFile?.name
+        setIsUploadingAll(true);
+
+        // Upload tous en parallèle
+        const uploadOne = async (qItem: FileQueueItem): Promise<RadionomyItem | null> => {
+            setFileQueue(prev => prev.map(q => q.id === qItem.id ? { ...q, status: 'uploading', progress: 0 } : q));
+            let audioUrl: string;
+            try {
+                audioUrl = await uploadFile(qItem.file, 'radio/jingles', (p) =>
+                    setFileQueue(prev => prev.map(q => q.id === qItem.id ? { ...q, progress: p } : q))
+                );
+            } catch {
+                try {
+                    audioUrl = await new Promise<string>((res, rej) => {
+                        const r = new FileReader();
+                        r.onload = () => res(r.result as string);
+                        r.onerror = rej;
+                        r.readAsDataURL(qItem.file);
+                    });
+                } catch (err) {
+                    setFileQueue(prev => prev.map(q => q.id === qItem.id ? { ...q, status: 'error', error: 'Échec upload' } : q));
+                    return null;
+                }
+            }
+            setFileQueue(prev => prev.map(q => q.id === qItem.id ? { ...q, status: 'done', progress: 100, audioUrl } : q));
+            return {
+                id: `rad_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+                title: qItem.title || qItem.file.name,
+                audioUrl,
+                duration: qItem.duration,
+                category: newCategory,
+                isCustom: true,
+                fileName: qItem.file.name,
+            };
         };
 
-        setItems(prev => [newItem, ...prev]);
+        const results = await Promise.all(fileQueue.map(uploadOne));
+        const newItems = results.filter(Boolean) as RadionomyItem[];
+        if (newItems.length > 0) setItems(prev => [...newItems, ...prev]);
 
-        // Reset form
-        setNewTitle('');
-        setNewUrl('');
-        setSelectedFile(null);
-        setNewDuration('12');
+        setIsUploadingAll(false);
+        setFileQueue([]);
         setShowAddDrawer(false);
     };
 
@@ -517,7 +569,7 @@ export function RadionomyJinglesBox({
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
                                 exit={{ opacity: 0, height: 0 }}
-                                onSubmit={handleSaveItem}
+                                onSubmit={handleUploadAll}
                                 className="p-4 sm:p-5 bg-[#0f111a] border-b border-neon-cyan/30 shrink-0 space-y-4 shadow-xl"
                             >
                                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
@@ -532,7 +584,7 @@ export function RadionomyJinglesBox({
                                             }`}
                                         >
                                             <Upload className="w-3.5 h-3.5" />
-                                            Upload Fichier (MP3 / WAV)
+                                            Upload Fichiers (MP3 / WAV)
                                         </button>
                                         <button
                                             type="button"
@@ -550,7 +602,7 @@ export function RadionomyJinglesBox({
 
                                     <button
                                         type="button"
-                                        onClick={() => setShowAddDrawer(false)}
+                                        onClick={() => { setShowAddDrawer(false); setFileQueue([]); }}
                                         className="text-gray-400 hover:text-white cursor-pointer"
                                     >
                                         <X className="w-4 h-4" />
@@ -558,17 +610,15 @@ export function RadionomyJinglesBox({
                                 </div>
 
                                 {addSourceType === 'upload' ? (
-                                    /* Upload Zone */
                                     <div className="space-y-3">
+                                        {/* Zone de drop multi-fichiers */}
                                         <input
                                             type="file"
                                             ref={fileInputRef}
                                             accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac"
+                                            multiple
                                             className="hidden"
-                                            onChange={(e) => {
-                                                const file = e.target.files?.[0];
-                                                if (file) handleFileChosen(file);
-                                            }}
+                                            onChange={(e) => { if (e.target.files) addFilesToQueue(e.target.files); e.target.value = ''; }}
                                         />
 
                                         <div
@@ -577,30 +627,93 @@ export function RadionomyJinglesBox({
                                             onDrop={(e) => {
                                                 e.preventDefault();
                                                 setDragActive(false);
-                                                const file = e.dataTransfer.files?.[0];
-                                                if (file) handleFileChosen(file);
+                                                if (e.dataTransfer.files) addFilesToQueue(e.dataTransfer.files);
                                             }}
                                             onClick={() => fileInputRef.current?.click()}
-                                            className={`p-6 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2.5 cursor-pointer transition-all ${
+                                            className={`p-5 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${
                                                 dragActive
                                                     ? 'border-neon-cyan bg-neon-cyan/15 scale-[1.01]'
-                                                    : selectedFile
-                                                        ? 'border-neon-cyan/50 bg-neon-cyan/5'
+                                                    : fileQueue.length > 0
+                                                        ? 'border-neon-cyan/40 bg-neon-cyan/5'
                                                         : 'border-white/15 bg-white/[0.02] hover:border-white/30 hover:bg-white/[0.04]'
                                             }`}
                                         >
-                                            <div className="w-12 h-12 rounded-2xl bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center text-neon-cyan">
-                                                {selectedFile ? <FileAudio className="w-6 h-6 animate-pulse" /> : <Upload className="w-6 h-6" />}
+                                            <div className="w-10 h-10 rounded-2xl bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center text-neon-cyan">
+                                                <Upload className="w-5 h-5" />
                                             </div>
                                             <div className="text-center">
                                                 <p className="text-xs font-black uppercase text-white tracking-wide">
-                                                    {selectedFile ? `Fichier prêt : ${selectedFile.name}` : 'Cliquez ou glissez un fichier audio (WAV ou MP3)'}
+                                                    {fileQueue.length > 0 ? `+ Ajouter d'autres fichiers` : 'Cliquez ou glissez vos fichiers audio ici'}
                                                 </p>
                                                 <p className="text-[10px] text-gray-400 font-mono mt-0.5">
-                                                    Supporte : MP3, WAV, OGG, M4A · Mesure automatique de la durée exacte
+                                                    MP3, WAV, OGG, M4A &bull; <strong className="text-neon-cyan">Sélection multiple supportée</strong>
                                                 </p>
                                             </div>
                                         </div>
+
+                                        {/* File Queue List */}
+                                        {fileQueue.length > 0 && (
+                                            <div className="space-y-2 max-h-52 overflow-y-auto pr-1 custom-scrollbar">
+                                                <div className="flex items-center justify-between">
+                                                    <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">{fileQueue.length} fichier{fileQueue.length > 1 ? 's' : ''} sélectionné{fileQueue.length > 1 ? 's' : ''}</p>
+                                                    <button type="button" onClick={() => setFileQueue([])} className="text-[9px] text-red-400 hover:text-red-300 font-bold uppercase cursor-pointer">Tout effacer</button>
+                                                </div>
+                                                {fileQueue.map((qItem) => (
+                                                    <div key={qItem.id} className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all ${
+                                                        qItem.status === 'done' ? 'bg-emerald-950/30 border-emerald-500/30'
+                                                        : qItem.status === 'error' ? 'bg-red-950/30 border-red-500/30'
+                                                        : qItem.status === 'uploading' ? 'bg-neon-cyan/5 border-neon-cyan/30'
+                                                        : 'bg-white/[0.03] border-white/10'
+                                                    }`}>
+                                                        {/* Icon */}
+                                                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                                                            qItem.status === 'done' ? 'bg-emerald-500/20 text-emerald-400'
+                                                            : qItem.status === 'error' ? 'bg-red-500/20 text-red-400'
+                                                            : qItem.status === 'uploading' ? 'bg-neon-cyan/20 text-neon-cyan'
+                                                            : 'bg-white/5 text-gray-400'
+                                                        }`}>
+                                                            {qItem.status === 'uploading' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> :
+                                                             qItem.status === 'done' ? <Check className="w-3.5 h-3.5" /> :
+                                                             qItem.status === 'error' ? <X className="w-3.5 h-3.5" /> :
+                                                             <FileAudio className="w-3.5 h-3.5" />}
+                                                        </div>
+
+                                                        {/* Info */}
+                                                        <div className="flex-1 min-w-0">
+                                                            <input
+                                                                type="text"
+                                                                value={qItem.title}
+                                                                onChange={(e) => setFileQueue(prev => prev.map(q => q.id === qItem.id ? { ...q, title: e.target.value } : q))}
+                                                                disabled={qItem.status !== 'pending'}
+                                                                className="w-full bg-transparent text-white text-[11px] font-bold truncate focus:outline-none focus:underline disabled:opacity-60"
+                                                                placeholder="Titre du jingle..."
+                                                            />
+                                                            <div className="flex items-center gap-2 mt-0.5">
+                                                                <span className="text-[9px] font-mono text-gray-500">{qItem.file.name}</span>
+                                                                <span className="text-[9px] font-mono text-neon-cyan/70">{qItem.duration}s</span>
+                                                                {qItem.status === 'error' && <span className="text-[9px] text-red-400">{qItem.error}</span>}
+                                                            </div>
+                                                            {qItem.status === 'uploading' && (
+                                                                <div className="mt-1 w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                                                                    <div className="h-full bg-neon-cyan transition-all duration-200" style={{ width: `${qItem.progress}%` }} />
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Remove */}
+                                                        {qItem.status === 'pending' && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setFileQueue(prev => prev.filter(q => q.id !== qItem.id))}
+                                                                className="p-1 text-gray-500 hover:text-red-400 shrink-0 cursor-pointer"
+                                                            >
+                                                                <X className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 ) : (
                                     /* YouTube URL */
@@ -617,81 +730,58 @@ export function RadionomyJinglesBox({
                                                 required={addSourceType === 'youtube'}
                                             />
                                         </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Titre</label>
+                                                <input type="text" value={newTitle} onChange={(e) => setNewTitle(e.target.value)}
+                                                    placeholder={isFetchingTitle ? 'Récupération...' : 'Titre du jingle'}
+                                                    className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neon-cyan" required />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Durée (s)</label>
+                                                <input type="number" value={newDuration} onChange={(e) => setNewDuration(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neon-cyan" min={1} max={600} />
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
 
-                                {/* Détails titre / catégorie / durée */}
-                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
-                                    <div className="sm:col-span-5">
-                                        <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Titre de l'habillage</label>
-                                        <input
-                                            type="text"
-                                            value={newTitle}
-                                            onChange={(e) => setNewTitle(e.target.value)}
-                                            placeholder={isFetchingTitle ? "Récupération titre..." : "Ex: Dropsiders TOP Horaire 2026"}
-                                            className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neon-cyan"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="sm:col-span-4">
-                                        <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Catégorie</label>
-                                        <select
-                                            value={newCategory}
-                                            onChange={(e) => setNewCategory(e.target.value as any)}
-                                            className="w-full bg-[#121422] border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neon-cyan"
-                                        >
-                                            <option value="jingle">🔔 Jingle / Sweeper</option>
-                                            <option value="top_horaire">⏰ TOP Horaire (Début d'heure)</option>
-                                            <option value="generique">🎙️ Générique d'émission</option>
-                                            <option value="pub">📢 Publicité / Sponsor</option>
-                                            <option value="promo">⚡ Promo / Teaser</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="sm:col-span-3">
-                                        <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Durée (secondes)</label>
-                                        <input
-                                            type="number"
-                                            value={newDuration}
-                                            onChange={(e) => setNewDuration(e.target.value)}
-                                            className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neon-cyan"
-                                            min={1}
-                                            max={600}
-                                        />
-                                    </div>
+                                {/* Catégorie (globale pour tous les fichiers) */}
+                                <div>
+                                    <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Catégorie {addSourceType === 'upload' && fileQueue.length > 1 ? '(appliquée à tous)' : ''}</label>
+                                    <select
+                                        value={newCategory}
+                                        onChange={(e) => setNewCategory(e.target.value as any)}
+                                        className="w-full bg-[#121422] border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neon-cyan"
+                                    >
+                                        <option value="jingle">🔔 Jingle / Sweeper</option>
+                                        <option value="top_horaire">⏰ TOP Horaire (Début d'heure)</option>
+                                        <option value="generique">🎙️ Générique d'émission</option>
+                                        <option value="pub">📢 Publicité / Sponsor</option>
+                                        <option value="promo">⚡ Promo / Teaser</option>
+                                    </select>
                                 </div>
-
-                                {isUploading && uploadProgress !== null && (
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between text-[10px] text-gray-400 font-mono">
-                                            <span>Envoi du fichier audio...</span>
-                                            <span>{uploadProgress}%</span>
-                                        </div>
-                                        <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-neon-cyan transition-all duration-300"
-                                                style={{ width: `${uploadProgress}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                )}
 
                                 <div className="flex justify-end gap-2 pt-2 border-t border-white/10">
                                     <button
                                         type="button"
-                                        onClick={() => setShowAddDrawer(false)}
+                                        onClick={() => { setShowAddDrawer(false); setFileQueue([]); }}
                                         className="px-4 py-2 rounded-xl bg-white/5 text-xs font-bold text-gray-400 hover:text-white"
                                     >
                                         Annuler
                                     </button>
                                     <button
                                         type="submit"
-                                        disabled={isUploading}
+                                        disabled={isUploadingAll || (addSourceType === 'upload' && fileQueue.length === 0)}
                                         className="px-5 py-2.5 rounded-xl bg-neon-cyan text-black font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_15px_rgba(0,240,255,0.4)] disabled:opacity-50 cursor-pointer"
                                     >
-                                        {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                                        <span>Sauvegarder dans le Bac</span>
+                                        {isUploadingAll ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                                        <span>
+                                            {isUploadingAll ? 'Upload en cours...'
+                                                : addSourceType === 'upload' && fileQueue.length > 1
+                                                    ? `Uploader ${fileQueue.length} fichiers`
+                                                    : 'Sauvegarder dans le Bac'}
+                                        </span>
                                     </button>
                                 </div>
                             </motion.form>
