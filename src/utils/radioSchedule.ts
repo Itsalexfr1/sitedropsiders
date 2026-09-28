@@ -197,11 +197,68 @@ export interface ComputedRadioScheduleItem {
 /**
  * Construit les blocs radio par défaut en intégrant l'intégralité des 240 sets & clips de la TV
  */
+const DEFAULT_SYSTEM_JINGLES: RadioTrackItem[] = [
+    {
+        id: 'def_jingle_1',
+        title: 'Dropsiders Radio • Official Festival ID Jingle',
+        artist: 'DROPSIDERS JINGLE',
+        youtubeId: 'k5yQBhDnrvM',
+        duration: 15,
+        category: 'jingle'
+    },
+    {
+        id: 'def_jingle_2',
+        title: 'Dropsiders • Drop Alert & Sweeper Sound FX',
+        artist: 'DROPSIDERS JINGLE',
+        youtubeId: 'CsRTKXYEhOM',
+        duration: 10,
+        category: 'jingle'
+    },
+    {
+        id: 'def_jingle_3',
+        title: 'Dropsiders Radio • Non-Stop Club & Festival Energy',
+        artist: 'DROPSIDERS JINGLE',
+        youtubeId: '8YbWq5urfww',
+        duration: 12,
+        category: 'jingle'
+    }
+];
+
+const DEFAULT_SYSTEM_PUBS: RadioTrackItem[] = [
+    {
+        id: 'def_pub_1',
+        title: 'Publicité Dropsiders Voyages • Packs Festivals & Bus',
+        artist: 'SPONSOR',
+        youtubeId: 'pQdsHoG2yhw',
+        duration: 30,
+        category: 'pub'
+    },
+    {
+        id: 'def_pub_2',
+        title: 'Spot Partenaire • Dropsiders Shop Officiel & Goodies',
+        artist: 'SPONSOR',
+        youtubeId: '61tiIdIrjUQ',
+        duration: 25,
+        category: 'pub'
+    }
+];
+
+const DEFAULT_SYSTEM_INTERVIEWS: RadioTrackItem[] = [
+    {
+        id: 'def_inter_1',
+        title: 'Interview Exclusive • Martin Garrix en direct de l\'Amsterdam Dance Event',
+        artist: 'INTERVIEW',
+        youtubeId: 'k5yQBhDnrvM',
+        duration: 180,
+        category: 'interview'
+    }
+];
+
 export function buildDefaultRadioBlocksFromTV(): RadioScheduleBlock[] {
     const rawTvBlocks = (settings as any)?.tv_blocks || DEFAULT_TV_BLOCKS;
     if (Array.isArray(rawTvBlocks) && rawTvBlocks.length > 0) {
         return rawTvBlocks.map((b: any, idx: number) => {
-            const tracks: RadioTrackItem[] = (b.videos || []).map((v: any, vIdx: number) => {
+            const rawTracks: RadioTrackItem[] = (b.videos || []).map((v: any, vIdx: number) => {
                 const { artist } = parseArtistAndEvent(v.title || '');
                 return {
                     id: `rt_${v.id || v.youtubeId || vIdx}`,
@@ -209,9 +266,47 @@ export function buildDefaultRadioBlocksFromTV(): RadioScheduleBlock[] {
                     artist: artist || 'Artiste',
                     youtubeId: v.youtubeId,
                     duration: v.duration || 3600,
-                    category: v.category || ((v.duration || 3600) < 1200 ? 'clip' : 'liveset')
+                    category: (v.category === 'clip' ? 'clip' : 'liveset') as RadioTrackCategory
                 };
             });
+
+            // Insérer l'habillage radio par défaut (Jingles, Pubs et Interviews)
+            const scheduledTracks: RadioTrackItem[] = [];
+            let jIdx = 0;
+            let pIdx = 0;
+
+            rawTracks.forEach((track, tIdx) => {
+                scheduledTracks.push(track);
+
+                // 1 Jingle après chaque set
+                if (DEFAULT_SYSTEM_JINGLES.length > 0) {
+                    const j = DEFAULT_SYSTEM_JINGLES[jIdx % DEFAULT_SYSTEM_JINGLES.length];
+                    jIdx++;
+                    scheduledTracks.push({
+                        ...j,
+                        id: `sched_jing_${b.id}_${tIdx}`
+                    });
+                }
+
+                // 1 Pub toutes les 2 sets
+                if ((tIdx + 1) % 2 === 0 && DEFAULT_SYSTEM_PUBS.length > 0) {
+                    const p = DEFAULT_SYSTEM_PUBS[pIdx % DEFAULT_SYSTEM_PUBS.length];
+                    pIdx++;
+                    scheduledTracks.push({
+                        ...p,
+                        id: `sched_pub_${b.id}_${tIdx}`
+                    });
+                }
+
+                // 1 Interview sur l'émission prime (au 2ème set)
+                if (idx === 1 && tIdx === 1 && DEFAULT_SYSTEM_INTERVIEWS.length > 0) {
+                    scheduledTracks.push({
+                        ...DEFAULT_SYSTEM_INTERVIEWS[0],
+                        id: `sched_inter_${b.id}_${tIdx}`
+                    });
+                }
+            });
+
             return {
                 id: `radio_${b.id}`,
                 name: `Émission ${idx + 1} · ${b.title || b.name}`,
@@ -223,7 +318,7 @@ export function buildDefaultRadioBlocksFromTV(): RadioScheduleBlock[] {
                 emoji: b.emoji || '📻',
                 randomize: b.randomize !== false,
                 days: b.days || [1, 2, 3, 4, 5, 6, 0],
-                tracks
+                tracks: scheduledTracks.length > 0 ? scheduledTracks : rawTracks
             };
         });
     }

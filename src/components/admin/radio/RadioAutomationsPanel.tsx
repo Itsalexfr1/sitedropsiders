@@ -50,8 +50,8 @@ export function RadioAutomationsPanel({
     const [thYoutubeId, setThYoutubeId] = useState(topHoraireConfig.youtubeId || '');
 
     // États règle d'horloge
-    const [jingleFrequency, setJingleFrequency] = useState(4);
-    const [pubFrequency, setPubFrequency] = useState(6);
+    const [jingleFrequency, setJingleFrequency] = useState(1);
+    const [pubFrequency, setPubFrequency] = useState(2);
     const [ruleSuccessMsg, setRuleSuccessMsg] = useState<string | null>(null);
 
     const handleSaveTopHoraire = () => {
@@ -216,11 +216,10 @@ export function RadioAutomationsPanel({
                                 onChange={e => setJingleFrequency(Number(e.target.value))}
                                 className="bg-[#141624] border border-white/15 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400"
                             >
-                                <option value={2}>2 morceaux</option>
-                                <option value={3}>3 morceaux</option>
-                                <option value={4}>4 morceaux (recommandé)</option>
-                                <option value={5}>5 morceaux</option>
-                                <option value={6}>6 morceaux</option>
+                                <option value={1}>1 set (après chaque set - recommandé)</option>
+                                <option value={2}>2 sets / morceaux</option>
+                                <option value={3}>3 sets / morceaux</option>
+                                <option value={4}>4 sets / morceaux</option>
                                 <option value={0}>Désactivé</option>
                             </select>
                         </div>
@@ -238,10 +237,10 @@ export function RadioAutomationsPanel({
                                 onChange={e => setPubFrequency(Number(e.target.value))}
                                 className="bg-[#141624] border border-white/15 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-pink-400"
                             >
-                                <option value={4}>4 morceaux</option>
-                                <option value={6}>6 morceaux (recommandé)</option>
-                                <option value={8}>8 morceaux</option>
-                                <option value={10}>10 morceaux</option>
+                                <option value={1}>1 set (toutes les heures)</option>
+                                <option value={2}>2 sets (toutes les 2h - recommandé)</option>
+                                <option value={3}>3 sets</option>
+                                <option value={4}>4 sets</option>
                                 <option value={0}>Désactivé</option>
                             </select>
                         </div>

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
     Play,
     Pause,
@@ -14,7 +14,11 @@ import {
     Sparkles,
     Radio,
     Sliders,
-    Layers
+    Layers,
+    Dice5,
+    Zap,
+    X,
+    Check
 } from 'lucide-react';
 import {
     formatDurationExact,
@@ -24,6 +28,7 @@ import {
     type RadioTopHoraireConfig,
     type RadioTrackCategory
 } from '../../../utils/radioSchedule';
+import { type RadionomyItem, DEFAULT_JINGLES_PUBS } from '../modals/RadionomyJinglesBox';
 
 interface RadioRundownTimelineProps {
     block: RadioScheduleBlock;
@@ -37,6 +42,9 @@ interface RadioRundownTimelineProps {
     onOpenYouTubeSearch: () => void;
     onOpenMediaPool: () => void;
     onOpenEditBlock: () => void;
+    mediaPoolItems?: RadionomyItem[];
+    onInsertMediaItem?: (item: RadionomyItem) => void;
+    onAutoInjectHabillage?: () => void;
 }
 
 export interface RundownItem {
@@ -75,8 +83,13 @@ export function RadioRundownTimeline({
     onQuickAdd,
     onOpenYouTubeSearch,
     onOpenMediaPool,
-    onOpenEditBlock
+    onOpenEditBlock,
+    mediaPoolItems = DEFAULT_JINGLES_PUBS,
+    onInsertMediaItem,
+    onAutoInjectHabillage
 }: RadioRundownTimelineProps) {
+    const [quickPickerCategory, setQuickPickerCategory] = useState<'jingle' | 'pub' | 'interview' | null>(null);
+
     const startHour = block.startHour ?? 0;
     const endHour = block.endHour === 0 ? 24 : (block.endHour ?? 24);
     let blockDurationHours = endHour - startHour;
@@ -285,6 +298,19 @@ export function RadioRundownTimeline({
                 </span>
 
                 <div className="flex items-center gap-2 flex-wrap">
+                    {/* ⚡ Auto-Habillage (Jingles & Pubs) */}
+                    {onAutoInjectHabillage && (
+                        <button
+                            type="button"
+                            onClick={onAutoInjectHabillage}
+                            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-pink-500 to-purple-600 hover:from-amber-400 hover:via-pink-400 hover:to-purple-500 text-white text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(245,158,11,0.35)] cursor-pointer"
+                            title="Générer et injecter automatiquement les jingles et les pubs dans cette émission"
+                        >
+                            <Zap className="w-3.5 h-3.5 fill-current text-amber-200 animate-pulse" />
+                            <span>⚡ Auto-Habillage</span>
+                        </button>
+                    )}
+
                     {/* + Set / Musique */}
                     <button
                         type="button"
@@ -298,7 +324,7 @@ export function RadioRundownTimeline({
                     {/* + Jingle */}
                     <button
                         type="button"
-                        onClick={() => onQuickAdd('jingle')}
+                        onClick={() => onInsertMediaItem ? setQuickPickerCategory('jingle') : onQuickAdd('jingle')}
                         className="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
                         title="Insérer un jingle ou drop vocal"
                     >
@@ -308,7 +334,7 @@ export function RadioRundownTimeline({
                     {/* + Interview */}
                     <button
                         type="button"
-                        onClick={() => onQuickAdd('interview')}
+                        onClick={() => onInsertMediaItem ? setQuickPickerCategory('interview') : onQuickAdd('interview')}
                         className="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-200 text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
                         title="Insérer une interview ou chronique"
                     >
@@ -318,7 +344,7 @@ export function RadioRundownTimeline({
                     {/* + Pub */}
                     <button
                         type="button"
-                        onClick={() => onQuickAdd('pub')}
+                        onClick={() => onInsertMediaItem ? setQuickPickerCategory('pub') : onQuickAdd('pub')}
                         className="px-3 py-1.5 rounded-xl bg-pink-500/15 hover:bg-pink-500/30 border border-pink-500/40 text-pink-200 text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
                         title="Insérer un spot publicitaire ou promo"
                     >
@@ -520,6 +546,136 @@ export function RadioRundownTimeline({
                     })
                 )}
             </div>
+
+            {/* ── MODALE SÉLECTION RAPIDE D'ÉLÉMENT D'HABILLAGE (JINGLE / PUB / INTERVIEW) ── */}
+            {quickPickerCategory && (
+                <div
+                    className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+                    onClick={e => { if (e.target === e.currentTarget) setQuickPickerCategory(null); }}
+                >
+                    <div className="bg-[#0e101a] border border-white/20 rounded-3xl p-5 w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.8)] space-y-4 max-h-[85vh] flex flex-col">
+                        <div className="flex items-center justify-between pb-3 border-b border-white/10 shrink-0">
+                            <h3 className="text-sm font-display font-black text-white uppercase italic tracking-tight flex items-center gap-2">
+                                <span>{quickPickerCategory === 'jingle' ? '🔔' : quickPickerCategory === 'pub' ? '📢' : '🎙️'}</span>
+                                <span>
+                                    {quickPickerCategory === 'jingle' ? 'Choisir un Jingle à insérer' : quickPickerCategory === 'pub' ? 'Choisir un Spot Pub / Sponsor' : 'Choisir une Interview'}
+                                </span>
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => setQuickPickerCategory(null)}
+                                className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 cursor-pointer"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {/* Action Rapide : Insérer au hasard */}
+                        {(() => {
+                            const available = (mediaPoolItems && mediaPoolItems.length > 0 ? mediaPoolItems : DEFAULT_JINGLES_PUBS).filter(
+                                i => i.category === quickPickerCategory || (quickPickerCategory === 'pub' && i.category === 'promo')
+                            );
+
+                            return (
+                                <>
+                                    <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-white/[0.03] border border-white/10 shrink-0">
+                                        <div className="text-xs text-gray-300">
+                                            <span className="font-bold text-white">{available.length}</span> élément{available.length > 1 ? 's' : ''} disponible{available.length > 1 ? 's' : ''}
+                                        </div>
+                                        {available.length > 0 && onInsertMediaItem && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const rand = available[Math.floor(Math.random() * available.length)];
+                                                    onInsertMediaItem(rand);
+                                                    setQuickPickerCategory(null);
+                                                }}
+                                                className="px-3 py-1.5 rounded-xl bg-neon-cyan/20 hover:bg-neon-cyan text-neon-cyan hover:text-black border border-neon-cyan/40 text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                                            >
+                                                <Dice5 className="w-3.5 h-3.5" />
+                                                <span>Insérer au hasard (1 clic)</span>
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Liste des éléments */}
+                                    <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[200px]">
+                                        {available.length === 0 ? (
+                                            <div className="p-8 text-center text-gray-500 text-xs">
+                                                Aucun élément dans cette catégorie. Ouvrez la médiathèque pour en ajouter ou uploader un fichier audio.
+                                            </div>
+                                        ) : (
+                                            available.map(item => (
+                                                <div
+                                                    key={item.id}
+                                                    className="p-3 rounded-2xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/15 flex items-center justify-between gap-3 transition-all group"
+                                                >
+                                                    <div className="flex items-center gap-2.5 min-w-0">
+                                                        {item.audioUrl && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => onToggleAudioPreview(`picker_${item.id}`, item.audioUrl!)}
+                                                                className={`p-1.5 rounded-xl transition-all cursor-pointer shrink-0 ${
+                                                                    playingAudioId === `picker_${item.id}`
+                                                                        ? 'bg-neon-cyan text-black'
+                                                                        : 'bg-white/5 hover:bg-white/15 text-gray-300'
+                                                                }`}
+                                                            >
+                                                                {playingAudioId === `picker_${item.id}` ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+                                                            </button>
+                                                        )}
+                                                        <div className="min-w-0">
+                                                            <p className="text-xs font-bold text-white truncate">{item.title}</p>
+                                                            <p className="text-[10px] font-mono text-gray-400">
+                                                                {formatDurationExact(item.duration || 15)} {item.audioUrl ? '· Fichier audio' : item.youtubeId ? '· YouTube' : ''}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    {onInsertMediaItem && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                onInsertMediaItem(item);
+                                                                setQuickPickerCategory(null);
+                                                            }}
+                                                            className="shrink-0 px-3 py-1.5 rounded-xl bg-neon-cyan text-black font-display font-black text-[10px] uppercase italic tracking-wider hover:bg-white transition-all shadow-sm cursor-pointer flex items-center gap-1"
+                                                        >
+                                                            <Plus className="w-3 h-3" />
+                                                            <span>Insérer</span>
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </>
+                            );
+                        })()}
+
+                        <div className="pt-2 border-t border-white/10 flex items-center justify-between shrink-0">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setQuickPickerCategory(null);
+                                    onOpenMediaPool();
+                                }}
+                                className="text-xs text-purple-400 hover:text-purple-300 font-sans flex items-center gap-1.5 cursor-pointer"
+                            >
+                                <Layers className="w-3.5 h-3.5" />
+                                <span>Ouvrir la Médiathèque complète</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setQuickPickerCategory(null)}
+                                className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-display uppercase tracking-wider cursor-pointer"
+                            >
+                                Fermer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

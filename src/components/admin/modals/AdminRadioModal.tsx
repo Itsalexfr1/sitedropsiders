@@ -36,7 +36,7 @@ import {
     Volume2
 } from 'lucide-react';
 import { extractYouTubeId, fetchYouTubeTitle } from './AdminTVModal';
-import { RadionomyJinglesBox, type RadionomyItem } from './RadionomyJinglesBox';
+import { RadionomyJinglesBox, DEFAULT_JINGLES_PUBS, type RadionomyItem } from './RadionomyJinglesBox';
 import { YouTubeSearchModal } from './YouTubeSearchModal';
 import { apiFetch, getAuthHeaders } from '../../../utils/auth';
 import { uploadFile } from '../../../utils/uploadService';
@@ -285,7 +285,7 @@ export function AdminRadioModal({
                 if (Array.isArray(parsed) && parsed.length > 0) return parsed;
             }
         } catch {}
-        return [];
+        return DEFAULT_JINGLES_PUBS;
     });
 
     const handleSaveMediaPoolItem = (newItem: RadionomyItem) => {
@@ -974,23 +974,17 @@ export function AdminRadioModal({
             showToast('Sélectionnez d\'abord une émission', 'warn');
             return;
         }
-        let palette: RadionomyItem[] = [];
-        try {
-            const saved = localStorage.getItem('dropsiders_radionomy_palette');
-            if (saved) palette = JSON.parse(saved);
-        } catch {}
+        const palette: RadionomyItem[] = (mediaPoolItems && mediaPoolItems.length > 0) ? mediaPoolItems : DEFAULT_JINGLES_PUBS;
         const jingles = palette.filter(p => p.category === 'jingle');
         const pubs = palette.filter(p => p.category === 'pub');
 
-        if (jingles.length === 0 && pubs.length === 0) {
-            showToast('Ajoutez d\'abord au moins un jingle ou une pub dans la boîte Radionomy !', 'warn');
-            return;
-        }
+        const effectiveJingles = jingles.length > 0 ? jingles : DEFAULT_JINGLES_PUBS.filter(p => p.category === 'jingle');
+        const effectivePubs = pubs.length > 0 ? pubs : DEFAULT_JINGLES_PUBS.filter(p => p.category === 'pub');
 
         setBlocks(prev => prev.map(b => {
             if (b.id !== selectedBlockId) return b;
             // Ne garder que les vraies pistes de musique pour réinsérer proprement
-            const pureTracks = (b.tracks || []).filter(t => !t.id.startsWith('rad_'));
+            const pureTracks = (b.tracks || []).filter(t => !['jingle', 'pub', 'promo', 'top_horaire'].includes(t.category || '') && !t.id.startsWith('rad_'));
             if (pureTracks.length === 0) return b;
 
             const newTracks: RadioTrackItem[] = [];
@@ -998,10 +992,13 @@ export function AdminRadioModal({
             let pubIdx = 0;
 
             pureTracks.forEach((track, index) => {
-                newTracks.push(track);
+                newTracks.push({
+                    ...track,
+                    category: track.category || 'set'
+                });
                 const pos = index + 1;
-                if (pubEveryN > 0 && pos % pubEveryN === 0 && pubs.length > 0) {
-                    const pub = pubs[pubIdx % pubs.length];
+                if (pubEveryN > 0 && pos % pubEveryN === 0 && effectivePubs.length > 0) {
+                    const pub = effectivePubs[pubIdx % effectivePubs.length];
                     pubIdx++;
                     newTracks.push({
                         id: `rad_pub_${Date.now()}_${pos}`,
@@ -1009,12 +1006,13 @@ export function AdminRadioModal({
                         title: pub.title,
                         youtubeId: pub.youtubeId,
                         audioUrl: pub.audioUrl,
-                        category: 'clip',
+                        category: 'pub',
                         duration: pub.duration || 30,
                         addedAt: Date.now()
                     });
-                } else if (jingleEveryN > 0 && pos % jingleEveryN === 0 && jingles.length > 0) {
-                    const jing = jingles[jingleIdx % jingles.length];
+                }
+                if (jingleEveryN > 0 && pos % jingleEveryN === 0 && effectiveJingles.length > 0) {
+                    const jing = effectiveJingles[jingleIdx % effectiveJingles.length];
                     jingleIdx++;
                     newTracks.push({
                         id: `rad_jing_${Date.now()}_${pos}`,
@@ -1022,7 +1020,7 @@ export function AdminRadioModal({
                         title: jing.title,
                         youtubeId: jing.youtubeId,
                         audioUrl: jing.audioUrl,
-                        category: 'clip',
+                        category: 'jingle',
                         duration: jing.duration || 15,
                         addedAt: Date.now()
                     });
@@ -1032,6 +1030,96 @@ export function AdminRadioModal({
             return { ...b, tracks: newTracks };
         }));
         showToast('✓ Règle Horloge Radionomy appliquée avec succès !');
+    };
+
+    // ─── Injection Automatique d'Habillage Radio (Jingles + Pubs + Interviews) ───
+    const handleAutoInjectHabillage = (target: 'current' | 'all' = 'current') => {
+        const palette: RadionomyItem[] = (mediaPoolItems && mediaPoolItems.length > 0) ? mediaPoolItems : DEFAULT_JINGLES_PUBS;
+        const jingles = palette.filter(p => p.category === 'jingle');
+        const pubs = palette.filter(p => p.category === 'pub');
+        const interviews = palette.filter(p => p.category === 'interview');
+
+        const effectiveJingles = jingles.length > 0 ? jingles : DEFAULT_JINGLES_PUBS.filter(p => p.category === 'jingle');
+        const effectivePubs = pubs.length > 0 ? pubs : DEFAULT_JINGLES_PUBS.filter(p => p.category === 'pub');
+        const effectiveInterviews = interviews.length > 0 ? interviews : DEFAULT_JINGLES_PUBS.filter(p => p.category === 'interview');
+
+        let injectedJinglesCount = 0;
+        let injectedPubsCount = 0;
+
+        setBlocks(prev => prev.map(b => {
+            if (target === 'current' && b.id !== selectedBlockId) return b;
+
+            // Extraire uniquement les sets de musique
+            const pureTracks = (b.tracks || []).filter(t => !['jingle', 'pub', 'promo', 'top_horaire'].includes(t.category || '') && !t.id.startsWith('rad_') && !t.id.startsWith('sched_'));
+            if (pureTracks.length === 0) return b;
+
+            const newTracks: RadioTrackItem[] = [];
+            let jIdx = 0;
+            let pIdx = 0;
+
+            pureTracks.forEach((track, index) => {
+                newTracks.push({
+                    ...track,
+                    category: track.category || 'set'
+                });
+
+                // 1 Jingle après chaque set
+                if (effectiveJingles.length > 0) {
+                    const jItem = effectiveJingles[jIdx % effectiveJingles.length];
+                    jIdx++;
+                    injectedJinglesCount++;
+                    newTracks.push({
+                        id: `rad_jing_${Date.now()}_${b.id}_${index}`,
+                        artist: 'DROPSIDERS JINGLE',
+                        title: jItem.title,
+                        youtubeId: jItem.youtubeId,
+                        audioUrl: jItem.audioUrl,
+                        duration: jItem.duration || 15,
+                        category: 'jingle',
+                        addedAt: Date.now()
+                    });
+                }
+
+                // 1 Pub toutes les 2 sets
+                if ((index + 1) % 2 === 0 && effectivePubs.length > 0) {
+                    const pItem = effectivePubs[pIdx % effectivePubs.length];
+                    pIdx++;
+                    injectedPubsCount++;
+                    newTracks.push({
+                        id: `rad_pub_${Date.now()}_${b.id}_${index}`,
+                        artist: 'SPONSOR',
+                        title: pItem.title,
+                        youtubeId: pItem.youtubeId,
+                        audioUrl: pItem.audioUrl,
+                        duration: pItem.duration || 30,
+                        category: 'pub',
+                        addedAt: Date.now()
+                    });
+                }
+
+                // 1 Interview de la semaine (au 2ème set)
+                if (index === 1 && effectiveInterviews.length > 0) {
+                    const interItem = effectiveInterviews[0];
+                    newTracks.push({
+                        id: `rad_inter_${Date.now()}_${b.id}_${index}`,
+                        artist: 'INTERVIEW',
+                        title: interItem.title,
+                        youtubeId: interItem.youtubeId,
+                        audioUrl: interItem.audioUrl,
+                        duration: interItem.duration || 180,
+                        category: 'interview',
+                        addedAt: Date.now()
+                    });
+                }
+            });
+
+            return { ...b, tracks: newTracks };
+        }));
+
+        showToast(target === 'current'
+            ? `✓ Habillage radio injecté : ${injectedJinglesCount} jingles & ${injectedPubsCount} pubs !`
+            : `✓ Habillage radio injecté sur toute la grille (${injectedJinglesCount} jingles & ${injectedPubsCount} pubs) !`
+        );
     };
 
     // ─── Recherche YouTube directe : Ajout d'une vidéo ─────────────────────────
@@ -1912,6 +2000,9 @@ export function AdminRadioModal({
                                     onOpenYouTubeSearch={() => setIsYouTubeSearchOpen(true)}
                                     onOpenMediaPool={() => setActiveStudioTab('media_pool')}
                                     onOpenEditBlock={() => openEditBlockForm(selectedBlock)}
+                                    mediaPoolItems={mediaPoolItems}
+                                    onInsertMediaItem={handleInsertRadionomyItem}
+                                    onAutoInjectHabillage={() => handleAutoInjectHabillage('current')}
                                 />
                             )}
                         </div>

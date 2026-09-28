@@ -19,7 +19,7 @@ export interface RadionomyItem {
     fileName?: string;
 }
 
-const DEFAULT_JINGLES_PUBS: RadionomyItem[] = [
+export const DEFAULT_JINGLES_PUBS: RadionomyItem[] = [
     {
         id: 'rad_top_1',
         title: 'Dropsiders Radio • Top Horaire Officiel (00 min)',
@@ -75,6 +75,20 @@ const DEFAULT_JINGLES_PUBS: RadionomyItem[] = [
         youtubeId: 'DuXXMZLfAkQ',
         duration: 20,
         category: 'promo'
+    },
+    {
+        id: 'rad_inter_1',
+        title: 'Interview Exclusive • Martin Garrix en direct de l\'Amsterdam Dance Event',
+        youtubeId: 'k5yQBhDnrvM',
+        duration: 180,
+        category: 'interview'
+    },
+    {
+        id: 'rad_inter_2',
+        title: 'Interview Flash • David Guetta & Morten racontent Future Rave',
+        youtubeId: 'CsRTKXYEhOM',
+        duration: 120,
+        category: 'interview'
     }
 ];
 
