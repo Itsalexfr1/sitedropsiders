@@ -13,15 +13,57 @@ import settings from '../data/settings.json';
 export { DAYS_OF_WEEK, ALL_DAYS, WEEKDAYS, WEEKEND_DAYS, formatDurationExact };
 
 export const STORAGE_RADIO_BLOCKS_KEY = 'dropsiders_radio_blocks';
+export const STORAGE_RADIO_TOP_HORAIRE_KEY = 'dropsiders_radio_top_horaire';
 
 export interface RadioTrackItem {
     id: string;
     title: string;
     artist?: string;
-    youtubeId: string;
+    youtubeId?: string;
+    audioUrl?: string; // Support audio upload MP3 / WAV
     duration?: number; // seconds
-    category?: 'liveset' | 'clip';
+    category?: 'liveset' | 'clip' | 'jingle' | 'pub' | 'promo';
     addedAt?: number;
+    isTopHoraire?: boolean;
+    isThemeJingle?: boolean;
+}
+
+export interface RadioThemeJingle {
+    enabled: boolean;
+    title: string;
+    audioUrl?: string;
+    youtubeId?: string;
+    duration: number; // in seconds
+}
+
+export interface RadioTopHoraireConfig {
+    enabled: boolean;
+    title: string;
+    audioUrl?: string;
+    youtubeId?: string;
+    duration: number; // in seconds (ex: 10s ou 15s)
+}
+
+export const DEFAULT_TOP_HORAIRE: RadioTopHoraireConfig = {
+    enabled: true,
+    title: 'Dropsiders Radio • Top Horaire Officiel',
+    youtubeId: 'CsRTKXYEhOM',
+    duration: 10
+};
+
+export function getTopHoraireConfig(): RadioTopHoraireConfig {
+    try {
+        const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_RADIO_TOP_HORAIRE_KEY) : null;
+        if (saved) {
+            const p = JSON.parse(saved);
+            if (p && typeof p.enabled === 'boolean') return p;
+        }
+    } catch {}
+    const fromSettings = (settings as any)?.radio_top_horaire;
+    if (fromSettings && typeof fromSettings.enabled === 'boolean') {
+        return fromSettings;
+    }
+    return DEFAULT_TOP_HORAIRE;
 }
 
 export interface RadioScheduleBlock {
@@ -36,6 +78,7 @@ export interface RadioScheduleBlock {
     randomize: boolean;
     days?: number[]; // [1..6, 0] où 1=Lun, 6=Sam, 0=Dim. Vide ou absent = 7j/7
     tracks: RadioTrackItem[];
+    themeJingle?: RadioThemeJingle; // Générique d'émission avec jingle uploadé
 }
 
 export interface ComputedRadioScheduleItem {
@@ -47,14 +90,17 @@ export interface ComputedRadioScheduleItem {
     title: string;
     artist: string;
     event: string;
-    youtubeId: string;
+    youtubeId?: string;
+    audioUrl?: string;
     startTime: string;
     endTime: string;
     startSecondsFromMidnight: number;
     durationSeconds: number;
     durationFormatted: string;
     isCurrentlyLive: boolean;
-    category?: 'liveset' | 'clip';
+    category?: 'liveset' | 'clip' | 'jingle' | 'pub' | 'promo';
+    isTopHoraire?: boolean;
+    isThemeJingle?: boolean;
 }
 
 /**
@@ -274,8 +320,88 @@ export function getCurrentLiveRadioTrack(
     if (list.length === 0) return null;
 
     const currentHour = Math.floor(nowSec / 3600);
+    const secondInHour = nowSec % 3600;
     const activeBlock = getActiveRadioBlock(list, currentHour, nowDay);
     if (!activeBlock) return null;
+
+    // ── 1. Vérification TOP HORAIRE (Début d'heure) ────────────────────────
+    const topHoraire = getTopHoraireConfig();
+    if (topHoraire.enabled && topHoraire.duration > 0 && secondInHour < topHoraire.duration) {
+        const dur = topHoraire.duration;
+        const sH = currentHour;
+        const eSec = (currentHour * 3600 + dur) % 86400;
+        const eH = Math.floor(eSec / 3600);
+        const eM = Math.floor((eSec % 3600) / 60);
+
+        return {
+            item: {
+                id: `top_horaire_${currentHour}`,
+                blockId: activeBlock.id,
+                blockTitle: activeBlock.title,
+                blockColor: '#00f0ff',
+                blockEmoji: '🔔',
+                title: topHoraire.title || 'Dropsiders Radio • Top Horaire',
+                artist: 'DROPSIDERS RADIO',
+                event: 'TOP HORAIRE (DÉBUT D\'HEURE)',
+                youtubeId: topHoraire.youtubeId,
+                audioUrl: topHoraire.audioUrl,
+                startTime: `${String(sH).padStart(2, '0')}h00`,
+                endTime: `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}`,
+                startSecondsFromMidnight: currentHour * 3600,
+                durationSeconds: dur,
+                durationFormatted: formatDurationExact(dur),
+                isCurrentlyLive: true,
+                category: 'jingle',
+                isTopHoraire: true
+            },
+            offsetSeconds: secondInHour
+        };
+    }
+
+    const topOffset = (topHoraire.enabled && topHoraire.duration > 0) ? topHoraire.duration : 0;
+
+    // ── 2. Vérification GÉNÉRIQUE D'ÉMISSION (Jingle d'ouverture) ──────────
+    const themeJingle = activeBlock.themeJingle;
+    const isEmissionStartHour = currentHour === (activeBlock.startHour ?? 0);
+    if (isEmissionStartHour && themeJingle && themeJingle.enabled && themeJingle.duration > 0) {
+        const themeStart = topOffset;
+        const themeEnd = topOffset + themeJingle.duration;
+        if (secondInHour >= themeStart && secondInHour < themeEnd) {
+            const sSec = (currentHour * 3600 + themeStart) % 86400;
+            const eSec = (currentHour * 3600 + themeEnd) % 86400;
+            const sH = Math.floor(sSec / 3600);
+            const sM = Math.floor((sSec % 3600) / 60);
+            const eH = Math.floor(eSec / 3600);
+            const eM = Math.floor((eSec % 3600) / 60);
+
+            return {
+                item: {
+                    id: `theme_${activeBlock.id}`,
+                    blockId: activeBlock.id,
+                    blockTitle: activeBlock.title,
+                    blockColor: activeBlock.color,
+                    blockEmoji: activeBlock.emoji,
+                    title: themeJingle.title || `Générique • ${activeBlock.title}`,
+                    artist: 'DROPSIDERS RADIO',
+                    event: `GÉNÉRIQUE D'ÉMISSION • ${activeBlock.title}`,
+                    youtubeId: themeJingle.youtubeId,
+                    audioUrl: themeJingle.audioUrl,
+                    startTime: `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}`,
+                    endTime: `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}`,
+                    startSecondsFromMidnight: sSec,
+                    durationSeconds: themeJingle.duration,
+                    durationFormatted: formatDurationExact(themeJingle.duration),
+                    isCurrentlyLive: true,
+                    category: 'jingle',
+                    isThemeJingle: true
+                },
+                offsetSeconds: secondInHour - themeStart
+            };
+        }
+    }
+
+    // ── 3. Pistes de l'émission ───────────────────────────────────────────
+    const introOffset = topOffset + (isEmissionStartHour && themeJingle?.enabled ? (themeJingle.duration || 0) : 0);
 
     const rawTracks = activeBlock.tracks && activeBlock.tracks.length > 0
         ? activeBlock.tracks
@@ -295,7 +421,7 @@ export function getCurrentLiveRadioTrack(
 
     const startH = activeBlock.startHour ?? 0;
     const blockStartSec = startH * 3600;
-    let elapsedInBlock = nowSec - blockStartSec;
+    let elapsedInBlock = nowSec - blockStartSec - introOffset;
     if (elapsedInBlock < 0) elapsedInBlock += 86400;
 
     const totalPlaylistSec = tracks.reduce((acc, t) => acc + (t.duration || 3600), 0) || 3600;
@@ -319,7 +445,7 @@ export function getCurrentLiveRadioTrack(
     }
 
     const { artist } = parseArtistAndEvent(selectedTrack.title);
-    const itemStartFromMidnight = (blockStartSec + (elapsedInBlock - selectedTrackOffset)) % 86400;
+    const itemStartFromMidnight = (blockStartSec + introOffset + (elapsedInBlock - selectedTrackOffset)) % 86400;
     const dur = selectedTrack.duration || 3600;
     const itemEndFromMidnight = (itemStartFromMidnight + dur) % 86400;
 
@@ -338,6 +464,7 @@ export function getCurrentLiveRadioTrack(
         artist: selectedTrack.artist || artist || 'Artiste',
         event: activeBlock.title,
         youtubeId: selectedTrack.youtubeId,
+        audioUrl: selectedTrack.audioUrl,
         startTime: `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}`,
         endTime: `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}`,
         startSecondsFromMidnight: itemStartFromMidnight,
@@ -425,6 +552,7 @@ export function computeRadioDaySchedule(
                 artist: track.artist || artist || 'Artiste',
                 event: block.title,
                 youtubeId: track.youtubeId,
+                audioUrl: track.audioUrl,
                 startTime: `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}`,
                 endTime: `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}`,
                 startSecondsFromMidnight: itemStartFromMidnight,

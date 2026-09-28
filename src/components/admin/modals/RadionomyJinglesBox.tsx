@@ -1,25 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    Bell, Megaphone, Zap, Plus, Trash2, Clock, 
-    Sparkles, ArrowRight, Play, CheckCircle2, Sliders, Radio, X
+    Plus, Trash2, Clock, Sparkles, Play, Pause, CheckCircle2, 
+    Sliders, Radio, X, Upload, Music, FileAudio, Loader2, 
+    Volume2, Link as LinkIcon, Radio as RadioIcon, Tag, Check
 } from 'lucide-react';
 import { extractYouTubeId, fetchYouTubeTitle } from './AdminTVModal';
+import { uploadFile } from '../../../utils/uploadService';
 
 export interface RadionomyItem {
     id: string;
     title: string;
-    youtubeId: string;
+    youtubeId?: string;
+    audioUrl?: string; // support for uploaded WAV / MP3
     duration: number; // in seconds
-    category: 'jingle' | 'pub' | 'promo' | 'chronique';
+    category: 'jingle' | 'pub' | 'promo' | 'chronique' | 'top_horaire' | 'generique';
     isCustom?: boolean;
+    fileName?: string;
 }
 
 const DEFAULT_JINGLES_PUBS: RadionomyItem[] = [
     {
+        id: 'rad_top_1',
+        title: 'Dropsiders Radio • Top Horaire Officiel (00 min)',
+        youtubeId: 'CsRTKXYEhOM',
+        duration: 10,
+        category: 'top_horaire'
+    },
+    {
+        id: 'rad_gen_1',
+        title: 'Générique Officiel • Dropsiders Festival On Air',
+        youtubeId: 'k5yQBhDnrvM',
+        duration: 18,
+        category: 'generique'
+    },
+    {
         id: 'rad_jingle_1',
         title: 'Dropsiders Radio • Official Festival ID Jingle',
-        youtubeId: 'k5yQBhDnrvM', // placeholder sample ID
+        youtubeId: 'k5yQBhDnrvM',
         duration: 15,
         category: 'jingle'
     },
@@ -69,6 +87,9 @@ interface RadionomyJinglesBoxProps {
     onInsertItem: (item: RadionomyItem) => void;
     onApplyRadionomyRule?: (rule: { jingleEveryN: number; pubEveryN: number }) => void;
     onOpenYouTubeSearch?: (category: 'jingle' | 'pub') => void;
+    onSetAsTopHoraire?: (item: RadionomyItem) => void;
+    onSetAsThemeJingle?: (item: RadionomyItem) => void;
+    defaultTab?: 'all' | 'jingle' | 'top_horaire' | 'generique' | 'pub' | 'promo';
 }
 
 export function RadionomyJinglesBox({
@@ -77,7 +98,10 @@ export function RadionomyJinglesBox({
     currentBlockTitle,
     onInsertItem,
     onApplyRadionomyRule,
-    onOpenYouTubeSearch
+    onOpenYouTubeSearch,
+    onSetAsTopHoraire,
+    onSetAsThemeJingle,
+    defaultTab = 'all'
 }: RadionomyJinglesBoxProps) {
     const [items, setItems] = useState<RadionomyItem[]>(() => {
         try {
@@ -90,24 +114,108 @@ export function RadionomyJinglesBox({
         return DEFAULT_JINGLES_PUBS;
     });
 
-    const [activeFilter, setActiveFilter] = useState<'all' | 'jingle' | 'pub' | 'promo'>('all');
-    const [showAddForm, setShowAddForm] = useState(false);
+    const [activeFilter, setActiveFilter] = useState<'all' | 'jingle' | 'top_horaire' | 'generique' | 'pub' | 'promo'>(defaultTab);
+    const [showAddDrawer, setShowAddDrawer] = useState(false);
+    const [addSourceType, setAddSourceType] = useState<'upload' | 'youtube'>('upload');
+
+    // Form state
     const [newTitle, setNewTitle] = useState('');
     const [newUrl, setNewUrl] = useState('');
-    const [newDuration, setNewDuration] = useState('15');
-    const [newCategory, setNewCategory] = useState<'jingle' | 'pub' | 'promo'>('jingle');
+    const [newDuration, setNewDuration] = useState('12');
+    const [newCategory, setNewCategory] = useState<'jingle' | 'top_horaire' | 'generique' | 'pub' | 'promo'>('jingle');
     const [isFetchingTitle, setIsFetchingTitle] = useState(false);
+
+    // Audio upload state
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+    const [dragActive, setDragActive] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Audio Preview playback
+    const [playingItemId, setPlayingItemId] = useState<string | null>(null);
+    const previewAudioRef = useRef<HTMLAudioElement | null>(null);
 
     // Rule Generator State
     const [showRuleModal, setShowRuleModal] = useState(false);
-    const [jingleFrequency, setJingleFrequency] = useState(2); // 1 jingle every 2 tracks
-    const [pubFrequency, setPubFrequency] = useState(4); // 1 pub every 4 tracks
+    const [jingleFrequency, setJingleFrequency] = useState(2);
+    const [pubFrequency, setPubFrequency] = useState(4);
+
+    useEffect(() => {
+        if (defaultTab) setActiveFilter(defaultTab);
+    }, [defaultTab]);
 
     useEffect(() => {
         try {
             localStorage.setItem(STORAGE_RADIONOMY_KEY, JSON.stringify(items));
         } catch {}
     }, [items]);
+
+    // Arrêter la pré-écoute quand on ferme
+    useEffect(() => {
+        if (!isOpen && previewAudioRef.current) {
+            previewAudioRef.current.pause();
+            previewAudioRef.current = null;
+            setPlayingItemId(null);
+        }
+    }, [isOpen]);
+
+    const handleTogglePreview = (item: RadionomyItem) => {
+        if (playingItemId === item.id) {
+            if (previewAudioRef.current) {
+                previewAudioRef.current.pause();
+                previewAudioRef.current = null;
+            }
+            setPlayingItemId(null);
+            return;
+        }
+
+        // Stopper le player existant
+        if (previewAudioRef.current) {
+            previewAudioRef.current.pause();
+            previewAudioRef.current = null;
+        }
+
+        if (item.audioUrl) {
+            const audio = new Audio(item.audioUrl);
+            audio.volume = 0.85;
+            audio.onended = () => setPlayingItemId(null);
+            audio.onerror = () => setPlayingItemId(null);
+            audio.play().catch(() => setPlayingItemId(null));
+            previewAudioRef.current = audio;
+            setPlayingItemId(item.id);
+        } else if (item.youtubeId) {
+            // Ouvrir YouTube ou notifier
+            window.open(`https://www.youtube.com/watch?v=${item.youtubeId}`, '_blank');
+        }
+    };
+
+    const handleFileChosen = (file: File) => {
+        if (!file) return;
+        const validExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac'];
+        const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
+        if (!validExtensions.includes(ext) && !file.type.startsWith('audio/')) {
+            alert('Format audio non supporté. Veuillez choisir un fichier MP3, WAV ou OGG.');
+            return;
+        }
+
+        setSelectedFile(file);
+        const cleanName = file.name
+            .replace(/\.[^/.]+$/, '')
+            .replace(/[_-]+/g, ' ')
+            .trim();
+        if (!newTitle) {
+            setNewTitle(cleanName);
+        }
+
+        const objUrl = URL.createObjectURL(file);
+        const audio = new Audio(objUrl);
+        audio.addEventListener('loadedmetadata', () => {
+            if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+                setNewDuration(String(Math.max(1, Math.round(audio.duration))));
+            }
+        });
+    };
 
     const handleUrlBlur = async () => {
         if (!newUrl.trim() || newTitle.trim()) return;
@@ -119,28 +227,73 @@ export function RadionomyJinglesBox({
         setIsFetchingTitle(false);
     };
 
-    const handleAddItem = (e: React.FormEvent) => {
+    const handleSaveItem = async (e: React.FormEvent) => {
         e.preventDefault();
-        const ytid = extractYouTubeId(newUrl) || newUrl.trim();
-        if (!ytid) return;
+
+        let finalAudioUrl: string | undefined = undefined;
+        let finalYoutubeId: string | undefined = undefined;
+
+        if (addSourceType === 'upload') {
+            if (!selectedFile) {
+                alert('Veuillez sélectionner un fichier audio (WAV ou MP3).');
+                return;
+            }
+
+            setIsUploading(true);
+            try {
+                // Essayer l'upload R2 serveur en premier
+                finalAudioUrl = await uploadFile(selectedFile, 'radio/jingles', (p) => setUploadProgress(p));
+            } catch (err) {
+                console.warn('Repli vers Data URL locale:', err);
+                // Repli direct base64 data URL
+                finalAudioUrl = await new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(selectedFile);
+                });
+            } finally {
+                setIsUploading(false);
+                setUploadProgress(null);
+            }
+        } else {
+            const ytid = extractYouTubeId(newUrl) || newUrl.trim();
+            if (!ytid) {
+                alert('Veuillez entrer une URL YouTube valide.');
+                return;
+            }
+            finalYoutubeId = ytid;
+        }
+
+        const dur = parseInt(newDuration, 10) || 12;
 
         const newItem: RadionomyItem = {
-            id: `rad_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-            title: newTitle.trim() || `Élément ${newCategory.toUpperCase()}`,
-            youtubeId: ytid,
-            duration: parseInt(newDuration, 10) || 20,
+            id: `rad_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            title: newTitle.trim() || (selectedFile ? selectedFile.name : `Jingle ${newCategory.toUpperCase()}`),
+            youtubeId: finalYoutubeId,
+            audioUrl: finalAudioUrl,
+            duration: dur,
             category: newCategory,
-            isCustom: true
+            isCustom: true,
+            fileName: selectedFile?.name
         };
 
         setItems(prev => [newItem, ...prev]);
+
+        // Reset form
         setNewTitle('');
         setNewUrl('');
-        setNewDuration('15');
-        setShowAddForm(false);
+        setSelectedFile(null);
+        setNewDuration('12');
+        setShowAddDrawer(false);
     };
 
     const handleDeleteItem = (id: string) => {
+        if (playingItemId === id && previewAudioRef.current) {
+            previewAudioRef.current.pause();
+            previewAudioRef.current = null;
+            setPlayingItemId(null);
+        }
         setItems(prev => prev.filter(i => i.id !== id));
     };
 
@@ -161,23 +314,23 @@ export function RadionomyJinglesBox({
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="bg-[#0a0a14]/98 border border-white/10 rounded-3xl w-full max-w-4xl h-[90vh] max-h-[850px] shadow-[0_0_80px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden relative"
+                    className="bg-[#0a0a14]/98 border border-white/10 rounded-3xl w-full max-w-5xl h-[92vh] max-h-[880px] shadow-[0_0_80px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden relative font-sans"
                 >
                     {/* Top radionomy signature bar */}
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-amber-400 to-neon-cyan" />
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-neon-cyan via-purple-500 to-amber-400" />
 
                     {/* Header */}
-                    <div className="p-4 sm:p-6 border-b border-white/10 flex items-center justify-between shrink-0 bg-black/50">
+                    <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between shrink-0 bg-black/50">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500/20 to-amber-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+                            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-neon-cyan/20 to-purple-600/20 border border-neon-cyan/30 flex items-center justify-center text-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.3)]">
                                 <Radio className="w-5 h-5" />
                             </div>
                             <div>
                                 <h3 className="text-base sm:text-lg font-display font-black text-white uppercase italic tracking-wider flex items-center gap-2">
-                                    Bac Radionomy <span className="text-purple-400">Jingles & Pubs</span>
+                                    Bac Radionomy <span className="text-neon-cyan">Jingles, TOP Horaire & Génériques</span>
                                 </h3>
                                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">
-                                    Format Radionomy • Cartouchier d'habillage antenne {currentBlockTitle ? `pour "${currentBlockTitle}"` : ''}
+                                    Upload direct MP3/WAV · Habillage antenne 24/7 {currentBlockTitle ? `· pour "${currentBlockTitle}"` : ''}
                                 </p>
                             </div>
                         </div>
@@ -280,11 +433,13 @@ export function RadionomyJinglesBox({
                     </AnimatePresence>
 
                     {/* Filter & Action Tabs */}
-                    <div className="p-4 sm:p-5 border-b border-white/10 flex flex-wrap items-center justify-between gap-3 bg-black/30 shrink-0">
-                        <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-2xl border border-white/10">
+                    <div className="p-3.5 sm:p-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-3 bg-black/40 shrink-0">
+                        <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-2xl border border-white/10 overflow-x-auto max-w-full">
                             {[
                                 { id: 'all', label: 'Tout voir' },
                                 { id: 'jingle', label: '🔔 Jingles', count: items.filter(i => i.category === 'jingle').length },
+                                { id: 'top_horaire', label: '⏰ TOP Horaire', count: items.filter(i => i.category === 'top_horaire').length },
+                                { id: 'generique', label: '🎙️ Génériques', count: items.filter(i => i.category === 'generique').length },
                                 { id: 'pub', label: '📢 Pubs', count: items.filter(i => i.category === 'pub').length },
                                 { id: 'promo', label: '⚡ Promos', count: items.filter(i => i.category === 'promo').length },
                             ].map(tab => (
@@ -292,9 +447,9 @@ export function RadionomyJinglesBox({
                                     key={tab.id}
                                     type="button"
                                     onClick={() => setActiveFilter(tab.id as any)}
-                                    className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
                                         activeFilter === tab.id
-                                            ? 'bg-white text-black shadow-md'
+                                            ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,240,255,0.4)]'
                                             : 'text-gray-400 hover:text-white'
                                     }`}
                                 >
@@ -308,98 +463,219 @@ export function RadionomyJinglesBox({
                                 <button
                                     type="button"
                                     onClick={() => onOpenYouTubeSearch('jingle')}
-                                    className="px-3.5 py-2 rounded-xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-300 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                                    className="px-3 py-2 rounded-xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-300 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
                                 >
-                                    <span>🔍 Chercher Jingle sur YT</span>
+                                    <span>🔍 Chercher sur YT</span>
                                 </button>
                             )}
 
                             <button
                                 type="button"
-                                onClick={() => setShowAddForm(!showAddForm)}
-                                className="px-3.5 py-2 rounded-xl bg-neon-cyan/20 hover:bg-neon-cyan/30 border border-neon-cyan/40 text-neon-cyan text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                                onClick={() => {
+                                    setAddSourceType('upload');
+                                    setShowAddDrawer(!showAddDrawer);
+                                }}
+                                className="px-3.5 py-2 rounded-xl bg-neon-cyan/20 hover:bg-neon-cyan/30 border border-neon-cyan/50 text-neon-cyan text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-[0_0_15px_rgba(0,240,255,0.2)]"
                             >
-                                <Plus className="w-3.5 h-3.5" />
-                                <span>Créer Jingle / Pub</span>
+                                <Upload className="w-3.5 h-3.5" />
+                                <span>Uploader WAV / MP3</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setAddSourceType('youtube');
+                                    setShowAddDrawer(!showAddDrawer);
+                                }}
+                                className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-gray-300 hover:text-white text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                            >
+                                <LinkIcon className="w-3.5 h-3.5" />
+                                <span>Lien YouTube</span>
                             </button>
                         </div>
                     </div>
 
-                    {/* Add Form Drawer */}
+                    {/* Add Form Drawer (Upload WAV/MP3 ou Lien YouTube) */}
                     <AnimatePresence>
-                        {showAddForm && (
+                        {showAddDrawer && (
                             <motion.form
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
                                 exit={{ opacity: 0, height: 0 }}
-                                onSubmit={handleAddItem}
-                                className="p-4 sm:p-5 bg-[#0f111a] border-b border-white/10 shrink-0 space-y-3"
+                                onSubmit={handleSaveItem}
+                                className="p-4 sm:p-5 bg-[#0f111a] border-b border-neon-cyan/30 shrink-0 space-y-4 shadow-xl"
                             >
-                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                                    <div className="sm:col-span-3">
-                                        <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Catégorie</label>
-                                        <select
-                                            value={newCategory}
-                                            onChange={(e) => setNewCategory(e.target.value as any)}
-                                            className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
+                                <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setAddSourceType('upload')}
+                                            className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase italic tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
+                                                addSourceType === 'upload'
+                                                    ? 'bg-neon-cyan text-black shadow-md'
+                                                    : 'bg-white/5 text-gray-400 hover:text-white'
+                                            }`}
                                         >
-                                            <option value="jingle">🔔 Jingle / Sweeper</option>
-                                            <option value="pub">📢 Publicité / Sponsor</option>
-                                            <option value="promo">⚡ Promo / Teaser</option>
-                                        </select>
+                                            <Upload className="w-3.5 h-3.5" />
+                                            Upload Fichier (MP3 / WAV)
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setAddSourceType('youtube')}
+                                            className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase italic tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
+                                                addSourceType === 'youtube'
+                                                    ? 'bg-neon-cyan text-black shadow-md'
+                                                    : 'bg-white/5 text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            <LinkIcon className="w-3.5 h-3.5" />
+                                            Lien YouTube / ID
+                                        </button>
                                     </div>
 
-                                    <div className="sm:col-span-4">
-                                        <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Lien YouTube ou ID</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAddDrawer(false)}
+                                        className="text-gray-400 hover:text-white cursor-pointer"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+
+                                {addSourceType === 'upload' ? (
+                                    /* Upload Zone */
+                                    <div className="space-y-3">
                                         <input
-                                            type="text"
-                                            value={newUrl}
-                                            onChange={(e) => setNewUrl(e.target.value)}
-                                            onBlur={handleUrlBlur}
-                                            placeholder="https://www.youtube.com/watch?v=..."
-                                            className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
-                                            required
+                                            type="file"
+                                            ref={fileInputRef}
+                                            accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) handleFileChosen(file);
+                                            }}
                                         />
-                                    </div>
 
-                                    <div className="sm:col-span-3">
+                                        <div
+                                            onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                                            onDragLeave={() => setDragActive(false)}
+                                            onDrop={(e) => {
+                                                e.preventDefault();
+                                                setDragActive(false);
+                                                const file = e.dataTransfer.files?.[0];
+                                                if (file) handleFileChosen(file);
+                                            }}
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className={`p-6 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2.5 cursor-pointer transition-all ${
+                                                dragActive
+                                                    ? 'border-neon-cyan bg-neon-cyan/15 scale-[1.01]'
+                                                    : selectedFile
+                                                        ? 'border-neon-cyan/50 bg-neon-cyan/5'
+                                                        : 'border-white/15 bg-white/[0.02] hover:border-white/30 hover:bg-white/[0.04]'
+                                            }`}
+                                        >
+                                            <div className="w-12 h-12 rounded-2xl bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center text-neon-cyan">
+                                                {selectedFile ? <FileAudio className="w-6 h-6 animate-pulse" /> : <Upload className="w-6 h-6" />}
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-xs font-black uppercase text-white tracking-wide">
+                                                    {selectedFile ? `Fichier prêt : ${selectedFile.name}` : 'Cliquez ou glissez un fichier audio (WAV ou MP3)'}
+                                                </p>
+                                                <p className="text-[10px] text-gray-400 font-mono mt-0.5">
+                                                    Supporte : MP3, WAV, OGG, M4A · Mesure automatique de la durée exacte
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    /* YouTube URL */
+                                    <div className="grid grid-cols-1 gap-3">
+                                        <div>
+                                            <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Lien YouTube ou ID</label>
+                                            <input
+                                                type="text"
+                                                value={newUrl}
+                                                onChange={(e) => setNewUrl(e.target.value)}
+                                                onBlur={handleUrlBlur}
+                                                placeholder="https://www.youtube.com/watch?v=..."
+                                                className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neon-cyan"
+                                                required={addSourceType === 'youtube'}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Détails titre / catégorie / durée */}
+                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                                    <div className="sm:col-span-5">
                                         <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Titre de l'habillage</label>
                                         <input
                                             type="text"
                                             value={newTitle}
                                             onChange={(e) => setNewTitle(e.target.value)}
-                                            placeholder={isFetchingTitle ? "Récupération..." : "Ex: Jingle Dropsiders Festival 2026"}
-                                            className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
+                                            placeholder={isFetchingTitle ? "Récupération titre..." : "Ex: Dropsiders TOP Horaire 2026"}
+                                            className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neon-cyan"
                                             required
                                         />
                                     </div>
 
-                                    <div className="sm:col-span-2">
-                                        <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Durée (sec)</label>
+                                    <div className="sm:col-span-4">
+                                        <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Catégorie</label>
+                                        <select
+                                            value={newCategory}
+                                            onChange={(e) => setNewCategory(e.target.value as any)}
+                                            className="w-full bg-[#121422] border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neon-cyan"
+                                        >
+                                            <option value="jingle">🔔 Jingle / Sweeper</option>
+                                            <option value="top_horaire">⏰ TOP Horaire (Début d'heure)</option>
+                                            <option value="generique">🎙️ Générique d'émission</option>
+                                            <option value="pub">📢 Publicité / Sponsor</option>
+                                            <option value="promo">⚡ Promo / Teaser</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="sm:col-span-3">
+                                        <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Durée (secondes)</label>
                                         <input
                                             type="number"
                                             value={newDuration}
                                             onChange={(e) => setNewDuration(e.target.value)}
-                                            className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
+                                            className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neon-cyan"
                                             min={1}
-                                            max={300}
+                                            max={600}
                                         />
                                     </div>
                                 </div>
 
-                                <div className="flex justify-end gap-2 pt-1">
+                                {isUploading && uploadProgress !== null && (
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between text-[10px] text-gray-400 font-mono">
+                                            <span>Envoi du fichier audio...</span>
+                                            <span>{uploadProgress}%</span>
+                                        </div>
+                                        <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-neon-cyan transition-all duration-300"
+                                                style={{ width: `${uploadProgress}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="flex justify-end gap-2 pt-2 border-t border-white/10">
                                     <button
                                         type="button"
-                                        onClick={() => setShowAddForm(false)}
+                                        onClick={() => setShowAddDrawer(false)}
                                         className="px-4 py-2 rounded-xl bg-white/5 text-xs font-bold text-gray-400 hover:text-white"
                                     >
                                         Annuler
                                     </button>
                                     <button
                                         type="submit"
-                                        className="px-5 py-2 rounded-xl bg-neon-cyan text-black font-black text-xs uppercase tracking-wider flex items-center gap-1.5"
+                                        disabled={isUploading}
+                                        className="px-5 py-2.5 rounded-xl bg-neon-cyan text-black font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_15px_rgba(0,240,255,0.4)] disabled:opacity-50 cursor-pointer"
                                     >
-                                        <Plus className="w-4 h-4" />
+                                        {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                                         <span>Sauvegarder dans le Bac</span>
                                     </button>
                                 </div>
@@ -409,55 +685,135 @@ export function RadionomyJinglesBox({
 
                     {/* Cartouchier Items Grid */}
                     <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                             {filteredItems.map((item) => {
+                                const isTopHoraire = item.category === 'top_horaire';
+                                const isGenerique = item.category === 'generique';
                                 const isJingle = item.category === 'jingle';
                                 const isPub = item.category === 'pub';
-                                const badgeColor = isJingle 
-                                    ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' 
-                                    : isPub 
-                                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                                        : 'bg-red-500/20 text-red-300 border-red-500/30';
+                                const isPlayingThis = playingItemId === item.id;
+
+                                const badgeColor = isTopHoraire
+                                    ? 'bg-neon-cyan/20 text-neon-cyan border-neon-cyan/40'
+                                    : isGenerique
+                                        ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                                        : isJingle 
+                                            ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' 
+                                            : isPub 
+                                                ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                                                : 'bg-red-500/20 text-red-300 border-red-500/30';
+
+                                const categoryLabel = isTopHoraire
+                                    ? '⏰ TOP Horaire'
+                                    : isGenerique
+                                        ? '🎙️ Générique'
+                                        : isJingle
+                                            ? '🔔 Jingle'
+                                            : isPub
+                                                ? '📢 Publicité'
+                                                : '⚡ Promo';
 
                                 return (
                                     <div
                                         key={item.id}
-                                        className="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between gap-3 group relative"
+                                        className={`p-4 rounded-2xl border transition-all flex flex-col justify-between gap-3 group relative ${
+                                            isPlayingThis
+                                                ? 'bg-neon-cyan/10 border-neon-cyan shadow-[0_0_20px_rgba(0,240,255,0.25)]'
+                                                : 'bg-white/[0.03] hover:bg-white/[0.06] border-white/10 hover:border-white/20'
+                                        }`}
                                     >
                                         <div>
-                                            <div className="flex items-center justify-between mb-2">
+                                            <div className="flex items-center justify-between gap-1 mb-2">
                                                 <span className={`px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider border ${badgeColor}`}>
-                                                    {isJingle ? '🔔 Jingle' : isPub ? '📢 Publicité' : '⚡ Promo'}
+                                                    {categoryLabel}
                                                 </span>
-                                                <span className="text-[10px] font-mono text-gray-400 font-bold">
-                                                    {item.duration}s
-                                                </span>
+
+                                                <div className="flex items-center gap-1.5">
+                                                    {item.audioUrl ? (
+                                                        <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[8px] font-mono font-bold">
+                                                            🎵 MP3/WAV
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-1.5 py-0.5 rounded-md bg-red-500/20 text-red-400 border border-red-500/30 text-[8px] font-mono font-bold">
+                                                            📺 YT
+                                                        </span>
+                                                    )}
+                                                    <span className="text-[10px] font-mono text-gray-300 font-bold bg-white/5 px-1.5 py-0.5 rounded">
+                                                        {item.duration}s
+                                                    </span>
+                                                </div>
                                             </div>
 
                                             <h4 className="text-xs font-bold text-white line-clamp-2 leading-snug group-hover:text-neon-cyan transition-colors">
                                                 {item.title}
                                             </h4>
-                                            <p className="text-[9px] text-gray-500 font-mono mt-1">
-                                                YT: {item.youtubeId}
-                                            </p>
+
+                                            {item.fileName && (
+                                                <p className="text-[9px] text-gray-400 font-mono mt-1 truncate">
+                                                    📁 {item.fileName}
+                                                </p>
+                                            )}
                                         </div>
 
-                                        <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/5">
-                                            {item.isCustom && (
+                                        {/* Actions bar */}
+                                        <div className="space-y-2 pt-2 border-t border-white/5">
+                                            <div className="flex items-center gap-2">
+                                                {/* Play / Preview button */}
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleDeleteItem(item.id)}
-                                                    className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                                                    title="Supprimer du bac"
+                                                    onClick={() => handleTogglePreview(item)}
+                                                    className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+                                                        isPlayingThis
+                                                            ? 'bg-neon-cyan text-black shadow-md'
+                                                            : 'bg-white/10 hover:bg-white/20 text-white'
+                                                    }`}
+                                                    title={item.audioUrl ? "Écouter l'extrait audio" : "Voir sur YouTube"}
                                                 >
-                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                    {isPlayingThis ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+                                                    <span>{isPlayingThis ? 'Stop' : 'Écouter'}</span>
                                                 </button>
-                                            )}
 
+                                                {/* Quick Config as TOP Horaire */}
+                                                {onSetAsTopHoraire && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => onSetAsTopHoraire(item)}
+                                                        className="px-2.5 py-1.5 rounded-xl bg-neon-cyan/10 hover:bg-neon-cyan/25 border border-neon-cyan/30 text-neon-cyan text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer"
+                                                        title="Définir ce jingle comme TOP Horaire officiel"
+                                                    >
+                                                        Top Horaire
+                                                    </button>
+                                                )}
+
+                                                {/* Quick Config as Theme Jingle */}
+                                                {onSetAsThemeJingle && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => onSetAsThemeJingle(item)}
+                                                        className="px-2.5 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/25 border border-purple-500/30 text-purple-300 text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer"
+                                                        title="Définir comme générique d'ouverture"
+                                                    >
+                                                        Générique
+                                                    </button>
+                                                )}
+
+                                                {item.isCustom && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteItem(item.id)}
+                                                        className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors ml-auto cursor-pointer"
+                                                        title="Supprimer du bac"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {/* Insérer dans l'émission */}
                                             <button
                                                 type="button"
                                                 onClick={() => onInsertItem(item)}
-                                                className="flex-1 py-2 px-3 rounded-xl bg-white/10 hover:bg-neon-cyan hover:text-black text-white text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-md ml-auto"
+                                                className="w-full py-2 px-3 rounded-xl bg-white/10 hover:bg-neon-cyan hover:text-black text-white text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-md"
                                             >
                                                 <Plus className="w-3.5 h-3.5" />
                                                 <span>Insérer dans l'Émission</span>

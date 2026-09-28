@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X,
@@ -17,6 +17,7 @@ import {
     Loader2,
     Calendar,
     Play,
+    Pause,
     Tv,
     Clock,
     Film,
@@ -29,17 +30,24 @@ import {
     ArrowUpFromLine,
     Maximize2,
     Minimize2,
-    Sliders
+    Sliders,
+    Upload,
+    FileAudio,
+    Volume2
 } from 'lucide-react';
 import { extractYouTubeId, fetchYouTubeTitle } from './AdminTVModal';
 import { RadionomyJinglesBox, type RadionomyItem } from './RadionomyJinglesBox';
 import { YouTubeSearchModal } from './YouTubeSearchModal';
 import { apiFetch, getAuthHeaders } from '../../../utils/auth';
+import { uploadFile } from '../../../utils/uploadService';
 import defaultSettings from '../../../data/settings.json';
 import { ConfirmModal } from '../../ui/ConfirmModal';
 import { DuplicateAuditModal, detectRadioDuplicates, type DuplicateEntry } from '../../ui/DuplicateAuditModal';
 import {
     STORAGE_RADIO_BLOCKS_KEY,
+    STORAGE_RADIO_TOP_HORAIRE_KEY,
+    DEFAULT_TOP_HORAIRE,
+    getTopHoraireConfig,
     DAYS_OF_WEEK,
     ALL_DAYS,
     WEEKDAYS,
@@ -51,7 +59,9 @@ import {
     sortRadioBlocksByBroadcastOrder,
     getActiveRadioBlock,
     type RadioScheduleBlock,
-    type RadioTrackItem
+    type RadioTrackItem,
+    type RadioThemeJingle,
+    type RadioTopHoraireConfig
 } from '../../../utils/radioSchedule';
 import { parseArtistAndEvent } from '../../../utils/tvSchedule';
 
@@ -194,6 +204,34 @@ export function AdminRadioModal({
     } | null>(null);
     const [isFetchingEditTitle, setIsFetchingEditTitle] = useState(false);
 
+    // ─── TOP Horaire (Début d'heure) ──────────────────────────────────────────
+    const [topHoraireConfig, setTopHoraireConfig] = useState<RadioTopHoraireConfig>(getTopHoraireConfig);
+    const [isTopHoraireModalOpen, setIsTopHoraireModalOpen] = useState(false);
+
+    // ─── Audio Preview Player (WAV / MP3) ─────────────────────────────────────
+    const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+    const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
+
+    const handleToggleAudioPreview = (id: string, url: string) => {
+        if (playingAudioId === id) {
+            audioPreviewRef.current?.pause();
+            audioPreviewRef.current = null;
+            setPlayingAudioId(null);
+            return;
+        }
+        if (audioPreviewRef.current) {
+            audioPreviewRef.current.pause();
+            audioPreviewRef.current = null;
+        }
+        const a = new Audio(url);
+        a.volume = 0.85;
+        a.onended = () => setPlayingAudioId(null);
+        a.onerror = () => setPlayingAudioId(null);
+        a.play().catch(() => setPlayingAudioId(null));
+        audioPreviewRef.current = a;
+        setPlayingAudioId(id);
+    };
+
     // ─── Edition émission ─────────────────────────────────────────────────────
     const [isEditingBlock, setIsEditingBlock] = useState(false);
     const [editBlockForm, setEditBlockForm] = useState({
@@ -204,6 +242,11 @@ export function AdminRadioModal({
         endHour: 4,
         days: ALL_DAYS,
         randomize: true,
+        themeJingleEnabled: false,
+        themeJingleTitle: '',
+        themeJingleAudioUrl: '',
+        themeJingleYoutubeId: '',
+        themeJingleDuration: 15,
     });
 
     // ─── Sauvegarde ───────────────────────────────────────────────────────────
@@ -225,6 +268,10 @@ export function AdminRadioModal({
                 });
                 if (res.ok) {
                     const data = await res.json();
+                    if (data?.radio_top_horaire && typeof data.radio_top_horaire.enabled === 'boolean') {
+                        setTopHoraireConfig(data.radio_top_horaire);
+                        localStorage.setItem(STORAGE_RADIO_TOP_HORAIRE_KEY, JSON.stringify(data.radio_top_horaire));
+                    }
                     if (Array.isArray(data?.radio_blocks) && data.radio_blocks.length > 0) {
                         const sorted = sortRadioBlocksByBroadcastOrder(data.radio_blocks, true);
                         setBlocks(sorted);
@@ -324,9 +371,9 @@ export function AdminRadioModal({
         const newVid: TVVideoItem = {
             id: `tv_from_radio_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
             title: `${track.artist} - ${track.title}`,
-            youtubeId: track.youtubeId,
+            youtubeId: track.youtubeId ?? '',
             duration: track.duration || 3600,
-            category: track.category || 'liveset',
+            category: (track.category === 'liveset' || track.category === 'clip') ? track.category : 'liveset',
             blockTitle: targetTV.title,
             blockColor: targetTV.color || '#00f0ff',
             blockEmoji: targetTV.emoji || '📺',
@@ -372,6 +419,11 @@ export function AdminRadioModal({
             endHour: ((blocks.length * 4) + 4) % 24 || 24,
             days: ALL_DAYS,
             randomize: true,
+            themeJingleEnabled: false,
+            themeJingleTitle: '',
+            themeJingleAudioUrl: '',
+            themeJingleYoutubeId: '',
+            themeJingleDuration: 15,
         });
         setIsEditingBlock(true);
     };
@@ -387,6 +439,11 @@ export function AdminRadioModal({
             endHour: block.endHour,
             days: block.days || ALL_DAYS,
             randomize: block.randomize,
+            themeJingleEnabled: block.themeJingle?.enabled ?? false,
+            themeJingleTitle: block.themeJingle?.title || '',
+            themeJingleAudioUrl: block.themeJingle?.audioUrl || '',
+            themeJingleYoutubeId: block.themeJingle?.youtubeId || '',
+            themeJingleDuration: block.themeJingle?.duration || 15,
         });
         setIsEditingBlock(true);
     };
@@ -396,6 +453,14 @@ export function AdminRadioModal({
             showToast('Donnez un nom à votre émission', 'warn');
             return;
         }
+
+        const themeJingle: RadioThemeJingle | undefined = editBlockForm.themeJingleEnabled ? {
+            enabled: true,
+            title: editBlockForm.themeJingleTitle.trim() || `Générique • ${editBlockForm.title.trim().toUpperCase()}`,
+            audioUrl: editBlockForm.themeJingleAudioUrl || undefined,
+            youtubeId: editBlockForm.themeJingleYoutubeId || undefined,
+            duration: editBlockForm.themeJingleDuration || 15,
+        } : undefined;
 
         if (editingBlockId) {
             // MODE MODIFICATION d'une émission existante
@@ -412,6 +477,7 @@ export function AdminRadioModal({
                     days: editBlockForm.days,
                     randomize: editBlockForm.randomize,
                     timeSlot: formatRadioTimeSlot(editBlockForm.startHour, editBlockForm.endHour),
+                    themeJingle
                 };
             });
             const sorted = sortRadioBlocksByBroadcastOrder(updated, false);
@@ -433,6 +499,7 @@ export function AdminRadioModal({
                 randomize: editBlockForm.randomize,
                 days: editBlockForm.days,
                 tracks: [],
+                themeJingle
             };
             const sorted = sortRadioBlocksByBroadcastOrder([...blocks, newBlock], false);
             setBlocks(sorted);
@@ -441,6 +508,53 @@ export function AdminRadioModal({
         }
         setIsEditingBlock(false);
         setEditingBlockId(null);
+    };
+
+    // ─── Actions TOP Horaire & Générique d'émission ───────────────────────────
+    const handleSetAsTopHoraire = (item: RadionomyItem) => {
+        const updated: RadioTopHoraireConfig = {
+            enabled: true,
+            title: item.title,
+            audioUrl: item.audioUrl,
+            youtubeId: item.youtubeId,
+            duration: item.duration || 10,
+        };
+        setTopHoraireConfig(updated);
+        localStorage.setItem(STORAGE_RADIO_TOP_HORAIRE_KEY, JSON.stringify(updated));
+        apiFetch('/api/settings/update', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ radio_top_horaire: updated })
+        }).catch(e => console.error('Erreur sauvegarde TOP Horaire:', e));
+        showToast(`🔔 TOP Horaire défini : « ${item.title} » (${updated.duration}s)`);
+    };
+
+    const handleSetAsThemeJingle = (item: RadionomyItem) => {
+        if (!selectedBlockId) {
+            showToast('Sélectionnez d\'abord une émission', 'warn');
+            return;
+        }
+        const theme: RadioThemeJingle = {
+            enabled: true,
+            title: item.title,
+            audioUrl: item.audioUrl,
+            youtubeId: item.youtubeId,
+            duration: item.duration || 15,
+        };
+        setBlocks(prev => prev.map(b => b.id === selectedBlockId ? { ...b, themeJingle: theme } : b));
+        showToast(`🎙️ Générique d'émission défini pour « ${selectedBlock?.title} » !`);
+    };
+
+    const handleSaveTopHoraire = (updated: RadioTopHoraireConfig) => {
+        setTopHoraireConfig(updated);
+        localStorage.setItem(STORAGE_RADIO_TOP_HORAIRE_KEY, JSON.stringify(updated));
+        apiFetch('/api/settings/update', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ radio_top_horaire: updated })
+        }).catch(e => console.error('Erreur sauvegarde TOP Horaire:', e));
+        setIsTopHoraireModalOpen(false);
+        showToast(updated.enabled ? `🔔 TOP Horaire activé (${updated.duration}s)` : 'TOP Horaire désactivé');
     };
 
     // Remettre à zéro toute la grille radio
@@ -770,9 +884,10 @@ export function AdminRadioModal({
         const { artist, event } = parseArtistAndEvent(item.title);
         const newTrack: RadioTrackItem = {
             id: `rad_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-            artist: artist || (item.category === 'jingle' ? 'DROPSIDERS' : item.category === 'pub' ? 'SPONSOR' : 'DROPSIDERS RADIO'),
+            artist: artist || (item.category === 'jingle' ? 'DROPSIDERS' : item.category === 'top_horaire' ? 'TOP HORAIRE' : item.category === 'generique' ? 'GÉNÉRIQUE' : item.category === 'pub' ? 'SPONSOR' : 'DROPSIDERS RADIO'),
             title: event || item.title,
             youtubeId: item.youtubeId,
+            audioUrl: item.audioUrl,
             category: 'clip',
             duration: item.duration || 15,
             addedAt: Date.now()
@@ -784,7 +899,7 @@ export function AdminRadioModal({
                 tracks: [...(b.tracks || []), newTrack]
             };
         }));
-        showToast(`✓ ${item.category === 'jingle' ? 'Jingle' : 'Élément'} « ${item.title} » ajouté à l'émission !`);
+        showToast(`✓ ${item.category === 'jingle' ? 'Jingle' : item.category === 'top_horaire' ? 'TOP Horaire' : item.category === 'generique' ? 'Générique' : 'Élément'} « ${item.title} » ajouté à l'émission !`);
     };
 
     // ─── Radionomy : Règle Horloge (Jingle tous les N titres / Pubs) ───────────
@@ -827,6 +942,7 @@ export function AdminRadioModal({
                         artist: 'SPONSOR',
                         title: pub.title,
                         youtubeId: pub.youtubeId,
+                        audioUrl: pub.audioUrl,
                         category: 'clip',
                         duration: pub.duration || 30,
                         addedAt: Date.now()
@@ -839,6 +955,7 @@ export function AdminRadioModal({
                         artist: 'DROPSIDERS JINGLE',
                         title: jing.title,
                         youtubeId: jing.youtubeId,
+                        audioUrl: jing.audioUrl,
                         category: 'clip',
                         duration: jing.duration || 15,
                         addedAt: Date.now()
@@ -888,11 +1005,16 @@ export function AdminRadioModal({
         setSaveSuccess(false);
         try {
             localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(blocks));
+            localStorage.setItem(STORAGE_RADIO_TOP_HORAIRE_KEY, JSON.stringify(topHoraireConfig));
             const flatTracks = blocks.flatMap(b => b.tracks || []);
             const res = await apiFetch('/api/settings/update', {
                 method: 'POST',
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ radio_blocks: blocks, radio_tracks: flatTracks }),
+                body: JSON.stringify({ 
+                    radio_blocks: blocks, 
+                    radio_tracks: flatTracks,
+                    radio_top_horaire: topHoraireConfig
+                }),
             });
             if (res.ok) {
                 window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
@@ -1028,16 +1150,36 @@ export function AdminRadioModal({
                         </div>
 
                         <div className="flex items-center gap-2">
+                            {/* TOP Horaire (Début d'heure) */}
+                            <button
+                                type="button"
+                                onClick={() => setIsTopHoraireModalOpen(true)}
+                                className={`px-3 py-2 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-2 border transition-all cursor-pointer ${
+                                    topHoraireConfig.enabled
+                                        ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.25)]'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                }`}
+                                title="Configurer le TOP Horaire (jingle automatique à chaque début d'heure : 00 min)"
+                            >
+                                <Clock className="w-3.5 h-3.5 text-neon-cyan" />
+                                <span className="hidden sm:inline">TOP Horaire</span>
+                                <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-mono font-bold ${
+                                    topHoraireConfig.enabled ? 'bg-neon-cyan/30 text-neon-cyan' : 'bg-white/10 text-gray-500'
+                                }`}>
+                                    {topHoraireConfig.enabled ? `${topHoraireConfig.duration}s` : 'OFF'}
+                                </span>
+                            </button>
+
                             {/* Radionomy · Jingles & Pubs */}
                             <button
                                 type="button"
                                 onClick={() => setIsRadionomyOpen(true)}
                                 className="px-3 py-2 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-2 border bg-gradient-to-r from-purple-900/40 via-purple-700/30 to-pink-900/30 border-purple-500/50 text-purple-200 hover:text-white hover:border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)] transition-all cursor-pointer group"
-                                title="Boîte à Jingles, Pubs et Règle Horloge façon Radionomy"
+                                title="Boîte à Jingles, Upload WAV/MP3, Pubs et Règle Horloge"
                             >
                                 <Sliders className="w-3.5 h-3.5 text-purple-400 group-hover:rotate-90 transition-transform duration-300" />
-                                <span className="hidden sm:inline">Radionomy</span>
-                                <span className="text-[9px] text-purple-300 font-mono normal-case hidden md:inline">· Jingles/Pubs</span>
+                                <span className="hidden sm:inline">Jingles & Bac</span>
+                                <span className="text-[9px] text-purple-300 font-mono normal-case hidden md:inline">· MP3/WAV</span>
                             </button>
 
                             {/* Recherche YouTube directe */}
@@ -1238,9 +1380,16 @@ export function AdminRadioModal({
 
                                             <div className="flex items-center justify-between mt-2 pt-1 border-t border-white/5">
                                                 <span className="text-[9px] font-mono text-gray-400">{b.timeSlot}</span>
-                                                <span className="text-[8.5px] font-mono font-bold text-neon-cyan bg-neon-cyan/10 px-2 py-0.5 rounded-md border border-neon-cyan/20">
-                                                    {b.tracks?.length || 0} piste{(b.tracks?.length || 0) !== 1 ? 's' : ''}
-                                                </span>
+                                                <div className="flex items-center gap-1.5">
+                                                    {b.themeJingle?.enabled && (
+                                                        <span className="text-[8px] font-mono font-bold text-purple-300 bg-purple-500/15 px-1.5 py-0.5 rounded border border-purple-500/30" title={`Générique : ${b.themeJingle.title}`}>
+                                                            🎙️ {b.themeJingle.duration}s
+                                                        </span>
+                                                    )}
+                                                    <span className="text-[8.5px] font-mono font-bold text-neon-cyan bg-neon-cyan/10 px-2 py-0.5 rounded-md border border-neon-cyan/20">
+                                                        {b.tracks?.length || 0} piste{(b.tracks?.length || 0) !== 1 ? 's' : ''}
+                                                    </span>
+                                                </div>
                                             </div>
 
                                             {/* Hover Drag & Drop Indicator */}
@@ -1399,6 +1548,151 @@ export function AdminRadioModal({
                                                 );
                                             })}
                                         </div>
+                                    </div>
+
+                                    {/* ── GÉNÉRIQUE D'OUVERTURE DE L'ÉMISSION ── */}
+                                    <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300">
+                                                    <Radio className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <span className="text-xs font-display font-black text-white uppercase italic tracking-wider block">
+                                                        Générique d'Ouverture de l'Émission
+                                                    </span>
+                                                    <span className="text-[9px] text-gray-400 font-sans">
+                                                        Jingle ou thème sonore diffusé automatiquement au début de chaque émission
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={editBlockForm.themeJingleEnabled}
+                                                    onChange={e => setEditBlockForm(f => ({ ...f, themeJingleEnabled: e.target.checked }))}
+                                                    className="rounded accent-purple-500 w-4 h-4 cursor-pointer"
+                                                />
+                                                <span className="text-[10px] font-display font-black uppercase italic text-purple-300">
+                                                    {editBlockForm.themeJingleEnabled ? 'Actif' : 'Désactivé'}
+                                                </span>
+                                            </label>
+                                        </div>
+
+                                        {editBlockForm.themeJingleEnabled && (
+                                            <div className="pt-2 border-t border-white/5 space-y-3">
+                                                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                                                    <div className="md:col-span-6 space-y-1">
+                                                        <label className="text-[9px] font-mono text-gray-400 uppercase">Titre du Générique</label>
+                                                        <input
+                                                            type="text"
+                                                            value={editBlockForm.themeJingleTitle}
+                                                            onChange={e => setEditBlockForm(f => ({ ...f, themeJingleTitle: e.target.value }))}
+                                                            placeholder={`Ex: Générique Intro ${editBlockForm.title || "Émission"}`}
+                                                            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/15 text-white text-xs focus:outline-none focus:border-purple-400"
+                                                        />
+                                                    </div>
+
+                                                    <div className="md:col-span-3 space-y-1">
+                                                        <label className="text-[9px] font-mono text-gray-400 uppercase">Durée (secondes)</label>
+                                                        <input
+                                                            type="number"
+                                                            min={1}
+                                                            max={300}
+                                                            value={editBlockForm.themeJingleDuration}
+                                                            onChange={e => setEditBlockForm(f => ({ ...f, themeJingleDuration: parseInt(e.target.value, 10) || 15 }))}
+                                                            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/15 text-white text-xs text-center font-mono focus:outline-none focus:border-purple-400"
+                                                        />
+                                                    </div>
+
+                                                    <div className="md:col-span-3 flex gap-2">
+                                                        {editBlockForm.themeJingleAudioUrl && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleToggleAudioPreview('theme_form_preview', editBlockForm.themeJingleAudioUrl!)}
+                                                                className={`flex-1 py-2 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                                                    playingAudioId === 'theme_form_preview'
+                                                                        ? 'bg-neon-cyan text-black'
+                                                                        : 'bg-purple-600/30 text-purple-200 hover:bg-purple-600/40'
+                                                                }`}
+                                                            >
+                                                                {playingAudioId === 'theme_form_preview' ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+                                                                <span>{playingAudioId === 'theme_form_preview' ? 'Stop' : 'Écouter'}</span>
+                                                            </button>
+                                                        )}
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setIsRadionomyOpen(true)}
+                                                            className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[10px] font-display font-black uppercase italic tracking-wider flex items-center justify-center gap-1 cursor-pointer"
+                                                        >
+                                                            <Sliders className="w-3 h-3 text-purple-400" />
+                                                            <span>Bac Jingles</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Upload direct d'un MP3/WAV pour ce générique */}
+                                                <div className="flex items-center gap-3 p-3 rounded-xl bg-purple-950/20 border border-purple-500/20">
+                                                    <FileAudio className="w-4 h-4 text-purple-400 shrink-0" />
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-[10px] text-gray-300 font-bold truncate">
+                                                            {editBlockForm.themeJingleAudioUrl 
+                                                                ? "Fichier audio MP3/WAV configuré ✓" 
+                                                                : editBlockForm.themeJingleYoutubeId 
+                                                                    ? `Lien YouTube ID: ${editBlockForm.themeJingleYoutubeId}` 
+                                                                    : "Uploadez un fichier WAV/MP3 ou choisissez un jingle du bac"}
+                                                        </p>
+                                                    </div>
+                                                    <label className="px-3 py-1.5 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-purple-200 text-[9px] font-black uppercase tracking-wider cursor-pointer transition-all flex items-center gap-1.5 shrink-0">
+                                                        <Upload className="w-3 h-3" />
+                                                        <span>Uploader WAV/MP3</span>
+                                                        <input
+                                                            type="file"
+                                                            accept="audio/*,.mp3,.wav,.ogg,.m4a"
+                                                            className="hidden"
+                                                            onChange={async (e) => {
+                                                                const file = e.target.files?.[0];
+                                                                if (!file) return;
+                                                                showToast(`Upload de ${file.name}...`, 'info');
+                                                                try {
+                                                                    const objUrl = URL.createObjectURL(file);
+                                                                    const audio = new Audio(objUrl);
+                                                                    audio.addEventListener('loadedmetadata', () => {
+                                                                        if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+                                                                            setEditBlockForm(f => ({ ...f, themeJingleDuration: Math.round(audio.duration) }));
+                                                                        }
+                                                                    });
+                                                                    let uploadedUrl: string;
+                                                                    try {
+                                                                        uploadedUrl = await uploadFile(file, 'radio/jingles');
+                                                                    } catch {
+                                                                        uploadedUrl = await new Promise<string>((res, rej) => {
+                                                                            const r = new FileReader();
+                                                                            r.onload = () => res(r.result as string);
+                                                                            r.onerror = rej;
+                                                                            r.readAsDataURL(file);
+                                                                        });
+                                                                    }
+                                                                    const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]+/g, ' ');
+                                                                    setEditBlockForm(f => ({
+                                                                        ...f,
+                                                                        themeJingleTitle: f.themeJingleTitle || cleanName,
+                                                                        themeJingleAudioUrl: uploadedUrl,
+                                                                        themeJingleYoutubeId: ''
+                                                                    }));
+                                                                    showToast(`✓ Fichier audio chargé pour le générique !`);
+                                                                } catch (err) {
+                                                                    console.error(err);
+                                                                    showToast('Erreur chargement audio', 'warn');
+                                                                }
+                                                            }}
+                                                        />
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Actions */}
@@ -1659,6 +1953,60 @@ export function AdminRadioModal({
                                         </motion.div>
                                     )}
 
+                                    {/* ── GÉNÉRIQUE D'ÉMISSION ── */}
+                                    <div className="px-5 pb-2 shrink-0">
+                                        <div className={`p-3.5 rounded-2xl border flex items-center gap-3 transition-all ${
+                                            selectedBlock.themeJingle?.enabled
+                                                ? 'bg-purple-950/40 border-purple-500/40 shadow-[0_0_20px_rgba(168,85,247,0.15)]'
+                                                : 'bg-white/[0.02] border-white/8 hover:border-white/15'
+                                        }`}>
+                                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                                selectedBlock.themeJingle?.enabled ? 'bg-purple-600/40 text-purple-300' : 'bg-white/5 text-gray-500'
+                                            }`}>
+                                                <FileAudio className="w-4.5 h-4.5" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[9px] font-mono uppercase tracking-widest text-gray-500">Générique d'Émission</p>
+                                                <p className="text-xs font-display font-black text-white truncate">
+                                                    {selectedBlock.themeJingle?.enabled
+                                                        ? selectedBlock.themeJingle.title || 'Générique configuré'
+                                                        : 'Aucun générique défini'}
+                                                </p>
+                                                {selectedBlock.themeJingle?.enabled && (
+                                                    <p className="text-[9px] text-purple-300 font-mono mt-0.5">
+                                                        {selectedBlock.themeJingle.audioUrl ? '🎵 Fichier audio' : '▶ YouTube'}
+                                                        {selectedBlock.themeJingle.duration ? ` · ${selectedBlock.themeJingle.duration}s` : ''}
+                                                    </p>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-1.5 shrink-0">
+                                                {selectedBlock.themeJingle?.enabled && selectedBlock.themeJingle.audioUrl && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleToggleAudioPreview(`theme_${selectedBlock.id}`, selectedBlock.themeJingle!.audioUrl!)}
+                                                        className={`p-1.5 rounded-xl transition-all flex items-center gap-1 text-[9px] font-black uppercase ${
+                                                            playingAudioId === `theme_${selectedBlock.id}`
+                                                                ? 'bg-neon-cyan text-black'
+                                                                : 'bg-purple-600/30 text-purple-300 hover:bg-purple-600/50'
+                                                        }`}
+                                                        title="Écouter le générique"
+                                                    >
+                                                        {playingAudioId === `theme_${selectedBlock.id}` ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+                                                    </button>
+                                                )}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openEditBlockForm(selectedBlock)}
+                                                    className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-purple-600/30 border border-white/10 hover:border-purple-500/50 text-gray-400 hover:text-purple-300 transition-all text-[9px] font-display font-black uppercase italic flex items-center gap-1 cursor-pointer"
+                                                    title="Configurer le générique dans les réglages de l'émission"
+                                                >
+                                                    <Pencil className="w-3 h-3" />
+                                                    {selectedBlock.themeJingle?.enabled ? 'Modifier' : '+ Définir'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     {/* ── LISTE DES PISTES ACTUELLES DE L'ÉMISSION ── */}
                                     <div
                                         onDragOver={(e) => {
@@ -1741,13 +2089,19 @@ export function AdminRadioModal({
                                                             </div>
                                                         </div>
 
-                                                        {/* Miniature YouTube */}
+                                                        {/* Miniature YouTube ou Icône Audio */}
                                                         <div className="relative shrink-0">
-                                                            <img
-                                                                src={`https://img.youtube.com/vi/${track.youtubeId}/default.jpg`}
-                                                                alt=""
-                                                                className="w-14 h-9 rounded-xl object-cover bg-black border border-white/10"
-                                                            />
+                                                            {track.audioUrl ? (
+                                                                <div className="w-14 h-9 rounded-xl bg-gradient-to-br from-purple-900/60 to-purple-800/40 border border-purple-500/30 flex items-center justify-center">
+                                                                    <FileAudio className="w-5 h-5 text-purple-400" />
+                                                                </div>
+                                                            ) : (
+                                                                <img
+                                                                    src={`https://img.youtube.com/vi/${track.youtubeId}/default.jpg`}
+                                                                    alt=""
+                                                                    className="w-14 h-9 rounded-xl object-cover bg-black border border-white/10"
+                                                                />
+                                                            )}
                                                             <span className="absolute bottom-0.5 right-0.5 text-[7.5px] font-mono bg-black/85 px-1 rounded text-gray-300">
                                                                 {formatDurationExact(track.duration || 3600)}
                                                             </span>
@@ -1770,24 +2124,39 @@ export function AdminRadioModal({
 
                                                         {/* Durée & Actions */}
                                                         <div className="flex items-center gap-1.5 shrink-0">
-                                                            <a
-                                                                href={`https://www.youtube.com/watch?v=${track.youtubeId}`}
-                                                                target="_blank"
-                                                                rel="noreferrer"
-                                                                className="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white transition-colors cursor-pointer"
-                                                                title="Voir sur YouTube"
-                                                            >
-                                                                <ExternalLink className="w-3.5 h-3.5" />
-                                                            </a>
+                                                            {track.audioUrl ? (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleToggleAudioPreview(`track_${track.id}`, track.audioUrl!)}
+                                                                    className={`p-1.5 rounded-xl transition-colors cursor-pointer ${
+                                                                        playingAudioId === `track_${track.id}`
+                                                                            ? 'bg-neon-cyan/20 text-neon-cyan'
+                                                                            : 'bg-white/5 hover:bg-purple-600/20 text-gray-400 hover:text-purple-300'
+                                                                    }`}
+                                                                    title={playingAudioId === `track_${track.id}` ? 'Stop' : 'Écouter'}
+                                                                >
+                                                                    {playingAudioId === `track_${track.id}` ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5" />}
+                                                                </button>
+                                                            ) : (
+                                                                <a
+                                                                    href={`https://www.youtube.com/watch?v=${track.youtubeId}`}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    className="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                                                                    title="Voir sur YouTube"
+                                                                >
+                                                                    <ExternalLink className="w-3.5 h-3.5" />
+                                                                </a>
+                                                            )}
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setEditingTrack({
                                                                     trackId: track.id,
                                                                     artist: track.artist || '',
                                                                     title: track.title || '',
-                                                                    category: track.category || 'liveset',
+                                                                    category: (track.category === 'clip') ? 'clip' : 'liveset',
                                                                     durationMinutes: Math.round((track.duration || 3600) / 60),
-                                                                    youtubeId: track.youtubeId,
+                                                                    youtubeId: track.youtubeId ?? '',
                                                                 })}
                                                                 className="p-1.5 rounded-xl bg-white/5 hover:bg-neon-cyan/20 text-gray-400 hover:text-neon-cyan transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
                                                                 title="Modifier ce titre / clip"
@@ -2354,6 +2723,190 @@ export function AdminRadioModal({
                     </div>
                 )}
 
+                {/* ── MODAL TOP HORAIRE ─────────────────────────────────────── */}
+                {isTopHoraireModalOpen && (
+                    <div
+                        className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+                        onClick={e => { if (e.target === e.currentTarget) setIsTopHoraireModalOpen(false); }}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.93, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.93, y: 20 }}
+                            className="bg-[#0b0c16] border border-neon-cyan/30 rounded-3xl p-6 w-full max-w-lg shadow-[0_0_60px_rgba(0,240,255,0.2)] space-y-5 relative overflow-hidden"
+                        >
+                            {/* Accent line */}
+                            <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-neon-cyan via-blue-400 to-neon-cyan rounded-t-3xl" />
+
+                            {/* Header */}
+                            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                                <h3 className="text-base font-display font-black text-white uppercase italic tracking-tight flex items-center gap-2.5">
+                                    <div className="w-8 h-8 rounded-xl bg-neon-cyan/20 border border-neon-cyan/40 flex items-center justify-center">
+                                        <Clock className="w-4 h-4 text-neon-cyan" />
+                                    </div>
+                                    TOP Horaire
+                                    <span className="text-[9px] font-mono normal-case not-italic text-gray-400">· Jingle à chaque début d'heure</span>
+                                </h3>
+                                <button type="button" onClick={() => setIsTopHoraireModalOpen(false)} className="text-gray-400 hover:text-white p-1 cursor-pointer">
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {/* Toggle ON/OFF */}
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.03] border border-white/10">
+                                <div>
+                                    <p className="text-sm font-display font-black text-white uppercase italic">Activer le TOP Horaire</p>
+                                    <p className="text-[10px] text-gray-400 font-sans mt-0.5">Le jingle s'active automatiquement à chaque :00 min.</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setTopHoraireConfig(c => ({ ...c, enabled: !c.enabled }))}
+                                    className={`w-12 h-6 rounded-full transition-all relative cursor-pointer ${
+                                        topHoraireConfig.enabled ? 'bg-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.5)]' : 'bg-white/15'
+                                    }`}
+                                >
+                                    <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${
+                                        topHoraireConfig.enabled ? 'left-6' : 'left-0.5'
+                                    }`} />
+                                </button>
+                            </div>
+
+                            {topHoraireConfig.enabled && (
+                                <div className="space-y-4">
+                                    {/* Titre */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-mono uppercase tracking-widest text-gray-400">Nom du jingle TOP Horaire</label>
+                                        <input
+                                            type="text"
+                                            value={topHoraireConfig.title}
+                                            onChange={e => setTopHoraireConfig(c => ({ ...c, title: e.target.value }))}
+                                            placeholder="Ex : TOP Horaire Dropsiders..."
+                                            className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white text-xs focus:outline-none focus:border-neon-cyan transition-colors"
+                                        />
+                                    </div>
+
+                                    {/* Durée */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-mono uppercase tracking-widest text-gray-400">Durée du jingle (secondes)</label>
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                type="range"
+                                                min={3}
+                                                max={120}
+                                                value={topHoraireConfig.duration}
+                                                onChange={e => setTopHoraireConfig(c => ({ ...c, duration: Number(e.target.value) }))}
+                                                className="flex-1 accent-neon-cyan"
+                                            />
+                                            <span className="text-neon-cyan font-mono font-bold text-sm w-12 text-right">{topHoraireConfig.duration}s</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Upload WAV/MP3 */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-mono uppercase tracking-widest text-gray-400">Fichier Audio (WAV / MP3)</label>
+                                        <div className="flex items-center gap-3 p-3 rounded-xl bg-neon-cyan/5 border border-neon-cyan/20">
+                                            <FileAudio className="w-4 h-4 text-neon-cyan shrink-0" />
+                                            <p className="text-[10px] text-gray-300 flex-1 truncate">
+                                                {topHoraireConfig.audioUrl
+                                                    ? (topHoraireConfig.title || 'Fichier audio configuré ✓')
+                                                    : 'Aucun fichier chargé'}
+                                            </p>
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                {topHoraireConfig.audioUrl && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleToggleAudioPreview('top_horaire_preview', topHoraireConfig.audioUrl!)}
+                                                        className={`p-1.5 rounded-xl text-[9px] flex items-center gap-1 transition-all cursor-pointer ${
+                                                            playingAudioId === 'top_horaire_preview'
+                                                                ? 'bg-neon-cyan text-black'
+                                                                : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                                                        }`}
+                                                    >
+                                                        {playingAudioId === 'top_horaire_preview' ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5" />}
+                                                    </button>
+                                                )}
+                                                <label className="px-3 py-1.5 rounded-xl bg-neon-cyan/20 hover:bg-neon-cyan/30 border border-neon-cyan/40 text-neon-cyan text-[9px] font-black uppercase tracking-wider cursor-pointer transition-all flex items-center gap-1.5">
+                                                    <Upload className="w-3 h-3" />
+                                                    Uploader
+                                                    <input
+                                                        type="file"
+                                                        accept="audio/*,.mp3,.wav,.ogg,.m4a"
+                                                        className="hidden"
+                                                        onChange={async (e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (!file) return;
+                                                            showToast(`Upload de ${file.name}...`, 'info');
+                                                            try {
+                                                                // Auto-read duration
+                                                                const objUrl = URL.createObjectURL(file);
+                                                                const audio = new Audio(objUrl);
+                                                                audio.addEventListener('loadedmetadata', () => {
+                                                                    if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+                                                                        setTopHoraireConfig(c => ({ ...c, duration: Math.round(audio.duration) }));
+                                                                    }
+                                                                    URL.revokeObjectURL(objUrl);
+                                                                });
+                                                                let uploadedUrl: string;
+                                                                try {
+                                                                    uploadedUrl = await uploadFile(file, 'radio/top-horaire');
+                                                                } catch {
+                                                                    uploadedUrl = await new Promise<string>((res, rej) => {
+                                                                        const r = new FileReader();
+                                                                        r.onload = () => res(r.result as string);
+                                                                        r.onerror = rej;
+                                                                        r.readAsDataURL(file);
+                                                                    });
+                                                                }
+                                                                const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]+/g, ' ');
+                                                                setTopHoraireConfig(c => ({
+                                                                    ...c,
+                                                                    title: c.title || cleanName,
+                                                                    audioUrl: uploadedUrl
+                                                                }));
+                                                                showToast('✓ Jingle TOP Horaire uploadé !');
+                                                            } catch (err) {
+                                                                console.error(err);
+                                                                showToast('Erreur chargement audio', 'warn');
+                                                            }
+                                                        }}
+                                                    />
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Info box */}
+                                    <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-500/25 flex items-start gap-2.5">
+                                        <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                                        <p className="text-[9.5px] text-amber-200/80 font-sans leading-relaxed">
+                                            Le jingle TOP Horaire est joué <strong>automatiquement</strong> à chaque début d'heure (HH:00:00). Il s'intercale avant les pistes de l'émission active.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Boutons */}
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsTopHoraireModalOpen(false)}
+                                    className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-[10px] font-display font-black uppercase italic hover:bg-white/10 transition-all cursor-pointer"
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleSaveTopHoraire(topHoraireConfig)}
+                                    className="flex-1 py-2.5 rounded-xl bg-neon-cyan hover:bg-white text-black text-[10px] font-display font-black uppercase italic transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,240,255,0.4)] cursor-pointer"
+                                >
+                                    <Save className="w-3.5 h-3.5" />
+                                    Sauvegarder
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+
                 {/* ── RADIONOMY JINGLES & PUBS MANAGER ─────────────────────── */}
                 <RadionomyJinglesBox
                     isOpen={isRadionomyOpen}
@@ -2361,6 +2914,8 @@ export function AdminRadioModal({
                     currentBlockTitle={selectedBlock?.title}
                     onInsertItem={handleInsertRadionomyItem}
                     onApplyRadionomyRule={handleApplyRadionomyRule}
+                    onSetAsTopHoraire={handleSetAsTopHoraire}
+                    onSetAsThemeJingle={handleSetAsThemeJingle}
                     onOpenYouTubeSearch={() => {
                         setIsRadionomyOpen(false);
                         setIsYouTubeSearchOpen(true);

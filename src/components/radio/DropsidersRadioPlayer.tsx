@@ -90,6 +90,7 @@ function AudioBars({ playing }: { playing: boolean }) {
  */
 function useRadioAudio() {
     const iframeRef = useRef<HTMLIFrameElement>(null);
+    const audioRef = useRef<HTMLAudioElement>(null);
     // Ref vers le set courant — toujours à jour, accessible en synchrone dans le click handler
     const currentSetRef = useRef<ComputedRadioScheduleItem | null>(null);
 
@@ -186,67 +187,91 @@ function useRadioAudio() {
     useEffect(() => { isMutedRef.current = isMuted; }, [isMuted]);
     useEffect(() => { volumeRef.current = volume; }, [volume]);
 
-    // ─── Préchargement muet dès qu'un set est disponible ────────────────────
-    // iOS Safari autorise l'audio si l'iframe a déjà commencé à charger (même muet).
-    // Le vrai déverrouillage audio se fait sur le tap utilisateur (sendCmd unMute).
+    // ─── Préchargement muet dès qu'un set YouTube est disponible ────────────
     const preloadedVideoIdRef = useRef<string | null>(null);
     useEffect(() => {
-        if (!currentVideoId) return;
-        if (isPlayingRef.current) return; // déjà en cours, ne pas écraser
-        if (preloadedVideoIdRef.current === currentVideoId) return; // déjà préchargé
+        if (!currentVideoId || currentSet?.audioUrl) return;
+        if (isPlayingRef.current) return;
+        if (preloadedVideoIdRef.current === currentVideoId) return;
         preloadedVideoIdRef.current = currentVideoId;
         if (iframeRef.current) {
-            // Charger avec mute=1 : iOS considère l'iframe comme "activée"
             iframeRef.current.src = buildSrc(currentVideoId, uiOffsetRef.current, 1);
         }
-    }, [currentVideoId]);
+    }, [currentVideoId, currentSet?.audioUrl]);
 
     // Transition automatique si le track live change pendant l'écoute
     useEffect(() => {
-        if (!currentVideoId || !isPlayingRef.current) return;
-        if (iframeRef.current && iframeRef.current.src && !iframeRef.current.src.includes(currentVideoId)) {
-            iframeRef.current.src = buildSrc(currentVideoId, uiOffsetRef.current, isMutedRef.current ? 1 : 0);
-            preloadedVideoIdRef.current = currentVideoId;
+        if (!isPlayingRef.current || !currentSet) return;
+
+        if (currentSet.audioUrl) {
+            // Mettre en pause / vider iframe YouTube si un audio MP3/WAV prend le relais
+            if (iframeRef.current && iframeRef.current.src !== 'about:blank') {
+                iframeRef.current.src = 'about:blank';
+                preloadedVideoIdRef.current = null;
+            }
+            if (audioRef.current) {
+                if (audioRef.current.src !== currentSet.audioUrl) {
+                    audioRef.current.src = currentSet.audioUrl;
+                }
+                audioRef.current.currentTime = uiOffsetRef.current || 0;
+                audioRef.current.volume = isMutedRef.current ? 0 : (volumeRef.current / 100);
+                audioRef.current.play().catch(() => {});
+            }
+        } else if (currentSet.youtubeId) {
+            // Arrêter HTML5 Audio si un set YouTube prend le relais
+            if (audioRef.current) {
+                audioRef.current.pause();
+            }
+            if (iframeRef.current && (!iframeRef.current.src || !iframeRef.current.src.includes(currentSet.youtubeId))) {
+                iframeRef.current.src = buildSrc(currentSet.youtubeId, uiOffsetRef.current, isMutedRef.current ? 1 : 0);
+                preloadedVideoIdRef.current = currentSet.youtubeId;
+            }
         }
-    }, [currentVideoId]);
+    }, [currentSet?.id, currentSet?.audioUrl, currentSet?.youtubeId]);
 
     // ─── Play / Pause ─────────────────────────────────────────────────────────
-    /**
-     * 🔑 IOS-SAFE : L'iframe est déjà chargée (muette) avant le tap.
-     * Sur le tap user, on envoie SYNCHRONEMENT unMute + setVolume + playVideo
-     * dans le call stack du click event → iOS autorise le son.
-     *
-     * Play  → si l'iframe est déjà sur le bon video (préchargé), on unmute
-     *         sinon on recharge avec mute=0 (fallback)
-     * Pause → vide l'iframe (about:blank = stop garanti)
-     */
     const handlePlay = useCallback(() => {
         const set = currentSetRef.current;
-        if (!set?.youtubeId) return;
+        if (!set?.youtubeId && !set?.audioUrl) return;
 
         if (!isPlaying) {
-            // ⚡ Synchrone — DOIT rester dans le call stack du click event
-            const alreadyLoaded = iframeRef.current?.src?.includes(set.youtubeId);
-            if (alreadyLoaded) {
-                // Iframe déjà préchargée → unmute direct (iOS-safe)
-                sendCmd('unMute');
-                sendCmd('setVolume', [volume]);
-                sendCmd('playVideo');
-            } else {
-                // Fallback : recharger avec mute=0
-                const src = buildSrc(set.youtubeId, uiOffsetRef.current, 0);
-                if (iframeRef.current) iframeRef.current.src = src;
-                preloadedVideoIdRef.current = set.youtubeId;
-                // Tenter les commandes après un court délai (iframe en cours de chargement)
-                setTimeout(() => {
+            if (set.audioUrl) {
+                // Arrêter YouTube si actif
+                if (iframeRef.current) iframeRef.current.src = 'about:blank';
+                preloadedVideoIdRef.current = null;
+                // Jouer HTML5 Audio (WAV / MP3 uploadé)
+                if (audioRef.current) {
+                    if (audioRef.current.src !== set.audioUrl) {
+                        audioRef.current.src = set.audioUrl;
+                    }
+                    audioRef.current.currentTime = uiOffsetRef.current || 0;
+                    audioRef.current.volume = isMutedRef.current ? 0 : (volumeRef.current / 100);
+                    audioRef.current.play().catch(() => {});
+                }
+            } else if (set.youtubeId) {
+                // Arrêter HTML5 audio si actif
+                if (audioRef.current) audioRef.current.pause();
+
+                const alreadyLoaded = iframeRef.current?.src?.includes(set.youtubeId);
+                if (alreadyLoaded) {
                     sendCmd('unMute');
-                    sendCmd('setVolume', [volumeRef.current]);
+                    sendCmd('setVolume', [volume]);
                     sendCmd('playVideo');
-                }, 800);
+                } else {
+                    const src = buildSrc(set.youtubeId, uiOffsetRef.current, 0);
+                    if (iframeRef.current) iframeRef.current.src = src;
+                    preloadedVideoIdRef.current = set.youtubeId;
+                    setTimeout(() => {
+                        sendCmd('unMute');
+                        sendCmd('setVolume', [volumeRef.current]);
+                        sendCmd('playVideo');
+                    }, 800);
+                }
             }
             setIsPlaying(true);
         } else {
-            // Stop propre : vider le src
+            // Stop propre
+            if (audioRef.current) audioRef.current.pause();
             if (iframeRef.current) iframeRef.current.src = 'about:blank';
             preloadedVideoIdRef.current = null;
             sendCmd('pauseVideo');
@@ -255,6 +280,7 @@ function useRadioAudio() {
     }, [isPlaying, volume, sendCmd]);
 
     const handleStop = useCallback(() => {
+        if (audioRef.current) audioRef.current.pause();
         if (iframeRef.current) iframeRef.current.src = 'about:blank';
         sendCmd('pauseVideo');
         setIsPlaying(false);
@@ -263,6 +289,7 @@ function useRadioAudio() {
     const toggleMute = useCallback(() => {
         setIsMuted(prev => {
             const next = !prev;
+            if (audioRef.current) audioRef.current.volume = next ? 0 : (volume / 100);
             if (isPlaying) {
                 if (next) sendCmd('mute');
                 else { sendCmd('unMute'); sendCmd('setVolume', [volume]); }
@@ -274,6 +301,9 @@ function useRadioAudio() {
     // ─── Volume sync ─────────────────────────────────────────────────────────
     useEffect(() => {
         try { localStorage.setItem('dropsiders_radio_volume', String(volume)); } catch {}
+        if (audioRef.current) {
+            audioRef.current.volume = isMuted ? 0 : volume / 100;
+        }
         if (!isPlaying) return;
         if (!isMuted) sendCmd('setVolume', [volume]);
     }, [volume, isPlaying, isMuted, sendCmd]);
@@ -319,7 +349,7 @@ function useRadioAudio() {
     }, [handlePlay, handleStop, toggleMute, isMuted]);
 
     return {
-        isEnabled, currentSet, uiOffset, iframeRef,
+        isEnabled, currentSet, uiOffset, iframeRef, audioRef,
         isPlaying, isMuted, volume, setVolume, setIsMuted,
         handlePlay, handleStop, toggleMute,
     };
@@ -327,11 +357,10 @@ function useRadioAudio() {
 
 type AudioState = ReturnType<typeof useRadioAudio>;
 
-// ─── Iframe unique — toujours montée, jamais démontée ────────────────────────
-// Toujours dans le coin inférieur droit du viewport (240×140px, opacité 0.01)
-// WebKit et Blink autorisent l'audio car l'élément a des dimensions réelles et n'est pas à opacité 0
-function RadioIframe({ iframeRef }: {
+// ─── Iframe unique & Element Audio — toujours montés ────────────────────────
+function RadioIframe({ iframeRef, audioRef }: {
     iframeRef: React.RefObject<HTMLIFrameElement | null>;
+    audioRef: React.RefObject<HTMLAudioElement | null>;
 }) {
     return (
         <div style={{
@@ -352,6 +381,7 @@ function RadioIframe({ iframeRef }: {
                 title="Dropsiders Radio"
                 style={{ width: '100%', height: '100%', border: 'none' }}
             />
+            <audio ref={audioRef as React.RefObject<HTMLAudioElement>} playsInline preload="auto" />
         </div>
     );
 }
@@ -693,8 +723,8 @@ export function DropsidersRadioPlayer() {
 
     return (
         <>
-            {/* Iframe TOUJOURS montée (jamais null) — dans le viewport, opacité 0 */}
-            <RadioIframe iframeRef={audio.iframeRef} />
+            {/* Iframe & Audio TOUJOURS montés (jamais null) — dans le viewport, opacité 0 */}
+            <RadioIframe iframeRef={audio.iframeRef} audioRef={audio.audioRef} />
             {/* Sur version mobile : dès qu'un mix est en route, masquer la radio */}
             {!isMixActive && <MobileRadioPlayer audio={audio} />}
             <DesktopRadioPlayer audio={audio} />

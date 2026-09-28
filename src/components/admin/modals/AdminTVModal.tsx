@@ -1405,7 +1405,7 @@ export function AdminTVModal({
             id: `rad_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
             title: `${prefix} ${item.title}`,
             description: 'Diffusé sur Dropsiders TV',
-            youtubeId: item.youtubeId,
+            youtubeId: item.youtubeId ?? '',
             duration: item.duration || 15,
             category: 'clip'
         };
@@ -1461,7 +1461,7 @@ export function AdminTVModal({
                             id: `rad_pub_${Date.now()}_${pos}`,
                             title: `📢 [PUB] ${pub.title}`,
                             description: 'Diffusé sur Dropsiders TV',
-                            youtubeId: pub.youtubeId,
+                            youtubeId: pub.youtubeId ?? '',
                             duration: pub.duration || 30,
                             category: 'clip'
                         });
@@ -1472,7 +1472,7 @@ export function AdminTVModal({
                             id: `rad_jing_${Date.now()}_${pos}`,
                             title: `🔔 [JINGLE] ${jing.title}`,
                             description: 'Diffusé sur Dropsiders TV',
-                            youtubeId: jing.youtubeId,
+                            youtubeId: jing.youtubeId ?? '',
                             duration: jing.duration || 15,
                             category: 'clip'
                         });
@@ -1499,7 +1499,7 @@ export function AdminTVModal({
                         id: `rad_pub_${Date.now()}_${pos}`,
                         title: `📢 [PUB] ${pub.title}`,
                         description: 'Diffusé sur Dropsiders TV',
-                        youtubeId: pub.youtubeId,
+                        youtubeId: pub.youtubeId ?? '',
                         duration: pub.duration || 30,
                         category: 'clip'
                     });
@@ -1510,7 +1510,7 @@ export function AdminTVModal({
                         id: `rad_jing_${Date.now()}_${pos}`,
                         title: `🔔 [JINGLE] ${jing.title}`,
                         description: 'Diffusé sur Dropsiders TV',
-                        youtubeId: jing.youtubeId,
+                        youtubeId: jing.youtubeId ?? '',
                         duration: jing.duration || 15,
                         category: 'clip'
                     });
