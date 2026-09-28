@@ -36,6 +36,21 @@ interface PlayerContextType {
     togglePlay: () => void;
     seekTo: (seconds: number) => void;
     seekRelative: (deltaSeconds: number) => void;
+    // Open dedicated standalone mix player tab
+    openMixPlayer: (mixId: string, autoPlay?: boolean) => void;
+}
+
+export function openMixInNewTab(mixId: string, autoPlay: boolean = true) {
+    if (!mixId) return;
+    const url = `/mix/${encodeURIComponent(mixId)}${autoPlay ? '?play=1' : ''}`;
+    try {
+        const win = window.open(url, '_blank');
+        if (!win || win.closed || typeof win.closed === 'undefined') {
+            window.location.href = url;
+        }
+    } catch {
+        window.location.href = url;
+    }
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -73,6 +88,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         seekTo(target);
     };
 
+    const openMixPlayer = (mixId: string, autoPlay: boolean = true) => {
+        openMixInNewTab(mixId, autoPlay);
+    };
+
     return (
         <PlayerContext.Provider value={{
             activeTrack, playTrack, closePlayer,
@@ -80,6 +99,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             currentTime, duration, setCurrentTime, setDuration,
             registerTogglePlay, registerSeekTo,
             togglePlay, seekTo, seekRelative,
+            openMixPlayer,
         }}>
             {children}
         </PlayerContext.Provider>
@@ -93,3 +113,4 @@ export function usePlayer() {
     }
     return context;
 }
+

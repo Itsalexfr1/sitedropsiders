@@ -96,7 +96,7 @@ export function PublicProfile() {
     const [isLoading, setIsLoading] = useState(true);
     const [profile, setProfile] = useState<any>(null);
     const [activeTab, setActiveTab] = useState<'cards' | 'mixes' | 'reviews'>('cards');
-    const { activeTrack, playTrack, closePlayer, isPlaying: globalIsPlaying } = usePlayer();
+    const { activeTrack, playTrack, closePlayer, isPlaying: globalIsPlaying, openMixPlayer } = usePlayer();
     const [selectedCardForPreview, setSelectedCardForPreview] = useState<any | null>(null);
 
     // Helper: silently track an event
@@ -327,21 +327,8 @@ export function PublicProfile() {
                                             const isPlaying = isActive && globalIsPlaying;
 
                                             const handlePlay = () => {
-                                                if (isActive) {
-                                                    closePlayer();
-                                                    return;
-                                                }
-
-                                                playTrack({
-                                                    id: mix.id,
-                                                    title: mix.title,
-                                                    artist: profile.username || 'Dropsider',
-                                                    label: mix.genre || mix.type,
-                                                    url: mix.audioUrl || mix.url || '',
-                                                    embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
-                                                    tracks: mix.tracklist || [],
-                                                    ownerEmail: mix.ownerEmail || mix.userEmail || profile.email
-                                                });
+                                                trackMixEvent(mix, 'play');
+                                                openMixPlayer(mix.id, true);
                                             };
 
                                             const handleDownload = () => {

@@ -22,6 +22,8 @@ import {
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../utils/auth';
 import { DropsidersRadioCard } from '../components/radio/DropsidersRadioCard';
+import { openMixInNewTab } from '../context/PlayerContext';
+
 
 const TiktokIcon = (props: any) => (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -49,6 +51,7 @@ export function BrandingPage() {
     });
     const [copied, setCopied] = useState(false);
     const [isRadioPlaying, setIsRadioPlaying] = useState(false);
+    const [recentMixes, setRecentMixes] = useState<any[]>([]);
 
     // Écouter l'état du lecteur radio pour basculer Play / Pause sur le cadre
     useEffect(() => {
@@ -81,6 +84,22 @@ export function BrandingPage() {
         };
 
         fetchLiveStatus();
+
+        // Charger les derniers mixes
+        fetch('/api/community/mixes')
+            .then(r => r.ok ? r.json() : [])
+            .then((data: any[]) => {
+                if (Array.isArray(data)) {
+                    // Sort by uploadDate desc (most recent first), take 5
+                    const sorted = [...data].sort((a, b) => {
+                        const da = new Date(a.uploadDate || a.createdAt || 0).getTime();
+                        const db = new Date(b.uploadDate || b.createdAt || 0).getTime();
+                        return db - da;
+                    });
+                    setRecentMixes(sorted.slice(0, 5));
+                }
+            })
+            .catch(() => {});
 
         const savedLikes = localStorage.getItem('dropsiders_social_likes');
         if (savedLikes) {
@@ -496,6 +515,68 @@ export function BrandingPage() {
                         YouTube
                     </a>
                 </motion.div>
+
+                {/* 🎧 DERNIERS MIXES */}
+                {recentMixes.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.35 }}
+                        className="w-full space-y-3 pt-2"
+                    >
+                        <div className="flex items-center justify-between px-1">
+                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] flex items-center gap-1.5">
+                                <Music className="w-3 h-3 text-neon-purple" />
+                                Derniers Mixes Uploadés
+                            </span>
+                            <Link to="/communaute" className="text-[9px] font-black text-neon-purple px-2 py-0.5 rounded-lg hover:bg-neon-purple/10 transition-colors uppercase tracking-widest">
+                                Voir tout
+                            </Link>
+                        </div>
+
+                        <div className="space-y-2">
+                            {recentMixes.map((mix, i) => (
+                                <button
+                                    key={mix.id}
+                                    onClick={() => openMixInNewTab(mix.id, true)}
+                                    className="w-full bg-gradient-to-r from-[#0d0914] to-[#0a0a0a] hover:from-[#160c20] border border-neon-purple/20 hover:border-neon-purple/50 rounded-2xl p-3.5 flex items-center gap-3 transition-all duration-300 shadow-xl group/mix active:scale-[0.98] text-left"
+                                >
+                                    {/* Cover / Icon */}
+                                    <div className="w-10 h-10 rounded-xl bg-neon-purple/10 border border-neon-purple/20 flex items-center justify-center flex-shrink-0 group-hover/mix:bg-neon-purple/20 transition-colors overflow-hidden">
+                                        {mix.cover ? (
+                                            <img src={mix.cover} alt={mix.title} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                        ) : (
+                                            <Music className="w-4 h-4 text-neon-purple" />
+                                        )}
+                                    </div>
+
+                                    {/* Info */}
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="text-xs font-black text-white uppercase tracking-tight truncate group-hover/mix:text-neon-purple transition-colors leading-snug">
+                                            {mix.title}
+                                        </h4>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest truncate">
+                                                {mix.username || 'Dropsider'}
+                                            </span>
+                                            {mix.genre && (
+                                                <>
+                                                    <span className="text-gray-700 text-[9px]">·</span>
+                                                    <span className="text-[8px] font-black text-neon-purple/70 uppercase tracking-wider">{mix.genre}</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Play button */}
+                                    <div className="w-8 h-8 rounded-full bg-neon-purple/15 border border-neon-purple/30 flex items-center justify-center flex-shrink-0 group-hover/mix:bg-neon-purple group-hover/mix:shadow-[0_0_16px_rgba(168,85,247,0.5)] transition-all">
+                                        <Play className="w-3.5 h-3.5 text-neon-purple group-hover/mix:text-white fill-current ml-0.5 transition-colors" />
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
 
                 {/* 📻 DROPSIDERS RADIO 24/7 PLAYER (En bas de page) */}
                 <DropsidersRadioCard className="mt-1" />

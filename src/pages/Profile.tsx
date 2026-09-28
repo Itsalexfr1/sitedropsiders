@@ -134,7 +134,7 @@ export function Profile() {
     const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [mixStudioTab, setMixStudioTab] = useState<'mixes' | 'stats'>('mixes');
-    const { activeTrack, playTrack, closePlayer } = usePlayer();
+    const { activeTrack, playTrack, closePlayer, openMixPlayer } = usePlayer();
     const [pendingPlayId, setPendingPlayId] = useState<string | null>(null);
 
     const [cardSearch, setCardSearch] = useState('');
@@ -194,47 +194,9 @@ export function Profile() {
     // Once userMixes loads, resolve pendingPlayId and autoplay
     useEffect(() => {
         if (!pendingPlayId) return;
-        // Search in user's own mixes first
-        const ownMix = userMixes.find((m: any) => m.id === pendingPlayId);
-        if (ownMix) {
-            playTrack({
-                id: ownMix.id,
-                title: ownMix.title,
-                artist: ownMix.username || user?.username || 'Dropsider',
-                label: ownMix.genre || ownMix.type,
-                url: ownMix.audioUrl || ownMix.url || '',
-                embedUrl: ownMix.embedUrl && !ownMix.audioUrl ? ownMix.embedUrl : undefined,
-                cover: ownMix.cover || ownMix.coverUrl || ownMix.imageUrl,
-                tracks: ownMix.tracklist || [],
-                ownerEmail: ownMix.ownerEmail || ownMix.userEmail || user?.email
-            });
-            setPendingPlayId(null);
-            return;
-        }
-        // If not found AND userMixes already loaded, search community mixes
-        if (userMixes.length > 0 || !user?.email) {
-            fetch('/api/community/mixes')
-                .then(r => r.json())
-                .then((mixes: any[]) => {
-                    const communityMix = mixes.find((m: any) => m.id === pendingPlayId);
-                    if (communityMix) {
-                        playTrack({
-                            id: communityMix.id,
-                            title: communityMix.title,
-                            artist: communityMix.username || 'Dropsider',
-                            label: communityMix.genre || communityMix.type,
-                            url: communityMix.audioUrl || communityMix.url || '',
-                            embedUrl: communityMix.embedUrl && !communityMix.audioUrl ? communityMix.embedUrl : undefined,
-                            cover: communityMix.cover || communityMix.coverUrl || communityMix.imageUrl,
-                            tracks: communityMix.tracklist || [],
-                            ownerEmail: communityMix.ownerEmail || communityMix.userEmail
-                        });
-                    }
-                })
-                .catch(() => {})
-                .finally(() => setPendingPlayId(null));
-        }
-    }, [pendingPlayId, userMixes, user?.email, playTrack]);
+        openMixPlayer(pendingPlayId, true);
+        setPendingPlayId(null);
+    }, [pendingPlayId, openMixPlayer]);
 
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -953,21 +915,7 @@ export function Profile() {
                                                                         : 'border-white/5 bg-white/[0.03] hover:border-white/10 hover:bg-white/[0.05]'
                                                                 }`}
                                                                 onClick={() => {
-                                                                    if (isActive) {
-                                                                        closePlayer();
-                                                                    } else {
-                                                                        playTrack({
-                                                                            id: mix.id,
-                                                                            title: mix.title,
-                                                                            artist: mix.username || user?.username || 'Dropsider',
-                                                                            label: mix.genre || mix.type,
-                                                                            url: mix.audioUrl || mix.url || '',
-                                                                            embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
-                                                                            cover: mix.cover || mix.coverUrl || mix.imageUrl,
-                                                                            tracks: mix.tracklist || [],
-                                                                            ownerEmail: mix.ownerEmail || mix.userEmail || user?.email
-                                                                        });
-                                                                    }
+                                                                    openMixPlayer(mix.id, true);
                                                                 }}
                                                             >
                                                                 {/* Glow accent bar */}
@@ -1001,21 +949,7 @@ export function Profile() {
                                                                             }`}
                                                                             onClick={(e) => { 
                                                                                 e.stopPropagation(); 
-                                                                                if (isActive) {
-                                                                                    closePlayer();
-                                                                                } else {
-                                                                                    playTrack({
-                                                                                        id: mix.id,
-                                                                                        title: mix.title,
-                                                                                        artist: mix.username || user?.username || 'Dropsider',
-                                                                                        label: mix.genre || mix.type,
-                                                                                        url: mix.audioUrl || mix.url || '',
-                                                                                        embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
-                                                                                        cover: mix.cover || mix.coverUrl || mix.imageUrl,
-                                                                                        tracks: mix.tracklist || [],
-                                                                                        ownerEmail: mix.ownerEmail || mix.userEmail || user?.email
-                                                                                    });
-                                                                                }
+                                                                                openMixPlayer(mix.id, true);
                                                                             }}
                                                                         >
                                                                             {isActive

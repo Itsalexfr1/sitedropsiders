@@ -75,7 +75,7 @@ const typeStyles: Record<string, { bg: string; text: string; border: string }> =
 
 export function PlaylistSharing() {
     const navigate = useNavigate();
-    const { playTrack, activeTrack, isPlaying } = usePlayer();
+    const { openMixPlayer, activeTrack, isPlaying } = usePlayer();
     const [entries, setEntries] = useState<PlaylistEntry[]>(getEntries);
     const [liked, setLiked] = useState<Set<string>>(getLiked);
     const [showForm, setShowForm] = useState(false);
@@ -428,16 +428,7 @@ export function PlaylistSharing() {
                                         <div className="pt-2">
                                             <button
                                                 onClick={() => {
-                                                    playTrack({
-                                                        id: mix.id,
-                                                        title: mix.title,
-                                                        artist: mix.username || 'Dropsider',
-                                                        label: mix.genre || mix.type,
-                                                        url: mix.audioUrl || mix.url || '',
-                                                        embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
-                                                        tracks: mix.tracklist || [],
-                                                        ownerEmail: mix.ownerEmail || mix.userEmail
-                                                    });
+                                                    openMixPlayer(mix.id, true);
                                                 }}
                                                 className={`w-full py-3.5 rounded-2xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2.5 transition-all ${
                                                     isCurrentPlaying

@@ -357,64 +357,10 @@ function RadioIframe({ iframeRef }: {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// PLAYER MOBILE
+// PLAYER MOBILE — Mini bouton flottant uniquement (pas de barre en bas de page)
 // ═══════════════════════════════════════════════════════════════════════════════
 function MobileRadioPlayer({ audio }: { audio: AudioState }) {
     const [expanded, setExpanded] = useState(false);
-    const location = useLocation();
-    const isAdminPage = location.pathname.startsWith('/admin');
-
-    // Mode mini : bouton flottant compact (sur admin ou après avoir cliqué sur la croix/réduire)
-    const [isMini, setIsMini] = useState<boolean>(() => {
-        try {
-            if (location.pathname.startsWith('/admin')) return true;
-            return sessionStorage.getItem('radio_mobile_mini') === 'true';
-        } catch {
-            return location.pathname.startsWith('/admin');
-        }
-    });
-
-    // Auto-réduire sur les pages admin
-    useEffect(() => {
-        if (isAdminPage && !isMini) {
-            setIsMini(true);
-        }
-    }, [isAdminPage]);
-
-    // Écouter les événements globaux pour réafficher ou minimiser la radio
-    useEffect(() => {
-        const handleShow = () => {
-            setIsMini(false);
-            try { sessionStorage.setItem('radio_mobile_mini', 'false'); } catch {}
-        };
-        const handleHide = () => {
-            setIsMini(true);
-            setExpanded(false);
-            try { sessionStorage.setItem('radio_mobile_mini', 'true'); } catch {}
-        };
-        window.addEventListener('dropsiders_radio_show', handleShow);
-        window.addEventListener('dropsiders_radio_minimize', handleHide);
-        return () => {
-            window.removeEventListener('dropsiders_radio_show', handleShow);
-            window.removeEventListener('dropsiders_radio_minimize', handleHide);
-        };
-    }, []);
-
-    const handleToggleMini = () => {
-        const next = !isMini;
-        setIsMini(next);
-        if (next) setExpanded(false);
-        try {
-            sessionStorage.setItem('radio_mobile_mini', next ? 'true' : 'false');
-        } catch {}
-    };
-
-    const handleRestore = () => {
-        setIsMini(false);
-        try {
-            sessionStorage.setItem('radio_mobile_mini', 'false');
-        } catch {}
-    };
 
     if (!audio.isEnabled || !audio.currentSet) return null;
 
@@ -423,7 +369,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
 
     return (
         <>
-            {/* ── Panneau expansible ── */}
+            {/* ── Panneau expansible (slide from bottom) ── */}
             <AnimatePresence>
                 {expanded && (
                     <>
@@ -434,7 +380,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                         <motion.div key="panel"
                             initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
                             transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-                            style={{ zIndex: 99995, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 70px)' }}
+                            style={{ zIndex: 99995, bottom: 0 }}
                             className="fixed left-0 right-0 rounded-t-[2rem] overflow-hidden"
                         >
                             <div className="relative bg-gradient-to-b from-[#0d0d18] to-[#050508] border-t border-white/10 px-6 pt-5 pb-10">
@@ -459,10 +405,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                         <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-neon-red/20 text-neon-red border border-neon-red/40 text-[7px] font-black uppercase animate-pulse">
                                             <span className="w-1.5 h-1.5 rounded-full bg-neon-red" />LIVE
                                         </span>
-                                        {/* La croix réduit la radio en mini-bouton flottant au lieu de la détruire */}
-                                        <button onClick={handleToggleMini}
-                                            title="Réduire la radio"
-                                            aria-label="Réduire la radio"
+                                        <button onClick={() => setExpanded(false)} title="Fermer" aria-label="Fermer"
                                             className="p-1.5 rounded-xl bg-white/5 text-gray-400 active:bg-white/10 active:scale-90 transition-all hover:text-white">
                                             <X className="w-4 h-4" />
                                         </button>
@@ -501,23 +444,12 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                 <div className="flex items-center justify-center gap-8 relative z-10 mb-5">
                                     <button onClick={toggleMute}
                                         className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-300 active:scale-90 active:bg-white/10 transition-all">
-                                        {isMuted
-                                            ? <VolumeX className="w-5 h-5 text-neon-red" />
-                                            : <Volume2 className="w-5 h-5" />
-                                        }
+                                        {isMuted ? <VolumeX className="w-5 h-5 text-neon-red" /> : <Volume2 className="w-5 h-5" />}
                                     </button>
 
                                     <button onClick={handlePlay}
-                                        className={`w-[76px] h-[76px] rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-90 ${
-                                            isPlaying
-                                                ? 'bg-neon-cyan shadow-[0_0_45px_rgba(0,255,255,0.55)]'
-                                                : 'bg-white shadow-[0_0_30px_rgba(255,255,255,0.25)]'
-                                        }`}
-                                    >
-                                        {isPlaying
-                                            ? <Pause className="w-9 h-9 text-black fill-black" />
-                                            : <Play className="w-9 h-9 text-black fill-black ml-1" />
-                                        }
+                                        className={`w-[76px] h-[76px] rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-90 ${isPlaying ? 'bg-neon-cyan shadow-[0_0_45px_rgba(0,255,255,0.55)]' : 'bg-white shadow-[0_0_30px_rgba(255,255,255,0.25)]'}`}>
+                                        {isPlaying ? <Pause className="w-9 h-9 text-black fill-black" /> : <Play className="w-9 h-9 text-black fill-black ml-1" />}
                                     </button>
 
                                     <div className="w-12 h-12 flex items-center justify-center">
@@ -533,7 +465,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
 
                                 <button onClick={() => setExpanded(false)}
                                     className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[9px] text-gray-600 font-bold uppercase tracking-widest active:text-white transition-colors relative z-10">
-                                    <ChevronDown className="w-3.5 h-3.5" />Réduire
+                                    <ChevronDown className="w-3.5 h-3.5" />Fermer
                                 </button>
                             </div>
                         </motion.div>
@@ -541,102 +473,43 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                 )}
             </AnimatePresence>
 
-            {/* ── Mini-bouton flottant (mode mini activé : toujours accessible et cliquable) ── */}
-            <AnimatePresence>
-                {isMini && !expanded && (
-                    <motion.button
-                        key="mini-float"
-                        initial={{ opacity: 0, scale: 0.7, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.7, y: 10 }}
-                        transition={{ type: 'spring', damping: 22, stiffness: 280 }}
-                        onClick={handleRestore}
-                        style={{ zIndex: 99998, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 75px)' }}
-                        className="fixed right-3 lg:hidden flex items-center gap-2.5 px-3 py-2 rounded-2xl bg-[#0d0d18]/95 backdrop-blur-xl border border-neon-cyan/40 shadow-[0_0_20px_rgba(0,255,255,0.25)] active:scale-95 transition-all group"
-                        aria-label="Réafficher la radio"
-                    >
-                        <div className="relative shrink-0">
-                            <div className={`w-7 h-7 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center ${isPlaying ? 'shadow-[0_0_12px_rgba(0,255,255,0.4)]' : ''}`}>
-                                <Disc3 className={`w-4 h-4 text-neon-cyan ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
-                            </div>
-                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red animate-ping" />
-                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red" />
-                        </div>
-                        <div className="flex flex-col items-start leading-none pr-0.5">
-                            <span className="text-[9px] font-black text-white tracking-wider uppercase flex items-center gap-1">
-                                RADIO <span className="text-neon-cyan">LIVE</span>
-                            </span>
-                            <span className="text-[7.5px] text-gray-400 font-bold uppercase tracking-tight">Tap pour ouvrir</span>
-                        </div>
-                        <AudioBars playing={isPlaying} />
-                        <ChevronUp className="w-3.5 h-3.5 text-neon-cyan/70 group-hover:text-neon-cyan transition-colors" />
-                    </motion.button>
-                )}
-            </AnimatePresence>
-
-            {/* ── Barre compacte Spotify-style (visible seulement si pas en mode mini) ── */}
-            {!isMini && (
-                <div
-                    style={{ zIndex: 99998, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 70px)' }}
-                    className="fixed left-0 right-0 lg:hidden"
+            {/* ── Mini-bouton flottant — toujours visible sur mobile, pas de barre en bas ── */}
+            {!expanded && (
+                <motion.button
+                    initial={{ opacity: 0, scale: 0.7, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ type: 'spring', damping: 22, stiffness: 280 }}
+                    onClick={() => setExpanded(true)}
+                    style={{ zIndex: 99998, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
+                    className="fixed right-3 lg:hidden flex items-center gap-2.5 px-3 py-2 rounded-2xl bg-[#0d0d18]/95 backdrop-blur-xl border border-neon-cyan/40 shadow-[0_0_20px_rgba(0,255,255,0.25)] active:scale-95 transition-all group"
+                    aria-label="Ouvrir la radio"
                 >
-                    <div className="h-[2px] bg-white/5">
-                        <div className="h-full bg-gradient-to-r from-neon-cyan to-neon-red transition-all duration-1000" style={{ width: `${progress}%` }} />
-                    </div>
-
-                    <div className="flex items-center gap-3 px-4 py-2.5 bg-[#0d0d18]/98 backdrop-blur-xl border-t border-white/[0.07] cursor-pointer"
-                        onClick={() => setExpanded(true)}>
-
-                        <div className="relative shrink-0">
-                            <div className={`w-10 h-10 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center ${isPlaying ? 'shadow-[0_0_16px_rgba(0,255,255,0.4)]' : ''}`}>
-                                <Disc3 className={`w-5 h-5 text-neon-cyan ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
-                            </div>
-                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red animate-ping" />
-                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red" />
+                    <div className="relative shrink-0">
+                        <div className={`w-7 h-7 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center ${isPlaying ? 'shadow-[0_0_12px_rgba(0,255,255,0.4)]' : ''}`}>
+                            <Disc3 className={`w-4 h-4 text-neon-cyan ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
                         </div>
-
-                        <div className="flex-1 min-w-0">
-                            <p className="text-[10.5px] font-black text-white uppercase italic truncate leading-tight">{currentSet.artist}</p>
-                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-wider truncate">DROPSIDERS RADIO · 24/7</p>
-                        </div>
-
-                        <AudioBars playing={isPlaying} />
-
-                        <button
-                            onClick={e => { e.stopPropagation(); handlePlay(); }}
-                            className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 shadow-lg ${
-                                isPlaying ? 'bg-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.5)]' : 'bg-white'
-                            }`}
-                        >
-                            {isPlaying
-                                ? <Pause className="w-5 h-5 text-black fill-black" />
-                                : <Play className="w-5 h-5 text-black fill-black ml-0.5" />
-                            }
-                        </button>
-
-                        {/* Bouton réduire en mini-bouton */}
-                        <button
-                            onClick={e => { e.stopPropagation(); handleToggleMini(); }}
-                            className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 active:scale-90 active:bg-white/10 transition-all shrink-0 hover:text-white"
-                            title="Réduire la radio"
-                            aria-label="Réduire la radio"
-                        >
-                            <Minimize2 className="w-3.5 h-3.5" />
-                        </button>
-
-                        <ChevronUp className="w-4 h-4 text-white/25 shrink-0" />
+                        <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red animate-ping" />
+                        <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red" />
                     </div>
-                </div>
+                    <div className="flex flex-col items-start leading-none pr-0.5">
+                        <span className="text-[9px] font-black text-white tracking-wider uppercase flex items-center gap-1">
+                            RADIO <span className="text-neon-cyan">LIVE</span>
+                        </span>
+                        <span className="text-[7.5px] text-gray-400 font-bold uppercase tracking-tight">Tap pour écouter</span>
+                    </div>
+                    <AudioBars playing={isPlaying} />
+                    <ChevronUp className="w-3.5 h-3.5 text-neon-cyan/70 group-hover:text-neon-cyan transition-colors" />
+                </motion.button>
             )}
         </>
     );
 }
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// PLAYER DESKTOP
+// PLAYER DESKTOP — Barre pleine largeur en bas de page avec toggle masquer/afficher
 // ═══════════════════════════════════════════════════════════════════════════════
 function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
-    const [isMinimized, setIsMinimized] = useState(false);
+    const [isHidden, setIsHidden] = useState(() => {
+        try { return sessionStorage.getItem('radio_desktop_hidden') === 'true'; } catch { return false; }
+    });
 
     if (!audio.isEnabled || !audio.currentSet) return null;
 
@@ -644,23 +517,38 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
         handlePlay, handleStop, toggleMute } = audio;
     const progress = Math.min(100, Math.max(0, (uiOffset / (currentSet.durationSeconds || 3600)) * 100));
 
+    const handleHide = () => {
+        setIsHidden(true);
+        try { sessionStorage.setItem('radio_desktop_hidden', 'true'); } catch {}
+    };
+    const handleShow = () => {
+        setIsHidden(false);
+        try { sessionStorage.setItem('radio_desktop_hidden', 'false'); } catch {}
+    };
+
     return (
-        <aside className="hidden lg:block fixed bottom-4 left-4 z-[100000] w-80 select-none pointer-events-auto font-sans">
-            <AnimatePresence mode="wait">
-                {isMinimized ? (
-                    <motion.div key="mini"
-                        initial={{ opacity: 0, scale: 0.88, y: 15 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.88, y: 15 }}
-                        onClick={() => setIsMinimized(false)}
-                        className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-full bg-[#0a0b12]/95 backdrop-blur-2xl border border-neon-cyan/50 shadow-[0_0_30px_rgba(0,255,255,0.3)] hover:border-neon-cyan transition-all cursor-pointer"
+        <>
+            {/* Bouton réafficher (discret, en bas à gauche) — visible seulement quand masqué */}
+            <AnimatePresence>
+                {isHidden && (
+                    <motion.button
+                        key="show-btn"
+                        initial={{ opacity: 0, y: 20, scale: 0.88 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 20, scale: 0.88 }}
+                        transition={{ duration: 0.25 }}
+                        onClick={handleShow}
+                        className="hidden lg:flex fixed bottom-4 left-4 z-[100000] items-center gap-2.5 px-3.5 py-2.5 rounded-full bg-[#0a0b12]/95 backdrop-blur-2xl border border-neon-cyan/50 shadow-[0_0_25px_rgba(0,255,255,0.25)] hover:border-neon-cyan transition-all cursor-pointer select-none group"
+                        aria-label="Afficher la radio"
                     >
                         <div className="relative shrink-0">
                             <Disc3 className={`w-4 h-4 text-neon-cyan ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '3s' }} />
                             <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red animate-ping" />
                             <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red" />
                         </div>
-                        <div className="flex flex-col min-w-0 flex-1">
-                            <span className="text-[9px] font-black uppercase tracking-wider text-white leading-none">DROPSIDERS RADIO <span className="text-neon-cyan text-[8px] font-mono">24/7</span></span>
-                            <span className="text-[8.5px] font-bold text-gray-300 truncate mt-0.5">{currentSet.artist}</span>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] font-black uppercase tracking-wider text-white leading-none">RADIO <span className="text-neon-cyan">24/7</span></span>
+                            <span className="text-[8px] font-bold text-gray-400 truncate mt-0.5">{currentSet.artist}</span>
                         </div>
                         {isPlaying && (
                             <div className="flex items-end gap-0.5 h-3 ml-1 shrink-0">
@@ -673,76 +561,113 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                             className="w-8 h-8 rounded-full bg-neon-cyan/25 hover:bg-neon-cyan text-neon-cyan hover:text-black flex items-center justify-center transition-all cursor-pointer ml-1 shrink-0 active:scale-90">
                             {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current ml-0.5" />}
                         </button>
-                    </motion.div>
-                ) : (
-                    <motion.div key="full"
-                        initial={{ opacity: 0, scale: 0.92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92, y: 20 }}
-                        className="w-full bg-gradient-to-b from-[#0e0e16] via-[#090912] to-[#040409] border border-white/20 rounded-3xl p-4 shadow-[0_15px_50px_rgba(0,0,0,0.9),0_0_35px_rgba(0,255,255,0.2)] flex flex-col gap-3 relative overflow-hidden backdrop-blur-2xl"
-                    >
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-neon-cyan/20 rounded-full blur-2xl pointer-events-none -mr-10 -mt-10" />
-                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-neon-red/15 rounded-full blur-2xl pointer-events-none -ml-10 -mb-10" />
+                    </motion.button>
+                )}
+            </AnimatePresence>
 
-                        <div className="flex items-center justify-between relative z-10">
-                            <div className="flex items-center gap-2">
-                                <div className="p-1.5 rounded-xl bg-neon-cyan/15 border border-neon-cyan/40 text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.35)]"><Radio className="w-4 h-4" /></div>
-                                <div>
+            {/* Barre radio pleine largeur en bas (bureau) */}
+            <AnimatePresence>
+                {!isHidden && (
+                    <motion.aside
+                        key="radio-bar"
+                        initial={{ y: 100, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: 100, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                        className="hidden lg:block fixed bottom-0 left-0 right-0 z-[100000] select-none pointer-events-auto"
+                    >
+                        {/* Progress bar ultra-fine en haut de la barre */}
+                        <div className="h-[2px] w-full bg-white/5">
+                            <div className="h-full bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-red transition-all duration-1000" style={{ width: `${progress}%` }} />
+                        </div>
+
+                        <div className="flex items-center gap-5 px-6 py-3 bg-[#07070f]/98 backdrop-blur-2xl border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.7)]">
+                            {/* Icône + Label Radio */}
+                            <div className="flex items-center gap-2.5 shrink-0">
+                                <div className={`relative p-2 rounded-xl bg-neon-cyan/15 border border-neon-cyan/40 text-neon-cyan ${isPlaying ? 'shadow-[0_0_14px_rgba(0,255,255,0.4)]' : ''}`}>
+                                    <Radio className="w-4 h-4" />
+                                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red animate-ping" />
+                                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red" />
+                                </div>
+                                <div className="leading-none">
                                     <div className="flex items-center gap-1.5">
                                         <span className="text-[11px] font-display font-black text-white uppercase italic tracking-tight">DROPSIDERS <span className="text-neon-cyan">RADIO</span></span>
-                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-neon-red/25 text-neon-red border border-neon-red/50 text-[7.5px] font-black uppercase animate-pulse">
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-neon-red/25 text-neon-red border border-neon-red/50 text-[7px] font-black uppercase animate-pulse">
                                             <span className="w-1 h-1 rounded-full bg-neon-red" />LIVE
                                         </span>
                                     </div>
-                                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Web Radio Electro 24/7</p>
+                                    <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">Web Radio Electro 24/7</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-1">
-                                <button onClick={() => setIsMinimized(true)} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all cursor-pointer"><Minimize2 className="w-3.5 h-3.5" /></button>
-                                <button onClick={handleStop} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-red-400 transition-all cursor-pointer"><X className="w-3.5 h-3.5" /></button>
-                            </div>
-                        </div>
 
-                        <div className="bg-black/50 border border-white/15 rounded-2xl p-3 relative z-10 flex items-center justify-between gap-2.5">
-                            <div className="min-w-0 flex-1">
-                                <div className="text-[7.5px] font-black uppercase tracking-widest text-neon-cyan mb-0.5 flex items-center gap-1"><Sparkles className="w-2.5 h-2.5" /><span>EN CE MOMENT</span></div>
-                                <h4 className="text-[12px] font-black text-white uppercase italic tracking-tight truncate">{currentSet.artist}</h4>
-                                <p className="text-[8.5px] font-semibold text-gray-300 truncate mt-0.5">{currentSet.title || (currentSet as any).event}</p>
-                            </div>
-                            <div className="shrink-0 flex flex-col items-end justify-center pl-2 border-l border-white/10">
-                                <span className="text-[7px] font-bold text-gray-400 uppercase">DURÉE</span>
-                                <span className="text-[9.5px] font-mono font-black text-white/90">{currentSet.durationFormatted}</span>
-                            </div>
-                        </div>
+                            {/* Divider */}
+                            <div className="h-8 w-px bg-white/10 shrink-0" />
 
-                        <div className="relative z-10 space-y-1">
-                            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                <div className="h-full bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-red rounded-full transition-all duration-1000" style={{ width: `${progress}%` }} />
+                            {/* Track en cours */}
+                            <div className="flex-1 min-w-0">
+                                <div className="text-[7.5px] font-black uppercase tracking-widest text-neon-cyan mb-0.5 flex items-center gap-1">
+                                    <Sparkles className="w-2.5 h-2.5" /><span>EN CE MOMENT</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <h4 className="text-[13px] font-black text-white uppercase italic tracking-tight truncate">{currentSet.artist}</h4>
+                                    <span className="text-white/20 text-xs">·</span>
+                                    <p className="text-[10px] font-semibold text-gray-400 truncate">{currentSet.title || (currentSet as any).event}</p>
+                                </div>
                             </div>
-                            <div className="flex items-center justify-between text-[7.5px] font-mono text-gray-400">
-                                <span>{formatDurationExact(uiOffset)}</span>
-                                <span className="flex items-center gap-1 text-neon-cyan font-semibold"><Clock className="w-2 h-2" /> {currentSet.startTime}</span>
-                                <span>{currentSet.durationFormatted}</span>
-                            </div>
-                        </div>
 
-                        <div className="flex items-center justify-between gap-3 relative z-10 pt-1.5 border-t border-white/10">
-                            <button onClick={handlePlay}
-                                className={`px-4 py-2 rounded-xl font-black text-[10.5px] uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg active:scale-95 ${isPlaying ? 'bg-neon-cyan text-black' : 'bg-white text-black hover:bg-neon-cyan'}`}>
-                                {isPlaying ? <><Pause className="w-3.5 h-3.5 fill-current" /><span>PAUSE</span></> : <><Play className="w-3.5 h-3.5 fill-current ml-0.5" /><span>ÉCOUTER</span></>}
-                            </button>
-                            <div className="flex items-center gap-2 flex-1 max-w-[130px]">
-                                <button onClick={toggleMute} className="p-1 text-gray-300 hover:text-white transition-colors cursor-pointer">
+                            {/* EQ Bars */}
+                            <AudioBars playing={isPlaying} />
+
+                            {/* Temps */}
+                            <div className="shrink-0 text-right hidden xl:block">
+                                <div className="flex items-center gap-1.5 text-[8px] font-mono text-gray-500">
+                                    <Clock className="w-2.5 h-2.5 text-neon-cyan" />
+                                    <span className="text-neon-cyan">{currentSet.startTime}</span>
+                                    <span>·</span>
+                                    <span>{currentSet.durationFormatted}</span>
+                                </div>
+                                <div className="text-[8px] font-mono text-gray-600 mt-0.5">{formatDurationExact(uiOffset)} écoulé</div>
+                            </div>
+
+                            {/* Divider */}
+                            <div className="h-8 w-px bg-white/10 shrink-0" />
+
+                            {/* Volume */}
+                            <div className="flex items-center gap-2 shrink-0 w-32">
+                                <button onClick={toggleMute} className="p-1 text-gray-300 hover:text-white transition-colors cursor-pointer shrink-0">
                                     {isMuted || volume === 0 ? <VolumeX className="w-4 h-4 text-neon-red" /> : <Volume2 className="w-4 h-4 text-neon-cyan" />}
                                 </button>
                                 <input type="range" min="0" max="100" value={isMuted ? 0 : volume}
                                     onChange={e => { setVolume(Number(e.target.value)); if (isMuted) setIsMuted(false); }}
                                     className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
                             </div>
-                            <AudioBars playing={isPlaying} />
+
+                            {/* Bouton Play/Pause */}
+                            <button onClick={handlePlay}
+                                className={`shrink-0 px-5 py-2 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg active:scale-95 ${
+                                    isPlaying ? 'bg-neon-cyan text-black shadow-[0_0_20px_rgba(0,255,255,0.4)]' : 'bg-white text-black hover:bg-neon-cyan hover:shadow-[0_0_20px_rgba(0,255,255,0.3)]'
+                                }`}>
+                                {isPlaying ? <><Pause className="w-3.5 h-3.5 fill-current" /><span>PAUSE</span></> : <><Play className="w-3.5 h-3.5 fill-current ml-0.5" /><span>ÉCOUTER</span></>}
+                            </button>
+
+                            {/* Bouton Masquer */}
+                            <div className="flex items-center gap-1 shrink-0">
+                                <button onClick={handleStop}
+                                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-red-400 transition-all cursor-pointer"
+                                    title="Arrêter la radio">
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={handleHide}
+                                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all cursor-pointer"
+                                    title="Masquer la barre radio">
+                                    <Minimize2 className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
                         </div>
-                    </motion.div>
+                    </motion.aside>
                 )}
             </AnimatePresence>
-        </aside>
+        </>
     );
 }
 

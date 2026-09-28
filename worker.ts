@@ -8627,6 +8627,116 @@ ${urls.map(u => `  <url>
             }
         }
 
+        // --- YouTube Media Search (TV & Radio - Sets, Clips, Jingles, Ads) ---
+        if ((path === '/api/youtube/search-media' || path === '/api/youtube/search-admin') && request.method === 'GET') {
+            const query = url.searchParams.get('q');
+            if (!query) return new Response(JSON.stringify({ error: 'Query required' }), { status: 400, headers });
+
+            try {
+                const apiKey = env.YOUTUBE_API_KEY;
+                // 1. If API key exists, try official API
+                if (apiKey) {
+                    try {
+                        const searchRes = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=25&key=${apiKey}`);
+                        if (searchRes.ok) {
+                            const searchData: any = await searchRes.json();
+                            const videoIds = (searchData.items || []).map((item: any) => item.id?.videoId).filter(Boolean).join(',');
+                            if (videoIds) {
+                                const detailsRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoIds}&key=${apiKey}`);
+                                if (detailsRes.ok) {
+                                    const detailsData: any = await detailsRes.json();
+                                    const results = (detailsData.items || []).map((item: any) => {
+                                        const isoDur = item.contentDetails?.duration || '';
+                                        let duration = 300;
+                                        const match = isoDur.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+                                        if (match) {
+                                            const h = parseInt(match[1] || '0', 10);
+                                            const m = parseInt(match[2] || '0', 10);
+                                            const s = parseInt(match[3] || '0', 10);
+                                            duration = h * 3600 + m * 60 + s;
+                                        }
+                                        return {
+                                            id: item.id,
+                                            youtubeId: item.id,
+                                            title: (item.snippet?.title || '').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&'),
+                                            thumbnail: item.snippet?.thumbnails?.high?.url || item.snippet?.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${item.id}/hqdefault.jpg`,
+                                            channel: item.snippet?.channelTitle || '',
+                                            duration: duration || 3600
+                                        };
+                                    });
+                                    if (results.length > 0) {
+                                        return new Response(JSON.stringify(results), { status: 200, headers });
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('YouTube API v3 failed, falling back to public search:', e);
+                    }
+                }
+
+                // 2. Fallback: Query YouTube public search page directly
+                const ytHtmlRes = await fetch(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&hl=fr`, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                        'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7'
+                    }
+                });
+
+                if (ytHtmlRes.ok) {
+                    const html = await ytHtmlRes.text();
+                    const jsonMatch = html.match(/var ytInitialData\s*=\s*({.+?});<\/script>/s) || html.match(/ytInitialData\s*=\s*({.+?});/s);
+                    if (jsonMatch) {
+                        const data = JSON.parse(jsonMatch[1]);
+                        const sections = data?.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents || [];
+                        const videos: any[] = [];
+
+                        for (const sec of sections) {
+                            const items = sec?.itemSectionRenderer?.contents || [];
+                            for (const it of items) {
+                                const vr = it?.videoRenderer;
+                                if (vr && vr.videoId) {
+                                    const ytid = vr.videoId;
+                                    const title = vr.title?.runs?.[0]?.text || '';
+                                    const durText = vr.lengthText?.simpleText || '';
+                                    let duration = 300;
+                                    if (durText) {
+                                        const p = durText.split(':').map(Number);
+                                        if (p.length === 3) duration = p[0] * 3600 + p[1] * 60 + p[2];
+                                        else if (p.length === 2) duration = p[0] * 60 + p[1];
+                                    }
+                                    const channel = vr.ownerText?.runs?.[0]?.text || '';
+                                    const thumb = vr.thumbnail?.thumbnails?.slice(-1)[0]?.url || `https://i.ytimg.com/vi/${ytid}/hqdefault.jpg`;
+
+                                    videos.push({
+                                        id: ytid,
+                                        youtubeId: ytid,
+                                        title,
+                                        duration,
+                                        durationText: durText,
+                                        channel,
+                                        thumbnail: thumb
+                                    });
+
+                                    if (videos.length >= 25) break;
+                                }
+                            }
+                            if (videos.length >= 25) break;
+                        }
+
+                        if (videos.length > 0) {
+                            return new Response(JSON.stringify(videos), { status: 200, headers });
+                        }
+                    }
+                }
+
+                return new Response(JSON.stringify([]), { status: 200, headers });
+            } catch (err: any) {
+                return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+            }
+        }
+
+
         // --- NEW: MUSIC TRACK VOTING (Anti-Spam) ---
         if (path === '/api/music/vote' && request.method === 'POST') {
             try {

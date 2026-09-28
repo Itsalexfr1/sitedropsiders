@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Heart, Play, Loader2, Music } from 'lucide-react';
-import { usePlayer } from '../../context/PlayerContext';
+import { usePlayer, openMixInNewTab } from '../../context/PlayerContext';
 
 interface Mix {
     id: string;
@@ -97,16 +97,7 @@ export function CommunityMixesLeaderboard() {
     };
 
     const handlePlayMix = (mix: Mix) => {
-        playTrack({
-            id: mix.id,
-            title: mix.title,
-            artist: mix.username || 'Dropsider',
-            label: mix.genre || mix.type,
-            url: mix.audioUrl || mix.url || '',
-            embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
-            tracks: mix.tracklist || [],
-            ownerEmail: mix.ownerEmail || mix.userEmail
-        });
+        openMixInNewTab(mix.id, true);
     };
 
     // Filter & Sort
