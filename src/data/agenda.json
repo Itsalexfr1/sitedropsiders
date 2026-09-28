@@ -702,5 +702,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1117,
+    "title": "EDC Orlando",
+    "date": "2026-11-06",
+    "startDate": "2026-11-06",
+    "endDate": "2026-11-08",
+    "venue": "Tinker Field",
+    "location": "ORLANDO",
+    "country": "USA",
+    "type": "Festival",
+    "image": "/uploads/uploads/84338829c26e30cb-edco_2026_mk_lu_lubd_fest_dh_3.jpg",
+    "url": "https://orlando.edc.com",
+    "genre": "Multi Styles",
+    "month": "NOVEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
