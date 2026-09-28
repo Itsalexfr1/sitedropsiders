@@ -61,9 +61,15 @@ import {
     type RadioScheduleBlock,
     type RadioTrackItem,
     type RadioThemeJingle,
-    type RadioTopHoraireConfig
+    type RadioTopHoraireConfig,
+    type RadioTrackCategory,
+    getRadioCategoryMeta
 } from '../../../utils/radioSchedule';
 import { parseArtistAndEvent } from '../../../utils/tvSchedule';
+import { RadioRundownTimeline } from '../radio/RadioRundownTimeline';
+import { RadioOnAirMonitor } from '../radio/RadioOnAirMonitor';
+import { RadioAutomationsPanel } from '../radio/RadioAutomationsPanel';
+import { RadioMediaPoolPanel } from '../radio/RadioMediaPoolPanel';
 
 const PRESET_EMOJIS = ['🎧', '🔥', '⚡', '🚀', '🎵', '🕺', '📻', '💎', '🎉', '🌙', '☀️', '⭐', '🌅', '🎪'];
 const PRESET_COLORS = [
@@ -180,6 +186,16 @@ export function AdminRadioModal({
     const [radioDuplicates, setRadioDuplicates] = useState<DuplicateEntry[]>([]);
     const [showDuplicateAudit, setShowDuplicateAudit] = useState(false);
 
+    const handleOpenDuplicateAudit = () => {
+        const dupes = detectRadioDuplicates(blocks);
+        setRadioDuplicates(dupes);
+        if (dupes.length === 0) {
+            showToast('✓ Aucun doublon détecté dans votre grille radio !', 'info');
+        } else {
+            setShowDuplicateAudit(true);
+        }
+    };
+
     // ─── Modal "Envoyer vers TV" ──────────────────────────────────────────────
     const [sendToTVTrack, setSendToTVTrack] = useState<RadioTrackItem | null>(null);
     const [sendToTVBlockId, setSendToTVBlockId] = useState<string>('');
@@ -257,6 +273,48 @@ export function AdminRadioModal({
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isRadionomyOpen, setIsRadionomyOpen] = useState(false);
     const [isYouTubeSearchOpen, setIsYouTubeSearchOpen] = useState(false);
+
+    // ─── Studio Tabs & Médiathèque Unifiée ─────────────────────────────────────
+    const [activeStudioTab, setActiveStudioTab] = useState<'rundown' | 'on_air' | 'media_pool' | 'automations'>('rundown');
+
+    const [mediaPoolItems, setMediaPoolItems] = useState<RadionomyItem[]>(() => {
+        try {
+            const saved = localStorage.getItem('dropsiders_radionomy_palette');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch {}
+        return [];
+    });
+
+    const handleSaveMediaPoolItem = (newItem: RadionomyItem) => {
+        setMediaPoolItems(prev => {
+            const updated = [newItem, ...prev.filter(i => i.id !== newItem.id)];
+            try { localStorage.setItem('dropsiders_radionomy_palette', JSON.stringify(updated)); } catch {}
+            return updated;
+        });
+        showToast(`✓ « ${newItem.title} » ajouté à la médiathèque !`);
+    };
+
+    const handleDeleteMediaPoolItem = (id: string) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Supprimer cet élément ?',
+            message: 'Êtes-vous sûr de vouloir supprimer cet élément de la médiathèque ?',
+            type: 'danger',
+            confirmText: 'Supprimer',
+            cancelText: 'Annuler',
+            onConfirm: () => {
+                setMediaPoolItems(prev => {
+                    const updated = prev.filter(i => i.id !== id);
+                    try { localStorage.setItem('dropsiders_radionomy_palette', JSON.stringify(updated)); } catch {}
+                    return updated;
+                });
+                showToast('Élément supprimé de la médiathèque');
+            }
+        });
+    };
 
     // ─── Chargement depuis l'API ──────────────────────────────────────────────
     useEffect(() => {
@@ -882,13 +940,21 @@ export function AdminRadioModal({
             return;
         }
         const { artist, event } = parseArtistAndEvent(item.title);
+        const mappedCategory: RadioTrackCategory =
+            item.category === 'jingle' ? 'jingle'
+            : item.category === 'interview' ? 'interview'
+            : item.category === 'pub' ? 'pub'
+            : item.category === 'promo' ? 'promo'
+            : item.category === 'top_horaire' ? 'top_horaire'
+            : 'clip';
+
         const newTrack: RadioTrackItem = {
             id: `rad_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-            artist: artist || (item.category === 'jingle' ? 'DROPSIDERS' : item.category === 'top_horaire' ? 'TOP HORAIRE' : item.category === 'generique' ? 'GÉNÉRIQUE' : item.category === 'pub' ? 'SPONSOR' : 'DROPSIDERS RADIO'),
+            artist: artist || (item.category === 'jingle' ? 'DROPSIDERS' : item.category === 'top_horaire' ? 'TOP HORAIRE' : item.category === 'generique' ? 'GÉNÉRIQUE' : item.category === 'interview' ? 'INTERVIEW' : item.category === 'pub' ? 'SPONSOR' : 'DROPSIDERS RADIO'),
             title: event || item.title,
             youtubeId: item.youtubeId,
             audioUrl: item.audioUrl,
-            category: 'clip',
+            category: mappedCategory,
             duration: item.duration || 15,
             addedAt: Date.now()
         };
@@ -1128,88 +1194,100 @@ export function AdminRadioModal({
                         )}
                     </AnimatePresence>
 
-                    {/* ── HEADER DROPSIDERS ───────────────────────────────── */}
-                    <div className="flex items-center justify-between px-6 py-3.5 border-b border-white/10 shrink-0 bg-black/40">
-                        <div className="flex items-center gap-3.5">
+                    {/* ── HEADER DROPSIDERS BROADCAST STUDIO ───────────────── */}
+                    <div className="flex flex-wrap items-center justify-between px-6 py-3 border-b border-white/10 shrink-0 bg-black/50 gap-4">
+                        <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-neon-cyan/20 to-purple-600/20 border border-neon-cyan/40 flex items-center justify-center text-neon-cyan shadow-[0_0_20px_rgba(0,240,255,0.3)]">
                                 <Radio className="w-5 h-5" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-display font-black text-white uppercase italic tracking-tighter leading-tight flex items-center gap-2.5">
-                                    DROPSIDERS <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan via-purple-400 to-neon-red">RADIO</span>
-                                    <span className="text-[10px] font-mono normal-case not-italic text-gray-400 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-full">
-                                        {blocks.length} émission{blocks.length !== 1 ? 's' : ''} · {totalTracks} titre{totalTracks !== 1 ? 's' : ''}
+                                <h2 className="text-base sm:text-lg font-display font-black text-white uppercase italic tracking-tighter leading-tight flex items-center gap-2">
+                                    DROPSIDERS <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan via-purple-400 to-neon-red">RADIO STUDIO</span>
+                                    <span className="text-[10px] font-mono normal-case not-italic text-gray-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
+                                        {blocks.length} créneau{blocks.length !== 1 ? 'x' : ''} · {totalTracks} titre{totalTracks !== 1 ? 's' : ''}
                                     </span>
                                 </h2>
                                 <p className="text-[9px] font-mono text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                    <span>Programmation Radio</span>
+                                    <span>Master Control Room</span>
                                     <span className="text-white/20">|</span>
-                                    <span className="text-purple-400 font-bold">Archives TV · {totalTVVideos} Vidéos</span>
+                                    <span className="text-neon-cyan font-bold">{topHoraireConfig.enabled ? `Top Horaire ON (${topHoraireConfig.duration}s)` : 'Top Horaire OFF'}</span>
                                 </p>
                             </div>
                         </div>
 
+                        {/* Navigation des 4 Espaces de Travail Studio */}
+                        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/5 border border-white/10 overflow-x-auto">
+                            <button
+                                type="button"
+                                onClick={() => setActiveStudioTab('rundown')}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-display font-black uppercase italic tracking-wider transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                                    activeStudioTab === 'rundown'
+                                        ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,240,255,0.4)]'
+                                        : 'text-gray-400 hover:text-white'
+                                }`}
+                            >
+                                <Clock className="w-3.5 h-3.5" />
+                                <span>Conducteur & Grille</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setActiveStudioTab('on_air')}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-display font-black uppercase italic tracking-wider transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                                    activeStudioTab === 'on_air'
+                                        ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-black shadow-[0_0_15px_rgba(16,185,129,0.4)]'
+                                        : 'text-gray-400 hover:text-white'
+                                }`}
+                            >
+                                <Radio className="w-3.5 h-3.5" />
+                                <span>Régie ON AIR</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setActiveStudioTab('media_pool')}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-display font-black uppercase italic tracking-wider transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                                    activeStudioTab === 'media_pool'
+                                        ? 'bg-gradient-to-r from-purple-600 to-pink-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
+                                        : 'text-gray-400 hover:text-white'
+                                }`}
+                            >
+                                <Sliders className="w-3.5 h-3.5" />
+                                <span>Médiathèque & Bac ({mediaPoolItems.length})</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setActiveStudioTab('automations')}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-display font-black uppercase italic tracking-wider transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                                    activeStudioTab === 'automations'
+                                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.4)]'
+                                        : 'text-gray-400 hover:text-white'
+                                }`}
+                            >
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span>Automations & Horloge</span>
+                            </button>
+                        </div>
+
+                        {/* Actions à droite */}
                         <div className="flex items-center gap-2">
-                            {/* TOP Horaire (Début d'heure) */}
-                            <button
-                                type="button"
-                                onClick={() => setIsTopHoraireModalOpen(true)}
-                                className={`px-3 py-2 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-2 border transition-all cursor-pointer ${
-                                    topHoraireConfig.enabled
-                                        ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.25)]'
-                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
-                                }`}
-                                title="Configurer le TOP Horaire (jingle automatique à chaque début d'heure : 00 min)"
-                            >
-                                <Clock className="w-3.5 h-3.5 text-neon-cyan" />
-                                <span className="hidden sm:inline">TOP Horaire</span>
-                                <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-mono font-bold ${
-                                    topHoraireConfig.enabled ? 'bg-neon-cyan/30 text-neon-cyan' : 'bg-white/10 text-gray-500'
-                                }`}>
-                                    {topHoraireConfig.enabled ? `${topHoraireConfig.duration}s` : 'OFF'}
-                                </span>
-                            </button>
+                            {activeStudioTab === 'rundown' && (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsTVLibOpen(!isTVLibOpen)}
+                                    className={`px-3 py-2 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 border transition-all cursor-pointer ${
+                                        isTVLibOpen
+                                            ? 'bg-purple-600/20 border-purple-500/50 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.2)]'
+                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    <Tv className="w-3.5 h-3.5 text-purple-400" />
+                                    <span className="hidden md:inline">Bibliothèque TV ({totalTVVideos})</span>
+                                    {isTVLibOpen ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
+                                </button>
+                            )}
 
-                            {/* Radionomy · Jingles & Pubs */}
-                            <button
-                                type="button"
-                                onClick={() => setIsRadionomyOpen(true)}
-                                className="px-3 py-2 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-2 border bg-gradient-to-r from-purple-900/40 via-purple-700/30 to-pink-900/30 border-purple-500/50 text-purple-200 hover:text-white hover:border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)] transition-all cursor-pointer group"
-                                title="Boîte à Jingles, Upload WAV/MP3, Pubs et Règle Horloge"
-                            >
-                                <Sliders className="w-3.5 h-3.5 text-purple-400 group-hover:rotate-90 transition-transform duration-300" />
-                                <span className="hidden sm:inline">Jingles & Bac</span>
-                                <span className="text-[9px] text-purple-300 font-mono normal-case hidden md:inline">· MP3/WAV</span>
-                            </button>
-
-                            {/* Recherche YouTube directe */}
-                            <button
-                                type="button"
-                                onClick={() => setIsYouTubeSearchOpen(true)}
-                                className="px-3 py-2 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-2 border bg-red-600/20 border-red-500/40 text-red-300 hover:text-white hover:bg-red-600/30 shadow-[0_0_15px_rgba(239,68,68,0.25)] transition-all cursor-pointer"
-                                title="Recherche YouTube intégrée pour sets et clips"
-                            >
-                                <Search className="w-3.5 h-3.5 text-red-400" />
-                                <span className="hidden sm:inline">Recherche YouTube</span>
-                            </button>
-
-                            {/* Volet Bibliothèque TV */}
-                            <button
-                                type="button"
-                                onClick={() => setIsTVLibOpen(!isTVLibOpen)}
-                                className={`px-3 py-2 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-2 border transition-all cursor-pointer ${
-                                    isTVLibOpen
-                                        ? 'bg-purple-600/20 border-purple-500/50 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.2)]'
-                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
-                                }`}
-                            >
-                                <Tv className="w-3.5 h-3.5 text-purple-400" />
-                                <span className="hidden md:inline">Bibliothèque TV ({totalTVVideos})</span>
-                                <span className="md:hidden">TV ({totalTVVideos})</span>
-                                {isTVLibOpen ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
-                            </button>
-
-                            {/* Statut Radio Live */}
                             <button
                                 type="button"
                                 onClick={onToggleRadio}
@@ -1223,7 +1301,6 @@ export function AdminRadioModal({
                                 {isRadioActive ? 'ON AIR' : 'HORS LIGNE'}
                             </button>
 
-                            {/* Sauvegarder */}
                             <button
                                 type="button"
                                 onClick={handleSave}
@@ -1238,7 +1315,6 @@ export function AdminRadioModal({
                                 <span className="hidden sm:inline">{isSaving ? 'Enregistrement...' : saveSuccess ? 'Sauvegardé !' : 'Sauvegarder'}</span>
                             </button>
 
-                            {/* Plein Écran */}
                             <button
                                 type="button"
                                 onClick={() => setIsFullscreen(!isFullscreen)}
@@ -1261,8 +1337,74 @@ export function AdminRadioModal({
                         </div>
                     </div>
 
-                    {/* ── CORPS DE LA MODALE (3 COLONNES) ─────────────────── */}
-                    <div className="flex flex-1 overflow-hidden min-h-0">
+                    {/* ── CORPS DU STUDIO SELON L'ONGLET SÉLECTIONNÉ ── */}
+                    {activeStudioTab === 'on_air' && (
+                        <RadioOnAirMonitor
+                            blocks={blocks}
+                            topHoraireConfig={topHoraireConfig}
+                            isRadioActive={isRadioActive}
+                            onToggleRadio={onToggleRadio}
+                            onGoToRundown={() => setActiveStudioTab('rundown')}
+                            onGoToMediaPool={() => setActiveStudioTab('media_pool')}
+                        />
+                    )}
+
+                    {activeStudioTab === 'media_pool' && (
+                        <RadioMediaPoolPanel
+                            items={mediaPoolItems}
+                            activeBlockTitle={selectedBlock?.title}
+                            onInsertItemToActiveBlock={handleInsertRadionomyItem}
+                            onSetAsTopHoraire={(item) => {
+                                const updated = { ...topHoraireConfig, audioUrl: item.audioUrl, duration: item.duration || 10 };
+                                setTopHoraireConfig(updated);
+                                localStorage.setItem(STORAGE_RADIO_TOP_HORAIRE_KEY, JSON.stringify(updated));
+                                showToast(`✓ « ${item.title} » défini comme Top Horaire officiel !`);
+                            }}
+                            onSetAsThemeJingle={(item) => {
+                                if (selectedBlockId) {
+                                    setBlocks(prev => prev.map(b => b.id === selectedBlockId ? {
+                                        ...b,
+                                        themeJingle: {
+                                            enabled: true,
+                                            title: item.title,
+                                            audioUrl: item.audioUrl,
+                                            youtubeId: item.youtubeId,
+                                            duration: item.duration || 15
+                                        }
+                                    } : b));
+                                    showToast(`✓ « ${item.title} » défini comme générique d'émission !`);
+                                } else {
+                                    showToast('Sélectionnez d\'abord une émission dans le conducteur', 'warn');
+                                }
+                            }}
+                            onDeleteItem={handleDeleteMediaPoolItem}
+                            onAddNewItem={handleSaveMediaPoolItem}
+                            playingAudioId={playingAudioId}
+                            onToggleAudioPreview={handleToggleAudioPreview}
+                        />
+                    )}
+
+                    {activeStudioTab === 'automations' && (
+                        <RadioAutomationsPanel
+                            topHoraireConfig={topHoraireConfig}
+                            onUpdateTopHoraire={(c) => {
+                                setTopHoraireConfig(c);
+                                localStorage.setItem(STORAGE_RADIO_TOP_HORAIRE_KEY, JSON.stringify(c));
+                                showToast('✓ Réglages Top Horaire enregistrés !');
+                            }}
+                            blocks={blocks}
+                            selectedBlockId={selectedBlockId}
+                            onApplyRadionomyRule={(pubEveryN, jingleEveryN) => handleApplyRadionomyRule({ pubEveryN, jingleEveryN })}
+                            onResetGrid={handleResetGrid}
+                            onOpenDuplicateAudit={handleOpenDuplicateAudit}
+                            playingAudioId={playingAudioId}
+                            onToggleAudioPreview={handleToggleAudioPreview}
+                        />
+                    )}
+
+                    {/* ── ONGLET CONDUCTEUR & GRILLE 24/7 (3 COLONNES) ────── */}
+                    {activeStudioTab === 'rundown' && (
+                        <div className="flex flex-1 overflow-hidden min-h-0">
 
                         {/* ═════════════════════════════════════════════════════
                             COLONNE 1 : ÉMISSIONS RADIO (Gauches)
@@ -1739,454 +1881,38 @@ export function AdminRadioModal({
                                 </div>
                             )}
 
-                            {/* ── ÉMISSION SÉLECTIONNÉE DROPSIDERS ── */}
+                            {/* ── ÉMISSION SÉLECTIONNÉE DROPSIDERS (CONDUCTEUR D'ANTENNE AVEC BADGES) ── */}
                             {selectedBlock && !isEditingBlock && (
-                                <div className="flex flex-col flex-1 min-h-0">
-
-                                    {/* Header de l'émission */}
-                                    <div
-                                        className="px-6 py-4 border-b border-white/10 flex items-center justify-between shrink-0 bg-white/[0.02]"
-                                        style={{ borderLeftColor: selectedBlock.color, borderLeftWidth: 5 }}
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <span className="text-3xl">{selectedBlock.emoji}</span>
-                                            <div>
-                                                <h3 className="text-lg font-display font-black text-white uppercase italic tracking-tight leading-tight">
-                                                    {selectedBlock.title}
-                                                </h3>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-[10px] font-mono text-gray-400">{selectedBlock.timeSlot}</span>
-                                                    <span className="text-gray-600">·</span>
-                                                    <span className="text-[10px] font-mono text-gray-400">
-                                                        {selectedBlock.days && selectedBlock.days.length === 7
-                                                            ? '7j/7'
-                                                            : DAYS_OF_WEEK.filter(d => isRadioBlockActiveOnDay(selectedBlock, d.value)).map(d => d.short.slice(0, 3)).join(', ')
-                                                        }
-                                                    </span>
-                                                    <span className="text-gray-600">·</span>
-                                                    <span className="text-[10px] font-mono font-bold text-neon-cyan bg-neon-cyan/10 px-2 py-0.5 rounded-md border border-neon-cyan/20">
-                                                        {selectedBlock.tracks?.length || 0} piste{(selectedBlock.tracks?.length || 0) !== 1 ? 's' : ''}
-                                                    </span>
-                                                    {selectedBlock.randomize && (
-                                                        <span className="text-[9px] font-display font-black uppercase italic text-purple-400 bg-purple-500/15 px-2 py-0.5 rounded-md border border-purple-500/30 flex items-center gap-1">
-                                                            <Shuffle className="w-2.5 h-2.5" /> Aléatoire
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-2">
-                                            {/* Recherche YouTube directe pour cette émission */}
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsYouTubeSearchOpen(true)}
-                                                className="px-3 py-1.5 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider transition-all flex items-center gap-1.5 border bg-red-600/20 hover:bg-red-600/30 border-red-500/40 text-red-300 hover:text-white shadow-[0_0_12px_rgba(239,68,68,0.2)] cursor-pointer"
-                                                title="Rechercher sur YouTube et ajouter directement"
-                                            >
-                                                <Search className="w-3.5 h-3.5 text-red-400" />
-                                                <span className="hidden sm:inline">YouTube</span>
-                                            </button>
-
-                                            {/* Jingles & Pubs Radionomy */}
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsRadionomyOpen(true)}
-                                                className="px-3 py-1.5 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider transition-all flex items-center gap-1.5 border bg-purple-600/20 hover:bg-purple-600/30 border-purple-500/40 text-purple-300 hover:text-white shadow-[0_0_12px_rgba(168,85,247,0.2)] cursor-pointer"
-                                                title="Ajouter des Jingles ou appliquer la règle horloge"
-                                            >
-                                                <Sliders className="w-3.5 h-3.5 text-purple-400" />
-                                                <span className="hidden sm:inline">Jingles</span>
-                                            </button>
-
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowManualAdd(!showManualAdd)}
-                                                className={`px-3 py-1.5 rounded-xl text-[10px] font-display font-black uppercase italic tracking-wider transition-all flex items-center gap-1.5 border cursor-pointer ${
-                                                    showManualAdd
-                                                        ? 'bg-neon-cyan/20 border-neon-cyan/40 text-neon-cyan'
-                                                        : 'bg-white/5 hover:bg-white/10 border-white/10 text-gray-400 hover:text-white'
-                                                }`}
-                                            >
-                                                <Plus className="w-3.5 h-3.5" />
-                                                Ajout par URL
-                                            </button>
-
-                                            <button
-                                                type="button"
-                                                onClick={() => openEditBlockForm(selectedBlock)}
-                                                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-[10px] font-display font-black uppercase italic tracking-wider transition-all cursor-pointer"
-                                            >
-                                                <Pencil className="w-3.5 h-3.5" />
-                                                Modifier
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* ── ZONE DE DROP DROPSIDERS (Glisser-Déposer les vidéos TV) ── */}
-                                    <div className="p-5 pb-2 shrink-0">
-                                        <div
-                                            onDragOver={(e) => {
-                                                e.preventDefault();
-                                                e.dataTransfer.dropEffect = 'copy';
-                                                setIsDragOverMainArea(true);
-                                            }}
-                                            onDragLeave={(e) => {
-                                                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                                                    setIsDragOverMainArea(false);
-                                                }
-                                            }}
-                                            onDrop={(e) => {
-                                                e.preventDefault();
-                                                setIsDragOverMainArea(false);
-                                                setDraggingVideo(null);
-                                                try {
-                                                    const raw = e.dataTransfer.getData('application/json');
-                                                    if (raw) {
-                                                        const vid = JSON.parse(raw);
-                                                        handleImportFromTV(vid, selectedBlock.id);
-                                                    }
-                                                } catch (err) {
-                                                    console.error('Erreur drop zone:', err);
-                                                }
-                                            }}
-                                            className={`p-5 rounded-3xl border-2 border-dashed transition-all flex items-center justify-between gap-5 relative overflow-hidden ${
-                                                isDragOverMainArea
-                                                    ? 'border-neon-cyan bg-neon-cyan/20 shadow-[0_0_40px_rgba(0,240,255,0.4)] scale-[1.01]'
-                                                    : draggingVideo
-                                                        ? 'border-neon-cyan/60 bg-neon-cyan/10 animate-pulse shadow-[0_0_20px_rgba(0,240,255,0.2)]'
-                                                        : 'border-white/15 bg-gradient-to-r from-white/[0.02] to-transparent hover:border-white/25 hover:bg-white/[0.04]'
-                                            }`}
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
-                                                    isDragOverMainArea
-                                                        ? 'bg-neon-cyan text-black scale-110 shadow-[0_0_20px_rgba(0,240,255,0.6)]'
-                                                        : 'bg-white/5 text-neon-cyan border border-white/10'
-                                                }`}>
-                                                    <Tv className="w-6 h-6" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-display font-black text-white uppercase italic tracking-tight">
-                                                        {isDragOverMainArea ? 'LÂCHEZ LA VIDÉO ICI POUR L\'AJOUTER !' : 'GLISSER-DÉPOSER DES VIDÉOS TV ICI'}
-                                                    </p>
-                                                    <p className="text-[10px] text-gray-400 mt-0.5 font-sans">
-                                                        Sélectionnez une vidéo dans la bibliothèque à droite et glissez-la directement dans cette zone.
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="text-right shrink-0">
-                                                <span className="text-[9px] font-mono font-bold text-neon-cyan bg-neon-cyan/10 px-3 py-1.5 rounded-xl border border-neon-cyan/30 shadow-[0_0_10px_rgba(0,240,255,0.15)]">
-                                                    {totalTVVideos} VIDÉOS TV PRÊTES
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* ── FORMULAIRE AJOUT MANUEL PAR URL (Optionnel rétractable) ── */}
-                                    {showManualAdd && (
-                                        <motion.div
-                                            initial={{ opacity: 0, height: 0 }}
-                                            animate={{ opacity: 1, height: 'auto' }}
-                                            exit={{ opacity: 0, height: 0 }}
-                                            className="px-5 pb-3 shrink-0"
-                                        >
-                                            <div className="p-4 rounded-3xl bg-[#0c0d16] border border-white/15 space-y-3">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-[10px] font-display font-black text-gray-400 uppercase italic tracking-wider">Ajouter manuellement une vidéo YouTube :</span>
-                                                    <button type="button" onClick={() => setShowManualAdd(false)} className="text-gray-500 hover:text-white text-xs cursor-pointer">×</button>
-                                                </div>
-                                                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-                                                    <div className="md:col-span-4 space-y-1">
-                                                        <label className="text-[9px] font-mono text-gray-400 uppercase">Lien YouTube</label>
-                                                        <div className="flex gap-2">
-                                                            <input
-                                                                type="text"
-                                                                value={trackUrl}
-                                                                onChange={e => setTrackUrl(e.target.value)}
-                                                                placeholder="https://youtube.com/watch?v=..."
-                                                                className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/15 text-white text-xs focus:outline-none focus:border-neon-cyan"
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                onClick={handleFetchYouTube}
-                                                                disabled={isFetchingTitle || !trackUrl}
-                                                                className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-[9px] font-display font-black uppercase italic disabled:opacity-40 transition-all whitespace-nowrap cursor-pointer"
-                                                            >
-                                                                {isFetchingTitle ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Auto'}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="md:col-span-3 space-y-1">
-                                                        <label className="text-[9px] font-mono text-gray-400 uppercase">Artiste</label>
-                                                        <input
-                                                            type="text"
-                                                            value={trackArtist}
-                                                            onChange={e => setTrackArtist(e.target.value)}
-                                                            placeholder="Ex: David Guetta..."
-                                                            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/15 text-white text-xs focus:outline-none focus:border-neon-cyan"
-                                                        />
-                                                    </div>
-                                                    <div className="md:col-span-3 space-y-1">
-                                                        <label className="text-[9px] font-mono text-gray-400 uppercase">Titre</label>
-                                                        <input
-                                                            type="text"
-                                                            value={trackTitle}
-                                                            onChange={e => setTrackTitle(e.target.value)}
-                                                            placeholder="Ex: Live @ Tomorrowland..."
-                                                            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/15 text-white text-xs focus:outline-none focus:border-neon-cyan"
-                                                        />
-                                                    </div>
-                                                    <div className="md:col-span-2 flex items-end">
-                                                        <button
-                                                            type="button"
-                                                            onClick={handleAddManualTrack}
-                                                            disabled={!trackUrl}
-                                                            className="w-full py-2.5 rounded-xl bg-neon-cyan text-black text-[10px] font-display font-black uppercase italic disabled:opacity-40 hover:bg-white transition-all cursor-pointer"
-                                                        >
-                                                            + Ajouter
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    )}
-
-                                    {/* ── GÉNÉRIQUE D'ÉMISSION ── */}
-                                    <div className="px-5 pb-2 shrink-0">
-                                        <div className={`p-3.5 rounded-2xl border flex items-center gap-3 transition-all ${
-                                            selectedBlock.themeJingle?.enabled
-                                                ? 'bg-purple-950/40 border-purple-500/40 shadow-[0_0_20px_rgba(168,85,247,0.15)]'
-                                                : 'bg-white/[0.02] border-white/8 hover:border-white/15'
-                                        }`}>
-                                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                                                selectedBlock.themeJingle?.enabled ? 'bg-purple-600/40 text-purple-300' : 'bg-white/5 text-gray-500'
-                                            }`}>
-                                                <FileAudio className="w-4.5 h-4.5" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-[9px] font-mono uppercase tracking-widest text-gray-500">Générique d'Émission</p>
-                                                <p className="text-xs font-display font-black text-white truncate">
-                                                    {selectedBlock.themeJingle?.enabled
-                                                        ? selectedBlock.themeJingle.title || 'Générique configuré'
-                                                        : 'Aucun générique défini'}
-                                                </p>
-                                                {selectedBlock.themeJingle?.enabled && (
-                                                    <p className="text-[9px] text-purple-300 font-mono mt-0.5">
-                                                        {selectedBlock.themeJingle.audioUrl ? '🎵 Fichier audio' : '▶ YouTube'}
-                                                        {selectedBlock.themeJingle.duration ? ` · ${selectedBlock.themeJingle.duration}s` : ''}
-                                                    </p>
-                                                )}
-                                            </div>
-                                            <div className="flex items-center gap-1.5 shrink-0">
-                                                {selectedBlock.themeJingle?.enabled && selectedBlock.themeJingle.audioUrl && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleToggleAudioPreview(`theme_${selectedBlock.id}`, selectedBlock.themeJingle!.audioUrl!)}
-                                                        className={`p-1.5 rounded-xl transition-all flex items-center gap-1 text-[9px] font-black uppercase ${
-                                                            playingAudioId === `theme_${selectedBlock.id}`
-                                                                ? 'bg-neon-cyan text-black'
-                                                                : 'bg-purple-600/30 text-purple-300 hover:bg-purple-600/50'
-                                                        }`}
-                                                        title="Écouter le générique"
-                                                    >
-                                                        {playingAudioId === `theme_${selectedBlock.id}` ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
-                                                    </button>
-                                                )}
-                                                <button
-                                                    type="button"
-                                                    onClick={() => openEditBlockForm(selectedBlock)}
-                                                    className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-purple-600/30 border border-white/10 hover:border-purple-500/50 text-gray-400 hover:text-purple-300 transition-all text-[9px] font-display font-black uppercase italic flex items-center gap-1 cursor-pointer"
-                                                    title="Configurer le générique dans les réglages de l'émission"
-                                                >
-                                                    <Pencil className="w-3 h-3" />
-                                                    {selectedBlock.themeJingle?.enabled ? 'Modifier' : '+ Définir'}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* ── LISTE DES PISTES ACTUELLES DE L'ÉMISSION ── */}
-                                    <div
-                                        onDragOver={(e) => {
-                                            e.preventDefault();
-                                            e.dataTransfer.dropEffect = 'copy';
-                                            setIsDragOverMainArea(true);
-                                        }}
-                                        onDragLeave={(e) => {
-                                            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                                                setIsDragOverMainArea(false);
-                                            }
-                                        }}
-                                        onDrop={(e) => {
-                                            e.preventDefault();
-                                            setIsDragOverMainArea(false);
-                                            setDraggingVideo(null);
-                                            try {
-                                                const raw = e.dataTransfer.getData('application/json');
-                                                if (raw) {
-                                                    const vid = JSON.parse(raw);
-                                                    handleImportFromTV(vid, selectedBlock.id);
-                                                }
-                                            } catch (err) {
-                                                console.error('Erreur drop piste:', err);
-                                            }
-                                        }}
-                                        className="flex-1 overflow-y-auto px-5 py-3 space-y-2.5"
-                                    >
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-[10px] font-display font-black uppercase italic tracking-wider text-gray-400 flex items-center gap-2">
-                                                <Music2 className="w-3.5 h-3.5 text-neon-cyan" />
-                                                PISTES DE L'ÉMISSION ({selectedBlock.tracks?.length || 0})
-                                            </span>
-                                            {(selectedBlock.tracks?.length || 0) > 0 && (
-                                                <span className="text-[10px] font-mono text-gray-400">
-                                                    Durée totale : <strong className="text-white">{formatDurationExact((selectedBlock.tracks || []).reduce((acc, t) => acc + (t.duration || 3600), 0))}</strong>
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {(!selectedBlock.tracks || selectedBlock.tracks.length === 0) ? (
-                                            <div className="p-12 rounded-3xl bg-white/[0.01] border border-white/5 text-center flex flex-col items-center justify-center">
-                                                <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mb-3 text-gray-500">
-                                                    <Play className="w-7 h-7 text-gray-500" />
-                                                </div>
-                                                <p className="text-white font-display font-black text-sm uppercase italic">Cette émission est encore vide</p>
-                                                <p className="text-gray-400 text-xs mt-1 max-w-sm font-sans">
-                                                    Glissez une des 240 vidéos depuis la bibliothèque TV à droite pour composer votre playlist.
-                                                </p>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-2 pb-6">
-                                                {selectedBlock.tracks.map((track, idx) => (
-                                                    <div
-                                                        key={track.id}
-                                                        className="p-2.5 rounded-2xl bg-[#0d0e16]/80 hover:bg-[#131522] border border-white/5 hover:border-neon-cyan/30 flex items-center gap-3.5 transition-all group shadow-sm"
-                                                    >
-                                                        {/* Numéro + Réordonner */}
-                                                        <div className="flex items-center gap-1.5 shrink-0">
-                                                            <span className="text-[10px] font-mono font-bold text-neon-cyan/70 w-5 text-center">{idx + 1}</span>
-                                                            <div className="flex flex-col gap-0.5">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleMoveTrack(idx, 'up')}
-                                                                    disabled={idx === 0}
-                                                                    className="p-1 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white disabled:opacity-20 cursor-pointer"
-                                                                    title="Monter"
-                                                                >
-                                                                    <ChevronUp className="w-3.5 h-3.5" />
-                                                                </button>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleMoveTrack(idx, 'down')}
-                                                                    disabled={idx === (selectedBlock.tracks?.length || 0) - 1}
-                                                                    className="p-1 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white disabled:opacity-20 cursor-pointer"
-                                                                    title="Descendre"
-                                                                >
-                                                                    <ChevronDown className="w-3.5 h-3.5" />
-                                                                </button>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Miniature YouTube ou Icône Audio */}
-                                                        <div className="relative shrink-0">
-                                                            {track.audioUrl ? (
-                                                                <div className="w-14 h-9 rounded-xl bg-gradient-to-br from-purple-900/60 to-purple-800/40 border border-purple-500/30 flex items-center justify-center">
-                                                                    <FileAudio className="w-5 h-5 text-purple-400" />
-                                                                </div>
-                                                            ) : (
-                                                                <img
-                                                                    src={`https://img.youtube.com/vi/${track.youtubeId}/default.jpg`}
-                                                                    alt=""
-                                                                    className="w-14 h-9 rounded-xl object-cover bg-black border border-white/10"
-                                                                />
-                                                            )}
-                                                            <span className="absolute bottom-0.5 right-0.5 text-[7.5px] font-mono bg-black/85 px-1 rounded text-gray-300">
-                                                                {formatDurationExact(track.duration || 3600)}
-                                                            </span>
-                                                        </div>
-
-                                                        {/* Titre & Artiste */}
-                                                        <div className="min-w-0 flex-1">
-                                                            <div className="flex items-center gap-2 mb-0.5">
-                                                                <span className={`text-[7.5px] font-display font-black uppercase italic px-1.5 py-0.5 rounded-md ${
-                                                                    track.category === 'clip'
-                                                                        ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                                                                        : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                                                                }`}>
-                                                                    {track.category === 'clip' ? 'CLIP' : 'SET'}
-                                                                </span>
-                                                                <h5 className="text-xs font-display font-black text-white uppercase italic truncate">{track.artist}</h5>
-                                                            </div>
-                                                            <p className="text-[10px] text-gray-400 truncate font-sans">{track.title}</p>
-                                                        </div>
-
-                                                        {/* Durée & Actions */}
-                                                        <div className="flex items-center gap-1.5 shrink-0">
-                                                            {track.audioUrl ? (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleToggleAudioPreview(`track_${track.id}`, track.audioUrl!)}
-                                                                    className={`p-1.5 rounded-xl transition-colors cursor-pointer ${
-                                                                        playingAudioId === `track_${track.id}`
-                                                                            ? 'bg-neon-cyan/20 text-neon-cyan'
-                                                                            : 'bg-white/5 hover:bg-purple-600/20 text-gray-400 hover:text-purple-300'
-                                                                    }`}
-                                                                    title={playingAudioId === `track_${track.id}` ? 'Stop' : 'Écouter'}
-                                                                >
-                                                                    {playingAudioId === `track_${track.id}` ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5" />}
-                                                                </button>
-                                                            ) : (
-                                                                <a
-                                                                    href={`https://www.youtube.com/watch?v=${track.youtubeId}`}
-                                                                    target="_blank"
-                                                                    rel="noreferrer"
-                                                                    className="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white transition-colors cursor-pointer"
-                                                                    title="Voir sur YouTube"
-                                                                >
-                                                                    <ExternalLink className="w-3.5 h-3.5" />
-                                                                </a>
-                                                            )}
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setEditingTrack({
-                                                                    trackId: track.id,
-                                                                    artist: track.artist || '',
-                                                                    title: track.title || '',
-                                                                    category: (track.category === 'clip') ? 'clip' : 'liveset',
-                                                                    durationMinutes: Math.round((track.duration || 3600) / 60),
-                                                                    youtubeId: track.youtubeId ?? '',
-                                                                })}
-                                                                className="p-1.5 rounded-xl bg-white/5 hover:bg-neon-cyan/20 text-gray-400 hover:text-neon-cyan transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
-                                                                title="Modifier ce titre / clip"
-                                                            >
-                                                                <Pencil className="w-3.5 h-3.5" />
-                                                            </button>
-                                                            {/* Bouton Envoyer vers TV */}
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setSendToTVTrack(track)}
-                                                                className="p-1.5 rounded-xl bg-white/5 hover:bg-amber-500/20 text-gray-400 hover:text-amber-400 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
-                                                                title="Envoyer ce set vers la TV"
-                                                            >
-                                                                <ArrowUpFromLine className="w-3.5 h-3.5" />
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleDeleteTrack(track.id, `${track.artist} - ${track.title}`)}
-                                                                className="p-1.5 rounded-xl bg-white/5 hover:bg-neon-red/20 text-gray-500 hover:text-neon-red transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
-                                                                title="Retirer de l'émission"
-                                                            >
-                                                                <Trash2 className="w-3.5 h-3.5" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                                <RadioRundownTimeline
+                                    block={selectedBlock}
+                                    topHoraireConfig={topHoraireConfig}
+                                    playingAudioId={playingAudioId}
+                                    onToggleAudioPreview={handleToggleAudioPreview}
+                                    onMoveTrack={(idx, dir) => handleMoveTrack(idx, dir)}
+                                    onDeleteTrack={(idx) => {
+                                        const t = selectedBlock.tracks[idx];
+                                        if (t) handleDeleteTrack(t.id, `${t.artist || ''} - ${t.title}`);
+                                    }}
+                                    onEditTrack={(track) => setEditingTrack({
+                                        trackId: track.id,
+                                        artist: track.artist || '',
+                                        title: track.title,
+                                        category: track.category === 'clip' ? 'clip' : 'liveset',
+                                        durationMinutes: Math.round((track.duration || 3600) / 60),
+                                        youtubeId: track.youtubeId || ''
+                                    })}
+                                    onQuickAdd={(cat) => {
+                                        if (cat === 'set') {
+                                            setShowManualAdd(true);
+                                            setTrackCategory('liveset');
+                                        } else if (['jingle', 'interview', 'pub', 'promo'].includes(cat)) {
+                                            setActiveStudioTab('media_pool');
+                                        }
+                                    }}
+                                    onOpenYouTubeSearch={() => setIsYouTubeSearchOpen(true)}
+                                    onOpenMediaPool={() => setActiveStudioTab('media_pool')}
+                                    onOpenEditBlock={() => openEditBlockForm(selectedBlock)}
+                                />
                             )}
                         </div>
 
@@ -2470,6 +2196,7 @@ export function AdminRadioModal({
                             </div>
                         )}
                     </div>
+                )}
                 </motion.div>
 
                 {/* ── MODALE ÉDITION D'UNE PISTE (Dropsiders Style) ── */}

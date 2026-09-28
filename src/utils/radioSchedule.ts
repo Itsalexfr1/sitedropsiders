@@ -15,6 +15,8 @@ export { DAYS_OF_WEEK, ALL_DAYS, WEEKDAYS, WEEKEND_DAYS, formatDurationExact };
 export const STORAGE_RADIO_BLOCKS_KEY = 'dropsiders_radio_blocks';
 export const STORAGE_RADIO_TOP_HORAIRE_KEY = 'dropsiders_radio_top_horaire';
 
+export type RadioTrackCategory = 'liveset' | 'clip' | 'jingle' | 'pub' | 'promo' | 'interview' | 'set' | 'top_horaire';
+
 export interface RadioTrackItem {
     id: string;
     title: string;
@@ -22,10 +24,99 @@ export interface RadioTrackItem {
     youtubeId?: string;
     audioUrl?: string; // Support audio upload MP3 / WAV
     duration?: number; // seconds
-    category?: 'liveset' | 'clip' | 'jingle' | 'pub' | 'promo';
+    category?: RadioTrackCategory;
     addedAt?: number;
     isTopHoraire?: boolean;
     isThemeJingle?: boolean;
+}
+
+export function getRadioCategoryMeta(category?: string, isTheme?: boolean, isTop?: boolean) {
+    if (isTop || category === 'top_horaire') {
+        return {
+            id: 'top_horaire',
+            label: 'TOP HORAIRE',
+            emoji: '⏰',
+            color: '#00f0ff',
+            bg: 'bg-cyan-500/15',
+            text: 'text-cyan-400',
+            border: 'border-cyan-500/40'
+        };
+    }
+    if (isTheme || category === 'generique') {
+        return {
+            id: 'generique',
+            label: 'GÉNÉRIQUE',
+            emoji: '🎙️',
+            color: '#a855f7',
+            bg: 'bg-purple-500/15',
+            text: 'text-purple-400',
+            border: 'border-purple-500/40'
+        };
+    }
+    switch (category) {
+        case 'interview':
+            return {
+                id: 'interview',
+                label: 'INTERVIEW',
+                emoji: '🎙️',
+                color: '#10b981',
+                bg: 'bg-emerald-500/15',
+                text: 'text-emerald-400',
+                border: 'border-emerald-500/40'
+            };
+        case 'jingle':
+            return {
+                id: 'jingle',
+                label: 'JINGLE',
+                emoji: '🔔',
+                color: '#f59e0b',
+                bg: 'bg-amber-500/15',
+                text: 'text-amber-400',
+                border: 'border-amber-500/40'
+            };
+        case 'pub':
+            return {
+                id: 'pub',
+                label: 'PUB / SPONSOR',
+                emoji: '📢',
+                color: '#ec4899',
+                bg: 'bg-pink-500/15',
+                text: 'text-pink-400',
+                border: 'border-pink-500/40'
+            };
+        case 'promo':
+            return {
+                id: 'promo',
+                label: 'PROMO',
+                emoji: '📣',
+                color: '#f97316',
+                bg: 'bg-orange-500/15',
+                text: 'text-orange-400',
+                border: 'border-orange-500/40'
+            };
+        case 'clip':
+            return {
+                id: 'clip',
+                label: 'CLIP RADIO',
+                emoji: '🎬',
+                color: '#3b82f6',
+                bg: 'bg-blue-500/15',
+                text: 'text-blue-400',
+                border: 'border-blue-500/40'
+            };
+        case 'liveset':
+        case 'set':
+        default:
+            return {
+                id: 'set',
+                label: 'SET / MIX',
+                emoji: '🎧',
+                color: '#6366f1',
+                bg: 'bg-indigo-500/15',
+                text: 'text-indigo-400',
+                border: 'border-indigo-500/40'
+            };
+    }
 }
 
 export interface RadioThemeJingle {
@@ -98,7 +189,7 @@ export interface ComputedRadioScheduleItem {
     durationSeconds: number;
     durationFormatted: string;
     isCurrentlyLive: boolean;
-    category?: 'liveset' | 'clip' | 'jingle' | 'pub' | 'promo';
+    category?: RadioTrackCategory;
     isTopHoraire?: boolean;
     isThemeJingle?: boolean;
 }

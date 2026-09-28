@@ -14,7 +14,7 @@ export interface RadionomyItem {
     youtubeId?: string;
     audioUrl?: string; // support for uploaded WAV / MP3
     duration: number; // in seconds
-    category: 'jingle' | 'pub' | 'promo' | 'chronique' | 'top_horaire' | 'generique';
+    category: 'jingle' | 'pub' | 'promo' | 'chronique' | 'top_horaire' | 'generique' | 'interview';
     isCustom?: boolean;
     fileName?: string;
 }
@@ -89,7 +89,7 @@ interface RadionomyJinglesBoxProps {
     onOpenYouTubeSearch?: (category: 'jingle' | 'pub') => void;
     onSetAsTopHoraire?: (item: RadionomyItem) => void;
     onSetAsThemeJingle?: (item: RadionomyItem) => void;
-    defaultTab?: 'all' | 'jingle' | 'top_horaire' | 'generique' | 'pub' | 'promo';
+    defaultTab?: 'all' | 'jingle' | 'top_horaire' | 'generique' | 'interview' | 'pub' | 'promo';
 }
 
 export function RadionomyJinglesBox({
@@ -114,7 +114,7 @@ export function RadionomyJinglesBox({
         return DEFAULT_JINGLES_PUBS;
     });
 
-    const [activeFilter, setActiveFilter] = useState<'all' | 'jingle' | 'top_horaire' | 'generique' | 'pub' | 'promo'>(defaultTab);
+    const [activeFilter, setActiveFilter] = useState<'all' | 'jingle' | 'top_horaire' | 'generique' | 'interview' | 'pub' | 'promo'>(defaultTab);
     const [showAddDrawer, setShowAddDrawer] = useState(false);
     const [addSourceType, setAddSourceType] = useState<'upload' | 'youtube'>('upload');
 
@@ -122,7 +122,7 @@ export function RadionomyJinglesBox({
     const [newTitle, setNewTitle] = useState('');
     const [newUrl, setNewUrl] = useState('');
     const [newDuration, setNewDuration] = useState('12');
-    const [newCategory, setNewCategory] = useState<'jingle' | 'top_horaire' | 'generique' | 'pub' | 'promo'>('jingle');
+    const [newCategory, setNewCategory] = useState<'jingle' | 'top_horaire' | 'generique' | 'interview' | 'pub' | 'promo'>('jingle');
     const [isFetchingTitle, setIsFetchingTitle] = useState(false);
 
     // Multi-file upload queue
@@ -479,6 +479,7 @@ export function RadionomyJinglesBox({
                                 { id: 'jingle', label: '🔔 Jingles', count: items.filter(i => i.category === 'jingle').length },
                                 { id: 'top_horaire', label: '⏰ TOP Horaire', count: items.filter(i => i.category === 'top_horaire').length },
                                 { id: 'generique', label: '🎙️ Génériques', count: items.filter(i => i.category === 'generique').length },
+                                { id: 'interview', label: '🎙️ Interviews', count: items.filter(i => i.category === 'interview').length },
                                 { id: 'pub', label: '📢 Pubs', count: items.filter(i => i.category === 'pub').length },
                                 { id: 'promo', label: '⚡ Promos', count: items.filter(i => i.category === 'promo').length },
                             ].map(tab => (
@@ -729,6 +730,7 @@ export function RadionomyJinglesBox({
                                         <option value="jingle">🔔 Jingle / Sweeper</option>
                                         <option value="top_horaire">⏰ TOP Horaire (Début d'heure)</option>
                                         <option value="generique">🎙️ Générique d'émission</option>
+                                        <option value="interview">🎙️ Interview / Chronique</option>
                                         <option value="pub">📢 Publicité / Sponsor</option>
                                         <option value="promo">⚡ Promo / Teaser</option>
                                     </select>
