@@ -6982,5 +6982,11 @@
       "category": "liveset",
       "addedAt": 1790259785850
     }
-  ]
+  ],
+  "radio_top_horaire": {
+    "enabled": true,
+    "title": "Dropsiders Radio Top Horaire",
+    "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f2ea2acc36f59e21-Dropsiders_Radio_Top_Horaire.wav",
+    "duration": 11
+  }
 }
