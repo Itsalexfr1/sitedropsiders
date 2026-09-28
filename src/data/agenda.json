@@ -683,5 +683,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1116,
+    "title": "The Walking Bass",
+    "date": "2026-10-30",
+    "startDate": "2026-10-30",
+    "endDate": "2026-10-31",
+    "venue": "",
+    "location": "MARSEILLE",
+    "country": "FRANCE",
+    "type": "Festival",
+    "image": "/uploads/uploads/a85c92f1cfdbcd1b-whatsapp_image_2026_05_03_at_2.avif",
+    "url": "https://www.thewalkingbass.fr",
+    "genre": "Hard Techno",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
