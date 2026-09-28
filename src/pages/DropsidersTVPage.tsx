@@ -1516,15 +1516,163 @@ export function DropsidersTVPage() {
                         </div>
                     </div>
 
-                    {/* ── End-Screen Blackout Overlay ──────────────────────────────────
-                         Appears instantly when a video finishes (state === 0) to block
-                         YouTube's "suggestions" panel before the next video loads.
-                         z-index 15 places it above the shield (z-10) but below controls. */}
+                    {/* ── End-Screen Interstitial ───────────────────────────────────────────
+                         Replaces the plain black overlay: shows upcoming sets + social cards.
+                         pointer-events-auto makes social links clickable.                  */}
                     {showEndscreenOverlay && (
-                        <div
-                            className="absolute inset-0 z-15 bg-black pointer-events-none"
-                            style={{ zIndex: 15 }}
-                        />
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.25 }}
+                            className="absolute inset-0 flex flex-col items-center justify-center pointer-events-auto"
+                            style={{
+                                zIndex: 15,
+                                background: 'linear-gradient(135deg, #050509 0%, #0d001a 40%, #00060f 100%)'
+                            }}
+                        >
+                            {/* Animated background glow */}
+                            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                                <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-20"
+                                    style={{ background: 'radial-gradient(circle, #ff1241 0%, transparent 70%)' }} />
+                                <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full opacity-15"
+                                    style={{ background: 'radial-gradient(circle, #00f0ff 0%, transparent 70%)' }} />
+                            </div>
+
+                            <div className="relative z-10 w-full max-w-4xl mx-auto px-6 flex flex-col gap-6">
+
+                                {/* Header */}
+                                <div className="text-center">
+                                    <div className="flex items-center justify-center gap-2 mb-2">
+                                        <Tv className="w-5 h-5 text-neon-red animate-pulse" />
+                                        <span className="text-white font-display font-black text-base uppercase tracking-[0.2em]">
+                                            DROPSIDERS <span className="text-neon-red">TV</span>
+                                        </span>
+                                    </div>
+                                    <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">
+                                        Chargement de la suite du programme…
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-col lg:flex-row gap-5">
+
+                                    {/* ── Upcoming Sets Column ── */}
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-neon-cyan mb-3 flex items-center gap-1.5">
+                                            <ListMusic className="w-3.5 h-3.5" />
+                                            À suivre sur DropsidersTV
+                                        </p>
+                                        <div className="flex flex-col gap-2">
+                                            {/* Next video (highlighted) */}
+                                            {nextMainVideo && (
+                                                <div className="flex items-center gap-3 p-3 rounded-2xl border border-neon-red/40 bg-neon-red/10 shadow-[0_0_20px_rgba(255,18,65,0.15)]">
+                                                    <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 relative">
+                                                        <img
+                                                            src={`https://img.youtube.com/vi/${nextMainVideo.youtubeId}/mqdefault.jpg`}
+                                                            alt={nextMainVideo.title}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                        <div className="absolute inset-0 bg-neon-red/20" />
+                                                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-[9px] font-black text-neon-red uppercase tracking-widest mb-0.5">▶ Juste après</p>
+                                                        <p className="text-white text-xs font-bold leading-tight line-clamp-2">{nextMainVideo.title}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {/* Following 3 videos */}
+                                            {activeBlockVideos
+                                                .slice(0, activeBlockVideos.length)
+                                                .filter((_, i) => i !== currentIndex && i !== nextMainIndex)
+                                                .slice(0, 3)
+                                                .map((video, i) => (
+                                                    <div key={video.id} className="flex items-center gap-3 p-2.5 rounded-xl border border-white/8 bg-white/[0.03] hover:bg-white/[0.06] transition-colors">
+                                                        <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0">
+                                                            <img
+                                                                src={`https://img.youtube.com/vi/${video.youtubeId}/default.jpg`}
+                                                                alt={video.title}
+                                                                className="w-full h-full object-cover opacity-70"
+                                                            />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-white/50 text-[9px] font-bold uppercase tracking-wider mb-0.5">+{i + 2} sets</p>
+                                                            <p className="text-white/80 text-[11px] font-semibold leading-tight line-clamp-1">{video.title}</p>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            }
+                                            {activeBlockVideos.length === 0 && (
+                                                <p className="text-gray-500 text-xs text-center py-4">Programme en cours de chargement…</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* ── Social Media Column ── */}
+                                    <div className="lg:w-64 shrink-0">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-neon-purple mb-3 flex items-center gap-1.5">
+                                            <Sparkles className="w-3.5 h-3.5" />
+                                            Rejoins la communauté
+                                        </p>
+                                        <div className="flex flex-col gap-3">
+
+                                            {/* Instagram Card */}
+                                            <a
+                                                href="https://instagram.com/dropsiders.fr"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="group flex items-center gap-4 p-4 rounded-2xl border border-pink-500/30 bg-gradient-to-r from-pink-900/20 to-purple-900/20 hover:from-pink-900/40 hover:to-purple-900/40 hover:border-pink-500/60 transition-all active:scale-95 cursor-pointer shadow-[0_0_20px_rgba(236,72,153,0.1)] hover:shadow-[0_0_30px_rgba(236,72,153,0.25)]"
+                                                onClick={e => e.stopPropagation()}
+                                            >
+                                                {/* Instagram gradient icon */}
+                                                <div className="w-12 h-12 rounded-xl shrink-0 flex items-center justify-center"
+                                                    style={{ background: 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)' }}>
+                                                    <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                                                    </svg>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-white font-black text-sm leading-none">Instagram</p>
+                                                    <p className="text-pink-400 text-xs font-bold mt-1">@dropsiders.fr</p>
+                                                    <p className="text-gray-400 text-[10px] mt-1 leading-tight">Sets, recaps & coulisses des festivals</p>
+                                                </div>
+                                                <ChevronRight className="w-4 h-4 text-pink-400 group-hover:translate-x-1 transition-transform shrink-0" />
+                                            </a>
+
+                                            {/* TikTok Card */}
+                                            <a
+                                                href="https://tiktok.com/@dropsiders.fr"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="group flex items-center gap-4 p-4 rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-cyan-900/20 to-black/40 hover:from-cyan-900/40 hover:to-black/60 hover:border-cyan-400/60 transition-all active:scale-95 cursor-pointer shadow-[0_0_20px_rgba(0,240,255,0.08)] hover:shadow-[0_0_30px_rgba(0,240,255,0.2)]"
+                                                onClick={e => e.stopPropagation()}
+                                            >
+                                                {/* TikTok icon */}
+                                                <div className="w-12 h-12 rounded-xl shrink-0 flex items-center justify-center bg-black border border-white/10">
+                                                    <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1 .05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/>
+                                                    </svg>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-white font-black text-sm leading-none">TikTok</p>
+                                                    <p className="text-cyan-400 text-xs font-bold mt-1">@dropsiders.fr</p>
+                                                    <p className="text-gray-400 text-[10px] mt-1 leading-tight">Clips courts & moments épiques</p>
+                                                </div>
+                                                <ChevronRight className="w-4 h-4 text-cyan-400 group-hover:translate-x-1 transition-transform shrink-0" />
+                                            </a>
+                                        </div>
+
+                                        {/* Dropsiders branding */}
+                                        <div className="mt-4 text-center">
+                                            <p className="text-gray-600 text-[9px] uppercase tracking-widest font-bold">
+                                                dropsiders.fr • Votre univers électro
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </motion.div>
                     )}
 
                     {/* Transparent Click Shield: on tap or click, ensures playback starts & un-mutes, double click toggles fullscreen */}
