@@ -234,34 +234,6 @@ export function RadionomyJinglesBox({
         setFileQueue(prev => [...prev, ...newItems]);
     };
 
-    const handleTogglePreview = (item: RadionomyItem) => {
-        if (playingItemId === item.id) {
-            if (previewAudioRef.current) {
-                previewAudioRef.current.pause();
-                previewAudioRef.current = null;
-            }
-            setPlayingItemId(null);
-            return;
-        }
-
-        if (previewAudioRef.current) {
-            previewAudioRef.current.pause();
-            previewAudioRef.current = null;
-        }
-
-        if (item.audioUrl) {
-            const audio = new Audio(item.audioUrl);
-            audio.volume = 0.85;
-            audio.onended = () => setPlayingItemId(null);
-            audio.onerror = () => setPlayingItemId(null);
-            audio.play().catch(() => setPlayingItemId(null));
-            previewAudioRef.current = audio;
-            setPlayingItemId(item.id);
-        } else if (item.youtubeId) {
-            window.open(`https://www.youtube.com/watch?v=${item.youtubeId}`, '_blank');
-        }
-    };
-
     const handleUrlBlur = async () => {
         if (!newUrl.trim() || newTitle.trim()) return;
         setIsFetchingTitle(true);
