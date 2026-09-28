@@ -346,6 +346,21 @@ export function RadionomyJinglesBox({
                                 </button>
                             )}
 
+                            {/* Restaurer les jingles par défaut */}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const hasCustom = items.some(i => i.isCustom);
+                                    const customItems = items.filter(i => i.isCustom);
+                                    setItems([...DEFAULT_JINGLES_PUBS, ...customItems]);
+                                }}
+                                className="px-3 py-2 rounded-xl bg-white/5 hover:bg-amber-500/15 border border-white/10 hover:border-amber-500/40 text-gray-400 hover:text-amber-300 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                                title="Restaurer les jingles par défaut (conserve vos uploads personnalisés)"
+                            >
+                                <span className="text-sm">↺</span>
+                                <span className="hidden sm:inline">Restaurer défauts</span>
+                            </button>
+
                             <button
                                 onClick={onClose}
                                 className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all cursor-pointer"
@@ -797,16 +812,15 @@ export function RadionomyJinglesBox({
                                                     </button>
                                                 )}
 
-                                                {item.isCustom && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleDeleteItem(item.id)}
-                                                        className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors ml-auto cursor-pointer"
-                                                        title="Supprimer du bac"
-                                                    >
-                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                    </button>
-                                                )}
+                                                {/* Bouton Supprimer — visible sur tous les items au hover */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDeleteItem(item.id)}
+                                                    className="p-1.5 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/15 border border-transparent hover:border-red-500/30 transition-all ml-auto cursor-pointer opacity-0 group-hover:opacity-100"
+                                                    title="Supprimer ce jingle du bac"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
                                             </div>
 
                                             {/* Insérer dans l'émission */}
