@@ -664,5 +664,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1115,
+    "title": "FCKG HALLOWEEN 2026",
+    "date": "2026-10-31",
+    "startDate": "2026-10-31",
+    "endDate": "2026-10-31",
+    "venue": "Zenith Sud",
+    "location": "MONTPELLIER",
+    "country": "FRANCE",
+    "type": "Festival",
+    "image": "/uploads/uploads/06c34dfd63d245d3-fckg_1920_x_1080_px_yu9tpd.avif",
+    "url": "https://shotgun.live/fr/events/fckg-halloween-2026-zenith-sud",
+    "genre": "Hard Techno",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
