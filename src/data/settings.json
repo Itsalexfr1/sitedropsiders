@@ -1224,6 +1224,14 @@
           "description": "Diffusé sur DropsidersTV · Day Time",
           "youtubeId": "Ka29Wt4OlWI",
           "duration": 3600
+        },
+        {
+          "id": "bv_1790556018421",
+          "title": "Disco Dom presents: INFERNO - Live from Reframe Studios",
+          "description": "Diffusé sur Dropsiders TV · Day Time",
+          "youtubeId": "rnPzS6Ri4lI",
+          "duration": 3600,
+          "category": "liveset"
         }
       ]
     },
