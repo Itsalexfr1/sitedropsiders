@@ -39,40 +39,41 @@
   },
   {
     "invoiceNumber": "INV-2026-073",
-    "date": "2026-07-10",
+    "date": "2026-09-28",
     "dueDate": "",
-    "clientName": "CBG FRANCE",
+    "clientName": "CBG ",
     "clientAddress": "",
     "clientEmail": "",
     "clientCity": "",
     "lines": [
       {
-        "id": "1",
-        "description": "Prestation de service",
-        "quantity": 6,
-        "unitPrice": 180
+        "description": "Prestation Light – Septembre 2026 Raspoutine — du 3 sept. au 26 sept.",
+        "quantity": 7,
+        "unitPrice": 180,
+        "id": "1790591627556-0"
       }
     ],
     "iban": "BE59 9675 0891 6526",
     "bic": "TRWIBEB1XXX",
-    "subtotal": 1080,
-    "discount": 643.99,
-    "total": 436.01,
-    "notes": "",
+    "subtotal": 1260,
+    "discount": 0,
+    "total": 1260,
+    "notes": "Planning de travail – septembre 2026 — 7 soir(s) — Total : 1260.00 € HT.",
     "sender": {
-      "name": "CUENCA ALEXANDRE",
-      "siret": "805 131 828 00010",
-      "address": "411 Rue de Bouillargue, 30000 Nîmes",
-      "email": "alexlight3034@icloud.com",
-      "phone": "07 62 05 45 89",
+      "name": "Cuenca Alexandre",
+      "siret": "805 131 828",
+      "address": "411 rue de bouillargues 30000 Nîmes",
+      "email": "alexflex30@gmail.com",
+      "phone": "07 62 05 45 889",
       "legal": "Auto-entrepreneur – TVA non applicable, art. 293 B du CGI"
     },
     "type": "facture",
-    "id": 1783710417252,
-    "sentDate": "2026-07-10T19:06:57.252Z",
-    "paid": true,
-    "emailTo": "Archive Locale",
-    "pdfUrl": ""
+    "id": 1790591665594,
+    "sentDate": "2026-09-28T10:34:25.594Z",
+    "paid": false,
+    "emailTo": "Archive",
+    "pdfUrl": "",
+    "number": "INV-2026-073"
   },
   {
     "number": "INV-2026-072",
