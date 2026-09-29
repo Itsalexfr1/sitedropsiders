@@ -722,5 +722,26 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1120,
+    "title": "Dystopia St Etienne",
+    "date": "2026-12-04",
+    "startDate": "2026-12-04",
+    "endDate": "2026-12-04",
+    "venue": "Par Expo",
+    "location": "ST ETIENNE",
+    "country": "FRANCE",
+    "type": "Festival",
+    "image": "/uploads/uploads/24d7a8a7b2b44b62-dse26_lu_1920x1080.jpg",
+    "url": "https://dystopia-festival.com/saint-etienne/",
+    "genre": "Multi Styles",
+    "month": "DÉCEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": [
+      "2026-12-05"
+    ]
   }
 ]
