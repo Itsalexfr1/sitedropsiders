@@ -1432,11 +1432,12 @@ export function AdminTVModal({
             const saved = localStorage.getItem('dropsiders_radionomy_palette');
             if (saved) palette = JSON.parse(saved);
         } catch {}
-        const jingles = palette.filter(p => p.category === 'jingle');
-        const pubs = palette.filter(p => p.category === 'pub');
+        // Only use items that have a valid YouTube ID (TV needs a video source)
+        const jingles = palette.filter(p => p.category === 'jingle' && p.youtubeId && p.youtubeId.trim().length > 0);
+        const pubs = palette.filter(p => p.category === 'pub' && p.youtubeId && p.youtubeId.trim().length > 0);
 
         if (jingles.length === 0 && pubs.length === 0) {
-            alert('Ajoutez d\'abord au moins un jingle ou une pub dans la boîte Radionomy !');
+            alert('Aucun jingle ou pub avec un lien YouTube valide trouvé.\n\nPour la TV, chaque jingle / pub doit avoir un YouTube ID (ex: depuis un clip YouTube). Ajoutez des vidéos YouTube dans la boîte Radionomy !');
             return;
         }
 

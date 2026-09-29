@@ -151,7 +151,8 @@ export function AdminRadioModal({
 
     // ─── Bibliothèque TV (240 vidéos toujours prêtes) ──────────────────────────
     const [tvBlocks, setTvBlocks] = useState<TVBlock[]>(getInitialTVBlocks);
-    const [isTVLibOpen, setIsTVLibOpen] = useState(true);
+    const [isTVLibOpen, setIsTVLibOpen] = useState(false);
+    const [isEmissionsSidebarOpen, setIsEmissionsSidebarOpen] = useState(true);
     const [tvSearch, setTvSearch] = useState('');
     const [tvFilter, setTvFilter] = useState<'all' | 'liveset' | 'clip'>('all');
     const [tvSelectedBlockId, setTvSelectedBlockId] = useState<string>('all');
@@ -1495,16 +1496,20 @@ export function AdminRadioModal({
                         <div className="flex flex-1 overflow-hidden min-h-0">
 
                         {/* ═════════════════════════════════════════════════════
-                            COLONNE 1 : ÉMISSIONS RADIO (Gauches)
+                            COLONNE 1 : ÉMISSIONS RADIO (Gauche - Collapsible)
                         ═════════════════════════════════════════════════════ */}
-                        <div className="w-68 shrink-0 border-r border-white/10 flex flex-col bg-black/30">
-                            <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-white/[0.01]">
-                                <span className="text-[10px] font-display font-black uppercase italic tracking-wider text-gray-300 flex items-center gap-2">
-                                    <Calendar className="w-3.5 h-3.5 text-neon-cyan" />
-                                    Émissions ({blocks.length})
-                                </span>
-                                <div className="flex items-center gap-1.5">
-                                    {blocks.length > 0 && (
+                        <div className={`shrink-0 border-r border-white/10 flex flex-col bg-black/30 transition-all duration-200 ${
+                            isEmissionsSidebarOpen ? 'w-64' : 'w-10'
+                        }`}>
+                            <div className="px-3 py-3 border-b border-white/10 flex items-center justify-between bg-white/[0.01] gap-1.5">
+                                {isEmissionsSidebarOpen && (
+                                    <span className="text-[10px] font-display font-black uppercase italic tracking-wider text-gray-300 flex items-center gap-1.5 flex-1 truncate">
+                                        <Calendar className="w-3.5 h-3.5 text-neon-cyan shrink-0" />
+                                        Émissions ({blocks.length})
+                                    </span>
+                                )}
+                                <div className="flex items-center gap-1 ml-auto">
+                                    {isEmissionsSidebarOpen && blocks.length > 0 && (
                                         <button
                                             type="button"
                                             onClick={handleResetGrid}
@@ -1512,28 +1517,66 @@ export function AdminRadioModal({
                                             title="Remettre la grille à zéro"
                                         >
                                             <Trash2 className="w-3 h-3" />
-                                            Reset
+                                        </button>
+                                    )}
+                                    {isEmissionsSidebarOpen && (
+                                        <button
+                                            type="button"
+                                            onClick={openNewBlockForm}
+                                            className="flex items-center gap-1 px-2 py-1 rounded-xl bg-neon-cyan/15 hover:bg-neon-cyan text-neon-cyan hover:text-black border border-neon-cyan/40 text-[9px] font-display font-black uppercase italic tracking-wider transition-all shadow-[0_0_12px_rgba(0,240,255,0.15)] cursor-pointer"
+                                            title="Créer une émission"
+                                        >
+                                            <Plus className="w-3.5 h-3.5" />
                                         </button>
                                     )}
                                     <button
                                         type="button"
-                                        onClick={openNewBlockForm}
-                                        className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-neon-cyan/15 hover:bg-neon-cyan text-neon-cyan hover:text-black border border-neon-cyan/40 text-[9px] font-display font-black uppercase italic tracking-wider transition-all shadow-[0_0_12px_rgba(0,240,255,0.15)] cursor-pointer"
+                                        onClick={() => setIsEmissionsSidebarOpen(!isEmissionsSidebarOpen)}
+                                        className="p-1 rounded-lg text-gray-500 hover:text-neon-cyan hover:bg-white/10 transition-all cursor-pointer shrink-0"
+                                        title={isEmissionsSidebarOpen ? "Masquer la liste" : "Afficher les émissions"}
                                     >
-                                        <Plus className="w-3.5 h-3.5" />
-                                        Créer
+                                        {isEmissionsSidebarOpen ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-2.5 space-y-2">
+                            {/* Mini dots when collapsed */}
+                            {!isEmissionsSidebarOpen && blocks.length > 0 && (
+                                <div className="flex-1 overflow-y-auto py-2.5 flex flex-col items-center gap-1.5">
+                                    {blocks.map(b => {
+                                        const isSelected = b.id === selectedBlockId;
+                                        const isLive = isRadioBlockActiveNow(b);
+                                        return (
+                                            <button
+                                                key={b.id}
+                                                type="button"
+                                                onClick={() => { setSelectedBlockId(b.id); setIsEditingBlock(false); setIsEmissionsSidebarOpen(true); }}
+                                                title={`${b.emoji} ${b.title} · ${b.timeSlot || ''}`}
+                                                className={`w-7 h-7 rounded-xl text-base flex items-center justify-center transition-all cursor-pointer border-2 ${
+                                                    isSelected
+                                                        ? 'border-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.3)]'
+                                                        : 'border-transparent hover:border-white/30 hover:scale-105'
+                                                } ${isLive ? 'animate-pulse' : ''}`}
+                                                style={{ backgroundColor: `${b.color}22` }}
+                                            >
+                                                <span>{b.emoji}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            <div className={`flex-1 overflow-y-auto p-2.5 space-y-2 ${
+                                !isEmissionsSidebarOpen ? 'hidden' : ''
+                            }`}>
                                 {blocks.length === 0 && !isEditingBlock && (
                                     <div className="p-6 text-center text-gray-500">
                                         <Radio className="w-10 h-10 mx-auto mb-2 text-gray-600 opacity-40" />
                                         <p className="font-display font-black uppercase italic text-xs text-gray-300">Aucune émission</p>
-                                        <p className="text-[10px] mt-1 text-gray-500">Cliquez sur « Créer » pour configurer votre premier créneau radio.</p>
+                                        <p className="text-[10px] mt-1 text-gray-500">Cliquez sur + pour créer votre premier créneau radio.</p>
                                     </div>
                                 )}
+
 
                                 {blocks.map(b => {
                                     const isSelected = b.id === selectedBlockId;
@@ -1633,11 +1676,13 @@ export function AdminRadioModal({
                                 })}
                             </div>
 
-                            <div className="p-3 border-t border-white/10 text-center bg-black/40">
-                                <p className="text-[8.5px] font-mono text-gray-500 uppercase tracking-wider">
-                                    💡 Déposez directement sur une émission
-                                </p>
-                            </div>
+                            {isEmissionsSidebarOpen && (
+                                <div className="p-3 border-t border-white/10 text-center bg-black/40">
+                                    <p className="text-[8.5px] font-mono text-gray-500 uppercase tracking-wider">
+                                        💡 Glissez-déposez ici
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         {/* ═════════════════════════════════════════════════════

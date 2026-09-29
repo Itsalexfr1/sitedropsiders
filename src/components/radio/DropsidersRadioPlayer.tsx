@@ -704,6 +704,18 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // EXPORT — Un seul hook, une seule iframe, partagés
 // ═══════════════════════════════════════════════════════════════════════════════
+// Pages du studio / générateurs où le player radio ne doit pas apparaître
+const STUDIO_ROUTES = [
+    '/social-studio',
+    '/interview-visuals',
+    '/aftermovie',
+    '/recap-video',
+    '/news/create',
+    '/recaps/create',
+    '/galerie/create',
+    '/newsletter/studio',
+];
+
 export function DropsidersRadioPlayer() {
     const location = useLocation();
     const audio = useRadioAudio();
@@ -711,6 +723,9 @@ export function DropsidersRadioPlayer() {
 
     const isMixPage = location.pathname.startsWith('/mix');
     const isMixActive = !!activeTrack || isMixPage;
+
+    // Masquer sur les pages studio (générateurs)
+    const isStudioPage = STUDIO_ROUTES.some(route => location.pathname.startsWith(route));
 
     // Quand un mix est lancé et que la radio est en cours de lecture, couper la radio
     useEffect(() => {
@@ -725,9 +740,10 @@ export function DropsidersRadioPlayer() {
         <>
             {/* Iframe & Audio TOUJOURS montés (jamais null) — dans le viewport, opacité 0 */}
             <RadioIframe iframeRef={audio.iframeRef} audioRef={audio.audioRef} />
-            {/* Sur version mobile : dès qu'un mix est en route, masquer la radio */}
-            {!isMixActive && <MobileRadioPlayer audio={audio} />}
-            <DesktopRadioPlayer audio={audio} />
+            {/* Sur version mobile : dès qu'un mix est en route OU sur une page studio, masquer la radio */}
+            {!isMixActive && !isStudioPage && <MobileRadioPlayer audio={audio} />}
+            {/* Sur desktop : masquer aussi sur les pages studio */}
+            {!isStudioPage && <DesktopRadioPlayer audio={audio} />}
         </>
     );
 }

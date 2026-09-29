@@ -777,10 +777,20 @@ export function getOrderedBlockVideos(
     const rawVids = block.videos && block.videos.length > 0 ? block.videos : [];
     if (rawVids.length <= 1) return rawVids;
 
-    const baseList = block.randomize === false 
-        ? rawVids 
-        : getSeededShuffle(rawVids, seedStr);
+    // ── Jingles/pubs inserted by Radionomy (rad_ prefix) must keep their
+    //    relative interleaved positions — never shuffle them with the main content.
+    const hasRadItems = rawVids.some(v => v.id?.startsWith('rad_'));
 
+    if (hasRadItems || block.randomize === false) {
+        // When radionomy items are present, use the fixed order as-is (admin set
+        // the exact interleave intentionally). Only separate consecutive artists
+        // among the pure-content items, keeping rad_ items pinned.
+        if (block.randomize === false || hasRadItems) {
+            return rawVids;
+        }
+    }
+
+    const baseList = getSeededShuffle(rawVids, seedStr);
     return separateConsecutiveArtists(baseList, previousBlockLastTitle);
 }
 

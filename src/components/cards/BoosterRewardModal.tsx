@@ -209,7 +209,7 @@ export function BoosterRewardModal({ booster, onClaim, onDismiss }: BoosterRewar
                                 </div>
 
                                 {/* 3x3 Cards Grid */}
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-x-2 gap-y-8 w-full px-2 justify-center py-4">
+                                <div className="grid grid-cols-3 lg:grid-cols-9 gap-x-1 gap-y-6 w-full px-1 justify-center justify-items-center py-4 overflow-x-hidden">
                                     {booster.map((card, idx) => {
                                         const isRevealed = revealedIndices.has(idx);
                                         const cardRarityColor = RARITY_COLORS[card.rarity];
@@ -246,7 +246,7 @@ export function BoosterRewardModal({ booster, onClaim, onDismiss }: BoosterRewar
                                                         card={card}
                                                         flippable={false}
                                                         flipped={!isRevealed}
-                                                        scale={0.7}
+                                                        scale={0.42}
                                                     />
                                                 </motion.div>
 
