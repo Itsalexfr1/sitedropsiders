@@ -682,5 +682,26 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1118,
+    "title": "Madame Loyal Rennes",
+    "date": "2026-11-06",
+    "startDate": "2026-11-06",
+    "endDate": "2026-11-06",
+    "venue": "Parc Des Expositions",
+    "location": "RENNES",
+    "country": "FRANCE",
+    "type": "Festival",
+    "image": "/uploads/uploads/6c2776f79d454d86-comp_repartition_declinaisons_.jpg",
+    "url": "https://shotgun.live/fr/festivals/madame-loyal-rennes-6-7-novembre",
+    "genre": "Multi Styles",
+    "month": "NOVEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": [
+      "2026-11-07"
+    ]
   }
 ]
