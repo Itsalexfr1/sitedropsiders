@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls, useMotionValue } from 'framer-motion';
 import {
     Radio, Play, Pause, Volume2, VolumeX, Minimize2, X,
     Clock, Sparkles, Disc3, ChevronDown, ChevronUp,
@@ -357,7 +357,7 @@ function useRadioAudio() {
 
 type AudioState = ReturnType<typeof useRadioAudio>;
 
-// ─── Iframe unique & Element Audio — toujours montés ────────────────────────
+// ─── Iframe unique & Element Audio — toujours montés ────────────────────
 function RadioIframe({ iframeRef, audioRef }: {
     iframeRef: React.RefObject<HTMLIFrameElement | null>;
     audioRef: React.RefObject<HTMLAudioElement | null>;
@@ -372,7 +372,7 @@ function RadioIframe({ iframeRef, audioRef }: {
             overflow: 'hidden',
             opacity: 0.01,
             pointerEvents: 'none',
-            zIndex: 1,  // zIndex ≥ 0 pour éviter tout throttling en arrière-plan
+            zIndex: 1,
         }} aria-hidden="true">
             <iframe
                 ref={iframeRef as React.RefObject<HTMLIFrameElement>}
@@ -386,11 +386,57 @@ function RadioIframe({ iframeRef, audioRef }: {
     );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// PLAYER MOBILE — Mini bouton flottant uniquement (pas de barre en bas de page)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ─── Clé localStorage pour la position du bouton radio mobile ────────────────
+const RADIO_BTN_POS_KEY = 'radio_btn_position';
+
 function MobileRadioPlayer({ audio }: { audio: AudioState }) {
     const [expanded, setExpanded] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragMode, setDragMode] = useState(false);
+    const dragRef = useRef<HTMLDivElement>(null);
+    const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const hasMoved = useRef(false);
+
+    // Position initiale depuis localStorage
+    const getInitialPos = () => {
+        try {
+            const saved = localStorage.getItem(RADIO_BTN_POS_KEY);
+            if (saved) return JSON.parse(saved) as { x: number; y: number };
+        } catch {}
+        return { x: 0, y: 0 };
+    };
+
+    const x = useMotionValue(getInitialPos().x);
+    const y = useMotionValue(getInitialPos().y);
+
+    // Sauvegarde la position à chaque fin de drag
+    const handleDragEnd = useCallback(() => {
+        setIsDragging(false);
+        setDragMode(false);
+        try {
+            localStorage.setItem(RADIO_BTN_POS_KEY, JSON.stringify({ x: x.get(), y: y.get() }));
+        } catch {}
+    }, [x, y]);
+
+    // Long press pour activer le drag
+    const handlePressStart = useCallback(() => {
+        hasMoved.current = false;
+        longPressTimer.current = setTimeout(() => {
+            setDragMode(true);
+        }, 400);
+    }, []);
+
+    const handlePressEnd = useCallback(() => {
+        if (longPressTimer.current) {
+            clearTimeout(longPressTimer.current);
+            longPressTimer.current = null;
+        }
+        if (!dragMode && !hasMoved.current) {
+            setExpanded(true);
+        }
+        setDragMode(false);
+        setIsDragging(false);
+    }, [dragMode]);
 
     if (!audio.isEnabled || !audio.currentSet) return null;
 
@@ -489,7 +535,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
 
                                 {!isPlaying && (
                                     <p className="text-center text-[8.5px] text-gray-500 font-bold uppercase tracking-widest relative z-10 -mt-2 mb-3">
-                                        Appuie sur ▶ pour démarrer
+                                        Appuie sur ► pour démarrer
                                     </p>
                                 )}
 
@@ -503,33 +549,98 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                 )}
             </AnimatePresence>
 
-            {/* ── Mini-bouton flottant — toujours visible sur mobile, pas de barre en bas ── */}
+            {/* ── Mini-bouton flottant DRAGGABLE ── */}
             {!expanded && (
-                <motion.button
-                    initial={{ opacity: 0, scale: 0.7, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                <motion.div
+                    ref={dragRef}
+                    drag
+                    dragMomentum={false}
+                    dragElastic={0.05}
+                    style={{
+                        x,
+                        y,
+                        zIndex: 99998,
+                        bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+                        right: 12,
+                        position: 'fixed',
+                        touchAction: 'none',
+                    }}
+                    dragConstraints={{
+                        top: -(typeof window !== 'undefined' ? window.innerHeight - 80 : 700),
+                        bottom: 0,
+                        left: -(typeof window !== 'undefined' ? window.innerWidth - 160 : 300),
+                        right: 0,
+                    }}
+                    onDragStart={() => { setIsDragging(true); setDragMode(true); hasMoved.current = true; }}
+                    onDragEnd={handleDragEnd}
+                    initial={{ opacity: 0, scale: 0.7 }}
+                    animate={{
+                        opacity: 1,
+                        scale: dragMode ? 1.06 : 1,
+                    }}
                     transition={{ type: 'spring', damping: 22, stiffness: 280 }}
-                    onClick={() => setExpanded(true)}
-                    style={{ zIndex: 99998, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
-                    className="fixed right-3 lg:hidden flex items-center gap-2.5 px-3 py-2 rounded-2xl bg-[#0d0d18]/95 backdrop-blur-xl border border-neon-cyan/40 shadow-[0_0_20px_rgba(0,255,255,0.25)] active:scale-95 transition-all group"
-                    aria-label="Ouvrir la radio"
+                    className="lg:hidden"
+                    aria-label="Bouton radio mobile"
                 >
-                    <div className="relative shrink-0">
-                        <div className={`w-7 h-7 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center ${isPlaying ? 'shadow-[0_0_12px_rgba(0,255,255,0.4)]' : ''}`}>
-                            <Disc3 className={`w-4 h-4 text-neon-cyan ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
+                    {/* Halo de drag actif */}
+                    <AnimatePresence>
+                        {dragMode && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                className="absolute -inset-2 rounded-3xl bg-neon-cyan/20 border border-neon-cyan/50 blur-sm pointer-events-none"
+                            />
+                        )}
+                    </AnimatePresence>
+
+                    {/* Label "Déplacer" au-dessus lors du drag */}
+                    <AnimatePresence>
+                        {dragMode && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 4 }}
+                                className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap"
+                            >
+                                <span className="text-[8px] font-black uppercase tracking-widest text-neon-cyan bg-[#0d0d18]/90 px-2 py-0.5 rounded-full border border-neon-cyan/30">
+                                    Déplacer
+                                </span>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Le bouton lui-même */}
+                    <motion.button
+                        onPointerDown={handlePressStart}
+                        onPointerUp={handlePressEnd}
+                        onPointerCancel={handlePressEnd}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-2xl bg-[#0d0d18]/95 backdrop-blur-xl border shadow-[0_0_20px_rgba(0,255,255,0.25)] transition-all group select-none ${
+                            dragMode
+                                ? 'border-neon-cyan/70 shadow-[0_0_25px_rgba(0,255,255,0.45)] cursor-grab active:cursor-grabbing'
+                                : 'border-neon-cyan/40 cursor-pointer'
+                        }`}
+                        style={{ WebkitUserSelect: 'none', userSelect: 'none' }}
+                    >
+                        <div className="relative shrink-0">
+                            <div className={`w-7 h-7 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center ${isPlaying ? 'shadow-[0_0_12px_rgba(0,255,255,0.4)]' : ''}`}>
+                                <Disc3 className={`w-4 h-4 text-neon-cyan ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
+                            </div>
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red animate-ping" />
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red" />
                         </div>
-                        <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red animate-ping" />
-                        <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red" />
-                    </div>
-                    <div className="flex flex-col items-start leading-none pr-0.5">
-                        <span className="text-[9px] font-black text-white tracking-wider uppercase flex items-center gap-1">
-                            RADIO <span className="text-neon-cyan">LIVE</span>
-                        </span>
-                        <span className="text-[7.5px] text-gray-400 font-bold uppercase tracking-tight">Tap pour écouter</span>
-                    </div>
-                    <AudioBars playing={isPlaying} />
-                    <ChevronUp className="w-3.5 h-3.5 text-neon-cyan/70 group-hover:text-neon-cyan transition-colors" />
-                </motion.button>
+                        <div className="flex flex-col items-start leading-none pr-0.5">
+                            <span className="text-[9px] font-black text-white tracking-wider uppercase flex items-center gap-1">
+                                RADIO <span className="text-neon-cyan">LIVE</span>
+                            </span>
+                            <span className="text-[7.5px] font-bold uppercase tracking-tight transition-colors" style={{ color: dragMode ? 'rgba(0,255,255,0.7)' : '#9ca3af' }}>
+                                {dragMode ? 'Maintenir & glisser' : 'Tap pour écouter'}
+                            </span>
+                        </div>
+                        <AudioBars playing={isPlaying} />
+                        <ChevronUp className={`w-3.5 h-3.5 transition-colors ${dragMode ? 'text-neon-cyan' : 'text-neon-cyan/70 group-hover:text-neon-cyan'}`} />
+                    </motion.button>
+                </motion.div>
             )}
         </>
     );
