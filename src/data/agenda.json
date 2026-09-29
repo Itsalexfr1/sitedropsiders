@@ -703,5 +703,24 @@
     "additionalDates": [
       "2026-11-07"
     ]
+  },
+  {
+    "id": 1119,
+    "title": "Blue Moon Festival",
+    "date": "2026-11-28",
+    "startDate": "2026-11-28",
+    "endDate": "2026-11-28",
+    "venue": "",
+    "location": "NIMES",
+    "country": "FRANCE",
+    "type": "Festival",
+    "image": "/uploads/uploads/c73f1be7be0deaf1-227663c90f34c3b88d9047a512fcc1.avif",
+    "url": "https://shotgun.live/fr/venues/fugitif-event",
+    "genre": "Multi Styles",
+    "month": "NOVEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
