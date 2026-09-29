@@ -3544,8 +3544,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <>
                     <button onClick={() => handleSetTheme('TRACKLIST')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TRACKLIST' ? 'bg-orange-500/20 border-orange-500 text-orange-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TRACKLIST</button>
                     <button onClick={() => handleSetTheme('INTRO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTRO' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTRO</button>
-                    <button onClick={() => handleSetTheme('TOP 5 ARTISTE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 5 ARTISTE' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 ARTISTES</button>
-                    <button onClick={() => handleSetTheme('TOP 5 STYLES')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 5 STYLES' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 STYLES</button>
                     <button onClick={() => handleSetTheme('MAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MAP' ? 'bg-neon-red/20 border-neon-red text-neon-red animate-pulse' : 'bg-white/5 border-white/5 text-gray-400'}`}>📍 CARTE (STORY)</button>
                 </>
             )}
@@ -5139,7 +5137,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <h2 className="text-2xl font-black text-white italic tracking-tighter text-center mb-1">SOCIAL STUDIO</h2>
                                         <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest text-center mb-8">Choisir le format</p>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <button onClick={() => { setActiveTab('REEL'); setTheme('TOP 5 ARTISTE'); setShowFormatModal(false); }}
+                                            <button onClick={() => { setActiveTab('REEL'); setTheme('NEWS'); setShowFormatModal(false); }}
                                                 className="group flex flex-col items-center gap-3 p-6 rounded-3xl border-2 border-white/10 bg-white/5 hover:border-white/30 transition-all">
                                                 <div className="w-12 h-20 rounded-xl border-2 border-white/30 flex items-center justify-center group-hover:border-neon-red/60 transition-all" style={{ background: 'linear-gradient(180deg,#1a1a1a,#0a0a0a)' }}>
                                                     <Smartphone className="w-5 h-5 text-gray-400 group-hover:text-neon-red transition-colors" />
@@ -5280,7 +5278,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <div className="px-6 pb-8">
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Format</p>
                                         <div className="grid grid-cols-2 gap-3">
-                                            <button onClick={() => { setActiveTab('REEL'); setTheme('TOP 5 ARTISTE'); setActivePanel(null); }}
+                                            <button onClick={() => { setActiveTab('REEL'); setTheme('NEWS'); setActivePanel(null); }}
                                                 className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${activeTab === 'REEL' ? 'border-neon-red/60 bg-neon-red/10' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
                                                 <Smartphone className={`w-5 h-5 ${activeTab === 'REEL' ? 'text-neon-red' : 'text-gray-400'}`} />
                                                 <div className="text-left"><p className={`text-[11px] font-black uppercase ${activeTab === 'REEL' ? 'text-white' : 'text-gray-400'}`}>Réel</p><p className="text-[9px] text-gray-600">1080×1920</p></div>
