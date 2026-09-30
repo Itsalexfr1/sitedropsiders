@@ -5625,9 +5625,9 @@
       "id": "radio_bloc_1790257094891_kg2l",
       "name": "DROP TIME",
       "title": "DROP TIME",
-      "timeSlot": "20h - 00h",
+      "timeSlot": "20h - 22h",
       "startHour": 20,
-      "endHour": 24,
+      "endHour": 22,
       "color": "#10b981",
       "emoji": "🚀",
       "randomize": true,
@@ -6206,7 +6206,8 @@
           "enabled": true
         }
       ],
-      "rotationRule": "son_special_son_jingle_promo"
+      "rotationRule": "son_special_son_jingle_promo",
+      "jingleFrequency": 2
     },
     {
       "id": "radio_bloc_1790257291397_4y1e",
@@ -7203,16 +7204,153 @@
       "id": "bloc_1790809306418",
       "title": "CLASSIC TIME",
       "name": "CLASSIC TIME",
-      "startHour": 0,
-      "endHour": 4,
-      "timeSlot": "00h - 04h",
+      "startHour": 20,
+      "endHour": 22,
+      "timeSlot": "20h - 22h",
       "color": "#00f0ff",
       "emoji": "🎧",
       "randomize": true,
       "jingleFrequency": 2,
       "rotationRule": "son_special_son_jingle_promo",
-      "tracks": [],
-      "specialJingles": []
+      "tracks": [
+        {
+          "id": "special_bloc_1790809306418_1790809330387_8_5m6o",
+          "title": "Classic Time 9",
+          "artist": "CLASSIC TIME JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/f3104b4ac3d90ca8-Classic_Time_9.wav",
+          "duration": 9,
+          "category": "jingle"
+        },
+        {
+          "id": "special_bloc_1790809306418_1790809330044_7_guqx",
+          "title": "Classic Time 8",
+          "artist": "CLASSIC TIME JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/46b81b62526ccd0c-Classic_Time_8.wav",
+          "duration": 14,
+          "category": "jingle"
+        },
+        {
+          "id": "special_bloc_1790809306418_1790809329614_6_jpse",
+          "title": "Classic Time 7",
+          "artist": "CLASSIC TIME JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9ffe042f649201e6-Classic_Time_7.wav",
+          "duration": 9,
+          "category": "jingle"
+        },
+        {
+          "id": "special_bloc_1790809306418_1790809328614_5_yq9i",
+          "title": "Classic Time 6",
+          "artist": "CLASSIC TIME JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/400d28986c937995-Classic_Time_6.wav",
+          "duration": 7,
+          "category": "jingle"
+        },
+        {
+          "id": "special_bloc_1790809306418_1790809328201_4_a9pd",
+          "title": "Classic Time 5",
+          "artist": "CLASSIC TIME JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/788340a171828dd5-Classic_Time_5.wav",
+          "duration": 14,
+          "category": "jingle"
+        },
+        {
+          "id": "special_bloc_1790809306418_1790809327816_3_qxne",
+          "title": "Classic Time 4",
+          "artist": "CLASSIC TIME JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/00fb30117db8923c-Classic_Time_4.wav",
+          "duration": 14,
+          "category": "jingle"
+        },
+        {
+          "id": "special_bloc_1790809306418_1790809327426_2_vjec",
+          "title": "Classic Time 3",
+          "artist": "CLASSIC TIME JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0e0091ff516c357b-Classic_Time_3.wav",
+          "duration": 14,
+          "category": "jingle"
+        },
+        {
+          "id": "special_bloc_1790809306418_1790809327019_1_rzba",
+          "title": "Classic Time 2",
+          "artist": "CLASSIC TIME JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9920a1dbc8ae5a5c-Classic_Time_2.wav",
+          "duration": 14,
+          "category": "jingle"
+        },
+        {
+          "id": "special_bloc_1790809306418_1790809326582_0_r01o",
+          "title": "Classic Time 1",
+          "artist": "CLASSIC TIME JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6b53dd9114606744-Classic_Time_1.wav",
+          "duration": 10,
+          "category": "jingle"
+        }
+      ],
+      "specialJingles": [
+        {
+          "id": "special_bloc_1790809306418_1790809326582_0_r01o",
+          "title": "Classic Time 1",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6b53dd9114606744-Classic_Time_1.wav",
+          "duration": 10,
+          "enabled": true
+        },
+        {
+          "id": "special_bloc_1790809306418_1790809327019_1_rzba",
+          "title": "Classic Time 2",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9920a1dbc8ae5a5c-Classic_Time_2.wav",
+          "duration": 14,
+          "enabled": true
+        },
+        {
+          "id": "special_bloc_1790809306418_1790809327426_2_vjec",
+          "title": "Classic Time 3",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0e0091ff516c357b-Classic_Time_3.wav",
+          "duration": 14,
+          "enabled": true
+        },
+        {
+          "id": "special_bloc_1790809306418_1790809327816_3_qxne",
+          "title": "Classic Time 4",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/00fb30117db8923c-Classic_Time_4.wav",
+          "duration": 14,
+          "enabled": true
+        },
+        {
+          "id": "special_bloc_1790809306418_1790809328201_4_a9pd",
+          "title": "Classic Time 5",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/788340a171828dd5-Classic_Time_5.wav",
+          "duration": 14,
+          "enabled": true
+        },
+        {
+          "id": "special_bloc_1790809306418_1790809328614_5_yq9i",
+          "title": "Classic Time 6",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/400d28986c937995-Classic_Time_6.wav",
+          "duration": 7,
+          "enabled": true
+        },
+        {
+          "id": "special_bloc_1790809306418_1790809329614_6_jpse",
+          "title": "Classic Time 7",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9ffe042f649201e6-Classic_Time_7.wav",
+          "duration": 9,
+          "enabled": true
+        },
+        {
+          "id": "special_bloc_1790809306418_1790809330044_7_guqx",
+          "title": "Classic Time 8",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/46b81b62526ccd0c-Classic_Time_8.wav",
+          "duration": 14,
+          "enabled": true
+        },
+        {
+          "id": "special_bloc_1790809306418_1790809330387_8_5m6o",
+          "title": "Classic Time 9",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/f3104b4ac3d90ca8-Classic_Time_9.wav",
+          "duration": 9,
+          "enabled": true
+        }
+      ]
     }
   ],
   "radio_tracks": [
@@ -11369,6 +11507,78 @@
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
       "duration": 8,
+      "category": "jingle"
+    },
+    {
+      "id": "special_bloc_1790809306418_1790809330387_8_5m6o",
+      "title": "Classic Time 9",
+      "artist": "CLASSIC TIME JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/f3104b4ac3d90ca8-Classic_Time_9.wav",
+      "duration": 9,
+      "category": "jingle"
+    },
+    {
+      "id": "special_bloc_1790809306418_1790809330044_7_guqx",
+      "title": "Classic Time 8",
+      "artist": "CLASSIC TIME JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/46b81b62526ccd0c-Classic_Time_8.wav",
+      "duration": 14,
+      "category": "jingle"
+    },
+    {
+      "id": "special_bloc_1790809306418_1790809329614_6_jpse",
+      "title": "Classic Time 7",
+      "artist": "CLASSIC TIME JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9ffe042f649201e6-Classic_Time_7.wav",
+      "duration": 9,
+      "category": "jingle"
+    },
+    {
+      "id": "special_bloc_1790809306418_1790809328614_5_yq9i",
+      "title": "Classic Time 6",
+      "artist": "CLASSIC TIME JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/400d28986c937995-Classic_Time_6.wav",
+      "duration": 7,
+      "category": "jingle"
+    },
+    {
+      "id": "special_bloc_1790809306418_1790809328201_4_a9pd",
+      "title": "Classic Time 5",
+      "artist": "CLASSIC TIME JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/788340a171828dd5-Classic_Time_5.wav",
+      "duration": 14,
+      "category": "jingle"
+    },
+    {
+      "id": "special_bloc_1790809306418_1790809327816_3_qxne",
+      "title": "Classic Time 4",
+      "artist": "CLASSIC TIME JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/00fb30117db8923c-Classic_Time_4.wav",
+      "duration": 14,
+      "category": "jingle"
+    },
+    {
+      "id": "special_bloc_1790809306418_1790809327426_2_vjec",
+      "title": "Classic Time 3",
+      "artist": "CLASSIC TIME JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0e0091ff516c357b-Classic_Time_3.wav",
+      "duration": 14,
+      "category": "jingle"
+    },
+    {
+      "id": "special_bloc_1790809306418_1790809327019_1_rzba",
+      "title": "Classic Time 2",
+      "artist": "CLASSIC TIME JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9920a1dbc8ae5a5c-Classic_Time_2.wav",
+      "duration": 14,
+      "category": "jingle"
+    },
+    {
+      "id": "special_bloc_1790809306418_1790809326582_0_r01o",
+      "title": "Classic Time 1",
+      "artist": "CLASSIC TIME JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6b53dd9114606744-Classic_Time_1.wav",
+      "duration": 10,
       "category": "jingle"
     }
   ],
