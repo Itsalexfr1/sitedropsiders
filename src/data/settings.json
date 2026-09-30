@@ -2803,15 +2803,6 @@
           "category": "promo"
         },
         {
-          "id": "rad_inter_1790643685218_radio_bloc_1790255595165_5mni_1",
-          "artist": "INTERVIEW",
-          "title": "Interview Exclusive • Martin Garrix en direct de l'Amsterdam Dance Event",
-          "youtubeId": "k5yQBhDnrvM",
-          "duration": 180,
-          "category": "interview",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "sj_radio_bloc_1790255595165_5mni_2",
           "title": "Morning Dropsiders 2",
           "artist": "LE MORNING DROPSIDERS JINGLE",
@@ -3323,14 +3314,6 @@
           "addedAt": 1790256302438
         },
         {
-          "id": "pr_radio_bloc_1790255595165_5mni_33",
-          "title": "Promo Tomorrowland Winter",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "promo"
-        },
-        {
           "id": "rt_1790256323478",
           "title": "Titanium ft. Sia",
           "artist": "David Guetta",
@@ -3357,14 +3340,6 @@
           "addedAt": 1790256329104
         },
         {
-          "id": "pr_radio_bloc_1790255595165_5mni_35",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "promo"
-        },
-        {
           "id": "rt_tv_1790256330392_7qxb",
           "title": "Medellin, Colombia (",
           "artist": "DJ Snake - Club Soda",
@@ -3389,14 +3364,6 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790256332123
-        },
-        {
-          "id": "pr_radio_bloc_1790255595165_5mni_37",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "promo"
         },
         {
           "id": "rt_tv_1790256333666_lum0",
@@ -3851,14 +3818,6 @@
           "addedAt": 1790256416815
         },
         {
-          "id": "pr_radio_bloc_1790255595165_5mni_65",
-          "title": "Promo Tomorrowland Winter",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "promo"
-        },
-        {
           "id": "rt_tv_1790256423885_i2v6",
           "title": "Neverland (From Japan) [Live at Sphere Vegas]",
           "artist": "Anyma, Baset",
@@ -3885,14 +3844,6 @@
           "addedAt": 1790256426835
         },
         {
-          "id": "pr_radio_bloc_1790255595165_5mni_67",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "promo"
-        },
-        {
           "id": "rt_tv_1790256427473_9bb6",
           "title": "Quantum [Live from [UNVRS] Ibiza]",
           "artist": "Anyma, Chris Avantgarde",
@@ -3917,14 +3868,6 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790256428125
-        },
-        {
-          "id": "pr_radio_bloc_1790255595165_5mni_69",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "promo"
         },
         {
           "id": "rt_tv_1790256428805_hfr3",
@@ -4468,15 +4411,6 @@
           "category": "promo"
         },
         {
-          "id": "rad_inter_1790643682992_radio_bloc_1790256648831_kmgn_1",
-          "artist": "INTERVIEW",
-          "title": "Interview Exclusive • Martin Garrix en direct de l'Amsterdam Dance Event",
-          "youtubeId": "k5yQBhDnrvM",
-          "duration": 180,
-          "category": "interview",
-          "addedAt": 1790643682992
-        },
-        {
           "id": "sj_radio_bloc_1790256648831_kmgn_2",
           "title": "Dropsiders Radio Jingle 2",
           "artist": "LE 12 - 16 JINGLE",
@@ -4988,14 +4922,6 @@
           "addedAt": 1790259733065
         },
         {
-          "id": "pr_radio_bloc_1790256648831_kmgn_33",
-          "title": "Promo Tomorrowland Winter",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "promo"
-        },
-        {
           "id": "rt_tv_1790259791462_jlr5",
           "title": "DROPSIDERS TV",
           "artist": "BUNT. at PACHA New York 2026",
@@ -5095,15 +5021,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
           "duration": 66,
           "category": "promo"
-        },
-        {
-          "id": "rad_inter_1790643681274_radio_bloc_1790256873762_k89p_1",
-          "artist": "INTERVIEW",
-          "title": "Interview Exclusive • Martin Garrix en direct de l'Amsterdam Dance Event",
-          "youtubeId": "k5yQBhDnrvM",
-          "duration": 180,
-          "category": "interview",
-          "addedAt": 1790643681274
         },
         {
           "id": "sj_radio_bloc_1790256873762_k89p_2",
@@ -5625,14 +5542,6 @@
           "addedAt": 1790256939283
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_33",
-          "title": "Promo Tomorrowland Winter",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "promo"
-        },
-        {
           "id": "rt_tv_1790256941065_wigv",
           "title": "Psychrowdelic Trip Stage - elrow Town Madrid 2026",
           "artist": "Bastian Bux",
@@ -5659,14 +5568,6 @@
           "addedAt": 1790256942158
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_35",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "promo"
-        },
-        {
           "id": "rt_tv_1790256944668_nyro",
           "title": "Paris L'Olympia",
           "artist": "Paul Kalkbrenner",
@@ -5691,14 +5592,6 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790256945578
-        },
-        {
-          "id": "pr_radio_bloc_1790256873762_k89p_37",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "promo"
         },
         {
           "id": "rt_tv_1790256953963_r0nn",
@@ -6053,15 +5946,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
           "duration": 66,
           "category": "promo"
-        },
-        {
-          "id": "rad_inter_1790643679058_radio_bloc_1790257094891_kg2l_1",
-          "artist": "INTERVIEW",
-          "title": "Interview Exclusive • Martin Garrix en direct de l'Amsterdam Dance Event",
-          "youtubeId": "k5yQBhDnrvM",
-          "duration": 180,
-          "category": "interview",
-          "addedAt": 1790643679058
         },
         {
           "id": "sj_radio_bloc_1790257094891_kg2l_2",
@@ -6596,15 +6480,6 @@
           "category": "promo"
         },
         {
-          "id": "rad_inter_1790643676526_radio_bloc_1790257291397_4y1e_1",
-          "artist": "INTERVIEW",
-          "title": "Interview Exclusive • Martin Garrix en direct de l'Amsterdam Dance Event",
-          "youtubeId": "k5yQBhDnrvM",
-          "duration": 180,
-          "category": "interview",
-          "addedAt": 1790643676526
-        },
-        {
           "id": "sj_radio_bloc_1790257291397_4y1e_2",
           "title": "Dropsiders Radio Jingle 3",
           "artist": "ZONE ROUGE JINGLE",
@@ -7132,14 +7007,6 @@
           "addedAt": 1790257339667
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_33",
-          "title": "Promo Tomorrowland Winter",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "promo"
-        },
-        {
           "id": "rt_tv_1790257340343_xg3p",
           "title": "FULL VIDEOSET",
           "artist": "DEXPHASE B2B OGUZ @ BLACKWORKS WEEKEND FESTIVAL 2026: DIMENSION",
@@ -7166,14 +7033,6 @@
           "addedAt": 1790257340990
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_35",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "promo"
-        },
-        {
           "id": "rt_tv_1790257341633_8odl",
           "title": "Brennan Heart vs Coone",
           "artist": "Reverze 2026",
@@ -7198,14 +7057,6 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790257342181
-        },
-        {
-          "id": "pr_radio_bloc_1790257291397_4y1e_37",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "promo"
         },
         {
           "id": "rt_tv_1790257342808_8d6l",
@@ -7601,15 +7452,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
       "duration": 66,
       "category": "promo"
-    },
-    {
-      "id": "rad_inter_1790643685218_radio_bloc_1790255595165_5mni_1",
-      "artist": "INTERVIEW",
-      "title": "Interview Exclusive • Martin Garrix en direct de l'Amsterdam Dance Event",
-      "youtubeId": "k5yQBhDnrvM",
-      "duration": 180,
-      "category": "interview",
-      "addedAt": 1790643685218
     },
     {
       "id": "sj_radio_bloc_1790255595165_5mni_2",
@@ -8123,14 +7965,6 @@
       "addedAt": 1790256302438
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_33",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
-    },
-    {
       "id": "rt_1790256323478",
       "title": "Titanium ft. Sia",
       "artist": "David Guetta",
@@ -8157,14 +7991,6 @@
       "addedAt": 1790256329104
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_35",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "promo"
-    },
-    {
       "id": "rt_tv_1790256330392_7qxb",
       "title": "Medellin, Colombia (",
       "artist": "DJ Snake - Club Soda",
@@ -8189,14 +8015,6 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256332123
-    },
-    {
-      "id": "pr_radio_bloc_1790255595165_5mni_37",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "promo"
     },
     {
       "id": "rt_tv_1790256333666_lum0",
@@ -8651,14 +8469,6 @@
       "addedAt": 1790256416815
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_65",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
-    },
-    {
       "id": "rt_tv_1790256423885_i2v6",
       "title": "Neverland (From Japan) [Live at Sphere Vegas]",
       "artist": "Anyma, Baset",
@@ -8685,14 +8495,6 @@
       "addedAt": 1790256426835
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_67",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "promo"
-    },
-    {
       "id": "rt_tv_1790256427473_9bb6",
       "title": "Quantum [Live from [UNVRS] Ibiza]",
       "artist": "Anyma, Chris Avantgarde",
@@ -8717,14 +8519,6 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256428125
-    },
-    {
-      "id": "pr_radio_bloc_1790255595165_5mni_69",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "promo"
     },
     {
       "id": "rt_tv_1790256428805_hfr3",
@@ -9210,15 +9004,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
       "duration": 66,
       "category": "promo"
-    },
-    {
-      "id": "rad_inter_1790643682992_radio_bloc_1790256648831_kmgn_1",
-      "artist": "INTERVIEW",
-      "title": "Interview Exclusive • Martin Garrix en direct de l'Amsterdam Dance Event",
-      "youtubeId": "k5yQBhDnrvM",
-      "duration": 180,
-      "category": "interview",
-      "addedAt": 1790643682992
     },
     {
       "id": "sj_radio_bloc_1790256648831_kmgn_2",
@@ -9732,14 +9517,6 @@
       "addedAt": 1790259733065
     },
     {
-      "id": "pr_radio_bloc_1790256648831_kmgn_33",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
-    },
-    {
       "id": "rt_tv_1790259791462_jlr5",
       "title": "DROPSIDERS TV",
       "artist": "BUNT. at PACHA New York 2026",
@@ -9797,15 +9574,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
       "duration": 66,
       "category": "promo"
-    },
-    {
-      "id": "rad_inter_1790643681274_radio_bloc_1790256873762_k89p_1",
-      "artist": "INTERVIEW",
-      "title": "Interview Exclusive • Martin Garrix en direct de l'Amsterdam Dance Event",
-      "youtubeId": "k5yQBhDnrvM",
-      "duration": 180,
-      "category": "interview",
-      "addedAt": 1790643681274
     },
     {
       "id": "sj_radio_bloc_1790256873762_k89p_2",
@@ -10327,14 +10095,6 @@
       "addedAt": 1790256939283
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_33",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
-    },
-    {
       "id": "rt_tv_1790256941065_wigv",
       "title": "Psychrowdelic Trip Stage - elrow Town Madrid 2026",
       "artist": "Bastian Bux",
@@ -10361,14 +10121,6 @@
       "addedAt": 1790256942158
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_35",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "promo"
-    },
-    {
       "id": "rt_tv_1790256944668_nyro",
       "title": "Paris L'Olympia",
       "artist": "Paul Kalkbrenner",
@@ -10393,14 +10145,6 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256945578
-    },
-    {
-      "id": "pr_radio_bloc_1790256873762_k89p_37",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "promo"
     },
     {
       "id": "rt_tv_1790256953963_r0nn",
@@ -10715,15 +10459,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
       "duration": 66,
       "category": "promo"
-    },
-    {
-      "id": "rad_inter_1790643679058_radio_bloc_1790257094891_kg2l_1",
-      "artist": "INTERVIEW",
-      "title": "Interview Exclusive • Martin Garrix en direct de l'Amsterdam Dance Event",
-      "youtubeId": "k5yQBhDnrvM",
-      "duration": 180,
-      "category": "interview",
-      "addedAt": 1790643679058
     },
     {
       "id": "sj_radio_bloc_1790257094891_kg2l_2",
@@ -11216,15 +10951,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
       "duration": 66,
       "category": "promo"
-    },
-    {
-      "id": "rad_inter_1790643676526_radio_bloc_1790257291397_4y1e_1",
-      "artist": "INTERVIEW",
-      "title": "Interview Exclusive • Martin Garrix en direct de l'Amsterdam Dance Event",
-      "youtubeId": "k5yQBhDnrvM",
-      "duration": 180,
-      "category": "interview",
-      "addedAt": 1790643676526
     },
     {
       "id": "sj_radio_bloc_1790257291397_4y1e_2",
@@ -11754,14 +11480,6 @@
       "addedAt": 1790257339667
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_33",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
-    },
-    {
       "id": "rt_tv_1790257340343_xg3p",
       "title": "FULL VIDEOSET",
       "artist": "DEXPHASE B2B OGUZ @ BLACKWORKS WEEKEND FESTIVAL 2026: DIMENSION",
@@ -11788,14 +11506,6 @@
       "addedAt": 1790257340990
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_35",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "promo"
-    },
-    {
       "id": "rt_tv_1790257341633_8odl",
       "title": "Brennan Heart vs Coone",
       "artist": "Reverze 2026",
@@ -11820,14 +11530,6 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790257342181
-    },
-    {
-      "id": "pr_radio_bloc_1790257291397_4y1e_37",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "promo"
     },
     {
       "id": "rt_tv_1790257342808_8d6l",
