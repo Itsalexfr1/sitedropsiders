@@ -4798,10 +4798,10 @@
         },
         {
           "id": "sj_radio_bloc_1790256873762_k89p_s_6",
-          "title": "Dropsiders Radio Jingle 3",
+          "title": "After Work 1",
           "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+          "duration": 15,
           "category": "jingle"
         },
         {
@@ -4849,10 +4849,10 @@
         },
         {
           "id": "sj_radio_bloc_1790256873762_k89p_s_9",
-          "title": "Dropsiders Radio Jingle 4",
+          "title": "After Work 2",
           "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+          "duration": 14,
           "category": "jingle"
         },
         {
@@ -5002,10 +5002,10 @@
         },
         {
           "id": "sj_radio_bloc_1790256873762_k89p_s_18",
-          "title": "Dropsiders Radio Jingle 3",
+          "title": "After Work 1",
           "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+          "duration": 15,
           "category": "jingle"
         },
         {
@@ -5053,10 +5053,10 @@
         },
         {
           "id": "sj_radio_bloc_1790256873762_k89p_s_21",
-          "title": "Dropsiders Radio Jingle 4",
+          "title": "After Work 2",
           "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+          "duration": 14,
           "category": "jingle"
         },
         {
@@ -5206,10 +5206,10 @@
         },
         {
           "id": "sj_radio_bloc_1790256873762_k89p_s_30",
-          "title": "Dropsiders Radio Jingle 3",
+          "title": "After Work 1",
           "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+          "duration": 15,
           "category": "jingle"
         },
         {
@@ -5257,10 +5257,10 @@
         },
         {
           "id": "sj_radio_bloc_1790256873762_k89p_s_33",
-          "title": "Dropsiders Radio Jingle 4",
+          "title": "After Work 2",
           "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+          "duration": 14,
           "category": "jingle"
         },
         {
@@ -5410,10 +5410,10 @@
         },
         {
           "id": "sj_radio_bloc_1790256873762_k89p_s_42",
-          "title": "Dropsiders Radio Jingle 3",
+          "title": "After Work 1",
           "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+          "duration": 15,
           "category": "jingle"
         },
         {
@@ -5461,10 +5461,10 @@
         },
         {
           "id": "sj_radio_bloc_1790256873762_k89p_s_45",
-          "title": "Dropsiders Radio Jingle 4",
+          "title": "After Work 2",
           "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+          "duration": 14,
           "category": "jingle"
         },
         {
@@ -5603,6 +5603,20 @@
           "category": "jingle",
           "duration": 8,
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1790792186955_0_9fs2",
+          "title": "After Work 1",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+          "duration": 15,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1790792187636_1_iscz",
+          "title": "After Work 2",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+          "duration": 14,
+          "enabled": true
         }
       ],
       "rotationRule": "son_special_son_jingle_promo"
@@ -5740,10 +5754,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257094891_kg2l_s_6",
-          "title": "Dropsiders Radio Jingle 5",
+          "title": "Drop Time 1",
           "artist": "DROP TIME JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/b8f96f8f6f70ba5f-Drop_Time_1.wav",
+          "duration": 15,
           "category": "jingle"
         },
         {
@@ -5791,10 +5805,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257094891_kg2l_s_9",
-          "title": "Dropsiders Radio Jingle 6",
+          "title": "Drop Time 2",
           "artist": "DROP TIME JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-          "duration": 9,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/66f4bd0012ddfec6-Drop_Time_2.wav",
+          "duration": 14,
           "category": "jingle"
         },
         {
@@ -5842,10 +5856,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257094891_kg2l_s_12",
-          "title": "Dropsiders Radio Jingle 5",
+          "title": "Drop Time 3",
           "artist": "DROP TIME JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/76912b6674e4a0eb-Drop_Time_3.wav",
+          "duration": 10,
           "category": "jingle"
         },
         {
@@ -5893,10 +5907,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257094891_kg2l_s_15",
-          "title": "Dropsiders Radio Jingle 6",
+          "title": "Drop Time 4",
           "artist": "DROP TIME JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-          "duration": 9,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/8d3dd222a5f7027e-Drop_Time_4.wav",
+          "duration": 15,
           "category": "jingle"
         },
         {
@@ -5944,9 +5958,9 @@
         },
         {
           "id": "sj_radio_bloc_1790257094891_kg2l_s_18",
-          "title": "Dropsiders Radio Jingle 5",
+          "title": "Drop Time 5",
           "artist": "DROP TIME JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/c69774f81584cabc-Drop_Time_5.wav",
           "duration": 14,
           "category": "jingle"
         },
@@ -5995,10 +6009,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257094891_kg2l_s_21",
-          "title": "Dropsiders Radio Jingle 6",
+          "title": "Dropsiders Radio Jingle 5",
           "artist": "DROP TIME JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-          "duration": 9,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+          "duration": 14,
           "category": "jingle"
         },
         {
@@ -6046,10 +6060,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257094891_kg2l_s_24",
-          "title": "Dropsiders Radio Jingle 5",
+          "title": "Dropsiders Radio Jingle 6",
           "artist": "DROP TIME JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+          "duration": 9,
           "category": "jingle"
         },
         {
@@ -6097,10 +6111,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257094891_kg2l_s_27",
-          "title": "Dropsiders Radio Jingle 6",
+          "title": "Drop Time 1",
           "artist": "DROP TIME JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-          "duration": 9,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/b8f96f8f6f70ba5f-Drop_Time_1.wav",
+          "duration": 15,
           "category": "jingle"
         }
       ],
@@ -6120,6 +6134,41 @@
           "category": "jingle",
           "duration": 9,
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav"
+        },
+        {
+          "id": "special_radio_bloc_1790257094891_kg2l_1790792213730_0_z8ul",
+          "title": "Drop Time 1",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/b8f96f8f6f70ba5f-Drop_Time_1.wav",
+          "duration": 15,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257094891_kg2l_1790792214544_1_g347",
+          "title": "Drop Time 2",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/66f4bd0012ddfec6-Drop_Time_2.wav",
+          "duration": 14,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257094891_kg2l_1790792215037_2_pbev",
+          "title": "Drop Time 3",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/76912b6674e4a0eb-Drop_Time_3.wav",
+          "duration": 10,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257094891_kg2l_1790792215545_3_amm7",
+          "title": "Drop Time 4",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/8d3dd222a5f7027e-Drop_Time_4.wav",
+          "duration": 15,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257094891_kg2l_1790792216139_4_ymw7",
+          "title": "Drop Time 5",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/c69774f81584cabc-Drop_Time_5.wav",
+          "duration": 14,
+          "enabled": true
         }
       ],
       "rotationRule": "son_special_son_jingle_promo"
@@ -6308,10 +6357,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257291397_4y1e_s_9",
-          "title": "Dropsiders Radio Jingle 1",
+          "title": "Zone Rouge The Best Hard Musix Set 2",
           "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/369c594b12d30923-Zone_Rouge_The_Best_Hard_Musix.wav",
+          "duration": 15,
           "category": "jingle"
         },
         {
@@ -6359,10 +6408,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257291397_4y1e_s_12",
-          "title": "Dropsiders Radio Jingle 3",
+          "title": "Zone Rouge The Best Hard Musix Set",
           "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0fb9afc4dc1c2a9c-Zone_Rouge_The_Best_Hard_Musix.wav",
+          "duration": 16,
           "category": "jingle"
         },
         {
@@ -6410,10 +6459,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257291397_4y1e_s_15",
-          "title": "Dropsiders Radio Jingle 5",
+          "title": "Dropsiders Radio Jingle 1",
           "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -6461,10 +6510,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257291397_4y1e_s_18",
-          "title": "Dropsiders Radio Jingle 1",
+          "title": "Dropsiders Radio Jingle 3",
           "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -6512,10 +6561,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257291397_4y1e_s_21",
-          "title": "Dropsiders Radio Jingle 3",
+          "title": "Dropsiders Radio Jingle 5",
           "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+          "duration": 14,
           "category": "jingle"
         },
         {
@@ -6563,10 +6612,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257291397_4y1e_s_24",
-          "title": "Dropsiders Radio Jingle 5",
+          "title": "Zone Rouge The Best Hard Musix Set 2",
           "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/369c594b12d30923-Zone_Rouge_The_Best_Hard_Musix.wav",
+          "duration": 15,
           "category": "jingle"
         },
         {
@@ -6614,10 +6663,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257291397_4y1e_s_27",
-          "title": "Dropsiders Radio Jingle 1",
+          "title": "Zone Rouge The Best Hard Musix Set",
           "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0fb9afc4dc1c2a9c-Zone_Rouge_The_Best_Hard_Musix.wav",
+          "duration": 16,
           "category": "jingle"
         },
         {
@@ -6665,10 +6714,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257291397_4y1e_s_30",
-          "title": "Dropsiders Radio Jingle 3",
+          "title": "Dropsiders Radio Jingle 1",
           "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -6716,10 +6765,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257291397_4y1e_s_33",
-          "title": "Dropsiders Radio Jingle 5",
+          "title": "Dropsiders Radio Jingle 3",
           "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -6767,10 +6816,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257291397_4y1e_s_36",
-          "title": "Dropsiders Radio Jingle 1",
+          "title": "Dropsiders Radio Jingle 5",
           "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+          "duration": 14,
           "category": "jingle"
         },
         {
@@ -6818,10 +6867,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257291397_4y1e_s_39",
-          "title": "Dropsiders Radio Jingle 3",
+          "title": "Zone Rouge The Best Hard Musix Set 2",
           "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/369c594b12d30923-Zone_Rouge_The_Best_Hard_Musix.wav",
+          "duration": 15,
           "category": "jingle"
         },
         {
@@ -6869,10 +6918,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257291397_4y1e_s_42",
-          "title": "Dropsiders Radio Jingle 5",
+          "title": "Zone Rouge The Best Hard Musix Set",
           "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0fb9afc4dc1c2a9c-Zone_Rouge_The_Best_Hard_Musix.wav",
+          "duration": 16,
           "category": "jingle"
         },
         {
@@ -7073,10 +7122,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257291397_4y1e_s_54",
-          "title": "Dropsiders Radio Jingle 1",
+          "title": "Zone Rouge The Best Hard Musix Set 2",
           "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/369c594b12d30923-Zone_Rouge_The_Best_Hard_Musix.wav",
+          "duration": 15,
           "category": "jingle"
         },
         {
@@ -7121,6 +7170,20 @@
           "category": "jingle",
           "duration": 14,
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav"
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1790792267406_0_sy4b",
+          "title": "Zone Rouge The Best Hard Musix Set 2",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/369c594b12d30923-Zone_Rouge_The_Best_Hard_Musix.wav",
+          "duration": 15,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1790792268058_1_8wr3",
+          "title": "Zone Rouge The Best Hard Musix Set",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0fb9afc4dc1c2a9c-Zone_Rouge_The_Best_Hard_Musix.wav",
+          "duration": 16,
+          "enabled": true
         }
       ],
       "rotationRule": "son_special_son_jingle_promo"
@@ -9066,10 +9129,10 @@
     },
     {
       "id": "sj_radio_bloc_1790256873762_k89p_s_6",
-      "title": "Dropsiders Radio Jingle 3",
+      "title": "After Work 1",
       "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+      "duration": 15,
       "category": "jingle"
     },
     {
@@ -9117,10 +9180,10 @@
     },
     {
       "id": "sj_radio_bloc_1790256873762_k89p_s_9",
-      "title": "Dropsiders Radio Jingle 4",
+      "title": "After Work 2",
       "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+      "duration": 14,
       "category": "jingle"
     },
     {
@@ -9270,10 +9333,10 @@
     },
     {
       "id": "sj_radio_bloc_1790256873762_k89p_s_18",
-      "title": "Dropsiders Radio Jingle 3",
+      "title": "After Work 1",
       "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+      "duration": 15,
       "category": "jingle"
     },
     {
@@ -9321,10 +9384,10 @@
     },
     {
       "id": "sj_radio_bloc_1790256873762_k89p_s_21",
-      "title": "Dropsiders Radio Jingle 4",
+      "title": "After Work 2",
       "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+      "duration": 14,
       "category": "jingle"
     },
     {
@@ -9474,10 +9537,10 @@
     },
     {
       "id": "sj_radio_bloc_1790256873762_k89p_s_30",
-      "title": "Dropsiders Radio Jingle 3",
+      "title": "After Work 1",
       "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+      "duration": 15,
       "category": "jingle"
     },
     {
@@ -9525,10 +9588,10 @@
     },
     {
       "id": "sj_radio_bloc_1790256873762_k89p_s_33",
-      "title": "Dropsiders Radio Jingle 4",
+      "title": "After Work 2",
       "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+      "duration": 14,
       "category": "jingle"
     },
     {
@@ -9678,10 +9741,10 @@
     },
     {
       "id": "sj_radio_bloc_1790256873762_k89p_s_42",
-      "title": "Dropsiders Radio Jingle 3",
+      "title": "After Work 1",
       "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+      "duration": 15,
       "category": "jingle"
     },
     {
@@ -9729,10 +9792,10 @@
     },
     {
       "id": "sj_radio_bloc_1790256873762_k89p_s_45",
-      "title": "Dropsiders Radio Jingle 4",
+      "title": "After Work 2",
       "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+      "duration": 14,
       "category": "jingle"
     },
     {
@@ -9967,10 +10030,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257094891_kg2l_s_6",
-      "title": "Dropsiders Radio Jingle 5",
+      "title": "Drop Time 1",
       "artist": "DROP TIME JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/b8f96f8f6f70ba5f-Drop_Time_1.wav",
+      "duration": 15,
       "category": "jingle"
     },
     {
@@ -10018,10 +10081,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257094891_kg2l_s_9",
-      "title": "Dropsiders Radio Jingle 6",
+      "title": "Drop Time 2",
       "artist": "DROP TIME JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-      "duration": 9,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/66f4bd0012ddfec6-Drop_Time_2.wav",
+      "duration": 14,
       "category": "jingle"
     },
     {
@@ -10069,10 +10132,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257094891_kg2l_s_12",
-      "title": "Dropsiders Radio Jingle 5",
+      "title": "Drop Time 3",
       "artist": "DROP TIME JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/76912b6674e4a0eb-Drop_Time_3.wav",
+      "duration": 10,
       "category": "jingle"
     },
     {
@@ -10120,10 +10183,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257094891_kg2l_s_15",
-      "title": "Dropsiders Radio Jingle 6",
+      "title": "Drop Time 4",
       "artist": "DROP TIME JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-      "duration": 9,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/8d3dd222a5f7027e-Drop_Time_4.wav",
+      "duration": 15,
       "category": "jingle"
     },
     {
@@ -10171,9 +10234,9 @@
     },
     {
       "id": "sj_radio_bloc_1790257094891_kg2l_s_18",
-      "title": "Dropsiders Radio Jingle 5",
+      "title": "Drop Time 5",
       "artist": "DROP TIME JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/c69774f81584cabc-Drop_Time_5.wav",
       "duration": 14,
       "category": "jingle"
     },
@@ -10222,10 +10285,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257094891_kg2l_s_21",
-      "title": "Dropsiders Radio Jingle 6",
+      "title": "Dropsiders Radio Jingle 5",
       "artist": "DROP TIME JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-      "duration": 9,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+      "duration": 14,
       "category": "jingle"
     },
     {
@@ -10273,10 +10336,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257094891_kg2l_s_24",
-      "title": "Dropsiders Radio Jingle 5",
+      "title": "Dropsiders Radio Jingle 6",
       "artist": "DROP TIME JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+      "duration": 9,
       "category": "jingle"
     },
     {
@@ -10324,10 +10387,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257094891_kg2l_s_27",
-      "title": "Dropsiders Radio Jingle 6",
+      "title": "Drop Time 1",
       "artist": "DROP TIME JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-      "duration": 9,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/b8f96f8f6f70ba5f-Drop_Time_1.wav",
+      "duration": 15,
       "category": "jingle"
     },
     {
@@ -10494,10 +10557,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257291397_4y1e_s_9",
-      "title": "Dropsiders Radio Jingle 1",
+      "title": "Zone Rouge The Best Hard Musix Set 2",
       "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/369c594b12d30923-Zone_Rouge_The_Best_Hard_Musix.wav",
+      "duration": 15,
       "category": "jingle"
     },
     {
@@ -10545,10 +10608,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257291397_4y1e_s_12",
-      "title": "Dropsiders Radio Jingle 3",
+      "title": "Zone Rouge The Best Hard Musix Set",
       "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0fb9afc4dc1c2a9c-Zone_Rouge_The_Best_Hard_Musix.wav",
+      "duration": 16,
       "category": "jingle"
     },
     {
@@ -10596,10 +10659,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257291397_4y1e_s_15",
-      "title": "Dropsiders Radio Jingle 5",
+      "title": "Dropsiders Radio Jingle 1",
       "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -10647,10 +10710,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257291397_4y1e_s_18",
-      "title": "Dropsiders Radio Jingle 1",
+      "title": "Dropsiders Radio Jingle 3",
       "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -10698,10 +10761,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257291397_4y1e_s_21",
-      "title": "Dropsiders Radio Jingle 3",
+      "title": "Dropsiders Radio Jingle 5",
       "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+      "duration": 14,
       "category": "jingle"
     },
     {
@@ -10749,10 +10812,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257291397_4y1e_s_24",
-      "title": "Dropsiders Radio Jingle 5",
+      "title": "Zone Rouge The Best Hard Musix Set 2",
       "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/369c594b12d30923-Zone_Rouge_The_Best_Hard_Musix.wav",
+      "duration": 15,
       "category": "jingle"
     },
     {
@@ -10800,10 +10863,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257291397_4y1e_s_27",
-      "title": "Dropsiders Radio Jingle 1",
+      "title": "Zone Rouge The Best Hard Musix Set",
       "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0fb9afc4dc1c2a9c-Zone_Rouge_The_Best_Hard_Musix.wav",
+      "duration": 16,
       "category": "jingle"
     },
     {
@@ -10851,10 +10914,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257291397_4y1e_s_30",
-      "title": "Dropsiders Radio Jingle 3",
+      "title": "Dropsiders Radio Jingle 1",
       "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -10902,10 +10965,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257291397_4y1e_s_33",
-      "title": "Dropsiders Radio Jingle 5",
+      "title": "Dropsiders Radio Jingle 3",
       "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -10953,10 +11016,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257291397_4y1e_s_36",
-      "title": "Dropsiders Radio Jingle 1",
+      "title": "Dropsiders Radio Jingle 5",
       "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+      "duration": 14,
       "category": "jingle"
     },
     {
@@ -11004,10 +11067,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257291397_4y1e_s_39",
-      "title": "Dropsiders Radio Jingle 3",
+      "title": "Zone Rouge The Best Hard Musix Set 2",
       "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/369c594b12d30923-Zone_Rouge_The_Best_Hard_Musix.wav",
+      "duration": 15,
       "category": "jingle"
     },
     {
@@ -11055,10 +11118,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257291397_4y1e_s_42",
-      "title": "Dropsiders Radio Jingle 5",
+      "title": "Zone Rouge The Best Hard Musix Set",
       "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0fb9afc4dc1c2a9c-Zone_Rouge_The_Best_Hard_Musix.wav",
+      "duration": 16,
       "category": "jingle"
     },
     {
@@ -11259,10 +11322,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257291397_4y1e_s_54",
-      "title": "Dropsiders Radio Jingle 1",
+      "title": "Zone Rouge The Best Hard Musix Set 2",
       "artist": "ZONE ROUGE JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/369c594b12d30923-Zone_Rouge_The_Best_Hard_Musix.wav",
+      "duration": 15,
       "category": "jingle"
     },
     {
