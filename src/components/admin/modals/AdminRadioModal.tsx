@@ -1210,6 +1210,17 @@ export function AdminRadioModal({
                             >
                                 📣 Promos & Sponsors
                             </button>
+                            <button
+                                type="button"
+                                onClick={() => setActiveFolder('top_horaire')}
+                                className={`px-3.5 py-1.5 rounded-lg transition-all ${
+                                    activeFolder === 'top_horaire'
+                                        ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30 shadow-sm'
+                                        : 'text-gray-400 hover:text-white'
+                                }`}
+                            >
+                                ⏰ Top Horaire
+                            </button>
                         </div>
                     </div>
 
@@ -1572,14 +1583,142 @@ export function AdminRadioModal({
                                     </button>
                                 </div>
                             </div>
+
+                            {/* DOSSIER 5 : TOP HORAIRE */}
+                            <div>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveFolder('top_horaire')}
+                                    className={`w-full flex items-center justify-between py-1.5 px-2 rounded-lg font-bold uppercase tracking-wider text-[11px] transition-all ${
+                                        activeFolder === 'top_horaire'
+                                            ? 'bg-purple-600 text-white shadow-sm'
+                                            : 'text-gray-300 hover:text-white hover:bg-white/5'
+                                    }`}
+                                >
+                                    <span className="flex items-center gap-2">⏰ Top Horaire</span>
+                                    <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${topHoraireConfig.enabled ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-400'}`}>
+                                        {topHoraireConfig.enabled ? 'ON' : 'OFF'}
+                                    </span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
                     {/* ── GRAND TABLEAU CENTRAL FAÇON RADIOMANAGER (Centre) ── */}
                     <div className="flex-1 overflow-y-auto flex flex-col min-w-0 bg-[#0c1018]">
 
+                        {/* ── PANEL TOP HORAIRE ── */}
+                        {activeFolder === 'top_horaire' && (
+                            <div className="p-6 space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-sm font-display font-black text-white uppercase italic tracking-wider flex items-center gap-2">
+                                        <span className="text-xl">⏰</span> Top Horaire Radio
+                                    </h3>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <span className="text-xs text-gray-400 font-bold">Actif</span>
+                                        <div
+                                            onClick={() => setTopHoraireConfig(c => ({ ...c, enabled: !c.enabled }))}
+                                            className={`relative w-10 h-5 rounded-full transition-all cursor-pointer ${
+                                                topHoraireConfig.enabled ? 'bg-green-500' : 'bg-gray-600'
+                                            }`}
+                                        >
+                                            <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${
+                                                topHoraireConfig.enabled ? 'left-5' : 'left-0.5'
+                                            }`} />
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <p className="text-xs text-gray-400">
+                                    Le Top Horaire se déclenche automatiquement à chaque heure pile (ex : 14h00, 15h00...) pendant le direct radio.
+                                </p>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-purple-400 uppercase">Titre</label>
+                                        <input
+                                            type="text"
+                                            value={topHoraireConfig.title}
+                                            onChange={e => setTopHoraireConfig(c => ({ ...c, title: e.target.value }))}
+                                            placeholder="Ex : Dropsiders Radio • Top Horaire"
+                                            className="w-full px-3 py-2 rounded-xl bg-black/50 border border-purple-500/30 text-white text-xs font-bold focus:outline-none focus:border-purple-400"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-purple-400 uppercase">Durée (secondes)</label>
+                                        <input
+                                            type="number"
+                                            min={5}
+                                            max={60}
+                                            value={topHoraireConfig.duration}
+                                            onChange={e => setTopHoraireConfig(c => ({ ...c, duration: Math.max(5, parseInt(e.target.value) || 10) }))}
+                                            className="w-full px-3 py-2 rounded-xl bg-black/50 border border-purple-500/30 text-white text-xs font-bold font-mono focus:outline-none focus:border-purple-400"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-purple-400 uppercase">YouTube ID</label>
+                                        <input
+                                            type="text"
+                                            value={topHoraireConfig.youtubeId || ''}
+                                            onChange={e => {
+                                                const yt = extractYouTubeId(e.target.value) || e.target.value.trim();
+                                                setTopHoraireConfig(c => ({ ...c, youtubeId: yt, audioUrl: undefined }));
+                                            }}
+                                            placeholder="ID YouTube ou URL YouTube"
+                                            className="w-full px-3 py-2 rounded-xl bg-black/50 border border-purple-500/30 text-white text-xs font-mono focus:outline-none focus:border-purple-400"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-purple-400 uppercase">URL Audio (MP3/WAV)</label>
+                                        <input
+                                            type="text"
+                                            value={topHoraireConfig.audioUrl || ''}
+                                            onChange={e => setTopHoraireConfig(c => ({ ...c, audioUrl: e.target.value.trim(), youtubeId: undefined }))}
+                                            placeholder="https://... .mp3"
+                                            className="w-full px-3 py-2 rounded-xl bg-black/50 border border-purple-500/30 text-white text-xs font-mono focus:outline-none focus:border-purple-400"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Preview */}
+                                {(topHoraireConfig.youtubeId || topHoraireConfig.audioUrl) && (
+                                    <div className="bg-purple-950/40 border border-purple-500/30 rounded-xl p-4 flex items-center gap-4">
+                                        {topHoraireConfig.youtubeId && (
+                                            <img
+                                                src={`https://img.youtube.com/vi/${topHoraireConfig.youtubeId}/mqdefault.jpg`}
+                                                alt="preview top horaire"
+                                                className="w-24 h-16 object-cover rounded-lg border border-white/10"
+                                            />
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-xs font-bold text-purple-200 truncate">{topHoraireConfig.title}</div>
+                                            <div className="text-[10px] text-gray-400 mt-0.5">
+                                                {topHoraireConfig.youtubeId ? `🎥 YouTube : ${topHoraireConfig.youtubeId}` : `🔊 Audio : ${topHoraireConfig.audioUrl}`}
+                                                {' • '}{topHoraireConfig.duration}s
+                                            </div>
+                                            <div className={`text-[10px] font-bold mt-1 ${topHoraireConfig.enabled ? 'text-green-400' : 'text-gray-500'}`}>
+                                                {topHoraireConfig.enabled ? '✅ Activé — se déclenchera à chaque heure pile' : '❌ Désactivé'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        localStorage.setItem(STORAGE_RADIO_TOP_HORAIRE_KEY, JSON.stringify(topHoraireConfig));
+                                        showToast('⏰ Top Horaire sauvegardé !', 'success');
+                                    }}
+                                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white font-display font-black text-xs uppercase italic tracking-wider transition-all cursor-pointer shadow-lg shadow-purple-500/20"
+                                >
+                                    ✓ Sauvegarder le Top Horaire
+                                </button>
+                            </div>
+                        )}
+
                         {/* Formulaire d'édition de l'émission si activé */}
-                        {isEditingBlock && (
+                        {activeFolder !== 'top_horaire' && isEditingBlock && (
+
                             <div className="p-5 border-b border-white/10 bg-[#121622] space-y-4">
                                 <div className="flex items-center justify-between">
                                     <h3 className="text-sm font-display font-black text-white uppercase italic tracking-wider flex items-center gap-2">
