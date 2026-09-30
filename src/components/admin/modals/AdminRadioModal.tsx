@@ -455,33 +455,29 @@ export function AdminRadioModal({
             const next = prev.map(b => {
                 if (b.id !== blockId) return b;
                 const existingSpecial = b.specialJingles || [];
-                const updatedSpecial = cat === 'jingle'
-                    ? [...existingSpecial.filter(s => s.id !== jingle.id), jingle]
-                    : existingSpecial;
-
-                const defaultArtist = cat === 'promo' ? 'PROMO DROPSIDERS' : cat === 'pub' ? 'PUBLICITÉ SPONSOR' : `${b.title} JINGLE`;
-                const trackItem: RadioTrackItem = {
-                    id: `track_${cat}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
-                    title: jingle.title,
-                    artist: defaultArtist,
-                    audioUrl: jingle.audioUrl,
-                    youtubeId: jingle.youtubeId,
-                    duration: jingle.duration || (cat === 'jingle' ? 15 : 30),
-                    category: cat as RadioTrackCategory
-                };
-
                 const existingTracks = b.tracks || [];
-                // Insérer le jingle / promo / pub dans la programmation de l'émission
-                const updatedTracks = [trackItem, ...existingTracks];
 
-                return {
-                    ...b,
-                    specialJingles: updatedSpecial,
-                    tracks: updatedTracks
-                };
+                if (cat === 'jingle') {
+                    // JINGLE → uniquement dans specialJingles
+                    // La vue émission les affiche déjà via currentTableItems (pas de doublon)
+                    const updatedSpecial = [...existingSpecial.filter(s => s.id !== jingle.id), jingle];
+                    return { ...b, specialJingles: updatedSpecial };
+                } else {
+                    // PROMO / PUB → directement dans la programmation (tracks)
+                    const defaultArtist = cat === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS';
+                    const trackItem: RadioTrackItem = {
+                        id: `track_${cat}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+                        title: jingle.title,
+                        artist: defaultArtist,
+                        audioUrl: jingle.audioUrl,
+                        youtubeId: jingle.youtubeId,
+                        duration: jingle.duration || 30,
+                        category: cat as RadioTrackCategory
+                    };
+                    return { ...b, tracks: [trackItem, ...existingTracks] };
+                }
             });
 
-            // Sauvegarde immédiate dans localStorage & synchronisation directe avec le player en direct
             try {
                 localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
                 window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
@@ -491,7 +487,11 @@ export function AdminRadioModal({
         });
     };
 
+    // Promo/Pub générale → palette + injection dans la programmation de TOUTES les émissions
     const handleSaveGeneralJingle = (item: RadionomyItem) => {
+        const cat = (item as any).category as string | undefined;
+
+        // 1. Toujours sauvegarder dans la palette générale
         setGeneralJingles(prev => {
             const updated = [item, ...prev.filter(i => i.id !== item.id)];
             try {
@@ -499,6 +499,35 @@ export function AdminRadioModal({
             } catch {}
             return updated;
         });
+
+        // 2. Si c'est une promo ou pub → injection directe dans la programmation de chaque émission
+        if (cat === 'promo' || cat === 'pub') {
+            const defaultArtist = cat === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS';
+            setBlocks(prev => {
+                const next = prev.map(b => {
+                    // Éviter vrais doublons (même titre + même catégorie)
+                    const alreadyIn = (b.tracks || []).some(
+                        t => t.title === item.title && t.category === cat
+                    );
+                    if (alreadyIn) return b;
+                    const trackItem: RadioTrackItem = {
+                        id: `track_${cat}_g_${Date.now()}_${b.id.slice(-4)}_${Math.random().toString(36).substring(2, 5)}`,
+                        title: item.title,
+                        artist: defaultArtist,
+                        audioUrl: item.audioUrl,
+                        youtubeId: item.youtubeId,
+                        duration: item.duration || 30,
+                        category: cat as RadioTrackCategory
+                    };
+                    return { ...b, tracks: [trackItem, ...(b.tracks || [])] };
+                });
+                try {
+                    localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
+                    window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+                } catch {}
+                return next;
+            });
+        }
     };
 
     // ─── Ajout rapide de morceau dans l'émission active ───────────────────────
@@ -555,7 +584,7 @@ export function AdminRadioModal({
         } : b));
     };
 
-    // Supprimer un morceau ou un jingle de la liste
+    // Supprimer un morceau ou un jingle de la liste (par index dans l'émission)
     const handleDeleteTrack = (index: number) => {
         if (!selectedBlock) return;
         const currentTracks = [...(selectedBlock.tracks || [])];
@@ -567,6 +596,44 @@ export function AdminRadioModal({
         if (removed[0]) {
             showToast(`« ${removed[0].title} » retiré de la liste`);
         }
+    };
+
+    // Supprimer n'importe quel item par son id (tous les bacs : émissions, promos, pubs, jingles)
+    const handleDeleteItemById = (itemId: string, itemTitle: string) => {
+        // 1. Cherche dans les tracks de chaque bloc (promo, pub, jingle, set...)
+        let found = false;
+        setBlocks(prev => {
+            const next = prev.map(b => {
+                const inTracks = (b.tracks || []).some(t => t.id === itemId);
+                const inSpecial = (b.specialJingles || []).some(j => j.id === itemId);
+                if (!inTracks && !inSpecial) return b;
+                found = true;
+                return {
+                    ...b,
+                    tracks: (b.tracks || []).filter(t => t.id !== itemId),
+                    specialJingles: (b.specialJingles || []).filter(j => j.id !== itemId)
+                };
+            });
+            if (found) {
+                try {
+                    localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
+                    window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+                } catch {}
+            }
+            return next;
+        });
+        // 2. Cherche dans la palette générale (jingles, promos, pubs généraux)
+        setGeneralJingles(prev => {
+            const updated = prev.filter(j => j.id !== itemId);
+            if (updated.length !== prev.length) {
+                found = true;
+                try {
+                    localStorage.setItem('dropsiders_radionomy_palette', JSON.stringify(updated));
+                } catch {}
+            }
+            return updated;
+        });
+        showToast(`« ${itemTitle} » supprimé`);
     };
 
     // Sauvegarde globale
@@ -1285,6 +1352,90 @@ export function AdminRadioModal({
                             </div>
                         )}
 
+                        {/* ── FORMULAIRE D'ÉDITION D'UN MORCEAU (inline, apparaît au clic sur ✏️) ── */}
+                        {editingTrack && selectedBlock && (
+                            <div className="p-4 border-b border-cyan-500/30 bg-cyan-950/25 space-y-3 animate-in slide-in-from-top-1">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-[11px] font-display font-black text-cyan-400 uppercase italic tracking-wider flex items-center gap-2">
+                                        <Pencil className="w-3.5 h-3.5" />
+                                        Modifier le morceau
+                                    </h4>
+                                    <button type="button" onClick={() => setEditingTrack(null)} className="text-gray-400 hover:text-white">
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
+                                    <input
+                                        type="text"
+                                        value={editingTrack.title}
+                                        onChange={e => setEditingTrack(t => t ? { ...t, title: e.target.value } : null)}
+                                        placeholder="Titre"
+                                        className="md:col-span-4 px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={editingTrack.artist}
+                                        onChange={e => setEditingTrack(t => t ? { ...t, artist: e.target.value } : null)}
+                                        placeholder="Artiste / DJ"
+                                        className="md:col-span-3 px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={editingTrack.youtubeId}
+                                        onChange={e => setEditingTrack(t => t ? { ...t, youtubeId: e.target.value } : null)}
+                                        placeholder="YouTube ID ou lien"
+                                        className="md:col-span-2 px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs font-mono"
+                                    />
+                                    <select
+                                        value={editingTrack.category}
+                                        onChange={e => setEditingTrack(t => t ? { ...t, category: e.target.value as any } : null)}
+                                        className="md:col-span-1 px-2 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs"
+                                    >
+                                        <option value="liveset">🎧 Set</option>
+                                        <option value="clip">🎬 Clip</option>
+                                        <option value="jingle">🔔 Jingle</option>
+                                    </select>
+                                    <input
+                                        type="number"
+                                        value={editingTrack.durationMinutes}
+                                        onChange={e => setEditingTrack(t => t ? { ...t, durationMinutes: parseInt(e.target.value) || 60 } : null)}
+                                        placeholder="Min"
+                                        title="Durée en minutes"
+                                        className="md:col-span-1 px-2 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs font-mono text-center"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (!editingTrack) return;
+                                            const ytId = extractYouTubeId(editingTrack.youtubeId) || editingTrack.youtubeId;
+                                            setBlocks(prev => prev.map(b => {
+                                                if (b.id !== selectedBlock.id) return b;
+                                                return {
+                                                    ...b,
+                                                    tracks: (b.tracks || []).map(t => {
+                                                        if (t.id !== editingTrack.trackId) return t;
+                                                        return {
+                                                            ...t,
+                                                            title: editingTrack.title.trim() || t.title,
+                                                            artist: editingTrack.artist.trim() || t.artist,
+                                                            youtubeId: ytId || t.youtubeId,
+                                                            category: editingTrack.category,
+                                                            duration: (editingTrack.durationMinutes || 60) * 60
+                                                        };
+                                                    })
+                                                };
+                                            }));
+                                            showToast('✓ Morceau modifié !');
+                                            setEditingTrack(null);
+                                        }}
+                                        className="md:col-span-1 py-1.5 rounded-xl bg-cyan-500 hover:bg-white text-black font-display font-black text-xs uppercase cursor-pointer"
+                                    >
+                                        <Check className="w-3.5 h-3.5 mx-auto" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Barre d'action et recherche du tableau */}
                         <div className="px-5 py-3 border-b border-white/10 flex flex-wrap items-center justify-between gap-3 bg-black/40 shrink-0">
                             <div className="flex items-center gap-3 shrink-0">
@@ -1592,9 +1743,10 @@ export function AdminRadioModal({
                                                         {item.box}
                                                     </td>
 
-                                                    {/* Actions (Monter, Descendre, Supprimer) */}
+                                                    {/* Actions (Monter, Descendre, Modifier, Supprimer) */}
                                                     <td className="py-2 px-3 text-right">
-                                                        <div className="inline-flex items-center gap-1">
+                                                        <div className="inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            {/* Boutons Monter / Descendre uniquement pour les tracks d'émission */}
                                                             {(item as any).index !== undefined && selectedBlock && (
                                                                 <>
                                                                     <button
@@ -1615,16 +1767,47 @@ export function AdminRadioModal({
                                                                     >
                                                                         <ChevronDown className="w-3.5 h-3.5" />
                                                                     </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => handleDeleteTrack((item as any).index)}
-                                                                        className="p-1 rounded text-gray-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
-                                                                        title="Supprimer"
-                                                                    >
-                                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                                    </button>
                                                                 </>
                                                             )}
+
+                                                            {/* Bouton Modifier — uniquement pour les morceaux d'émission (avec index) */}
+                                                            {(item as any).index !== undefined && selectedBlock && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const track = (selectedBlock.tracks || [])[(item as any).index];
+                                                                        if (!track) return;
+                                                                        setEditingTrack({
+                                                                            trackId: track.id || '',
+                                                                            artist: track.artist || '',
+                                                                            title: track.title || '',
+                                                                            category: (track.category === 'liveset' || track.category === 'clip' || track.category === 'jingle') ? track.category : 'liveset',
+                                                                            durationMinutes: Math.round((track.duration || 3600) / 60),
+                                                                            youtubeId: track.youtubeId || ''
+                                                                        });
+                                                                    }}
+                                                                    className="p-1 rounded text-gray-500 hover:text-cyan-400 hover:bg-cyan-500/10 cursor-pointer"
+                                                                    title="Modifier"
+                                                                >
+                                                                    <Pencil className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            )}
+
+                                                            {/* Bouton Supprimer — pour TOUS les items */}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    if ((item as any).index !== undefined && selectedBlock) {
+                                                                        handleDeleteTrack((item as any).index);
+                                                                    } else {
+                                                                        handleDeleteItemById(item.id, item.title);
+                                                                    }
+                                                                }}
+                                                                className="p-1 rounded text-gray-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
+                                                                title="Supprimer"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
                                                         </div>
                                                     </td>
                                                 </tr>
