@@ -7183,30 +7183,6 @@
       ],
       "specialJingles": [
         {
-          "id": "j_zr_1",
-          "title": "Dropsiders Radio Jingle 1",
-          "artist": "ZONE ROUGE JINGLE",
-          "category": "jingle",
-          "duration": 8,
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav"
-        },
-        {
-          "id": "j_zr_2",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "ZONE ROUGE JINGLE",
-          "category": "jingle",
-          "duration": 12,
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav"
-        },
-        {
-          "id": "j_zr_3",
-          "title": "Dropsiders Radio Jingle 5",
-          "artist": "ZONE ROUGE JINGLE",
-          "category": "jingle",
-          "duration": 14,
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav"
-        },
-        {
           "id": "special_radio_bloc_1790257291397_4y1e_1790792267406_0_sy4b",
           "title": "Zone Rouge The Best Hard Musix Set 2",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/369c594b12d30923-Zone_Rouge_The_Best_Hard_Musix.wav",
