@@ -206,8 +206,16 @@ export function AdminRadioModal({
         days: ALL_DAYS,
         randomize: true,
         jingleFrequency: 2,
-        rotationRule: 'jingle_son_special_promo' as RadioRotationRule
+        rotationRule: 'jingle_son_special_promo' as RadioRotationRule,
+        // Générique d'intro (diffusé uniquement au début de l'émission)
+        introEnabled: true,
+        introTitle: '',
+        introAudioUrl: '',
+        introYoutubeId: '',
+        introDuration: 15
     });
+    const introFileInputRef = useRef<HTMLInputElement | null>(null);
+    const [introUploading, setIntroUploading] = useState(false);
 
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
@@ -1391,7 +1399,12 @@ export function AdminRadioModal({
                                                 days: ALL_DAYS,
                                                 randomize: true,
                                                 jingleFrequency: 2,
-                                                rotationRule: 'jingle_son_special_promo'
+                                                rotationRule: 'jingle_son_special_promo',
+                                                introEnabled: true,
+                                                introTitle: '',
+                                                introAudioUrl: '',
+                                                introYoutubeId: '',
+                                                introDuration: 15
                                             });
                                             setIsEditingBlock(true);
                                         }}
@@ -1428,7 +1441,12 @@ export function AdminRadioModal({
                                                             days: b.days || ALL_DAYS,
                                                             randomize: b.randomize !== false,
                                                             jingleFrequency: b.jingleFrequency ?? 2,
-                                                            rotationRule: b.rotationRule || 'jingle_son_special_promo'
+                                                            rotationRule: b.rotationRule || 'jingle_son_special_promo',
+                                                            introEnabled: b.themeJingle?.enabled !== false,
+                                                            introTitle: b.themeJingle?.title || '',
+                                                            introAudioUrl: b.themeJingle?.audioUrl || '',
+                                                            introYoutubeId: b.themeJingle?.youtubeId || '',
+                                                            introDuration: b.themeJingle?.duration || 15
                                                         });
                                                         setIsEditingBlock(true);
                                                     }}
@@ -1453,6 +1471,11 @@ export function AdminRadioModal({
                                                     <div className="flex items-center gap-1.5 shrink-0 ml-1">
                                                         {isLive && (
                                                             <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" title="À l'antenne" />
+                                                        )}
+                                                        {b.themeJingle && (b.themeJingle.audioUrl || b.themeJingle.youtubeId) && (
+                                                            <span className="text-[8px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40 px-1 rounded" title="Générique d'intro configuré">
+                                                                🎙️
+                                                            </span>
                                                         )}
                                                         {specialCount > 0 && (
                                                             <span className="text-[8px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1 rounded" title={`${specialCount} jingles spéciaux`}>
@@ -1781,6 +1804,16 @@ export function AdminRadioModal({
                                             type="button"
                                             onClick={() => {
                                                 if (!editBlockForm.title.trim()) return;
+                                                // Construire le themeJingle si un générique est défini
+                                                const hasIntro = !!(editBlockForm.introAudioUrl.trim() || editBlockForm.introYoutubeId.trim());
+                                                const themeJingle = hasIntro ? {
+                                                    enabled: editBlockForm.introEnabled,
+                                                    title: editBlockForm.introTitle.trim() || `Générique ${editBlockForm.title.trim()}`,
+                                                    audioUrl: editBlockForm.introAudioUrl.trim() || undefined,
+                                                    youtubeId: editBlockForm.introYoutubeId.trim() || undefined,
+                                                    duration: editBlockForm.introDuration
+                                                } : undefined;
+
                                                 if (editingBlockId) {
                                                     setBlocks(prev => prev.map(b => b.id === editingBlockId ? {
                                                         ...b,
@@ -1789,7 +1822,8 @@ export function AdminRadioModal({
                                                         endHour: editBlockForm.endHour,
                                                         jingleFrequency: editBlockForm.jingleFrequency,
                                                         rotationRule: editBlockForm.rotationRule,
-                                                        timeSlot: formatRadioTimeSlot(editBlockForm.startHour, editBlockForm.endHour)
+                                                        timeSlot: formatRadioTimeSlot(editBlockForm.startHour, editBlockForm.endHour),
+                                                        themeJingle: themeJingle ?? b.themeJingle
                                                     } : b));
                                                     showToast('Émission modifiée');
                                                 } else {
@@ -1807,7 +1841,8 @@ export function AdminRadioModal({
                                                         jingleFrequency: editBlockForm.jingleFrequency,
                                                         rotationRule: editBlockForm.rotationRule,
                                                         tracks: [],
-                                                        specialJingles: []
+                                                        specialJingles: [],
+                                                        themeJingle: themeJingle
                                                     };
                                                     setBlocks(prev => [...prev, newB]);
                                                     setSelectedBlockId(newId);
@@ -1822,6 +1857,186 @@ export function AdminRadioModal({
                                         </button>
                                     </div>
                                 </div>
+
+                                {/* ── SECTION GÉNÉRIQUE D'INTRO ── */}
+                                <div className="border-t border-white/10 pt-4 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-base">🎙️</span>
+                                            <span className="text-[11px] font-display font-black text-purple-300 uppercase italic tracking-wider">Générique d'intro</span>
+                                            <span className="text-[9px] font-mono text-gray-500 bg-purple-500/10 border border-purple-500/20 px-1.5 py-0.5 rounded-full">Diffusé uniquement au début</span>
+                                        </div>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <span className="text-[10px] text-gray-400 font-bold">Activé</span>
+                                            <div
+                                                onClick={() => setEditBlockForm(f => ({ ...f, introEnabled: !f.introEnabled }))}
+                                                className={`relative w-8 h-4 rounded-full transition-all cursor-pointer ${
+                                                    editBlockForm.introEnabled ? 'bg-purple-500' : 'bg-gray-600'
+                                                }`}
+                                            >
+                                                <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-all ${
+                                                    editBlockForm.introEnabled ? 'left-4' : 'left-0.5'
+                                                }`} />
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
+                                        {/* Titre du générique */}
+                                        <div className="md:col-span-4 space-y-1">
+                                            <label className="text-[9px] font-bold text-purple-400 uppercase">Titre du générique</label>
+                                            <input
+                                                type="text"
+                                                value={editBlockForm.introTitle}
+                                                onChange={e => setEditBlockForm(f => ({ ...f, introTitle: e.target.value }))}
+                                                placeholder={`Générique ${editBlockForm.title || 'émission'}`}
+                                                className="w-full px-3 py-2 rounded-xl bg-black/40 border border-purple-500/30 text-white text-xs focus:outline-none focus:border-purple-400 placeholder:text-gray-600"
+                                            />
+                                        </div>
+
+                                        {/* URL Audio MP3/WAV ou YouTube */}
+                                        <div className="md:col-span-5 space-y-1">
+                                            <label className="text-[9px] font-bold text-purple-400 uppercase">URL MP3/WAV ou YouTube</label>
+                                            <div className="flex gap-1.5">
+                                                <input
+                                                    type="text"
+                                                    value={editBlockForm.introAudioUrl || editBlockForm.introYoutubeId}
+                                                    onChange={e => {
+                                                        const val = e.target.value.trim();
+                                                        const ytId = extractYouTubeId(val);
+                                                        if (ytId) {
+                                                            setEditBlockForm(f => ({ ...f, introYoutubeId: ytId, introAudioUrl: '' }));
+                                                        } else {
+                                                            setEditBlockForm(f => ({ ...f, introAudioUrl: val, introYoutubeId: '' }));
+                                                        }
+                                                    }}
+                                                    placeholder="https://...mp3 ou URL YouTube"
+                                                    className="flex-1 px-3 py-2 rounded-xl bg-black/40 border border-purple-500/30 text-white text-xs font-mono focus:outline-none focus:border-purple-400 placeholder:text-gray-600"
+                                                />
+                                                {/* Bouton Upload fichier local */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => introFileInputRef.current?.click()}
+                                                    disabled={introUploading}
+                                                    className="px-3 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500 text-purple-300 hover:text-white border border-purple-500/40 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 disabled:opacity-50"
+                                                    title="Uploader un fichier MP3 ou WAV depuis votre ordinateur"
+                                                >
+                                                    {introUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                                                    <span className="hidden sm:inline">{introUploading ? 'Upload...' : 'Upload'}</span>
+                                                </button>
+                                                <input
+                                                    ref={introFileInputRef}
+                                                    type="file"
+                                                    accept="audio/mp3,audio/mpeg,audio/wav,audio/ogg,audio/*"
+                                                    className="hidden"
+                                                    onChange={async (e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (!file) return;
+                                                        setIntroUploading(true);
+                                                        try {
+                                                            const formData = new FormData();
+                                                            formData.append('file', file);
+                                                            formData.append('category', 'generique');
+                                                            const res = await apiFetch('/api/upload/audio', {
+                                                                method: 'POST',
+                                                                headers: getAuthHeaders(),
+                                                                body: formData
+                                                            });
+                                                            if (res.ok) {
+                                                                const data = await res.json();
+                                                                const url = data.url || data.audioUrl || '';
+                                                                setEditBlockForm(f => ({
+                                                                    ...f,
+                                                                    introAudioUrl: url,
+                                                                    introYoutubeId: '',
+                                                                    introTitle: f.introTitle || file.name.replace(/\.[^.]+$/, ''),
+                                                                    introDuration: data.duration || f.introDuration
+                                                                }));
+                                                                showToast('✓ Générique uploadé avec succès !', 'success');
+                                                            } else {
+                                                                showToast('Erreur lors de l\'upload du générique', 'warn');
+                                                            }
+                                                        } catch {
+                                                            showToast('Erreur réseau lors de l\'upload', 'warn');
+                                                        } finally {
+                                                            setIntroUploading(false);
+                                                            if (introFileInputRef.current) introFileInputRef.current.value = '';
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Durée */}
+                                        <div className="md:col-span-2 space-y-1">
+                                            <label className="text-[9px] font-bold text-purple-400 uppercase">Durée (sec)</label>
+                                            <input
+                                                type="number"
+                                                min={1}
+                                                max={300}
+                                                value={editBlockForm.introDuration}
+                                                onChange={e => setEditBlockForm(f => ({ ...f, introDuration: Math.max(1, parseInt(e.target.value) || 15) }))}
+                                                className="w-full px-3 py-2 rounded-xl bg-black/40 border border-purple-500/30 text-white text-xs font-mono focus:outline-none focus:border-purple-400"
+                                            />
+                                        </div>
+
+                                        {/* Preview / status du générique */}
+                                        {(editBlockForm.introAudioUrl || editBlockForm.introYoutubeId) && (
+                                            <div className="md:col-span-1 flex items-end">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (editBlockForm.introAudioUrl) {
+                                                            handlePlayMedia({
+                                                                id: 'intro_preview',
+                                                                title: editBlockForm.introTitle || 'Générique',
+                                                                audioUrl: editBlockForm.introAudioUrl,
+                                                                duration: editBlockForm.introDuration
+                                                            });
+                                                        }
+                                                    }}
+                                                    className="w-full py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500 text-purple-300 hover:text-white border border-purple-500/40 text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer"
+                                                    title="Écouter le générique"
+                                                >
+                                                    {editBlockForm.introAudioUrl ? <Play className="w-3.5 h-3.5" /> : <span className="text-[10px]">YT</span>}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Preview info du générique */}
+                                    {(editBlockForm.introAudioUrl || editBlockForm.introYoutubeId) && (
+                                        <div className="bg-purple-950/40 border border-purple-500/30 rounded-xl p-3 flex items-center gap-3">
+                                            <span className="text-xl shrink-0">🎙️</span>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-xs font-bold text-purple-200 truncate">
+                                                    {editBlockForm.introTitle || `Générique ${editBlockForm.title}`}
+                                                </div>
+                                                <div className="text-[10px] text-gray-400 mt-0.5 font-mono truncate">
+                                                    {editBlockForm.introYoutubeId
+                                                        ? `🎥 YouTube : ${editBlockForm.introYoutubeId}`
+                                                        : `🔊 Audio : ${editBlockForm.introAudioUrl}`
+                                                    } • {editBlockForm.introDuration}s
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditBlockForm(f => ({ ...f, introAudioUrl: '', introYoutubeId: '', introTitle: '' }))}
+                                                className="p-1 rounded-lg hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition-all cursor-pointer shrink-0"
+                                                title="Supprimer le générique"
+                                            >
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {!editBlockForm.introAudioUrl && !editBlockForm.introYoutubeId && (
+                                        <p className="text-[10px] text-gray-600 italic">
+                                            💡 Le générique sera joué automatiquement au tout début de cette émission, avant le premier morceau.
+                                        </p>
+                                    )}
+                                </div>
+
                             </div>
                         )}
 
@@ -1962,7 +2177,12 @@ export function AdminRadioModal({
                                                     days: selectedBlock.days || ALL_DAYS,
                                                     randomize: selectedBlock.randomize !== false,
                                                     jingleFrequency: selectedBlock.jingleFrequency ?? 2,
-                                                    rotationRule: selectedBlock.rotationRule || 'jingle_son_special_promo'
+                                                    rotationRule: selectedBlock.rotationRule || 'jingle_son_special_promo',
+                                                    introEnabled: selectedBlock.themeJingle?.enabled !== false,
+                                                    introTitle: selectedBlock.themeJingle?.title || '',
+                                                    introAudioUrl: selectedBlock.themeJingle?.audioUrl || '',
+                                                    introYoutubeId: selectedBlock.themeJingle?.youtubeId || '',
+                                                    introDuration: selectedBlock.themeJingle?.duration || 15
                                                 });
                                                 setIsEditingBlock(true);
                                             }}
