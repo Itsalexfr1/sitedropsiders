@@ -7276,6 +7276,126 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9920a1dbc8ae5a5c-Classic_Time_2.wav",
           "duration": 14,
           "category": "jingle"
+        },
+        {
+          "id": "track_1790809533393_uaaa",
+          "title": "Spaceships",
+          "artist": "AREA21",
+          "youtubeId": "khoylU3YZGM",
+          "duration": 3600,
+          "category": "liveset"
+        },
+        {
+          "id": "nj_bloc_1790809306418_n_4",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790809556784_zi7w",
+          "title": "Proper Education",
+          "artist": "Eric Prydz vs Floyd",
+          "youtubeId": "y5xKtFI9_6g",
+          "duration": 3600,
+          "category": "liveset"
+        },
+        {
+          "id": "pr_bloc_1790809306418_p_5",
+          "title": "Promo Escape Psycho 2",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 40,
+          "category": "promo"
+        },
+        {
+          "id": "track_1790809579672_bj0e",
+          "title": "Tell Me Why",
+          "artist": "Supermode",
+          "youtubeId": "0CrB_TwXlxM",
+          "duration": 3600,
+          "category": "liveset"
+        },
+        {
+          "id": "sj_bloc_1790809306418_s_6",
+          "title": "Classic Time 3",
+          "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0e0091ff516c357b-Classic_Time_3.wav",
+          "duration": 14,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790809603666_wb09",
+          "title": "In the Air (Axwell mix)",
+          "artist": "Tv Rock ft Rudy",
+          "youtubeId": "GQXtcEx3VR0",
+          "duration": 3600,
+          "category": "liveset"
+        },
+        {
+          "id": "nj_bloc_1790809306418_n_7",
+          "title": "Dropsiders Radio Jingle 5",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+          "duration": 14,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790809619200_k8cm",
+          "title": "La Tromba (Original Mix)",
+          "artist": "Lake & Lys",
+          "youtubeId": "bIa1nQWXw_U",
+          "duration": 3600,
+          "category": "liveset"
+        },
+        {
+          "id": "pr_bloc_1790809306418_p_8",
+          "title": "Promo Escape Psycho 1",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 47,
+          "category": "promo"
+        },
+        {
+          "id": "track_1790809635138_76ez",
+          "title": "Let The Bass Kick in Miami Bitch",
+          "artist": "Chuckie & LMFAO",
+          "youtubeId": "juYSqSicV_U",
+          "duration": 3600,
+          "category": "liveset"
+        },
+        {
+          "id": "sj_bloc_1790809306418_s_9",
+          "title": "Classic Time 4",
+          "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/00fb30117db8923c-Classic_Time_4.wav",
+          "duration": 14,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790809656120_nmss",
+          "title": "Kidsos (Radio Edit)",
+          "artist": "Sebastian Ingrosso",
+          "youtubeId": "g5cd6fF9NCc",
+          "duration": 3600,
+          "category": "liveset"
+        },
+        {
+          "id": "nj_bloc_1790809306418_n_10",
+          "title": "Dropsiders Radio Jingle 6",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+          "duration": 9,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790809681674_me8b",
+          "title": "No Superstar",
+          "artist": "Remady P&R",
+          "youtubeId": "PXMGLfT5xhI",
+          "duration": 3600,
+          "category": "liveset"
         }
       ],
       "specialJingles": [
@@ -11564,6 +11684,126 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9920a1dbc8ae5a5c-Classic_Time_2.wav",
       "duration": 14,
       "category": "jingle"
+    },
+    {
+      "id": "track_1790809533393_uaaa",
+      "title": "Spaceships",
+      "artist": "AREA21",
+      "youtubeId": "khoylU3YZGM",
+      "duration": 3600,
+      "category": "liveset"
+    },
+    {
+      "id": "nj_bloc_1790809306418_n_4",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790809556784_zi7w",
+      "title": "Proper Education",
+      "artist": "Eric Prydz vs Floyd",
+      "youtubeId": "y5xKtFI9_6g",
+      "duration": 3600,
+      "category": "liveset"
+    },
+    {
+      "id": "pr_bloc_1790809306418_p_5",
+      "title": "Promo Escape Psycho 2",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 40,
+      "category": "promo"
+    },
+    {
+      "id": "track_1790809579672_bj0e",
+      "title": "Tell Me Why",
+      "artist": "Supermode",
+      "youtubeId": "0CrB_TwXlxM",
+      "duration": 3600,
+      "category": "liveset"
+    },
+    {
+      "id": "sj_bloc_1790809306418_s_6",
+      "title": "Classic Time 3",
+      "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0e0091ff516c357b-Classic_Time_3.wav",
+      "duration": 14,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790809603666_wb09",
+      "title": "In the Air (Axwell mix)",
+      "artist": "Tv Rock ft Rudy",
+      "youtubeId": "GQXtcEx3VR0",
+      "duration": 3600,
+      "category": "liveset"
+    },
+    {
+      "id": "nj_bloc_1790809306418_n_7",
+      "title": "Dropsiders Radio Jingle 5",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+      "duration": 14,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790809619200_k8cm",
+      "title": "La Tromba (Original Mix)",
+      "artist": "Lake & Lys",
+      "youtubeId": "bIa1nQWXw_U",
+      "duration": 3600,
+      "category": "liveset"
+    },
+    {
+      "id": "pr_bloc_1790809306418_p_8",
+      "title": "Promo Escape Psycho 1",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 47,
+      "category": "promo"
+    },
+    {
+      "id": "track_1790809635138_76ez",
+      "title": "Let The Bass Kick in Miami Bitch",
+      "artist": "Chuckie & LMFAO",
+      "youtubeId": "juYSqSicV_U",
+      "duration": 3600,
+      "category": "liveset"
+    },
+    {
+      "id": "sj_bloc_1790809306418_s_9",
+      "title": "Classic Time 4",
+      "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/00fb30117db8923c-Classic_Time_4.wav",
+      "duration": 14,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790809656120_nmss",
+      "title": "Kidsos (Radio Edit)",
+      "artist": "Sebastian Ingrosso",
+      "youtubeId": "g5cd6fF9NCc",
+      "duration": 3600,
+      "category": "liveset"
+    },
+    {
+      "id": "nj_bloc_1790809306418_n_10",
+      "title": "Dropsiders Radio Jingle 6",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+      "duration": 9,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790809681674_me8b",
+      "title": "No Superstar",
+      "artist": "Remady P&R",
+      "youtubeId": "PXMGLfT5xhI",
+      "duration": 3600,
+      "category": "liveset"
     }
   ],
   "radio_top_horaire": {
