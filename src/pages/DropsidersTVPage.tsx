@@ -19,7 +19,8 @@ import {
     getBlocksForDay,
     formatBlockDays,
     DEFAULT_DURATIONS,
-    detectVideoCategory
+    detectVideoCategory,
+    ensureBlockHours
 } from '../utils/tvSchedule';
 
 const checkAdminAuth = () => {
@@ -359,10 +360,10 @@ export function DropsidersTVPage() {
             const saved = localStorage.getItem(STORAGE_TV_BLOCKS_KEY);
             if (saved) {
                 const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed.map(ensureBlockHours);
             }
         } catch {}
-        return DEFAULT_TV_BLOCKS;
+        return DEFAULT_TV_BLOCKS.map(ensureBlockHours);
     });
 
     const [playlist, setPlaylist] = useState<TVVideo[]>(() => {
@@ -440,7 +441,8 @@ export function DropsidersTVPage() {
     const [initialLive] = useState(() => {
         try {
             const savedBlocks = localStorage.getItem(STORAGE_TV_BLOCKS_KEY);
-            const blks = savedBlocks ? JSON.parse(savedBlocks) : DEFAULT_TV_BLOCKS;
+            const rawBlks = savedBlocks ? JSON.parse(savedBlocks) : DEFAULT_TV_BLOCKS;
+            const blks = (Array.isArray(rawBlks) && rawBlks.length > 0 ? rawBlks : DEFAULT_TV_BLOCKS).map(ensureBlockHours);
             const now = new Date();
             const curBlk = getActiveTVBlock(blks, now.getHours(), now.getDay());
             const savedPl = localStorage.getItem(STORAGE_PLAYLIST_KEY);
@@ -465,6 +467,7 @@ export function DropsidersTVPage() {
     const [currentIndex, setCurrentIndex] = useState(initialLive.index);
     const [isPlayingPromo, setIsPlayingPromo] = useState(initialLive.isPromo);
     const pendingSeekRef = useRef<number | null>(initialLive.startSeconds);
+    const initialSyncDoneRef = useRef(false);
 
     const [isPlaying, setIsPlaying] = useState(true);
     // Start muted by default to guarantee instant browser autoplay without policy restrictions
@@ -698,10 +701,28 @@ export function DropsidersTVPage() {
                         setLiveSettings(d.takeover);
                     }
                     if (Array.isArray(d?.tv_blocks) && d.tv_blocks.length > 0) {
-                        setTvBlocks(d.tv_blocks);
+                        const safeBlocks = d.tv_blocks.map(ensureBlockHours);
+                        setTvBlocks(safeBlocks);
                         try {
-                            localStorage.setItem(STORAGE_TV_BLOCKS_KEY, JSON.stringify(d.tv_blocks));
+                            localStorage.setItem(STORAGE_TV_BLOCKS_KEY, JSON.stringify(safeBlocks));
                         } catch {}
+
+                        if (!initialSyncDoneRef.current) {
+                            initialSyncDoneRef.current = true;
+                            const now = new Date();
+                            const curBlk = getActiveTVBlock(safeBlocks, now.getHours(), now.getDay());
+                            const rawVids = curBlk.videos && curBlk.videos.length > 0 ? curBlk.videos : (d?.tv_playlist || playlist);
+                            const todayStr = now.toISOString().slice(0, 10);
+                            const vids = getOrderedBlockVideos({ ...curBlk, videos: rawVids }, `${todayStr}_${curBlk.id}`);
+                            const pr = Array.isArray(d?.tv_promos) ? d.tv_promos : promos;
+                            const segs = buildBlockSegments(vids, pr, durationsMap);
+                            const elapsed = getElapsedSecondsInBlock(curBlk, now);
+                            const livePos = calculateBlockLivePosition(segs, elapsed);
+
+                            setCurrentIndex(livePos.index);
+                            setIsPlayingPromo(livePos.isPromo);
+                            pendingSeekRef.current = livePos.startSeconds;
+                        }
                     }
                     if (d?.tv_start_time && typeof d.tv_start_time === 'number') {
                         setTvStartTime(d.tv_start_time);
@@ -732,13 +753,13 @@ export function DropsidersTVPage() {
         checkSettings();
         const interval = setInterval(checkSettings, 25000);
         return () => clearInterval(interval);
-    }, []);
+    }, [playlist, promos, durationsMap]);
 
     // Real-time listener: When Admin clicks "Enregistrer", seamlessly update blocks, playlist & promos
     useEffect(() => {
         const handleTvUpdate = (data: { startTime?: number; playlist?: TVVideo[]; promos?: PromoVideo[]; blocks?: TVScheduleBlock[] }) => {
             if (Array.isArray(data.blocks) && data.blocks.length > 0) {
-                setTvBlocks(data.blocks);
+                setTvBlocks(data.blocks.map(ensureBlockHours));
             }
             if (Array.isArray(data.playlist) && data.playlist.length > 0) {
                 setPlaylist(data.playlist);
@@ -765,7 +786,7 @@ export function DropsidersTVPage() {
             if (e.key === STORAGE_TV_BLOCKS_KEY && e.newValue) {
                 try {
                     const blks = JSON.parse(e.newValue);
-                    if (Array.isArray(blks) && blks.length > 0) setTvBlocks(blks);
+                    if (Array.isArray(blks) && blks.length > 0) setTvBlocks(blks.map(ensureBlockHours));
                 } catch {}
             }
             if (e.key === STORAGE_START_TIME_KEY && e.newValue) {

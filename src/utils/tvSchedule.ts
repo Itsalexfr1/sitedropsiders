@@ -331,12 +331,48 @@ export function getSeededShuffle<T>(items: T[], seedStr: string): T[] {
 }
 
 /**
+ * Tente d'extraire startHour et endHour à partir d'un timeSlot texte (ex: "06h - 10h", "18h - 00h", "00h - 03h")
+ */
+export function parseHoursFromTimeSlot(timeSlot?: string): { startHour: number; endHour: number } | null {
+    if (!timeSlot) return null;
+    const match = timeSlot.match(/(\d{1,2})\s*h(?:our)?\s*[-–—àa]\s*(\d{1,2})\s*h(?:our)?/i);
+    if (match) {
+        const start = parseInt(match[1], 10);
+        let end = parseInt(match[2], 10);
+        if (end === 0) end = 24;
+        return { startHour: start, endHour: end };
+    }
+    return null;
+}
+
+/**
+ * Garantit que le bloc possède des startHour et endHour valides, en les déduisant si besoin de timeSlot.
+ */
+export function ensureBlockHours(b: TVScheduleBlock): TVScheduleBlock {
+    let start = b.startHour;
+    let end = b.endHour;
+    if (start === undefined || end === undefined) {
+        const parsed = parseHoursFromTimeSlot(b.timeSlot);
+        if (parsed) {
+            if (start === undefined) start = parsed.startHour;
+            if (end === undefined) end = parsed.endHour;
+        }
+    }
+    return {
+        ...b,
+        startHour: start ?? 0,
+        endHour: end ?? 24
+    };
+}
+
+/**
  * Checks if a given hour (0..23) falls inside a block's time range,
  * correctly handling midnight wrap-around (e.g. 22h to 04h or 18h to 24h/00h).
  */
 export function isHourInBlock(b: TVScheduleBlock, h: number): boolean {
-    const start = b.startHour ?? 0;
-    const rawEnd = b.endHour ?? 24;
+    const valid = ensureBlockHours(b);
+    const start = valid.startHour ?? 0;
+    const rawEnd = valid.endHour ?? 24;
     const end = rawEnd === 0 ? 24 : rawEnd;
 
     if (start < end) {
@@ -352,7 +388,8 @@ export function isHourInBlock(b: TVScheduleBlock, h: number): boolean {
  * Computes elapsed seconds since the block started, taking into account wrap-around across midnight.
  */
 export function getElapsedSecondsInBlock(b: TVScheduleBlock, now: Date = new Date()): number {
-    let hoursDiff = now.getHours() - (b.startHour ?? 0);
+    const valid = ensureBlockHours(b);
+    let hoursDiff = now.getHours() - (valid.startHour ?? 0);
     if (hoursDiff < 0) hoursDiff += 24;
     return Math.max(0, hoursDiff * 3600 + now.getMinutes() * 60 + now.getSeconds());
 }
@@ -385,7 +422,9 @@ export function isBlockActiveOnDay(b: TVScheduleBlock, dayOfWeek: number): boole
 export function sortBlocksByBroadcastOrder(blocks: TVScheduleBlock[], autoRenumber: boolean = false): TVScheduleBlock[] {
     if (!Array.isArray(blocks) || blocks.length <= 1) return blocks || [];
 
-    const sorted = [...blocks].sort((a, b) => {
+    const sorted = [...blocks].sort((rawA, rawB) => {
+        const a = ensureBlockHours(rawA);
+        const b = ensureBlockHours(rawB);
         // Décalage pour démarrer à 6h (06h = 0, 10h = 4, 18h = 12, 00h/minuit = 18, 04h = 22)
         const offsetA = ((a.startHour ?? 0) - 6 + 24) % 24;
         const offsetB = ((b.startHour ?? 0) - 6 + 24) % 24;
@@ -828,10 +867,11 @@ export function computeDaySchedule(
 
         const isCurrentActiveBlock = currentDay === parisNow.getDay() && activeBlock && activeBlock.id === block.id;
 
-        const vids = getOrderedBlockVideos(block, `${todayStr}_${block.id}`, lastScheduledVideoTitle);
+        const validBlock = ensureBlockHours(block);
+        const vids = getOrderedBlockVideos(validBlock, `${todayStr}_${validBlock.id}`, lastScheduledVideoTitle);
 
-        let currentSec = (block.startHour ?? 0) * 3600;
-        const blockEndSec = ((block.endHour === 0 || block.endHour === 24) ? 24 : (block.endHour ?? 24)) * 3600;
+        let currentSec = (validBlock.startHour ?? 0) * 3600;
+        const blockEndSec = ((validBlock.endHour === 0 || validBlock.endHour === 24) ? 24 : (validBlock.endHour ?? 24)) * 3600;
         const hasPromos = Array.isArray(promos) && promos.length > 0;
 
         for (let i = 0; i < vids.length; i++) {

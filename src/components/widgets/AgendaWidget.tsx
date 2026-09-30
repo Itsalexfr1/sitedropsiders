@@ -189,17 +189,15 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
         else if (g.includes('afro house')) gradient = 'linear-gradient(to right, #ffbf00, #ff6700, #ff0000)';
         else if (g.includes('indie dance')) gradient = 'linear-gradient(to right, #00ccff, #bc13fe, #ff00ff)';
         else if (g.includes('bass music')) gradient = 'linear-gradient(to right, #ccff00, #39ff14, #00ffa3)';
-        else if (g.includes('hard techno')) gradient = 'linear-gradient(to right, #bc13fe, #ff00ff, #ff0000)';
+        else if (g.includes('hard music') || g.includes('hardmusic') || g.includes('hard techno') || g.includes('hardstyle') || g.includes('hardcore')) gradient = 'linear-gradient(to right, #ff6700, #ff0000, #e60026)';
         else if (g.includes('techno')) gradient = 'linear-gradient(to right, #ff0000, #e60026, #99001f)';
         else if (g.includes('house')) gradient = 'linear-gradient(to right, #ff007f, #ff00ff, #bc13fe)';
         else if (g.includes('big room')) gradient = 'linear-gradient(to right, #bc13fe, #6600ff, #0070ff)';
-        else if (g.includes('hardstyle')) gradient = 'linear-gradient(to right, #ff6700, #ff0000, #e60026)';
         else if (g.includes('trance')) gradient = 'linear-gradient(to right, #00f0ff, #0070ff, #6600ff)';
         else if (g.includes('progressive')) gradient = 'linear-gradient(to right, #ffffff, #a1a1aa, #3f3f46)';
         else if (g.includes('drum')) gradient = 'linear-gradient(to right, #39ff14, #ccff00, #fff01f)';
         else if (g.includes('multi styles')) gradient = 'linear-gradient(to right, #00f0ff, #0070ff, #bc13fe)';
         else if (g.includes('hybride')) gradient = 'linear-gradient(to right, #fff01f, #ff6700, #ff0000)';
-        else if (g.includes('hardcore')) gradient = 'linear-gradient(to right, #ff6700, #ff007f, #ff00ff)';
         else if (g.includes('dubstep')) gradient = 'linear-gradient(to right, #6600ff, #bc13fe, #ff007f)';
 
         const isLight = g.includes('bass music') || g.includes('melodic') || g.includes('afro house') || g.includes('progressive');
@@ -364,7 +362,7 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                                                     className={`text-[8px] font-black ${genreStyles.isLight ? 'text-black border-black/20' : `${genreStyles.text} border ${genreStyles.borderMedium}`} px-2 py-0.5 rounded-full uppercase tracking-tighter`}
                                                     style={genreStyles.gradient ? { backgroundImage: genreStyles.gradient, border: 'none', color: genreStyles.isLight ? 'black' : 'white' } : {}}
                                                 >
-                                                    {event.genre}
+                                                    {['hardstyle', 'hardcore', 'hard techno', 'hardmusic', 'hard music'].includes((event.genre || '').toLowerCase()) ? 'Hard Music' : event.genre}
                                                 </span>
                                             </div>
                                             <h4

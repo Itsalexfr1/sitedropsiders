@@ -153,7 +153,9 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
             setType(editingItem.type || '');
             setImageUrl(editingItem.image || '');
             setUrl(editingItem.url || '');
-            setGenre(editingItem.genre || '');
+            const rawG = editingItem.genre || '';
+            const normG = ['hardstyle', 'hardcore', 'hard techno', 'hardmusic', 'hard music'].includes(rawG.toLowerCase()) ? 'Hard Music' : rawG;
+            setGenre(normG);
             setIsWeekly(editingItem.isWeekly || false);
             setIsSoldOut(editingItem.isSoldOut || false);
             setIsLiveDropsiders(editingItem.isLiveDropsiders || false);
@@ -500,11 +502,9 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                                 <option value="Progressive House">Progressive House</option>
                                 <option value="Multi Styles">Multi Styles</option>
                                 <option value="Hybride">Hybride</option>
-                                <option value="Hardstyle">Hardstyle</option>
+                                <option value="Hard Music">Hard Music</option>
                                 <option value="Drum & Bass">Drum &amp; Bass</option>
                                 <option value="House">House</option>
-                                <option value="Hardcore">Hardcore</option>
-                                <option value="Hard Techno">Hard Techno</option>
                                 <option value="Afro House">Afro House</option>
                                 <option value="Indie Dance">Indie Dance</option>
                                 <option value="Bass Music">Bass Music</option>

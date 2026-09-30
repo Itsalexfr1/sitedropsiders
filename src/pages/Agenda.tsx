@@ -127,19 +127,32 @@ export function Agenda() {
     const [searchParams, setSearchParams] = useSearchParams();
     const selectedLocation = searchParams.get('location');
     
+export const normalizeAgendaGenre = (g: string | undefined): string => {
+    if (!g) return '';
+    const lower = g.trim().toLowerCase();
+    if (lower === 'hard techno' || lower === 'hardstyle' || lower === 'hardcore' || lower === 'hardmusic' || lower === 'hard music') {
+        return 'Hard Music';
+    }
+    return g;
+};
+
     // Create an exploded version of the data where events with extra dates appear multiple times
     const explodedAgenda = useMemo(() => {
         const exploded: any[] = [];
         agendaData.forEach(event => {
+            const normalizedEvent = {
+                ...event,
+                genre: normalizeAgendaGenre(event.genre)
+            };
             // Primary occurrence
-            exploded.push({ ...event, compositeId: `${event.id}-primary` });
+            exploded.push({ ...normalizedEvent, compositeId: `${event.id}-primary` });
             
             // Additional occurrences
             if (event.additionalDates && Array.isArray(event.additionalDates)) {
                 event.additionalDates.forEach((date: string, idx: number) => {
                     // Create a copy with the different date
                     exploded.push({
-                        ...event,
+                        ...normalizedEvent,
                         date: date,
                         startDate: date,
                         endDate: date,
@@ -164,6 +177,7 @@ export function Agenda() {
             const id = activeCategory.toLowerCase();
             if (id === 'progressive house') return genre.includes('progressive');
             if (id === 'drum & bass') return genre.includes('drum') || genre.includes('bass');
+            if (id === 'hard music' || id === 'hardmusic') return genre.includes('hard') || type.includes('hard');
             return genre.includes(id) || type.includes(id);
         });
 
@@ -218,12 +232,10 @@ export function Agenda() {
         { id: 'TECH HOUSE', label: 'TECH HOUSE' },
         { id: 'BIG ROOM', label: 'BIG ROOM' },
         { id: 'HOUSE', label: 'HOUSE' },
-        { id: 'HARDMUSIC', label: 'HARDMUSIC' },
+        { id: 'HARD MUSIC', label: 'HARD MUSIC' },
         { id: 'TRANCE', label: 'TRANCE' },
         { id: 'PROGRESSIVE HOUSE', label: 'PROGRESSIVE HOUSE' },
         { id: 'DRUM & BASS', label: 'DRUM & BASS' },
-        { id: 'HARDCORE', label: 'HARDCORE' },
-        { id: 'HARD TECHNO', label: 'HARD TECHNO' },
         { id: 'AFRO HOUSE', label: 'AFRO HOUSE' },
         { id: 'INDIE DANCE', label: 'INDIE DANCE' },
         { id: 'BASS MUSIC', label: 'BASS MUSIC' },
@@ -260,6 +272,8 @@ export function Agenda() {
                             if (!genre.includes('progressive')) return false;
                         } else if (id === 'drum & bass') {
                             if (!genre.includes('drum') && !genre.includes('bass')) return false;
+                        } else if (id === 'hard music' || id === 'hardmusic') {
+                            if (!genre.includes('hard') && !type.includes('hard')) return false;
                         } else {
                             if (!genre.includes(id) && !type.includes(id)) return false;
                         }
@@ -382,17 +396,15 @@ export function Agenda() {
         else if (g.includes('afro house')) gradient = 'linear-gradient(to right, #ffbf00, #ff6700, #ff0000)';
         else if (g.includes('indie dance')) gradient = 'linear-gradient(to right, #00ccff, #bc13fe, #ff00ff)';
         else if (g.includes('bass music')) gradient = 'linear-gradient(to right, #ccff00, #39ff14, #00ffa3)';
-        else if (g.includes('hard techno')) gradient = 'linear-gradient(to right, #bc13fe, #ff00ff, #ff0000)';
+        else if (g.includes('hard music') || g.includes('hardmusic') || g.includes('hard techno') || g.includes('hardstyle') || g.includes('hardcore')) gradient = 'linear-gradient(to right, #ff6700, #ff0000, #e60026)';
         else if (g.includes('techno')) gradient = 'linear-gradient(to right, #ff0000, #e60026, #99001f)';
         else if (g.includes('house')) gradient = 'linear-gradient(to right, #ff007f, #ff00ff, #bc13fe)';
         else if (g.includes('big room')) gradient = 'linear-gradient(to right, #bc13fe, #6600ff, #0070ff)';
-        else if (g.includes('hardstyle')) gradient = 'linear-gradient(to right, #ff6700, #ff0000, #e60026)';
         else if (g.includes('trance')) gradient = 'linear-gradient(to right, #00f0ff, #0070ff, #6600ff)';
         else if (g.includes('progressive')) gradient = 'linear-gradient(to right, #ffffff, #a1a1aa, #3f3f46)';
         else if (g.includes('drum')) gradient = 'linear-gradient(to right, #39ff14, #ccff00, #fff01f)';
         else if (g.includes('multi styles')) gradient = 'linear-gradient(to right, #00f0ff, #0070ff, #bc13fe)';
         else if (g.includes('hybride')) gradient = 'linear-gradient(to right, #fff01f, #ff6700, #ff0000)';
-        else if (g.includes('hardcore')) gradient = 'linear-gradient(to right, #ff6700, #ff007f, #ff00ff)';
         else if (g.includes('dubstep')) gradient = 'linear-gradient(to right, #6600ff, #bc13fe, #ff007f)';
 
         const isLight = g.includes('bass music') || g.includes('melodic') || g.includes('afro house') || g.includes('progressive');
@@ -1114,11 +1126,9 @@ export function Agenda() {
                                     <option value="Progressive House">Progressive House</option>
                                     <option value="Multi Styles">Multi Styles</option>
                                     <option value="Hybride">Hybride</option>
-                                    <option value="Hardstyle">Hardstyle</option>
+                                    <option value="Hard Music">Hard Music</option>
                                     <option value="Drum & Bass">Drum & Bass</option>
                                     <option value="House">House</option>
-                                    <option value="Hardcore">Hardcore</option>
-                                    <option value="Hard Techno">Hard Techno</option>
                                     <option value="Afro House">Afro House</option>
                                     <option value="Indie Dance">Indie Dance</option>
                                     <option value="Bass Music">Bass Music</option>
