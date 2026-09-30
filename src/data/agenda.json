@@ -725,5 +725,24 @@
     "additionalDates": [
       "2026-12-05"
     ]
+  },
+  {
+    "id": 1121,
+    "title": "Titan Legacy",
+    "date": "2026-10-02",
+    "startDate": "2026-10-02",
+    "endDate": "2026-10-02",
+    "venue": "Titan ",
+    "location": "LYON",
+    "country": "FRANCE",
+    "type": "Events",
+    "image": "/uploads/uploads/0b4955f0ac311dac-hf_20260921_111250_e6348f35_17.avif",
+    "url": "https://shotgun.live/fr/events/titan-legacy",
+    "genre": "Hard Techno",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
