@@ -7692,6 +7692,182 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 40,
           "category": "promo"
+        },
+        {
+          "id": "track_1790810151220_hvp2",
+          "title": "I Rave You",
+          "artist": "Basto",
+          "youtubeId": "aM7wACxIr0w",
+          "duration": 3600,
+          "category": "liveset"
+        },
+        {
+          "id": "sj_bloc_1790809306418_s_30",
+          "title": "Classic Time 2",
+          "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9920a1dbc8ae5a5c-Classic_Time_2.wav",
+          "duration": 14,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790810177122_cd4q",
+          "title": "Sparks (Turn off your Mind)",
+          "artist": "Fedde Le Grand & Nicky Romero ft Matthew Koma",
+          "youtubeId": "Lw6j9fh3WoE",
+          "duration": 3600,
+          "category": "liveset"
+        },
+        {
+          "id": "nj_bloc_1790809306418_n_31",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 28,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790810194139_2dyd",
+          "title": "Who",
+          "artist": "Tujamo & Plastik Funk",
+          "youtubeId": "2fJZaJaVClk",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "pr_bloc_1790809306418_p_32",
+          "title": "Promo Escape Psycho 1",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 47,
+          "category": "promo"
+        },
+        {
+          "id": "track_1790810220586_z7gu",
+          "title": "Kangaroo",
+          "artist": "Sander Van Doorn & Julian Jordan",
+          "youtubeId": "215iS_GF2Hk",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "sj_bloc_1790809306418_s_33",
+          "title": "Classic Time 3",
+          "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0e0091ff516c357b-Classic_Time_3.wav",
+          "duration": 14,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790810249962_expr",
+          "title": "Wakanda (Original Mix)",
+          "artist": "Dimitri Vegas &  Like Mike",
+          "youtubeId": "3A2Hpl1f-EU",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1790809306418_n_34",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 26,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790810266563_pqtw",
+          "title": "Joyenergizer",
+          "artist": "Sander Van Doorn",
+          "youtubeId": "V9FL-kBScP8",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "pr_bloc_1790809306418_p_35",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
+        },
+        {
+          "id": "track_1790810286699_kv9i",
+          "title": "Rockin N Rollin",
+          "artist": "Fedde Le Grand",
+          "youtubeId": "GwP7XDzfrxU",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "sj_bloc_1790809306418_s_36",
+          "title": "Classic Time 4",
+          "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/00fb30117db8923c-Classic_Time_4.wav",
+          "duration": 14,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790810301364_68i6",
+          "title": "Turn It Up (Original Mix)",
+          "artist": "Dimitri Vegas & Like Mike , GTA feat Wolfpack",
+          "youtubeId": "l5n2MTouMpg",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1790809306418_n_37",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790810330368_v8l7",
+          "title": "Boomerang",
+          "artist": "Brooks & GRX",
+          "youtubeId": "j8GSRFS-8tc",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "pr_bloc_1790809306418_p_38",
+          "title": "Promo Tomorrowland Winter",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+          "duration": 66,
+          "category": "promo"
+        },
+        {
+          "id": "track_1790810345349_xq1f",
+          "title": "Center Of The Universe (Remode Version)",
+          "artist": "Axwell feat. Magnus Carlsson",
+          "youtubeId": "UKVGoibN5Zw",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "sj_bloc_1790809306418_s_39",
+          "title": "Classic Time 5",
+          "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/788340a171828dd5-Classic_Time_5.wav",
+          "duration": 14,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790810367887_p00e",
+          "title": "Into You (feat. Hanne Mjøen)",
+          "artist": "Matisse & Sadko",
+          "youtubeId": "RpVDEAG7nYY",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1790809306418_n_40",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
+          "category": "jingle"
         }
       ],
       "specialJingles": [
@@ -12396,6 +12572,182 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
       "category": "promo"
+    },
+    {
+      "id": "track_1790810151220_hvp2",
+      "title": "I Rave You",
+      "artist": "Basto",
+      "youtubeId": "aM7wACxIr0w",
+      "duration": 3600,
+      "category": "liveset"
+    },
+    {
+      "id": "sj_bloc_1790809306418_s_30",
+      "title": "Classic Time 2",
+      "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9920a1dbc8ae5a5c-Classic_Time_2.wav",
+      "duration": 14,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790810177122_cd4q",
+      "title": "Sparks (Turn off your Mind)",
+      "artist": "Fedde Le Grand & Nicky Romero ft Matthew Koma",
+      "youtubeId": "Lw6j9fh3WoE",
+      "duration": 3600,
+      "category": "liveset"
+    },
+    {
+      "id": "nj_bloc_1790809306418_n_31",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 28,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790810194139_2dyd",
+      "title": "Who",
+      "artist": "Tujamo & Plastik Funk",
+      "youtubeId": "2fJZaJaVClk",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "pr_bloc_1790809306418_p_32",
+      "title": "Promo Escape Psycho 1",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 47,
+      "category": "promo"
+    },
+    {
+      "id": "track_1790810220586_z7gu",
+      "title": "Kangaroo",
+      "artist": "Sander Van Doorn & Julian Jordan",
+      "youtubeId": "215iS_GF2Hk",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "sj_bloc_1790809306418_s_33",
+      "title": "Classic Time 3",
+      "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0e0091ff516c357b-Classic_Time_3.wav",
+      "duration": 14,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790810249962_expr",
+      "title": "Wakanda (Original Mix)",
+      "artist": "Dimitri Vegas &  Like Mike",
+      "youtubeId": "3A2Hpl1f-EU",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1790809306418_n_34",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 26,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790810266563_pqtw",
+      "title": "Joyenergizer",
+      "artist": "Sander Van Doorn",
+      "youtubeId": "V9FL-kBScP8",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "pr_bloc_1790809306418_p_35",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
+    },
+    {
+      "id": "track_1790810286699_kv9i",
+      "title": "Rockin N Rollin",
+      "artist": "Fedde Le Grand",
+      "youtubeId": "GwP7XDzfrxU",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "sj_bloc_1790809306418_s_36",
+      "title": "Classic Time 4",
+      "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/00fb30117db8923c-Classic_Time_4.wav",
+      "duration": 14,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790810301364_68i6",
+      "title": "Turn It Up (Original Mix)",
+      "artist": "Dimitri Vegas & Like Mike , GTA feat Wolfpack",
+      "youtubeId": "l5n2MTouMpg",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1790809306418_n_37",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790810330368_v8l7",
+      "title": "Boomerang",
+      "artist": "Brooks & GRX",
+      "youtubeId": "j8GSRFS-8tc",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "pr_bloc_1790809306418_p_38",
+      "title": "Promo Tomorrowland Winter",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+      "duration": 66,
+      "category": "promo"
+    },
+    {
+      "id": "track_1790810345349_xq1f",
+      "title": "Center Of The Universe (Remode Version)",
+      "artist": "Axwell feat. Magnus Carlsson",
+      "youtubeId": "UKVGoibN5Zw",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "sj_bloc_1790809306418_s_39",
+      "title": "Classic Time 5",
+      "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/788340a171828dd5-Classic_Time_5.wav",
+      "duration": 14,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790810367887_p00e",
+      "title": "Into You (feat. Hanne Mjøen)",
+      "artist": "Matisse & Sadko",
+      "youtubeId": "RpVDEAG7nYY",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1790809306418_n_40",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
+      "category": "jingle"
     }
   ],
   "radio_top_horaire": {
