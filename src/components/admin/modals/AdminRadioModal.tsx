@@ -1265,7 +1265,7 @@ export function AdminRadioModal({
                 onClose={() => setShowDuplicateAudit(false)}
                 mode="radio"
                 duplicates={radioDuplicates}
-                onResolveRadio={(ytId, keepId, removeIds) => {
+                onResolve={(ytId: string, _keepId: string, removeIds: string[]) => {
                     setBlocks(prev => prev.map(b => {
                         if (!removeIds.includes(b.id)) return b;
                         return { ...b, tracks: (b.tracks || []).filter(t => t.youtubeId !== ytId) };

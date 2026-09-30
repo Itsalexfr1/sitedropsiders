@@ -72,11 +72,8 @@ export function RadioEmissionTracksPanel({
             setIsFetchingTitle(true);
             try {
                 const fetched = await fetchYouTubeTitle(ytId);
-                if (fetched?.title) {
-                    setTrackTitle(fetched.title);
-                    if (fetched.duration) {
-                        setTrackDurationMinutes(String(Math.max(1, Math.round(fetched.duration / 60))));
-                    }
+                if (fetched) {
+                    setTrackTitle(fetched);
                 }
             } catch (err) {
                 console.error(err);

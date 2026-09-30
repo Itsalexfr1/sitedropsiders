@@ -73,7 +73,7 @@ export function RadioEmissionJinglesPanel({
             let uploadedUrl = '';
             try {
                 const res = await uploadFile(file);
-                if (res?.url) uploadedUrl = res.url;
+                if (res) uploadedUrl = res;
             } catch {
                 uploadedUrl = await new Promise((resolve) => {
                     const r = new FileReader();
@@ -106,7 +106,7 @@ export function RadioEmissionJinglesPanel({
             let uploadedUrl = '';
             try {
                 const res = await uploadFile(file);
-                if (res?.url) uploadedUrl = res.url;
+                if (res) uploadedUrl = res;
             } catch {
                 uploadedUrl = await new Promise((resolve) => {
                     const r = new FileReader();
