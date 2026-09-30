@@ -597,11 +597,31 @@ export function getCurrentLiveRadioTrack(
         }
     }
 
-    // ── 3. Pistes de l'émission ───────────────────────────────────────────
+    // ── 3. Pistes de l'émission + Jingles Spéciaux personnalisés ─────────────
     const introOffset = topOffset + (isEmissionStartHour && themeJingle?.enabled ? (themeJingle.duration || 0) : 0);
 
-    const rawTracks = activeBlock.tracks && activeBlock.tracks.length > 0
-        ? activeBlock.tracks
+    const emissionJingleTracks: RadioTrackItem[] = (activeBlock.specialJingles || [])
+        .filter(j => j.enabled !== false && (j.audioUrl || j.youtubeId))
+        .map(j => ({
+            id: j.id,
+            title: j.title,
+            artist: `${activeBlock.title} JINGLE`,
+            audioUrl: j.audioUrl,
+            youtubeId: j.youtubeId,
+            duration: j.duration || 15,
+            category: 'jingle' as const
+        }));
+
+    const mergedTracks = [...(activeBlock.tracks || [])];
+    emissionJingleTracks.forEach(sj => {
+        const exists = mergedTracks.some(t => t.id === sj.id || (sj.audioUrl && t.audioUrl === sj.audioUrl) || (sj.youtubeId && t.youtubeId === sj.youtubeId));
+        if (!exists) {
+            mergedTracks.push(sj);
+        }
+    });
+
+    const rawTracks = mergedTracks.length > 0
+        ? mergedTracks
         : [{
             id: `${activeBlock.id}_fallback`,
             title: `${activeBlock.title} - Continuous Mix`,
@@ -704,8 +724,28 @@ export function computeRadioDaySchedule(
 
         const blockStartSec = startH * 3600;
 
-        const rawTracks = block.tracks && block.tracks.length > 0
-            ? block.tracks
+        const emissionJingleTracks: RadioTrackItem[] = (block.specialJingles || [])
+            .filter(j => j.enabled !== false && (j.audioUrl || j.youtubeId))
+            .map(j => ({
+                id: j.id,
+                title: j.title,
+                artist: `${block.title} JINGLE`,
+                audioUrl: j.audioUrl,
+                youtubeId: j.youtubeId,
+                duration: j.duration || 15,
+                category: 'jingle' as const
+            }));
+
+        const mergedTracks = [...(block.tracks || [])];
+        emissionJingleTracks.forEach(sj => {
+            const exists = mergedTracks.some(t => t.id === sj.id || (sj.audioUrl && t.audioUrl === sj.audioUrl) || (sj.youtubeId && t.youtubeId === sj.youtubeId));
+            if (!exists) {
+                mergedTracks.push(sj);
+            }
+        });
+
+        const rawTracks = mergedTracks.length > 0
+            ? mergedTracks
             : [{
                 id: `${block.id}_fallback`,
                 title: `${block.title} - Continuous Mix`,

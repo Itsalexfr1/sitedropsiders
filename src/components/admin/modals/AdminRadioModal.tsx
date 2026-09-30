@@ -414,32 +414,42 @@ export function AdminRadioModal({
     }, [tvBlocks]);
 
     // ─── Enregistrement d'un jingle uploadé ────────────────────────────────────
-    const handleSaveJingleForBlock = (blockId: string, jingle: RadioSpecialJingle, insertInTracks: boolean) => {
-        setBlocks(prev => prev.map(b => {
-            if (b.id !== blockId) return b;
-            const existingSpecial = b.specialJingles || [];
-            const updatedSpecial = [...existingSpecial, jingle];
+    const handleSaveJingleForBlock = (blockId: string, jingle: RadioSpecialJingle, _insertInTracks: boolean) => {
+        setBlocks(prev => {
+            const next = prev.map(b => {
+                if (b.id !== blockId) return b;
+                const existingSpecial = b.specialJingles || [];
+                const updatedSpecial = [...existingSpecial.filter(s => s.id !== jingle.id), jingle];
 
-            let updatedTracks = [...(b.tracks || [])];
-            if (insertInTracks) {
                 const trackJingle: RadioTrackItem = {
                     id: `track_jingle_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
                     title: jingle.title,
                     artist: `${b.title} JINGLE`,
                     audioUrl: jingle.audioUrl,
                     youtubeId: jingle.youtubeId,
-                    duration: jingle.duration,
+                    duration: jingle.duration || 15,
                     category: 'jingle'
                 };
-                updatedTracks.push(trackJingle);
-            }
 
-            return {
-                ...b,
-                specialJingles: updatedSpecial,
-                tracks: updatedTracks
-            };
-        }));
+                const existingTracks = b.tracks || [];
+                // Insérer le jingle dans la programmation de l'émission (au début ou en rotation)
+                const updatedTracks = [trackJingle, ...existingTracks];
+
+                return {
+                    ...b,
+                    specialJingles: updatedSpecial,
+                    tracks: updatedTracks
+                };
+            });
+
+            // Sauvegarde immédiate dans localStorage & synchronisation directe avec le player en direct
+            try {
+                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
+                window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+            } catch {}
+
+            return next;
+        });
     };
 
     const handleSaveGeneralJingle = (item: RadionomyItem) => {
@@ -616,7 +626,25 @@ export function AdminRadioModal({
 
         if (selectedBlock) {
             // Affichage complet de l'émission : SETS, CLIPS, JINGLES SPÉCIAUX, GÉNÉRIQUE
-            return (selectedBlock.tracks || [])
+            const tracksList = [...(selectedBlock.tracks || [])];
+
+            // Si l'émission a des jingles spéciaux personnalisés dans specialJingles, on les affiche également
+            (selectedBlock.specialJingles || []).forEach((j, jIdx) => {
+                const already = tracksList.some(t => t.id === j.id || (j.audioUrl && t.audioUrl === j.audioUrl) || (j.youtubeId && t.youtubeId === j.youtubeId));
+                if (!already) {
+                    tracksList.unshift({
+                        id: j.id || `special_${jIdx}`,
+                        title: j.title,
+                        artist: `${selectedBlock.title} JINGLE`,
+                        audioUrl: j.audioUrl,
+                        youtubeId: j.youtubeId,
+                        duration: j.duration || 15,
+                        category: 'jingle'
+                    });
+                }
+            });
+
+            return tracksList
                 .filter(t => !query || t.title.toLowerCase().includes(query) || (t.artist && t.artist.toLowerCase().includes(query)))
                 .map((t, idx) => ({
                     id: t.id || `idx_${idx}`,
@@ -624,7 +652,7 @@ export function AdminRadioModal({
                     type: t.category || 'set',
                     title: t.title,
                     artist: t.artist || (t.category === 'jingle' ? `${selectedBlock.title} JINGLE` : 'Artiste'),
-                    duration: t.duration || 3600,
+                    duration: t.duration || (t.category === 'jingle' ? 15 : 3600),
                     box: selectedBlock.title,
                     audioUrl: t.audioUrl,
                     youtubeId: t.youtubeId,

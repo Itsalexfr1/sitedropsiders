@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
     X,
     Upload,
@@ -58,6 +58,12 @@ export function RadioJingleUploadModal({
     onShowToast
 }: RadioJingleUploadModalProps) {
     const [selectedTarget, setSelectedTarget] = useState<string>(defaultBlockId || 'general');
+
+    useEffect(() => {
+        if (isOpen) {
+            setSelectedTarget(defaultBlockId || 'general');
+        }
+    }, [isOpen, defaultBlockId]);
     const [jingleTitle, setJingleTitle] = useState('');
     const [jingleAudioUrl, setJingleAudioUrl] = useState('');
     const [jingleYoutubeId, setJingleYoutubeId] = useState('');
