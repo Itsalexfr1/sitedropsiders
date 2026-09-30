@@ -7198,6 +7198,21 @@
         }
       ],
       "rotationRule": "son_special_son_jingle_promo"
+    },
+    {
+      "id": "bloc_1790809306418",
+      "title": "CLASSIC TIME",
+      "name": "CLASSIC TIME",
+      "startHour": 0,
+      "endHour": 4,
+      "timeSlot": "00h - 04h",
+      "color": "#00f0ff",
+      "emoji": "🎧",
+      "randomize": true,
+      "jingleFrequency": 2,
+      "rotationRule": "son_special_son_jingle_promo",
+      "tracks": [],
+      "specialJingles": []
     }
   ],
   "radio_tracks": [
