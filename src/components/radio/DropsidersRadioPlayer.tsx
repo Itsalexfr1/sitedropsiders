@@ -199,35 +199,111 @@ function useRadioAudio() {
         }
     }, [currentVideoId, currentSet?.audioUrl]);
 
-    // Transition automatique si le track live change pendant l'écoute
+    // ─── OPTION A : FONDU ENCHAÎNÉ RADIO (Crossfade doux ~1.0s) ───────────────
+    const fadeOutYouTube = useCallback((fromVol: number, onDone?: () => void) => {
+        let current = fromVol;
+        const step = Math.max(2, Math.floor(fromVol / 10));
+        const interval = setInterval(() => {
+            current -= step;
+            if (current <= 0) {
+                clearInterval(interval);
+                sendCmd('setVolume', [0]);
+                sendCmd('pauseVideo');
+                if (onDone) onDone();
+            } else {
+                sendCmd('setVolume', [current]);
+            }
+        }, 100);
+    }, [sendCmd]);
+
+    const fadeInYouTube = useCallback((toVol: number) => {
+        sendCmd('unMute');
+        sendCmd('setVolume', [0]);
+        sendCmd('playVideo');
+        let current = 0;
+        const step = Math.max(2, Math.floor(toVol / 10));
+        const interval = setInterval(() => {
+            current += step;
+            if (current >= toVol) {
+                clearInterval(interval);
+                sendCmd('setVolume', [toVol]);
+            } else {
+                sendCmd('setVolume', [current]);
+            }
+        }, 100);
+    }, [sendCmd]);
+
+    const fadeOutAudio = useCallback((audioEl: HTMLAudioElement, fromVol: number, onDone?: () => void) => {
+        let current = fromVol;
+        const step = fromVol / 10;
+        const interval = setInterval(() => {
+            current -= step;
+            if (current <= 0.05) {
+                clearInterval(interval);
+                audioEl.volume = 0;
+                audioEl.pause();
+                if (onDone) onDone();
+            } else {
+                audioEl.volume = Math.max(0, current);
+            }
+        }, 100);
+    }, []);
+
+    const fadeInAudio = useCallback((audioEl: HTMLAudioElement, toVol: number) => {
+        audioEl.volume = 0;
+        audioEl.play().catch(() => {});
+        let current = 0;
+        const step = toVol / 10;
+        const interval = setInterval(() => {
+            current += step;
+            if (current >= toVol) {
+                clearInterval(interval);
+                audioEl.volume = toVol;
+            } else {
+                audioEl.volume = Math.min(1, current);
+            }
+        }, 100);
+    }, []);
+
+    // Transition automatique avec fondu enchaîné (Option A)
     useEffect(() => {
         if (!isPlayingRef.current || !currentSet) return;
 
+        const targetAudioVol = isMutedRef.current ? 0 : (volumeRef.current / 100);
+
         if (currentSet.audioUrl) {
-            // Mettre en pause / vider iframe YouTube si un audio MP3/WAV prend le relais
+            // Fondu sortant de YouTube pendant que le Jingle démarre en fondu entrant
             if (iframeRef.current && iframeRef.current.src !== 'about:blank') {
-                iframeRef.current.src = 'about:blank';
-                preloadedVideoIdRef.current = null;
+                fadeOutYouTube(volumeRef.current, () => {
+                    if (iframeRef.current) iframeRef.current.src = 'about:blank';
+                    preloadedVideoIdRef.current = null;
+                });
             }
+
             if (audioRef.current) {
                 if (audioRef.current.src !== currentSet.audioUrl) {
                     audioRef.current.src = currentSet.audioUrl;
                 }
                 audioRef.current.currentTime = uiOffsetRef.current || 0;
-                audioRef.current.volume = isMutedRef.current ? 0 : (volumeRef.current / 100);
-                audioRef.current.play().catch(() => {});
+                fadeInAudio(audioRef.current, targetAudioVol);
             }
         } else if (currentSet.youtubeId) {
-            // Arrêter HTML5 Audio si un set YouTube prend le relais
-            if (audioRef.current) {
-                audioRef.current.pause();
+            // Fondu sortant du jingle/audio précédent pendant que YouTube démarre en fondu entrant
+            if (audioRef.current && !audioRef.current.paused) {
+                fadeOutAudio(audioRef.current, audioRef.current.volume || targetAudioVol);
             }
+
             if (iframeRef.current && (!iframeRef.current.src || !iframeRef.current.src.includes(currentSet.youtubeId))) {
-                iframeRef.current.src = buildSrc(currentSet.youtubeId, uiOffsetRef.current, isMutedRef.current ? 1 : 0);
+                iframeRef.current.src = buildSrc(currentSet.youtubeId, uiOffsetRef.current, 0);
                 preloadedVideoIdRef.current = currentSet.youtubeId;
+                setTimeout(() => {
+                    fadeInYouTube(isMutedRef.current ? 0 : volumeRef.current);
+                }, 800);
+            } else {
+                fadeInYouTube(isMutedRef.current ? 0 : volumeRef.current);
             }
         }
-    }, [currentSet?.id, currentSet?.audioUrl, currentSet?.youtubeId]);
+    }, [currentSet?.id, currentSet?.audioUrl, currentSet?.youtubeId, fadeOutYouTube, fadeInYouTube, fadeOutAudio, fadeInAudio]);
 
     // ─── Play / Pause ─────────────────────────────────────────────────────────
     const handlePlay = useCallback(() => {

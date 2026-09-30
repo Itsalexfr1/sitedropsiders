@@ -162,6 +162,7 @@ export function AdminRadioModal({
 
     // ─── Modale d'Upload Jingle avec MENU DÉROULANT ───────────────────────────
     const [isUploadJingleModalOpen, setIsUploadJingleModalOpen] = useState(false);
+    const [isYouTubeSearchOpen, setIsYouTubeSearchOpen] = useState(false);
 
     // ─── Formulaire rapide d'ajout de morceau ─────────────────────────────────
     const [showAddTrackBox, setShowAddTrackBox] = useState(false);
@@ -173,12 +174,13 @@ export function AdminRadioModal({
     const [isFetchingTitle, setIsFetchingTitle] = useState(false);
 
     // ─── Lecteur audio intégré en bas (Player permanent RadioManager) ──────────
-    const [currentAudio, setCurrentAudio] = useState<{ id: string; title: string; url: string; artist?: string } | null>(null);
+    const [currentAudio, setCurrentAudio] = useState<{ id: string; title: string; url?: string; youtubeId?: string; artist?: string; duration?: number } | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [audioProgress, setAudioProgress] = useState(0);
     const [audioDuration, setAudioDuration] = useState(0);
     const [audioVolume, setAudioVolume] = useState(0.85);
     const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
+    const ytPreviewTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     // ─── Toasts & États UI ────────────────────────────────────────────────────
     const [toastMessage, setToastMessage] = useState<{ text: string; type?: 'success' | 'warn' | 'info' } | null>(null);
@@ -236,52 +238,96 @@ export function AdminRadioModal({
         setTimeout(() => setToastMessage(null), 3000);
     };
 
-    // ─── Audio Player Permanent ────────────────────────────────────────────────
-    const handlePlayAudio = (id: string, url: string, title: string, artist?: string) => {
-        if (currentAudio?.id === id && isPlaying) {
-            audioPlayerRef.current?.pause();
-            setIsPlaying(false);
-            return;
-        }
-
+    // ─── Audio & YouTube Player Permanent ─────────────────────────────────────
+    const handlePauseMedia = () => {
         if (audioPlayerRef.current) {
             audioPlayerRef.current.pause();
         }
+        if (ytPreviewTimerRef.current) {
+            clearInterval(ytPreviewTimerRef.current);
+            ytPreviewTimerRef.current = null;
+        }
+        setIsPlaying(false);
+    };
 
-        const a = new Audio(url);
-        a.volume = audioVolume;
-        a.onloadedmetadata = () => {
-            setAudioDuration(a.duration || 0);
-        };
-        a.ontimeupdate = () => {
-            setAudioProgress(a.currentTime || 0);
-        };
-        a.onended = () => {
-            setIsPlaying(false);
+    const handlePlayMedia = (item: { id: string; title: string; artist?: string; audioUrl?: string; youtubeId?: string; duration?: number }) => {
+        if (currentAudio?.id === item.id && isPlaying) {
+            handlePauseMedia();
+            return;
+        }
+
+        handlePauseMedia();
+
+        if (item.audioUrl) {
+            const a = new Audio(item.audioUrl);
+            a.volume = audioVolume;
+            a.onloadedmetadata = () => {
+                setAudioDuration(a.duration || item.duration || 15);
+            };
+            a.ontimeupdate = () => {
+                setAudioProgress(a.currentTime || 0);
+            };
+            a.onended = () => {
+                setIsPlaying(false);
+                setAudioProgress(0);
+            };
+            a.onerror = () => {
+                setIsPlaying(false);
+                showToast('Impossible de lire ce fichier audio', 'warn');
+            };
+
+            a.play().then(() => {
+                setIsPlaying(true);
+            }).catch(() => {
+                setIsPlaying(false);
+            });
+
+            audioPlayerRef.current = a;
+            setAudioDuration(item.duration || 15);
             setAudioProgress(0);
-        };
-        a.onerror = () => {
-            setIsPlaying(false);
-            showToast('Impossible de lire ce flux audio', 'warn');
-        };
-
-        a.play().then(() => {
+            setCurrentAudio({ id: item.id, title: item.title, artist: item.artist, url: item.audioUrl, duration: item.duration });
+        } else if (item.youtubeId) {
+            const dur = item.duration || 3600;
+            setAudioDuration(dur);
+            setAudioProgress(0);
             setIsPlaying(true);
-        }).catch(() => {
-            setIsPlaying(false);
-        });
+            setCurrentAudio({
+                id: item.id,
+                title: item.title,
+                artist: item.artist || 'YouTube',
+                youtubeId: item.youtubeId,
+                duration: dur
+            });
 
-        audioPlayerRef.current = a;
-        setCurrentAudio({ id, title, url, artist });
+            ytPreviewTimerRef.current = setInterval(() => {
+                setAudioProgress(p => {
+                    if (p >= dur) {
+                        handlePauseMedia();
+                        return 0;
+                    }
+                    return p + 1;
+                });
+            }, 1000);
+            showToast(`▶ Lecture préécoute : ${item.title}`, 'info');
+        }
     };
 
     const handleTogglePlayPause = () => {
-        if (!audioPlayerRef.current || !currentAudio) return;
+        if (!currentAudio) return;
         if (isPlaying) {
-            audioPlayerRef.current.pause();
-            setIsPlaying(false);
+            handlePauseMedia();
         } else {
-            audioPlayerRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+            if (currentAudio.url && audioPlayerRef.current) {
+                audioPlayerRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+            } else if (currentAudio.youtubeId) {
+                setIsPlaying(true);
+                if (ytPreviewTimerRef.current) clearInterval(ytPreviewTimerRef.current);
+                ytPreviewTimerRef.current = setInterval(() => {
+                    setAudioProgress(p => p + 1);
+                }, 1000);
+            } else {
+                handlePlayMedia(currentAudio);
+            }
         }
     };
 
@@ -1002,7 +1048,7 @@ export function AdminRadioModal({
 
                         {/* Barre d'action et recherche du tableau */}
                         <div className="px-5 py-3 border-b border-white/10 flex flex-wrap items-center justify-between gap-3 bg-black/40 shrink-0">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 shrink-0">
                                 <span className="font-display font-black text-white uppercase italic text-xs flex items-center gap-2">
                                     {activeFolder === 'tv_lib' ? '📺 Bibliothèque TV (240 vidéos)' :
                                      activeFolder === 'general_jingles' ? '🔔 Bacs de Jingles Généraux' :
@@ -1014,28 +1060,50 @@ export function AdminRadioModal({
                                 </span>
                             </div>
 
-                            <div className="flex items-center gap-2 flex-1 max-w-md justify-end">
-                                {/* Recherche rapide */}
-                                <div className="relative flex-1 max-w-xs">
-                                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                            <div className="flex items-center gap-2.5 ml-auto flex-wrap sm:flex-nowrap">
+                                {/* Barre de Recherche large et confortable */}
+                                <div className="relative w-64 md:w-80 shrink-0">
+                                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400 pointer-events-none" />
                                     <input
                                         type="text"
                                         value={searchFilter}
                                         onChange={e => setSearchFilter(e.target.value)}
-                                        placeholder="Recherche rapide..."
-                                        className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs placeholder:text-gray-500 focus:outline-none focus:border-cyan-400"
+                                        placeholder="Rechercher titre, artiste..."
+                                        className="w-full pl-9 pr-8 py-2 rounded-xl bg-white/10 border border-white/15 text-white text-xs placeholder:text-gray-400 focus:outline-none focus:border-cyan-400 focus:bg-white/15 focus:ring-1 focus:ring-cyan-400/30 transition-all"
                                     />
+                                    {searchFilter && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setSearchFilter('')}
+                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    )}
                                 </div>
 
-                                {/* Bouton Ajouter Morceau */}
+                                {/* Bouton Recherche YouTube */}
+                                {selectedBlock && !activeFolder.includes('jingle') && activeFolder !== 'tv_lib' && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsYouTubeSearchOpen(true)}
+                                        className="px-3.5 py-2 rounded-xl bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/30 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-sm shrink-0"
+                                        title="Rechercher directement sur YouTube"
+                                    >
+                                        <Search className="w-3.5 h-3.5" />
+                                        <span>Recherche YouTube</span>
+                                    </button>
+                                )}
+
+                                {/* Bouton Ajouter Morceau manuel */}
                                 {selectedBlock && !activeFolder.includes('jingle') && activeFolder !== 'tv_lib' && (
                                     <button
                                         type="button"
                                         onClick={() => setShowAddTrackBox(!showAddTrackBox)}
-                                        className="px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500 text-cyan-300 hover:text-black border border-cyan-500/30 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                                        className="px-3.5 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500 text-cyan-300 hover:text-black border border-cyan-500/30 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
                                     >
                                         <Plus className="w-3.5 h-3.5" />
-                                        <span>Ajouter Morceau</span>
+                                        <span>{showAddTrackBox ? 'Fermer ajout' : 'Ajouter par URL'}</span>
                                     </button>
                                 )}
 
@@ -1043,7 +1111,7 @@ export function AdminRadioModal({
                                 <button
                                     type="button"
                                     onClick={() => setIsUploadJingleModalOpen(true)}
-                                    className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black border border-amber-500/40 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                                    className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black border border-amber-500/40 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
                                 >
                                     <Upload className="w-3.5 h-3.5" />
                                     <span>Nouveau Jingle</span>
@@ -1054,9 +1122,19 @@ export function AdminRadioModal({
                         {/* Formulaire ajout rapide morceau si ouvert */}
                         {showAddTrackBox && (
                             <div className="p-4 border-b border-cyan-500/30 bg-cyan-950/20 space-y-2">
-                                <span className="text-[10px] font-display font-black text-cyan-400 uppercase italic block">
-                                    + Ajouter un morceau ou set à « {selectedBlock?.title} »
-                                </span>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-display font-black text-cyan-400 uppercase italic block">
+                                        + Ajouter un morceau ou set à « {selectedBlock?.title} »
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsYouTubeSearchOpen(true)}
+                                        className="px-2.5 py-1 rounded-lg bg-red-600/30 hover:bg-red-600 text-red-200 hover:text-white border border-red-500/30 text-[10px] font-display font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-all"
+                                    >
+                                        <Search className="w-3 h-3" />
+                                        <span>Rechercher sur YouTube</span>
+                                    </button>
+                                </div>
                                 <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
                                     <input
                                         type="text"
@@ -1168,18 +1246,21 @@ export function AdminRadioModal({
                                                         <button
                                                             type="button"
                                                             onClick={() => {
-                                                                if (item.audioUrl) {
-                                                                    handlePlayAudio(item.id, item.audioUrl, item.title, item.artist);
-                                                                } else if (item.youtubeId) {
-                                                                    showToast(`YouTube : https://youtube.com/watch?v=${item.youtubeId}`, 'info');
-                                                                }
+                                                                handlePlayMedia({
+                                                                    id: item.id,
+                                                                    title: item.title,
+                                                                    artist: item.artist,
+                                                                    audioUrl: item.audioUrl,
+                                                                    youtubeId: item.youtubeId,
+                                                                    duration: item.duration
+                                                                });
                                                             }}
                                                             className={`w-7 h-7 rounded-lg inline-flex items-center justify-center transition-all cursor-pointer ${
                                                                 isCurrentPlaying
                                                                     ? 'bg-cyan-500 text-black shadow-md'
                                                                     : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/15'
                                                             }`}
-                                                            title={item.audioUrl ? "Écouter dans le lecteur" : "Ouvrir"}
+                                                            title={item.audioUrl || item.youtubeId ? "Écouter dans le lecteur permanent" : "Aucun média"}
                                                         >
                                                             {isCurrentPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
                                                         </button>
@@ -1278,21 +1359,40 @@ export function AdminRadioModal({
                 {/* ═════════════════════════════════════════════════════════════
                     3. LECTEUR PERMANENT EN BAS (Style Radionomy / RadioManager)
                 ═════════════════════════════════════════════════════════════ */}
-                <div className="h-16 px-6 border-t border-white/10 bg-gradient-to-r from-[#070b12] via-[#0d131f] to-[#070b12] flex items-center justify-between gap-6 shrink-0 z-20">
+                <div className="h-16 px-6 border-t border-white/10 bg-gradient-to-r from-[#070b12] via-[#0d131f] to-[#070b12] flex items-center justify-between gap-6 shrink-0 z-20 relative">
+                    {/* Lecteur YouTube invisible pour la préécoute réelle de sets / clips */}
+                    {currentAudio?.youtubeId && isPlaying && (
+                        <iframe
+                            key={currentAudio.youtubeId}
+                            src={`https://www.youtube-nocookie.com/embed/${currentAudio.youtubeId}?autoplay=1&enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
+                            className="w-0 h-0 opacity-0 pointer-events-none fixed -top-[1000px] -left-[1000px]"
+                            allow="autoplay"
+                            title="YouTube Audio Preview"
+                        />
+                    )}
+
                     <div className="flex items-center gap-4 min-w-0 w-80">
-                        {/* Vignette audio */}
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border transition-all ${
+                        {/* Vignette audio ou pochette YouTube */}
+                        <div className={`w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 border transition-all ${
                             isPlaying
                                 ? 'bg-cyan-500 text-black border-cyan-400 shadow-[0_0_15px_rgba(0,240,255,0.4)]'
                                 : 'bg-white/5 text-gray-400 border-white/10'
                         }`}>
-                            <FileAudio className="w-5 h-5" />
+                            {currentAudio?.youtubeId ? (
+                                <img
+                                    src={`https://img.youtube.com/vi/${currentAudio.youtubeId}/hqdefault.jpg`}
+                                    alt=""
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <FileAudio className="w-5 h-5" />
+                            )}
                         </div>
                         <div className="min-w-0 flex-1">
                             <p className="text-xs font-display font-black text-white uppercase italic tracking-tight truncate">
                                 {currentAudio ? currentAudio.title : 'Aucun média en cours d\'écoute'}
                             </p>
-                            <span className="text-[10px] text-gray-400 font-mono">
+                            <span className="text-[10px] text-gray-400 font-mono truncate block">
                                 {currentAudio?.artist ? currentAudio.artist : 'Cliquez sur Play pour pré-écouter un élément'}
                             </span>
                         </div>
@@ -1352,6 +1452,33 @@ export function AdminRadioModal({
                     </div>
                 </div>
             </motion.div>
+
+            {/* ── MODALE RECHERCHE YOUTUBE DIRECTE ── */}
+            <YouTubeSearchModal
+                isOpen={isYouTubeSearchOpen}
+                onClose={() => setIsYouTubeSearchOpen(false)}
+                mode="radio"
+                blockTitle={selectedBlock?.title}
+                onAddVideo={(video) => {
+                    if (!selectedBlock) {
+                        showToast('Sélectionnez d\'abord une émission', 'warn');
+                        return;
+                    }
+                    const newTrack: RadioTrackItem = {
+                        id: `track_yt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+                        title: video.title,
+                        artist: video.channel || selectedBlock.title,
+                        youtubeId: video.youtubeId,
+                        duration: video.duration || 3600,
+                        category: video.category === 'clip' ? 'clip' : video.category === 'jingle' ? 'jingle' : 'liveset'
+                    };
+                    setBlocks(prev => prev.map(b => b.id === selectedBlock.id ? {
+                        ...b,
+                        tracks: [...(b.tracks || []), newTrack]
+                    } : b));
+                    showToast(`✓ « ${video.title} » ajouté à ${selectedBlock.title} !`);
+                }}
+            />
 
             {/* ── MODALE D'UPLOAD DE JINGLE AVEC MENU DÉROULANT ── */}
             <RadioJingleUploadModal

@@ -24,6 +24,30 @@ interface RadioJingleUploadModalProps {
     onShowToast: (msg: string, type?: 'success' | 'warn' | 'info') => void;
 }
 
+function getAudioFileDuration(file: File): Promise<number> {
+    return new Promise((resolve) => {
+        try {
+            const url = URL.createObjectURL(file);
+            const audio = new Audio(url);
+            audio.addEventListener('loadedmetadata', () => {
+                URL.revokeObjectURL(url);
+                if (isFinite(audio.duration) && !isNaN(audio.duration)) {
+                    resolve(Math.max(2, Math.round(audio.duration)));
+                } else {
+                    resolve(15);
+                }
+            });
+            audio.addEventListener('error', () => {
+                URL.revokeObjectURL(url);
+                resolve(15);
+            });
+            setTimeout(() => resolve(15), 2500);
+        } catch {
+            resolve(15);
+        }
+    });
+}
+
 export function RadioJingleUploadModal({
     isOpen,
     onClose,
@@ -42,53 +66,108 @@ export function RadioJingleUploadModal({
     const [insertDirectlyInPlaylist, setInsertDirectlyInPlaylist] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState<number>(0);
+    const [batchStatus, setBatchStatus] = useState<{ current: number; total: number } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     if (!isOpen) return null;
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
 
-        try {
-            setIsUploading(true);
-            setUploadProgress(10);
-
-            // Détecte la durée audio
+        if (files.length === 1) {
+            const file = files[0];
             try {
-                const audio = new Audio(URL.createObjectURL(file));
-                audio.addEventListener('loadedmetadata', () => {
-                    if (isFinite(audio.duration) && !isNaN(audio.duration)) {
-                        setJingleDuration(String(Math.max(2, Math.round(audio.duration))));
+                setIsUploading(true);
+                setUploadProgress(10);
+                const dur = await getAudioFileDuration(file);
+                setJingleDuration(String(dur));
+
+                let finalUrl = '';
+                try {
+                    const res = await uploadFile(file, 'radio_jingles', (p) => setUploadProgress(p));
+                    if (res) finalUrl = res;
+                } catch {
+                    finalUrl = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result as string);
+                        reader.readAsDataURL(file);
+                    });
+                }
+
+                const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]+/g, ' ').trim();
+                setJingleAudioUrl(finalUrl);
+                if (!jingleTitle.trim()) {
+                    setJingleTitle(cleanName);
+                }
+                onShowToast('✓ Fichier audio chargé !');
+            } catch (err) {
+                console.error(err);
+                onShowToast('Erreur chargement audio', 'warn');
+            } finally {
+                setIsUploading(false);
+                setUploadProgress(0);
+                if (e.target) e.target.value = '';
+            }
+        } else {
+            // MULTI-UPLOAD DE JINGLES
+            try {
+                setIsUploading(true);
+                setBatchStatus({ current: 0, total: files.length });
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    setBatchStatus({ current: i + 1, total: files.length });
+                    const dur = await getAudioFileDuration(file);
+                    let finalUrl = '';
+                    try {
+                        const res = await uploadFile(file, 'radio_jingles', (p) => setUploadProgress(p));
+                        if (res) finalUrl = res;
+                    } catch {
+                        finalUrl = await new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(reader.result as string);
+                            reader.readAsDataURL(file);
+                        });
                     }
-                });
-            } catch {}
 
-            let finalUrl = '';
-            try {
-                const res = await uploadFile(file, 'radio_jingles', (p) => setUploadProgress(p));
-                if (res) finalUrl = res;
-            } catch {
-                finalUrl = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result as string);
-                    reader.readAsDataURL(file);
-                });
-            }
+                    const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]+/g, ' ').trim();
+                    if (selectedTarget === 'general') {
+                        const newItem: RadionomyItem = {
+                            id: `gen_jingle_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 6)}`,
+                            title: cleanName,
+                            category: 'jingle',
+                            duration: dur,
+                            audioUrl: finalUrl,
+                            isCustom: true
+                        };
+                        onSaveGeneralJingle(newItem);
+                    } else {
+                        const specialJingle: RadioSpecialJingle = {
+                            id: `special_${selectedTarget}_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 6)}`,
+                            title: cleanName,
+                            audioUrl: finalUrl,
+                            duration: dur,
+                            enabled: true
+                        };
+                        onSaveJingleForBlock(selectedTarget, specialJingle, insertDirectlyInPlaylist);
+                    }
+                }
 
-            const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]+/g, ' ').trim();
-            setJingleAudioUrl(finalUrl);
-            if (!jingleTitle.trim()) {
-                setJingleTitle(cleanName);
+                const targetName = selectedTarget === 'general'
+                    ? 'Jingles Généraux'
+                    : blocks.find(b => b.id === selectedTarget)?.title || 'l\'émission';
+                onShowToast(`✓ ${files.length} jingles ajoutés avec succès à ${targetName} !`, 'success');
+                onClose();
+            } catch (err) {
+                console.error(err);
+                onShowToast('Erreur lors du multi-upload', 'warn');
+            } finally {
+                setIsUploading(false);
+                setBatchStatus(null);
+                setUploadProgress(0);
+                if (e.target) e.target.value = '';
             }
-            onShowToast('✓ Fichier audio chargé !');
-        } catch (err) {
-            console.error(err);
-            onShowToast('Erreur chargement audio', 'warn');
-        } finally {
-            setIsUploading(false);
-            setUploadProgress(0);
-            if (e.target) e.target.value = '';
         }
     };
 
@@ -219,7 +298,8 @@ export function RadioJingleUploadModal({
                             <input
                                 ref={fileInputRef}
                                 type="file"
-                                accept="audio/mp3,audio/wav,audio/mpeg,audio/ogg"
+                                multiple
+                                accept="audio/mp3,audio/wav,audio/mpeg,audio/ogg,.mp3,.wav,.ogg"
                                 className="hidden"
                                 onChange={handleFileSelect}
                             />
@@ -227,22 +307,24 @@ export function RadioJingleUploadModal({
                                 <div className="flex flex-col items-center gap-2">
                                     <Loader2 className="w-7 h-7 text-amber-400 animate-spin" />
                                     <span className="text-xs text-amber-300 font-mono">
-                                        Upload en cours... {uploadProgress > 0 ? `${uploadProgress}%` : ''}
+                                        {batchStatus
+                                            ? `Upload des fichiers (${batchStatus.current} / ${batchStatus.total})...`
+                                            : `Upload en cours... ${uploadProgress > 0 ? `${uploadProgress}%` : ''}`}
                                     </span>
                                 </div>
                             ) : jingleAudioUrl ? (
                                 <div className="flex items-center justify-center gap-2 text-emerald-400 text-xs font-bold">
                                     <FileAudio className="w-5 h-5 text-emerald-400" />
-                                    <span>Fichier audio prêt ! (Cliquer pour changer)</span>
+                                    <span>Fichier audio prêt ! (Cliquer pour changer ou sélectionner plusieurs fichiers)</span>
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center gap-1.5">
                                     <Upload className="w-6 h-6 text-gray-400 group-hover:text-amber-400 group-hover:scale-110 transition-all" />
                                     <span className="text-xs font-bold text-gray-300">
-                                        Glissez-déposez votre MP3 ou cliquez pour parcourir
+                                        Glissez vos fichiers ou cliquez pour sélectionner (un ou plusieurs)
                                     </span>
                                     <span className="text-[10px] text-gray-500 font-mono">
-                                        Supporte MP3, WAV, OGG (Jingles, Sweepers, Voix off)
+                                        Supporte l'upload multiple en 1 clic : MP3, WAV, OGG
                                     </span>
                                 </div>
                             )}
