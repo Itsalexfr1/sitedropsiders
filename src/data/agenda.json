@@ -801,5 +801,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1125,
+    "title": "A5km-Blaame-Jauks-Kataouchee",
+    "date": "2026-10-31",
+    "startDate": "2026-10-31",
+    "endDate": "2026-10-31",
+    "venue": "Titan",
+    "location": "LYON",
+    "country": "FRANCE",
+    "type": "Events",
+    "image": "/uploads/uploads/9bd85c3dd9fc9a12-31_octobre.jpg",
+    "url": "https://shotgun.live/fr/events/a5km-blaame-jauks",
+    "genre": "Hard Techno",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
