@@ -4408,7 +4408,7 @@
     {
       "id": "radio_bloc_1790256648831_kmgn",
       "name": "LE 12 - 16",
-      "title": "LE 12 - 16",
+      "title": "FEEL THE VIBE",
       "timeSlot": "12h - 16h",
       "startHour": 12,
       "endHour": 16,
@@ -5030,7 +5030,9 @@
           "duration": 10,
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav"
         }
-      ]
+      ],
+      "jingleFrequency": 2,
+      "rotationRule": "jingle_son_special_promo"
     },
     {
       "id": "radio_bloc_1790256873762_k89p",
