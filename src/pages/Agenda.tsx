@@ -17,6 +17,15 @@ import { AdminEditBar } from '../components/admin/AdminEditBar';
 import { resolveImageUrl } from '../utils/image';
 import { useUser } from '../context/UserContext';
 
+export const normalizeAgendaGenre = (g: string | undefined): string => {
+    if (!g) return '';
+    const lower = g.trim().toLowerCase();
+    if (lower === 'hard techno' || lower === 'hardstyle' || lower === 'hardcore' || lower === 'hardmusic' || lower === 'hard music') {
+        return 'Hard Music';
+    }
+    return g;
+};
+
 export function Agenda() {
     const { t, language } = useLanguage();
     const { user, toggleAgendaFavorite, isLoggedIn, setIsAuthModalOpen } = useUser();
@@ -127,14 +136,6 @@ export function Agenda() {
     const [searchParams, setSearchParams] = useSearchParams();
     const selectedLocation = searchParams.get('location');
     
-export const normalizeAgendaGenre = (g: string | undefined): string => {
-    if (!g) return '';
-    const lower = g.trim().toLowerCase();
-    if (lower === 'hard techno' || lower === 'hardstyle' || lower === 'hardcore' || lower === 'hardmusic' || lower === 'hard music') {
-        return 'Hard Music';
-    }
-    return g;
-};
 
     // Create an exploded version of the data where events with extra dates appear multiple times
     const explodedAgenda = useMemo(() => {
