@@ -187,16 +187,6 @@
           "blockEmoji": "🌅"
         },
         {
-          "id": "bv_1789457924797",
-          "title": "SKRILLEX - Bangarang feat. Sirah [Official Music Video]",
-          "youtubeId": "YJVmu6yttiw",
-          "duration": 3600,
-          "category": "liveset",
-          "blockTitle": "Morning Clips",
-          "blockColor": "#f59e0b",
-          "blockEmoji": "🌅"
-        },
-        {
           "id": "bv_1789457964677",
           "title": "Bob Sinclar - We Could Be Dancing (Official Video) ft. Molly Hammar",
           "youtubeId": "kauqBzcqPFM",
@@ -240,6 +230,16 @@
           "id": "bv_1789458473779",
           "title": "DJ Snake - Club Soda @ Medellin, Colombia (",
           "youtubeId": "csd9gajWjxE",
+          "duration": 3600,
+          "category": "liveset",
+          "blockTitle": "Morning Clips",
+          "blockColor": "#f59e0b",
+          "blockEmoji": "🌅"
+        },
+        {
+          "id": "bv_1789457924797",
+          "title": "SKRILLEX - Bangarang feat. Sirah [Official Music Video]",
+          "youtubeId": "YJVmu6yttiw",
           "duration": 3600,
           "category": "liveset",
           "blockTitle": "Morning Clips",
