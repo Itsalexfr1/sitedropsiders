@@ -937,7 +937,7 @@ export function AdminRadioModal({
         });
 
         const ruleNames: Record<RadioRotationRule, string> = {
-            jingle_son_special_promo: '1 Jingle ➔ 1 Son ➔ 1 Spécial ➔ 1 Promo',
+            jingle_son_special_promo: 'Normal ➔ Son ➔ Spécial ➔ Son (promo /4)',
             son_special_son_jingle_promo: '1 Son ➔ 1 Spécial ➔ 1 Son ➔ 1 Jingle ➔ 1 Promo',
             every_2_tracks: 'Alternance tous les 2 sons',
             every_3_tracks: 'Alternance tous les 3 sons',
@@ -1629,7 +1629,7 @@ export function AdminRadioModal({
                                             onChange={e => setEditBlockForm(f => ({ ...f, rotationRule: e.target.value as RadioRotationRule }))}
                                             className="w-full px-2.5 py-2 rounded-xl bg-black/40 border border-purple-500/30 text-purple-200 text-xs font-bold focus:outline-none focus:border-purple-400 cursor-pointer"
                                         >
-                                            <option value="jingle_son_special_promo">⭐ 1 Jingle ➔ 1 Son ➔ 1 Spécial ➔ 1 Promo</option>
+                                            <option value="jingle_son_special_promo">⭐ Alterne : Normal → Son → Spécial → Son (promo tous les 4)</option>
                                             <option value="son_special_son_jingle_promo">🎵 1 Son ➔ 1 Spécial ➔ 1 Son ➔ 1 Normal ➔ 1 Promo</option>
                                             <option value="every_2_tracks">⏱️ Tous les 2 sons : Alterne Spécial / Normal / Promo</option>
                                             <option value="every_3_tracks">⏱️ Tous les 3 sons : Alterne Spécial / Normal / Promo</option>
@@ -1848,7 +1848,7 @@ export function AdminRadioModal({
                                                 className="bg-black/70 border border-purple-500/40 text-purple-200 text-xs rounded-lg px-2 py-0.5 focus:outline-none focus:border-purple-300 cursor-pointer font-bold max-w-[270px] truncate"
                                                 title="Règle de mélange des jingles normaux, jingles spéciaux et promos pour cette émission"
                                             >
-                                                <option value="jingle_son_special_promo">⭐ 1 Jingle ➔ 1 Son ➔ 1 Spécial ➔ 1 Promo</option>
+                                                <option value="jingle_son_special_promo">⭐ Alterne : Normal → Son → Spécial → Son (promo tous les 4)</option>
                                                 <option value="son_special_son_jingle_promo">🎵 1 Son ➔ 1 Spécial ➔ 1 Son ➔ 1 Normal ➔ 1 Promo</option>
                                                 <option value="every_2_tracks">⏱️ Tous les 2 sons : Alterne Spécial / Normal / Promo</option>
                                                 <option value="every_3_tracks">⏱️ Tous les 3 sons : Alterne Spécial / Normal / Promo</option>

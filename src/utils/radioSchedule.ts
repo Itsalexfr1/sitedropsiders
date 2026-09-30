@@ -652,28 +652,39 @@ export function applyRotationPatternToTracks(
     };
 
     if (rule === 'jingle_son_special_promo') {
-        // ⭐ RÈGLE DEMANDÉE PAR L'UTILISATEUR :
-        // 1 Jingle Normal ➔ 1 Son ➔ 1 Jingle Spécial ➔ 1 Promo ➔ (1 Son ➔ 1 Jingle Normal ➔ 1 Son ➔ 1 Jingle Spécial ➔ 1 Promo...)
+        // ⭐ RÈGLE : alterne strictement Jingle Normal ↔ Jingle Spécial entre chaque son
+        // Séquence : [Jingle Normal] Son [Jingle Spécial] Son [Promo] Son [Jingle Normal] Son [Jingle Spécial] ...
+        // Cycle de 5 slots entre les sons : normal, special, promo, normal, special ...
+        // => Tous les 2 sons : 1 normal puis 1 special, avec une promo tous les 4 sons
+
+        // Jingle d'ouverture (normal)
         const startJingle = pickNormalJingle('init');
         if (startJingle) result.push(startJingle);
 
-        let mIdx = 0;
-        let step = 0;
-        while (mIdx < musicTracks.length) {
-            result.push(musicTracks[mIdx]);
-            mIdx++;
+        musicTracks.forEach((track, mIdx) => {
+            result.push(track);
 
-            if (step % 2 === 0) {
+            // Cycle : 0=special, 1=promo, 2=normal, 3=special, 4=normal...
+            // Simplifié : on alterne normal/special, et on insère une promo tous les 4 sons
+            const cycle = mIdx % 4;
+            if (cycle === 0) {
+                // Jingle Spécial
                 const sj = pickSpecialJingle(`s_${mIdx}`);
                 if (sj) result.push(sj);
-                const pr = pickPromo(`p_${mIdx}`);
-                if (pr) result.push(pr);
-            } else {
+            } else if (cycle === 1) {
+                // Jingle Normal
                 const nj = pickNormalJingle(`n_${mIdx}`);
                 if (nj) result.push(nj);
+            } else if (cycle === 2) {
+                // Jingle Spécial
+                const sj = pickSpecialJingle(`s2_${mIdx}`);
+                if (sj) result.push(sj);
+            } else {
+                // cycle === 3 : Promo
+                const pr = pickPromo(`p_${mIdx}`);
+                if (pr) result.push(pr);
             }
-            step++;
-        }
+        });
     } else if (rule === 'son_special_son_jingle_promo') {
         musicTracks.forEach((track, mIdx) => {
             result.push(track);
