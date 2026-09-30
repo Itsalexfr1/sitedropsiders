@@ -744,5 +744,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1122,
+    "title": "Noyse-Rubio-Kataouchee-Agartha",
+    "date": "2026-10-03",
+    "startDate": "2026-10-03",
+    "endDate": "2026-10-03",
+    "venue": "Titan",
+    "location": "LYON",
+    "country": "FRANCE",
+    "type": "Events",
+    "image": "/uploads/uploads/eaab70e0836948de-3_octobre.png",
+    "url": "https://shotgun.live/fr/events/noyse-rubio-kataouchee-agartha",
+    "genre": "Hard Techno",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
