@@ -506,8 +506,6 @@ export function AdminRadioModal({
         }
     };
 
-    if (!isOpen) return null;
-
     interface TableItem {
         id: string;
         index?: number;
@@ -590,6 +588,8 @@ export function AdminRadioModal({
 
         return [];
     }, [activeFolder, selectedBlock, allTVVideos, generalJingles, searchFilter]);
+
+    if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-1 sm:p-3 overflow-hidden font-sans">

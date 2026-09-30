@@ -94,16 +94,16 @@ function ErrorFallback() {
               Oups, une petite <span className="text-neon-red">erreur</span> !
             </h2>
             <p className="text-gray-400 text-xs font-bold uppercase tracking-widest leading-relaxed">
-              Le site a reÃ§u une mise Ã  jour ou un petit grain de sable s'est glissÃ©. 
-              <br />RafraÃ®chis la page pour profiter de la derniÃ¨re version.
+              Le site a reçu une mise à jour ou un petit grain de sable s'est glissé. 
+              <br />Rafraîchis la page pour profiter de la dernière version.
             </p>
           </div>
 
           <button
             onClick={() => window.location.reload()}
-            className="w-full mt-10 py-5 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-neon-red hover:text-white transition-all duration-300 flex items-center justify-center gap-3 shadow-[0_10px_20px_rgba(0,0,0,0.4)] hover:shadow-neon-red/20 active:scale-95"
+            className="w-full mt-10 py-5 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-neon-red hover:text-white transition-all duration-300 flex items-center justify-center gap-3 shadow-[0_10px_20px_rgba(0,0,0,0.4)] hover:shadow-neon-red/20 active:scale-95 cursor-pointer"
           >
-            <RefreshCw className="w-4 h-4 animate-spin-slow" /> RAFRAÃŽCHIR LA EXPÃ‰RIENCE
+            <RefreshCw className="w-4 h-4 animate-spin-slow" /> RAFRAÎCHIR L'EXPÉRIENCE
           </button>
         </div>
       </div>
