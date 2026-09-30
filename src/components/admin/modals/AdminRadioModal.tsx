@@ -29,7 +29,8 @@ import {
     Upload,
     Maximize2,
     Minimize2,
-    ChevronUp
+    ChevronUp,
+    Megaphone
 } from 'lucide-react';
 import { extractYouTubeId, fetchYouTubeTitle } from './AdminTVModal';
 import { YouTubeSearchModal } from './YouTubeSearchModal';
@@ -141,8 +142,10 @@ export function AdminRadioModal({
     const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({
         emissions: true,
         jingles: true,
-        music: true
+        music: true,
+        promos: true
     });
+    const [uploadModalCategory, setUploadModalCategory] = useState<'jingle' | 'promo' | 'pub'>('jingle');
 
     // ─── Jingles Généraux ──────────────────────────────────────────────────────
     const [generalJingles, setGeneralJingles] = useState<RadionomyItem[]>(() => {
@@ -160,7 +163,7 @@ export function AdminRadioModal({
     const [tvBlocks, setTvBlocks] = useState<TVBlock[]>(getInitialTVBlocks);
     const [searchFilter, setSearchFilter] = useState('');
 
-    // ─── Modale d'Upload Jingle avec MENU DÉROULANT ───────────────────────────
+    // ─── Modale d'Upload Jingle / Promo / Pub avec MENU DÉROULANT ─────────────
     const [isUploadJingleModalOpen, setIsUploadJingleModalOpen] = useState(false);
     const [isYouTubeSearchOpen, setIsYouTubeSearchOpen] = useState(false);
 
@@ -413,27 +416,63 @@ export function AdminRadioModal({
         return list;
     }, [tvBlocks]);
 
-    // ─── Enregistrement d'un jingle uploadé ────────────────────────────────────
-    const handleSaveJingleForBlock = (blockId: string, jingle: RadioSpecialJingle, _insertInTracks: boolean) => {
+    // Total Promos et Pubs
+    const allPromosCount = useMemo(() => {
+        let count = 0;
+        blocks.forEach(b => {
+            (b.tracks || []).forEach(t => {
+                if (t.category === 'promo') count++;
+            });
+        });
+        generalJingles.forEach(j => {
+            if ((j as any).category === 'promo' || (j as any).type === 'promo') count++;
+        });
+        return count;
+    }, [blocks, generalJingles]);
+
+    const allPubsCount = useMemo(() => {
+        let count = 0;
+        blocks.forEach(b => {
+            (b.tracks || []).forEach(t => {
+                if (t.category === 'pub') count++;
+            });
+        });
+        generalJingles.forEach(j => {
+            if ((j as any).category === 'pub' || (j as any).type === 'pub') count++;
+        });
+        return count;
+    }, [blocks, generalJingles]);
+
+    // ─── Enregistrement d'un jingle / promo / pub uploadé ─────────────────────
+    const handleSaveJingleForBlock = (
+        blockId: string,
+        jingle: RadioSpecialJingle,
+        _insertInTracks: boolean,
+        category?: 'jingle' | 'promo' | 'pub'
+    ) => {
+        const cat = category || 'jingle';
         setBlocks(prev => {
             const next = prev.map(b => {
                 if (b.id !== blockId) return b;
                 const existingSpecial = b.specialJingles || [];
-                const updatedSpecial = [...existingSpecial.filter(s => s.id !== jingle.id), jingle];
+                const updatedSpecial = cat === 'jingle'
+                    ? [...existingSpecial.filter(s => s.id !== jingle.id), jingle]
+                    : existingSpecial;
 
-                const trackJingle: RadioTrackItem = {
-                    id: `track_jingle_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+                const defaultArtist = cat === 'promo' ? 'PROMO DROPSIDERS' : cat === 'pub' ? 'PUBLICITÉ SPONSOR' : `${b.title} JINGLE`;
+                const trackItem: RadioTrackItem = {
+                    id: `track_${cat}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
                     title: jingle.title,
-                    artist: `${b.title} JINGLE`,
+                    artist: defaultArtist,
                     audioUrl: jingle.audioUrl,
                     youtubeId: jingle.youtubeId,
-                    duration: jingle.duration || 15,
-                    category: 'jingle'
+                    duration: jingle.duration || (cat === 'jingle' ? 15 : 30),
+                    category: cat as RadioTrackCategory
                 };
 
                 const existingTracks = b.tracks || [];
-                // Insérer le jingle dans la programmation de l'émission (au début ou en rotation)
-                const updatedTracks = [trackJingle, ...existingTracks];
+                // Insérer le jingle / promo / pub dans la programmation de l'émission
+                const updatedTracks = [trackItem, ...existingTracks];
 
                 return {
                     ...b,
@@ -609,6 +648,76 @@ export function AdminRadioModal({
                 }));
         }
 
+        if (activeFolder === 'promos') {
+            const promoList: TableItem[] = [];
+            blocks.forEach(b => {
+                (b.tracks || []).forEach((t, tIdx) => {
+                    if (t.category === 'promo') {
+                        promoList.push({
+                            id: t.id || `p_${b.id}_${tIdx}`,
+                            type: 'promo' as const,
+                            title: t.title,
+                            artist: t.artist || 'PROMO DROPSIDERS',
+                            duration: t.duration || 30,
+                            box: b.title,
+                            audioUrl: t.audioUrl,
+                            youtubeId: t.youtubeId
+                        });
+                    }
+                });
+            });
+            generalJingles.forEach(j => {
+                if ((j as any).category === 'promo' || (j as any).type === 'promo') {
+                    promoList.push({
+                        id: j.id,
+                        type: 'promo' as const,
+                        title: j.title,
+                        artist: 'PROMO DROPSIDERS',
+                        duration: j.duration || 30,
+                        box: 'BACS PROMOS',
+                        audioUrl: j.audioUrl,
+                        youtubeId: j.youtubeId
+                    });
+                }
+            });
+            return promoList.filter(p => !query || p.title.toLowerCase().includes(query) || p.artist.toLowerCase().includes(query));
+        }
+
+        if (activeFolder === 'pubs') {
+            const pubList: TableItem[] = [];
+            blocks.forEach(b => {
+                (b.tracks || []).forEach((t, tIdx) => {
+                    if (t.category === 'pub') {
+                        pubList.push({
+                            id: t.id || `pub_${b.id}_${tIdx}`,
+                            type: 'pub' as const,
+                            title: t.title,
+                            artist: t.artist || 'PUBLICITÉ / SPONSOR',
+                            duration: t.duration || 30,
+                            box: b.title,
+                            audioUrl: t.audioUrl,
+                            youtubeId: t.youtubeId
+                        });
+                    }
+                });
+            });
+            generalJingles.forEach(j => {
+                if ((j as any).category === 'pub' || (j as any).type === 'pub') {
+                    pubList.push({
+                        id: j.id,
+                        type: 'pub' as const,
+                        title: j.title,
+                        artist: 'PUBLICITÉ / SPONSOR',
+                        duration: j.duration || 30,
+                        box: 'BACS PUBS',
+                        audioUrl: j.audioUrl,
+                        youtubeId: j.youtubeId
+                    });
+                }
+            });
+            return pubList.filter(p => !query || p.title.toLowerCase().includes(query) || p.artist.toLowerCase().includes(query));
+        }
+
         if (activeFolder.startsWith('block_jingles:') && selectedBlock) {
             return (selectedBlock.specialJingles || [])
                 .filter(j => !query || j.title.toLowerCase().includes(query))
@@ -661,7 +770,7 @@ export function AdminRadioModal({
         }
 
         return [];
-    }, [activeFolder, selectedBlock, allTVVideos, generalJingles, searchFilter]);
+    }, [activeFolder, selectedBlock, blocks, allTVVideos, generalJingles, searchFilter]);
 
     if (!isOpen) return null;
 
@@ -716,30 +825,67 @@ export function AdminRadioModal({
                         <div className="hidden md:flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10 text-xs font-bold">
                             <button
                                 type="button"
-                                className="px-3.5 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-sm"
+                                onClick={() => setActiveFolder(blocks[0] ? `emission:${blocks[0].id}` : 'tv_lib')}
+                                className={`px-3.5 py-1.5 rounded-lg transition-all ${
+                                    activeFolder.startsWith('emission:') || activeFolder === 'tv_lib'
+                                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-sm'
+                                        : 'text-gray-400 hover:text-white'
+                                }`}
                             >
                                 Audio & Bacs
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setActiveFolder('general_jingles')}
-                                className="px-3.5 py-1.5 rounded-lg text-gray-400 hover:text-white"
+                                className={`px-3.5 py-1.5 rounded-lg transition-all ${
+                                    activeFolder === 'general_jingles' || activeFolder.startsWith('block_jingles:')
+                                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-sm'
+                                        : 'text-gray-400 hover:text-white'
+                                }`}
                             >
-                                Bacs de Jingles
+                                🔔 Jingles
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setActiveFolder('promos')}
+                                className={`px-3.5 py-1.5 rounded-lg transition-all ${
+                                    activeFolder === 'promos' || activeFolder === 'pubs'
+                                        ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30 shadow-sm'
+                                        : 'text-gray-400 hover:text-white'
+                                }`}
+                            >
+                                📣 Promos & Pubs
                             </button>
                         </div>
                     </div>
 
                     {/* Actions droites */}
                     <div className="flex items-center gap-2.5">
-                        {/* Bouton Uploader un Jingle (AVEC MENU DÉROULANT DEMANDÉ) */}
+                        {/* Bouton Uploader une Promo / Pub */}
                         <button
                             type="button"
-                            onClick={() => setIsUploadJingleModalOpen(true)}
-                            className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all cursor-pointer"
+                            onClick={() => {
+                                setUploadModalCategory('promo');
+                                setIsUploadJingleModalOpen(true);
+                            }}
+                            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-black font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-1.5 shadow-[0_0_20px_rgba(249,115,22,0.4)] transition-all cursor-pointer"
+                            title="Ajouter ou uploader une promo ou publicité"
+                        >
+                            <Megaphone className="w-3.5 h-3.5" />
+                            <span>+ Ajouter Promo</span>
+                        </button>
+
+                        {/* Bouton Uploader un Jingle */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setUploadModalCategory('jingle');
+                                setIsUploadJingleModalOpen(true);
+                            }}
+                            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-1.5 shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all cursor-pointer"
                         >
                             <Upload className="w-3.5 h-3.5" />
-                            <span>Uploader un Jingle</span>
+                            <span>Uploader Jingle</span>
                         </button>
 
                         {/* Indicateur ON AIR */}
@@ -982,6 +1128,71 @@ export function AdminRadioModal({
                                     </div>
                                 )}
                             </div>
+
+                            {/* DOSSIER 4 : BACS DE PROMOS & PUBLICITÉS */}
+                            <div>
+                                <div className="flex items-center justify-between py-1.5 px-2 rounded-lg text-gray-300 hover:bg-white/5 font-bold uppercase tracking-wider text-[11px]">
+                                    <button
+                                        type="button"
+                                        onClick={() => setExpandedFolders(f => ({ ...f, promos: !f.promos }))}
+                                        className="flex items-center gap-2 text-orange-400 cursor-pointer"
+                                    >
+                                        {expandedFolders.promos ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                                        📣 Bacs de Promos & Pubs
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setUploadModalCategory('promo');
+                                            setIsUploadJingleModalOpen(true);
+                                        }}
+                                        className="p-1 rounded hover:bg-white/10 text-orange-400"
+                                        title="Ajouter une Promo ou Pub"
+                                    >
+                                        <Plus className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+
+                                {expandedFolders.promos && (
+                                    <div className="pl-4 pt-1 space-y-1">
+                                        {/* Promos Festivals & Teasers */}
+                                        <button
+                                            type="button"
+                                            onClick={() => setActiveFolder('promos')}
+                                            className={`w-full text-left py-1.5 px-2.5 rounded-lg flex items-center justify-between text-xs transition-all ${
+                                                activeFolder === 'promos'
+                                                    ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-black font-bold shadow-sm'
+                                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                            }`}
+                                        >
+                                            <span className="flex items-center gap-2 truncate">
+                                                📣 Promos & Teasers
+                                            </span>
+                                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/40 text-orange-300 font-bold">
+                                                {allPromosCount}
+                                            </span>
+                                        </button>
+
+                                        {/* Publicités & Sponsors */}
+                                        <button
+                                            type="button"
+                                            onClick={() => setActiveFolder('pubs')}
+                                            className={`w-full text-left py-1.5 px-2.5 rounded-lg flex items-center justify-between text-xs transition-all ${
+                                                activeFolder === 'pubs'
+                                                    ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white font-bold shadow-sm'
+                                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                            }`}
+                                        >
+                                            <span className="flex items-center gap-2 truncate">
+                                                📢 Publicités & Sponsors
+                                            </span>
+                                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/40 text-pink-300 font-bold">
+                                                {allPubsCount}
+                                            </span>
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -1080,6 +1291,8 @@ export function AdminRadioModal({
                                 <span className="font-display font-black text-white uppercase italic text-xs flex items-center gap-2">
                                     {activeFolder === 'tv_lib' ? '📺 Bibliothèque TV (240 vidéos)' :
                                      activeFolder === 'general_jingles' ? '🔔 Bacs de Jingles Généraux' :
+                                     activeFolder === 'promos' ? '📣 Bacs de Promos & Teasers' :
+                                     activeFolder === 'pubs' ? '📢 Bacs de Publicités & Sponsors' :
                                      activeFolder.startsWith('block_jingles:') ? `🔔 Jingles Spécifiques • ${selectedBlock?.title}` :
                                      `📻 Émission : ${selectedBlock?.emoji || ''} ${selectedBlock?.title || ''}`}
                                 </span>
@@ -1111,7 +1324,7 @@ export function AdminRadioModal({
                                 </div>
 
                                 {/* Bouton Recherche YouTube */}
-                                {selectedBlock && !activeFolder.includes('jingle') && activeFolder !== 'tv_lib' && (
+                                {selectedBlock && !activeFolder.includes('jingle') && activeFolder !== 'tv_lib' && activeFolder !== 'promos' && activeFolder !== 'pubs' && (
                                     <button
                                         type="button"
                                         onClick={() => setIsYouTubeSearchOpen(true)}
@@ -1124,7 +1337,7 @@ export function AdminRadioModal({
                                 )}
 
                                 {/* Bouton Ajouter Morceau manuel */}
-                                {selectedBlock && !activeFolder.includes('jingle') && activeFolder !== 'tv_lib' && (
+                                {selectedBlock && !activeFolder.includes('jingle') && activeFolder !== 'tv_lib' && activeFolder !== 'promos' && activeFolder !== 'pubs' && (
                                     <button
                                         type="button"
                                         onClick={() => setShowAddTrackBox(!showAddTrackBox)}
@@ -1135,10 +1348,27 @@ export function AdminRadioModal({
                                     </button>
                                 )}
 
+                                {/* Bouton Uploader Promo / Pub */}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setUploadModalCategory(activeFolder === 'pubs' ? 'pub' : 'promo');
+                                        setIsUploadJingleModalOpen(true);
+                                    }}
+                                    className="px-3.5 py-2 rounded-xl bg-orange-500/20 hover:bg-orange-500 text-orange-300 hover:text-black border border-orange-500/40 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+                                    title="Uploader un fichier MP3 de promo ou pub"
+                                >
+                                    <Megaphone className="w-3.5 h-3.5" />
+                                    <span>{activeFolder === 'pubs' ? 'Nouvelle Pub' : 'Nouvelle Promo'}</span>
+                                </button>
+
                                 {/* Bouton Uploader Jingle */}
                                 <button
                                     type="button"
-                                    onClick={() => setIsUploadJingleModalOpen(true)}
+                                    onClick={() => {
+                                        setUploadModalCategory('jingle');
+                                        setIsUploadJingleModalOpen(true);
+                                    }}
                                     className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black border border-amber-500/40 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
                                 >
                                     <Upload className="w-3.5 h-3.5" />
@@ -1205,6 +1435,9 @@ export function AdminRadioModal({
                                     >
                                         <option value="liveset">🎧 Set</option>
                                         <option value="clip">🎬 Clip</option>
+                                        <option value="promo">📣 Promo</option>
+                                        <option value="pub">📢 Pub</option>
+                                        <option value="jingle">🔔 Jingle</option>
                                     </select>
                                     <input
                                         type="number"
@@ -1255,6 +1488,8 @@ export function AdminRadioModal({
                                             const isCurrentPlaying = currentAudio?.id === item.id && isPlaying;
                                             const meta = getRadioCategoryMeta(item.type);
                                             const isSpecialJingle = (item as any).isSpecialJingle || item.type === 'jingle';
+                                            const isPromo = item.type === 'promo';
+                                            const isPub = item.type === 'pub';
 
                                             return (
                                                 <tr
@@ -1264,9 +1499,13 @@ export function AdminRadioModal({
                                                             ? 'bg-cyan-500/15'
                                                             : isSpecialJingle
                                                                 ? 'bg-amber-950/20 hover:bg-amber-900/30 border-l-4 border-l-amber-400'
-                                                                : idx % 2 === 0
-                                                                    ? 'bg-white/[0.01] hover:bg-white/5'
-                                                                    : 'bg-black/30 hover:bg-white/5'
+                                                                : isPromo
+                                                                    ? 'bg-orange-950/25 hover:bg-orange-900/35 border-l-4 border-l-orange-500'
+                                                                    : isPub
+                                                                        ? 'bg-pink-950/25 hover:bg-pink-900/35 border-l-4 border-l-pink-500'
+                                                                        : idx % 2 === 0
+                                                                            ? 'bg-white/[0.01] hover:bg-white/5'
+                                                                            : 'bg-black/30 hover:bg-white/5'
                                                     }`}
                                                 >
                                                     {/* # Ordre / Play */}
@@ -1300,11 +1539,15 @@ export function AdminRadioModal({
                                                             className={`text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded border inline-flex items-center gap-1 ${
                                                                 isSpecialJingle
                                                                     ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm'
-                                                                    : meta.bg
+                                                                    : isPromo
+                                                                        ? 'bg-orange-500/20 text-orange-300 border-orange-500/40 shadow-sm'
+                                                                        : isPub
+                                                                            ? 'bg-pink-500/20 text-pink-300 border-pink-500/40 shadow-sm'
+                                                                            : meta.bg
                                                             }`}
-                                                            style={!isSpecialJingle ? { color: meta.color, borderColor: `${meta.color}40` } : {}}
+                                                            style={!isSpecialJingle && !isPromo && !isPub ? { color: meta.color, borderColor: `${meta.color}40` } : {}}
                                                         >
-                                                            {isSpecialJingle ? '🔔 JINGLE SPÉCIAL' : `${meta.emoji} ${meta.label}`}
+                                                            {isSpecialJingle ? '🔔 JINGLE SPÉCIAL' : isPromo ? '📣 PROMO' : isPub ? '📢 PUB / SPONSOR' : `${meta.emoji} ${meta.label}`}
                                                         </span>
                                                     </td>
 
@@ -1313,17 +1556,27 @@ export function AdminRadioModal({
                                                         {item.artist}
                                                     </td>
 
-                                                    {/* Titre (mis en valeur pour les jingles spéciaux) */}
+                                                    {/* Titre (mis en valeur pour les jingles, promos et pubs) */}
                                                     <td className="py-2 px-3">
                                                         <div className="flex items-center gap-2">
                                                             <span className={`text-xs truncate font-display italic font-black uppercase ${
-                                                                isSpecialJingle ? 'text-amber-300 font-bold' : 'text-white'
+                                                                isSpecialJingle ? 'text-amber-300 font-bold' : isPromo ? 'text-orange-300 font-bold' : isPub ? 'text-pink-300 font-bold' : 'text-white'
                                                             }`}>
                                                                 {item.title}
                                                             </span>
                                                             {isSpecialJingle && (
                                                                 <span className="text-[8px] font-mono uppercase bg-amber-400 text-black px-1.5 py-0.2 rounded font-bold">
                                                                     Jingle Émission
+                                                                </span>
+                                                            )}
+                                                            {isPromo && (
+                                                                <span className="text-[8px] font-mono uppercase bg-orange-500 text-black px-1.5 py-0.2 rounded font-bold">
+                                                                    Promo
+                                                                </span>
+                                                            )}
+                                                            {isPub && (
+                                                                <span className="text-[8px] font-mono uppercase bg-pink-500 text-white px-1.5 py-0.2 rounded font-bold">
+                                                                    Pub
                                                                 </span>
                                                             )}
                                                         </div>
@@ -1508,12 +1761,13 @@ export function AdminRadioModal({
                 }}
             />
 
-            {/* ── MODALE D'UPLOAD DE JINGLE AVEC MENU DÉROULANT ── */}
+            {/* ── MODALE D'UPLOAD DE JINGLE / PROMO / PUB AVEC MENU DÉROULANT ── */}
             <RadioJingleUploadModal
                 isOpen={isUploadJingleModalOpen}
                 onClose={() => setIsUploadJingleModalOpen(false)}
                 blocks={blocks}
                 defaultBlockId={selectedBlock?.id}
+                initialCategory={uploadModalCategory}
                 onSaveJingleForBlock={handleSaveJingleForBlock}
                 onSaveGeneralJingle={handleSaveGeneralJingle}
                 onShowToast={showToast}

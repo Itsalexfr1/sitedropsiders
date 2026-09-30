@@ -19,7 +19,8 @@ interface RadioJingleUploadModalProps {
     onClose: () => void;
     blocks: RadioScheduleBlock[];
     defaultBlockId?: string | null;
-    onSaveJingleForBlock: (blockId: string, jingle: RadioSpecialJingle, insertInTracks: boolean) => void;
+    initialCategory?: 'jingle' | 'promo' | 'pub';
+    onSaveJingleForBlock: (blockId: string, jingle: RadioSpecialJingle, insertInTracks: boolean, category?: 'jingle' | 'promo' | 'pub') => void;
     onSaveGeneralJingle: (item: RadionomyItem) => void;
     onShowToast: (msg: string, type?: 'success' | 'warn' | 'info') => void;
 }
@@ -53,17 +54,20 @@ export function RadioJingleUploadModal({
     onClose,
     blocks,
     defaultBlockId,
+    initialCategory = 'jingle',
     onSaveJingleForBlock,
     onSaveGeneralJingle,
     onShowToast
 }: RadioJingleUploadModalProps) {
     const [selectedTarget, setSelectedTarget] = useState<string>(defaultBlockId || 'general');
+    const [mediaCategory, setMediaCategory] = useState<'jingle' | 'promo' | 'pub'>(initialCategory);
 
     useEffect(() => {
         if (isOpen) {
             setSelectedTarget(defaultBlockId || 'general');
+            if (initialCategory) setMediaCategory(initialCategory);
         }
-    }, [isOpen, defaultBlockId]);
+    }, [isOpen, defaultBlockId, initialCategory]);
     const [jingleTitle, setJingleTitle] = useState('');
     const [jingleAudioUrl, setJingleAudioUrl] = useState('');
     const [jingleYoutubeId, setJingleYoutubeId] = useState('');
@@ -140,9 +144,9 @@ export function RadioJingleUploadModal({
                     const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]+/g, ' ').trim();
                     if (selectedTarget === 'general') {
                         const newItem: RadionomyItem = {
-                            id: `gen_jingle_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 6)}`,
+                            id: `gen_${mediaCategory}_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 6)}`,
                             title: cleanName,
-                            category: 'jingle',
+                            category: mediaCategory,
                             duration: dur,
                             audioUrl: finalUrl,
                             isCustom: true
@@ -156,14 +160,15 @@ export function RadioJingleUploadModal({
                             duration: dur,
                             enabled: true
                         };
-                        onSaveJingleForBlock(selectedTarget, specialJingle, insertDirectlyInPlaylist);
+                        onSaveJingleForBlock(selectedTarget, specialJingle, insertDirectlyInPlaylist, mediaCategory);
                     }
                 }
 
                 const targetName = selectedTarget === 'general'
-                    ? 'Jingles Généraux'
+                    ? (mediaCategory === 'promo' ? 'Promos Générales' : mediaCategory === 'pub' ? 'Publicités Générales' : 'Jingles Généraux')
                     : blocks.find(b => b.id === selectedTarget)?.title || 'l\'émission';
-                onShowToast(`✓ ${files.length} jingles ajoutés avec succès à ${targetName} !`, 'success');
+                const catLabel = mediaCategory === 'promo' ? 'promos ajoutées' : mediaCategory === 'pub' ? 'publicités ajoutées' : 'jingles ajoutés';
+                onShowToast(`✓ ${files.length} ${catLabel} avec succès à ${targetName} !`, 'success');
                 onClose();
             } catch (err) {
                 console.error(err);
@@ -179,7 +184,7 @@ export function RadioJingleUploadModal({
 
     const handleSave = () => {
         if (!jingleTitle.trim()) {
-            onShowToast('Veuillez entrer un titre pour ce jingle', 'warn');
+            onShowToast('Veuillez entrer un titre pour ce fichier', 'warn');
             return;
         }
         if (!jingleAudioUrl && !jingleYoutubeId) {
@@ -190,20 +195,20 @@ export function RadioJingleUploadModal({
         const dur = Math.max(3, parseInt(jingleDuration, 10) || 15);
 
         if (selectedTarget === 'general') {
-            // JINGLE GÉNÉRAL (Antenne Dropsiders globale)
+            // MÉDIA GÉNÉRAL (Antenne Dropsiders globale)
             const newItem: RadionomyItem = {
-                id: `gen_jingle_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+                id: `gen_${mediaCategory}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
                 title: jingleTitle.trim(),
-                category: 'jingle',
+                category: mediaCategory,
                 duration: dur,
                 audioUrl: jingleAudioUrl || undefined,
                 youtubeId: jingleYoutubeId || undefined,
                 isCustom: true
             };
             onSaveGeneralJingle(newItem);
-            onShowToast(`✓ « ${newItem.title} » ajouté aux Jingles Généraux !`);
+            onShowToast(`✓ « ${newItem.title} » ajouté aux ${mediaCategory === 'promo' ? 'Promos' : mediaCategory === 'pub' ? 'Publicités' : 'Jingles'} !`);
         } else {
-            // JINGLE SPÉCIAL POUR UNE ÉMISSION
+            // MÉDIA SPÉCIAL POUR UNE ÉMISSION
             const targetBlock = blocks.find(b => b.id === selectedTarget);
             const specialJingle: RadioSpecialJingle = {
                 id: `special_${selectedTarget}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
@@ -213,8 +218,8 @@ export function RadioJingleUploadModal({
                 duration: dur,
                 enabled: true
             };
-            onSaveJingleForBlock(selectedTarget, specialJingle, insertDirectlyInPlaylist);
-            onShowToast(`✓ Jingle enregistré pour l'émission « ${targetBlock?.title || 'sélectionnée'} » !`);
+            onSaveJingleForBlock(selectedTarget, specialJingle, insertDirectlyInPlaylist, mediaCategory);
+            onShowToast(`✓ ${mediaCategory === 'promo' ? 'Promo' : mediaCategory === 'pub' ? 'Publicité' : 'Jingle'} enregistré pour « ${targetBlock?.title || 'sélectionnée'} » !`);
         }
 
         onClose();
@@ -231,10 +236,10 @@ export function RadioJingleUploadModal({
                         </div>
                         <div>
                             <h3 className="text-sm font-display font-black text-white uppercase italic tracking-wider">
-                                UPLOADER UN NOUVEAU JINGLE RADIO
+                                UPLOADER UN HABILLAGE (JINGLE, PROMO, PUB)
                             </h3>
                             <p className="text-[11px] text-gray-400">
-                                Choisissez l'émission cible ou attribuez-le à l'antenne générale
+                                Jingles d'antenne, promotions d'événements, partenaires & sponsors
                             </p>
                         </div>
                     </div>
@@ -338,7 +343,23 @@ export function RadioJingleUploadModal({
                     </div>
 
                     {/* 4. Durée & Type */}
+                    {/* 4. Catégorie & Durée */}
                     <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                Catégorie du média *
+                            </label>
+                            <select
+                                value={mediaCategory}
+                                onChange={(e) => setMediaCategory(e.target.value as any)}
+                                className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-xs font-bold focus:outline-none focus:border-amber-400"
+                            >
+                                <option value="jingle">🔔 Jingle / Sweeper / Drop</option>
+                                <option value="promo">📣 Promo Festival / Soirée</option>
+                                <option value="pub">📢 Publicité / Sponsor</option>
+                            </select>
+                        </div>
+
                         <div className="space-y-1">
                             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                                 Durée (secondes)
@@ -346,26 +367,11 @@ export function RadioJingleUploadModal({
                             <input
                                 type="number"
                                 min={2}
-                                max={180}
+                                max={300}
                                 value={jingleDuration}
                                 onChange={(e) => setJingleDuration(e.target.value)}
                                 className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-xs font-mono text-center focus:outline-none focus:border-amber-400"
                             />
-                        </div>
-
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                                Type d'habillage
-                            </label>
-                            <select
-                                value={jingleType}
-                                onChange={(e) => setJingleType(e.target.value as any)}
-                                className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:outline-none focus:border-amber-400"
-                            >
-                                <option value="liner">🔔 Jingle / Sweeper</option>
-                                <option value="intro">🎙️ Générique Intro</option>
-                                <option value="outro">🏁 Outro / Fin</option>
-                            </select>
                         </div>
                     </div>
 
@@ -383,7 +389,7 @@ export function RadioJingleUploadModal({
                                     Insérer directement dans la liste des morceaux
                                 </span>
                                 <p className="text-[10px] text-gray-400">
-                                    Le jingle apparaîtra visible dans l'ordre de passage des morceaux de cette émission.
+                                    Cet habillage apparaîtra visible dans l'ordre de passage des morceaux de cette émission.
                                 </p>
                             </div>
                         </label>
@@ -407,7 +413,7 @@ export function RadioJingleUploadModal({
                         className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all cursor-pointer"
                     >
                         <Check className="w-4 h-4" />
-                        <span>Enregistrer le Jingle</span>
+                        <span>Enregistrer {mediaCategory === 'promo' ? 'la Promo' : mediaCategory === 'pub' ? 'la Pub' : 'le Jingle'}</span>
                     </button>
                 </div>
             </div>
