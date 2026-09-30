@@ -20,6 +20,7 @@ export interface RadionomyItem {
 }
 
 export const DEFAULT_JINGLES_PUBS: RadionomyItem[] = [
+    // --- TOP HORAIRE & GÉNÉRIQUE ---
     {
         id: 'rad_top_1',
         title: 'Dropsiders Radio • Top Horaire Officiel (00 min)',
@@ -34,27 +35,152 @@ export const DEFAULT_JINGLES_PUBS: RadionomyItem[] = [
         duration: 18,
         category: 'generique'
     },
+
+    // --- JINGLES OFFICIELS EN WAV ---
     {
-        id: 'rad_jingle_1',
-        title: 'Dropsiders Radio • Official Festival ID Jingle',
-        youtubeId: 'k5yQBhDnrvM',
-        duration: 15,
-        category: 'jingle'
+        id: 'rad_jing_1',
+        title: 'Dropsiders Radio Jingle 1',
+        duration: 8,
+        category: 'jingle',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav'
     },
     {
-        id: 'rad_jingle_2',
-        title: 'Dropsiders • Drop Alert & Sweeper Sound FX',
-        youtubeId: 'CsRTKXYEhOM',
+        id: 'rad_jing_2',
+        title: 'Dropsiders Radio Jingle 2',
         duration: 10,
-        category: 'jingle'
+        category: 'jingle',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav'
     },
     {
-        id: 'rad_jingle_3',
-        title: 'Dropsiders Radio • Non-Stop Club & Festival Energy',
-        youtubeId: '8YbWq5urfww',
+        id: 'rad_jing_3',
+        title: 'Dropsiders Radio Jingle 3',
         duration: 12,
-        category: 'jingle'
+        category: 'jingle',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav'
     },
+    {
+        id: 'rad_jing_4',
+        title: 'Dropsiders Radio Jingle 4',
+        duration: 8,
+        category: 'jingle',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav'
+    },
+    {
+        id: 'rad_jing_5',
+        title: 'Dropsiders Radio Jingle 5',
+        duration: 14,
+        category: 'jingle',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav'
+    },
+    {
+        id: 'rad_jing_6',
+        title: 'Dropsiders Radio Jingle 6',
+        duration: 9,
+        category: 'jingle',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav'
+    },
+
+    // --- PROMOS, TEASERS & SPONSORS FESTIVALS ---
+    {
+        id: 'promo_tomorrowland_winter',
+        title: 'Promo Tomorrowland Winter',
+        duration: 66,
+        category: 'promo',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav'
+    },
+    {
+        id: 'promo_escape_psycho_circus_1',
+        title: 'Promo Escape Psycho Circus 2026 1',
+        duration: 47,
+        category: 'promo',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav'
+    },
+    {
+        id: 'promo_escape_psycho_circus_2',
+        title: 'Promo Escape Psycho Circus 2026 2',
+        duration: 40,
+        category: 'promo',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav'
+    },
+    {
+        id: 'promo_insta_tiktok_1',
+        title: 'Dropsiders Radio Promo Insta & Tiktok',
+        duration: 15,
+        category: 'promo',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav'
+    },
+    {
+        id: 'promo_insta_tiktok_2',
+        title: 'Dropsiders Radio Promo Insta & Tiktok 2',
+        duration: 30,
+        category: 'promo',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav'
+    },
+    {
+        id: 'promo_insta_tiktok_3',
+        title: 'Dropsiders Radio Promo Insta & Tiktok 3',
+        duration: 28,
+        category: 'promo',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav'
+    },
+    {
+        id: 'promo_insta_tiktok_tb',
+        title: 'Dropsiders Radio Promo Insta & Tiktok TRES TRES BON',
+        duration: 22,
+        category: 'promo',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav'
+    },
+    {
+        id: 'promo_insta_tiktok_tb2',
+        title: 'Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2',
+        duration: 33,
+        category: 'promo',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav'
+    },
+    {
+        id: 'promo_insta_tiktok_tb3',
+        title: 'Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3',
+        duration: 46,
+        category: 'promo',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav'
+    },
+    {
+        id: 'promo_insta_tiktok_tb4',
+        title: 'Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4',
+        duration: 44,
+        category: 'promo',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav'
+    },
+    {
+        id: 'promo_insta_tiktok_tb5',
+        title: 'Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5',
+        duration: 28,
+        category: 'promo',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav'
+    },
+    {
+        id: 'promo_insta_tiktok_tb6',
+        title: 'Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6',
+        duration: 26,
+        category: 'promo',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav'
+    },
+    {
+        id: 'promo_insta_tiktok_tb7',
+        title: 'Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7',
+        duration: 32,
+        category: 'promo',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav'
+    },
+    {
+        id: 'promo_insta_tiktok_tb8',
+        title: 'Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8',
+        duration: 32,
+        category: 'promo',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav'
+    },
+
+    // --- PUBLICITÉS & SPONSORS PARTENAIRES ---
     {
         id: 'rad_pub_1',
         title: 'Publicité Dropsiders Voyages • Packs Festivals & Bus',
@@ -76,6 +202,8 @@ export const DEFAULT_JINGLES_PUBS: RadionomyItem[] = [
         duration: 20,
         category: 'promo'
     },
+
+    // --- INTERVIEWS ---
     {
         id: 'rad_inter_1',
         title: 'Interview Exclusive • Martin Garrix en direct de l\'Amsterdam Dance Event',

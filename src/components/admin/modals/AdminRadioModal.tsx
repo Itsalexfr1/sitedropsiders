@@ -417,31 +417,24 @@ export function AdminRadioModal({
         return list;
     }, [tvBlocks]);
 
-    // Total Promos et Pubs
-    const allPromosCount = useMemo(() => {
-        let count = 0;
+    // Total Promos, Teasers, Publicités & Sponsors unifié
+    const allPromosPubsCount = useMemo(() => {
+        const promoPubKeys = new Set<string>();
         blocks.forEach(b => {
             (b.tracks || []).forEach(t => {
-                if (t.category === 'promo') count++;
+                const isPromoOrPub = t.category === 'promo' || t.category === 'pub' || t.artist === 'SPONSOR' || t.artist === 'PUBLICITÉ / SPONSOR' || (t.title && t.title.toLowerCase().startsWith('promo '));
+                if (isPromoOrPub) {
+                    promoPubKeys.add(((t.audioUrl || t.title) + '').toLowerCase().trim());
+                }
             });
         });
         generalJingles.forEach(j => {
-            if ((j as any).category === 'promo' || (j as any).type === 'promo') count++;
+            const isPromoOrPub = (j as any).category === 'promo' || (j as any).type === 'promo' || (j as any).category === 'pub' || (j as any).type === 'pub' || (j.title && j.title.toLowerCase().startsWith('promo '));
+            if (isPromoOrPub) {
+                promoPubKeys.add(((j.audioUrl || j.title) + '').toLowerCase().trim());
+            }
         });
-        return count;
-    }, [blocks, generalJingles]);
-
-    const allPubsCount = useMemo(() => {
-        let count = 0;
-        blocks.forEach(b => {
-            (b.tracks || []).forEach(t => {
-                if (t.category === 'pub') count++;
-            });
-        });
-        generalJingles.forEach(j => {
-            if ((j as any).category === 'pub' || (j as any).type === 'pub') count++;
-        });
-        return count;
+        return promoPubKeys.size;
     }, [blocks, generalJingles]);
 
     // ─── Enregistrement d'un jingle / promo / pub uploadé ─────────────────────
@@ -758,6 +751,41 @@ export function AdminRadioModal({
         }
     };
 
+    // Remise à zéro complète des promos, publicités et doublons pour tout remettre dans l'ordre
+    const handleResetEmissionTracks = () => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Remettre à zéro les émissions ?',
+            message: 'Toutes les promos, publicités et doublons de jingles actuellement injectés dans les grilles d\'émissions vont être retirés afin de laisser uniquement vos sets musicaux de base bien ordonnés. Vous pourrez ensuite réordonner et insérer vos promos & sponsors proprement.',
+            type: 'warning',
+            confirmText: 'Oui, remettre à zéro',
+            cancelText: 'Annuler',
+            onConfirm: () => {
+                let cleanedCount = 0;
+                setBlocks(prev => {
+                    const next = prev.map(b => {
+                        const cleanTracks = (b.tracks || []).filter(t => {
+                            const isPromoOrPub = t.category === 'promo' || t.category === 'pub' || t.artist === 'SPONSOR' || t.artist === 'PUBLICITÉ / SPONSOR' || (t.title && t.title.toLowerCase().startsWith('promo '));
+                            if (isPromoOrPub) {
+                                cleanedCount++;
+                                return false;
+                            }
+                            return true;
+                        });
+                        return { ...b, tracks: cleanTracks };
+                    });
+                    try {
+                        localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
+                        window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+                    } catch {}
+                    return next;
+                });
+                showToast(`✓ Grille remise à zéro : ${cleanedCount} promo(s)/pub(s) retirée(s). Prêt à remettre dans l'ordre !`, 'success');
+                setConfirmModal(c => ({ ...c, isOpen: false }));
+            }
+        });
+    };
+
     // Sauvegarde globale
     const handleSaveAll = async () => {
         setIsSaving(true);
@@ -837,71 +865,25 @@ export function AdminRadioModal({
                 }));
         }
 
-        if (activeFolder === 'promos') {
-            const promoMap = new Map<string, TableItem & { emissionCount: number }>();
-            blocks.forEach(b => {
-                (b.tracks || []).forEach((t, tIdx) => {
-                    if (t.category === 'promo' || (t.title && t.title.toLowerCase().startsWith('promo '))) {
-                        const key = (t.audioUrl || t.title).toLowerCase().trim();
-                        const existing = promoMap.get(key);
-                        if (existing) {
-                            existing.emissionCount++;
-                        } else {
-                            promoMap.set(key, {
-                                id: t.id || `p_${b.id}_${tIdx}`,
-                                type: 'promo' as const,
-                                title: t.title,
-                                artist: t.artist || 'PROMO DROPSIDERS',
-                                duration: t.duration || 30,
-                                box: b.title,
-                                audioUrl: t.audioUrl,
-                                youtubeId: t.youtubeId,
-                                emissionCount: 1
-                            });
-                        }
-                    }
-                });
-            });
-            generalJingles.forEach(j => {
-                if ((j as any).category === 'promo' || (j as any).type === 'promo') {
-                    const key = (j.audioUrl || j.title).toLowerCase().trim();
-                    if (!promoMap.has(key)) {
-                        promoMap.set(key, {
-                            id: j.id,
-                            type: 'promo' as const,
-                            title: j.title,
-                            artist: 'PROMO DROPSIDERS',
-                            duration: j.duration || 30,
-                            box: 'BACS PROMOS',
-                            audioUrl: j.audioUrl,
-                            youtubeId: j.youtubeId,
-                            emissionCount: 0
-                        });
-                    }
-                }
-            });
-            const promoList = Array.from(promoMap.values()).map(p => ({
-                ...p,
-                box: p.emissionCount > 1 ? `Diffusé dans ${p.emissionCount} émissions` : p.box
-            }));
-            return promoList.filter(p => !query || p.title.toLowerCase().includes(query) || p.artist.toLowerCase().includes(query));
-        }
+        if (activeFolder === 'promos' || activeFolder === 'pubs' || activeFolder === 'promos_pubs') {
+            const promoPubMap = new Map<string, TableItem & { emissionCount: number }>();
 
-        if (activeFolder === 'pubs') {
-            const pubMap = new Map<string, TableItem & { emissionCount: number }>();
+            // 1. Scanner les émissions
             blocks.forEach(b => {
                 (b.tracks || []).forEach((t, tIdx) => {
-                    if (t.category === 'pub' || t.artist === 'SPONSOR') {
-                        const key = (t.audioUrl || t.title).toLowerCase().trim();
-                        const existing = pubMap.get(key);
+                    const isPromoOrPub = t.category === 'promo' || t.category === 'pub' || t.artist === 'SPONSOR' || t.artist === 'PUBLICITÉ / SPONSOR' || (t.title && t.title.toLowerCase().startsWith('promo '));
+                    if (isPromoOrPub) {
+                        const key = ((t.audioUrl || t.title) + '').toLowerCase().trim();
+                        const existing = promoPubMap.get(key);
                         if (existing) {
                             existing.emissionCount++;
                         } else {
-                            pubMap.set(key, {
-                                id: t.id || `pub_${b.id}_${tIdx}`,
-                                type: 'pub' as const,
+                            const isPub = t.category === 'pub' || t.artist === 'SPONSOR' || t.artist === 'PUBLICITÉ / SPONSOR';
+                            promoPubMap.set(key, {
+                                id: t.id || `pp_${b.id}_${tIdx}`,
+                                type: isPub ? ('pub' as const) : ('promo' as const),
                                 title: t.title,
-                                artist: t.artist || 'PUBLICITÉ / SPONSOR',
+                                artist: t.artist || (isPub ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS'),
                                 duration: t.duration || 30,
                                 box: b.title,
                                 audioUrl: t.audioUrl,
@@ -912,17 +894,21 @@ export function AdminRadioModal({
                     }
                 });
             });
+
+            // 2. Scanner la palette générale
             generalJingles.forEach(j => {
-                if ((j as any).category === 'pub' || (j as any).type === 'pub') {
-                    const key = (j.audioUrl || j.title).toLowerCase().trim();
-                    if (!pubMap.has(key)) {
-                        pubMap.set(key, {
+                const isPromo = (j as any).category === 'promo' || (j as any).type === 'promo' || (j.title && j.title.toLowerCase().startsWith('promo '));
+                const isPub = (j as any).category === 'pub' || (j as any).type === 'pub';
+                if (isPromo || isPub) {
+                    const key = ((j.audioUrl || j.title) + '').toLowerCase().trim();
+                    if (!promoPubMap.has(key)) {
+                        promoPubMap.set(key, {
                             id: j.id,
-                            type: 'pub' as const,
+                            type: isPub ? ('pub' as const) : ('promo' as const),
                             title: j.title,
-                            artist: 'PUBLICITÉ / SPONSOR',
+                            artist: isPub ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS',
                             duration: j.duration || 30,
-                            box: 'BACS PUBS',
+                            box: 'BACS PROMOS & SPONSORS',
                             audioUrl: j.audioUrl,
                             youtubeId: j.youtubeId,
                             emissionCount: 0
@@ -930,11 +916,13 @@ export function AdminRadioModal({
                     }
                 }
             });
-            const pubList = Array.from(pubMap.values()).map(p => ({
+
+            const mergedList = Array.from(promoPubMap.values()).map(p => ({
                 ...p,
-                box: p.emissionCount > 1 ? `Diffusé dans ${p.emissionCount} émissions` : p.box
+                box: p.emissionCount > 0 ? `Diffusé dans ${p.emissionCount} émission${p.emissionCount > 1 ? 's' : ''}` : 'Bacs Promos & Sponsors'
             }));
-            return pubList.filter(p => !query || p.title.toLowerCase().includes(query) || p.artist.toLowerCase().includes(query));
+
+            return mergedList.filter(p => !query || p.title.toLowerCase().includes(query) || p.artist.toLowerCase().includes(query));
         }
 
         if (activeFolder.startsWith('block_jingles:') && selectedBlock) {
@@ -1073,7 +1061,7 @@ export function AdminRadioModal({
                                         : 'text-gray-400 hover:text-white'
                                 }`}
                             >
-                                📣 Promos & Pubs
+                                📣 Promos & Sponsors
                             </button>
                         </div>
                     </div>
@@ -1353,11 +1341,17 @@ export function AdminRadioModal({
                                 <div className="flex items-center justify-between py-1.5 px-2 rounded-lg text-gray-300 hover:bg-white/5 font-bold uppercase tracking-wider text-[11px]">
                                     <button
                                         type="button"
-                                        onClick={() => setExpandedFolders(f => ({ ...f, promos: !f.promos }))}
-                                        className="flex items-center gap-2 text-orange-400 cursor-pointer"
+                                        onClick={() => {
+                                            setActiveFolder('promos');
+                                            setExpandedFolders(f => ({ ...f, promos: true }));
+                                        }}
+                                        className={`flex items-center gap-2 cursor-pointer transition-all ${
+                                            activeFolder === 'promos' || activeFolder === 'pubs'
+                                                ? 'text-orange-400 font-black'
+                                                : 'text-gray-300 hover:text-white'
+                                        }`}
                                     >
-                                        {expandedFolders.promos ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                                        📣 Bacs de Promos & Pubs
+                                        📣 Promos & Sponsors
                                     </button>
                                     <button
                                         type="button"
@@ -1366,51 +1360,30 @@ export function AdminRadioModal({
                                             setIsUploadJingleModalOpen(true);
                                         }}
                                         className="p-1 rounded hover:bg-white/10 text-orange-400"
-                                        title="Ajouter une Promo ou Pub"
+                                        title="Ajouter une Promo ou Pub/Sponsor"
                                     >
                                         <Plus className="w-3.5 h-3.5" />
                                     </button>
                                 </div>
 
-                                {expandedFolders.promos && (
-                                    <div className="pl-4 pt-1 space-y-1">
-                                        {/* Promos Festivals & Teasers */}
-                                        <button
-                                            type="button"
-                                            onClick={() => setActiveFolder('promos')}
-                                            className={`w-full text-left py-1.5 px-2.5 rounded-lg flex items-center justify-between text-xs transition-all ${
-                                                activeFolder === 'promos'
-                                                    ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-black font-bold shadow-sm'
-                                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
-                                            }`}
-                                        >
-                                            <span className="flex items-center gap-2 truncate">
-                                                📣 Promos & Teasers
-                                            </span>
-                                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/40 text-orange-300 font-bold">
-                                                {allPromosCount}
-                                            </span>
-                                        </button>
-
-                                        {/* Publicités & Sponsors */}
-                                        <button
-                                            type="button"
-                                            onClick={() => setActiveFolder('pubs')}
-                                            className={`w-full text-left py-1.5 px-2.5 rounded-lg flex items-center justify-between text-xs transition-all ${
-                                                activeFolder === 'pubs'
-                                                    ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white font-bold shadow-sm'
-                                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
-                                            }`}
-                                        >
-                                            <span className="flex items-center gap-2 truncate">
-                                                📢 Publicités & Sponsors
-                                            </span>
-                                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/40 text-pink-300 font-bold">
-                                                {allPubsCount}
-                                            </span>
-                                        </button>
-                                    </div>
-                                )}
+                                <div className="pl-3 pt-1 space-y-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveFolder('promos')}
+                                        className={`w-full text-left py-2 px-2.5 rounded-lg flex items-center justify-between text-xs transition-all ${
+                                            activeFolder === 'promos' || activeFolder === 'pubs'
+                                                ? 'bg-gradient-to-r from-orange-600 via-amber-600 to-pink-600 text-white font-bold shadow-md shadow-orange-500/20'
+                                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                        }`}
+                                    >
+                                        <span className="flex items-center gap-2 truncate">
+                                            📣 Bacs Promos & Sponsors
+                                        </span>
+                                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/50 text-orange-300 font-bold border border-white/10">
+                                            {allPromosPubsCount}
+                                        </span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1617,8 +1590,7 @@ export function AdminRadioModal({
                                 <span className="font-display font-black text-white uppercase italic text-xs flex items-center gap-2">
                                     {activeFolder === 'tv_lib' ? '📺 Bibliothèque TV (240 vidéos)' :
                                      activeFolder === 'general_jingles' ? '🔔 Bacs de Jingles Généraux' :
-                                     activeFolder === 'promos' ? '📣 Bacs de Promos & Teasers' :
-                                     activeFolder === 'pubs' ? '📢 Bacs de Publicités & Sponsors' :
+                                     (activeFolder === 'promos' || activeFolder === 'pubs') ? '📣 Bacs Promos, Publicités & Sponsors' :
                                      activeFolder.startsWith('block_jingles:') ? `🔔 Jingles Spécifiques • ${selectedBlock?.title}` :
                                      `📻 Émission : ${selectedBlock?.emoji || ''} ${selectedBlock?.title || ''}`}
                                 </span>
@@ -1674,18 +1646,18 @@ export function AdminRadioModal({
                                     </button>
                                 )}
 
-                                {/* Bouton Uploader Promo / Pub */}
+                                {/* Bouton Uploader Promo / Sponsor */}
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setUploadModalCategory(activeFolder === 'pubs' ? 'pub' : 'promo');
+                                        setUploadModalCategory('promo');
                                         setIsUploadJingleModalOpen(true);
                                     }}
                                     className="px-3.5 py-2 rounded-xl bg-orange-500/20 hover:bg-orange-500 text-orange-300 hover:text-black border border-orange-500/40 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
-                                    title="Uploader un fichier MP3 de promo ou pub"
+                                    title="Uploader un fichier MP3/WAV de promo ou sponsor"
                                 >
                                     <Megaphone className="w-3.5 h-3.5" />
-                                    <span>{activeFolder === 'pubs' ? 'Nouvelle Pub' : 'Nouvelle Promo'}</span>
+                                    <span>+ Promo / Pub</span>
                                 </button>
 
                                 {/* Bouton Dédoublonner Sponsors & Promos */}
@@ -1697,6 +1669,17 @@ export function AdminRadioModal({
                                 >
                                     <Sparkles className="w-3.5 h-3.5" />
                                     <span>Dédoublonner</span>
+                                </button>
+
+                                {/* Bouton Remettre à zéro afin de tout remettre dans l'ordre */}
+                                <button
+                                    type="button"
+                                    onClick={handleResetEmissionTracks}
+                                    className="px-3 py-2 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-300 hover:text-black border border-red-500/30 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-sm"
+                                    title="Retire toutes les promos et pubs injectées dans les émissions pour repartir d'une grille propre et tout remettre dans l'ordre"
+                                >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    <span>Remettre à zéro</span>
                                 </button>
 
                                 {/* Bouton Uploader Jingle */}
