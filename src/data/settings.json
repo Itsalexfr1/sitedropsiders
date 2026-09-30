@@ -7214,75 +7214,67 @@
       "rotationRule": "son_special_son_jingle_promo",
       "tracks": [
         {
-          "id": "special_bloc_1790809306418_1790809330387_8_5m6o",
-          "title": "Classic Time 9",
-          "artist": "CLASSIC TIME JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/f3104b4ac3d90ca8-Classic_Time_9.wav",
-          "duration": 9,
-          "category": "jingle"
+          "id": "track_1790809429546_1qa2",
+          "title": "Animals",
+          "artist": "Martin Garrix",
+          "youtubeId": "gCYcHz2k5x0",
+          "duration": 3600,
+          "category": "liveset"
         },
         {
-          "id": "special_bloc_1790809306418_1790809330044_7_guqx",
-          "title": "Classic Time 8",
-          "artist": "CLASSIC TIME JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/46b81b62526ccd0c-Classic_Time_8.wav",
-          "duration": 14,
-          "category": "jingle"
-        },
-        {
-          "id": "special_bloc_1790809306418_1790809329614_6_jpse",
-          "title": "Classic Time 7",
-          "artist": "CLASSIC TIME JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9ffe042f649201e6-Classic_Time_7.wav",
-          "duration": 9,
-          "category": "jingle"
-        },
-        {
-          "id": "special_bloc_1790809306418_1790809328614_5_yq9i",
-          "title": "Classic Time 6",
-          "artist": "CLASSIC TIME JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/400d28986c937995-Classic_Time_6.wav",
-          "duration": 7,
-          "category": "jingle"
-        },
-        {
-          "id": "special_bloc_1790809306418_1790809328201_4_a9pd",
-          "title": "Classic Time 5",
-          "artist": "CLASSIC TIME JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/788340a171828dd5-Classic_Time_5.wav",
-          "duration": 14,
-          "category": "jingle"
-        },
-        {
-          "id": "special_bloc_1790809306418_1790809327816_3_qxne",
-          "title": "Classic Time 4",
-          "artist": "CLASSIC TIME JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/00fb30117db8923c-Classic_Time_4.wav",
-          "duration": 14,
-          "category": "jingle"
-        },
-        {
-          "id": "special_bloc_1790809306418_1790809327426_2_vjec",
-          "title": "Classic Time 3",
-          "artist": "CLASSIC TIME JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0e0091ff516c357b-Classic_Time_3.wav",
-          "duration": 14,
-          "category": "jingle"
-        },
-        {
-          "id": "special_bloc_1790809306418_1790809327019_1_rzba",
-          "title": "Classic Time 2",
-          "artist": "CLASSIC TIME JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9920a1dbc8ae5a5c-Classic_Time_2.wav",
-          "duration": 14,
-          "category": "jingle"
-        },
-        {
-          "id": "special_bloc_1790809306418_1790809326582_0_r01o",
+          "id": "sj_bloc_1790809306418_s_0",
           "title": "Classic Time 1",
-          "artist": "CLASSIC TIME JINGLE",
+          "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6b53dd9114606744-Classic_Time_1.wav",
           "duration": 10,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790809458664_icy5",
+          "title": "Day 'n' Nite",
+          "artist": "kid cudi vs crookers",
+          "youtubeId": "IQHEk1l6Ayw",
+          "duration": 3600,
+          "category": "liveset"
+        },
+        {
+          "id": "nj_bloc_1790809306418_n_1",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790809488224_dl02",
+          "title": "Rise Up",
+          "artist": "Yves LaRock",
+          "youtubeId": "S1x2LJbDkZg",
+          "duration": 3600,
+          "category": "liveset"
+        },
+        {
+          "id": "pr_bloc_1790809306418_p_2",
+          "title": "Promo Tomorrowland Winter",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+          "duration": 66,
+          "category": "promo"
+        },
+        {
+          "id": "track_1790809508962_h3ld",
+          "title": "Keep Control Plus (Fedde Legrand mix -Official 2009)",
+          "artist": "SONO",
+          "youtubeId": "YKsd1nXKKLw",
+          "duration": 3600,
+          "category": "liveset"
+        },
+        {
+          "id": "sj_bloc_1790809306418_s_3",
+          "title": "Classic Time 2",
+          "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9920a1dbc8ae5a5c-Classic_Time_2.wav",
+          "duration": 14,
           "category": "jingle"
         }
       ],
@@ -11510,75 +11502,67 @@
       "category": "jingle"
     },
     {
-      "id": "special_bloc_1790809306418_1790809330387_8_5m6o",
-      "title": "Classic Time 9",
-      "artist": "CLASSIC TIME JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/f3104b4ac3d90ca8-Classic_Time_9.wav",
-      "duration": 9,
-      "category": "jingle"
+      "id": "track_1790809429546_1qa2",
+      "title": "Animals",
+      "artist": "Martin Garrix",
+      "youtubeId": "gCYcHz2k5x0",
+      "duration": 3600,
+      "category": "liveset"
     },
     {
-      "id": "special_bloc_1790809306418_1790809330044_7_guqx",
-      "title": "Classic Time 8",
-      "artist": "CLASSIC TIME JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/46b81b62526ccd0c-Classic_Time_8.wav",
-      "duration": 14,
-      "category": "jingle"
-    },
-    {
-      "id": "special_bloc_1790809306418_1790809329614_6_jpse",
-      "title": "Classic Time 7",
-      "artist": "CLASSIC TIME JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9ffe042f649201e6-Classic_Time_7.wav",
-      "duration": 9,
-      "category": "jingle"
-    },
-    {
-      "id": "special_bloc_1790809306418_1790809328614_5_yq9i",
-      "title": "Classic Time 6",
-      "artist": "CLASSIC TIME JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/400d28986c937995-Classic_Time_6.wav",
-      "duration": 7,
-      "category": "jingle"
-    },
-    {
-      "id": "special_bloc_1790809306418_1790809328201_4_a9pd",
-      "title": "Classic Time 5",
-      "artist": "CLASSIC TIME JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/788340a171828dd5-Classic_Time_5.wav",
-      "duration": 14,
-      "category": "jingle"
-    },
-    {
-      "id": "special_bloc_1790809306418_1790809327816_3_qxne",
-      "title": "Classic Time 4",
-      "artist": "CLASSIC TIME JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/00fb30117db8923c-Classic_Time_4.wav",
-      "duration": 14,
-      "category": "jingle"
-    },
-    {
-      "id": "special_bloc_1790809306418_1790809327426_2_vjec",
-      "title": "Classic Time 3",
-      "artist": "CLASSIC TIME JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0e0091ff516c357b-Classic_Time_3.wav",
-      "duration": 14,
-      "category": "jingle"
-    },
-    {
-      "id": "special_bloc_1790809306418_1790809327019_1_rzba",
-      "title": "Classic Time 2",
-      "artist": "CLASSIC TIME JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9920a1dbc8ae5a5c-Classic_Time_2.wav",
-      "duration": 14,
-      "category": "jingle"
-    },
-    {
-      "id": "special_bloc_1790809306418_1790809326582_0_r01o",
+      "id": "sj_bloc_1790809306418_s_0",
       "title": "Classic Time 1",
-      "artist": "CLASSIC TIME JINGLE",
+      "artist": "CLASSIC TIME JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6b53dd9114606744-Classic_Time_1.wav",
       "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790809458664_icy5",
+      "title": "Day 'n' Nite",
+      "artist": "kid cudi vs crookers",
+      "youtubeId": "IQHEk1l6Ayw",
+      "duration": 3600,
+      "category": "liveset"
+    },
+    {
+      "id": "nj_bloc_1790809306418_n_1",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790809488224_dl02",
+      "title": "Rise Up",
+      "artist": "Yves LaRock",
+      "youtubeId": "S1x2LJbDkZg",
+      "duration": 3600,
+      "category": "liveset"
+    },
+    {
+      "id": "pr_bloc_1790809306418_p_2",
+      "title": "Promo Tomorrowland Winter",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+      "duration": 66,
+      "category": "promo"
+    },
+    {
+      "id": "track_1790809508962_h3ld",
+      "title": "Keep Control Plus (Fedde Legrand mix -Official 2009)",
+      "artist": "SONO",
+      "youtubeId": "YKsd1nXKKLw",
+      "duration": 3600,
+      "category": "liveset"
+    },
+    {
+      "id": "sj_bloc_1790809306418_s_3",
+      "title": "Classic Time 2",
+      "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9920a1dbc8ae5a5c-Classic_Time_2.wav",
+      "duration": 14,
       "category": "jingle"
     }
   ],
