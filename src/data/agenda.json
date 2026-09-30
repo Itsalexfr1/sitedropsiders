@@ -782,5 +782,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1124,
+    "title": "The Straikerz/ Big K/ One Shot/ Kataouchee/ Agartha",
+    "date": "2026-10-17",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "venue": "Titan",
+    "location": "LYON",
+    "country": "FRANCE",
+    "type": "Events",
+    "image": "/uploads/uploads/117a708cf63de151-17_octobre.png",
+    "url": "https://shotgun.live/fr/events/thestraikersandbigk",
+    "genre": "Hard Techno",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
