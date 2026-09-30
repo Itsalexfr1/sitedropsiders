@@ -2798,11 +2798,11 @@
         },
         {
           "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_1",
-          "artist": "SPONSOR",
+          "artist": "PROMO DROPSIDERS",
           "title": "Promo Tomorrowland Winter",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
           "duration": 66,
-          "category": "pub",
+          "category": "promo",
           "addedAt": 1790643685218
         },
         {
@@ -2852,11 +2852,11 @@
         },
         {
           "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_3",
-          "artist": "SPONSOR",
+          "artist": "PROMO DROPSIDERS",
           "title": "Promo Escape Psycho Circus 2026 2",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 40,
-          "category": "pub",
+          "category": "promo",
           "addedAt": 1790643685218
         },
         {
@@ -2897,11 +2897,11 @@
         },
         {
           "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_5",
-          "artist": "SPONSOR",
+          "artist": "PROMO DROPSIDERS",
           "title": "Promo Escape Psycho Circus 2026 1",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 47,
-          "category": "pub",
+          "category": "promo",
           "addedAt": 1790643685218
         },
         {
@@ -2941,15 +2941,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_7",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_tv_1790255672563_uqru",
           "title": "QUE CE SOIT CLAIR",
           "artist": "Paul Kalkbrenner x Stromae",
@@ -2983,15 +2974,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 44,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_9",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -3031,15 +3013,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_11",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_tv_1790255683756_1bw0",
           "title": "Beautiful (Official Music Video)",
           "artist": "Anyma, Joji",
@@ -3073,15 +3046,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_13",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -3121,15 +3085,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_15",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_1790255829690",
           "title": "Nothing Wrong (Love Mix)",
           "artist": "Omri",
@@ -3163,15 +3118,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
           "duration": 12,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_17",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -3211,15 +3157,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_19",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_1790256008619",
           "title": "Innerbloom",
           "artist": "RÜFÜS DU SOL",
@@ -3253,15 +3190,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 30,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_21",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -3301,15 +3229,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_23",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_1790256149615",
           "title": "4Get The Girl (Samm Remix)",
           "artist": "Route 94",
@@ -3343,15 +3262,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_25",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -3391,15 +3301,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_27",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_1790256226318",
           "title": "Analog Ascent",
           "artist": "Vintage Culture, Roddy Lima",
@@ -3433,15 +3334,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_29",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -3481,15 +3373,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_31",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_1790256302438",
           "title": "Hello",
           "artist": "Martin Solveig & Dragonette",
@@ -3523,15 +3406,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
           "duration": 8,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_33",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -3571,15 +3445,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_35",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_tv_1790256332123_2ai2",
           "title": "Places ft. Ina Wroldsen",
           "artist": "Martin Solveig",
@@ -3613,15 +3478,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
           "duration": 9,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_37",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -3661,15 +3517,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_39",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_tv_1790256344591_qpb3",
           "title": "“Without You”",
           "artist": "Kygo, HAYLA",
@@ -3703,15 +3550,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 33,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_41",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -3751,15 +3589,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_43",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_tv_1790256351317_yfz4",
           "title": "DROPSIDERS TV",
           "artist": "Kevin de Vries & Platero – Man Like Me (Visualizer)",
@@ -3793,15 +3622,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 26,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_45",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -3841,15 +3661,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_47",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_tv_1790256356223_3bu0",
           "title": "DROPSIDERS TV",
           "artist": "Massano & Humans Musik – Underground (Visualizer)",
@@ -3883,15 +3694,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
           "duration": 10,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_49",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -3931,15 +3733,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_51",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_tv_1790256361116_dxw5",
           "title": "Entropy (feat. fknsyd) [Live at Sphere Las Vegas]",
           "artist": "Anyma, Rezz",
@@ -3973,15 +3766,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
           "duration": 14,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_53",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -4021,15 +3805,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_55",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_tv_1790256363593_0qfa",
           "title": "Stade de France 2026)",
           "artist": "ARTBAT, David Guetta, Gotye - Somebody That I Used To Know (",
@@ -4063,15 +3838,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_57",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -4111,15 +3877,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_59",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_tv_1790256368196_5liu",
           "title": "Blind feat. Emmi",
           "artist": "Feder",
@@ -4153,15 +3910,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_61",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -4201,15 +3949,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_63",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_1790256416815",
           "title": "Music Sounds Better With You (Official Music Video)",
           "artist": "Stardust",
@@ -4243,15 +3982,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 15,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_65",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -4291,15 +4021,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_67",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_tv_1790256428125_ncyh",
           "title": "In My Mind [Live at Sphere Las Vegas]",
           "artist": "Anyma, SCRIPT",
@@ -4333,15 +4054,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
           "duration": 8,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_69",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -4381,15 +4093,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_71",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_1790256500279",
           "title": "E Samba",
           "artist": "Junior Jack",
@@ -4423,15 +4126,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_73",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -4471,15 +4165,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_75",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_1790256557829",
           "title": "Take Our Time (Extended Mix)",
           "artist": "Oden & Fatzo x ASTELS",
@@ -4513,15 +4198,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 44,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_77",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -4561,15 +4237,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_79",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_tv_1790259637754_vl85",
           "title": "Mayan Warrior · Burning Man 2025",
           "artist": "JOHN SUMMIT",
@@ -4603,15 +4270,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_81",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -4651,15 +4309,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_83",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_tv_1790259670492_96l7",
           "title": "Mayan Warrior x Robot Heart · Burning Man 2019",
           "artist": "Sainte Vie (Live)",
@@ -4693,15 +4342,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
           "duration": 12,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_85",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -4741,15 +4381,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_87",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_tv_1790259677531_gsv9",
           "title": "Playground - Burning Man 2025  )'(",
           "artist": "Rodriguez Jr. Hybrid",
@@ -4783,15 +4414,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 30,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_89",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -4831,15 +4453,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_91",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_tv_1790259682190_9b6k",
           "title": "IBIZA 2026",
           "artist": "FRANKY RIZARDO at MUSIC ON DESTINO",
@@ -4876,15 +4489,6 @@
           "addedAt": 1790643685218
         },
         {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_93",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643685218
-        },
-        {
           "id": "rt_tv_1790259741570_kae4",
           "title": "Mayan Warrior · Burning Man 2025",
           "artist": "YAMAGUCCI",
@@ -4918,15 +4522,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
           "category": "jingle",
-          "addedAt": 1790643685218
-        },
-        {
-          "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_95",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
           "addedAt": 1790643685218
         },
         {
@@ -5051,11 +4646,11 @@
         },
         {
           "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_1",
-          "artist": "SPONSOR",
+          "artist": "PROMO DROPSIDERS",
           "title": "Promo Tomorrowland Winter",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
           "duration": 66,
-          "category": "pub",
+          "category": "promo",
           "addedAt": 1790643682992
         },
         {
@@ -5105,11 +4700,11 @@
         },
         {
           "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_3",
-          "artist": "SPONSOR",
+          "artist": "PROMO DROPSIDERS",
           "title": "Promo Escape Psycho Circus 2026 2",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 40,
-          "category": "pub",
+          "category": "promo",
           "addedAt": 1790643682992
         },
         {
@@ -5150,11 +4745,11 @@
         },
         {
           "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_5",
-          "artist": "SPONSOR",
+          "artist": "PROMO DROPSIDERS",
           "title": "Promo Escape Psycho Circus 2026 1",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 47,
-          "category": "pub",
+          "category": "promo",
           "addedAt": 1790643682992
         },
         {
@@ -5194,15 +4789,6 @@
           "addedAt": 1790643682992
         },
         {
-          "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_7",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643682992
-        },
-        {
           "id": "rt_tv_1790256667226_s1lx",
           "title": "DROPSIDERS TV",
           "artist": "Kaskade x Coachella 2026",
@@ -5236,15 +4822,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 44,
           "category": "jingle",
-          "addedAt": 1790643682992
-        },
-        {
-          "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_9",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643682992
         },
         {
@@ -5284,15 +4861,6 @@
           "addedAt": 1790643682992
         },
         {
-          "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_11",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643682992
-        },
-        {
           "id": "rt_tv_1790256674020_2ldz",
           "title": "Tomorrowland Brasil 2025",
           "artist": "Kölsch",
@@ -5326,15 +4894,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
           "category": "jingle",
-          "addedAt": 1790643682992
-        },
-        {
-          "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_13",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643682992
         },
         {
@@ -5374,15 +4933,6 @@
           "addedAt": 1790643682992
         },
         {
-          "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_15",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643682992
-        },
-        {
           "id": "rt_tv_1790256690027_mrmu",
           "title": "DROPSIDERS TV",
           "artist": "BUNT. at COACHELLA 2026",
@@ -5416,15 +4966,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
           "duration": 12,
           "category": "jingle",
-          "addedAt": 1790643682992
-        },
-        {
-          "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_17",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
           "addedAt": 1790643682992
         },
         {
@@ -5464,15 +5005,6 @@
           "addedAt": 1790643682992
         },
         {
-          "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_19",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643682992
-        },
-        {
           "id": "rt_tv_1790256703698_zobb",
           "title": "Yuma · Coachella 2026",
           "artist": "Josh Baker b2b Carlita",
@@ -5506,15 +5038,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 30,
           "category": "jingle",
-          "addedAt": 1790643682992
-        },
-        {
-          "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_21",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643682992
         },
         {
@@ -5554,15 +5077,6 @@
           "addedAt": 1790643682992
         },
         {
-          "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_23",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643682992
-        },
-        {
           "id": "rt_tv_1790256712763_8g7o",
           "title": "ULTRA 2026 · FULL SET",
           "artist": "AMELIE LENS B2B SARA LANDRY",
@@ -5596,15 +5110,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
           "category": "jingle",
-          "addedAt": 1790643682992
-        },
-        {
-          "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_25",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643682992
         },
         {
@@ -5644,15 +5149,6 @@
           "addedAt": 1790643682992
         },
         {
-          "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_27",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643682992
-        },
-        {
           "id": "rt_tv_1790256729924_i2c1",
           "title": "DROPSIDERS TV",
           "artist": "FISHER PRESENTS OUT 2 LUNCH FESTIVAL [DAY 2- FULL LIVE SET]",
@@ -5686,15 +5182,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
           "category": "jingle",
-          "addedAt": 1790643682992
-        },
-        {
-          "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_29",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
           "addedAt": 1790643682992
         },
         {
@@ -5734,15 +5221,6 @@
           "addedAt": 1790643682992
         },
         {
-          "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_31",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643682992
-        },
-        {
           "id": "rt_tv_1790259733065_p6uv",
           "title": "Upclose 2026",
           "artist": "Joris Voorn Vinyl Only Techno Set",
@@ -5776,15 +5254,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
           "duration": 8,
           "category": "jingle",
-          "addedAt": 1790643682992
-        },
-        {
-          "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_33",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643682992
         }
       ]
@@ -5847,11 +5316,11 @@
         },
         {
           "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_1",
-          "artist": "SPONSOR",
+          "artist": "PROMO DROPSIDERS",
           "title": "Promo Tomorrowland Winter",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
           "duration": 66,
-          "category": "pub",
+          "category": "promo",
           "addedAt": 1790643681274
         },
         {
@@ -5901,11 +5370,11 @@
         },
         {
           "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_3",
-          "artist": "SPONSOR",
+          "artist": "PROMO DROPSIDERS",
           "title": "Promo Escape Psycho Circus 2026 2",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 40,
-          "category": "pub",
+          "category": "promo",
           "addedAt": 1790643681274
         },
         {
@@ -5946,11 +5415,11 @@
         },
         {
           "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_5",
-          "artist": "SPONSOR",
+          "artist": "PROMO DROPSIDERS",
           "title": "Promo Escape Psycho Circus 2026 1",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 47,
-          "category": "pub",
+          "category": "promo",
           "addedAt": 1790643681274
         },
         {
@@ -5990,15 +5459,6 @@
           "addedAt": 1790643681274
         },
         {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_7",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643681274
-        },
-        {
           "id": "rt_tv_1790256891869_dl9g",
           "title": "DROPSIDERS TV",
           "artist": "PHILIPPE B : D.A. DE L'AMNÉSIA ET CO-CRÉATEUR DU WAREHOUSE NANTES !",
@@ -6032,15 +5492,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 44,
           "category": "jingle",
-          "addedAt": 1790643681274
-        },
-        {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_9",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643681274
         },
         {
@@ -6080,15 +5531,6 @@
           "addedAt": 1790643681274
         },
         {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_11",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643681274
-        },
-        {
           "id": "rt_tv_1790256902828_s7je",
           "title": "Objectif DJ Ep. 12",
           "artist": "A-Trak : \"J'ai fais découvrir les Daft Punk à Kanye West...\"",
@@ -6122,15 +5564,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
           "category": "jingle",
-          "addedAt": 1790643681274
-        },
-        {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_13",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643681274
         },
         {
@@ -6170,15 +5603,6 @@
           "addedAt": 1790643681274
         },
         {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_15",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643681274
-        },
-        {
           "id": "rt_tv_1790256910097_05yw",
           "title": "DROPSIDERS TV",
           "artist": "TONY ROMERA: DE SES PREMIÈRES PRODS AUX PLUS GRANDES SALLES, LE PARCOURS SANS FILTRE DE TONY ROMERA.",
@@ -6212,15 +5636,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
           "duration": 12,
           "category": "jingle",
-          "addedAt": 1790643681274
-        },
-        {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_17",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
           "addedAt": 1790643681274
         },
         {
@@ -6260,15 +5675,6 @@
           "addedAt": 1790643681274
         },
         {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_19",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643681274
-        },
-        {
           "id": "rt_tv_1790256914912_dvcn",
           "title": "DROPSIDERS TV",
           "artist": "David Guetta toutes les questions qu'on se pose sur les DJ",
@@ -6302,15 +5708,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 30,
           "category": "jingle",
-          "addedAt": 1790643681274
-        },
-        {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_21",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643681274
         },
         {
@@ -6350,15 +5747,6 @@
           "addedAt": 1790643681274
         },
         {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_23",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643681274
-        },
-        {
           "id": "rt_tv_1790256918361_s3uj",
           "title": "DROPSIDERS TV",
           "artist": "LOBENZMUSIC : \"Les Daft Punk...Je me dis, c'est quoi cette m**de?\" Objectif DJ Ep.15",
@@ -6392,15 +5780,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
           "category": "jingle",
-          "addedAt": 1790643681274
-        },
-        {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_25",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643681274
         },
         {
@@ -6440,15 +5819,6 @@
           "addedAt": 1790643681274
         },
         {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_27",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643681274
-        },
-        {
           "id": "rt_tv_1790256923356_vqcx",
           "title": "DROPSIDERS TV",
           "artist": "PHOTOGRAPHE DE DJ SNAKE : COMMENT IL A RÉUSSI À TRAVAILLER AVEC UNE DES PLUS GRANDES STARS DU MONDE",
@@ -6482,15 +5852,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
           "category": "jingle",
-          "addedAt": 1790643681274
-        },
-        {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_29",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
           "addedAt": 1790643681274
         },
         {
@@ -6530,15 +5891,6 @@
           "addedAt": 1790643681274
         },
         {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_31",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643681274
-        },
-        {
           "id": "rt_tv_1790256939283_etit",
           "title": "DROPSIDERS TV",
           "artist": "Réussir dans la vie vs. réussir Sa vie. Épisode spécial avec Martin Solveig & Léa Dassonville",
@@ -6572,15 +5924,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
           "duration": 8,
           "category": "jingle",
-          "addedAt": 1790643681274
-        },
-        {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_33",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643681274
         },
         {
@@ -6620,15 +5963,6 @@
           "addedAt": 1790643681274
         },
         {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_35",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643681274
-        },
-        {
           "id": "rt_tv_1790256945578_n86w",
           "title": "HUGEL",
           "artist": "Comment ce Français est devenu l’un des DJ les plus chers de la planète ?",
@@ -6662,15 +5996,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
           "duration": 9,
           "category": "jingle",
-          "addedAt": 1790643681274
-        },
-        {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_37",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643681274
         },
         {
@@ -6710,15 +6035,6 @@
           "addedAt": 1790643681274
         },
         {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_39",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643681274
-        },
-        {
           "id": "rt_tv_1790256975482_2io5",
           "title": "Awakenings Festival 2026",
           "artist": "TOMAN",
@@ -6752,15 +6068,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 33,
           "category": "jingle",
-          "addedAt": 1790643681274
-        },
-        {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_41",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
           "addedAt": 1790643681274
         },
         {
@@ -6800,15 +6107,6 @@
           "addedAt": 1790643681274
         },
         {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_43",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643681274
-        },
-        {
           "id": "rt_tv_1790259746674_34kz",
           "title": "Burning Man 2025",
           "artist": "Vintage Culture x Playground",
@@ -6842,15 +6140,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 26,
           "category": "jingle",
-          "addedAt": 1790643681274
-        },
-        {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_45",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643681274
         },
         {
@@ -6890,15 +6179,6 @@
           "addedAt": 1790643681274
         },
         {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_47",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643681274
-        },
-        {
           "id": "rt_tv_1790259780642_7bxa",
           "title": "EDC Las Vegas 2026",
           "artist": "Layton Giordani",
@@ -6935,15 +6215,6 @@
           "addedAt": 1790643681274
         },
         {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_49",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643681274
-        },
-        {
           "id": "rt_tv_1790259815757_mcux",
           "title": "Tomorrowland 2025",
           "artist": "Anyma",
@@ -6977,15 +6248,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
           "duration": 12,
           "category": "jingle",
-          "addedAt": 1790643681274
-        },
-        {
-          "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_51",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643681274
         },
         {
@@ -7066,11 +6328,11 @@
         },
         {
           "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_1",
-          "artist": "SPONSOR",
+          "artist": "PROMO DROPSIDERS",
           "title": "Promo Tomorrowland Winter",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
           "duration": 66,
-          "category": "pub",
+          "category": "promo",
           "addedAt": 1790643679058
         },
         {
@@ -7120,11 +6382,11 @@
         },
         {
           "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_3",
-          "artist": "SPONSOR",
+          "artist": "PROMO DROPSIDERS",
           "title": "Promo Escape Psycho Circus 2026 2",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 40,
-          "category": "pub",
+          "category": "promo",
           "addedAt": 1790643679058
         },
         {
@@ -7165,11 +6427,11 @@
         },
         {
           "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_5",
-          "artist": "SPONSOR",
+          "artist": "PROMO DROPSIDERS",
           "title": "Promo Escape Psycho Circus 2026 1",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 47,
-          "category": "pub",
+          "category": "promo",
           "addedAt": 1790643679058
         },
         {
@@ -7209,15 +6471,6 @@
           "addedAt": 1790643679058
         },
         {
-          "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_7",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643679058
-        },
-        {
           "id": "rt_tv_1790257173917_6ks0",
           "title": "RESISTANCE MEGASTRUCTURE",
           "artist": "ERIC PRYDZ LIVE @ ULTRA MUSIC FESTIVAL MIAMI 2026",
@@ -7251,15 +6504,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 44,
           "category": "jingle",
-          "addedAt": 1790643679058
-        },
-        {
-          "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_9",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643679058
         },
         {
@@ -7299,15 +6543,6 @@
           "addedAt": 1790643679058
         },
         {
-          "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_11",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643679058
-        },
-        {
           "id": "rt_tv_1790257203483_n49u",
           "title": "DYRO X DANNIC",
           "artist": "PAROOKAVILLE 2026",
@@ -7341,15 +6576,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
           "category": "jingle",
-          "addedAt": 1790643679058
-        },
-        {
-          "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_13",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643679058
         },
         {
@@ -7389,15 +6615,6 @@
           "addedAt": 1790643679058
         },
         {
-          "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_15",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643679058
-        },
-        {
           "id": "rt_tv_1790257229068_03ef",
           "title": "quantumVALLEY",
           "artist": "Maddix live @ EDC Las Vegas 2026",
@@ -7431,15 +6648,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
           "duration": 12,
           "category": "jingle",
-          "addedAt": 1790643679058
-        },
-        {
-          "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_17",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
           "addedAt": 1790643679058
         },
         {
@@ -7479,15 +6687,6 @@
           "addedAt": 1790643679058
         },
         {
-          "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_19",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643679058
-        },
-        {
           "id": "rt_tv_1790259720205_khap",
           "title": "ULTRA MUSIC FESTIVAL MIAMI 2026",
           "artist": "HARDWELL -",
@@ -7521,15 +6720,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 30,
           "category": "jingle",
-          "addedAt": 1790643679058
-        },
-        {
-          "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_21",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643679058
         },
         {
@@ -7569,15 +6759,6 @@
           "addedAt": 1790643679058
         },
         {
-          "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_23",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643679058
-        },
-        {
           "id": "rt_tv_1790259769214_jn4r",
           "title": "Tomorrowland 2026 (Mainstage) (Full Set HD)",
           "artist": "Lost Frequencies -",
@@ -7614,15 +6795,6 @@
           "addedAt": 1790643679058
         },
         {
-          "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_25",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643679058
-        },
-        {
           "id": "rt_tv_1790259794459_3709",
           "title": "Live from Atomium - Brussels, Belgium",
           "artist": "Anyma",
@@ -7656,15 +6828,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
           "category": "jingle",
-          "addedAt": 1790643679058
-        },
-        {
-          "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_27",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643679058
         }
       ]
@@ -7727,11 +6890,11 @@
         },
         {
           "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_1",
-          "artist": "SPONSOR",
+          "artist": "PROMO DROPSIDERS",
           "title": "Promo Tomorrowland Winter",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
           "duration": 66,
-          "category": "pub",
+          "category": "promo",
           "addedAt": 1790643676526
         },
         {
@@ -7781,11 +6944,11 @@
         },
         {
           "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_3",
-          "artist": "SPONSOR",
+          "artist": "PROMO DROPSIDERS",
           "title": "Promo Escape Psycho Circus 2026 2",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 40,
-          "category": "pub",
+          "category": "promo",
           "addedAt": 1790643676526
         },
         {
@@ -7826,11 +6989,11 @@
         },
         {
           "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_5",
-          "artist": "SPONSOR",
+          "artist": "PROMO DROPSIDERS",
           "title": "Promo Escape Psycho Circus 2026 1",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 47,
-          "category": "pub",
+          "category": "promo",
           "addedAt": 1790643676526
         },
         {
@@ -7870,15 +7033,6 @@
           "addedAt": 1790643676526
         },
         {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_7",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643676526
-        },
-        {
           "id": "rt_tv_1790257310340_zu6n",
           "title": "Noisecontrollers",
           "artist": "Q-BASE 2018",
@@ -7912,15 +7066,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 44,
           "category": "jingle",
-          "addedAt": 1790643676526
-        },
-        {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_9",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643676526
         },
         {
@@ -7960,15 +7105,6 @@
           "addedAt": 1790643676526
         },
         {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_11",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643676526
-        },
-        {
           "id": "rt_tv_1790257314165_r5vu",
           "title": "DROPSIDERS TV",
           "artist": "Rave Rebels presents: Patrick Mason (FULL SET)",
@@ -8002,15 +7138,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
           "category": "jingle",
-          "addedAt": 1790643676526
-        },
-        {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_13",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643676526
         },
         {
@@ -8050,15 +7177,6 @@
           "addedAt": 1790643676526
         },
         {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_15",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643676526
-        },
-        {
           "id": "rt_tv_1790257318003_92yy",
           "title": "Defqon.1 2025",
           "artist": "Code Black",
@@ -8092,15 +7210,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
           "duration": 12,
           "category": "jingle",
-          "addedAt": 1790643676526
-        },
-        {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_17",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
           "addedAt": 1790643676526
         },
         {
@@ -8140,15 +7249,6 @@
           "addedAt": 1790643676526
         },
         {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_19",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643676526
-        },
-        {
           "id": "rt_tv_1790257324344_mieu",
           "title": "Ziggo Dome, Amsterdam",
           "artist": "FENRICK b2b DURDENHAUER @ Verknipt Ziggo Dome 2025",
@@ -8182,15 +7282,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 30,
           "category": "jingle",
-          "addedAt": 1790643676526
-        },
-        {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_21",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643676526
         },
         {
@@ -8230,15 +7321,6 @@
           "addedAt": 1790643676526
         },
         {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_23",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643676526
-        },
-        {
           "id": "rt_tv_1790257327634_jezi",
           "title": "Verknipt Festival 2026 - Day 2",
           "artist": "HARDSOK",
@@ -8272,15 +7354,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
           "category": "jingle",
-          "addedAt": 1790643676526
-        },
-        {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_25",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643676526
         },
         {
@@ -8320,15 +7393,6 @@
           "addedAt": 1790643676526
         },
         {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_27",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643676526
-        },
-        {
           "id": "rt_tv_1790257330357_2c0l",
           "title": "Intents Festival 2025",
           "artist": "D-Sturb",
@@ -8362,15 +7426,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
           "category": "jingle",
-          "addedAt": 1790643676526
-        },
-        {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_29",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
           "addedAt": 1790643676526
         },
         {
@@ -8410,15 +7465,6 @@
           "addedAt": 1790643676526
         },
         {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_31",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643676526
-        },
-        {
           "id": "rt_tv_1790257339667_501j",
           "title": "BLACKWORKS WEEKEND FESTIVAL - REBIRTH EDITION",
           "artist": "FANTASM",
@@ -8452,15 +7498,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
           "duration": 8,
           "category": "jingle",
-          "addedAt": 1790643676526
-        },
-        {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_33",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643676526
         },
         {
@@ -8500,15 +7537,6 @@
           "addedAt": 1790643676526
         },
         {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_35",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643676526
-        },
-        {
           "id": "rt_tv_1790257342181_uuhe",
           "title": "Ruthless vs The Darkraver",
           "artist": "Reverze 2026",
@@ -8542,15 +7570,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
           "duration": 9,
           "category": "jingle",
-          "addedAt": 1790643676526
-        },
-        {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_37",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643676526
         },
         {
@@ -8590,15 +7609,6 @@
           "addedAt": 1790643676526
         },
         {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_39",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643676526
-        },
-        {
           "id": "rt_tv_1790257346715_ie50",
           "title": "Decibel outdoor 2025",
           "artist": "Ran-D LIVE",
@@ -8632,15 +7642,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 33,
           "category": "jingle",
-          "addedAt": 1790643676526
-        },
-        {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_41",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
           "addedAt": 1790643676526
         },
         {
@@ -8680,15 +7681,6 @@
           "addedAt": 1790643676526
         },
         {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_43",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
-          "addedAt": 1790643676526
-        },
-        {
           "id": "rt_tv_1790257351396_w4wn",
           "title": "Decibel outdoor 2025",
           "artist": "Gezellige Uptempo",
@@ -8722,15 +7714,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 26,
           "category": "jingle",
-          "addedAt": 1790643676526
-        },
-        {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_45",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
           "addedAt": 1790643676526
         },
         {
@@ -8770,15 +7753,6 @@
           "addedAt": 1790643676526
         },
         {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_47",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643676526
-        },
-        {
           "id": "rt_tv_1790257357115_oz2l",
           "title": "Insomniac · Basscon",
           "artist": "JUNKIE KID  - PRESENTS THE PARADOX -  FROM WASTELAND 2025 (FULL SET)",
@@ -8812,15 +7786,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
           "duration": 10,
           "category": "jingle",
-          "addedAt": 1790643676526
-        },
-        {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_49",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643676526
         },
         {
@@ -8860,15 +7825,6 @@
           "addedAt": 1790643676526
         },
         {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_51",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "pub",
-          "addedAt": 1790643676526
-        },
-        {
           "id": "rt_tv_1790259654365_r5yg",
           "title": "Intents Festival 2025",
           "artist": "Outsiders",
@@ -8905,15 +7861,6 @@
           "addedAt": 1790643676526
         },
         {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_53",
-          "artist": "SPONSOR",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "pub",
-          "addedAt": 1790643676526
-        },
-        {
           "id": "rt_tv_1790259785199_9nzf",
           "title": "Da Tweekaz",
           "artist": "Reverze 2026",
@@ -8947,15 +7894,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 30,
           "category": "jingle",
-          "addedAt": 1790643676526
-        },
-        {
-          "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_55",
-          "artist": "SPONSOR",
-          "title": "Promo Tomorrowland Winter",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "pub",
           "addedAt": 1790643676526
         }
       ]
@@ -9000,11 +7938,11 @@
     },
     {
       "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_1",
-      "artist": "SPONSOR",
+      "artist": "PROMO DROPSIDERS",
       "title": "Promo Tomorrowland Winter",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
       "duration": 66,
-      "category": "pub",
+      "category": "promo",
       "addedAt": 1790643685218
     },
     {
@@ -9054,11 +7992,11 @@
     },
     {
       "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_3",
-      "artist": "SPONSOR",
+      "artist": "PROMO DROPSIDERS",
       "title": "Promo Escape Psycho Circus 2026 2",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "pub",
+      "category": "promo",
       "addedAt": 1790643685218
     },
     {
@@ -9099,11 +8037,11 @@
     },
     {
       "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_5",
-      "artist": "SPONSOR",
+      "artist": "PROMO DROPSIDERS",
       "title": "Promo Escape Psycho Circus 2026 1",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "pub",
+      "category": "promo",
       "addedAt": 1790643685218
     },
     {
@@ -9143,15 +8081,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_7",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_tv_1790255672563_uqru",
       "title": "QUE CE SOIT CLAIR",
       "artist": "Paul Kalkbrenner x Stromae",
@@ -9185,15 +8114,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 44,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_9",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -9233,15 +8153,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_11",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_tv_1790255683756_1bw0",
       "title": "Beautiful (Official Music Video)",
       "artist": "Anyma, Joji",
@@ -9275,15 +8186,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_13",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -9323,15 +8225,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_15",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_1790255829690",
       "title": "Nothing Wrong (Love Mix)",
       "artist": "Omri",
@@ -9365,15 +8258,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
       "duration": 12,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_17",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -9413,15 +8297,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_19",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_1790256008619",
       "title": "Innerbloom",
       "artist": "RÜFÜS DU SOL",
@@ -9455,15 +8330,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 30,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_21",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -9503,15 +8369,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_23",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_1790256149615",
       "title": "4Get The Girl (Samm Remix)",
       "artist": "Route 94",
@@ -9545,15 +8402,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 46,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_25",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -9593,15 +8441,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_27",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_1790256226318",
       "title": "Analog Ascent",
       "artist": "Vintage Culture, Roddy Lima",
@@ -9635,15 +8474,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_29",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -9683,15 +8513,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_31",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_1790256302438",
       "title": "Hello",
       "artist": "Martin Solveig & Dragonette",
@@ -9725,15 +8546,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
       "duration": 8,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_33",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -9773,15 +8585,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_35",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_tv_1790256332123_2ai2",
       "title": "Places ft. Ina Wroldsen",
       "artist": "Martin Solveig",
@@ -9815,15 +8618,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
       "duration": 9,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_37",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -9863,15 +8657,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_39",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_tv_1790256344591_qpb3",
       "title": "“Without You”",
       "artist": "Kygo, HAYLA",
@@ -9905,15 +8690,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 33,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_41",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -9953,15 +8729,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_43",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_tv_1790256351317_yfz4",
       "title": "DROPSIDERS TV",
       "artist": "Kevin de Vries & Platero – Man Like Me (Visualizer)",
@@ -9995,15 +8762,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 26,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_45",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -10043,15 +8801,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_47",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_tv_1790256356223_3bu0",
       "title": "DROPSIDERS TV",
       "artist": "Massano & Humans Musik – Underground (Visualizer)",
@@ -10085,15 +8834,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
       "duration": 10,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_49",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -10133,15 +8873,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_51",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_tv_1790256361116_dxw5",
       "title": "Entropy (feat. fknsyd) [Live at Sphere Las Vegas]",
       "artist": "Anyma, Rezz",
@@ -10175,15 +8906,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
       "duration": 14,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_53",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -10223,15 +8945,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_55",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_tv_1790256363593_0qfa",
       "title": "Stade de France 2026)",
       "artist": "ARTBAT, David Guetta, Gotye - Somebody That I Used To Know (",
@@ -10265,15 +8978,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 22,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_57",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -10313,15 +9017,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_59",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_tv_1790256368196_5liu",
       "title": "Blind feat. Emmi",
       "artist": "Feder",
@@ -10355,15 +9050,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_61",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -10403,15 +9089,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_63",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_1790256416815",
       "title": "Music Sounds Better With You (Official Music Video)",
       "artist": "Stardust",
@@ -10445,15 +9122,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 15,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_65",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -10493,15 +9161,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_67",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_tv_1790256428125_ncyh",
       "title": "In My Mind [Live at Sphere Las Vegas]",
       "artist": "Anyma, SCRIPT",
@@ -10535,15 +9194,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
       "duration": 8,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_69",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -10583,15 +9233,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_71",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_1790256500279",
       "title": "E Samba",
       "artist": "Junior Jack",
@@ -10625,15 +9266,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_73",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -10673,15 +9305,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_75",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_1790256557829",
       "title": "Take Our Time (Extended Mix)",
       "artist": "Oden & Fatzo x ASTELS",
@@ -10715,15 +9338,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 44,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_77",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -10763,15 +9377,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_79",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_tv_1790259637754_vl85",
       "title": "Mayan Warrior · Burning Man 2025",
       "artist": "JOHN SUMMIT",
@@ -10805,15 +9410,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_81",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -10853,15 +9449,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_83",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_tv_1790259670492_96l7",
       "title": "Mayan Warrior x Robot Heart · Burning Man 2019",
       "artist": "Sainte Vie (Live)",
@@ -10895,15 +9482,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
       "duration": 12,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_85",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -10943,15 +9521,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_87",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_tv_1790259677531_gsv9",
       "title": "Playground - Burning Man 2025  )'(",
       "artist": "Rodriguez Jr. Hybrid",
@@ -10985,15 +9554,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 30,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_89",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -11033,15 +9593,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_91",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_tv_1790259682190_9b6k",
       "title": "IBIZA 2026",
       "artist": "FRANKY RIZARDO at MUSIC ON DESTINO",
@@ -11078,15 +9629,6 @@
       "addedAt": 1790643685218
     },
     {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_93",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643685218
-    },
-    {
       "id": "rt_tv_1790259741570_kae4",
       "title": "Mayan Warrior · Burning Man 2025",
       "artist": "YAMAGUCCI",
@@ -11120,15 +9662,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
       "category": "jingle",
-      "addedAt": 1790643685218
-    },
-    {
-      "id": "rad_pub_1790643685218_radio_bloc_1790255595165_5mni_95",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
       "addedAt": 1790643685218
     },
     {
@@ -11201,11 +9734,11 @@
     },
     {
       "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_1",
-      "artist": "SPONSOR",
+      "artist": "PROMO DROPSIDERS",
       "title": "Promo Tomorrowland Winter",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
       "duration": 66,
-      "category": "pub",
+      "category": "promo",
       "addedAt": 1790643682992
     },
     {
@@ -11255,11 +9788,11 @@
     },
     {
       "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_3",
-      "artist": "SPONSOR",
+      "artist": "PROMO DROPSIDERS",
       "title": "Promo Escape Psycho Circus 2026 2",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "pub",
+      "category": "promo",
       "addedAt": 1790643682992
     },
     {
@@ -11300,11 +9833,11 @@
     },
     {
       "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_5",
-      "artist": "SPONSOR",
+      "artist": "PROMO DROPSIDERS",
       "title": "Promo Escape Psycho Circus 2026 1",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "pub",
+      "category": "promo",
       "addedAt": 1790643682992
     },
     {
@@ -11344,15 +9877,6 @@
       "addedAt": 1790643682992
     },
     {
-      "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_7",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643682992
-    },
-    {
       "id": "rt_tv_1790256667226_s1lx",
       "title": "DROPSIDERS TV",
       "artist": "Kaskade x Coachella 2026",
@@ -11386,15 +9910,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 44,
       "category": "jingle",
-      "addedAt": 1790643682992
-    },
-    {
-      "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_9",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643682992
     },
     {
@@ -11434,15 +9949,6 @@
       "addedAt": 1790643682992
     },
     {
-      "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_11",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643682992
-    },
-    {
       "id": "rt_tv_1790256674020_2ldz",
       "title": "Tomorrowland Brasil 2025",
       "artist": "Kölsch",
@@ -11476,15 +9982,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
       "category": "jingle",
-      "addedAt": 1790643682992
-    },
-    {
-      "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_13",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643682992
     },
     {
@@ -11524,15 +10021,6 @@
       "addedAt": 1790643682992
     },
     {
-      "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_15",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643682992
-    },
-    {
       "id": "rt_tv_1790256690027_mrmu",
       "title": "DROPSIDERS TV",
       "artist": "BUNT. at COACHELLA 2026",
@@ -11566,15 +10054,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
       "duration": 12,
       "category": "jingle",
-      "addedAt": 1790643682992
-    },
-    {
-      "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_17",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
       "addedAt": 1790643682992
     },
     {
@@ -11614,15 +10093,6 @@
       "addedAt": 1790643682992
     },
     {
-      "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_19",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643682992
-    },
-    {
       "id": "rt_tv_1790256703698_zobb",
       "title": "Yuma · Coachella 2026",
       "artist": "Josh Baker b2b Carlita",
@@ -11656,15 +10126,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 30,
       "category": "jingle",
-      "addedAt": 1790643682992
-    },
-    {
-      "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_21",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643682992
     },
     {
@@ -11704,15 +10165,6 @@
       "addedAt": 1790643682992
     },
     {
-      "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_23",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643682992
-    },
-    {
       "id": "rt_tv_1790256712763_8g7o",
       "title": "ULTRA 2026 · FULL SET",
       "artist": "AMELIE LENS B2B SARA LANDRY",
@@ -11746,15 +10198,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 46,
       "category": "jingle",
-      "addedAt": 1790643682992
-    },
-    {
-      "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_25",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643682992
     },
     {
@@ -11794,15 +10237,6 @@
       "addedAt": 1790643682992
     },
     {
-      "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_27",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643682992
-    },
-    {
       "id": "rt_tv_1790256729924_i2c1",
       "title": "DROPSIDERS TV",
       "artist": "FISHER PRESENTS OUT 2 LUNCH FESTIVAL [DAY 2- FULL LIVE SET]",
@@ -11836,15 +10270,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
       "category": "jingle",
-      "addedAt": 1790643682992
-    },
-    {
-      "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_29",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
       "addedAt": 1790643682992
     },
     {
@@ -11884,15 +10309,6 @@
       "addedAt": 1790643682992
     },
     {
-      "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_31",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643682992
-    },
-    {
       "id": "rt_tv_1790259733065_p6uv",
       "title": "Upclose 2026",
       "artist": "Joris Voorn Vinyl Only Techno Set",
@@ -11926,15 +10342,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
       "duration": 8,
       "category": "jingle",
-      "addedAt": 1790643682992
-    },
-    {
-      "id": "rad_pub_1790643682992_radio_bloc_1790256648831_kmgn_33",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643682992
     },
     {
@@ -11975,11 +10382,11 @@
     },
     {
       "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_1",
-      "artist": "SPONSOR",
+      "artist": "PROMO DROPSIDERS",
       "title": "Promo Tomorrowland Winter",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
       "duration": 66,
-      "category": "pub",
+      "category": "promo",
       "addedAt": 1790643681274
     },
     {
@@ -12029,11 +10436,11 @@
     },
     {
       "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_3",
-      "artist": "SPONSOR",
+      "artist": "PROMO DROPSIDERS",
       "title": "Promo Escape Psycho Circus 2026 2",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "pub",
+      "category": "promo",
       "addedAt": 1790643681274
     },
     {
@@ -12074,11 +10481,11 @@
     },
     {
       "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_5",
-      "artist": "SPONSOR",
+      "artist": "PROMO DROPSIDERS",
       "title": "Promo Escape Psycho Circus 2026 1",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "pub",
+      "category": "promo",
       "addedAt": 1790643681274
     },
     {
@@ -12118,15 +10525,6 @@
       "addedAt": 1790643681274
     },
     {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_7",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643681274
-    },
-    {
       "id": "rt_tv_1790256891869_dl9g",
       "title": "DROPSIDERS TV",
       "artist": "PHILIPPE B : D.A. DE L'AMNÉSIA ET CO-CRÉATEUR DU WAREHOUSE NANTES !",
@@ -12160,15 +10558,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 44,
       "category": "jingle",
-      "addedAt": 1790643681274
-    },
-    {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_9",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643681274
     },
     {
@@ -12208,15 +10597,6 @@
       "addedAt": 1790643681274
     },
     {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_11",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643681274
-    },
-    {
       "id": "rt_tv_1790256902828_s7je",
       "title": "Objectif DJ Ep. 12",
       "artist": "A-Trak : \"J'ai fais découvrir les Daft Punk à Kanye West...\"",
@@ -12250,15 +10630,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
       "category": "jingle",
-      "addedAt": 1790643681274
-    },
-    {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_13",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643681274
     },
     {
@@ -12298,15 +10669,6 @@
       "addedAt": 1790643681274
     },
     {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_15",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643681274
-    },
-    {
       "id": "rt_tv_1790256910097_05yw",
       "title": "DROPSIDERS TV",
       "artist": "TONY ROMERA: DE SES PREMIÈRES PRODS AUX PLUS GRANDES SALLES, LE PARCOURS SANS FILTRE DE TONY ROMERA.",
@@ -12340,15 +10702,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
       "duration": 12,
       "category": "jingle",
-      "addedAt": 1790643681274
-    },
-    {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_17",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
       "addedAt": 1790643681274
     },
     {
@@ -12388,15 +10741,6 @@
       "addedAt": 1790643681274
     },
     {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_19",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643681274
-    },
-    {
       "id": "rt_tv_1790256914912_dvcn",
       "title": "DROPSIDERS TV",
       "artist": "David Guetta toutes les questions qu'on se pose sur les DJ",
@@ -12430,15 +10774,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 30,
       "category": "jingle",
-      "addedAt": 1790643681274
-    },
-    {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_21",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643681274
     },
     {
@@ -12478,15 +10813,6 @@
       "addedAt": 1790643681274
     },
     {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_23",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643681274
-    },
-    {
       "id": "rt_tv_1790256918361_s3uj",
       "title": "DROPSIDERS TV",
       "artist": "LOBENZMUSIC : \"Les Daft Punk...Je me dis, c'est quoi cette m**de?\" Objectif DJ Ep.15",
@@ -12520,15 +10846,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 46,
       "category": "jingle",
-      "addedAt": 1790643681274
-    },
-    {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_25",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643681274
     },
     {
@@ -12568,15 +10885,6 @@
       "addedAt": 1790643681274
     },
     {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_27",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643681274
-    },
-    {
       "id": "rt_tv_1790256923356_vqcx",
       "title": "DROPSIDERS TV",
       "artist": "PHOTOGRAPHE DE DJ SNAKE : COMMENT IL A RÉUSSI À TRAVAILLER AVEC UNE DES PLUS GRANDES STARS DU MONDE",
@@ -12610,15 +10918,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
       "category": "jingle",
-      "addedAt": 1790643681274
-    },
-    {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_29",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
       "addedAt": 1790643681274
     },
     {
@@ -12658,15 +10957,6 @@
       "addedAt": 1790643681274
     },
     {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_31",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643681274
-    },
-    {
       "id": "rt_tv_1790256939283_etit",
       "title": "DROPSIDERS TV",
       "artist": "Réussir dans la vie vs. réussir Sa vie. Épisode spécial avec Martin Solveig & Léa Dassonville",
@@ -12700,15 +10990,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
       "duration": 8,
       "category": "jingle",
-      "addedAt": 1790643681274
-    },
-    {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_33",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643681274
     },
     {
@@ -12748,15 +11029,6 @@
       "addedAt": 1790643681274
     },
     {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_35",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643681274
-    },
-    {
       "id": "rt_tv_1790256945578_n86w",
       "title": "HUGEL",
       "artist": "Comment ce Français est devenu l’un des DJ les plus chers de la planète ?",
@@ -12790,15 +11062,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
       "duration": 9,
       "category": "jingle",
-      "addedAt": 1790643681274
-    },
-    {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_37",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643681274
     },
     {
@@ -12838,15 +11101,6 @@
       "addedAt": 1790643681274
     },
     {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_39",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643681274
-    },
-    {
       "id": "rt_tv_1790256975482_2io5",
       "title": "Awakenings Festival 2026",
       "artist": "TOMAN",
@@ -12880,15 +11134,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 33,
       "category": "jingle",
-      "addedAt": 1790643681274
-    },
-    {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_41",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
       "addedAt": 1790643681274
     },
     {
@@ -12928,15 +11173,6 @@
       "addedAt": 1790643681274
     },
     {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_43",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643681274
-    },
-    {
       "id": "rt_tv_1790259746674_34kz",
       "title": "Burning Man 2025",
       "artist": "Vintage Culture x Playground",
@@ -12970,15 +11206,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 26,
       "category": "jingle",
-      "addedAt": 1790643681274
-    },
-    {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_45",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643681274
     },
     {
@@ -13018,15 +11245,6 @@
       "addedAt": 1790643681274
     },
     {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_47",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643681274
-    },
-    {
       "id": "rt_tv_1790259780642_7bxa",
       "title": "EDC Las Vegas 2026",
       "artist": "Layton Giordani",
@@ -13063,15 +11281,6 @@
       "addedAt": 1790643681274
     },
     {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_49",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643681274
-    },
-    {
       "id": "rt_tv_1790259815757_mcux",
       "title": "Tomorrowland 2025",
       "artist": "Anyma",
@@ -13105,15 +11314,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
       "duration": 12,
       "category": "jingle",
-      "addedAt": 1790643681274
-    },
-    {
-      "id": "rad_pub_1790643681274_radio_bloc_1790256873762_k89p_51",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643681274
     },
     {
@@ -13172,11 +11372,11 @@
     },
     {
       "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_1",
-      "artist": "SPONSOR",
+      "artist": "PROMO DROPSIDERS",
       "title": "Promo Tomorrowland Winter",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
       "duration": 66,
-      "category": "pub",
+      "category": "promo",
       "addedAt": 1790643679058
     },
     {
@@ -13226,11 +11426,11 @@
     },
     {
       "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_3",
-      "artist": "SPONSOR",
+      "artist": "PROMO DROPSIDERS",
       "title": "Promo Escape Psycho Circus 2026 2",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "pub",
+      "category": "promo",
       "addedAt": 1790643679058
     },
     {
@@ -13271,11 +11471,11 @@
     },
     {
       "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_5",
-      "artist": "SPONSOR",
+      "artist": "PROMO DROPSIDERS",
       "title": "Promo Escape Psycho Circus 2026 1",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "pub",
+      "category": "promo",
       "addedAt": 1790643679058
     },
     {
@@ -13315,15 +11515,6 @@
       "addedAt": 1790643679058
     },
     {
-      "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_7",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643679058
-    },
-    {
       "id": "rt_tv_1790257173917_6ks0",
       "title": "RESISTANCE MEGASTRUCTURE",
       "artist": "ERIC PRYDZ LIVE @ ULTRA MUSIC FESTIVAL MIAMI 2026",
@@ -13357,15 +11548,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 44,
       "category": "jingle",
-      "addedAt": 1790643679058
-    },
-    {
-      "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_9",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643679058
     },
     {
@@ -13405,15 +11587,6 @@
       "addedAt": 1790643679058
     },
     {
-      "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_11",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643679058
-    },
-    {
       "id": "rt_tv_1790257203483_n49u",
       "title": "DYRO X DANNIC",
       "artist": "PAROOKAVILLE 2026",
@@ -13447,15 +11620,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
       "category": "jingle",
-      "addedAt": 1790643679058
-    },
-    {
-      "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_13",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643679058
     },
     {
@@ -13495,15 +11659,6 @@
       "addedAt": 1790643679058
     },
     {
-      "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_15",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643679058
-    },
-    {
       "id": "rt_tv_1790257229068_03ef",
       "title": "quantumVALLEY",
       "artist": "Maddix live @ EDC Las Vegas 2026",
@@ -13537,15 +11692,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
       "duration": 12,
       "category": "jingle",
-      "addedAt": 1790643679058
-    },
-    {
-      "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_17",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
       "addedAt": 1790643679058
     },
     {
@@ -13585,15 +11731,6 @@
       "addedAt": 1790643679058
     },
     {
-      "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_19",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643679058
-    },
-    {
       "id": "rt_tv_1790259720205_khap",
       "title": "ULTRA MUSIC FESTIVAL MIAMI 2026",
       "artist": "HARDWELL -",
@@ -13627,15 +11764,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 30,
       "category": "jingle",
-      "addedAt": 1790643679058
-    },
-    {
-      "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_21",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643679058
     },
     {
@@ -13675,15 +11803,6 @@
       "addedAt": 1790643679058
     },
     {
-      "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_23",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643679058
-    },
-    {
       "id": "rt_tv_1790259769214_jn4r",
       "title": "Tomorrowland 2026 (Mainstage) (Full Set HD)",
       "artist": "Lost Frequencies -",
@@ -13720,15 +11839,6 @@
       "addedAt": 1790643679058
     },
     {
-      "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_25",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643679058
-    },
-    {
       "id": "rt_tv_1790259794459_3709",
       "title": "Live from Atomium - Brussels, Belgium",
       "artist": "Anyma",
@@ -13762,15 +11872,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
       "category": "jingle",
-      "addedAt": 1790643679058
-    },
-    {
-      "id": "rad_pub_1790643679058_radio_bloc_1790257094891_kg2l_27",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643679058
     },
     {
@@ -13811,11 +11912,11 @@
     },
     {
       "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_1",
-      "artist": "SPONSOR",
+      "artist": "PROMO DROPSIDERS",
       "title": "Promo Tomorrowland Winter",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
       "duration": 66,
-      "category": "pub",
+      "category": "promo",
       "addedAt": 1790643676526
     },
     {
@@ -13865,11 +11966,11 @@
     },
     {
       "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_3",
-      "artist": "SPONSOR",
+      "artist": "PROMO DROPSIDERS",
       "title": "Promo Escape Psycho Circus 2026 2",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "pub",
+      "category": "promo",
       "addedAt": 1790643676526
     },
     {
@@ -13910,11 +12011,11 @@
     },
     {
       "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_5",
-      "artist": "SPONSOR",
+      "artist": "PROMO DROPSIDERS",
       "title": "Promo Escape Psycho Circus 2026 1",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "pub",
+      "category": "promo",
       "addedAt": 1790643676526
     },
     {
@@ -13954,15 +12055,6 @@
       "addedAt": 1790643676526
     },
     {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_7",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643676526
-    },
-    {
       "id": "rt_tv_1790257310340_zu6n",
       "title": "Noisecontrollers",
       "artist": "Q-BASE 2018",
@@ -13996,15 +12088,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 44,
       "category": "jingle",
-      "addedAt": 1790643676526
-    },
-    {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_9",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643676526
     },
     {
@@ -14044,15 +12127,6 @@
       "addedAt": 1790643676526
     },
     {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_11",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643676526
-    },
-    {
       "id": "rt_tv_1790257314165_r5vu",
       "title": "DROPSIDERS TV",
       "artist": "Rave Rebels presents: Patrick Mason (FULL SET)",
@@ -14086,15 +12160,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
       "category": "jingle",
-      "addedAt": 1790643676526
-    },
-    {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_13",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643676526
     },
     {
@@ -14134,15 +12199,6 @@
       "addedAt": 1790643676526
     },
     {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_15",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643676526
-    },
-    {
       "id": "rt_tv_1790257318003_92yy",
       "title": "Defqon.1 2025",
       "artist": "Code Black",
@@ -14176,15 +12232,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
       "duration": 12,
       "category": "jingle",
-      "addedAt": 1790643676526
-    },
-    {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_17",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
       "addedAt": 1790643676526
     },
     {
@@ -14224,15 +12271,6 @@
       "addedAt": 1790643676526
     },
     {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_19",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643676526
-    },
-    {
       "id": "rt_tv_1790257324344_mieu",
       "title": "Ziggo Dome, Amsterdam",
       "artist": "FENRICK b2b DURDENHAUER @ Verknipt Ziggo Dome 2025",
@@ -14266,15 +12304,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 30,
       "category": "jingle",
-      "addedAt": 1790643676526
-    },
-    {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_21",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643676526
     },
     {
@@ -14314,15 +12343,6 @@
       "addedAt": 1790643676526
     },
     {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_23",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643676526
-    },
-    {
       "id": "rt_tv_1790257327634_jezi",
       "title": "Verknipt Festival 2026 - Day 2",
       "artist": "HARDSOK",
@@ -14356,15 +12376,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 46,
       "category": "jingle",
-      "addedAt": 1790643676526
-    },
-    {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_25",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643676526
     },
     {
@@ -14404,15 +12415,6 @@
       "addedAt": 1790643676526
     },
     {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_27",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643676526
-    },
-    {
       "id": "rt_tv_1790257330357_2c0l",
       "title": "Intents Festival 2025",
       "artist": "D-Sturb",
@@ -14446,15 +12448,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
       "category": "jingle",
-      "addedAt": 1790643676526
-    },
-    {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_29",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
       "addedAt": 1790643676526
     },
     {
@@ -14494,15 +12487,6 @@
       "addedAt": 1790643676526
     },
     {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_31",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643676526
-    },
-    {
       "id": "rt_tv_1790257339667_501j",
       "title": "BLACKWORKS WEEKEND FESTIVAL - REBIRTH EDITION",
       "artist": "FANTASM",
@@ -14536,15 +12520,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
       "duration": 8,
       "category": "jingle",
-      "addedAt": 1790643676526
-    },
-    {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_33",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643676526
     },
     {
@@ -14584,15 +12559,6 @@
       "addedAt": 1790643676526
     },
     {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_35",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643676526
-    },
-    {
       "id": "rt_tv_1790257342181_uuhe",
       "title": "Ruthless vs The Darkraver",
       "artist": "Reverze 2026",
@@ -14626,15 +12592,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
       "duration": 9,
       "category": "jingle",
-      "addedAt": 1790643676526
-    },
-    {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_37",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643676526
     },
     {
@@ -14674,15 +12631,6 @@
       "addedAt": 1790643676526
     },
     {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_39",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643676526
-    },
-    {
       "id": "rt_tv_1790257346715_ie50",
       "title": "Decibel outdoor 2025",
       "artist": "Ran-D LIVE",
@@ -14716,15 +12664,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 33,
       "category": "jingle",
-      "addedAt": 1790643676526
-    },
-    {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_41",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
       "addedAt": 1790643676526
     },
     {
@@ -14764,15 +12703,6 @@
       "addedAt": 1790643676526
     },
     {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_43",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
-      "addedAt": 1790643676526
-    },
-    {
       "id": "rt_tv_1790257351396_w4wn",
       "title": "Decibel outdoor 2025",
       "artist": "Gezellige Uptempo",
@@ -14806,15 +12736,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 26,
       "category": "jingle",
-      "addedAt": 1790643676526
-    },
-    {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_45",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
       "addedAt": 1790643676526
     },
     {
@@ -14854,15 +12775,6 @@
       "addedAt": 1790643676526
     },
     {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_47",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643676526
-    },
-    {
       "id": "rt_tv_1790257357115_oz2l",
       "title": "Insomniac · Basscon",
       "artist": "JUNKIE KID  - PRESENTS THE PARADOX -  FROM WASTELAND 2025 (FULL SET)",
@@ -14896,15 +12808,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
       "duration": 10,
       "category": "jingle",
-      "addedAt": 1790643676526
-    },
-    {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_49",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643676526
     },
     {
@@ -14944,15 +12847,6 @@
       "addedAt": 1790643676526
     },
     {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_51",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "pub",
-      "addedAt": 1790643676526
-    },
-    {
       "id": "rt_tv_1790259654365_r5yg",
       "title": "Intents Festival 2025",
       "artist": "Outsiders",
@@ -14989,15 +12883,6 @@
       "addedAt": 1790643676526
     },
     {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_53",
-      "artist": "SPONSOR",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "pub",
-      "addedAt": 1790643676526
-    },
-    {
       "id": "rt_tv_1790259785199_9nzf",
       "title": "Da Tweekaz",
       "artist": "Reverze 2026",
@@ -15031,15 +12916,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 30,
       "category": "jingle",
-      "addedAt": 1790643676526
-    },
-    {
-      "id": "rad_pub_1790643676526_radio_bloc_1790257291397_4y1e_55",
-      "artist": "SPONSOR",
-      "title": "Promo Tomorrowland Winter",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "pub",
       "addedAt": 1790643676526
     }
   ],

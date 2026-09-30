@@ -224,14 +224,15 @@ export function AdminRadioModal({
     const [radioDuplicates, setRadioDuplicates] = useState<DuplicateEntry[]>([]);
     const [showDuplicateAudit, setShowDuplicateAudit] = useState(false);
 
-    // Édition d'un morceau
+    // Édition d'un morceau ou média (émission, promo, pub, jingle...)
     const [editingTrack, setEditingTrack] = useState<{
         trackId: string;
         artist: string;
         title: string;
-        category: 'liveset' | 'clip' | 'jingle';
-        durationMinutes: number;
+        category: RadioTrackCategory | 'liveset' | 'clip' | 'jingle' | 'promo' | 'pub';
+        durationSeconds: number;
         youtubeId: string;
+        audioUrl?: string;
     } | null>(null);
 
     const [topHoraireConfig, setTopHoraireConfig] = useState<RadioTopHoraireConfig>(getTopHoraireConfig);
@@ -636,6 +637,127 @@ export function AdminRadioModal({
         showToast(`« ${itemTitle} » supprimé`);
     };
 
+    // Sauvegarder les modifications d'un morceau/promo/pub/jingle édité
+    const handleSaveEditingTrack = () => {
+        if (!editingTrack) return;
+        const targetId = editingTrack.trackId;
+        const targetTitle = editingTrack.title.trim();
+        const targetAudioUrl = editingTrack.audioUrl;
+        const ytId = extractYouTubeId(editingTrack.youtubeId) || editingTrack.youtubeId;
+        const newCat = editingTrack.category as RadioTrackCategory;
+        const newArtist = editingTrack.artist.trim() || (newCat === 'promo' ? 'PROMO DROPSIDERS' : newCat === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'Artiste');
+        const newDur = Math.max(1, editingTrack.durationSeconds || 30);
+
+        // 1. Mettre à jour dans TOUS les blocs (tracks + specialJingles)
+        setBlocks(prev => {
+            const next = prev.map(b => {
+                let changed = false;
+                const newTracks = (b.tracks || []).map(t => {
+                    const isDirectMatch = t.id === targetId;
+                    const isSharedBroadcast = (targetAudioUrl && t.audioUrl === targetAudioUrl) || (targetTitle && t.title === targetTitle && (t.category === 'pub' || t.category === 'promo' || t.category === 'jingle'));
+                    if (!isDirectMatch && !isSharedBroadcast) return t;
+
+                    changed = true;
+                    return {
+                        ...t,
+                        title: targetTitle || t.title,
+                        artist: newArtist,
+                        category: newCat,
+                        duration: newDur,
+                        youtubeId: ytId || t.youtubeId,
+                        audioUrl: editingTrack.audioUrl || t.audioUrl
+                    };
+                });
+
+                const newSpecial = (b.specialJingles || []).map(j => {
+                    const isDirect = j.id === targetId;
+                    const isShared = (targetAudioUrl && j.audioUrl === targetAudioUrl) || (targetTitle && j.title === targetTitle);
+                    if (!isDirect && !isShared) return j;
+
+                    changed = true;
+                    return {
+                        ...j,
+                        title: targetTitle || j.title,
+                        duration: newDur,
+                        youtubeId: ytId || j.youtubeId,
+                        audioUrl: editingTrack.audioUrl || j.audioUrl
+                    };
+                });
+
+                if (!changed) return b;
+                return { ...b, tracks: newTracks, specialJingles: newSpecial };
+            });
+
+            try {
+                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
+                window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+            } catch {}
+            return next;
+        });
+
+        // 2. Mettre à jour dans la palette générale
+        setGeneralJingles(prev => {
+            const updated = prev.map(j => {
+                const isMatch = j.id === targetId || (targetAudioUrl && j.audioUrl === targetAudioUrl) || (targetTitle && j.title === targetTitle);
+                if (!isMatch) return j;
+                return {
+                    ...j,
+                    title: targetTitle || j.title,
+                    category: newCat as any,
+                    type: newCat as any,
+                    duration: newDur,
+                    audioUrl: editingTrack.audioUrl || j.audioUrl,
+                    youtubeId: ytId || j.youtubeId
+                };
+            });
+            try {
+                localStorage.setItem('dropsiders_radionomy_palette', JSON.stringify(updated));
+            } catch {}
+            return updated;
+        });
+
+        showToast(`✓ « ${targetTitle} » modifié en ${newCat.toUpperCase()} !`);
+        setEditingTrack(null);
+    };
+
+    // Dédoublonnage des sponsors et promos dans toutes les émissions
+    const handleDeduplicateSponsorsAndPromos = () => {
+        let removedCount = 0;
+        setBlocks(prev => {
+            const next = prev.map(b => {
+                const seenKeys = new Set<string>();
+                const cleanTracks: RadioTrackItem[] = [];
+
+                (b.tracks || []).forEach(t => {
+                    const isPubOrPromo = t.category === 'pub' || t.category === 'promo' || t.artist === 'SPONSOR' || t.artist === 'PUBLICITÉ / SPONSOR' || (t.title && t.title.toLowerCase().startsWith('promo '));
+                    if (isPubOrPromo) {
+                        const key = ((t.audioUrl || t.title) + '').toLowerCase().trim();
+                        if (seenKeys.has(key)) {
+                            removedCount++;
+                            return; // Supprimer ce doublon !
+                        }
+                        seenKeys.add(key);
+                    }
+                    cleanTracks.push(t);
+                });
+
+                return { ...b, tracks: cleanTracks };
+            });
+
+            try {
+                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
+                window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+            } catch {}
+            return next;
+        });
+
+        if (removedCount > 0) {
+            showToast(`✓ ${removedCount} doublon(s) de sponsor/promo supprimé(s) !`, 'success');
+        } else {
+            showToast('Aucun doublon de sponsor/promo détecté.', 'info');
+        }
+    };
+
     // Sauvegarde globale
     const handleSaveAll = async () => {
         setIsSaving(true);
@@ -716,72 +838,102 @@ export function AdminRadioModal({
         }
 
         if (activeFolder === 'promos') {
-            const promoList: TableItem[] = [];
+            const promoMap = new Map<string, TableItem & { emissionCount: number }>();
             blocks.forEach(b => {
                 (b.tracks || []).forEach((t, tIdx) => {
-                    if (t.category === 'promo') {
-                        promoList.push({
-                            id: t.id || `p_${b.id}_${tIdx}`,
-                            type: 'promo' as const,
-                            title: t.title,
-                            artist: t.artist || 'PROMO DROPSIDERS',
-                            duration: t.duration || 30,
-                            box: b.title,
-                            audioUrl: t.audioUrl,
-                            youtubeId: t.youtubeId
-                        });
+                    if (t.category === 'promo' || (t.title && t.title.toLowerCase().startsWith('promo '))) {
+                        const key = (t.audioUrl || t.title).toLowerCase().trim();
+                        const existing = promoMap.get(key);
+                        if (existing) {
+                            existing.emissionCount++;
+                        } else {
+                            promoMap.set(key, {
+                                id: t.id || `p_${b.id}_${tIdx}`,
+                                type: 'promo' as const,
+                                title: t.title,
+                                artist: t.artist || 'PROMO DROPSIDERS',
+                                duration: t.duration || 30,
+                                box: b.title,
+                                audioUrl: t.audioUrl,
+                                youtubeId: t.youtubeId,
+                                emissionCount: 1
+                            });
+                        }
                     }
                 });
             });
             generalJingles.forEach(j => {
                 if ((j as any).category === 'promo' || (j as any).type === 'promo') {
-                    promoList.push({
-                        id: j.id,
-                        type: 'promo' as const,
-                        title: j.title,
-                        artist: 'PROMO DROPSIDERS',
-                        duration: j.duration || 30,
-                        box: 'BACS PROMOS',
-                        audioUrl: j.audioUrl,
-                        youtubeId: j.youtubeId
-                    });
+                    const key = (j.audioUrl || j.title).toLowerCase().trim();
+                    if (!promoMap.has(key)) {
+                        promoMap.set(key, {
+                            id: j.id,
+                            type: 'promo' as const,
+                            title: j.title,
+                            artist: 'PROMO DROPSIDERS',
+                            duration: j.duration || 30,
+                            box: 'BACS PROMOS',
+                            audioUrl: j.audioUrl,
+                            youtubeId: j.youtubeId,
+                            emissionCount: 0
+                        });
+                    }
                 }
             });
+            const promoList = Array.from(promoMap.values()).map(p => ({
+                ...p,
+                box: p.emissionCount > 1 ? `Diffusé dans ${p.emissionCount} émissions` : p.box
+            }));
             return promoList.filter(p => !query || p.title.toLowerCase().includes(query) || p.artist.toLowerCase().includes(query));
         }
 
         if (activeFolder === 'pubs') {
-            const pubList: TableItem[] = [];
+            const pubMap = new Map<string, TableItem & { emissionCount: number }>();
             blocks.forEach(b => {
                 (b.tracks || []).forEach((t, tIdx) => {
-                    if (t.category === 'pub') {
-                        pubList.push({
-                            id: t.id || `pub_${b.id}_${tIdx}`,
-                            type: 'pub' as const,
-                            title: t.title,
-                            artist: t.artist || 'PUBLICITÉ / SPONSOR',
-                            duration: t.duration || 30,
-                            box: b.title,
-                            audioUrl: t.audioUrl,
-                            youtubeId: t.youtubeId
-                        });
+                    if (t.category === 'pub' || t.artist === 'SPONSOR') {
+                        const key = (t.audioUrl || t.title).toLowerCase().trim();
+                        const existing = pubMap.get(key);
+                        if (existing) {
+                            existing.emissionCount++;
+                        } else {
+                            pubMap.set(key, {
+                                id: t.id || `pub_${b.id}_${tIdx}`,
+                                type: 'pub' as const,
+                                title: t.title,
+                                artist: t.artist || 'PUBLICITÉ / SPONSOR',
+                                duration: t.duration || 30,
+                                box: b.title,
+                                audioUrl: t.audioUrl,
+                                youtubeId: t.youtubeId,
+                                emissionCount: 1
+                            });
+                        }
                     }
                 });
             });
             generalJingles.forEach(j => {
                 if ((j as any).category === 'pub' || (j as any).type === 'pub') {
-                    pubList.push({
-                        id: j.id,
-                        type: 'pub' as const,
-                        title: j.title,
-                        artist: 'PUBLICITÉ / SPONSOR',
-                        duration: j.duration || 30,
-                        box: 'BACS PUBS',
-                        audioUrl: j.audioUrl,
-                        youtubeId: j.youtubeId
-                    });
+                    const key = (j.audioUrl || j.title).toLowerCase().trim();
+                    if (!pubMap.has(key)) {
+                        pubMap.set(key, {
+                            id: j.id,
+                            type: 'pub' as const,
+                            title: j.title,
+                            artist: 'PUBLICITÉ / SPONSOR',
+                            duration: j.duration || 30,
+                            box: 'BACS PUBS',
+                            audioUrl: j.audioUrl,
+                            youtubeId: j.youtubeId,
+                            emissionCount: 0
+                        });
+                    }
                 }
             });
+            const pubList = Array.from(pubMap.values()).map(p => ({
+                ...p,
+                box: p.emissionCount > 1 ? `Diffusé dans ${p.emissionCount} émissions` : p.box
+            }));
             return pubList.filter(p => !query || p.title.toLowerCase().includes(query) || p.artist.toLowerCase().includes(query));
         }
 
@@ -1352,15 +1504,26 @@ export function AdminRadioModal({
                             </div>
                         )}
 
-                        {/* ── FORMULAIRE D'ÉDITION D'UN MORCEAU (inline, apparaît au clic sur ✏️) ── */}
-                        {editingTrack && selectedBlock && (
+                        {/* ── FORMULAIRE D'ÉDITION D'UN MORCEAU / PROMO / PUB / JINGLE (inline, apparaît au clic sur ✏️) ── */}
+                        {editingTrack && (
                             <div className="p-4 border-b border-cyan-500/30 bg-cyan-950/25 space-y-3 animate-in slide-in-from-top-1">
                                 <div className="flex items-center justify-between">
                                     <h4 className="text-[11px] font-display font-black text-cyan-400 uppercase italic tracking-wider flex items-center gap-2">
                                         <Pencil className="w-3.5 h-3.5" />
-                                        Modifier le morceau
+                                        Modifier le média
+                                        <span className={`text-[9px] font-mono px-2 py-0.5 rounded uppercase font-bold ${
+                                            editingTrack.category === 'promo' ? 'bg-orange-500/20 text-orange-300 border border-orange-500/40' :
+                                            editingTrack.category === 'pub' ? 'bg-pink-500/20 text-pink-300 border border-pink-500/40' :
+                                            editingTrack.category === 'jingle' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
+                                            'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                                        }`}>
+                                            {editingTrack.category === 'promo' ? '📣 Promo' :
+                                             editingTrack.category === 'pub' ? '📢 Pub / Sponsor' :
+                                             editingTrack.category === 'jingle' ? '🔔 Jingle' :
+                                             editingTrack.category === 'clip' ? '🎬 Clip' : '🎧 Set'}
+                                        </span>
                                     </h4>
-                                    <button type="button" onClick={() => setEditingTrack(null)} className="text-gray-400 hover:text-white">
+                                    <button type="button" onClick={() => setEditingTrack(null)} className="text-gray-400 hover:text-white p-1">
                                         <X className="w-4 h-4" />
                                     </button>
                                 </div>
@@ -1370,67 +1533,79 @@ export function AdminRadioModal({
                                         value={editingTrack.title}
                                         onChange={e => setEditingTrack(t => t ? { ...t, title: e.target.value } : null)}
                                         placeholder="Titre"
-                                        className="md:col-span-4 px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs"
+                                        className="md:col-span-4 px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs font-bold"
                                     />
                                     <input
                                         type="text"
                                         value={editingTrack.artist}
                                         onChange={e => setEditingTrack(t => t ? { ...t, artist: e.target.value } : null)}
-                                        placeholder="Artiste / DJ"
+                                        placeholder="Artiste / DJ / Sponsor"
                                         className="md:col-span-3 px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={editingTrack.youtubeId}
-                                        onChange={e => setEditingTrack(t => t ? { ...t, youtubeId: e.target.value } : null)}
-                                        placeholder="YouTube ID ou lien"
-                                        className="md:col-span-2 px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs font-mono"
                                     />
                                     <select
                                         value={editingTrack.category}
-                                        onChange={e => setEditingTrack(t => t ? { ...t, category: e.target.value as any } : null)}
-                                        className="md:col-span-1 px-2 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs"
+                                        onChange={e => {
+                                            const newCat = e.target.value as any;
+                                            setEditingTrack(t => {
+                                                if (!t) return null;
+                                                let newArtist = t.artist;
+                                                if (newCat === 'promo' && (t.artist === 'SPONSOR' || t.artist === 'PUBLICITÉ / SPONSOR' || !t.artist)) {
+                                                    newArtist = 'PROMO DROPSIDERS';
+                                                } else if (newCat === 'pub' && (t.artist === 'PROMO DROPSIDERS' || !t.artist)) {
+                                                    newArtist = 'PUBLICITÉ / SPONSOR';
+                                                } else if (newCat === 'jingle' && (!t.artist || t.artist === 'SPONSOR' || t.artist === 'PUBLICITÉ / SPONSOR' || t.artist === 'PROMO DROPSIDERS')) {
+                                                    newArtist = 'DROPSIDERS JINGLE';
+                                                }
+                                                return { ...t, category: newCat, artist: newArtist };
+                                            });
+                                        }}
+                                        className="md:col-span-2 px-2 py-1.5 rounded-xl bg-black/50 border border-cyan-500/40 text-cyan-300 font-bold text-xs"
                                     >
+                                        <option value="promo">📣 Promo</option>
+                                        <option value="pub">📢 Pub / Sponsor</option>
                                         <option value="liveset">🎧 Set</option>
                                         <option value="clip">🎬 Clip</option>
                                         <option value="jingle">🔔 Jingle</option>
                                     </select>
                                     <input
                                         type="number"
-                                        value={editingTrack.durationMinutes}
-                                        onChange={e => setEditingTrack(t => t ? { ...t, durationMinutes: parseInt(e.target.value) || 60 } : null)}
-                                        placeholder="Min"
-                                        title="Durée en minutes"
+                                        value={editingTrack.category === 'liveset' || editingTrack.category === 'clip' ? Math.round(editingTrack.durationSeconds / 60) : editingTrack.durationSeconds}
+                                        onChange={e => {
+                                            const val = Math.max(1, parseInt(e.target.value, 10) || 1);
+                                            setEditingTrack(t => {
+                                                if (!t) return null;
+                                                const dur = (t.category === 'liveset' || t.category === 'clip') ? val * 60 : val;
+                                                return { ...t, durationSeconds: dur };
+                                            });
+                                        }}
+                                        placeholder={editingTrack.category === 'liveset' || editingTrack.category === 'clip' ? 'Min' : 'Sec'}
+                                        title={editingTrack.category === 'liveset' || editingTrack.category === 'clip' ? 'Durée en minutes' : 'Durée en secondes'}
                                         className="md:col-span-1 px-2 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs font-mono text-center"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={editingTrack.youtubeId || editingTrack.audioUrl || ''}
+                                        onChange={e => {
+                                            const val = e.target.value.trim();
+                                            const yt = extractYouTubeId(val);
+                                            setEditingTrack(t => t ? {
+                                                ...t,
+                                                youtubeId: yt || (val.startsWith('http') ? '' : val),
+                                                audioUrl: val.startsWith('http') && !yt ? val : t.audioUrl
+                                            } : null);
+                                        }}
+                                        placeholder="YouTube ID ou URL MP3/WAV"
+                                        className="md:col-span-1 px-2 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs font-mono truncate"
+                                        title="Lien YouTube ou URL audio"
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            if (!editingTrack) return;
-                                            const ytId = extractYouTubeId(editingTrack.youtubeId) || editingTrack.youtubeId;
-                                            setBlocks(prev => prev.map(b => {
-                                                if (b.id !== selectedBlock.id) return b;
-                                                return {
-                                                    ...b,
-                                                    tracks: (b.tracks || []).map(t => {
-                                                        if (t.id !== editingTrack.trackId) return t;
-                                                        return {
-                                                            ...t,
-                                                            title: editingTrack.title.trim() || t.title,
-                                                            artist: editingTrack.artist.trim() || t.artist,
-                                                            youtubeId: ytId || t.youtubeId,
-                                                            category: editingTrack.category,
-                                                            duration: (editingTrack.durationMinutes || 60) * 60
-                                                        };
-                                                    })
-                                                };
-                                            }));
-                                            showToast('✓ Morceau modifié !');
-                                            setEditingTrack(null);
-                                        }}
-                                        className="md:col-span-1 py-1.5 rounded-xl bg-cyan-500 hover:bg-white text-black font-display font-black text-xs uppercase cursor-pointer"
+                                        onClick={handleSaveEditingTrack}
+                                        className="md:col-span-1 py-1.5 rounded-xl bg-cyan-500 hover:bg-white text-black font-display font-black text-xs uppercase cursor-pointer flex items-center justify-center gap-1 shadow-md shadow-cyan-500/20"
+                                        title="Enregistrer les modifications"
                                     >
-                                        <Check className="w-3.5 h-3.5 mx-auto" />
+                                        <Check className="w-4 h-4" />
+                                        <span className="md:hidden">Valider</span>
                                     </button>
                                 </div>
                             </div>
@@ -1511,6 +1686,17 @@ export function AdminRadioModal({
                                 >
                                     <Megaphone className="w-3.5 h-3.5" />
                                     <span>{activeFolder === 'pubs' ? 'Nouvelle Pub' : 'Nouvelle Promo'}</span>
+                                </button>
+
+                                {/* Bouton Dédoublonner Sponsors & Promos */}
+                                <button
+                                    type="button"
+                                    onClick={handleDeduplicateSponsorsAndPromos}
+                                    className="px-3 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500 text-purple-300 hover:text-black border border-purple-500/40 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-sm"
+                                    title="Nettoie et supprime les doublons de sponsors et promos dans toutes les émissions"
+                                >
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                    <span>Dédoublonner</span>
                                 </button>
 
                                 {/* Bouton Uploader Jingle */}
@@ -1770,28 +1956,26 @@ export function AdminRadioModal({
                                                                 </>
                                                             )}
 
-                                                            {/* Bouton Modifier — uniquement pour les morceaux d'émission (avec index) */}
-                                                            {(item as any).index !== undefined && selectedBlock && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        const track = (selectedBlock.tracks || [])[(item as any).index];
-                                                                        if (!track) return;
-                                                                        setEditingTrack({
-                                                                            trackId: track.id || '',
-                                                                            artist: track.artist || '',
-                                                                            title: track.title || '',
-                                                                            category: (track.category === 'liveset' || track.category === 'clip' || track.category === 'jingle') ? track.category : 'liveset',
-                                                                            durationMinutes: Math.round((track.duration || 3600) / 60),
-                                                                            youtubeId: track.youtubeId || ''
-                                                                        });
-                                                                    }}
-                                                                    className="p-1 rounded text-gray-500 hover:text-cyan-400 hover:bg-cyan-500/10 cursor-pointer"
-                                                                    title="Modifier"
-                                                                >
-                                                                    <Pencil className="w-3.5 h-3.5" />
-                                                                </button>
-                                                            )}
+                                                            {/* Bouton Modifier — pour TOUS les items (émissions, promos, pubs, jingles) */}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const cat = (item.type as any) || 'liveset';
+                                                                    setEditingTrack({
+                                                                        trackId: item.id || '',
+                                                                        artist: item.artist || '',
+                                                                        title: item.title || '',
+                                                                        category: (cat === 'promo' || cat === 'pub' || cat === 'jingle' || cat === 'clip' || cat === 'liveset' || cat === 'set') ? (cat === 'set' ? 'liveset' : cat) : 'liveset',
+                                                                        durationSeconds: item.duration || (cat === 'jingle' ? 15 : (cat === 'promo' || cat === 'pub') ? 30 : 3600),
+                                                                        youtubeId: item.youtubeId || '',
+                                                                        audioUrl: item.audioUrl || ''
+                                                                    });
+                                                                }}
+                                                                className="p-1 rounded text-gray-500 hover:text-cyan-400 hover:bg-cyan-500/10 cursor-pointer"
+                                                                title="Modifier"
+                                                            >
+                                                                <Pencil className="w-3.5 h-3.5" />
+                                                            </button>
 
                                                             {/* Bouton Supprimer — pour TOUS les items */}
                                                             <button
