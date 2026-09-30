@@ -576,10 +576,7 @@
           "blockColor": "#f59e0b",
           "blockEmoji": "🌅"
         }
-      ],
-      "startHour": 6,
-      "endHour": 10,
-      "name": "Bloc 1 · Morning Clips"
+      ]
     },
     {
       "id": "bloc_2",
@@ -1228,10 +1225,7 @@
           "blockColor": "#06b6d4",
           "blockEmoji": "🎪"
         }
-      ],
-      "startHour": 10,
-      "endHour": 14,
-      "name": "Bloc 2 · Relive Festivals"
+      ]
     },
     {
       "id": "bloc_3",
@@ -1700,10 +1694,7 @@
           "blockColor": "#10b981",
           "blockEmoji": "☀️"
         }
-      ],
-      "startHour": 14,
-      "endHour": 18,
-      "name": "Bloc 3 · Day Time"
+      ]
     },
     {
       "id": "bloc_4",
@@ -1992,10 +1983,7 @@
           "blockColor": "#8b5cf6",
           "blockEmoji": "⭐"
         }
-      ],
-      "startHour": 18,
-      "endHour": 24,
-      "name": "Bloc 4 · Prime Time Dropsiders"
+      ]
     },
     {
       "id": "bloc_1789598131556",
@@ -2104,10 +2092,7 @@
           "blockColor": "#ff1241",
           "blockEmoji": "🔥"
         }
-      ],
-      "startHour": 0,
-      "endHour": 3,
-      "name": "Bloc 5 · Zone Rouge"
+      ]
     },
     {
       "id": "bloc_5",
@@ -2526,10 +2511,7 @@
           "blockColor": "#ec4899",
           "blockEmoji": "🌙"
         }
-      ],
-      "startHour": 3,
-      "endHour": 6,
-      "name": "Bloc 6 · La Nuit Dropsiders"
+      ]
     }
   ],
   "tv_playlist": [
@@ -4066,7 +4048,7 @@
     {
       "id": "radio_bloc_1790256648831_kmgn",
       "name": "LE 12 - 16",
-      "title": "FEEL THE VIBE",
+      "title": "FEEL THE DROP",
       "timeSlot": "12h - 16h",
       "startHour": 12,
       "endHour": 16,
