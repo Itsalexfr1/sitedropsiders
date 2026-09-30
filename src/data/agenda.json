@@ -763,5 +763,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1123,
+    "title": "Mish / Smvb / Code Breakers / Kataouchee / Agartha",
+    "date": "2026-10-10",
+    "startDate": "2026-10-10",
+    "endDate": "2026-10-10",
+    "venue": "Titan",
+    "location": "LYON",
+    "country": "FRANCE",
+    "type": "Events",
+    "image": "/uploads/uploads/10d0e634f20cb695-shotgun_7_hrz0t6.jpg",
+    "url": "https://shotgun.live/fr/events/mish-codebreakers-smvb",
+    "genre": "Hard Techno",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
