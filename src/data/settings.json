@@ -4981,14 +4981,6 @@
       ],
       "tracks": [
         {
-          "id": "track_promo_g_1790783012225_k89p_g41",
-          "title": "Promo Titan Lyon",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
-          "duration": 39,
-          "category": "promo"
-        },
-        {
           "id": "rt_tv_1790256878961_ckdk",
           "title": "DROPSIDERS TV",
           "artist": "COMMENT ON PASSE D'UN BAR EN STATION À TOMORROWLAND ? (avec Thomas Moulène)",
@@ -4998,9 +4990,9 @@
           "addedAt": 1790256878961
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_0",
+          "id": "sj_radio_bloc_1790256873762_k89p_s_0",
           "title": "Dropsiders Radio Jingle 3",
-          "artist": "L'AFTER WORK JINGLE",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
           "duration": 12,
           "category": "jingle"
@@ -5015,19 +5007,11 @@
           "addedAt": 1790256883130
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_1",
-          "title": "Promo Tomorrowland Winter",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "promo"
-        },
-        {
-          "id": "sj_radio_bloc_1790256873762_k89p_2",
-          "title": "Dropsiders Radio Jingle 4",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_1",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -5040,11 +5024,11 @@
           "addedAt": 1790256883899
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_3",
-          "title": "Promo Escape Psycho Circus 2026 1",
+          "id": "pr_radio_bloc_1790256873762_k89p_p_2",
+          "title": "Promo Titan Lyon",
           "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
           "category": "promo"
         },
         {
@@ -5057,11 +5041,11 @@
           "addedAt": 1790256886549
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_4",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "sj_radio_bloc_1790256873762_k89p_s_3",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -5074,12 +5058,12 @@
           "addedAt": 1790256887258
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_5",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "promo"
+          "id": "nj_radio_bloc_1790256873762_k89p_n_4",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256888086_budn",
@@ -5091,12 +5075,12 @@
           "addedAt": 1790256888086
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_6",
-          "title": "Dropsiders Radio Jingle 4",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_5",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256888634_oyul",
@@ -5108,11 +5092,11 @@
           "addedAt": 1790256888634
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_7",
-          "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 15,
+          "id": "sj_radio_bloc_1790256873762_k89p_s_6",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -5125,11 +5109,11 @@
           "addedAt": 1790256890720
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_8",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_7",
+          "title": "Dropsiders Radio Jingle 5",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+          "duration": 14,
           "category": "jingle"
         },
         {
@@ -5142,12 +5126,12 @@
           "addedAt": 1790256891869
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_9",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 30,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_8",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256896322_ly1g",
@@ -5159,9 +5143,9 @@
           "addedAt": 1790256896322
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_10",
+          "id": "sj_radio_bloc_1790256873762_k89p_s_9",
           "title": "Dropsiders Radio Jingle 4",
-          "artist": "L'AFTER WORK JINGLE",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
           "duration": 8,
           "category": "jingle"
@@ -5176,11 +5160,11 @@
           "addedAt": 1790256898997
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_11",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+          "id": "nj_radio_bloc_1790256873762_k89p_n_10",
+          "title": "Dropsiders Radio Jingle 6",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 28,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+          "duration": 9,
           "category": "jingle"
         },
         {
@@ -5193,12 +5177,12 @@
           "addedAt": 1790256901001
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_12",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_11",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256902828_s7je",
@@ -5210,11 +5194,11 @@
           "addedAt": 1790256902828
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_13",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 22,
+          "id": "sj_radio_bloc_1790256873762_k89p_s_12",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -5227,11 +5211,11 @@
           "addedAt": 1790256906483
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_14",
-          "title": "Dropsiders Radio Jingle 4",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_13",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 30,
           "category": "jingle"
         },
         {
@@ -5244,12 +5228,12 @@
           "addedAt": 1790256907122
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_15",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 33,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_14",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256907948_tuyn",
@@ -5261,11 +5245,11 @@
           "addedAt": 1790256907948
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_16",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "sj_radio_bloc_1790256873762_k89p_s_15",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -5278,11 +5262,11 @@
           "addedAt": 1790256910097
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_17",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+          "id": "nj_radio_bloc_1790256873762_k89p_n_16",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 46,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 28,
           "category": "jingle"
         },
         {
@@ -5295,12 +5279,12 @@
           "addedAt": 1790256910777
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_18",
-          "title": "Dropsiders Radio Jingle 4",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_17",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256911364_cdpc",
@@ -5312,11 +5296,11 @@
           "addedAt": 1790256911364
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_19",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 44,
+          "id": "sj_radio_bloc_1790256873762_k89p_s_18",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -5329,11 +5313,11 @@
           "addedAt": 1790256914295
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_20",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_19",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 22,
           "category": "jingle"
         },
         {
@@ -5346,12 +5330,12 @@
           "addedAt": 1790256914912
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_21",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 28,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_20",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256915495_6svs",
@@ -5363,9 +5347,9 @@
           "addedAt": 1790256915495
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_22",
+          "id": "sj_radio_bloc_1790256873762_k89p_s_21",
           "title": "Dropsiders Radio Jingle 4",
-          "artist": "L'AFTER WORK JINGLE",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
           "duration": 8,
           "category": "jingle"
@@ -5380,11 +5364,11 @@
           "addedAt": 1790256916256
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_23",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+          "id": "nj_radio_bloc_1790256873762_k89p_n_22",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 26,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 33,
           "category": "jingle"
         },
         {
@@ -5397,12 +5381,12 @@
           "addedAt": 1790256917092
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_24",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_23",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256918361_s3uj",
@@ -5414,11 +5398,11 @@
           "addedAt": 1790256918361
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_25",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 32,
+          "id": "sj_radio_bloc_1790256873762_k89p_s_24",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -5431,11 +5415,11 @@
           "addedAt": 1790256919031
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_26",
-          "title": "Dropsiders Radio Jingle 4",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_25",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 46,
           "category": "jingle"
         },
         {
@@ -5448,12 +5432,12 @@
           "addedAt": 1790256921987
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_27",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 32,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_26",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256922634_ied9",
@@ -5465,11 +5449,11 @@
           "addedAt": 1790256922634
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_28",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "sj_radio_bloc_1790256873762_k89p_s_27",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -5482,6 +5466,14 @@
           "addedAt": 1790256923356
         },
         {
+          "id": "nj_radio_bloc_1790256873762_k89p_n_28",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 44,
+          "category": "jingle"
+        },
+        {
           "id": "rt_tv_1790256926733_wnhk",
           "title": "DROPSIDERS TV",
           "artist": "David Guetta, Aya Nakamura : Il produit les plus grands shows",
@@ -5491,12 +5483,12 @@
           "addedAt": 1790256926733
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_30",
-          "title": "Dropsiders Radio Jingle 4",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_29",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256927558_021q",
@@ -5508,12 +5500,12 @@
           "addedAt": 1790256927558
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_31",
-          "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "61tiIdIrjUQ",
-          "duration": 25,
-          "category": "pub"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_30",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256931699_lozg",
@@ -5525,11 +5517,11 @@
           "addedAt": 1790256931699
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_32",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_31",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 28,
           "category": "jingle"
         },
         {
@@ -5542,6 +5534,14 @@
           "addedAt": 1790256939283
         },
         {
+          "id": "pr_radio_bloc_1790256873762_k89p_p_32",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
+        },
+        {
           "id": "rt_tv_1790256941065_wigv",
           "title": "Psychrowdelic Trip Stage - elrow Town Madrid 2026",
           "artist": "Bastian Bux",
@@ -5551,9 +5551,9 @@
           "addedAt": 1790256941065
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_34",
+          "id": "sj_radio_bloc_1790256873762_k89p_s_33",
           "title": "Dropsiders Radio Jingle 4",
-          "artist": "L'AFTER WORK JINGLE",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
           "duration": 8,
           "category": "jingle"
@@ -5568,6 +5568,14 @@
           "addedAt": 1790256942158
         },
         {
+          "id": "nj_radio_bloc_1790256873762_k89p_n_34",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 26,
+          "category": "jingle"
+        },
+        {
           "id": "rt_tv_1790256944668_nyro",
           "title": "Paris L'Olympia",
           "artist": "Paul Kalkbrenner",
@@ -5577,12 +5585,12 @@
           "addedAt": 1790256944668
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_36",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_35",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256945578_n86w",
@@ -5594,6 +5602,14 @@
           "addedAt": 1790256945578
         },
         {
+          "id": "sj_radio_bloc_1790256873762_k89p_s_36",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
+          "category": "jingle"
+        },
+        {
           "id": "rt_tv_1790256953963_r0nn",
           "title": "Main Stage. elrow Town Madrid 2026",
           "artist": "Nic Fanciulli b2b Butch",
@@ -5603,11 +5619,11 @@
           "addedAt": 1790256953963
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_38",
-          "title": "Dropsiders Radio Jingle 4",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_37",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -5620,12 +5636,12 @@
           "addedAt": 1790256956630
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_39",
-          "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 15,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_38",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256972956_z2ar",
@@ -5637,11 +5653,11 @@
           "addedAt": 1790256972956
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_40",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "sj_radio_bloc_1790256873762_k89p_s_39",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -5654,11 +5670,11 @@
           "addedAt": 1790256975482
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_41",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+          "id": "nj_radio_bloc_1790256873762_k89p_n_40",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 30,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -5671,12 +5687,12 @@
           "addedAt": 1790256976974
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_42",
-          "title": "Dropsiders Radio Jingle 4",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_41",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790259726578_1gt9",
@@ -5688,11 +5704,11 @@
           "addedAt": 1790259726579
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_43",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 28,
+          "id": "sj_radio_bloc_1790256873762_k89p_s_42",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -5705,11 +5721,11 @@
           "addedAt": 1790259735723
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_44",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_43",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 15,
           "category": "jingle"
         },
         {
@@ -5722,12 +5738,12 @@
           "addedAt": 1790259746674
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_45",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 22,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_44",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790259747297_by65",
@@ -5739,9 +5755,9 @@
           "addedAt": 1790259747297
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_46",
+          "id": "sj_radio_bloc_1790256873762_k89p_s_45",
           "title": "Dropsiders Radio Jingle 4",
-          "artist": "L'AFTER WORK JINGLE",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
           "duration": 8,
           "category": "jingle"
@@ -5756,11 +5772,11 @@
           "addedAt": 1790259779475
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_47",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
+          "id": "nj_radio_bloc_1790256873762_k89p_n_46",
+          "title": "Dropsiders Radio Jingle 2",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 33,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
           "category": "jingle"
         },
         {
@@ -5773,12 +5789,12 @@
           "addedAt": 1790259780084
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_48",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_47",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790259780642_7bxa",
@@ -5790,11 +5806,11 @@
           "addedAt": 1790259780642
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_49",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 46,
+          "id": "sj_radio_bloc_1790256873762_k89p_s_48",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -5807,10 +5823,10 @@
           "addedAt": 1790259783027
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_50",
-          "title": "Dropsiders Radio Jingle 4",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "id": "nj_radio_bloc_1790256873762_k89p_n_49",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
           "duration": 8,
           "category": "jingle"
         },
@@ -5824,12 +5840,12 @@
           "addedAt": 1790259815757
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_51",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 44,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_50",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_1790342700439",
@@ -5841,11 +5857,11 @@
           "addedAt": 1790342700439
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_52",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "L'AFTER WORK JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "sj_radio_bloc_1790256873762_k89p_s_51",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -5858,11 +5874,11 @@
           "addedAt": 1790556066536
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_53",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
+          "id": "nj_radio_bloc_1790256873762_k89p_n_52",
+          "title": "Dropsiders Radio Jingle 3",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 28,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         }
       ],
@@ -5883,7 +5899,8 @@
           "duration": 8,
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav"
         }
-      ]
+      ],
+      "rotationRule": "son_special_son_jingle_promo"
     },
     {
       "id": "radio_bloc_1790257094891_kg2l",
@@ -6438,14 +6455,6 @@
       ],
       "tracks": [
         {
-          "id": "track_promo_g_1790783012225_4y1e_dhy",
-          "title": "Promo Titan Lyon",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
-          "duration": 39,
-          "category": "promo"
-        },
-        {
           "id": "rt_tv_1790257302402_26gf",
           "title": "Angerfist",
           "artist": "Qlimax 2016",
@@ -6455,9 +6464,9 @@
           "addedAt": 1790257302403
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_0",
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_0",
           "title": "Dropsiders Radio Jingle 1",
-          "artist": "ZONE ROUGE JINGLE",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
           "duration": 8,
           "category": "jingle"
@@ -6472,17 +6481,9 @@
           "addedAt": 1790257303915
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_1",
-          "title": "Promo Tomorrowland Winter",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "promo"
-        },
-        {
-          "id": "sj_radio_bloc_1790257291397_4y1e_2",
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_1",
           "title": "Dropsiders Radio Jingle 3",
-          "artist": "ZONE ROUGE JINGLE",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
           "duration": 12,
           "category": "jingle"
@@ -6497,11 +6498,11 @@
           "addedAt": 1790257304611
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_3",
-          "title": "Promo Escape Psycho Circus 2026 1",
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_2",
+          "title": "Promo Titan Lyon",
           "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
           "category": "promo"
         },
         {
@@ -6514,11 +6515,11 @@
           "addedAt": 1790257305761
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_4",
-          "title": "Dropsiders Radio Jingle 5",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_3",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -6531,12 +6532,12 @@
           "addedAt": 1790257306432
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_5",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "promo"
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_4",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257307803_pkny",
@@ -6548,12 +6549,12 @@
           "addedAt": 1790257307803
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_6",
-          "title": "Dropsiders Radio Jingle 1",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_5",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790257308419_b1y4",
@@ -6565,11 +6566,11 @@
           "addedAt": 1790257308419
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_7",
-          "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 15,
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_6",
+          "title": "Dropsiders Radio Jingle 5",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+          "duration": 14,
           "category": "jingle"
         },
         {
@@ -6582,11 +6583,11 @@
           "addedAt": 1790257309809
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_8",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_7",
+          "title": "Dropsiders Radio Jingle 5",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+          "duration": 14,
           "category": "jingle"
         },
         {
@@ -6599,12 +6600,12 @@
           "addedAt": 1790257310340
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_9",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 30,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_8",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790257310845_ie5i",
@@ -6616,11 +6617,11 @@
           "addedAt": 1790257310845
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_10",
-          "title": "Dropsiders Radio Jingle 5",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_9",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -6633,11 +6634,11 @@
           "addedAt": 1790257313033
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_11",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_10",
+          "title": "Dropsiders Radio Jingle 6",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 28,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+          "duration": 9,
           "category": "jingle"
         },
         {
@@ -6650,12 +6651,12 @@
           "addedAt": 1790257313552
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_12",
-          "title": "Dropsiders Radio Jingle 1",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_11",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790257314165_r5vu",
@@ -6667,11 +6668,11 @@
           "addedAt": 1790257314165
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_13",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 22,
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_12",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -6684,11 +6685,11 @@
           "addedAt": 1790257315977
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_14",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_13",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 30,
           "category": "jingle"
         },
         {
@@ -6701,12 +6702,12 @@
           "addedAt": 1790257316791
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_15",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 33,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_14",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790257317457_5l9n",
@@ -6718,9 +6719,9 @@
           "addedAt": 1790257317457
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_16",
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_15",
           "title": "Dropsiders Radio Jingle 5",
-          "artist": "ZONE ROUGE JINGLE",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
           "duration": 14,
           "category": "jingle"
@@ -6735,11 +6736,11 @@
           "addedAt": 1790257318003
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_17",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_16",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 46,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 28,
           "category": "jingle"
         },
         {
@@ -6752,12 +6753,12 @@
           "addedAt": 1790257318692
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_18",
-          "title": "Dropsiders Radio Jingle 1",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_17",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790257319570_fviw",
@@ -6769,11 +6770,11 @@
           "addedAt": 1790257319570
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_19",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 44,
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_18",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -6786,11 +6787,11 @@
           "addedAt": 1790257320099
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_20",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_19",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 22,
           "category": "jingle"
         },
         {
@@ -6803,12 +6804,12 @@
           "addedAt": 1790257324344
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_21",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 28,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_20",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790257325037_0nxd",
@@ -6820,11 +6821,11 @@
           "addedAt": 1790257325037
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_22",
-          "title": "Dropsiders Radio Jingle 5",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_21",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -6837,11 +6838,11 @@
           "addedAt": 1790257326011
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_23",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_22",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 26,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 33,
           "category": "jingle"
         },
         {
@@ -6854,12 +6855,12 @@
           "addedAt": 1790257326873
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_24",
-          "title": "Dropsiders Radio Jingle 1",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_23",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790257327634_jezi",
@@ -6871,11 +6872,11 @@
           "addedAt": 1790257327634
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_25",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 32,
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_24",
+          "title": "Dropsiders Radio Jingle 5",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+          "duration": 14,
           "category": "jingle"
         },
         {
@@ -6888,11 +6889,11 @@
           "addedAt": 1790257328267
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_26",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_25",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 46,
           "category": "jingle"
         },
         {
@@ -6905,12 +6906,12 @@
           "addedAt": 1790257328785
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_27",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 32,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_26",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790257329372_bzez",
@@ -6922,11 +6923,11 @@
           "addedAt": 1790257329372
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_28",
-          "title": "Dropsiders Radio Jingle 5",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_27",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -6939,12 +6940,12 @@
           "addedAt": 1790257330357
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_29",
-          "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "pQdsHoG2yhw",
-          "duration": 30,
-          "category": "pub"
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_28",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 44,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257331017_755v",
@@ -6956,12 +6957,12 @@
           "addedAt": 1790257331017
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_30",
-          "title": "Dropsiders Radio Jingle 1",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_29",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790257338005_hhyt",
@@ -6973,12 +6974,12 @@
           "addedAt": 1790257338005
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_31",
-          "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "61tiIdIrjUQ",
-          "duration": 25,
-          "category": "pub"
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_30",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257338604_xea2",
@@ -6990,11 +6991,11 @@
           "addedAt": 1790257338604
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_32",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_31",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 28,
           "category": "jingle"
         },
         {
@@ -7007,6 +7008,14 @@
           "addedAt": 1790257339667
         },
         {
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_32",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
+        },
+        {
           "id": "rt_tv_1790257340343_xg3p",
           "title": "FULL VIDEOSET",
           "artist": "DEXPHASE B2B OGUZ @ BLACKWORKS WEEKEND FESTIVAL 2026: DIMENSION",
@@ -7016,9 +7025,9 @@
           "addedAt": 1790257340343
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_34",
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_33",
           "title": "Dropsiders Radio Jingle 5",
-          "artist": "ZONE ROUGE JINGLE",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
           "duration": 14,
           "category": "jingle"
@@ -7033,6 +7042,14 @@
           "addedAt": 1790257340990
         },
         {
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_34",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 26,
+          "category": "jingle"
+        },
+        {
           "id": "rt_tv_1790257341633_8odl",
           "title": "Brennan Heart vs Coone",
           "artist": "Reverze 2026",
@@ -7042,12 +7059,12 @@
           "addedAt": 1790257341633
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_36",
-          "title": "Dropsiders Radio Jingle 1",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_35",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790257342181_uuhe",
@@ -7059,6 +7076,14 @@
           "addedAt": 1790257342181
         },
         {
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_36",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
           "id": "rt_tv_1790257342808_8d6l",
           "title": "B-Front",
           "artist": "Reverze 2026",
@@ -7068,11 +7093,11 @@
           "addedAt": 1790257342808
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_38",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_37",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -7085,12 +7110,12 @@
           "addedAt": 1790257343370
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_39",
-          "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 15,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_38",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790257345650_r61c",
@@ -7102,11 +7127,11 @@
           "addedAt": 1790257345650
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_40",
-          "title": "Dropsiders Radio Jingle 5",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_39",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -7119,11 +7144,11 @@
           "addedAt": 1790257346715
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_41",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_40",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 30,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -7136,12 +7161,12 @@
           "addedAt": 1790257349628
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_42",
-          "title": "Dropsiders Radio Jingle 1",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_41",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790257350257_6wce",
@@ -7153,11 +7178,11 @@
           "addedAt": 1790257350257
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_43",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 28,
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_42",
+          "title": "Dropsiders Radio Jingle 5",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+          "duration": 14,
           "category": "jingle"
         },
         {
@@ -7170,11 +7195,11 @@
           "addedAt": 1790257350832
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_44",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_43",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 15,
           "category": "jingle"
         },
         {
@@ -7187,12 +7212,12 @@
           "addedAt": 1790257351396
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_45",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 22,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_44",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790257351972_b3er",
@@ -7204,11 +7229,11 @@
           "addedAt": 1790257351972
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_46",
-          "title": "Dropsiders Radio Jingle 5",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_45",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -7221,11 +7246,11 @@
           "addedAt": 1790257354766
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_47",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_46",
+          "title": "Dropsiders Radio Jingle 2",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 33,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
           "category": "jingle"
         },
         {
@@ -7238,12 +7263,12 @@
           "addedAt": 1790257356210
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_48",
-          "title": "Dropsiders Radio Jingle 1",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_47",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790257357115_oz2l",
@@ -7255,11 +7280,11 @@
           "addedAt": 1790257357115
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_49",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 46,
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_48",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -7272,11 +7297,11 @@
           "addedAt": 1790257357834
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_50",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_49",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -7289,12 +7314,12 @@
           "addedAt": 1790257358790
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_51",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 44,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_50",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790259547701_6txu",
@@ -7306,9 +7331,9 @@
           "addedAt": 1790259547701
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_52",
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_51",
           "title": "Dropsiders Radio Jingle 5",
-          "artist": "ZONE ROUGE JINGLE",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
           "duration": 14,
           "category": "jingle"
@@ -7323,11 +7348,11 @@
           "addedAt": 1790259654365
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_53",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_52",
+          "title": "Dropsiders Radio Jingle 3",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 28,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -7340,12 +7365,12 @@
           "addedAt": 1790259715019
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_54",
-          "title": "Dropsiders Radio Jingle 1",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790257291397_4y1e_p_53",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790259785199_9nzf",
@@ -7357,11 +7382,11 @@
           "addedAt": 1790259785199
         },
         {
-          "id": "pr_radio_bloc_1790257291397_4y1e_55",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 26,
+          "id": "sj_radio_bloc_1790257291397_4y1e_s_54",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -7374,11 +7399,11 @@
           "addedAt": 1790259785850
         },
         {
-          "id": "sj_radio_bloc_1790257291397_4y1e_56",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "ZONE ROUGE JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "nj_radio_bloc_1790257291397_4y1e_n_55",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
           "category": "jingle"
         }
       ],
@@ -7407,7 +7432,8 @@
           "duration": 14,
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav"
         }
-      ]
+      ],
+      "rotationRule": "son_special_son_jingle_promo"
     }
   ],
   "radio_tracks": [
@@ -9534,14 +9560,6 @@
       "category": "jingle"
     },
     {
-      "id": "track_promo_g_1790783012225_k89p_g41",
-      "title": "Promo Titan Lyon",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
-      "duration": 39,
-      "category": "promo"
-    },
-    {
       "id": "rt_tv_1790256878961_ckdk",
       "title": "DROPSIDERS TV",
       "artist": "COMMENT ON PASSE D'UN BAR EN STATION À TOMORROWLAND ? (avec Thomas Moulène)",
@@ -9551,9 +9569,9 @@
       "addedAt": 1790256878961
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_0",
+      "id": "sj_radio_bloc_1790256873762_k89p_s_0",
       "title": "Dropsiders Radio Jingle 3",
-      "artist": "L'AFTER WORK JINGLE",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
       "duration": 12,
       "category": "jingle"
@@ -9568,19 +9586,11 @@
       "addedAt": 1790256883130
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_1",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
-    },
-    {
-      "id": "sj_radio_bloc_1790256873762_k89p_2",
-      "title": "Dropsiders Radio Jingle 4",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_1",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -9593,11 +9603,11 @@
       "addedAt": 1790256883899
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_3",
-      "title": "Promo Escape Psycho Circus 2026 1",
+      "id": "pr_radio_bloc_1790256873762_k89p_p_2",
+      "title": "Promo Titan Lyon",
       "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
       "category": "promo"
     },
     {
@@ -9610,11 +9620,11 @@
       "addedAt": 1790256886549
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_4",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "sj_radio_bloc_1790256873762_k89p_s_3",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -9627,12 +9637,12 @@
       "addedAt": 1790256887258
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_5",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "promo"
+      "id": "nj_radio_bloc_1790256873762_k89p_n_4",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256888086_budn",
@@ -9644,12 +9654,12 @@
       "addedAt": 1790256888086
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_6",
-      "title": "Dropsiders Radio Jingle 4",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_5",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256888634_oyul",
@@ -9661,11 +9671,11 @@
       "addedAt": 1790256888634
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_7",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 15,
+      "id": "sj_radio_bloc_1790256873762_k89p_s_6",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -9678,11 +9688,11 @@
       "addedAt": 1790256890720
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_8",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_7",
+      "title": "Dropsiders Radio Jingle 5",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+      "duration": 14,
       "category": "jingle"
     },
     {
@@ -9695,12 +9705,12 @@
       "addedAt": 1790256891869
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_9",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 30,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_8",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256896322_ly1g",
@@ -9712,9 +9722,9 @@
       "addedAt": 1790256896322
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_10",
+      "id": "sj_radio_bloc_1790256873762_k89p_s_9",
       "title": "Dropsiders Radio Jingle 4",
-      "artist": "L'AFTER WORK JINGLE",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
       "duration": 8,
       "category": "jingle"
@@ -9729,11 +9739,11 @@
       "addedAt": 1790256898997
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_11",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+      "id": "nj_radio_bloc_1790256873762_k89p_n_10",
+      "title": "Dropsiders Radio Jingle 6",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 28,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+      "duration": 9,
       "category": "jingle"
     },
     {
@@ -9746,12 +9756,12 @@
       "addedAt": 1790256901001
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_12",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_11",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256902828_s7je",
@@ -9763,11 +9773,11 @@
       "addedAt": 1790256902828
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_13",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 22,
+      "id": "sj_radio_bloc_1790256873762_k89p_s_12",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -9780,11 +9790,11 @@
       "addedAt": 1790256906483
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_14",
-      "title": "Dropsiders Radio Jingle 4",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_13",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 30,
       "category": "jingle"
     },
     {
@@ -9797,12 +9807,12 @@
       "addedAt": 1790256907122
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_15",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 33,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_14",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256907948_tuyn",
@@ -9814,11 +9824,11 @@
       "addedAt": 1790256907948
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_16",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "sj_radio_bloc_1790256873762_k89p_s_15",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -9831,11 +9841,11 @@
       "addedAt": 1790256910097
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_17",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+      "id": "nj_radio_bloc_1790256873762_k89p_n_16",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 46,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 28,
       "category": "jingle"
     },
     {
@@ -9848,12 +9858,12 @@
       "addedAt": 1790256910777
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_18",
-      "title": "Dropsiders Radio Jingle 4",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_17",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256911364_cdpc",
@@ -9865,11 +9875,11 @@
       "addedAt": 1790256911364
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_19",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 44,
+      "id": "sj_radio_bloc_1790256873762_k89p_s_18",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -9882,11 +9892,11 @@
       "addedAt": 1790256914295
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_20",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_19",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 22,
       "category": "jingle"
     },
     {
@@ -9899,12 +9909,12 @@
       "addedAt": 1790256914912
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_21",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 28,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_20",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256915495_6svs",
@@ -9916,9 +9926,9 @@
       "addedAt": 1790256915495
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_22",
+      "id": "sj_radio_bloc_1790256873762_k89p_s_21",
       "title": "Dropsiders Radio Jingle 4",
-      "artist": "L'AFTER WORK JINGLE",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
       "duration": 8,
       "category": "jingle"
@@ -9933,11 +9943,11 @@
       "addedAt": 1790256916256
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_23",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+      "id": "nj_radio_bloc_1790256873762_k89p_n_22",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 26,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 33,
       "category": "jingle"
     },
     {
@@ -9950,12 +9960,12 @@
       "addedAt": 1790256917092
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_24",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_23",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256918361_s3uj",
@@ -9967,11 +9977,11 @@
       "addedAt": 1790256918361
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_25",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 32,
+      "id": "sj_radio_bloc_1790256873762_k89p_s_24",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -9984,11 +9994,11 @@
       "addedAt": 1790256919031
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_26",
-      "title": "Dropsiders Radio Jingle 4",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_25",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 46,
       "category": "jingle"
     },
     {
@@ -10001,12 +10011,12 @@
       "addedAt": 1790256921987
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_27",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 32,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_26",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256922634_ied9",
@@ -10018,11 +10028,11 @@
       "addedAt": 1790256922634
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_28",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "sj_radio_bloc_1790256873762_k89p_s_27",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -10035,6 +10045,14 @@
       "addedAt": 1790256923356
     },
     {
+      "id": "nj_radio_bloc_1790256873762_k89p_n_28",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 44,
+      "category": "jingle"
+    },
+    {
       "id": "rt_tv_1790256926733_wnhk",
       "title": "DROPSIDERS TV",
       "artist": "David Guetta, Aya Nakamura : Il produit les plus grands shows",
@@ -10044,12 +10062,12 @@
       "addedAt": 1790256926733
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_30",
-      "title": "Dropsiders Radio Jingle 4",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_29",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256927558_021q",
@@ -10061,12 +10079,12 @@
       "addedAt": 1790256927558
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_31",
-      "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "61tiIdIrjUQ",
-      "duration": 25,
-      "category": "pub"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_30",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256931699_lozg",
@@ -10078,11 +10096,11 @@
       "addedAt": 1790256931699
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_32",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_31",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 28,
       "category": "jingle"
     },
     {
@@ -10095,6 +10113,14 @@
       "addedAt": 1790256939283
     },
     {
+      "id": "pr_radio_bloc_1790256873762_k89p_p_32",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
+    },
+    {
       "id": "rt_tv_1790256941065_wigv",
       "title": "Psychrowdelic Trip Stage - elrow Town Madrid 2026",
       "artist": "Bastian Bux",
@@ -10104,9 +10130,9 @@
       "addedAt": 1790256941065
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_34",
+      "id": "sj_radio_bloc_1790256873762_k89p_s_33",
       "title": "Dropsiders Radio Jingle 4",
-      "artist": "L'AFTER WORK JINGLE",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
       "duration": 8,
       "category": "jingle"
@@ -10121,6 +10147,14 @@
       "addedAt": 1790256942158
     },
     {
+      "id": "nj_radio_bloc_1790256873762_k89p_n_34",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 26,
+      "category": "jingle"
+    },
+    {
       "id": "rt_tv_1790256944668_nyro",
       "title": "Paris L'Olympia",
       "artist": "Paul Kalkbrenner",
@@ -10130,12 +10164,12 @@
       "addedAt": 1790256944668
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_36",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_35",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256945578_n86w",
@@ -10147,6 +10181,14 @@
       "addedAt": 1790256945578
     },
     {
+      "id": "sj_radio_bloc_1790256873762_k89p_s_36",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
+      "category": "jingle"
+    },
+    {
       "id": "rt_tv_1790256953963_r0nn",
       "title": "Main Stage. elrow Town Madrid 2026",
       "artist": "Nic Fanciulli b2b Butch",
@@ -10156,11 +10198,11 @@
       "addedAt": 1790256953963
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_38",
-      "title": "Dropsiders Radio Jingle 4",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_37",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
@@ -10173,12 +10215,12 @@
       "addedAt": 1790256956630
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_39",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 15,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_38",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256972956_z2ar",
@@ -10190,11 +10232,11 @@
       "addedAt": 1790256972956
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_40",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "sj_radio_bloc_1790256873762_k89p_s_39",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -10207,11 +10249,11 @@
       "addedAt": 1790256975482
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_41",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+      "id": "nj_radio_bloc_1790256873762_k89p_n_40",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 30,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
@@ -10224,12 +10266,12 @@
       "addedAt": 1790256976974
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_42",
-      "title": "Dropsiders Radio Jingle 4",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_41",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790259726578_1gt9",
@@ -10241,11 +10283,11 @@
       "addedAt": 1790259726579
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_43",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 28,
+      "id": "sj_radio_bloc_1790256873762_k89p_s_42",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -10258,11 +10300,11 @@
       "addedAt": 1790259735723
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_44",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_43",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 15,
       "category": "jingle"
     },
     {
@@ -10275,12 +10317,12 @@
       "addedAt": 1790259746674
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_45",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 22,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_44",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790259747297_by65",
@@ -10292,9 +10334,9 @@
       "addedAt": 1790259747297
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_46",
+      "id": "sj_radio_bloc_1790256873762_k89p_s_45",
       "title": "Dropsiders Radio Jingle 4",
-      "artist": "L'AFTER WORK JINGLE",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
       "duration": 8,
       "category": "jingle"
@@ -10309,11 +10351,11 @@
       "addedAt": 1790259779475
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_47",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
+      "id": "nj_radio_bloc_1790256873762_k89p_n_46",
+      "title": "Dropsiders Radio Jingle 2",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 33,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+      "duration": 10,
       "category": "jingle"
     },
     {
@@ -10326,12 +10368,12 @@
       "addedAt": 1790259780084
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_48",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_47",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790259780642_7bxa",
@@ -10343,11 +10385,11 @@
       "addedAt": 1790259780642
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_49",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 46,
+      "id": "sj_radio_bloc_1790256873762_k89p_s_48",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -10360,10 +10402,10 @@
       "addedAt": 1790259783027
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_50",
-      "title": "Dropsiders Radio Jingle 4",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "id": "nj_radio_bloc_1790256873762_k89p_n_49",
+      "title": "Dropsiders Radio Jingle 1",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
       "duration": 8,
       "category": "jingle"
     },
@@ -10377,12 +10419,12 @@
       "addedAt": 1790259815757
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_51",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 44,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_50",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_1790342700439",
@@ -10394,11 +10436,11 @@
       "addedAt": 1790342700439
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_52",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "L'AFTER WORK JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "sj_radio_bloc_1790256873762_k89p_s_51",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -10411,11 +10453,11 @@
       "addedAt": 1790556066536
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_53",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
+      "id": "nj_radio_bloc_1790256873762_k89p_n_52",
+      "title": "Dropsiders Radio Jingle 3",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 28,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -10911,14 +10953,6 @@
       "category": "jingle"
     },
     {
-      "id": "track_promo_g_1790783012225_4y1e_dhy",
-      "title": "Promo Titan Lyon",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
-      "duration": 39,
-      "category": "promo"
-    },
-    {
       "id": "rt_tv_1790257302402_26gf",
       "title": "Angerfist",
       "artist": "Qlimax 2016",
@@ -10928,9 +10962,9 @@
       "addedAt": 1790257302403
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_0",
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_0",
       "title": "Dropsiders Radio Jingle 1",
-      "artist": "ZONE ROUGE JINGLE",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
       "duration": 8,
       "category": "jingle"
@@ -10945,17 +10979,9 @@
       "addedAt": 1790257303915
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_1",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
-    },
-    {
-      "id": "sj_radio_bloc_1790257291397_4y1e_2",
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_1",
       "title": "Dropsiders Radio Jingle 3",
-      "artist": "ZONE ROUGE JINGLE",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
       "duration": 12,
       "category": "jingle"
@@ -10970,11 +10996,11 @@
       "addedAt": 1790257304611
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_3",
-      "title": "Promo Escape Psycho Circus 2026 1",
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_2",
+      "title": "Promo Titan Lyon",
       "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
       "category": "promo"
     },
     {
@@ -10987,11 +11013,11 @@
       "addedAt": 1790257305761
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_4",
-      "title": "Dropsiders Radio Jingle 5",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_3",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -11004,12 +11030,12 @@
       "addedAt": 1790257306432
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_5",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "promo"
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_4",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257307803_pkny",
@@ -11021,12 +11047,12 @@
       "addedAt": 1790257307803
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_6",
-      "title": "Dropsiders Radio Jingle 1",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_5",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790257308419_b1y4",
@@ -11038,11 +11064,11 @@
       "addedAt": 1790257308419
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_7",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 15,
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_6",
+      "title": "Dropsiders Radio Jingle 5",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+      "duration": 14,
       "category": "jingle"
     },
     {
@@ -11055,11 +11081,11 @@
       "addedAt": 1790257309809
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_8",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_7",
+      "title": "Dropsiders Radio Jingle 5",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+      "duration": 14,
       "category": "jingle"
     },
     {
@@ -11072,12 +11098,12 @@
       "addedAt": 1790257310340
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_9",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 30,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_8",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790257310845_ie5i",
@@ -11089,11 +11115,11 @@
       "addedAt": 1790257310845
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_10",
-      "title": "Dropsiders Radio Jingle 5",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_9",
+      "title": "Dropsiders Radio Jingle 1",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -11106,11 +11132,11 @@
       "addedAt": 1790257313033
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_11",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_10",
+      "title": "Dropsiders Radio Jingle 6",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 28,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+      "duration": 9,
       "category": "jingle"
     },
     {
@@ -11123,12 +11149,12 @@
       "addedAt": 1790257313552
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_12",
-      "title": "Dropsiders Radio Jingle 1",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_11",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790257314165_r5vu",
@@ -11140,11 +11166,11 @@
       "addedAt": 1790257314165
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_13",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 22,
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_12",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -11157,11 +11183,11 @@
       "addedAt": 1790257315977
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_14",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_13",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 30,
       "category": "jingle"
     },
     {
@@ -11174,12 +11200,12 @@
       "addedAt": 1790257316791
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_15",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 33,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_14",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790257317457_5l9n",
@@ -11191,9 +11217,9 @@
       "addedAt": 1790257317457
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_16",
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_15",
       "title": "Dropsiders Radio Jingle 5",
-      "artist": "ZONE ROUGE JINGLE",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
       "duration": 14,
       "category": "jingle"
@@ -11208,11 +11234,11 @@
       "addedAt": 1790257318003
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_17",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_16",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 46,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 28,
       "category": "jingle"
     },
     {
@@ -11225,12 +11251,12 @@
       "addedAt": 1790257318692
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_18",
-      "title": "Dropsiders Radio Jingle 1",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_17",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790257319570_fviw",
@@ -11242,11 +11268,11 @@
       "addedAt": 1790257319570
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_19",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 44,
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_18",
+      "title": "Dropsiders Radio Jingle 1",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -11259,11 +11285,11 @@
       "addedAt": 1790257320099
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_20",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_19",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 22,
       "category": "jingle"
     },
     {
@@ -11276,12 +11302,12 @@
       "addedAt": 1790257324344
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_21",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 28,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_20",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790257325037_0nxd",
@@ -11293,11 +11319,11 @@
       "addedAt": 1790257325037
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_22",
-      "title": "Dropsiders Radio Jingle 5",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_21",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -11310,11 +11336,11 @@
       "addedAt": 1790257326011
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_23",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_22",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 26,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 33,
       "category": "jingle"
     },
     {
@@ -11327,12 +11353,12 @@
       "addedAt": 1790257326873
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_24",
-      "title": "Dropsiders Radio Jingle 1",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_23",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790257327634_jezi",
@@ -11344,11 +11370,11 @@
       "addedAt": 1790257327634
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_25",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 32,
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_24",
+      "title": "Dropsiders Radio Jingle 5",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+      "duration": 14,
       "category": "jingle"
     },
     {
@@ -11361,11 +11387,11 @@
       "addedAt": 1790257328267
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_26",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_25",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 46,
       "category": "jingle"
     },
     {
@@ -11378,12 +11404,12 @@
       "addedAt": 1790257328785
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_27",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 32,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_26",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790257329372_bzez",
@@ -11395,11 +11421,11 @@
       "addedAt": 1790257329372
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_28",
-      "title": "Dropsiders Radio Jingle 5",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_27",
+      "title": "Dropsiders Radio Jingle 1",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -11412,12 +11438,12 @@
       "addedAt": 1790257330357
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_29",
-      "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "pQdsHoG2yhw",
-      "duration": 30,
-      "category": "pub"
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_28",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 44,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257331017_755v",
@@ -11429,12 +11455,12 @@
       "addedAt": 1790257331017
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_30",
-      "title": "Dropsiders Radio Jingle 1",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_29",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790257338005_hhyt",
@@ -11446,12 +11472,12 @@
       "addedAt": 1790257338005
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_31",
-      "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "61tiIdIrjUQ",
-      "duration": 25,
-      "category": "pub"
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_30",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257338604_xea2",
@@ -11463,11 +11489,11 @@
       "addedAt": 1790257338604
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_32",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_31",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 28,
       "category": "jingle"
     },
     {
@@ -11480,6 +11506,14 @@
       "addedAt": 1790257339667
     },
     {
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_32",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
+    },
+    {
       "id": "rt_tv_1790257340343_xg3p",
       "title": "FULL VIDEOSET",
       "artist": "DEXPHASE B2B OGUZ @ BLACKWORKS WEEKEND FESTIVAL 2026: DIMENSION",
@@ -11489,9 +11523,9 @@
       "addedAt": 1790257340343
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_34",
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_33",
       "title": "Dropsiders Radio Jingle 5",
-      "artist": "ZONE ROUGE JINGLE",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
       "duration": 14,
       "category": "jingle"
@@ -11506,6 +11540,14 @@
       "addedAt": 1790257340990
     },
     {
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_34",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 26,
+      "category": "jingle"
+    },
+    {
       "id": "rt_tv_1790257341633_8odl",
       "title": "Brennan Heart vs Coone",
       "artist": "Reverze 2026",
@@ -11515,12 +11557,12 @@
       "addedAt": 1790257341633
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_36",
-      "title": "Dropsiders Radio Jingle 1",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_35",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790257342181_uuhe",
@@ -11532,6 +11574,14 @@
       "addedAt": 1790257342181
     },
     {
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_36",
+      "title": "Dropsiders Radio Jingle 1",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+      "duration": 8,
+      "category": "jingle"
+    },
+    {
       "id": "rt_tv_1790257342808_8d6l",
       "title": "B-Front",
       "artist": "Reverze 2026",
@@ -11541,11 +11591,11 @@
       "addedAt": 1790257342808
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_38",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_37",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
@@ -11558,12 +11608,12 @@
       "addedAt": 1790257343370
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_39",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 15,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_38",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790257345650_r61c",
@@ -11575,11 +11625,11 @@
       "addedAt": 1790257345650
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_40",
-      "title": "Dropsiders Radio Jingle 5",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_39",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -11592,11 +11642,11 @@
       "addedAt": 1790257346715
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_41",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_40",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 30,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
@@ -11609,12 +11659,12 @@
       "addedAt": 1790257349628
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_42",
-      "title": "Dropsiders Radio Jingle 1",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_41",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790257350257_6wce",
@@ -11626,11 +11676,11 @@
       "addedAt": 1790257350257
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_43",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 28,
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_42",
+      "title": "Dropsiders Radio Jingle 5",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+      "duration": 14,
       "category": "jingle"
     },
     {
@@ -11643,11 +11693,11 @@
       "addedAt": 1790257350832
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_44",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_43",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 15,
       "category": "jingle"
     },
     {
@@ -11660,12 +11710,12 @@
       "addedAt": 1790257351396
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_45",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 22,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_44",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790257351972_b3er",
@@ -11677,11 +11727,11 @@
       "addedAt": 1790257351972
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_46",
-      "title": "Dropsiders Radio Jingle 5",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_45",
+      "title": "Dropsiders Radio Jingle 1",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -11694,11 +11744,11 @@
       "addedAt": 1790257354766
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_47",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_46",
+      "title": "Dropsiders Radio Jingle 2",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 33,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+      "duration": 10,
       "category": "jingle"
     },
     {
@@ -11711,12 +11761,12 @@
       "addedAt": 1790257356210
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_48",
-      "title": "Dropsiders Radio Jingle 1",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_47",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790257357115_oz2l",
@@ -11728,11 +11778,11 @@
       "addedAt": 1790257357115
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_49",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 46,
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_48",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -11745,11 +11795,11 @@
       "addedAt": 1790257357834
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_50",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_49",
+      "title": "Dropsiders Radio Jingle 1",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -11762,12 +11812,12 @@
       "addedAt": 1790257358790
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_51",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 44,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_50",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790259547701_6txu",
@@ -11779,9 +11829,9 @@
       "addedAt": 1790259547701
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_52",
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_51",
       "title": "Dropsiders Radio Jingle 5",
-      "artist": "ZONE ROUGE JINGLE",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
       "duration": 14,
       "category": "jingle"
@@ -11796,11 +11846,11 @@
       "addedAt": 1790259654365
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_53",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_52",
+      "title": "Dropsiders Radio Jingle 3",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 28,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -11813,12 +11863,12 @@
       "addedAt": 1790259715019
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_54",
-      "title": "Dropsiders Radio Jingle 1",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790257291397_4y1e_p_53",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790259785199_9nzf",
@@ -11830,11 +11880,11 @@
       "addedAt": 1790259785199
     },
     {
-      "id": "pr_radio_bloc_1790257291397_4y1e_55",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 26,
+      "id": "sj_radio_bloc_1790257291397_4y1e_s_54",
+      "title": "Dropsiders Radio Jingle 1",
+      "artist": "ZONE ROUGE JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -11847,11 +11897,11 @@
       "addedAt": 1790259785850
     },
     {
-      "id": "sj_radio_bloc_1790257291397_4y1e_56",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "ZONE ROUGE JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "nj_radio_bloc_1790257291397_4y1e_n_55",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
       "category": "jingle"
     }
   ],
