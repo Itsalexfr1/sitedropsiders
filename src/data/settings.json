@@ -2761,6 +2761,14 @@
       ],
       "tracks": [
         {
+          "id": "track_promo_g_1790783012225_5mni_hv6",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
+        },
+        {
           "id": "rt_tv_1790255600257_jbmf",
           "title": "JUST A LITTLE BIT MORE",
           "artist": "Mau P",
@@ -2891,10 +2899,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_7",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 15,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790255671397_4tjs",
@@ -2925,10 +2933,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_9",
           "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 30,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790255675199_zvfq",
@@ -2959,10 +2967,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_11",
           "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790255682374_m8xf",
@@ -2993,10 +3001,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_13",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790255685077_tzod",
@@ -3027,10 +3035,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_15",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 33,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_1790255779415",
@@ -3061,10 +3069,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_17",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_1790255881886",
@@ -3095,10 +3103,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_19",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 44,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_1790255974618",
@@ -3129,10 +3137,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_21",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_1790256040583",
@@ -3163,10 +3171,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_23",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 26,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_1790256131260",
@@ -3197,10 +3205,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_25",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_1790256167935",
@@ -3231,10 +3239,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_27",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_1790256215019",
@@ -3263,14 +3271,6 @@
           "addedAt": 1790256226318
         },
         {
-          "id": "pr_radio_bloc_1790255595165_5mni_29",
-          "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "pQdsHoG2yhw",
-          "duration": 30,
-          "category": "pub"
-        },
-        {
           "id": "rt_1790256245692",
           "title": "Turn The Tide (ft. Sylver)",
           "artist": "Dimitri Vegas, Sylver & Pat B",
@@ -3295,14 +3295,6 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790256261370
-        },
-        {
-          "id": "pr_radio_bloc_1790255595165_5mni_31",
-          "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "61tiIdIrjUQ",
-          "duration": 25,
-          "category": "pub"
         },
         {
           "id": "rt_1790256278044",
@@ -3435,10 +3427,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_39",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 15,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256343654_ze2a",
@@ -3469,10 +3461,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_41",
           "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 30,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256345565_xsri",
@@ -3503,10 +3495,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_43",
           "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256349445_74pd",
@@ -3537,10 +3529,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_45",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256352324_d5nt",
@@ -3571,10 +3563,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_47",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 33,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256355604_df0t",
@@ -3605,10 +3597,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_49",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256357137_mts2",
@@ -3639,10 +3631,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_51",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 44,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256360443_f866",
@@ -3673,10 +3665,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_53",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256361700_9fml",
@@ -3707,10 +3699,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_55",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 26,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256362966_anlf",
@@ -3741,10 +3733,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_57",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256366356_npiu",
@@ -3775,10 +3767,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_59",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256367494_en08",
@@ -3807,14 +3799,6 @@
           "addedAt": 1790256368196
         },
         {
-          "id": "pr_radio_bloc_1790255595165_5mni_61",
-          "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "pQdsHoG2yhw",
-          "duration": 30,
-          "category": "pub"
-        },
-        {
           "id": "rt_tv_1790256368853_ztkv",
           "title": "Love (Live at Pillars of Creation)",
           "artist": "Armin van Buuren & Omnia",
@@ -3839,14 +3823,6 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790256384500
-        },
-        {
-          "id": "pr_radio_bloc_1790255595165_5mni_63",
-          "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "61tiIdIrjUQ",
-          "duration": 25,
-          "category": "pub"
         },
         {
           "id": "rt_1790256402933",
@@ -3979,10 +3955,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_71",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 15,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256445718_96dx",
@@ -4013,10 +3989,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_73",
           "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 30,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_1790256510461",
@@ -4047,10 +4023,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_75",
           "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_1790256537909",
@@ -4081,10 +4057,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_77",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_1790256581300",
@@ -4115,10 +4091,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_79",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 33,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_1790256614566",
@@ -4149,10 +4125,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_81",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259659370_k0dr",
@@ -4183,10 +4159,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_83",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 44,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259669531_id6q",
@@ -4217,10 +4193,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_85",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259672074_s3gt",
@@ -4251,10 +4227,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_87",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 26,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259675295_4fad",
@@ -4285,10 +4261,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_89",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259678426_7wa5",
@@ -4319,10 +4295,10 @@
         {
           "id": "pr_radio_bloc_1790255595165_5mni_91",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259680293_g8yz",
@@ -4351,14 +4327,6 @@
           "addedAt": 1790259682190
         },
         {
-          "id": "pr_radio_bloc_1790255595165_5mni_93",
-          "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "pQdsHoG2yhw",
-          "duration": 30,
-          "category": "pub"
-        },
-        {
           "id": "rt_tv_1790259688732_38rp",
           "title": "Secret Show l Tomorrowland Winter 2022",
           "artist": "Kölsch",
@@ -4383,14 +4351,6 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790259741570
-        },
-        {
-          "id": "pr_radio_bloc_1790255595165_5mni_95",
-          "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "61tiIdIrjUQ",
-          "duration": 25,
-          "category": "pub"
         },
         {
           "id": "rt_tv_1790259742351_1qc0",
@@ -4465,6 +4425,14 @@
         0
       ],
       "tracks": [
+        {
+          "id": "track_promo_g_1790783012225_kmgn_ehx",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
+        },
         {
           "id": "rt_tv_1790256655246_6ilu",
           "title": "Tomorrowland 2026 (Freedom Stage Weekend 2) [Full DJ Live Set]",
@@ -4596,10 +4564,10 @@
         {
           "id": "pr_radio_bloc_1790256648831_kmgn_7",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 15,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256664979_b5fy",
@@ -4630,10 +4598,10 @@
         {
           "id": "pr_radio_bloc_1790256648831_kmgn_9",
           "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 30,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256667964_9jjt",
@@ -4664,10 +4632,10 @@
         {
           "id": "pr_radio_bloc_1790256648831_kmgn_11",
           "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256673140_79rh",
@@ -4698,10 +4666,10 @@
         {
           "id": "pr_radio_bloc_1790256648831_kmgn_13",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256675205_7gi8",
@@ -4732,10 +4700,10 @@
         {
           "id": "pr_radio_bloc_1790256648831_kmgn_15",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 33,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256676605_rtyx",
@@ -4766,10 +4734,10 @@
         {
           "id": "pr_radio_bloc_1790256648831_kmgn_17",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256690808_nukq",
@@ -4800,10 +4768,10 @@
         {
           "id": "pr_radio_bloc_1790256648831_kmgn_19",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 44,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256694653_89ig",
@@ -4834,10 +4802,10 @@
         {
           "id": "pr_radio_bloc_1790256648831_kmgn_21",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256704737_tprl",
@@ -4868,10 +4836,10 @@
         {
           "id": "pr_radio_bloc_1790256648831_kmgn_23",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 26,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256711796_z284",
@@ -4902,10 +4870,10 @@
         {
           "id": "pr_radio_bloc_1790256648831_kmgn_25",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256713755_yj94",
@@ -4936,10 +4904,10 @@
         {
           "id": "pr_radio_bloc_1790256648831_kmgn_27",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256726020_y8hc",
@@ -4968,14 +4936,6 @@
           "addedAt": 1790256729924
         },
         {
-          "id": "pr_radio_bloc_1790256648831_kmgn_29",
-          "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "pQdsHoG2yhw",
-          "duration": 30,
-          "category": "pub"
-        },
-        {
           "id": "rt_tv_1790256730781_q1ms",
           "title": "BONNAROO 2026",
           "artist": "SIDEPIECE",
@@ -5000,14 +4960,6 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790259701635
-        },
-        {
-          "id": "pr_radio_bloc_1790256648831_kmgn_31",
-          "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "61tiIdIrjUQ",
-          "duration": 25,
-          "category": "pub"
         },
         {
           "id": "rt_tv_1790259728945_a94x",
@@ -5100,6 +5052,14 @@
         0
       ],
       "tracks": [
+        {
+          "id": "track_promo_g_1790783012225_k89p_g41",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
+        },
         {
           "id": "rt_tv_1790256878961_ckdk",
           "title": "DROPSIDERS TV",
@@ -5231,10 +5191,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_7",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 15,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256890720_05vo",
@@ -5265,10 +5225,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_9",
           "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 30,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256896322_ly1g",
@@ -5299,10 +5259,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_11",
           "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256901001_hllh",
@@ -5333,10 +5293,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_13",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256906483_vhlw",
@@ -5367,10 +5327,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_15",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 33,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256907948_tuyn",
@@ -5401,10 +5361,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_17",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256910777_b4ws",
@@ -5435,10 +5395,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_19",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 44,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256914295_qka1",
@@ -5469,10 +5429,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_21",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256915495_6svs",
@@ -5503,10 +5463,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_23",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 26,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256917092_8c2t",
@@ -5537,10 +5497,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_25",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256919031_wpta",
@@ -5571,10 +5531,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_27",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256922634_ied9",
@@ -5601,14 +5561,6 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790256923356
-        },
-        {
-          "id": "pr_radio_bloc_1790256873762_k89p_29",
-          "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "pQdsHoG2yhw",
-          "duration": 30,
-          "category": "pub"
         },
         {
           "id": "rt_tv_1790256926733_wnhk",
@@ -5775,10 +5727,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_39",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 15,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256972956_z2ar",
@@ -5809,10 +5761,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_41",
           "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 30,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256976974_19x2",
@@ -5843,10 +5795,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_43",
           "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259735723_ilw3",
@@ -5877,10 +5829,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_45",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259747297_by65",
@@ -5911,10 +5863,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_47",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 33,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259780084_qm3j",
@@ -5945,10 +5897,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_49",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259783027_qyba",
@@ -5979,10 +5931,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_51",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 44,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_1790342700439",
@@ -6013,10 +5965,10 @@
         {
           "id": "pr_radio_bloc_1790256873762_k89p_53",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         }
       ],
       "specialJingles": [
@@ -6058,6 +6010,14 @@
         0
       ],
       "tracks": [
+        {
+          "id": "track_promo_g_1790783012225_kg2l_5kl",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
+        },
         {
           "id": "rt_tv_1790257135996_delk",
           "title": "Ultra Music Festival 2026 (FULL SET)",
@@ -6189,10 +6149,10 @@
         {
           "id": "pr_radio_bloc_1790257094891_kg2l_7",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 15,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257172969_r65d",
@@ -6223,10 +6183,10 @@
         {
           "id": "pr_radio_bloc_1790257094891_kg2l_9",
           "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 30,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257200990_dxtb",
@@ -6257,10 +6217,10 @@
         {
           "id": "pr_radio_bloc_1790257094891_kg2l_11",
           "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257202682_wekq",
@@ -6291,10 +6251,10 @@
         {
           "id": "pr_radio_bloc_1790257094891_kg2l_13",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257216011_lque",
@@ -6325,10 +6285,10 @@
         {
           "id": "pr_radio_bloc_1790257094891_kg2l_15",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 33,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257226256_bxsv",
@@ -6359,10 +6319,10 @@
         {
           "id": "pr_radio_bloc_1790257094891_kg2l_17",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259567545_zojv",
@@ -6393,10 +6353,10 @@
         {
           "id": "pr_radio_bloc_1790257094891_kg2l_19",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 44,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259717212_eqoa",
@@ -6427,10 +6387,10 @@
         {
           "id": "pr_radio_bloc_1790257094891_kg2l_21",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259723951_mfz4",
@@ -6461,10 +6421,10 @@
         {
           "id": "pr_radio_bloc_1790257094891_kg2l_23",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 26,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259766109_mnv2",
@@ -6495,10 +6455,10 @@
         {
           "id": "pr_radio_bloc_1790257094891_kg2l_25",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259775761_0d6j",
@@ -6529,10 +6489,10 @@
         {
           "id": "pr_radio_bloc_1790257094891_kg2l_27",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_1790527960620",
@@ -6591,6 +6551,14 @@
         0
       ],
       "tracks": [
+        {
+          "id": "track_promo_g_1790783012225_4y1e_dhy",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
+        },
         {
           "id": "rt_tv_1790257302402_26gf",
           "title": "Angerfist",
@@ -6722,10 +6690,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_7",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 15,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257309809_ad2n",
@@ -6756,10 +6724,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_9",
           "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 30,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257310845_ie5i",
@@ -6790,10 +6758,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_11",
           "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257313552_wgjd",
@@ -6824,10 +6792,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_13",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257315977_1ybl",
@@ -6858,10 +6826,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_15",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 33,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257317457_5l9n",
@@ -6892,10 +6860,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_17",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257318692_345u",
@@ -6926,10 +6894,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_19",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 44,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257320099_qmlv",
@@ -6960,10 +6928,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_21",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257325037_0nxd",
@@ -6994,10 +6962,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_23",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 26,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257326873_sv2b",
@@ -7028,10 +6996,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_25",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257328267_x1yt",
@@ -7062,10 +7030,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_27",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257329372_bzez",
@@ -7266,10 +7234,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_39",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 15,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257345650_r61c",
@@ -7300,10 +7268,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_41",
           "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 30,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257349628_6yye",
@@ -7334,10 +7302,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_43",
           "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257350832_d0ua",
@@ -7368,10 +7336,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_45",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257351972_b3er",
@@ -7402,10 +7370,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_47",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 33,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257356210_is2d",
@@ -7436,10 +7404,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_49",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790257357834_05b2",
@@ -7470,10 +7438,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_51",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 44,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259547701_6txu",
@@ -7504,10 +7472,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_53",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259715019_k0s1",
@@ -7538,10 +7506,10 @@
         {
           "id": "pr_radio_bloc_1790257291397_4y1e_55",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-          "artist": "PROMO DROPSIDERS",
+          "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 26,
-          "category": "promo"
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259785850_bg1x",
@@ -7590,6 +7558,14 @@
     }
   ],
   "radio_tracks": [
+    {
+      "id": "track_promo_g_1790783012225_5mni_hv6",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
+    },
     {
       "id": "rt_tv_1790255600257_jbmf",
       "title": "JUST A LITTLE BIT MORE",
@@ -7721,10 +7697,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_7",
       "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 15,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790255671397_4tjs",
@@ -7755,10 +7731,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_9",
       "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 30,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790255675199_zvfq",
@@ -7789,10 +7765,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_11",
       "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790255682374_m8xf",
@@ -7823,10 +7799,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_13",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 22,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790255685077_tzod",
@@ -7857,10 +7833,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_15",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 33,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_1790255779415",
@@ -7891,10 +7867,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_17",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 46,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_1790255881886",
@@ -7925,10 +7901,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_19",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 44,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_1790255974618",
@@ -7959,10 +7935,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_21",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_1790256040583",
@@ -7993,10 +7969,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_23",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 26,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_1790256131260",
@@ -8027,10 +8003,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_25",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_1790256167935",
@@ -8061,10 +8037,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_27",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_1790256215019",
@@ -8093,14 +8069,6 @@
       "addedAt": 1790256226318
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_29",
-      "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "pQdsHoG2yhw",
-      "duration": 30,
-      "category": "pub"
-    },
-    {
       "id": "rt_1790256245692",
       "title": "Turn The Tide (ft. Sylver)",
       "artist": "Dimitri Vegas, Sylver & Pat B",
@@ -8125,14 +8093,6 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256261370
-    },
-    {
-      "id": "pr_radio_bloc_1790255595165_5mni_31",
-      "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "61tiIdIrjUQ",
-      "duration": 25,
-      "category": "pub"
     },
     {
       "id": "rt_1790256278044",
@@ -8265,10 +8225,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_39",
       "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 15,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256343654_ze2a",
@@ -8299,10 +8259,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_41",
       "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 30,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256345565_xsri",
@@ -8333,10 +8293,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_43",
       "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256349445_74pd",
@@ -8367,10 +8327,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_45",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 22,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256352324_d5nt",
@@ -8401,10 +8361,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_47",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 33,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256355604_df0t",
@@ -8435,10 +8395,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_49",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 46,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256357137_mts2",
@@ -8469,10 +8429,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_51",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 44,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256360443_f866",
@@ -8503,10 +8463,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_53",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256361700_9fml",
@@ -8537,10 +8497,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_55",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 26,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256362966_anlf",
@@ -8571,10 +8531,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_57",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256366356_npiu",
@@ -8605,10 +8565,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_59",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256367494_en08",
@@ -8637,14 +8597,6 @@
       "addedAt": 1790256368196
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_61",
-      "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "pQdsHoG2yhw",
-      "duration": 30,
-      "category": "pub"
-    },
-    {
       "id": "rt_tv_1790256368853_ztkv",
       "title": "Love (Live at Pillars of Creation)",
       "artist": "Armin van Buuren & Omnia",
@@ -8669,14 +8621,6 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256384500
-    },
-    {
-      "id": "pr_radio_bloc_1790255595165_5mni_63",
-      "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "61tiIdIrjUQ",
-      "duration": 25,
-      "category": "pub"
     },
     {
       "id": "rt_1790256402933",
@@ -8809,10 +8753,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_71",
       "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 15,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256445718_96dx",
@@ -8843,10 +8787,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_73",
       "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 30,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_1790256510461",
@@ -8877,10 +8821,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_75",
       "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_1790256537909",
@@ -8911,10 +8855,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_77",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 22,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_1790256581300",
@@ -8945,10 +8889,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_79",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 33,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_1790256614566",
@@ -8979,10 +8923,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_81",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 46,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259659370_k0dr",
@@ -9013,10 +8957,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_83",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 44,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259669531_id6q",
@@ -9047,10 +8991,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_85",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259672074_s3gt",
@@ -9081,10 +9025,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_87",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 26,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259675295_4fad",
@@ -9115,10 +9059,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_89",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259678426_7wa5",
@@ -9149,10 +9093,10 @@
     {
       "id": "pr_radio_bloc_1790255595165_5mni_91",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259680293_g8yz",
@@ -9181,14 +9125,6 @@
       "addedAt": 1790259682190
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_93",
-      "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "pQdsHoG2yhw",
-      "duration": 30,
-      "category": "pub"
-    },
-    {
       "id": "rt_tv_1790259688732_38rp",
       "title": "Secret Show l Tomorrowland Winter 2022",
       "artist": "Kölsch",
@@ -9215,14 +9151,6 @@
       "addedAt": 1790259741570
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_95",
-      "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "61tiIdIrjUQ",
-      "duration": 25,
-      "category": "pub"
-    },
-    {
       "id": "rt_tv_1790259742351_1qc0",
       "title": "Mayan Warrior, Burning Man, 2019",
       "artist": "WhoMadeWho",
@@ -9238,6 +9166,14 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
       "duration": 10,
       "category": "jingle"
+    },
+    {
+      "id": "track_promo_g_1790783012225_kmgn_ehx",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256655246_6ilu",
@@ -9370,10 +9306,10 @@
     {
       "id": "pr_radio_bloc_1790256648831_kmgn_7",
       "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 15,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256664979_b5fy",
@@ -9404,10 +9340,10 @@
     {
       "id": "pr_radio_bloc_1790256648831_kmgn_9",
       "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 30,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256667964_9jjt",
@@ -9438,10 +9374,10 @@
     {
       "id": "pr_radio_bloc_1790256648831_kmgn_11",
       "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256673140_79rh",
@@ -9472,10 +9408,10 @@
     {
       "id": "pr_radio_bloc_1790256648831_kmgn_13",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 22,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256675205_7gi8",
@@ -9506,10 +9442,10 @@
     {
       "id": "pr_radio_bloc_1790256648831_kmgn_15",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 33,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256676605_rtyx",
@@ -9540,10 +9476,10 @@
     {
       "id": "pr_radio_bloc_1790256648831_kmgn_17",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 46,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256690808_nukq",
@@ -9574,10 +9510,10 @@
     {
       "id": "pr_radio_bloc_1790256648831_kmgn_19",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 44,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256694653_89ig",
@@ -9608,10 +9544,10 @@
     {
       "id": "pr_radio_bloc_1790256648831_kmgn_21",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256704737_tprl",
@@ -9642,10 +9578,10 @@
     {
       "id": "pr_radio_bloc_1790256648831_kmgn_23",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 26,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256711796_z284",
@@ -9676,10 +9612,10 @@
     {
       "id": "pr_radio_bloc_1790256648831_kmgn_25",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256713755_yj94",
@@ -9710,10 +9646,10 @@
     {
       "id": "pr_radio_bloc_1790256648831_kmgn_27",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256726020_y8hc",
@@ -9742,14 +9678,6 @@
       "addedAt": 1790256729924
     },
     {
-      "id": "pr_radio_bloc_1790256648831_kmgn_29",
-      "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "pQdsHoG2yhw",
-      "duration": 30,
-      "category": "pub"
-    },
-    {
       "id": "rt_tv_1790256730781_q1ms",
       "title": "BONNAROO 2026",
       "artist": "SIDEPIECE",
@@ -9774,14 +9702,6 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790259701635
-    },
-    {
-      "id": "pr_radio_bloc_1790256648831_kmgn_31",
-      "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "61tiIdIrjUQ",
-      "duration": 25,
-      "category": "pub"
     },
     {
       "id": "rt_tv_1790259728945_a94x",
@@ -9833,6 +9753,14 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
       "duration": 10,
       "category": "jingle"
+    },
+    {
+      "id": "track_promo_g_1790783012225_k89p_g41",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256878961_ckdk",
@@ -9965,10 +9893,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_7",
       "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 15,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256890720_05vo",
@@ -9999,10 +9927,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_9",
       "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 30,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256896322_ly1g",
@@ -10033,10 +9961,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_11",
       "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256901001_hllh",
@@ -10067,10 +9995,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_13",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 22,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256906483_vhlw",
@@ -10101,10 +10029,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_15",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 33,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256907948_tuyn",
@@ -10135,10 +10063,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_17",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 46,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256910777_b4ws",
@@ -10169,10 +10097,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_19",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 44,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256914295_qka1",
@@ -10203,10 +10131,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_21",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256915495_6svs",
@@ -10237,10 +10165,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_23",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 26,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256917092_8c2t",
@@ -10271,10 +10199,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_25",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256919031_wpta",
@@ -10305,10 +10233,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_27",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256922634_ied9",
@@ -10335,14 +10263,6 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256923356
-    },
-    {
-      "id": "pr_radio_bloc_1790256873762_k89p_29",
-      "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "pQdsHoG2yhw",
-      "duration": 30,
-      "category": "pub"
     },
     {
       "id": "rt_tv_1790256926733_wnhk",
@@ -10509,10 +10429,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_39",
       "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 15,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256972956_z2ar",
@@ -10543,10 +10463,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_41",
       "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 30,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256976974_19x2",
@@ -10577,10 +10497,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_43",
       "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259735723_ilw3",
@@ -10611,10 +10531,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_45",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 22,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259747297_by65",
@@ -10645,10 +10565,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_47",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 33,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259780084_qm3j",
@@ -10679,10 +10599,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_49",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 46,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259783027_qyba",
@@ -10713,10 +10633,10 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_51",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 44,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_1790342700439",
@@ -10747,9 +10667,17 @@
     {
       "id": "pr_radio_bloc_1790256873762_k89p_53",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
+      "category": "jingle"
+    },
+    {
+      "id": "track_promo_g_1790783012225_kg2l_5kl",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
       "category": "promo"
     },
     {
@@ -10883,10 +10811,10 @@
     {
       "id": "pr_radio_bloc_1790257094891_kg2l_7",
       "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 15,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257172969_r65d",
@@ -10917,10 +10845,10 @@
     {
       "id": "pr_radio_bloc_1790257094891_kg2l_9",
       "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 30,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257200990_dxtb",
@@ -10951,10 +10879,10 @@
     {
       "id": "pr_radio_bloc_1790257094891_kg2l_11",
       "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257202682_wekq",
@@ -10985,10 +10913,10 @@
     {
       "id": "pr_radio_bloc_1790257094891_kg2l_13",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 22,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257216011_lque",
@@ -11019,10 +10947,10 @@
     {
       "id": "pr_radio_bloc_1790257094891_kg2l_15",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 33,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257226256_bxsv",
@@ -11053,10 +10981,10 @@
     {
       "id": "pr_radio_bloc_1790257094891_kg2l_17",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 46,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259567545_zojv",
@@ -11087,10 +11015,10 @@
     {
       "id": "pr_radio_bloc_1790257094891_kg2l_19",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 44,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259717212_eqoa",
@@ -11121,10 +11049,10 @@
     {
       "id": "pr_radio_bloc_1790257094891_kg2l_21",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259723951_mfz4",
@@ -11155,10 +11083,10 @@
     {
       "id": "pr_radio_bloc_1790257094891_kg2l_23",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 26,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259766109_mnv2",
@@ -11189,10 +11117,10 @@
     {
       "id": "pr_radio_bloc_1790257094891_kg2l_25",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259775761_0d6j",
@@ -11223,10 +11151,10 @@
     {
       "id": "pr_radio_bloc_1790257094891_kg2l_27",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_1790527960620",
@@ -11244,6 +11172,14 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
       "duration": 14,
       "category": "jingle"
+    },
+    {
+      "id": "track_promo_g_1790783012225_4y1e_dhy",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790257302402_26gf",
@@ -11376,10 +11312,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_7",
       "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 15,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257309809_ad2n",
@@ -11410,10 +11346,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_9",
       "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 30,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257310845_ie5i",
@@ -11444,10 +11380,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_11",
       "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257313552_wgjd",
@@ -11478,10 +11414,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_13",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 22,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257315977_1ybl",
@@ -11512,10 +11448,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_15",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 33,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257317457_5l9n",
@@ -11546,10 +11482,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_17",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 46,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257318692_345u",
@@ -11580,10 +11516,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_19",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 44,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257320099_qmlv",
@@ -11614,10 +11550,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_21",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257325037_0nxd",
@@ -11648,10 +11584,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_23",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 26,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257326873_sv2b",
@@ -11682,10 +11618,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_25",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257328267_x1yt",
@@ -11716,10 +11652,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_27",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257329372_bzez",
@@ -11920,10 +11856,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_39",
       "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 15,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257345650_r61c",
@@ -11954,10 +11890,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_41",
       "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 30,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257349628_6yye",
@@ -11988,10 +11924,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_43",
       "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257350832_d0ua",
@@ -12022,10 +11958,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_45",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 22,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257351972_b3er",
@@ -12056,10 +11992,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_47",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 33,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257356210_is2d",
@@ -12090,10 +12026,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_49",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 46,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257357834_05b2",
@@ -12124,10 +12060,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_51",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 44,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259547701_6txu",
@@ -12158,10 +12094,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_53",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259715019_k0s1",
@@ -12192,10 +12128,10 @@
     {
       "id": "pr_radio_bloc_1790257291397_4y1e_55",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-      "artist": "PROMO DROPSIDERS",
+      "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 26,
-      "category": "promo"
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259785850_bg1x",
