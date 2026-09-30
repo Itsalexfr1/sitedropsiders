@@ -157,6 +157,15 @@ export function getTopHoraireConfig(): RadioTopHoraireConfig {
     return DEFAULT_TOP_HORAIRE;
 }
 
+export interface RadioSpecialJingle {
+    id: string;
+    title: string;
+    audioUrl?: string;
+    youtubeId?: string;
+    duration: number; // in seconds
+    enabled?: boolean;
+}
+
 export interface RadioScheduleBlock {
     id: string;
     name: string;
@@ -170,6 +179,8 @@ export interface RadioScheduleBlock {
     days?: number[]; // [1..6, 0] où 1=Lun, 6=Sam, 0=Dim. Vide ou absent = 7j/7
     tracks: RadioTrackItem[];
     themeJingle?: RadioThemeJingle; // Générique d'émission avec jingle uploadé
+    specialJingles?: RadioSpecialJingle[]; // Jingles spécifiques à cette émission
+    jingleFrequency?: number; // Ex: tous les 2, 3 morceaux
 }
 
 export interface ComputedRadioScheduleItem {
