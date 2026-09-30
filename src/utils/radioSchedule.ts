@@ -898,18 +898,41 @@ export function getCurrentLiveRadioTrack(
     }
 
     // ── 3. Playlist entrelacée déterministe (musique + jingles spéciaux + promos) ─
-    const introOffset = topOffset + (isEmissionStartHour && themeJingle?.enabled ? (themeJingle.duration || 0) : 0);
+    const themeOffset = (isEmissionStartHour && themeJingle?.enabled ? (themeJingle.duration || 0) : 0);
 
     // buildInterleavedPlaylist gère : specialJingles, tracks musicaux, promos générales
     const tracks = buildInterleavedPlaylist(activeBlock, todayStr);
 
     const startH = activeBlock.startHour ?? 0;
     const blockStartSec = startH * 3600;
-    let elapsedInBlock = nowSec - blockStartSec - introOffset;
-    if (elapsedInBlock < 0) elapsedInBlock += 86400;
+
+    // Temps brut écoulé depuis le début du bloc
+    let rawElapsedInBlock = nowSec - blockStartSec;
+    if (rawElapsedInBlock < 0) rawElapsedInBlock += 86400;
+
+    // ⭐ CORRECTION REPRISE APRÈS TOP HORAIRE :
+    // Chaque heure, le Top Horaire "met en pause" la playlist pendant topOffset secondes.
+    // On soustrait ces secondes "perdues" pour que le son reprenne exactement là où il était.
+    let topHoraireConsumed = 0;
+    if (topOffset > 0) {
+        // Combien d'heures entières depuis le début du bloc
+        const hoursElapsed = Math.floor(rawElapsedInBlock / 3600);
+        // Chaque heure entière contient un top horaire de topOffset secondes
+        topHoraireConsumed = hoursElapsed * topOffset;
+        // Heure courante : si on est APRÈS le top horaire, on l'ajoute aussi
+        // (si on est PENDANT, ce cas est déjà retourné plus haut)
+        if (secondInHour >= topOffset) {
+            topHoraireConsumed += topOffset;
+        }
+    }
+
+    // elapsedInBlock = temps réellement joué dans la playlist (sans les top horaires ni le générique)
+    let elapsedInBlock = rawElapsedInBlock - themeOffset - topHoraireConsumed;
+    if (elapsedInBlock < 0) elapsedInBlock = 0;
 
     const totalPlaylistSec = tracks.reduce((acc, t) => acc + (t.duration || 3600), 0) || 3600;
     const cycleSec = elapsedInBlock % totalPlaylistSec;
+
 
     let cursor = 0;
     let selectedTrack = tracks[0];
@@ -929,7 +952,7 @@ export function getCurrentLiveRadioTrack(
     }
 
     const { artist } = parseArtistAndEvent(selectedTrack.title);
-    const itemStartFromMidnight = (blockStartSec + introOffset + (elapsedInBlock - selectedTrackOffset)) % 86400;
+    const itemStartFromMidnight = (blockStartSec + themeOffset + topHoraireConsumed + (elapsedInBlock - selectedTrackOffset)) % 86400;
     const dur = selectedTrack.duration || 3600;
     const itemEndFromMidnight = (itemStartFromMidnight + dur) % 86400;
 
