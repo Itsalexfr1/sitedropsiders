@@ -68,7 +68,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'REELS' | 'CONCOURS' | 'EVENT' | 'ARTISTE FESTIVAL' | 'PROMO' | 'MAP' | 'CALENDRIER' | 'JEU' | 'JEU_FESTIVAL';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'REELS' | 'CONCOURS' | 'ARTISTE FESTIVAL' | 'PROMO' | 'MAP' | 'CALENDRIER' | 'JEU' | 'JEU_FESTIVAL';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -175,9 +175,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         { date: '15', label: 'RELEASE' },
         { date: '22', label: 'SHOWCASE' },
     ]);
-    const [highlightsFestival, setHighlightsFestival] = useState('');
-    const [highlightsArtists, setHighlightsArtists] = useState('');
-    const [highlightsLocation, setHighlightsLocation] = useState('');
     const [isRetouchMode, setIsRetouchMode] = useState(false);
     const [retouchPath, setRetouchPath] = useState<{ x: number, y: number }[]>([]);
     const [isDrawing, setIsDrawing] = useState(false);
@@ -341,10 +338,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'TOP 100 DROPSIDERS': { label: 'TOP 100 DROPSIDERS', grad: '255, 230, 0', color: '#ffe600' },
         'NEWS': { label: 'NEWS', grad: '255, 0, 51', color: '#ff0033' },
         'FOCUS': { label: 'FOCUS', grad: '255, 170, 0', color: '#ffaa00' },
-        'HIGHLIGHTS': { label: 'HIGHLIGHTS', grad: '0, 112, 255', color: '#0070ff' },
         'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
         'RECAP': { label: 'RÉCAP', grad: '192, 38, 211', color: '#c026d3' },
-        'INTRO': { label: 'INTRO', grad: '0, 50, 255', color: '#0032ff' },
         'LIVESTREAM': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' },
         'PLANNING': { label: 'PLANNING', grad: '255, 18, 65', color: '#ff1241' },
         'TRACKLIST': { label: 'TRACKLIST', grad: '255, 120, 0', color: '#ff7800' },
@@ -354,7 +349,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'CONSEILS': { label: 'REELS', grad: '255, 0, 51', color: '#ff0033' },
         'REELS': { label: 'REELS', grad: '255, 0, 51', color: '#ff0033' },
         'CONCOURS': { label: 'JEUX CONCOURS', grad: '112, 0, 255', color: '#7000ff' },
-        'EVENT': { label: 'EVENT', grad: '0, 240, 255', color: '#00f0ff' },
         'ARTISTE FESTIVAL': { label: 'LES 10 ARTISTES À NE PAS LOUPER', grad: '0, 0, 0', color: '#000000' },
         'PROMO': { label: 'PROMO', grad: '255, 0, 51', color: '#ff0033' },
         'MAP': { label: 'MAP', grad: '255, 0, 51', color: '#ff0033' },
@@ -366,11 +360,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     useEffect(() => {
         if (activeTab === 'REEL') {
             // Only set default if current theme is not a Reel-specific theme
-            if (theme !== 'TRACKLIST' && theme !== 'INTRO' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'MAP' && !theme.startsWith('TOP ')) {
+            if (theme !== 'TRACKLIST' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'MAP' && !theme.startsWith('TOP ')) {
                 setTheme('TRACKLIST');
             }
         } else {
-            if (theme === 'TRACKLIST' || theme === 'INTRO' || theme === 'MAP' || theme.startsWith('TOP ')) {
+            if (theme === 'TRACKLIST' || theme === 'MAP' || theme.startsWith('TOP ')) {
                 setTheme('NEWS');
             }
         }
@@ -776,48 +770,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            // HELPER: Draw Tape/Label
-            const drawTapeLabel = (text: string, x: number, y: number, w: number, h: number, color: string, gradStr: string) => {
-                ctx.save();
-                ctx.translate(x, y);
-                ctx.shadowColor = `rgba(${gradStr}, 0.5)`;
-                ctx.shadowBlur = 30;
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                ctx.moveTo(-w / 2 - 20, -h / 2 + 10);
-                ctx.lineTo(w / 2 + 20, -h / 2 - 10);
-                ctx.lineTo(w / 2 + 40, h / 2 + 5);
-                ctx.lineTo(-w / 2 - 30, h / 2 - 5);
-                ctx.closePath();
-                ctx.fill();
-
-                const plasticGrad = ctx.createLinearGradient(-w / 2, -h / 2, w / 2, h / 2);
-                plasticGrad.addColorStop(0, 'rgba(255,255,255,0.15)');
-                plasticGrad.addColorStop(0.5, 'rgba(0,0,0,0.1)');
-                plasticGrad.addColorStop(1, 'rgba(255,255,255,0.05)');
-                ctx.fillStyle = plasticGrad;
-                ctx.fill();
-
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.font = `900 italic 67px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
-                const textGrad = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
-                textGrad.addColorStop(0, '#ffffff');
-                textGrad.addColorStop(0.4, '#e0e0e0');
-                textGrad.addColorStop(0.5, '#a0a0a0');
-                textGrad.addColorStop(0.6, '#e0e0e0');
-                textGrad.addColorStop(1, '#ffffff');
-                ctx.fillStyle = textGrad;
-                ctx.shadowColor = 'rgba(0,0,0,0.3)';
-                ctx.shadowBlur = 10;
-                ctx.fillText(text, 0, 5);
-                ctx.restore();
-            };
-
-            if (theme === 'INTRO') {
-                drawTapeLabel(customText || 'INTRO', canvas.width / 2, canvas.height / 2, 966, 260, activeData.color, activeData.grad);
-
-            } else if (theme === 'TOP 5 STYLES') {
+            if (theme === 'TOP 5 STYLES') {
                 const item = top5Items[currentPreviewIndex];
                 const centerX = canvas.width / 2;
                 const centerY = safeTop + 620; // Descendu de 80px supplémentaires
@@ -1366,108 +1319,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     
                     ctx.restore();
                 }
-            } else if (theme === 'HIGHLIGHTS') {
-                const centerX = canvas.width / 2;
-                const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
-                const labelText = "HIGHLIGHTS";
-                const activeData = activeColor;
-                
-                // Draw Capsule HIGHLIGHTS
-                ctx.save();
-                ctx.textAlign = 'center';
-                ctx.font = `900 italic 42px "Montserrat", sans-serif`;
-                const labelW = ctx.measureText(labelText).width + 80;
-                ctx.globalAlpha = 0.9;
-                ctx.fillStyle = activeData.color;
-                const rectX = (canvas.width - labelW) / 2;
-                const rectY = labelY - 52;
-                const rectW = labelW;
-                const rectH = 80;
-                const radius = 20;
-                ctx.beginPath();
-                ctx.roundRect(rectX, rectY, rectW, rectH, radius);
-                ctx.fill();
-                ctx.globalAlpha = 1;
-                ctx.fillStyle = '#FFFFFF';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(labelText, canvas.width / 2, rectY + (rectH / 2) + 4);
-                ctx.restore();
-
-                // Specialized high-end rendering for Highlights
-                ctx.save();
-                ctx.textAlign = 'center';
-                
-                const maxWidth = 966;
-                const getFontSize = (text: string, base: number, font: string) => {
-                    ctx.font = `900 ${base}px "${font}", sans-serif`;
-                    const width = ctx.measureText(text).width;
-                    if (width > maxWidth) {
-                        return Math.floor(base * (maxWidth / width));
-                    }
-                    return base;
-                };
-
-                // Animation logic: Loop in preview, start from 0 in recording
-                const elapsed = (isVideoRecording || (bgVideo && !isDownloading))
-                    ? (isVideoRecording 
-                        ? (Date.now() - recordingStartTimeRef.current) / 1000 
-                        : (Date.now() % 5000) / 1000)
-                    : 99.0;
-                
-                // Positioned at the bottom (aligned with NEWS theme at labelY + 130)
-                let currY = labelY + 130; 
-                const texts = [
-                    { text: (highlightsFestival || '').toUpperCase(), size: 85, color: '#ffffff', font: 'Montserrat', slideDirection: 'left' },
-                    { text: (highlightsLocation || '').toUpperCase(), size: 36, color: '#ffffff', font: 'Orbitron', isOrbitron: true, slideDirection: 'bottom' },
-                ];
-
-                texts.forEach((item, i) => {
-                    if (!item.text) return;
-                    ctx.save();
-                    const dynamicSize = getFontSize(item.text, item.size, item.font);
-                    ctx.font = `900 ${dynamicSize}px "${item.font}", sans-serif`;
-                    ctx.fillStyle = item.color;
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                    ctx.shadowBlur = 15;
-                    ctx.shadowOffsetY = 4;
-                    if (item.isOrbitron) ctx.letterSpacing = '10px';
-                    else ctx.letterSpacing = '0px';
-                    
-                    let yPos = currY + (i === 0 ? 0 : 100);
-
-                    let xOff = 0;
-                    let yOff = 0;
-                    const duration = 0.8;
-                    const delay = i * 0.2;
-                    const t = Math.max(0, Math.min(1, (elapsed - delay) / duration));
-                    const ease = 1 - Math.pow(1 - t, 3);
-
-                    if (item.slideDirection === 'left') xOff = -600 * (1 - ease); 
-                    else if (item.slideDirection === 'bottom') yOff = 200 * (1 - ease);
-                    
-                    ctx.globalAlpha = t;
-                    ctx.fillText(item.text, (canvas.width / 2) + xOff, yPos + yOff);
-                    ctx.restore();
-                });
-
-                // FOOTER LOGO (Hidden in Insta Grid)
-                if (showBottomLogo && logoRef.current) {
-                    const elapsed = isVideoRecording ? (Date.now() - recordingStartTimeRef.current) / 1000 : 1.5;
-                    const duration = 0.8;
-                    const delay = 0.6;
-                    const t = Math.max(0, Math.min(1, (elapsed - delay) / duration));
-                    const ease = 1 - Math.pow(1 - t, 3);
-                    
-                    ctx.save();
-                    ctx.globalAlpha = t;
-                    const logoW = 120;
-                    const logoH = (logoRef.current.height / logoRef.current.width) * logoW;
-                    const logoY = 1780 - (20 * (1 - ease));
-                    ctx.drawImage(logoRef.current, (canvas.width / 2) - (logoW / 2), logoY, logoW, logoH);
-                    ctx.restore();
-                }
-                                
-                ctx.restore();
             } else if (theme === 'INTERVIEW') {
                 const centerX = canvas.width / 2;
 
@@ -2888,7 +2739,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -3092,9 +2943,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         recorder.start(1000);
 
         let totalDuration = 0;
-        if (theme === 'INTRO') {
-            totalDuration = 10000;
-        } else if (theme.startsWith('TOP 5')) {
+        if (theme.startsWith('TOP 5')) {
             totalDuration = 5 * (16800 + 1200); // 5 slides + transitions
         } else if (theme === 'TOP 10 FESTIVAL') {
             totalDuration = 4 * (16800 + 1200); // 4 slides (Cover + 3 Grid pages)
@@ -3114,9 +2963,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setRecordingTimeLeft(Math.max(0, Math.ceil((totalDuration - elapsed) / 1000)));
         }, 100);
 
-        if (theme === 'INTRO') {
-            await new Promise(r => setTimeout(r, 10000));
-        } else if (theme.startsWith('TOP 5')) {
+        if (theme.startsWith('TOP 5')) {
             for (let i = 0; i < 5; i++) {
                 if (i > 0) {
                     const durationTransition = 1200;
@@ -3513,7 +3360,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => handleSetTheme('REELS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all leading-tight ${theme === 'REELS' || theme === 'CONSEILS' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>REELS<br/><span className="text-[7px] font-bold normal-case opacity-70">Conseils</span></button>
             <button onClick={() => handleSetTheme('CONCOURS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONCOURS' ? 'bg-[#7000ff]/25 border-[#7000ff] text-[#c084fc] shadow-[0_0_15px_rgba(112,0,255,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎁 JEUX CONCOURS</button>
             <button onClick={() => handleSetTheme('FOCUS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
-            <button onClick={() => handleSetTheme('HIGHLIGHTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>HIGHLIGHTS</button>
             <button onClick={() => handleSetTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
             <button onClick={() => handleSetTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3]' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
             <button onClick={() => handleSetTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
@@ -3522,7 +3368,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => handleSetTheme('TOP 100 DROPSIDERS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 100 DROPSIDERS' ? 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600]' : 'bg-white/5 border-white/10 text-gray-400'}`}>TOP 100 DROPSIDERS</button>
             <button onClick={() => handleSetTheme('SPOTLIGHT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'SPOTLIGHT' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>SPOTLIGHT</button>
             <button onClick={() => handleSetTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
-            <button onClick={() => handleSetTheme('EVENT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENT' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENT</button>
             <button onClick={() => handleSetTheme('ARTISTE FESTIVAL')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'ARTISTE FESTIVAL' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎪 ARTISTE FESTIVAL</button>
             <button onClick={() => handleSetTheme('PROMO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PROMO' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/10 text-gray-400'}`}>📣 PROMO</button>
             <button onClick={() => handleSetTheme('CALENDRIER')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CALENDRIER' ? 'bg-neon-orange/20 border-neon-orange text-neon-orange' : 'bg-white/5 border-white/10 text-gray-400'}`}>📅 CALENDRIER</button>
@@ -3543,7 +3388,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             {activeTab === 'REEL' && (
                 <>
                     <button onClick={() => handleSetTheme('TRACKLIST')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TRACKLIST' ? 'bg-orange-500/20 border-orange-500 text-orange-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TRACKLIST</button>
-                    <button onClick={() => handleSetTheme('INTRO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTRO' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTRO</button>
                     <button onClick={() => handleSetTheme('MAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MAP' ? 'bg-neon-red/20 border-neon-red text-neon-red animate-pulse' : 'bg-white/5 border-white/5 text-gray-400'}`}>📍 CARTE (STORY)</button>
                 </>
             )}
@@ -3551,7 +3395,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
-    const styleMusicButtons = activeTab === 'REEL' && (theme === 'INTRO' || theme === 'TOP 5 STYLES') ? (
+    const styleMusicButtons = activeTab === 'REEL' && theme === 'TOP 5 STYLES' ? (
         <div className="space-y-4">
             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Style de musique</span>
             <div className="flex flex-wrap gap-2">
@@ -3874,61 +3718,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
             </div>
-        </div>
-    );
-
-    const highlightsEditor = (
-        <div className="space-y-3">
-            <span className="text-[10px] font-black text-gray-500 uppercase">Festivals</span>
-            <input 
-                value={highlightsFestival} 
-                onChange={e => setHighlightsFestival(e.target.value)} 
-                placeholder="FESTIVAL(S) (ex: TOMORROWLAND)" 
-                spellCheck="true"
-                autoCorrect="on"
-                autoCapitalize="words"
-                className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white text-sm font-black italic focus:border-cyan-500 outline-none transition-all uppercase mb-2" 
-            />
-            <span className="text-[10px] font-black text-gray-500 uppercase">Lieu et Date</span>
-            <input 
-                value={highlightsLocation} 
-                onChange={e => {
-                    let val = e.target.value;
-                    if (val.endsWith(' ') && val.length > 1 && val[val.length - 2] !== ',' && !val.endsWith(', ')) {
-                        val = val.slice(0, -1).trim() + ', ';
-                    }
-                    setHighlightsLocation(val);
-                }} 
-                placeholder="LIEU, PAYS, ANNÉE (ex: PARIS, FRANCE, 2026)" 
-                spellCheck="true"
-                autoCorrect="on"
-                autoCapitalize="words"
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-cyan-500 outline-none transition-all" 
-            />
-            <div className="grid grid-cols-2 gap-4 pt-2">
-                <div className="space-y-2">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Couleur Texte</label>
-                    <div className="flex gap-2 items-center">
-                        <input type="color" value={textColor} onMouseDown={(e) => e.stopPropagation()} onChange={e => setTextColor(e.target.value)} className="w-10 h-10 rounded-lg bg-transparent border-none cursor-pointer" />
-                    </div>
-                </div>
-                <div className="space-y-2">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Fond Texte</label>
-                    <div className="flex gap-2 items-center">
-                        <input type="color" value={textBgColor === 'transparent' ? '#000000' : textBgColor} onMouseDown={(e) => e.stopPropagation()} onChange={e => setTextBgColor(e.target.value)} className="w-10 h-10 rounded-lg bg-transparent border-none cursor-pointer" />
-                        <button onMouseDown={(e) => e.preventDefault()} onClick={() => setTextBgColor('transparent')}
-                            className={`px-2 py-1 rounded-md text-[8px] font-bold uppercase transition-all ${textBgColor === 'transparent' ? 'bg-white/20 text-white' : 'bg-white/5 text-gray-500 hover:text-white'}`}>
-                            Aucun
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <button 
-                onClick={() => setShowBottomLogo(!showBottomLogo)}
-                className={`w-full py-3 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-2 ${showBottomLogo ? 'bg-white/20 text-white border border-white' : 'bg-white/5 text-gray-500 border border-white/10'}`}
-            >
-                {showBottomLogo ? '✅ LOGO BAS ACTIVÉ (CACHÉ GRILLE)' : '❌ LOGO BAS DÉSACTIVÉ'}
-            </button>
         </div>
     );
 
@@ -4962,8 +4751,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ) : theme.startsWith('TOP 5') ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Éléments du Top 5</span>{top5Editor}</>
 
-                            ) : theme === 'HIGHLIGHTS' ? (
-                                <>{highlightsEditor}</>
                             ) : theme === 'TRACKLIST' ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Détails Tracklist</span>{tracklistEditor}</>
                             ) : theme === 'INTERVIEW' ? (
@@ -5318,7 +5105,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 ))}
                                                 <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter</button>
                                             </div>
-                                        ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'CONSEILS' || theme === 'REELS' ? conseilsEditor : theme === 'CONCOURS' ? concoursEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'ARTISTE FESTIVAL' ? (
+                                        ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'CONSEILS' || theme === 'REELS' ? conseilsEditor : theme === 'CONCOURS' ? concoursEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'ARTISTE FESTIVAL' ? (
                             <div className="space-y-3">
                                 <input
                                     value={festivalNameText}
