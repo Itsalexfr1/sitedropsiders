@@ -30,7 +30,8 @@ import {
     Maximize2,
     Minimize2,
     ChevronUp,
-    Megaphone
+    Megaphone,
+    RefreshCw
 } from 'lucide-react';
 import { extractYouTubeId, fetchYouTubeTitle } from './AdminTVModal';
 import { YouTubeSearchModal } from './YouTubeSearchModal';
@@ -51,6 +52,8 @@ import {
     sortRadioBlocksByBroadcastOrder,
     getActiveRadioBlock,
     getRadioCategoryMeta,
+    applyRotationPatternToTracks,
+    type RadioRotationRule,
     type RadioScheduleBlock,
     type RadioTrackItem,
     type RadioSpecialJingle,
@@ -165,6 +168,7 @@ export function AdminRadioModal({
 
     // ─── Modale d'Upload Jingle / Promo / Pub avec MENU DÉROULANT ─────────────
     const [isUploadJingleModalOpen, setIsUploadJingleModalOpen] = useState(false);
+    const [isAddMediaDropdownOpen, setIsAddMediaDropdownOpen] = useState(false);
     const [isYouTubeSearchOpen, setIsYouTubeSearchOpen] = useState(false);
 
     // ─── Formulaire rapide d'ajout de morceau ─────────────────────────────────
@@ -200,7 +204,9 @@ export function AdminRadioModal({
         startHour: 0,
         endHour: 4,
         days: ALL_DAYS,
-        randomize: true
+        randomize: true,
+        jingleFrequency: 2,
+        rotationRule: 'jingle_son_special_promo' as RadioRotationRule
     });
 
     const [confirmModal, setConfirmModal] = useState<{
@@ -452,10 +458,20 @@ export function AdminRadioModal({
                 const existingTracks = b.tracks || [];
 
                 if (cat === 'jingle') {
-                    // JINGLE → uniquement dans specialJingles
-                    // La vue émission les affiche déjà via currentTableItems (pas de doublon)
+                    // JINGLE SPÉCIAL → dans specialJingles ET directement dans la programmation (tracks) de l'émission
                     const updatedSpecial = [...existingSpecial.filter(s => s.id !== jingle.id), jingle];
-                    return { ...b, specialJingles: updatedSpecial };
+                    const jingleTrack: RadioTrackItem = {
+                        id: jingle.id || `track_jingle_${Date.now()}`,
+                        title: jingle.title,
+                        artist: `${b.title} JINGLE`,
+                        audioUrl: jingle.audioUrl,
+                        youtubeId: jingle.youtubeId,
+                        duration: jingle.duration || 10,
+                        category: 'jingle'
+                    };
+                    const alreadyInTracks = existingTracks.some(t => t.id === jingle.id || (jingle.audioUrl && t.audioUrl === jingle.audioUrl));
+                    const updatedTracks = alreadyInTracks ? existingTracks : [jingleTrack, ...existingTracks];
+                    return { ...b, specialJingles: updatedSpecial, tracks: updatedTracks };
                 } else {
                     // PROMO / PUB → directement dans la programmation (tracks)
                     const defaultArtist = cat === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS';
@@ -751,12 +767,78 @@ export function AdminRadioModal({
         }
     };
 
-    // Remise à zéro complète des promos, publicités et doublons pour tout remettre dans l'ordre
+    // Régénération complète des émissions depuis la bibliothèque TV
+    const handleRegenerateEmissions = () => {
+        setConfirmModal({
+            isOpen: true,
+            title: '⚡ Régénérer les émissions depuis la vidéothèque TV ?',
+            message: 'Les sets musicaux vont être redistribués équitablement entre vos 5 émissions, et tous les jingles ou promos empilés en doublon dans la liste des morceaux seront nettoyés. Vos jingles officiels dans leurs bacs dédiés et vos réglages d\'horaires resteront intacts.',
+            type: 'warning',
+            confirmText: 'Oui, régénérer les émissions',
+            cancelText: 'Annuler',
+            onConfirm: () => {
+                // Collecter tous les sets musicaux TV (exclure jingles, pubs)
+                const musicVideos: TVVideoItem[] = [];
+                tvBlocks.forEach(tb => {
+                    (tb.videos || []).forEach(v => {
+                        const cat = (v.category as string) || '';
+                        const isNonMusic = cat === 'jingle' || cat === 'promo' || cat === 'pub';
+                        if (!isNonMusic) {
+                            musicVideos.push(v);
+                        }
+                    });
+                });
+
+                const pool = musicVideos.length > 0 ? musicVideos : allTVVideos;
+                const numBlocks = Math.max(1, blocks.length);
+                const chunkSize = Math.max(10, Math.ceil(pool.length / numBlocks));
+
+                const nextBlocks = blocks.map((b, bIdx) => {
+                    const startIdx = (bIdx * chunkSize) % (pool.length || 1);
+                    let selectedVids = pool.slice(startIdx, startIdx + chunkSize);
+                    if (selectedVids.length < 5 && pool.length > 0) {
+                        selectedVids = pool.slice(0, Math.min(25, pool.length));
+                    }
+
+                    const newTracks: RadioTrackItem[] = selectedVids.map((v, vIdx) => {
+                        const { artist } = parseArtistAndEvent(v.title || '');
+                        return {
+                            id: `rt_${b.id}_${v.id || v.youtubeId || vIdx}`,
+                            title: v.title,
+                            artist: artist || (v as any).artist || 'Artiste',
+                            youtubeId: v.youtubeId,
+                            duration: v.duration || 3600,
+                            category: (v.category === 'clip' ? 'clip' : 'liveset') as RadioTrackCategory,
+                            addedAt: Date.now() + vIdx
+                        };
+                    });
+
+                    return {
+                        ...b,
+                        tracks: newTracks,
+                        specialJingles: b.specialJingles || [],
+                        jingleFrequency: b.jingleFrequency ?? 2
+                    };
+                });
+
+                setBlocks(nextBlocks);
+                try {
+                    localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(nextBlocks));
+                    window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+                } catch {}
+
+                showToast('✓ Émissions régénérées avec succès sans jingles d\'affilé !', 'success');
+                setConfirmModal(c => ({ ...c, isOpen: false }));
+            }
+        });
+    };
+
+    // Remise à zéro complète des promos, publicités et jingles empilés pour tout remettre dans l'ordre
     const handleResetEmissionTracks = () => {
         setConfirmModal({
             isOpen: true,
             title: 'Remettre à zéro les émissions ?',
-            message: 'Toutes les promos, publicités et doublons de jingles actuellement injectés dans les grilles d\'émissions vont être retirés afin de laisser uniquement vos sets musicaux de base bien ordonnés. Vous pourrez ensuite réordonner et insérer vos promos & sponsors proprement.',
+            message: 'Toutes les promos, publicités et jingles empilés d\'affilée dans la liste des morceaux vont être retirés afin de laisser uniquement vos sets musicaux bien ordonnés. Les jingles et promos continueront d\'être diffusés automatiquement selon la fréquence configurée.',
             type: 'warning',
             confirmText: 'Oui, remettre à zéro',
             cancelText: 'Annuler',
@@ -766,7 +848,8 @@ export function AdminRadioModal({
                     const next = prev.map(b => {
                         const cleanTracks = (b.tracks || []).filter(t => {
                             const isPromoOrPub = t.category === 'promo' || t.category === 'pub' || t.artist === 'SPONSOR' || t.artist === 'PUBLICITÉ / SPONSOR' || (t.title && t.title.toLowerCase().startsWith('promo '));
-                            if (isPromoOrPub) {
+                            const isJingle = t.category === 'jingle';
+                            if (isPromoOrPub || isJingle) {
                                 cleanedCount++;
                                 return false;
                             }
@@ -780,10 +863,89 @@ export function AdminRadioModal({
                     } catch {}
                     return next;
                 });
-                showToast(`✓ Grille remise à zéro : ${cleanedCount} promo(s)/pub(s) retirée(s). Prêt à remettre dans l'ordre !`, 'success');
+                showToast(`✓ Grille remise à zéro : ${cleanedCount} élément(s) retiré(s). Vos sets musicaux sont propres !`, 'success');
                 setConfirmModal(c => ({ ...c, isOpen: false }));
             }
         });
+    };
+
+    // Mettre à jour la règle de rotation pour une émission spécifique
+    const handleSetBlockRotationRule = (blockId: string, rule: RadioRotationRule) => {
+        setBlocks(prev => {
+            const next = prev.map(b => b.id === blockId ? { ...b, rotationRule: rule } : b);
+            try {
+                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
+                window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+            } catch {}
+            return next;
+        });
+        showToast('✓ Règle d\'alternance mise à jour pour cette émission');
+    };
+
+    // Appliquer immédiatement la règle d'alternance à l'émission active (mélange 1 Jingle ➔ 1 Son ➔ 1 Spécial ➔ 1 Promo)
+    const handleApplyRotationRule = (blockId: string, specificRule?: RadioRotationRule) => {
+        const targetBlock = blocks.find(b => b.id === blockId);
+        if (!targetBlock) return;
+
+        const genJinglesTracks: RadioTrackItem[] = generalJingles
+            .filter(j => j.category === 'jingle' || (j as any).type === 'jingle')
+            .map(j => ({
+                id: j.id,
+                title: j.title,
+                artist: 'DROPSIDERS JINGLE',
+                audioUrl: j.audioUrl,
+                youtubeId: j.youtubeId,
+                duration: j.duration || 15,
+                category: 'jingle' as const
+            }));
+
+        const genPromosTracks: RadioTrackItem[] = generalJingles
+            .filter(j => j.category === 'promo' || j.category === 'pub' || (j as any).type === 'promo' || (j as any).type === 'pub')
+            .map(p => ({
+                id: p.id,
+                title: p.title,
+                artist: p.category === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS',
+                audioUrl: p.audioUrl,
+                youtubeId: p.youtubeId,
+                duration: p.duration || 30,
+                category: (p.category || 'promo') as RadioTrackCategory
+            }));
+
+        const updatedBlock: RadioScheduleBlock = {
+            ...targetBlock,
+            rotationRule: specificRule || targetBlock.rotationRule || 'jingle_son_special_promo'
+        };
+
+        const reordered = applyRotationPatternToTracks(
+            updatedBlock,
+            undefined,
+            genJinglesTracks.length > 0 ? genJinglesTracks : undefined,
+            genPromosTracks.length > 0 ? genPromosTracks : undefined
+        );
+
+        setBlocks(prev => {
+            const next = prev.map(b => b.id === blockId ? {
+                ...b,
+                rotationRule: updatedBlock.rotationRule,
+                tracks: reordered
+            } : b);
+            try {
+                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
+                window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+            } catch {}
+            return next;
+        });
+
+        const ruleNames: Record<RadioRotationRule, string> = {
+            jingle_son_special_promo: '1 Jingle ➔ 1 Son ➔ 1 Spécial ➔ 1 Promo',
+            son_special_son_jingle_promo: '1 Son ➔ 1 Spécial ➔ 1 Son ➔ 1 Jingle ➔ 1 Promo',
+            every_2_tracks: 'Alternance tous les 2 sons',
+            every_3_tracks: 'Alternance tous les 3 sons',
+            jingles_only: 'Jingles uniquement',
+            music_only: '100% Musique'
+        };
+
+        showToast(`✓ Alternance appliquée à « ${targetBlock.title} » (${ruleNames[updatedBlock.rotationRule || 'jingle_son_special_promo']}) !`, 'success');
     };
 
     // Sauvegarde globale
@@ -941,24 +1103,9 @@ export function AdminRadioModal({
         }
 
         if (selectedBlock) {
-            // Affichage complet de l'émission : SETS, CLIPS, JINGLES SPÉCIAUX, GÉNÉRIQUE
+            // Affichage des morceaux de l'émission (sets musicaux, clips, interviews)
+            // Les jingles spéciaux sont gérés dans leur dossier dédié et entrelacés automatiquement à l'antenne
             const tracksList = [...(selectedBlock.tracks || [])];
-
-            // Si l'émission a des jingles spéciaux personnalisés dans specialJingles, on les affiche également
-            (selectedBlock.specialJingles || []).forEach((j, jIdx) => {
-                const already = tracksList.some(t => t.id === j.id || (j.audioUrl && t.audioUrl === j.audioUrl) || (j.youtubeId && t.youtubeId === j.youtubeId));
-                if (!already) {
-                    tracksList.unshift({
-                        id: j.id || `special_${jIdx}`,
-                        title: j.title,
-                        artist: `${selectedBlock.title} JINGLE`,
-                        audioUrl: j.audioUrl,
-                        youtubeId: j.youtubeId,
-                        duration: j.duration || 15,
-                        category: 'jingle'
-                    });
-                }
-            });
 
             return tracksList
                 .filter(t => !query || t.title.toLowerCase().includes(query) || (t.artist && t.artist.toLowerCase().includes(query)))
@@ -1068,32 +1215,50 @@ export function AdminRadioModal({
 
                     {/* Actions droites */}
                     <div className="flex items-center gap-2.5">
-                        {/* Bouton Uploader une Promo / Pub */}
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setUploadModalCategory('promo');
-                                setIsUploadJingleModalOpen(true);
-                            }}
-                            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-black font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-1.5 shadow-[0_0_20px_rgba(249,115,22,0.4)] transition-all cursor-pointer"
-                            title="Ajouter ou uploader une promo ou publicité"
-                        >
-                            <Megaphone className="w-3.5 h-3.5" />
-                            <span>+ Ajouter Promo</span>
-                        </button>
-
-                        {/* Bouton Uploader un Jingle */}
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setUploadModalCategory('jingle');
-                                setIsUploadJingleModalOpen(true);
-                            }}
-                            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-1.5 shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all cursor-pointer"
-                        >
-                            <Upload className="w-3.5 h-3.5" />
-                            <span>Uploader Jingle</span>
-                        </button>
+                        {/* Bouton Groupé + Nouveau Média (Jingle / Promo / Pub) avec menu déroulant pour gagner de la place */}
+                        <div className="relative">
+                            <button
+                                type="button"
+                                onClick={() => setIsAddMediaDropdownOpen(!isAddMediaDropdownOpen)}
+                                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-1.5 shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all cursor-pointer"
+                                title="Ajouter ou uploader un média (jingle, promo, pub)"
+                            >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>+ Nouveau Média</span>
+                                <ChevronDown className={`w-3 h-3 ml-0.5 transition-transform ${isAddMediaDropdownOpen ? 'rotate-180' : ''}`} />
+                            </button>
+                            {isAddMediaDropdownOpen && (
+                                <div 
+                                    className="absolute right-0 mt-2 w-56 rounded-2xl bg-[#0e131f] border border-white/20 shadow-2xl p-1.5 z-[100] animate-in fade-in zoom-in-95 space-y-1"
+                                    onMouseLeave={() => setIsAddMediaDropdownOpen(false)}
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setUploadModalCategory('jingle');
+                                            setIsUploadJingleModalOpen(true);
+                                            setIsAddMediaDropdownOpen(false);
+                                        }}
+                                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-500/20 text-amber-300 flex items-center gap-2 text-xs font-bold transition-all cursor-pointer"
+                                    >
+                                        <Upload className="w-3.5 h-3.5 text-amber-400" />
+                                        <span>🔔 Uploader un Jingle</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setUploadModalCategory('promo');
+                                            setIsUploadJingleModalOpen(true);
+                                            setIsAddMediaDropdownOpen(false);
+                                        }}
+                                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-orange-500/20 text-orange-300 flex items-center gap-2 text-xs font-bold transition-all cursor-pointer"
+                                    >
+                                        <Megaphone className="w-3.5 h-3.5 text-orange-400" />
+                                        <span>📣 Uploader Promo / Sponsor</span>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
 
                         {/* Indicateur ON AIR */}
                         <button
@@ -1213,7 +1378,9 @@ export function AdminRadioModal({
                                                 startHour: 0,
                                                 endHour: 4,
                                                 days: ALL_DAYS,
-                                                randomize: true
+                                                randomize: true,
+                                                jingleFrequency: 2,
+                                                rotationRule: 'jingle_son_special_promo'
                                             });
                                             setIsEditingBlock(true);
                                         }}
@@ -1238,6 +1405,21 @@ export function AdminRadioModal({
                                                         setSelectedBlockId(b.id);
                                                         setActiveFolder(`emission:${b.id}`);
                                                         setIsEditingBlock(false);
+                                                    }}
+                                                    onDoubleClick={() => {
+                                                        setEditingBlockId(b.id);
+                                                        setEditBlockForm({
+                                                            title: b.title,
+                                                            emoji: b.emoji,
+                                                            color: b.color,
+                                                            startHour: b.startHour,
+                                                            endHour: b.endHour,
+                                                            days: b.days || ALL_DAYS,
+                                                            randomize: b.randomize !== false,
+                                                            jingleFrequency: b.jingleFrequency ?? 2,
+                                                            rotationRule: b.rotationRule || 'jingle_son_special_promo'
+                                                        });
+                                                        setIsEditingBlock(true);
                                                     }}
                                                     className={`w-full text-left py-2 px-2.5 rounded-xl flex items-center justify-between text-xs transition-all cursor-pointer ${
                                                         isActive
@@ -1264,6 +1446,11 @@ export function AdminRadioModal({
                                                         {specialCount > 0 && (
                                                             <span className="text-[8px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1 rounded" title={`${specialCount} jingles spéciaux`}>
                                                                 🔔{specialCount}
+                                                            </span>
+                                                        )}
+                                                        {(b.jingleFrequency ?? 2) !== 2 && (
+                                                            <span className="text-[8px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40 px-1 rounded" title={`Jingle/Promo toutes les ${b.jingleFrequency} musiques`}>
+                                                                ⚙️{b.jingleFrequency}
                                                             </span>
                                                         )}
                                                         <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-black/40 opacity-80">
@@ -1404,7 +1591,7 @@ export function AdminRadioModal({
                                     </button>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-                                    <div className="md:col-span-6 space-y-1">
+                                    <div className="md:col-span-5 space-y-1">
                                         <label className="text-[10px] font-bold text-gray-400 uppercase">Nom de l'émission</label>
                                         <input
                                             type="text"
@@ -1432,7 +1619,25 @@ export function AdminRadioModal({
                                             <span className="text-gray-400 text-xs">h</span>
                                         </div>
                                     </div>
-                                    <div className="md:col-span-3 flex items-end gap-2">
+                                    {/* ── Choix de la Règle d'Alternance personnalisée ── */}
+                                    <div className="md:col-span-4 space-y-1">
+                                        <label className="text-[10px] font-bold text-purple-400 uppercase flex items-center gap-1">
+                                            <span>⚡</span> Règle d'alternance Jingles & Promos
+                                        </label>
+                                        <select
+                                            value={editBlockForm.rotationRule}
+                                            onChange={e => setEditBlockForm(f => ({ ...f, rotationRule: e.target.value as RadioRotationRule }))}
+                                            className="w-full px-2.5 py-2 rounded-xl bg-black/40 border border-purple-500/30 text-purple-200 text-xs font-bold focus:outline-none focus:border-purple-400 cursor-pointer"
+                                        >
+                                            <option value="jingle_son_special_promo">⭐ 1 Jingle ➔ 1 Son ➔ 1 Spécial ➔ 1 Promo</option>
+                                            <option value="son_special_son_jingle_promo">🎵 1 Son ➔ 1 Spécial ➔ 1 Son ➔ 1 Normal ➔ 1 Promo</option>
+                                            <option value="every_2_tracks">⏱️ Tous les 2 sons : Alterne Spécial / Normal / Promo</option>
+                                            <option value="every_3_tracks">⏱️ Tous les 3 sons : Alterne Spécial / Normal / Promo</option>
+                                            <option value="jingles_only">🔔 Jingles uniquement (sans pub)</option>
+                                            <option value="music_only">🎧 100% Musique (non-stop)</option>
+                                        </select>
+                                    </div>
+                                    <div className="md:col-span-2 flex items-end gap-2">
                                         <button
                                             type="button"
                                             onClick={() => {
@@ -1443,6 +1648,8 @@ export function AdminRadioModal({
                                                         title: editBlockForm.title.trim().toUpperCase(),
                                                         startHour: editBlockForm.startHour,
                                                         endHour: editBlockForm.endHour,
+                                                        jingleFrequency: editBlockForm.jingleFrequency,
+                                                        rotationRule: editBlockForm.rotationRule,
                                                         timeSlot: formatRadioTimeSlot(editBlockForm.startHour, editBlockForm.endHour)
                                                     } : b));
                                                     showToast('Émission modifiée');
@@ -1458,6 +1665,8 @@ export function AdminRadioModal({
                                                         color: editBlockForm.color,
                                                         emoji: editBlockForm.emoji,
                                                         randomize: true,
+                                                        jingleFrequency: editBlockForm.jingleFrequency,
+                                                        rotationRule: editBlockForm.rotationRule,
                                                         tracks: [],
                                                         specialJingles: []
                                                     };
@@ -1597,6 +1806,66 @@ export function AdminRadioModal({
                                 <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-full">
                                     {currentTableItems.length} élément{currentTableItems.length > 1 ? 's' : ''}
                                 </span>
+
+                                {/* Bouton rapide d'édition d'émission & réglage fréquence */}
+                                {selectedBlock && activeFolder.startsWith('emission:') && (
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setEditingBlockId(selectedBlock.id);
+                                                setEditBlockForm({
+                                                    title: selectedBlock.title,
+                                                    emoji: selectedBlock.emoji,
+                                                    color: selectedBlock.color,
+                                                    startHour: selectedBlock.startHour,
+                                                    endHour: selectedBlock.endHour,
+                                                    days: selectedBlock.days || ALL_DAYS,
+                                                    randomize: selectedBlock.randomize !== false,
+                                                    jingleFrequency: selectedBlock.jingleFrequency ?? 2,
+                                                    rotationRule: selectedBlock.rotationRule || 'jingle_son_special_promo'
+                                                });
+                                                setIsEditingBlock(true);
+                                            }}
+                                            className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer shrink-0"
+                                            title="Modifier les horaires et paramètres de cette émission"
+                                        >
+                                            <Pencil className="w-3 h-3 text-cyan-400" />
+                                            <span>Modifier</span>
+                                        </button>
+
+                                        {/* Sélecteur de Règle d'Alternance personnalisée par Émission */}
+                                        <div className="flex items-center gap-1.5 bg-gradient-to-r from-purple-950/60 to-indigo-950/60 border border-purple-500/40 px-2.5 py-1 rounded-xl text-[11px] text-purple-200 shadow-sm">
+                                            <span className="font-bold text-[10px] uppercase text-purple-300 flex items-center gap-1 shrink-0">
+                                                <span>⚡</span> Règle :
+                                            </span>
+                                            <select
+                                                value={selectedBlock.rotationRule || 'jingle_son_special_promo'}
+                                                onChange={e => {
+                                                    const newRule = e.target.value as RadioRotationRule;
+                                                    handleSetBlockRotationRule(selectedBlock.id, newRule);
+                                                }}
+                                                className="bg-black/70 border border-purple-500/40 text-purple-200 text-xs rounded-lg px-2 py-0.5 focus:outline-none focus:border-purple-300 cursor-pointer font-bold max-w-[270px] truncate"
+                                                title="Règle de mélange des jingles normaux, jingles spéciaux et promos pour cette émission"
+                                            >
+                                                <option value="jingle_son_special_promo">⭐ 1 Jingle ➔ 1 Son ➔ 1 Spécial ➔ 1 Promo</option>
+                                                <option value="son_special_son_jingle_promo">🎵 1 Son ➔ 1 Spécial ➔ 1 Son ➔ 1 Normal ➔ 1 Promo</option>
+                                                <option value="every_2_tracks">⏱️ Tous les 2 sons : Alterne Spécial / Normal / Promo</option>
+                                                <option value="every_3_tracks">⏱️ Tous les 3 sons : Alterne Spécial / Normal / Promo</option>
+                                                <option value="jingles_only">🔔 Jingles uniquement (sans pub)</option>
+                                                <option value="music_only">🎧 100% Musique (aucun jingle)</option>
+                                            </select>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleApplyRotationRule(selectedBlock.id)}
+                                                className="px-2.5 py-0.5 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-black font-display font-black text-[10px] uppercase italic tracking-wider transition-all cursor-pointer shadow-sm ml-1 shrink-0"
+                                                title="Appliquer immédiatement ce mélange ordonné à l'émission pour voir l'alternance en direct"
+                                            >
+                                                Appliquer
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex items-center gap-2.5 ml-auto flex-wrap sm:flex-nowrap">
@@ -1646,20 +1915,6 @@ export function AdminRadioModal({
                                     </button>
                                 )}
 
-                                {/* Bouton Uploader Promo / Sponsor */}
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setUploadModalCategory('promo');
-                                        setIsUploadJingleModalOpen(true);
-                                    }}
-                                    className="px-3.5 py-2 rounded-xl bg-orange-500/20 hover:bg-orange-500 text-orange-300 hover:text-black border border-orange-500/40 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
-                                    title="Uploader un fichier MP3/WAV de promo ou sponsor"
-                                >
-                                    <Megaphone className="w-3.5 h-3.5" />
-                                    <span>+ Promo / Pub</span>
-                                </button>
-
                                 {/* Bouton Dédoublonner Sponsors & Promos */}
                                 <button
                                     type="button"
@@ -1671,28 +1926,26 @@ export function AdminRadioModal({
                                     <span>Dédoublonner</span>
                                 </button>
 
+                                {/* Bouton Régénérer les émissions */}
+                                <button
+                                    type="button"
+                                    onClick={handleRegenerateEmissions}
+                                    className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600/30 to-cyan-600/30 hover:from-emerald-500 hover:to-cyan-500 text-cyan-200 hover:text-black border border-cyan-500/40 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-sm"
+                                    title="Régénère et redistribue automatiquement les sets de la vidéothèque TV sans jingles d'affilé"
+                                >
+                                    <RefreshCw className="w-3.5 h-3.5" />
+                                    <span>Régénérer</span>
+                                </button>
+
                                 {/* Bouton Remettre à zéro afin de tout remettre dans l'ordre */}
                                 <button
                                     type="button"
                                     onClick={handleResetEmissionTracks}
                                     className="px-3 py-2 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-300 hover:text-black border border-red-500/30 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-sm"
-                                    title="Retire toutes les promos et pubs injectées dans les émissions pour repartir d'une grille propre et tout remettre dans l'ordre"
+                                    title="Retire tous les jingles, promos et pubs injectés dans les émissions pour repartir d'une grille de sets propre"
                                 >
                                     <Trash2 className="w-3.5 h-3.5" />
                                     <span>Remettre à zéro</span>
-                                </button>
-
-                                {/* Bouton Uploader Jingle */}
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setUploadModalCategory('jingle');
-                                        setIsUploadJingleModalOpen(true);
-                                    }}
-                                    className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black border border-amber-500/40 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
-                                >
-                                    <Upload className="w-3.5 h-3.5" />
-                                    <span>Nouveau Jingle</span>
                                 </button>
                             </div>
                         </div>

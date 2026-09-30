@@ -166,6 +166,14 @@ export interface RadioSpecialJingle {
     enabled?: boolean;
 }
 
+export type RadioRotationRule =
+    | 'jingle_son_special_promo'     // 1 Jingle Normal ➔ 1 Son ➔ 1 Jingle Spécial ➔ 1 Promo (Demandé par défaut)
+    | 'son_special_son_jingle_promo' // 1 Son ➔ 1 Jingle Spécial ➔ 1 Son ➔ 1 Jingle Normal ➔ 1 Promo
+    | 'every_2_tracks'               // 1 Jingle ou Promo tous les 2 sons
+    | 'every_3_tracks'               // 1 Jingle ou Promo tous les 3 sons
+    | 'jingles_only'                 // Jingles uniquement (sans pub)
+    | 'music_only';                  // Musique continue non-stop
+
 export interface RadioScheduleBlock {
     id: string;
     name: string;
@@ -181,6 +189,7 @@ export interface RadioScheduleBlock {
     themeJingle?: RadioThemeJingle; // Générique d'émission avec jingle uploadé
     specialJingles?: RadioSpecialJingle[]; // Jingles spécifiques à cette émission
     jingleFrequency?: number; // Ex: tous les 2, 3 morceaux
+    rotationRule?: RadioRotationRule; // Règle de rotation / mélange jingles & promos
 }
 
 export interface ComputedRadioScheduleItem {
@@ -478,6 +487,286 @@ export function isRadioBlockActiveNow(b: RadioScheduleBlock, nowHour?: number, n
 }
 
 /**
+ * Retourne la palette des jingles normaux (généraux / station ID)
+ */
+export function getGeneralJinglesList(): RadioTrackItem[] {
+    try {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('dropsiders_radionomy_palette');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    const jingles = parsed.filter((j: any) => j.category === 'jingle' || j.type === 'jingle');
+                    if (jingles.length > 0) return jingles.map((j: any) => ({
+                        id: j.id || `gj_${j.title?.slice(0, 8)}`,
+                        title: j.title,
+                        artist: j.artist || 'DROPSIDERS JINGLE',
+                        audioUrl: j.audioUrl,
+                        youtubeId: j.youtubeId,
+                        duration: j.duration || 15,
+                        category: 'jingle' as RadioTrackCategory
+                    }));
+                }
+            }
+        }
+    } catch {}
+    const fromSettings = ((settings as any)?.radio_general_jingles || [])
+        .filter((j: any) => j.category === 'jingle' || j.type === 'jingle');
+    if (fromSettings.length > 0) return fromSettings.map((j: any) => ({
+        id: j.id || `gj_${j.title?.slice(0, 8)}`,
+        title: j.title,
+        artist: j.artist || 'DROPSIDERS JINGLE',
+        audioUrl: j.audioUrl,
+        youtubeId: j.youtubeId,
+        duration: j.duration || 15,
+        category: 'jingle' as RadioTrackCategory
+    }));
+    return DEFAULT_SYSTEM_JINGLES;
+}
+
+/**
+ * Retourne la liste des promos et publicités générales
+ */
+export function getGeneralPromosList(): RadioTrackItem[] {
+    try {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('dropsiders_radionomy_palette');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    const promos = parsed.filter((j: any) => j.category === 'promo' || j.category === 'pub');
+                    if (promos.length > 0) return promos.map((p: any) => ({
+                        id: p.id || `gp_${p.title?.slice(0, 8)}`,
+                        title: p.title,
+                        artist: p.artist || (p.category === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS'),
+                        audioUrl: p.audioUrl,
+                        youtubeId: p.youtubeId,
+                        duration: p.duration || 30,
+                        category: (p.category || 'promo') as RadioTrackCategory
+                    }));
+                }
+            }
+        }
+    } catch {}
+    const fromSettings = ((settings as any)?.radio_general_jingles || [])
+        .filter((j: any) => j.category === 'promo' || j.category === 'pub');
+    if (fromSettings.length > 0) return fromSettings.map((p: any) => ({
+        id: p.id || `gp_${p.title?.slice(0, 8)}`,
+        title: p.title,
+        artist: p.artist || (p.category === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS'),
+        audioUrl: p.audioUrl,
+        youtubeId: p.youtubeId,
+        duration: p.duration || 30,
+        category: (p.category || 'promo') as RadioTrackCategory
+    }));
+    return DEFAULT_SYSTEM_PUBS;
+}
+
+/**
+ * Applique la règle de rotation sélectionnée pour une émission :
+ * Règle demandée : 1 Jingle Normal ➔ 1 Son ➔ 1 Jingle Spécial ➔ 1 Promo etc.
+ * Chaque émission peut avoir sa propre règle configurée.
+ */
+export function applyRotationPatternToTracks(
+    block: RadioScheduleBlock,
+    musicList?: RadioTrackItem[],
+    overrideJingles?: RadioTrackItem[],
+    overridePromos?: RadioTrackItem[]
+): RadioTrackItem[] {
+    const allTracks = block.tracks || [];
+
+    // 1. Extraire les musiques (sets, clips, interviews)
+    const musicTracks = musicList || allTracks.filter(
+        t => t.category !== 'jingle' && t.category !== 'promo' && t.category !== 'pub'
+    );
+
+    // 2. Jingles spéciaux de l'émission
+    const specialJingles: RadioTrackItem[] = (block.specialJingles || [])
+        .filter(j => j.enabled !== false && (j.audioUrl || j.youtubeId))
+        .map((j, idx) => ({
+            id: j.id || `sj_${block.id}_${idx}`,
+            title: j.title,
+            artist: `${block.title} JINGLE SPÉCIAL`,
+            audioUrl: j.audioUrl,
+            youtubeId: j.youtubeId,
+            duration: j.duration || 15,
+            category: 'jingle' as const
+        }));
+
+    // 3. Jingles normaux
+    const normalJingles = (overrideJingles && overrideJingles.length > 0)
+        ? overrideJingles
+        : getGeneralJinglesList();
+
+    // 4. Promos & Sponsors
+    const promos = (overridePromos && overridePromos.length > 0)
+        ? overridePromos
+        : getGeneralPromosList();
+
+    const rule = block.rotationRule || 'jingle_son_special_promo';
+
+    if (rule === 'music_only' || musicTracks.length === 0) {
+        return musicTracks.length > 0 ? musicTracks : allTracks;
+    }
+
+    const result: RadioTrackItem[] = [];
+    let gjIdx = 0;
+    let sjIdx = 0;
+    let pIdx = 0;
+
+    const pickSpecialJingle = (tag: string | number): RadioTrackItem | null => {
+        if (specialJingles.length > 0) {
+            const j = specialJingles[sjIdx % specialJingles.length];
+            sjIdx++;
+            return { ...j, id: `sj_${block.id}_${tag}` };
+        }
+        if (normalJingles.length > 0) {
+            const j = normalJingles[gjIdx % normalJingles.length];
+            gjIdx++;
+            return { ...j, id: `nj_${block.id}_${tag}` };
+        }
+        return null;
+    };
+
+    const pickNormalJingle = (tag: string | number): RadioTrackItem | null => {
+        if (normalJingles.length > 0) {
+            const j = normalJingles[gjIdx % normalJingles.length];
+            gjIdx++;
+            return { ...j, id: `nj_${block.id}_${tag}` };
+        }
+        if (specialJingles.length > 0) {
+            const j = specialJingles[sjIdx % specialJingles.length];
+            sjIdx++;
+            return { ...j, id: `sj_${block.id}_${tag}` };
+        }
+        return null;
+    };
+
+    const pickPromo = (tag: string | number): RadioTrackItem | null => {
+        if (promos.length > 0) {
+            const p = promos[pIdx % promos.length];
+            pIdx++;
+            return { ...p, id: `pr_${block.id}_${tag}` };
+        }
+        return null;
+    };
+
+    if (rule === 'jingle_son_special_promo') {
+        // ⭐ RÈGLE DEMANDÉE PAR L'UTILISATEUR :
+        // 1 Jingle Normal ➔ 1 Son ➔ 1 Jingle Spécial ➔ 1 Promo ➔ (1 Son ➔ 1 Jingle Normal ➔ 1 Son ➔ 1 Jingle Spécial ➔ 1 Promo...)
+        const startJingle = pickNormalJingle('init');
+        if (startJingle) result.push(startJingle);
+
+        let mIdx = 0;
+        let step = 0;
+        while (mIdx < musicTracks.length) {
+            result.push(musicTracks[mIdx]);
+            mIdx++;
+
+            if (step % 2 === 0) {
+                const sj = pickSpecialJingle(`s_${mIdx}`);
+                if (sj) result.push(sj);
+                const pr = pickPromo(`p_${mIdx}`);
+                if (pr) result.push(pr);
+            } else {
+                const nj = pickNormalJingle(`n_${mIdx}`);
+                if (nj) result.push(nj);
+            }
+            step++;
+        }
+    } else if (rule === 'son_special_son_jingle_promo') {
+        musicTracks.forEach((track, mIdx) => {
+            result.push(track);
+            const cycle = mIdx % 3;
+            if (cycle === 0) {
+                const sj = pickSpecialJingle(`s_${mIdx}`);
+                if (sj) result.push(sj);
+            } else if (cycle === 1) {
+                const nj = pickNormalJingle(`n_${mIdx}`);
+                if (nj) result.push(nj);
+            } else {
+                const pr = pickPromo(`p_${mIdx}`);
+                if (pr) result.push(pr);
+            }
+        });
+    } else if (rule === 'every_2_tracks') {
+        musicTracks.forEach((track, mIdx) => {
+            result.push(track);
+            if ((mIdx + 1) % 2 === 0) {
+                const cycle = Math.floor(mIdx / 2) % 3;
+                if (cycle === 0) {
+                    const sj = pickSpecialJingle(`s_${mIdx}`);
+                    if (sj) result.push(sj);
+                } else if (cycle === 1) {
+                    const pr = pickPromo(`p_${mIdx}`);
+                    if (pr) result.push(pr);
+                } else {
+                    const nj = pickNormalJingle(`n_${mIdx}`);
+                    if (nj) result.push(nj);
+                }
+            }
+        });
+    } else if (rule === 'every_3_tracks') {
+        musicTracks.forEach((track, mIdx) => {
+            result.push(track);
+            if ((mIdx + 1) % 3 === 0) {
+                const cycle = Math.floor(mIdx / 3) % 3;
+                if (cycle === 0) {
+                    const sj = pickSpecialJingle(`s_${mIdx}`);
+                    if (sj) result.push(sj);
+                } else if (cycle === 1) {
+                    const pr = pickPromo(`p_${mIdx}`);
+                    if (pr) result.push(pr);
+                } else {
+                    const nj = pickNormalJingle(`n_${mIdx}`);
+                    if (nj) result.push(nj);
+                }
+            }
+        });
+    } else if (rule === 'jingles_only') {
+        musicTracks.forEach((track, mIdx) => {
+            result.push(track);
+            if (mIdx % 2 === 0) {
+                const sj = pickSpecialJingle(`s_${mIdx}`);
+                if (sj) result.push(sj);
+            } else {
+                const nj = pickNormalJingle(`n_${mIdx}`);
+                if (nj) result.push(nj);
+            }
+        });
+    }
+
+    return result.length > 0 ? result : musicTracks;
+}
+
+/**
+ * Construit la playlist entrelacée pour le direct selon la règle du bloc
+ */
+export function buildInterleavedPlaylist(
+    block: RadioScheduleBlock,
+    todayStr: string
+): RadioTrackItem[] {
+    const allTracks = block.tracks || [];
+    const musicTracks = allTracks.filter(
+        t => t.category !== 'jingle' && t.category !== 'promo' && t.category !== 'pub'
+    );
+
+    const shuffledMusic = block.randomize === false
+        ? musicTracks
+        : getSeededShuffle(musicTracks, `${todayStr}_${block.id}`);
+
+    const interleaved = applyRotationPatternToTracks(block, shuffledMusic);
+    return interleaved.length > 0 ? interleaved : [{
+        id: `${block.id}_fallback`,
+        title: `${block.title} - Continuous Mix`,
+        artist: 'DROPSIDERS RADIO',
+        youtubeId: '8YbWq5urfww',
+        duration: 3600,
+        category: 'liveset' as const
+    }];
+}
+
+/**
  * Retourne le bloc actuellement en direct selon le jour et l'heure (ou null si aucun)
  */
 export function getActiveRadioBlock(blocks: RadioScheduleBlock[], currentHour?: number, currentDay?: number): RadioScheduleBlock | null {
@@ -597,44 +886,11 @@ export function getCurrentLiveRadioTrack(
         }
     }
 
-    // ── 3. Pistes de l'émission + Jingles Spéciaux personnalisés ─────────────
+    // ── 3. Playlist entrelacée déterministe (musique + jingles spéciaux + promos) ─
     const introOffset = topOffset + (isEmissionStartHour && themeJingle?.enabled ? (themeJingle.duration || 0) : 0);
 
-    const emissionJingleTracks: RadioTrackItem[] = (activeBlock.specialJingles || [])
-        .filter(j => j.enabled !== false && (j.audioUrl || j.youtubeId))
-        .map(j => ({
-            id: j.id,
-            title: j.title,
-            artist: `${activeBlock.title} JINGLE`,
-            audioUrl: j.audioUrl,
-            youtubeId: j.youtubeId,
-            duration: j.duration || 15,
-            category: 'jingle' as const
-        }));
-
-    const mergedTracks = [...(activeBlock.tracks || [])];
-    emissionJingleTracks.forEach(sj => {
-        const exists = mergedTracks.some(t => t.id === sj.id || (sj.audioUrl && t.audioUrl === sj.audioUrl) || (sj.youtubeId && t.youtubeId === sj.youtubeId));
-        if (!exists) {
-            mergedTracks.push(sj);
-        }
-    });
-
-    const rawTracks = mergedTracks.length > 0
-        ? mergedTracks
-        : [{
-            id: `${activeBlock.id}_fallback`,
-            title: `${activeBlock.title} - Continuous Mix`,
-            artist: 'DROPSIDERS RADIO',
-            youtubeId: '8YbWq5urfww',
-            duration: 3600,
-            category: 'liveset' as const
-        }];
-
-    // Seeded shuffle par jour pour que l'ordre soit identique 100% du temps pour tous les utilisateurs toute la journée
-    const tracks = activeBlock.randomize === false
-        ? rawTracks
-        : getSeededShuffle(rawTracks, `${todayStr}_${activeBlock.id}`);
+    // buildInterleavedPlaylist gère : specialJingles, tracks musicaux, promos générales
+    const tracks = buildInterleavedPlaylist(activeBlock, todayStr);
 
     const startH = activeBlock.startHour ?? 0;
     const blockStartSec = startH * 3600;
@@ -724,40 +980,8 @@ export function computeRadioDaySchedule(
 
         const blockStartSec = startH * 3600;
 
-        const emissionJingleTracks: RadioTrackItem[] = (block.specialJingles || [])
-            .filter(j => j.enabled !== false && (j.audioUrl || j.youtubeId))
-            .map(j => ({
-                id: j.id,
-                title: j.title,
-                artist: `${block.title} JINGLE`,
-                audioUrl: j.audioUrl,
-                youtubeId: j.youtubeId,
-                duration: j.duration || 15,
-                category: 'jingle' as const
-            }));
-
-        const mergedTracks = [...(block.tracks || [])];
-        emissionJingleTracks.forEach(sj => {
-            const exists = mergedTracks.some(t => t.id === sj.id || (sj.audioUrl && t.audioUrl === sj.audioUrl) || (sj.youtubeId && t.youtubeId === sj.youtubeId));
-            if (!exists) {
-                mergedTracks.push(sj);
-            }
-        });
-
-        const rawTracks = mergedTracks.length > 0
-            ? mergedTracks
-            : [{
-                id: `${block.id}_fallback`,
-                title: `${block.title} - Continuous Mix`,
-                artist: 'DROPSIDERS RADIO',
-                youtubeId: '8YbWq5urfww',
-                duration: 3600,
-                category: 'liveset' as const
-            }];
-
-        const tracks = block.randomize === false
-            ? rawTracks
-            : getSeededShuffle(rawTracks, `${todayStr}_${block.id}`);
+        // Utiliser le même interleaving déterministe que getCurrentLiveRadioTrack
+        const tracks = buildInterleavedPlaylist(block, todayStr);
 
         let cursor = 0;
         let trackIdx = 0;
