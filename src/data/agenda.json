@@ -820,5 +820,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1126,
+    "title": "Hard Boat Birthday 4 Years",
+    "date": "2026-11-10",
+    "startDate": "2026-11-10",
+    "endDate": "2026-11-10",
+    "venue": "Titan",
+    "location": "LYON",
+    "country": "FRANCE",
+    "type": "Festival",
+    "image": "/uploads/uploads/df7308af9aa48986-825267065_1104943032497836_158.jpg",
+    "url": "https://shotgun.live/fr/events/hard-boat-birthday-4-years",
+    "genre": "Hard Techno",
+    "month": "NOVEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
