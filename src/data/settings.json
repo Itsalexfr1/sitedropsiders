@@ -6009,10 +6009,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257094891_kg2l_s_21",
-          "title": "Dropsiders Radio Jingle 5",
+          "title": "Drop Time 1",
           "artist": "DROP TIME JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/b8f96f8f6f70ba5f-Drop_Time_1.wav",
+          "duration": 15,
           "category": "jingle"
         },
         {
@@ -6060,10 +6060,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257094891_kg2l_s_24",
-          "title": "Dropsiders Radio Jingle 6",
+          "title": "Drop Time 2",
           "artist": "DROP TIME JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-          "duration": 9,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/66f4bd0012ddfec6-Drop_Time_2.wav",
+          "duration": 14,
           "category": "jingle"
         },
         {
@@ -6111,10 +6111,10 @@
         },
         {
           "id": "sj_radio_bloc_1790257094891_kg2l_s_27",
-          "title": "Drop Time 1",
+          "title": "Drop Time 3",
           "artist": "DROP TIME JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/b8f96f8f6f70ba5f-Drop_Time_1.wav",
-          "duration": 15,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/76912b6674e4a0eb-Drop_Time_3.wav",
+          "duration": 10,
           "category": "jingle"
         }
       ],
@@ -6165,6 +6165,41 @@
         },
         {
           "id": "special_radio_bloc_1790257094891_kg2l_1790792216139_4_ymw7",
+          "title": "Drop Time 5",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/c69774f81584cabc-Drop_Time_5.wav",
+          "duration": 14,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257094891_kg2l_1790797338685_0_a26t",
+          "title": "Drop Time 1",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/b8f96f8f6f70ba5f-Drop_Time_1.wav",
+          "duration": 15,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257094891_kg2l_1790797339094_1_3qw8",
+          "title": "Drop Time 2",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/66f4bd0012ddfec6-Drop_Time_2.wav",
+          "duration": 14,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257094891_kg2l_1790797339444_2_pz18",
+          "title": "Drop Time 3",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/76912b6674e4a0eb-Drop_Time_3.wav",
+          "duration": 10,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257094891_kg2l_1790797339934_3_zruw",
+          "title": "Drop Time 4",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/8d3dd222a5f7027e-Drop_Time_4.wav",
+          "duration": 15,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257094891_kg2l_1790797340403_4_9ekb",
           "title": "Drop Time 5",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/c69774f81584cabc-Drop_Time_5.wav",
           "duration": 14,
@@ -10285,10 +10320,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257094891_kg2l_s_21",
-      "title": "Dropsiders Radio Jingle 5",
+      "title": "Drop Time 1",
       "artist": "DROP TIME JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/b8f96f8f6f70ba5f-Drop_Time_1.wav",
+      "duration": 15,
       "category": "jingle"
     },
     {
@@ -10336,10 +10371,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257094891_kg2l_s_24",
-      "title": "Dropsiders Radio Jingle 6",
+      "title": "Drop Time 2",
       "artist": "DROP TIME JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-      "duration": 9,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/66f4bd0012ddfec6-Drop_Time_2.wav",
+      "duration": 14,
       "category": "jingle"
     },
     {
@@ -10387,10 +10422,10 @@
     },
     {
       "id": "sj_radio_bloc_1790257094891_kg2l_s_27",
-      "title": "Drop Time 1",
+      "title": "Drop Time 3",
       "artist": "DROP TIME JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/b8f96f8f6f70ba5f-Drop_Time_1.wav",
-      "duration": 15,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/76912b6674e4a0eb-Drop_Time_3.wav",
+      "duration": 10,
       "category": "jingle"
     },
     {
