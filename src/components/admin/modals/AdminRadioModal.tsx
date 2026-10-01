@@ -511,8 +511,9 @@ export function AdminRadioModal({
                             if (res.ok) {
                                 const data = await res.json();
                                 if (Array.isArray(data) && data[0]?.duration && data[0].duration > 5) {
-                                    realDur = data[0].duration;
-                                    saveCachedRadioDuration(track.youtubeId as string, realDur);
+                                    const dur = data[0].duration as number;
+                                    realDur = dur;
+                                    saveCachedRadioDuration(track.youtubeId as string, dur);
                                     updatedCount++;
                                 }
                             }
