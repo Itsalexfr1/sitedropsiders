@@ -836,21 +836,21 @@ export function saveCachedRadioDuration(idOrYt: string, durationSec: number): vo
 
 export function sanitizeTrackDuration(t: RadioTrackItem): number {
     const cached = getCachedRadioDurations();
-    const key = t.youtubeId || t.id || t.audioUrl;
-    if (key && cached && cached[key] && cached[key] > 0) {
-        return cached[key];
+    // 1. Durée réelle mesurée et mise en cache lors de la lecture
+    if (t.youtubeId && cached[t.youtubeId] && cached[t.youtubeId] > 0) return cached[t.youtubeId];
+    if (t.audioUrl && cached[t.audioUrl] && cached[t.audioUrl] > 0) return cached[t.audioUrl];
+    if (t.id && cached[t.id] && cached[t.id] > 0) return cached[t.id];
+
+    // 2. Durée réelle explicite enregistrée dans les données (< 3600s)
+    if (t.duration && t.duration > 0 && t.duration < 3600) {
+        return t.duration;
     }
-    let d = t.duration && t.duration > 0 ? t.duration : 3600;
-    if ((t.category === 'clip' || t.category === 'promo') && d >= 3600) {
-        d = t.category === 'promo' ? 60 : 210;
-    }
-    if (t.category === 'jingle' && d > 120) {
-        d = 15;
-    }
-    if (t.category === 'pub' && (d > 180 || d >= 3600)) {
-        d = 30;
-    }
-    return d;
+
+    // 3. Estimations de sécurité selon le type de média
+    if (t.category === 'promo') return 47;
+    if (t.category === 'jingle' || t.isTopHoraire || t.isThemeJingle) return 15;
+    if (t.category === 'pub') return 30;
+    return 210; // ~3m30 pour les clips sans durée renseignée
 }
 
 /**

@@ -337,26 +337,35 @@ function useRadioAudio() {
     useEffect(() => { effectiveVolumeRef.current = effectiveVolume; }, [effectiveVolume]);
 
     // ─── TRANSITIONS SANS COUPURE NI BAISSE DE SON (Gapless & Direct) ────────
-    // Plus de fondu à 0 : le son reste à 100% du volume cible, enchaînement direct.
-    // Les jingles démarrent à 0.00s sans tronquage de l'attaque initiale.
+    // ─── TRANSITIONS SANS COUPURE NI BAISSE DE SON (Gapless & Direct) ────────
+    const currentPlayingMediaRef = useRef<string | null>(null);
+
     useEffect(() => {
         if (!isPlayingRef.current || !currentSet) return;
 
         const targetAudioVol = isMutedRef.current ? 0 : (effectiveVolumeRef.current / 100);
-        const isJingleOrShort = currentSet.isTopHoraire || currentSet.isThemeJingle ||
-            currentSet.category === 'jingle' || currentSet.category === 'promo' || currentSet.category === 'pub';
 
         if (currentSet.audioUrl) {
-            // Lecture HTML5 Audio (Jingle, Top Horaire, Générique ou Track uploadé)
+            const isSameAudio = currentPlayingMediaRef.current === currentSet.audioUrl && audioRef.current && !audioRef.current.paused;
+            if (isSameAudio) return;
+
+            // Si un son audio HTML5 est encore en train de jouer et n'a pas fini, le laisser aller au bout
+            if (audioRef.current && !audioRef.current.paused && !audioRef.current.ended && audioRef.current.duration > 0) {
+                const remaining = audioRef.current.duration - audioRef.current.currentTime;
+                if (remaining > 2) {
+                    return; // Ne pas couper le son avant sa fin naturelle
+                }
+            }
+
             if (audioRef.current) {
                 if (audioRef.current.src !== currentSet.audioUrl) {
                     audioRef.current.src = currentSet.audioUrl;
                 }
-                // Pour les jingles et promos : TOUJOURS démarrer à 0.00s (ne jamais couper l'intro !)
-                audioRef.current.currentTime = isJingleOrShort ? 0 : Math.max(0, uiOffsetRef.current || 0);
+                const targetOffset = Math.max(0, uiOffsetRef.current || 0);
+                audioRef.current.currentTime = (targetOffset > 2 && targetOffset < (currentSet.durationSeconds || 3600)) ? targetOffset : 0;
                 audioRef.current.volume = targetAudioVol;
                 audioRef.current.play().then(() => {
-                    // Une fois l'audio lancé, on coupe YouTube sans trou
+                    currentPlayingMediaRef.current = currentSet.audioUrl || null;
                     if (iframeRef.current && iframeRef.current.src !== 'about:blank') {
                         sendCmd('pauseVideo');
                         iframeRef.current.src = 'about:blank';
@@ -365,27 +374,39 @@ function useRadioAudio() {
                 }).catch(() => {});
             }
         } else if (currentSet.youtubeId) {
-            // Lecture YouTube (Liveset, Clip ou Mix)
+            const currentYt = currentSet.youtubeId;
+            const isSameYt = currentPlayingMediaRef.current === currentYt;
+            if (isSameYt) return;
+
+            // Si un son audio HTML5 est encore en cours, le laisser se terminer proprement
+            if (audioRef.current && !audioRef.current.paused && !audioRef.current.ended && audioRef.current.duration > 0) {
+                const remaining = audioRef.current.duration - audioRef.current.currentTime;
+                if (remaining > 2) {
+                    return; // Ne pas couper le son avant sa fin naturelle
+                }
+            }
+
             if (audioRef.current && !audioRef.current.paused) {
                 audioRef.current.pause();
             }
 
-            const currentYt = currentSet.youtubeId;
             const alreadyLoaded = iframeRef.current?.src && iframeRef.current.src.includes(currentYt);
 
             if (!alreadyLoaded) {
-                // Lancer YouTube directement avec le volume cible sans baisse
-                const startSec = isJingleOrShort ? 0 : Math.max(0, Math.floor(uiOffsetRef.current || 0));
+                const targetOffset = Math.max(0, Math.floor(uiOffsetRef.current || 0));
+                const startSec = (targetOffset > 2 && targetOffset < (currentSet.durationSeconds || 3600)) ? targetOffset : 0;
                 if (iframeRef.current) {
                     iframeRef.current.src = buildSrc(currentYt, startSec, isMutedRef.current ? 1 : 0);
                     preloadedVideoIdRef.current = currentYt;
                 }
+                currentPlayingMediaRef.current = currentYt;
                 setTimeout(() => {
                     if (!isMutedRef.current) sendCmd('unMute');
                     sendCmd('setVolume', [effectiveVolumeRef.current]);
                     sendCmd('playVideo');
                 }, 300);
             } else {
+                currentPlayingMediaRef.current = currentYt;
                 if (!isMutedRef.current) sendCmd('unMute');
                 sendCmd('setVolume', [effectiveVolumeRef.current]);
                 sendCmd('playVideo');
@@ -394,9 +415,8 @@ function useRadioAudio() {
     }, [currentSet?.id, currentSet?.audioUrl, currentSet?.youtubeId, sendCmd]);
 
     // ─── ANTI-BLANC : DÉTECTION FIN DE MORCEAU ET ENCHAÎNEMENT IMMÉDIAT ───────
-    // Évite les silences quand un clip ou set YouTube est plus court que prévu
     const advanceToNextTrack = useCallback(() => {
-        // Avancer l'horloge interne d'une seconde pour forcer le recalcul du prochain morceau
+        currentPlayingMediaRef.current = null;
         setUiTimeSec(prev => {
             const curDur = currentSetRef.current?.durationSeconds || 180;
             const curOffset = uiOffsetRef.current || 0;
@@ -421,10 +441,10 @@ function useRadioAudio() {
                         try {
                             const raw = localStorage.getItem('dropsiders_radio_durations') || '{}';
                             const parsed = JSON.parse(raw);
-                            if (parsed[currentSetRef.current.youtubeId] !== dur) {
-                                parsed[currentSetRef.current.youtubeId] = dur;
-                                localStorage.setItem('dropsiders_radio_durations', JSON.stringify(parsed));
-                            }
+                            const cur = currentSetRef.current;
+                            if (cur.youtubeId) parsed[cur.youtubeId] = dur;
+                            if (cur.id) parsed[cur.id] = dur;
+                            localStorage.setItem('dropsiders_radio_durations', JSON.stringify(parsed));
                         } catch {}
                     }
                 }
@@ -444,17 +464,15 @@ function useRadioAudio() {
         const onLoaded = () => {
             if (el.duration && el.duration > 0 && currentSetRef.current) {
                 const dur = Math.round(el.duration);
-                const key = currentSetRef.current.id || currentSetRef.current.audioUrl;
-                if (key) {
-                    try {
-                        const raw = localStorage.getItem('dropsiders_radio_durations') || '{}';
-                        const parsed = JSON.parse(raw);
-                        if (parsed[key] !== dur) {
-                            parsed[key] = dur;
-                            localStorage.setItem('dropsiders_radio_durations', JSON.stringify(parsed));
-                        }
-                    } catch {}
-                }
+                const cur = currentSetRef.current;
+                try {
+                    const raw = localStorage.getItem('dropsiders_radio_durations') || '{}';
+                    const parsed = JSON.parse(raw);
+                    if (cur.audioUrl) parsed[cur.audioUrl] = dur;
+                    if (cur.youtubeId) parsed[cur.youtubeId] = dur;
+                    if (cur.id) parsed[cur.id] = dur;
+                    localStorage.setItem('dropsiders_radio_durations', JSON.stringify(parsed));
+                } catch {}
             }
         };
         el.addEventListener('ended', onEnded);
@@ -470,34 +488,41 @@ function useRadioAudio() {
         const set = currentSetRef.current;
         if (!set?.youtubeId && !set?.audioUrl) return;
 
-        const isJingleOrShort = set.isTopHoraire || set.isThemeJingle ||
-            set.category === 'jingle' || set.category === 'promo' || set.category === 'pub';
-
         if (!isPlaying) {
             if (set.audioUrl) {
-                if (iframeRef.current) iframeRef.current.src = 'about:blank';
+                if (iframeRef.current && iframeRef.current.src !== 'about:blank') {
+                    sendCmd('pauseVideo');
+                    iframeRef.current.src = 'about:blank';
+                }
                 preloadedVideoIdRef.current = null;
                 if (audioRef.current) {
-                    if (audioRef.current.src !== set.audioUrl) {
+                    const isSameSrc = audioRef.current.src === set.audioUrl;
+                    if (!isSameSrc) {
                         audioRef.current.src = set.audioUrl;
+                        const targetOffset = Math.max(0, uiOffsetRef.current || 0);
+                        audioRef.current.currentTime = (targetOffset > 2 && targetOffset < (set.durationSeconds || 3600)) ? targetOffset : 0;
                     }
-                    audioRef.current.currentTime = isJingleOrShort ? 0 : Math.max(0, uiOffsetRef.current || 0);
                     audioRef.current.volume = isMutedRef.current ? 0 : (effectiveVolumeRef.current / 100);
-                    audioRef.current.play().catch(() => {});
+                    audioRef.current.play().then(() => {
+                        currentPlayingMediaRef.current = set.audioUrl || null;
+                    }).catch(() => {});
                 }
             } else if (set.youtubeId) {
-                if (audioRef.current) audioRef.current.pause();
+                if (audioRef.current && !audioRef.current.paused) audioRef.current.pause();
 
                 const alreadyLoaded = iframeRef.current?.src?.includes(set.youtubeId);
                 if (alreadyLoaded) {
                     if (!isMutedRef.current) sendCmd('unMute');
                     sendCmd('setVolume', [effectiveVolumeRef.current]);
                     sendCmd('playVideo');
+                    currentPlayingMediaRef.current = set.youtubeId;
                 } else {
-                    const startSec = isJingleOrShort ? 0 : Math.max(0, Math.floor(uiOffsetRef.current || 0));
+                    const targetOffset = Math.max(0, Math.floor(uiOffsetRef.current || 0));
+                    const startSec = (targetOffset > 2 && targetOffset < (set.durationSeconds || 3600)) ? targetOffset : 0;
                     const src = buildSrc(set.youtubeId, startSec, isMutedRef.current ? 1 : 0);
                     if (iframeRef.current) iframeRef.current.src = src;
                     preloadedVideoIdRef.current = set.youtubeId;
+                    currentPlayingMediaRef.current = set.youtubeId;
                     setTimeout(() => {
                         if (!isMutedRef.current) sendCmd('unMute');
                         sendCmd('setVolume', [effectiveVolumeRef.current]);
@@ -507,16 +532,15 @@ function useRadioAudio() {
             }
             setIsPlaying(true);
         } else {
-            // Stop propre
+            // Pause propre sans vider l'iframe ni réinitialiser la position
             if (audioRef.current) audioRef.current.pause();
-            if (iframeRef.current) iframeRef.current.src = 'about:blank';
-            preloadedVideoIdRef.current = null;
             sendCmd('pauseVideo');
             setIsPlaying(false);
         }
     }, [isPlaying, sendCmd]);
 
     const handleStop = useCallback(() => {
+        currentPlayingMediaRef.current = null;
         if (audioRef.current) audioRef.current.pause();
         if (iframeRef.current) iframeRef.current.src = 'about:blank';
         sendCmd('pauseVideo');
