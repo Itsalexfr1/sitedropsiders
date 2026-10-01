@@ -9014,6 +9014,22 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 40,
           "category": "promo"
+        },
+        {
+          "id": "track_1790890871127_x9zx",
+          "title": "Magenta",
+          "artist": "Arno Cost & Norman Doray",
+          "youtubeId": "2fH7NNKphgQ",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "sj_bloc_1790809306418_s_174",
+          "title": "Classic Time 6",
+          "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/400d28986c937995-Classic_Time_6.wav",
+          "duration": 7,
+          "category": "jingle"
         }
       ],
       "specialJingles": [
@@ -15964,6 +15980,22 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
       "category": "promo"
+    },
+    {
+      "id": "track_1790890871127_x9zx",
+      "title": "Magenta",
+      "artist": "Arno Cost & Norman Doray",
+      "youtubeId": "2fH7NNKphgQ",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "sj_bloc_1790809306418_s_174",
+      "title": "Classic Time 6",
+      "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/400d28986c937995-Classic_Time_6.wav",
+      "duration": 7,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257302402_26gf",
