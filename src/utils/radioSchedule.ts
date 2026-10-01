@@ -651,15 +651,20 @@ export function applyRotationPatternToTracks(
         return null;
     };
 
+    const hasTheme = Boolean(block.themeJingle && block.themeJingle.enabled && (block.themeJingle.duration || 0) > 0);
+
+    // 🌟 En début d'émission : Jingle Spécial obligatoire si aucun générique d'intro configuré
+    if (!hasTheme) {
+        const startSpecialJingle = pickSpecialJingle('emission_start_special');
+        if (startSpecialJingle) {
+            result.push(startSpecialJingle);
+        }
+    }
+
     if (rule === 'jingle_son_special_promo') {
         // ⭐ RÈGLE : alterne strictement Jingle Normal ↔ Jingle Spécial entre chaque son
-        // Séquence : [Jingle Normal] Son [Jingle Spécial] Son [Promo] Son [Jingle Normal] Son [Jingle Spécial] ...
-        // Cycle de 5 slots entre les sons : normal, special, promo, normal, special ...
-        // => Tous les 2 sons : 1 normal puis 1 special, avec une promo tous les 4 sons
-
-        // Jingle d'ouverture (normal)
-        const startJingle = pickNormalJingle('init');
-        if (startJingle) result.push(startJingle);
+        // Séquence : [Jingle Spécial début] Son [Jingle Spécial] Son [Jingle Normal] Son [Jingle Spécial] Son [Promo] ...
+        // Cycle de 5 slots entre les sons : special, normal, special, promo ...
 
         musicTracks.forEach((track, mIdx) => {
             result.push(track);
