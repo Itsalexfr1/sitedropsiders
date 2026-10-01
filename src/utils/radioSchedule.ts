@@ -935,7 +935,13 @@ export function getCurrentLiveRadioTrack(
     let elapsedInBlock = rawElapsedInBlock - themeOffset - topHoraireConsumed;
     if (elapsedInBlock < 0) elapsedInBlock = 0;
 
-    const totalPlaylistSec = tracks.reduce((acc, t) => acc + (t.duration || 3600), 0) || 3600;
+    const sanitizeDur = (t: RadioTrackItem) => {
+        let d = t.duration && t.duration > 0 ? t.duration : 3600;
+        if ((t.category === 'clip' || t.category === 'promo') && d >= 3600) d = t.category === 'promo' ? 60 : 210;
+        if (t.category === 'jingle' && d > 120) d = 15;
+        return d;
+    };
+    const totalPlaylistSec = tracks.reduce((acc, t) => acc + sanitizeDur(t), 0) || 3600;
     const cycleSec = elapsedInBlock % totalPlaylistSec;
 
 
@@ -946,7 +952,7 @@ export function getCurrentLiveRadioTrack(
 
     for (let i = 0; i < tracks.length; i++) {
         const t = tracks[i];
-        const dur = t.duration && t.duration > 0 ? t.duration : 3600;
+        const dur = sanitizeDur(t);
         if (cycleSec >= cursor && cycleSec < cursor + dur) {
             selectedTrack = t;
             selectedTrackOffset = cycleSec - cursor;
@@ -958,7 +964,7 @@ export function getCurrentLiveRadioTrack(
 
     const { artist } = parseArtistAndEvent(selectedTrack.title);
     const itemStartFromMidnight = (blockStartSec + themeOffset + topHoraireConsumed + (elapsedInBlock - selectedTrackOffset)) % 86400;
-    const dur = selectedTrack.duration || 3600;
+    const dur = sanitizeDur(selectedTrack);
     const itemEndFromMidnight = (itemStartFromMidnight + dur) % 86400;
 
     const sH = Math.floor(itemStartFromMidnight / 3600);
@@ -1027,20 +1033,38 @@ export function computeRadioDaySchedule(
 
         while (cursor < blockDurationSec && trackIdx < 100) {
             const track = tracks[trackIdx % tracks.length];
-            const dur = track.duration && track.duration > 0 ? track.duration : 3600;
+            // Sanitize duration: clips should never be 1h (old default bug), use 210s (3min30) as fallback
+            let dur = track.duration && track.duration > 0 ? track.duration : 3600;
+            if ((track.category === 'clip' || track.category === 'promo') && dur >= 3600) {
+                dur = track.category === 'promo' ? 60 : 210;
+            }
+            if (track.category === 'jingle' && dur > 120) {
+                dur = 15;
+            }
             const itemStartFromMidnight = (blockStartSec + cursor) % 86400;
             const itemEndFromMidnight = (itemStartFromMidnight + dur) % 86400;
 
             const sH = Math.floor(itemStartFromMidnight / 3600);
             const sM = Math.floor((itemStartFromMidnight % 3600) / 60);
+            const sS = Math.floor(itemStartFromMidnight % 60);
             const eH = Math.floor(itemEndFromMidnight / 3600);
             const eM = Math.floor((itemEndFromMidnight % 3600) / 60);
+            const eS = Math.floor(itemEndFromMidnight % 60);
 
             const isLive = (itemStartFromMidnight <= itemEndFromMidnight)
                 ? (nowSec >= itemStartFromMidnight && nowSec < itemEndFromMidnight)
                 : (nowSec >= itemStartFromMidnight || nowSec < itemEndFromMidnight);
 
             const { artist } = parseArtistAndEvent(track.title);
+
+            // Format time with seconds when start & end are in the same minute
+            const needSeconds = (sH === eH && sM === eM);
+            const startTimeStr = needSeconds
+                ? `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}:${String(sS).padStart(2, '0')}`
+                : `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}`;
+            const endTimeStr = needSeconds
+                ? `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}:${String(eS).padStart(2, '0')}`
+                : `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}`;
 
             items.push({
                 id: `${block.id}_t_${trackIdx}_${track.id || track.youtubeId}`,
@@ -1053,8 +1077,8 @@ export function computeRadioDaySchedule(
                 event: block.title,
                 youtubeId: track.youtubeId,
                 audioUrl: track.audioUrl,
-                startTime: `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}`,
-                endTime: `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}`,
+                startTime: startTimeStr,
+                endTime: endTimeStr,
                 startSecondsFromMidnight: itemStartFromMidnight,
                 durationSeconds: dur,
                 durationFormatted: formatDurationExact(dur),

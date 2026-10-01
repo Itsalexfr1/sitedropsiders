@@ -61,7 +61,7 @@ export function RadioEmissionTracksPanel({
     const [trackTitle, setTrackTitle] = useState('');
     const [trackArtist, setTrackArtist] = useState('');
     const [trackCategory, setTrackCategory] = useState<RadioTrackCategory>('liveset');
-    const [trackDurationMinutes, setTrackDurationMinutes] = useState('60');
+    const [trackDurationMinutes, setTrackDurationMinutes] = useState('4');
     const [isFetchingTitle, setIsFetchingTitle] = useState(false);
 
     // Auto-détection YouTube
@@ -92,7 +92,7 @@ export function RadioEmissionTracksPanel({
         const ytId = extractYouTubeId(trackUrl);
         const isAudioUrl = trackUrl.startsWith('http') && !ytId;
 
-        const durSec = Math.max(10, (parseInt(trackDurationMinutes) || 60) * 60);
+        const durSec = Math.max(10, (parseInt(trackDurationMinutes) || 4) * 60);
 
         const newTrack: RadioTrackItem = {
             id: `radio_track_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
@@ -108,12 +108,18 @@ export function RadioEmissionTracksPanel({
         setTrackUrl('');
         setTrackTitle('');
         setTrackArtist('');
-        setTrackDurationMinutes('60');
+        setTrackDurationMinutes('4');
         onShowToast(`✓ « ${newTrack.title} » ajouté à l'émission !`);
     };
 
     // Calcul de la durée totale
-    const totalDurationSeconds = tracks.reduce((acc, t) => acc + (t.duration || 3600), 0);
+    const sanitizeTrackDur = (t: RadioTrackItem) => {
+        let d = t.duration || 3600;
+        if ((t.category === 'clip' || t.category === 'promo') && d >= 3600) d = t.category === 'promo' ? 60 : 210;
+        if (t.category === 'jingle' && d > 120) d = 15;
+        return d;
+    };
+    const totalDurationSeconds = tracks.reduce((acc, t) => acc + sanitizeTrackDur(t), 0);
     const totalHours = Math.floor(totalDurationSeconds / 3600);
     const totalMinutes = Math.floor((totalDurationSeconds % 3600) / 60);
 
@@ -267,7 +273,7 @@ export function RadioEmissionTracksPanel({
                     {tracks.map((track, idx) => {
                         const isPlaying = playingAudioId === track.id;
                         const meta = getRadioCategoryMeta(track.category);
-                        const dur = track.duration || 3600;
+                        const dur = sanitizeTrackDur(track);
 
                         return (
                             <div

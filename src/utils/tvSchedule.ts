@@ -649,12 +649,16 @@ export function detectVideoCategory(title: string, description?: string): TVVide
 
 export function formatDurationExact(seconds: number): string {
     const s = Math.max(0, Math.round(seconds));
+    if (s < 60) {
+        return `${s}s`;
+    }
     const h = Math.floor(s / 3600);
-    const m = Math.round((s % 3600) / 60);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
     if (h > 0) {
         return m > 0 ? `${h}h${String(m).padStart(2, '0')}` : `${h}h00`;
     }
-    return `${Math.max(1, m)}min`;
+    return sec > 0 ? `${m}min${String(sec).padStart(2, '0')}` : `${m}min`;
 }
 
 export function parseArtistAndEvent(rawTitle: string): { artist: string; event: string } {
