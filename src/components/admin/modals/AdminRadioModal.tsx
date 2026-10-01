@@ -1823,16 +1823,16 @@ export function AdminRadioModal({
                         {activeFolder === 'programmation' && (
                             <div className="flex-1 overflow-y-auto p-6 space-y-6 flex flex-col min-h-0 bg-[#0a0e17]">
                                 {/* BANDEAU EN-TÊTE PROGRAMMATION */}
-                                <div className="p-6 rounded-3xl bg-gradient-to-r from-[#0d101a] via-[#101728] to-[#0d101a] border border-white/10 shadow-2xl flex flex-wrap items-center justify-between gap-4 relative overflow-hidden">
+                                <div className="p-4 rounded-2xl bg-gradient-to-r from-[#0d101a] via-[#101728] to-[#0d101a] border border-white/10 shadow-2xl flex flex-wrap items-center justify-between gap-3 relative shrink-0">
                                     <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-cyan-400 via-purple-500 to-amber-400" />
                                     
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(0,240,255,0.25)]">
-                                            <Calendar className="w-7 h-7" />
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(0,240,255,0.25)] shrink-0">
+                                            <Calendar className="w-5 h-5" />
                                         </div>
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <h2 className="text-xl sm:text-2xl font-display font-black text-white uppercase italic tracking-tight truncate">
+                                        <div className="min-w-0">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <h2 className="text-lg sm:text-xl font-display font-black text-white uppercase italic tracking-tight">
                                                     📅 Programmation Radio
                                                 </h2>
                                                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">
@@ -1842,8 +1842,8 @@ export function AdminRadioModal({
                                                     DIRECT UTC+2
                                                 </span>
                                             </div>
-                                            <p className="text-xs text-gray-400 font-sans mt-0.5">
-                                                Conducteur d'antenne calculé en temps réel · Synchronisé à la seconde avec le direct des auditeurs
+                                            <p className="text-[11px] text-gray-500 font-sans mt-0.5 hidden sm:block">
+                                                Conducteur d'antenne en temps réel
                                             </p>
                                         </div>
                                     </div>
