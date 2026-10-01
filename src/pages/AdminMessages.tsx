@@ -723,13 +723,17 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         const festivalUpper = (festival || '[NOM DU FESTIVAL]').toUpperCase();
         const datesUpper = (dates || '[DATES]').toUpperCase();
         const year = new Date().getFullYear();
+        
+        const isSingleDay = !datesUpper.includes(' AU ') && !datesUpper.includes('-') && !datesUpper.includes(' ET ') && !datesUpper.includes('&') && datesUpper !== '[DATES]';
+        const prepositionFR = isSingleDay ? 'le' : 'du';
+        const prepositionEN = isSingleDay ? 'on' : 'from';
 
         if (lang === 'FR') {
             return `Bonjour,
 
 Je me permets de vous contacter au nom de DROPSIDERS, média de référence dédié à la culture électronique, afin de solliciter une accréditation presse pour l'édition ${year} de **${festivalUpper}**.
 
-Après avoir couvert des événements mondiaux comme Tomorrowland, EDC Las Vegas ou l'Ultra Europe, nous souhaiterions cette année mettre notre expertise et nos nouveaux outils interactifs au service de **${festivalUpper}** prévu du **${datesUpper}**.
+Après avoir couvert des événements mondiaux comme Tomorrowland, EDC Las Vegas ou l'Ultra Europe, nous souhaiterions cette année mettre notre expertise et nos nouveaux outils interactifs au service de **${festivalUpper}** prévu ${prepositionFR} **${datesUpper}**.
 
 Pourquoi collaborer avec nous ? Nous activons un dispositif digital global et carré pour maximiser la visibilité de votre événement :
 
@@ -753,7 +757,7 @@ ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
 
 I am contacting you on behalf of DROPSIDERS, a leading media dedicated to electronic culture, to request press accreditation for the ${year} edition of **${festivalUpper}**.
 
-Having covered global events such as Tomorrowland, EDC Las Vegas, and Ultra Europe, we would like to bring our expertise and new interactive tools to **${festivalUpper}** scheduled from **${datesUpper}**.
+Having covered global events such as Tomorrowland, EDC Las Vegas, and Ultra Europe, we would like to bring our expertise and new interactive tools to **${festivalUpper}** scheduled ${prepositionEN} **${datesUpper}**.
 
 Why collaborate with us? We activate a comprehensive and professional digital package to maximize your event's visibility:
 
@@ -780,10 +784,14 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         const datesUpper = (dates || '[DATES]').toUpperCase();
         const year = new Date().getFullYear();
 
+        const isSingleDay = !datesUpper.includes(' AU ') && !datesUpper.includes('-') && !datesUpper.includes(' ET ') && !datesUpper.includes('&') && datesUpper !== '[DATES]';
+        const prepositionFR = isSingleDay ? 'le' : 'du';
+        const prepositionEN = isSingleDay ? 'on' : 'from';
+
         if (lang === 'FR') {
             return `Bonjour,
 
-Dropsiders souhaite solliciter une accréditation photo pour l'édition ${year} de **${festivalUpper}** prévue du **${datesUpper}**.
+Dropsiders souhaite solliciter une accréditation photo pour l'édition ${year} de **${festivalUpper}** prévue ${prepositionFR} **${datesUpper}**.
 
 Photographe délégué : ${firstName || '[PRÉNOM]'} ${lastName || '[NOM]'}
 Portfolio : ${portfolio || '[LIEN PORTFOLIO]'}
@@ -799,7 +807,7 @@ ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
         } else {
             return `Hello,
 
-Dropsiders would like to request photo accreditation for the ${year} edition of **${festivalUpper}** scheduled from **${datesUpper}**.
+Dropsiders would like to request photo accreditation for the ${year} edition of **${festivalUpper}** scheduled ${prepositionEN} **${datesUpper}**.
 
 Delegated Photographer: ${firstName || '[FIRST NAME]'} ${lastName || '[LAST NAME]'}
 Portfolio: ${portfolio || '[PORTFOLIO LINK]'}
