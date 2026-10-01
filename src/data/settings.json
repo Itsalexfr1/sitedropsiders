@@ -7920,12 +7920,60 @@
           "category": "clip"
         },
         {
+          "id": "nj_bloc_1790809306418_n_124",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 33,
+          "category": "jingle"
+        },
+        {
           "id": "track_1790876530617_hzfb",
           "title": "I'm Not Alone (Radio Edit)",
           "artist": "Calvin Harris",
           "youtubeId": "wkczQYC_8TQ",
           "duration": 3600,
           "category": "clip"
+        },
+        {
+          "id": "pr_bloc_1790809306418_p_125",
+          "title": "Promo Escape Psycho 2",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 40,
+          "category": "promo"
+        },
+        {
+          "id": "track_1790876810019_k9ak",
+          "title": "How Deep Is Your Love",
+          "artist": "Calvin Harris & Disciples",
+          "youtubeId": "qWWSM3wCiKY",
+          "duration": 3600,
+          "category": "liveset"
+        },
+        {
+          "id": "sj_bloc_1790809306418_s_126",
+          "title": "Classic Time 7",
+          "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9ffe042f649201e6-Classic_Time_7.wav",
+          "duration": 9,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790876826260_8jzc",
+          "title": "Thinking About You ft. Ayah Marar",
+          "artist": "Calvin Harris",
+          "youtubeId": "cl3b7dDBLpo",
+          "duration": 3600,
+          "category": "liveset"
+        },
+        {
+          "id": "nj_bloc_1790809306418_n_127",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 46,
+          "category": "jingle"
         }
       ],
       "specialJingles": [
@@ -13782,12 +13830,60 @@
       "category": "clip"
     },
     {
+      "id": "nj_bloc_1790809306418_n_124",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 33,
+      "category": "jingle"
+    },
+    {
       "id": "track_1790876530617_hzfb",
       "title": "I'm Not Alone (Radio Edit)",
       "artist": "Calvin Harris",
       "youtubeId": "wkczQYC_8TQ",
       "duration": 3600,
       "category": "clip"
+    },
+    {
+      "id": "pr_bloc_1790809306418_p_125",
+      "title": "Promo Escape Psycho 2",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 40,
+      "category": "promo"
+    },
+    {
+      "id": "track_1790876810019_k9ak",
+      "title": "How Deep Is Your Love",
+      "artist": "Calvin Harris & Disciples",
+      "youtubeId": "qWWSM3wCiKY",
+      "duration": 3600,
+      "category": "liveset"
+    },
+    {
+      "id": "sj_bloc_1790809306418_s_126",
+      "title": "Classic Time 7",
+      "artist": "CLASSIC TIME JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9ffe042f649201e6-Classic_Time_7.wav",
+      "duration": 9,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790876826260_8jzc",
+      "title": "Thinking About You ft. Ayah Marar",
+      "artist": "Calvin Harris",
+      "youtubeId": "cl3b7dDBLpo",
+      "duration": 3600,
+      "category": "liveset"
+    },
+    {
+      "id": "nj_bloc_1790809306418_n_127",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 46,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790257302402_26gf",
