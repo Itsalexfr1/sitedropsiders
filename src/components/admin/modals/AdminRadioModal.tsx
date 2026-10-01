@@ -49,11 +49,15 @@ import {
     ALL_DAYS,
     formatRadioTimeSlot,
     formatDurationExact,
+    formatRadioBlockDays,
     isRadioBlockActiveNow,
     sortRadioBlocksByBroadcastOrder,
     getActiveRadioBlock,
     getRadioCategoryMeta,
     applyRotationPatternToTracks,
+    computeRadioDaySchedule,
+    getCurrentLiveRadioTrack,
+    getParisSeconds,
     type RadioRotationRule,
     type RadioScheduleBlock,
     type RadioTrackItem,
@@ -64,6 +68,7 @@ import {
 } from '../../../utils/radioSchedule';
 import { parseArtistAndEvent } from '../../../utils/tvSchedule';
 import { RadioJingleUploadModal } from '../radio/RadioJingleUploadModal';
+import { RadioOnAirMonitor } from '../radio/RadioOnAirMonitor';
 import { DEFAULT_JINGLES_PUBS, type RadionomyItem } from './RadionomyJinglesBox';
 
 const PRESET_EMOJIS = ['🎧', '🔥', '⚡', '🚀', '🎵', '🕺', '📻', '💎', '🎉', '🌙', '☀️', '⭐', '🌅', '🎪'];
@@ -251,6 +256,51 @@ export function AdminRadioModal({
     } | null>(null);
 
     const [topHoraireConfig, setTopHoraireConfig] = useState<RadioTopHoraireConfig>(getTopHoraireConfig);
+
+    // ─── Onglet Programmation Radio & Conducteur 24/7 ────────────────────────
+    const [progSubTab, setProgSubTab] = useState<'timeline' | 'grid' | 'on_air'>('timeline');
+    const [progSearch, setProgSearch] = useState('');
+    const [progBlockFilter, setProgBlockFilter] = useState<string>('all');
+    const [progParisSec, setProgParisSec] = useState<number>(getParisSeconds);
+
+    useEffect(() => {
+        if (activeFolder !== 'programmation') return;
+        const interval = setInterval(() => {
+            setProgParisSec(getParisSeconds());
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [activeFolder]);
+
+    const dayScheduleItems = useMemo(() => {
+        try {
+            return computeRadioDaySchedule(blocks);
+        } catch (e) {
+            console.error('Erreur calcul programmation radio:', e);
+            return [];
+        }
+    }, [blocks]);
+
+    const liveTrackInfo = useMemo(() => {
+        try {
+            return getCurrentLiveRadioTrack(blocks, progParisSec);
+        } catch {
+            return null;
+        }
+    }, [blocks, progParisSec]);
+
+    const filteredScheduleItems = useMemo(() => {
+        return dayScheduleItems.filter(item => {
+            if (progBlockFilter !== 'all' && item.blockId !== progBlockFilter) return false;
+            if (progSearch.trim()) {
+                const q = progSearch.toLowerCase();
+                const matchTitle = item.title?.toLowerCase().includes(q);
+                const matchArtist = item.artist?.toLowerCase().includes(q);
+                const matchBlock = item.blockTitle?.toLowerCase().includes(q);
+                if (!matchTitle && !matchArtist && !matchBlock) return false;
+            }
+            return true;
+        });
+    }, [dayScheduleItems, progBlockFilter, progSearch]);
 
     const showToast = (text: string, type: 'success' | 'warn' | 'info' = 'success') => {
         setToastMessage({ text, type });
@@ -1230,6 +1280,17 @@ export function AdminRadioModal({
                             >
                                 ⏰ Top Horaire
                             </button>
+                            <button
+                                type="button"
+                                onClick={() => setActiveFolder('programmation')}
+                                className={`px-3.5 py-1.5 rounded-lg transition-all ${
+                                    activeFolder === 'programmation'
+                                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-sm font-bold'
+                                        : 'text-gray-400 hover:text-white'
+                                }`}
+                            >
+                                📅 Programmation
+                            </button>
                         </div>
                     </div>
 
@@ -1625,6 +1686,24 @@ export function AdminRadioModal({
                                     </span>
                                 </button>
                             </div>
+
+                            {/* DOSSIER 6 : GRILLE & PROGRAMMATION */}
+                            <div className="pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveFolder('programmation')}
+                                    className={`w-full flex items-center justify-between py-2 px-2.5 rounded-lg font-bold uppercase tracking-wider text-[11px] transition-all ${
+                                        activeFolder === 'programmation'
+                                            ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md shadow-cyan-500/20 font-black'
+                                            : 'text-gray-300 hover:text-white hover:bg-white/5'
+                                    }`}
+                                >
+                                    <span className="flex items-center gap-2">📅 Programmation</span>
+                                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/40 text-cyan-300 border border-white/10 font-bold">
+                                        24/7
+                                    </span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -1740,8 +1819,457 @@ export function AdminRadioModal({
                             </div>
                         )}
 
-                        {/* Formulaire d'édition de l'émission si activé */}
-                        {activeFolder !== 'top_horaire' && isEditingBlock && (
+                        {/* ── PANEL GRILLE & PROGRAMMATION RADIO ── */}
+                        {activeFolder === 'programmation' && (
+                            <div className="flex-1 overflow-y-auto p-6 space-y-6 flex flex-col min-h-0 bg-[#0a0e17]">
+                                {/* BANDEAU EN-TÊTE PROGRAMMATION */}
+                                <div className="p-6 rounded-3xl bg-gradient-to-r from-[#0d101a] via-[#101728] to-[#0d101a] border border-white/10 shadow-2xl flex flex-wrap items-center justify-between gap-4 relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-cyan-400 via-purple-500 to-amber-400" />
+                                    
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(0,240,255,0.25)]">
+                                            <Calendar className="w-7 h-7" />
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <h2 className="text-xl sm:text-2xl font-display font-black text-white uppercase italic tracking-tight">
+                                                    📅 Grille & Programmation Radio 24h/24
+                                                </h2>
+                                                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                                                    DIRECT UTC+2
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-gray-400 font-sans mt-0.5">
+                                                Conducteur d'antenne calculé en temps réel · Synchronisé à la seconde avec le direct des auditeurs
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Statut antenne + Horloge Paris */}
+                                    <div className="flex items-center gap-4">
+                                        <div className="text-right">
+                                            <p className="text-[9px] font-mono text-gray-400 uppercase tracking-widest">Heure Studio Paris</p>
+                                            <p className="text-xl font-mono font-black text-cyan-300">
+                                                {new Date().toLocaleTimeString('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                            </p>
+                                        </div>
+                                        <div className="h-9 w-[1px] bg-white/10" />
+                                        <button
+                                            type="button"
+                                            onClick={onToggleRadio}
+                                            className={`px-4 py-2 rounded-xl text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-md ${
+                                                isRadioActive
+                                                    ? 'bg-emerald-500 text-black hover:bg-emerald-400 shadow-emerald-500/30'
+                                                    : 'bg-red-500/20 hover:bg-red-500 text-red-200 hover:text-black border border-red-500/40'
+                                            }`}
+                                        >
+                                            <span className={`w-2 h-2 rounded-full ${isRadioActive ? 'bg-black animate-ping' : 'bg-red-400'}`} />
+                                            <span>{isRadioActive ? 'ON AIR' : 'HORS LIGNE'}</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* BARRE DES SOUS-ONGLETS DE PROGRAMMATION */}
+                                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+                                    <div className="flex items-center gap-2 bg-black/40 p-1 rounded-xl border border-white/10 text-xs font-bold">
+                                        <button
+                                            type="button"
+                                            onClick={() => setProgSubTab('timeline')}
+                                            className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                                                progSubTab === 'timeline'
+                                                    ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/30 font-black'
+                                                    : 'text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            <Clock className="w-3.5 h-3.5" />
+                                            <span>Conducteur 24h ({filteredScheduleItems.length})</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setProgSubTab('grid')}
+                                            className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                                                progSubTab === 'grid'
+                                                    ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/30 font-black'
+                                                    : 'text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            <Layers className="w-3.5 h-3.5" />
+                                            <span>Grille des Émissions ({blocks.length})</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setProgSubTab('on_air')}
+                                            className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                                                progSubTab === 'on_air'
+                                                    ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/30 font-black'
+                                                    : 'text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            <Radio className="w-3.5 h-3.5" />
+                                            <span>Régie Live & Soundboard</span>
+                                        </button>
+                                    </div>
+
+                                    {/* Actions rapides */}
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setEditingBlockId(null);
+                                                setEditBlockForm({
+                                                    title: `Nouvelle Émission ${blocks.length + 1}`,
+                                                    emoji: '🎧',
+                                                    color: '#00f0ff',
+                                                    startHour: 18,
+                                                    endHour: 20,
+                                                    days: ALL_DAYS,
+                                                    randomize: true,
+                                                    jingleFrequency: 2,
+                                                    rotationRule: 'jingle_son_special_promo',
+                                                    introEnabled: false,
+                                                    introTitle: '',
+                                                    introAudioUrl: '',
+                                                    introYoutubeId: '',
+                                                    introDuration: 15
+                                                });
+                                                setIsEditingBlock(true);
+                                                setActiveFolder('emission:new');
+                                            }}
+                                            className="px-3 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500 text-cyan-300 hover:text-black border border-cyan-500/40 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                                        >
+                                            <Plus className="w-3.5 h-3.5" />
+                                            <span>+ Nouvelle Émission</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* SOUS-ONGLET 1 : TIMELINE CONDUCTEUR 24H */}
+                                {progSubTab === 'timeline' && (
+                                    <div className="space-y-5">
+                                        {/* CARTE LIVE ACTUELLE */}
+                                        {liveTrackInfo?.item && (
+                                            <div className="p-5 rounded-2xl bg-gradient-to-r from-cyan-950/40 via-purple-950/30 to-black/60 border border-cyan-500/40 shadow-xl relative overflow-hidden flex flex-wrap items-center justify-between gap-4">
+                                                <div className="flex items-center gap-4 min-w-0">
+                                                    <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-black/60 border border-cyan-500/30 relative flex items-center justify-center">
+                                                        {liveTrackInfo.item.audioUrl ? (
+                                                            <FileAudio className="w-8 h-8 text-cyan-300" />
+                                                        ) : liveTrackInfo.item.youtubeId ? (
+                                                            <img
+                                                                src={`https://img.youtube.com/vi/${liveTrackInfo.item.youtubeId}/hqdefault.jpg`}
+                                                                alt=""
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <Radio className="w-8 h-8 text-cyan-400" />
+                                                        )}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[9px] font-display font-black uppercase italic px-2 py-0.5 rounded bg-red-500 text-white flex items-center gap-1 shadow-sm">
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                                                                EN CE MOMENT EN DIRECT
+                                                            </span>
+                                                            <span className="text-[10px] font-mono text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/30">
+                                                                {liveTrackInfo.item.startTime} ➔ {liveTrackInfo.item.endTime}
+                                                            </span>
+                                                            <span className="text-[10px] font-bold text-gray-400">
+                                                                {liveTrackInfo.item.blockTitle}
+                                                            </span>
+                                                        </div>
+                                                        <h3 className="text-base font-display font-black text-white uppercase italic tracking-tight truncate mt-1">
+                                                            {liveTrackInfo.item.title}
+                                                        </h3>
+                                                        <p className="text-xs font-sans text-gray-300 truncate">
+                                                            {liveTrackInfo.item.artist || 'DROPSIDERS RADIO'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Écoute */}
+                                                <div className="flex items-center gap-3">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            handlePlayMedia({
+                                                                id: liveTrackInfo.item.id,
+                                                                title: liveTrackInfo.item.title,
+                                                                artist: liveTrackInfo.item.artist,
+                                                                audioUrl: liveTrackInfo.item.audioUrl,
+                                                                youtubeId: liveTrackInfo.item.youtubeId,
+                                                                duration: liveTrackInfo.item.durationSeconds
+                                                            });
+                                                        }}
+                                                        className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-white text-black font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-2 cursor-pointer shadow-md transition-all"
+                                                    >
+                                                        <Play className="w-3.5 h-3.5 fill-current" />
+                                                        <span>Écouter le direct</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* FILTRES CONDUCTEUR */}
+                                        <div className="flex flex-wrap items-center justify-between gap-3 bg-black/40 p-3 rounded-2xl border border-white/10 text-xs">
+                                            <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                                                <Search className="w-4 h-4 text-gray-500" />
+                                                <input
+                                                    type="text"
+                                                    value={progSearch}
+                                                    onChange={e => setProgSearch(e.target.value)}
+                                                    placeholder="Rechercher dans la journée (titre, artiste, émission)..."
+                                                    className="w-full bg-transparent text-white text-xs placeholder:text-gray-500 focus:outline-none"
+                                                />
+                                                {progSearch && (
+                                                    <button type="button" onClick={() => setProgSearch('')} className="text-gray-500 hover:text-white">
+                                                        <X className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                <span className="text-[10px] uppercase font-bold text-gray-400">Filtrer par émission :</span>
+                                                <select
+                                                    value={progBlockFilter}
+                                                    onChange={e => setProgBlockFilter(e.target.value)}
+                                                    className="bg-black/60 border border-white/10 rounded-xl px-2.5 py-1 text-white text-xs focus:outline-none focus:border-cyan-400"
+                                                >
+                                                    <option value="all">Toutes les émissions (24h/24)</option>
+                                                    {blocks.map(b => (
+                                                        <option key={b.id} value={b.id}>
+                                                            {b.emoji} {b.title} ({formatRadioTimeSlot(b.startHour, b.endHour)})
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        {/* TABLEAU CONDUCTEUR */}
+                                        <div className="border border-white/10 rounded-2xl overflow-hidden bg-black/30">
+                                            <table className="w-full text-left border-collapse text-xs">
+                                                <thead>
+                                                    <tr className="border-b border-white/10 bg-white/[0.02] text-gray-400 font-mono text-[10px] uppercase tracking-wider">
+                                                        <th className="py-2.5 px-3 w-12 text-center">Écoute</th>
+                                                        <th className="py-2.5 px-3 w-28">Créneau</th>
+                                                        <th className="py-2.5 px-3 w-24">Type</th>
+                                                        <th className="py-2.5 px-3">Titre & Artiste</th>
+                                                        <th className="py-2.5 px-3 w-36">Émission</th>
+                                                        <th className="py-2.5 px-3 w-20 text-right">Durée</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-white/5 font-sans">
+                                                    {filteredScheduleItems.length === 0 ? (
+                                                        <tr>
+                                                            <td colSpan={6} className="py-12 text-center text-gray-500 font-display font-black uppercase italic">
+                                                                Aucun morceau trouvé pour cette sélection.
+                                                            </td>
+                                                        </tr>
+                                                    ) : (
+                                                        filteredScheduleItems.map((item, idx) => {
+                                                            const isCurrentLive = item.isCurrentlyLive;
+                                                            const meta = getRadioCategoryMeta(item.category, item.isThemeJingle, item.isTopHoraire);
+                                                            const isItemPlaying = currentAudio?.id === item.id && isPlaying;
+
+                                                            return (
+                                                                <tr
+                                                                    key={item.id || idx}
+                                                                    className={`transition-colors group ${
+                                                                        isCurrentLive
+                                                                            ? 'bg-cyan-500/15 border-l-4 border-l-cyan-400'
+                                                                            : idx % 2 === 0 ? 'bg-white/[0.01] hover:bg-white/5' : 'bg-black/20 hover:bg-white/5'
+                                                                    }`}
+                                                                >
+                                                                    <td className="py-2 px-3 text-center">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                handlePlayMedia({
+                                                                                    id: item.id,
+                                                                                    title: item.title,
+                                                                                    artist: item.artist,
+                                                                                    audioUrl: item.audioUrl,
+                                                                                    youtubeId: item.youtubeId,
+                                                                                    duration: item.durationSeconds
+                                                                                });
+                                                                            }}
+                                                                            className={`w-7 h-7 rounded-lg inline-flex items-center justify-center transition-all cursor-pointer ${
+                                                                                isItemPlaying
+                                                                                    ? 'bg-cyan-500 text-black shadow-md'
+                                                                                    : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/15'
+                                                                            }`}
+                                                                        >
+                                                                            {isItemPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
+                                                                        </button>
+                                                                    </td>
+
+                                                                    <td className="py-2 px-3 font-mono text-[11px] whitespace-nowrap">
+                                                                        <span className={`font-bold ${isCurrentLive ? 'text-cyan-300' : 'text-gray-300'}`}>
+                                                                            {item.startTime}
+                                                                        </span>
+                                                                        <span className="text-gray-500 text-[10px]"> ➔ {item.endTime}</span>
+                                                                        {isCurrentLive && (
+                                                                            <span className="ml-1.5 px-1.5 py-0.5 rounded bg-red-500 text-white text-[8px] font-display font-black uppercase italic animate-pulse">
+                                                                                LIVE
+                                                                            </span>
+                                                                        )}
+                                                                    </td>
+
+                                                                    <td className="py-2 px-3">
+                                                                        <span className={`text-[9px] font-display font-black uppercase italic px-2 py-0.5 rounded border inline-flex items-center gap-1 ${meta.bg} ${meta.text} ${meta.border}`}>
+                                                                            <span>{meta.emoji}</span>
+                                                                            <span>{meta.label}</span>
+                                                                        </span>
+                                                                    </td>
+
+                                                                    <td className="py-2 px-3 min-w-0">
+                                                                        <div className="truncate font-bold text-white text-xs group-hover:text-cyan-300 transition-colors">
+                                                                            {item.title}
+                                                                        </div>
+                                                                        <div className="truncate text-gray-400 text-[11px]">
+                                                                            {item.artist || 'Artiste'}
+                                                                        </div>
+                                                                    </td>
+
+                                                                    <td className="py-2 px-3 text-gray-300 text-xs truncate">
+                                                                        <span className="inline-flex items-center gap-1">
+                                                                            <span>{item.blockEmoji}</span>
+                                                                            <span>{item.blockTitle}</span>
+                                                                        </span>
+                                                                    </td>
+
+                                                                    <td className="py-2 px-3 text-right font-mono text-gray-400 text-[11px] whitespace-nowrap">
+                                                                        {item.durationFormatted}
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* SOUS-ONGLET 2 : GRILLE DES ÉMISSIONS */}
+                                {progSubTab === 'grid' && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {blocks.map((b, idx) => {
+                                            const tracksCount = (b.tracks || []).length;
+                                            const totalDurSec = (b.tracks || []).reduce((acc, t) => acc + (t.duration || 3600), 0);
+                                            const totalDurHours = Math.round(totalDurSec / 3600);
+                                            const isNow = isRadioBlockActiveNow(b);
+
+                                            return (
+                                                <div
+                                                    key={b.id}
+                                                    className={`p-5 rounded-2xl border transition-all flex flex-col justify-between relative overflow-hidden ${
+                                                        isNow
+                                                            ? 'bg-gradient-to-br from-cyan-950/30 to-[#0e1320] border-cyan-500/50 shadow-[0_0_20px_rgba(0,240,255,0.15)]'
+                                                            : 'bg-[#0f1422] border-white/10 hover:border-white/20'
+                                                    }`}
+                                                >
+                                                    <div className="space-y-3">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 border border-white/10 text-cyan-300 font-bold">
+                                                                Émission #{idx + 1}
+                                                            </span>
+                                                            {isNow && (
+                                                                <span className="text-[9px] font-display font-black uppercase italic px-2 py-0.5 rounded bg-red-500 text-white flex items-center gap-1 animate-pulse">
+                                                                    ● EN CE MOMENT
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="flex items-start gap-3">
+                                                            <span className="text-3xl shrink-0 p-2 rounded-xl bg-white/5 border border-white/10">
+                                                                {b.emoji || '📻'}
+                                                            </span>
+                                                            <div className="min-w-0">
+                                                                <h3 className="text-base font-display font-black text-white uppercase italic tracking-tight truncate">
+                                                                    {b.title}
+                                                                </h3>
+                                                                <p className="text-xs font-mono text-cyan-400 font-bold mt-0.5">
+                                                                    {formatRadioTimeSlot(b.startHour, b.endHour)}
+                                                                </p>
+                                                                <p className="text-[11px] text-gray-400 mt-1 font-sans">
+                                                                    Diffusion : <strong className="text-gray-300">{formatRadioBlockDays(b.days)}</strong>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10 text-[11px] font-mono text-gray-400">
+                                                            <div>
+                                                                Morceaux : <strong className="text-white">{tracksCount}</strong>
+                                                            </div>
+                                                            <div>
+                                                                Durée : <strong className="text-white">~{totalDurHours}h</strong>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="pt-4 mt-4 border-t border-white/10 flex items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setActiveFolder(`emission:${b.id}`)}
+                                                            className="flex-1 py-1.5 px-3 rounded-xl bg-cyan-500/20 hover:bg-cyan-500 text-cyan-300 hover:text-black font-display font-black text-[11px] uppercase italic tracking-wider transition-all cursor-pointer text-center"
+                                                        >
+                                                            📂 Ouvrir le bac
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setEditingBlockId(b.id);
+                                                                setEditBlockForm({
+                                                                    title: b.title,
+                                                                    emoji: b.emoji,
+                                                                    color: b.color,
+                                                                    startHour: b.startHour,
+                                                                    endHour: b.endHour,
+                                                                    days: b.days || ALL_DAYS,
+                                                                    randomize: b.randomize !== false,
+                                                                    jingleFrequency: b.jingleFrequency ?? 2,
+                                                                    rotationRule: b.rotationRule || 'jingle_son_special_promo',
+                                                                    introEnabled: b.themeJingle?.enabled !== false,
+                                                                    introTitle: b.themeJingle?.title || '',
+                                                                    introAudioUrl: b.themeJingle?.audioUrl || '',
+                                                                    introYoutubeId: b.themeJingle?.youtubeId || '',
+                                                                    introDuration: b.themeJingle?.duration || 15
+                                                                });
+                                                                setIsEditingBlock(true);
+                                                                setActiveFolder(`emission:${b.id}`);
+                                                            }}
+                                                            className="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white transition-all cursor-pointer border border-white/10"
+                                                            title="Modifier les horaires de cette émission"
+                                                        >
+                                                            <Pencil className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                {/* SOUS-ONGLET 3 : RÉGIE LIVE & SOUNDBOARD */}
+                                {progSubTab === 'on_air' && (
+                                    <div className="rounded-2xl border border-white/10 overflow-hidden bg-black/40">
+                                        <RadioOnAirMonitor
+                                            blocks={blocks}
+                                            topHoraireConfig={topHoraireConfig}
+                                            isRadioActive={isRadioActive}
+                                            onToggleRadio={onToggleRadio}
+                                            onGoToRundown={() => setProgSubTab('timeline')}
+                                            onGoToMediaPool={() => setActiveFolder('tv_lib')}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* ── AUTRES DOSSIERS (ÉMISSIONS, JINGLES, PROMOS, PUBS, BIBLIOTHÈQUE TV) ── */}
+                        {activeFolder !== 'top_horaire' && activeFolder !== 'programmation' && (
+                            <>
+                                {/* Formulaire d'édition de l'émission si activé */}
+                                {isEditingBlock && (
 
                             <div className="p-5 border-b border-white/10 bg-[#121622] space-y-4">
                                 <div className="flex items-center justify-between">
@@ -2598,6 +3126,8 @@ export function AdminRadioModal({
                                 </tbody>
                             </table>
                         </div>
+                            </>
+                        )}
                     </div>
                 </div>
 
