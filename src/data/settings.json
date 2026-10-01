@@ -2761,6 +2761,14 @@
       ],
       "tracks": [
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_emission_start_special",
+          "title": "Morning Dropsiders 1",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "rt_tv_1790255600257_jbmf",
           "title": "JUST A LITTLE BIT MORE",
           "artist": "Mau P",
@@ -2780,9 +2788,9 @@
         },
         {
           "id": "sj_radio_bloc_1790255595165_5mni_s_1",
-          "title": "Morning Dropsiders 1",
+          "title": "Morning Dropsiders 2",
           "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
           "duration": 10,
           "category": "jingle"
         },
@@ -2858,10 +2866,10 @@
         },
         {
           "id": "sj_radio_bloc_1790255595165_5mni_s_7",
-          "title": "Morning Dropsiders 2",
+          "title": "Morning Dropsiders 3",
           "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
-          "duration": 10,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
           "category": "jingle"
         },
         {
@@ -2936,10 +2944,10 @@
         },
         {
           "id": "sj_radio_bloc_1790255595165_5mni_s_13",
-          "title": "Morning Dropsiders 3",
+          "title": "Morning Dropsiders 4",
           "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
-          "duration": 11,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "duration": 10,
           "category": "jingle"
         },
         {
@@ -3014,9 +3022,9 @@
         },
         {
           "id": "sj_radio_bloc_1790255595165_5mni_s_19",
-          "title": "Morning Dropsiders 4",
+          "title": "Morning Dropsiders 1",
           "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
           "duration": 10,
           "category": "jingle"
         },
@@ -3092,9 +3100,9 @@
         },
         {
           "id": "sj_radio_bloc_1790255595165_5mni_s_25",
-          "title": "Morning Dropsiders 1",
+          "title": "Morning Dropsiders 2",
           "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
           "duration": 10,
           "category": "jingle"
         },
@@ -3115,6 +3123,14 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790256215019
+        },
+        {
+          "id": "pr_radio_bloc_1790255595165_5mni_p_27",
+          "title": "Promo Tomorrowland Winter",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+          "duration": 66,
+          "category": "promo"
         },
         {
           "id": "rt_1790256226318",
@@ -3162,10 +3178,10 @@
         },
         {
           "id": "sj_radio_bloc_1790255595165_5mni_s_31",
-          "title": "Morning Dropsiders 2",
+          "title": "Morning Dropsiders 3",
           "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
-          "duration": 10,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
           "category": "jingle"
         },
         {
@@ -3185,6 +3201,14 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790256323478
+        },
+        {
+          "id": "pr_radio_bloc_1790255595165_5mni_p_33",
+          "title": "Promo Escape Psycho 2",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 40,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256329104_fza5",
@@ -3232,10 +3256,10 @@
         },
         {
           "id": "sj_radio_bloc_1790255595165_5mni_s_37",
-          "title": "Morning Dropsiders 3",
+          "title": "Morning Dropsiders 4",
           "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
-          "duration": 11,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "duration": 10,
           "category": "jingle"
         },
         {
@@ -3255,6 +3279,14 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790256343654
+        },
+        {
+          "id": "pr_radio_bloc_1790255595165_5mni_p_39",
+          "title": "Promo Escape Psycho 1",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 47,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256344591_qpb3",
@@ -3302,9 +3334,9 @@
         },
         {
           "id": "sj_radio_bloc_1790255595165_5mni_s_43",
-          "title": "Morning Dropsiders 4",
+          "title": "Morning Dropsiders 1",
           "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
           "duration": 10,
           "category": "jingle"
         },
@@ -3325,6 +3357,14 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790256352324
+        },
+        {
+          "id": "pr_radio_bloc_1790255595165_5mni_p_45",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256354754_ob1y",
@@ -3372,9 +3412,9 @@
         },
         {
           "id": "sj_radio_bloc_1790255595165_5mni_s_49",
-          "title": "Morning Dropsiders 1",
+          "title": "Morning Dropsiders 2",
           "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
           "duration": 10,
           "category": "jingle"
         },
@@ -3395,6 +3435,14 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790256360443
+        },
+        {
+          "id": "pr_radio_bloc_1790255595165_5mni_p_51",
+          "title": "Promo Tomorrowland Winter",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+          "duration": 66,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256361116_dxw5",
@@ -3442,10 +3490,10 @@
         },
         {
           "id": "sj_radio_bloc_1790255595165_5mni_s_55",
-          "title": "Morning Dropsiders 2",
+          "title": "Morning Dropsiders 3",
           "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
-          "duration": 10,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
           "category": "jingle"
         },
         {
@@ -3465,6 +3513,14 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790256366356
+        },
+        {
+          "id": "pr_radio_bloc_1790255595165_5mni_p_57",
+          "title": "Promo Escape Psycho 2",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 40,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256366901_zy67",
@@ -3512,10 +3568,10 @@
         },
         {
           "id": "sj_radio_bloc_1790255595165_5mni_s_61",
-          "title": "Morning Dropsiders 3",
+          "title": "Morning Dropsiders 4",
           "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
-          "duration": 11,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "duration": 10,
           "category": "jingle"
         },
         {
@@ -3535,6 +3591,14 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790256402933
+        },
+        {
+          "id": "pr_radio_bloc_1790255595165_5mni_p_63",
+          "title": "Promo Escape Psycho 1",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 47,
+          "category": "promo"
         },
         {
           "id": "rt_1790256416815",
@@ -3582,9 +3646,9 @@
         },
         {
           "id": "sj_radio_bloc_1790255595165_5mni_s_67",
-          "title": "Morning Dropsiders 4",
+          "title": "Morning Dropsiders 1",
           "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
           "duration": 10,
           "category": "jingle"
         },
@@ -3605,6 +3669,14 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790256428805
+        },
+        {
+          "id": "pr_radio_bloc_1790255595165_5mni_p_69",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256429479_cdij",
@@ -3652,9 +3724,9 @@
         },
         {
           "id": "sj_radio_bloc_1790255595165_5mni_s_73",
-          "title": "Morning Dropsiders 1",
+          "title": "Morning Dropsiders 2",
           "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
           "duration": 10,
           "category": "jingle"
         },
@@ -3675,6 +3747,14 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790256537909
+        },
+        {
+          "id": "pr_radio_bloc_1790255595165_5mni_p_75",
+          "title": "Promo Tomorrowland Winter",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+          "duration": 66,
+          "category": "promo"
         },
         {
           "id": "rt_1790256557829",
@@ -3722,10 +3802,10 @@
         },
         {
           "id": "sj_radio_bloc_1790255595165_5mni_s_79",
-          "title": "Morning Dropsiders 2",
+          "title": "Morning Dropsiders 3",
           "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
-          "duration": 10,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
           "category": "jingle"
         },
         {
@@ -3745,6 +3825,14 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790259659370
+        },
+        {
+          "id": "pr_radio_bloc_1790255595165_5mni_p_81",
+          "title": "Promo Escape Psycho 2",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 40,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790259664067_j1ku",
@@ -3792,10 +3880,10 @@
         },
         {
           "id": "sj_radio_bloc_1790255595165_5mni_s_85",
-          "title": "Morning Dropsiders 3",
+          "title": "Morning Dropsiders 4",
           "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
-          "duration": 11,
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "duration": 10,
           "category": "jingle"
         },
         {
@@ -3815,6 +3903,14 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790259675295
+        },
+        {
+          "id": "pr_radio_bloc_1790255595165_5mni_p_87",
+          "title": "Promo Escape Psycho 1",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 47,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790259677531_gsv9",
@@ -3862,9 +3958,9 @@
         },
         {
           "id": "sj_radio_bloc_1790255595165_5mni_s_91",
-          "title": "Morning Dropsiders 4",
+          "title": "Morning Dropsiders 1",
           "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
           "duration": 10,
           "category": "jingle"
         },
@@ -3885,6 +3981,14 @@
           "duration": 3600,
           "category": "liveset",
           "addedAt": 1790259688732
+        },
+        {
+          "id": "pr_radio_bloc_1790255595165_5mni_p_93",
+          "title": "Promo Titan Lyon",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+          "duration": 39,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790259741570_kae4",
@@ -3911,6 +4015,198 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
           "duration": 10,
           "category": "jingle"
+        },
+        {
+          "id": "track_1790880542125_gj4k",
+          "title": "Funky Pills",
+          "artist": "SAGMO",
+          "youtubeId": "7KfFG_Pa64Q",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "track_1790880569253_ttyh",
+          "title": "Mix Master",
+          "artist": "Krysh Sood",
+          "youtubeId": "Atl2s03-aBU",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_97",
+          "title": "Morning Dropsiders 2",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790880584197_i3j5",
+          "title": "Dubplate",
+          "artist": "Arundel",
+          "youtubeId": "d0W76wstbpw",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "track_1790880602951_jih8",
+          "title": "I Get On",
+          "artist": "xSoraa",
+          "youtubeId": "8pO4piTzrAc",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "pr_radio_bloc_1790255595165_5mni_p_99",
+          "title": "Promo Tomorrowland Winter",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+          "duration": 66,
+          "category": "promo"
+        },
+        {
+          "id": "track_1790880619320_fcfl",
+          "title": "Just A Feeling",
+          "artist": "Peace Control, Eric Reyes, Nick Tew",
+          "youtubeId": "OHMDPqECopc",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "track_1790880636990_pvud",
+          "title": "Voodoo Time",
+          "artist": "Kadi, Yonadav",
+          "youtubeId": "Zpe38hN3Els",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "nj_radio_bloc_1790255595165_5mni_n_101",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790880653725_y48c",
+          "title": "Loco Luck",
+          "artist": "REBRN, Ben Lipshitz",
+          "youtubeId": "hq54_KM_7UM",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "track_1790880673628_d6wg",
+          "title": "Back To You (Feat. Chiara Gamo)",
+          "artist": "Words Of Niō",
+          "youtubeId": "O6hQfaVPLb8",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_103",
+          "title": "Morning Dropsiders 3",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790880686069_4c2q",
+          "title": "Get Messy",
+          "artist": "Mishell, Toni B",
+          "youtubeId": "w3eLVBw9G58",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "track_1790880702061_j0gu",
+          "title": "Sexy M.F.",
+          "artist": "Jackie, Aviv Sab",
+          "youtubeId": "ryhuhP-JUjk",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "pr_radio_bloc_1790255595165_5mni_p_105",
+          "title": "Promo Escape Psycho 2",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 40,
+          "category": "promo"
+        },
+        {
+          "id": "track_1790880712327_6h1n",
+          "title": "Feel Alive",
+          "artist": "Fancy Inc, Zaro",
+          "youtubeId": "GrZA0ZIPh6o",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "track_1790880750037_q74r",
+          "title": "Flowin'",
+          "artist": "Elliot Simpson",
+          "youtubeId": "SNXcyirlgzI",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "nj_radio_bloc_1790255595165_5mni_n_107",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790880770487_y5zz",
+          "title": "French Fries",
+          "artist": "Alya, Simon Erar & TEUS",
+          "youtubeId": "rtN2OB2Ruxw",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "track_1790880786198_ijmx",
+          "title": "Saying Hey",
+          "artist": "Darco, DvirNuns",
+          "youtubeId": "rxqNXlXFKVI",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_109",
+          "title": "Morning Dropsiders 4",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1790880799159_fu3o",
+          "title": "That's Just Jazz",
+          "artist": "Enamour",
+          "youtubeId": "M6y7OVsBbYU",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "track_1790880813613_nro2",
+          "title": "No More Games",
+          "artist": "Swarellie ,Toni B",
+          "youtubeId": "e3EivSahXMM",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "pr_radio_bloc_1790255595165_5mni_p_111",
+          "title": "Promo Escape Psycho 1",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 47,
+          "category": "promo"
         }
       ],
       "specialJingles": [
@@ -9307,6 +9603,14 @@
   ],
   "radio_tracks": [
     {
+      "id": "sj_radio_bloc_1790255595165_5mni_emission_start_special",
+      "title": "Morning Dropsiders 1",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
       "id": "rt_tv_1790255600257_jbmf",
       "title": "JUST A LITTLE BIT MORE",
       "artist": "Mau P",
@@ -9326,9 +9630,9 @@
     },
     {
       "id": "sj_radio_bloc_1790255595165_5mni_s_1",
-      "title": "Morning Dropsiders 1",
+      "title": "Morning Dropsiders 2",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
       "duration": 10,
       "category": "jingle"
     },
@@ -9404,10 +9708,10 @@
     },
     {
       "id": "sj_radio_bloc_1790255595165_5mni_s_7",
-      "title": "Morning Dropsiders 2",
+      "title": "Morning Dropsiders 3",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
-      "duration": 10,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+      "duration": 11,
       "category": "jingle"
     },
     {
@@ -9482,10 +9786,10 @@
     },
     {
       "id": "sj_radio_bloc_1790255595165_5mni_s_13",
-      "title": "Morning Dropsiders 3",
+      "title": "Morning Dropsiders 4",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
-      "duration": 11,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+      "duration": 10,
       "category": "jingle"
     },
     {
@@ -9560,9 +9864,9 @@
     },
     {
       "id": "sj_radio_bloc_1790255595165_5mni_s_19",
-      "title": "Morning Dropsiders 4",
+      "title": "Morning Dropsiders 1",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
       "duration": 10,
       "category": "jingle"
     },
@@ -9638,9 +9942,9 @@
     },
     {
       "id": "sj_radio_bloc_1790255595165_5mni_s_25",
-      "title": "Morning Dropsiders 1",
+      "title": "Morning Dropsiders 2",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
       "duration": 10,
       "category": "jingle"
     },
@@ -9661,6 +9965,14 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256215019
+    },
+    {
+      "id": "pr_radio_bloc_1790255595165_5mni_p_27",
+      "title": "Promo Tomorrowland Winter",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+      "duration": 66,
+      "category": "promo"
     },
     {
       "id": "rt_1790256226318",
@@ -9708,10 +10020,10 @@
     },
     {
       "id": "sj_radio_bloc_1790255595165_5mni_s_31",
-      "title": "Morning Dropsiders 2",
+      "title": "Morning Dropsiders 3",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
-      "duration": 10,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+      "duration": 11,
       "category": "jingle"
     },
     {
@@ -9731,6 +10043,14 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256323478
+    },
+    {
+      "id": "pr_radio_bloc_1790255595165_5mni_p_33",
+      "title": "Promo Escape Psycho 2",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 40,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256329104_fza5",
@@ -9778,10 +10098,10 @@
     },
     {
       "id": "sj_radio_bloc_1790255595165_5mni_s_37",
-      "title": "Morning Dropsiders 3",
+      "title": "Morning Dropsiders 4",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
-      "duration": 11,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+      "duration": 10,
       "category": "jingle"
     },
     {
@@ -9801,6 +10121,14 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256343654
+    },
+    {
+      "id": "pr_radio_bloc_1790255595165_5mni_p_39",
+      "title": "Promo Escape Psycho 1",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 47,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256344591_qpb3",
@@ -9848,9 +10176,9 @@
     },
     {
       "id": "sj_radio_bloc_1790255595165_5mni_s_43",
-      "title": "Morning Dropsiders 4",
+      "title": "Morning Dropsiders 1",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
       "duration": 10,
       "category": "jingle"
     },
@@ -9871,6 +10199,14 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256352324
+    },
+    {
+      "id": "pr_radio_bloc_1790255595165_5mni_p_45",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256354754_ob1y",
@@ -9918,9 +10254,9 @@
     },
     {
       "id": "sj_radio_bloc_1790255595165_5mni_s_49",
-      "title": "Morning Dropsiders 1",
+      "title": "Morning Dropsiders 2",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
       "duration": 10,
       "category": "jingle"
     },
@@ -9941,6 +10277,14 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256360443
+    },
+    {
+      "id": "pr_radio_bloc_1790255595165_5mni_p_51",
+      "title": "Promo Tomorrowland Winter",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+      "duration": 66,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256361116_dxw5",
@@ -9988,10 +10332,10 @@
     },
     {
       "id": "sj_radio_bloc_1790255595165_5mni_s_55",
-      "title": "Morning Dropsiders 2",
+      "title": "Morning Dropsiders 3",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
-      "duration": 10,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+      "duration": 11,
       "category": "jingle"
     },
     {
@@ -10011,6 +10355,14 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256366356
+    },
+    {
+      "id": "pr_radio_bloc_1790255595165_5mni_p_57",
+      "title": "Promo Escape Psycho 2",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 40,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256366901_zy67",
@@ -10058,10 +10410,10 @@
     },
     {
       "id": "sj_radio_bloc_1790255595165_5mni_s_61",
-      "title": "Morning Dropsiders 3",
+      "title": "Morning Dropsiders 4",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
-      "duration": 11,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+      "duration": 10,
       "category": "jingle"
     },
     {
@@ -10081,6 +10433,14 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256402933
+    },
+    {
+      "id": "pr_radio_bloc_1790255595165_5mni_p_63",
+      "title": "Promo Escape Psycho 1",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 47,
+      "category": "promo"
     },
     {
       "id": "rt_1790256416815",
@@ -10128,9 +10488,9 @@
     },
     {
       "id": "sj_radio_bloc_1790255595165_5mni_s_67",
-      "title": "Morning Dropsiders 4",
+      "title": "Morning Dropsiders 1",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
       "duration": 10,
       "category": "jingle"
     },
@@ -10151,6 +10511,14 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256428805
+    },
+    {
+      "id": "pr_radio_bloc_1790255595165_5mni_p_69",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256429479_cdij",
@@ -10198,9 +10566,9 @@
     },
     {
       "id": "sj_radio_bloc_1790255595165_5mni_s_73",
-      "title": "Morning Dropsiders 1",
+      "title": "Morning Dropsiders 2",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
       "duration": 10,
       "category": "jingle"
     },
@@ -10221,6 +10589,14 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790256537909
+    },
+    {
+      "id": "pr_radio_bloc_1790255595165_5mni_p_75",
+      "title": "Promo Tomorrowland Winter",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+      "duration": 66,
+      "category": "promo"
     },
     {
       "id": "rt_1790256557829",
@@ -10268,10 +10644,10 @@
     },
     {
       "id": "sj_radio_bloc_1790255595165_5mni_s_79",
-      "title": "Morning Dropsiders 2",
+      "title": "Morning Dropsiders 3",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
-      "duration": 10,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+      "duration": 11,
       "category": "jingle"
     },
     {
@@ -10291,6 +10667,14 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790259659370
+    },
+    {
+      "id": "pr_radio_bloc_1790255595165_5mni_p_81",
+      "title": "Promo Escape Psycho 2",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 40,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790259664067_j1ku",
@@ -10338,10 +10722,10 @@
     },
     {
       "id": "sj_radio_bloc_1790255595165_5mni_s_85",
-      "title": "Morning Dropsiders 3",
+      "title": "Morning Dropsiders 4",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
-      "duration": 11,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+      "duration": 10,
       "category": "jingle"
     },
     {
@@ -10361,6 +10745,14 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790259675295
+    },
+    {
+      "id": "pr_radio_bloc_1790255595165_5mni_p_87",
+      "title": "Promo Escape Psycho 1",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 47,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790259677531_gsv9",
@@ -10408,9 +10800,9 @@
     },
     {
       "id": "sj_radio_bloc_1790255595165_5mni_s_91",
-      "title": "Morning Dropsiders 4",
+      "title": "Morning Dropsiders 1",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
       "duration": 10,
       "category": "jingle"
     },
@@ -10431,6 +10823,14 @@
       "duration": 3600,
       "category": "liveset",
       "addedAt": 1790259688732
+    },
+    {
+      "id": "pr_radio_bloc_1790255595165_5mni_p_93",
+      "title": "Promo Titan Lyon",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
+      "duration": 39,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790259741570_kae4",
@@ -10457,6 +10857,198 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
       "duration": 10,
       "category": "jingle"
+    },
+    {
+      "id": "track_1790880542125_gj4k",
+      "title": "Funky Pills",
+      "artist": "SAGMO",
+      "youtubeId": "7KfFG_Pa64Q",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "track_1790880569253_ttyh",
+      "title": "Mix Master",
+      "artist": "Krysh Sood",
+      "youtubeId": "Atl2s03-aBU",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_97",
+      "title": "Morning Dropsiders 2",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790880584197_i3j5",
+      "title": "Dubplate",
+      "artist": "Arundel",
+      "youtubeId": "d0W76wstbpw",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "track_1790880602951_jih8",
+      "title": "I Get On",
+      "artist": "xSoraa",
+      "youtubeId": "8pO4piTzrAc",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "pr_radio_bloc_1790255595165_5mni_p_99",
+      "title": "Promo Tomorrowland Winter",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+      "duration": 66,
+      "category": "promo"
+    },
+    {
+      "id": "track_1790880619320_fcfl",
+      "title": "Just A Feeling",
+      "artist": "Peace Control, Eric Reyes, Nick Tew",
+      "youtubeId": "OHMDPqECopc",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "track_1790880636990_pvud",
+      "title": "Voodoo Time",
+      "artist": "Kadi, Yonadav",
+      "youtubeId": "Zpe38hN3Els",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "nj_radio_bloc_1790255595165_5mni_n_101",
+      "title": "Dropsiders Radio Jingle 1",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+      "duration": 8,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790880653725_y48c",
+      "title": "Loco Luck",
+      "artist": "REBRN, Ben Lipshitz",
+      "youtubeId": "hq54_KM_7UM",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "track_1790880673628_d6wg",
+      "title": "Back To You (Feat. Chiara Gamo)",
+      "artist": "Words Of Niō",
+      "youtubeId": "O6hQfaVPLb8",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_103",
+      "title": "Morning Dropsiders 3",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+      "duration": 11,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790880686069_4c2q",
+      "title": "Get Messy",
+      "artist": "Mishell, Toni B",
+      "youtubeId": "w3eLVBw9G58",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "track_1790880702061_j0gu",
+      "title": "Sexy M.F.",
+      "artist": "Jackie, Aviv Sab",
+      "youtubeId": "ryhuhP-JUjk",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "pr_radio_bloc_1790255595165_5mni_p_105",
+      "title": "Promo Escape Psycho 2",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 40,
+      "category": "promo"
+    },
+    {
+      "id": "track_1790880712327_6h1n",
+      "title": "Feel Alive",
+      "artist": "Fancy Inc, Zaro",
+      "youtubeId": "GrZA0ZIPh6o",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "track_1790880750037_q74r",
+      "title": "Flowin'",
+      "artist": "Elliot Simpson",
+      "youtubeId": "SNXcyirlgzI",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "nj_radio_bloc_1790255595165_5mni_n_107",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790880770487_y5zz",
+      "title": "French Fries",
+      "artist": "Alya, Simon Erar & TEUS",
+      "youtubeId": "rtN2OB2Ruxw",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "track_1790880786198_ijmx",
+      "title": "Saying Hey",
+      "artist": "Darco, DvirNuns",
+      "youtubeId": "rxqNXlXFKVI",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_109",
+      "title": "Morning Dropsiders 4",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1790880799159_fu3o",
+      "title": "That's Just Jazz",
+      "artist": "Enamour",
+      "youtubeId": "M6y7OVsBbYU",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "track_1790880813613_nro2",
+      "title": "No More Games",
+      "artist": "Swarellie ,Toni B",
+      "youtubeId": "e3EivSahXMM",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "pr_radio_bloc_1790255595165_5mni_p_111",
+      "title": "Promo Escape Psycho 1",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 47,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256655246_6ilu",
