@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useDragControls, useMotionValue } from 'framer-motion';
 import {
     Radio, Play, Pause, Volume2, VolumeX, Minimize2, X,
-    Clock, Sparkles, Disc3, ChevronDown, ChevronUp,
+    Clock, Sparkles, Disc3, ChevronDown, ChevronUp, MessageSquare
 } from 'lucide-react';
 import {
     DEFAULT_RADIO_BLOCKS, STORAGE_RADIO_BLOCKS_KEY,
@@ -11,6 +11,7 @@ import {
 } from '../../utils/radioSchedule';
 import { useLocation } from 'react-router-dom';
 import { usePlayer } from '../../context/PlayerContext';
+import { RadioDedicationModal } from './RadioDedicationModal';
 
 // ─── URL YouTube embed ────────────────────────────────────────────────────────
 function buildSrc(youtubeId: string, start: number, muted: 0 | 1) {
@@ -628,6 +629,7 @@ const RADIO_BTN_POS_KEY = 'radio_btn_position';
 
 function MobileRadioPlayer({ audio }: { audio: AudioState }) {
     const [expanded, setExpanded] = useState(false);
+    const [isDedicationOpen, setIsDedicationOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [dragMode, setDragMode] = useState(false);
     const dragRef = useRef<HTMLDivElement>(null);
@@ -770,6 +772,16 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                     </div>
                                 </div>
 
+                                {/* Bouton Message / Dédicace à l'animateur */}
+                                <button
+                                    type="button"
+                                    onClick={() => setIsDedicationOpen(true)}
+                                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-purple-500/25 hover:bg-purple-600/40 border border-purple-500/40 text-purple-200 font-display font-black text-xs uppercase italic tracking-wider shadow-[0_0_20px_rgba(168,85,247,0.3)] active:scale-95 transition-all mb-4 relative z-10 cursor-pointer"
+                                >
+                                    <MessageSquare className="w-4 h-4 text-purple-300" />
+                                    <span>💬 Envoyer un message à l'animateur</span>
+                                </button>
+
                                 {!isPlaying && (
                                     <p className="text-center text-[8.5px] text-gray-500 font-bold uppercase tracking-widest relative z-10 -mt-2 mb-3">
                                         Appuie sur ► pour démarrer
@@ -785,6 +797,12 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                     </>
                 )}
             </AnimatePresence>
+
+            <RadioDedicationModal
+                isOpen={isDedicationOpen}
+                onClose={() => setIsDedicationOpen(false)}
+                currentTrackTitle={currentSet ? `${currentSet.artist} - ${currentSet.title}` : undefined}
+            />
 
             {/* ── Mini-bouton flottant DRAGGABLE ── */}
             {!expanded && (
@@ -888,6 +906,7 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
     const [isHidden, setIsHidden] = useState(() => {
         try { return sessionStorage.getItem('radio_desktop_hidden') === 'true'; } catch { return false; }
     });
+    const [isDedicationOpen, setIsDedicationOpen] = useState(false);
 
     if (!audio.isEnabled || !audio.currentSet) return null;
 
@@ -938,6 +957,14 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                         <button onClick={e => { e.stopPropagation(); handlePlay(); }}
                             className="w-8 h-8 rounded-full bg-neon-cyan/25 hover:bg-neon-cyan text-neon-cyan hover:text-black flex items-center justify-center transition-all cursor-pointer ml-1 shrink-0 active:scale-90">
                             {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current ml-0.5" />}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={e => { e.stopPropagation(); setIsDedicationOpen(true); }}
+                            className="w-8 h-8 rounded-full bg-purple-500/25 hover:bg-purple-500 text-purple-300 hover:text-white flex items-center justify-center transition-all cursor-pointer ml-0.5 shrink-0 active:scale-90"
+                            title="Envoyer un message ou une dédicace à l'animateur"
+                        >
+                            <MessageSquare className="w-3.5 h-3.5" />
                         </button>
                     </motion.button>
                 )}
@@ -1025,6 +1052,18 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                                     className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
                             </div>
 
+                            {/* Bouton Message / Dédicace à l'animateur */}
+                            <button
+                                type="button"
+                                onClick={() => setIsDedicationOpen(true)}
+                                className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-600 text-purple-200 hover:text-white border border-purple-500/40 text-[11px] font-display font-black uppercase italic tracking-wider transition-all cursor-pointer shadow-[0_0_15px_rgba(168,85,247,0.25)] hover:shadow-[0_0_25px_rgba(168,85,247,0.5)] active:scale-95 group"
+                                title="Envoyer un message ou une dédicace en direct à l'animateur"
+                            >
+                                <MessageSquare className="w-3.5 h-3.5 text-purple-300 group-hover:text-white transition-colors" />
+                                <span className="hidden xl:inline">Message Animateur</span>
+                                <span className="xl:hidden">Message</span>
+                            </button>
+
                             {/* Bouton Play/Pause */}
                             <button onClick={handlePlay}
                                 className={`shrink-0 px-5 py-2 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg active:scale-95 ${
@@ -1050,6 +1089,12 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                     </motion.aside>
                 )}
             </AnimatePresence>
+
+            <RadioDedicationModal
+                isOpen={isDedicationOpen}
+                onClose={() => setIsDedicationOpen(false)}
+                currentTrackTitle={currentSet ? `${currentSet.artist} - ${currentSet.title}` : undefined}
+            />
         </>
     );
 }
