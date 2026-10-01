@@ -534,7 +534,7 @@ export function RadioOnAirMonitor({
                                 <div className="flex justify-between text-[10px] font-mono text-gray-400">
                                     <span>Écoulé : <strong className="text-white">{formatDurationExact(offsetSeconds)}</strong></span>
                                     <span>Progression : <strong className="text-neon-cyan">{progressPercent}%</strong></span>
-                                    <span>Restant : <strong className="text-amber-400">-{formatDurationExact(remainingSeconds)}</strong></span>
+                                    <span>Restant : <strong className="text-amber-400">{formatDurationExact(remainingSeconds)}</strong></span>
                                 </div>
                                 <div className="w-full h-2.5 rounded-full bg-white/5 border border-white/10 p-0.5 overflow-hidden">
                                     <div

@@ -256,11 +256,19 @@ function useRadioAudio() {
             const finalCount = Math.max(localActiveTabs, remoteViewers);
             setListenersCount(finalCount);
 
-            // Mémorisation du pic réel
+            // Mémorisation du pic réel & historique horaire réel (aucune simulation)
             try {
                 const currentPeak = parseInt(localStorage.getItem('dropsiders_radio_peak_listeners') || '0', 10);
                 if (finalCount > currentPeak) {
                     localStorage.setItem('dropsiders_radio_peak_listeners', String(finalCount));
+                }
+
+                if (finalCount > 0) {
+                    const currentHour = new Date().getHours();
+                    const rawHistory = localStorage.getItem('dropsiders_radio_hourly_history');
+                    const history = rawHistory ? JSON.parse(rawHistory) : {};
+                    history[currentHour] = Math.max(history[currentHour] || 0, finalCount);
+                    localStorage.setItem('dropsiders_radio_hourly_history', JSON.stringify(history));
                 }
             } catch {}
         };
@@ -303,6 +311,24 @@ function useRadioAudio() {
             }
         };
     }, []);
+
+    // Enregistrement des sessions d'écoute réelles et durée cumulée (sans simulation)
+    useEffect(() => {
+        if (!isPlaying || isMuted) return;
+        try {
+            const currentSessions = parseInt(localStorage.getItem('dropsiders_radio_total_sessions') || '0', 10);
+            localStorage.setItem('dropsiders_radio_total_sessions', String(currentSessions + 1));
+        } catch {}
+
+        const timer = setInterval(() => {
+            try {
+                const sec = parseInt(localStorage.getItem('dropsiders_radio_listen_sec') || '0', 10);
+                localStorage.setItem('dropsiders_radio_listen_sec', String(sec + 1));
+            } catch {}
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [isPlaying, isMuted]);
 
     // Volume effectif prenant en compte le ducking (attenuation quand l'animateur parle)
     const effectiveVolume = isDucking ? Math.max(10, Math.round(volume * 0.22)) : volume;

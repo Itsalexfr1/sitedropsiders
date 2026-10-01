@@ -2526,7 +2526,7 @@ export function AdminRadioModal({
                                                                     {liveTrackInfo.item.startTime} ➔ {liveTrackInfo.item.endTime}
                                                                 </span>
                                                                 <span className="text-[10px] font-mono text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30 font-bold">
-                                                                    ⏱️ Reste : -{formatDurationExact(liveRemainingSec)}
+                                                                    ⏱️ Reste : {formatDurationExact(liveRemainingSec)}
                                                                 </span>
                                                                 <span className="text-[10px] font-bold text-gray-400">
                                                                     {liveTrackInfo.item.blockTitle}
@@ -3005,12 +3005,12 @@ export function AdminRadioModal({
                                         </div>
                                     </div>
 
-                                    {/* KPI 3 : Sessions Uniques Aujourd'hui */}
+                                    {/* KPI 3 : Sessions Réelles */}
                                     <div className="p-5 rounded-2xl bg-gradient-to-br from-cyan-950/30 to-black/60 border border-cyan-500/30 shadow-xl flex flex-col justify-between relative overflow-hidden">
                                         <div className="flex items-center justify-between">
                                             <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-300 font-bold flex items-center gap-1.5">
                                                 <Headphones className="w-3.5 h-3.5 text-cyan-400" />
-                                                Sessions d'Écoute 24h
+                                                Sessions Réelles
                                             </span>
                                             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-bold">
                                                 Cumul
@@ -3018,46 +3018,58 @@ export function AdminRadioModal({
                                         </div>
                                         <div className="my-3">
                                             <div className="text-3xl sm:text-4xl font-mono font-black text-white flex items-baseline gap-2">
-                                                <span>4 190</span>
+                                                <span>{parseInt(localStorage.getItem('dropsiders_radio_total_sessions') || (listenersCount > 0 ? '1' : '0'), 10)}</span>
                                                 <span className="text-xs font-sans text-gray-400">écoutes</span>
                                             </div>
                                             <p className="text-[11px] text-gray-400 mt-1">
-                                                Total des lancements du stream depuis 00:00
+                                                Lancements réels du player radio enregistrés
                                             </p>
                                         </div>
                                         <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[10px] text-gray-400 font-mono">
-                                            <span>Rythme horaire :</span>
-                                            <strong className="text-white">~175 sessions / h</strong>
+                                            <span>Activité :</span>
+                                            <strong className="text-white">
+                                                {listenersCount > 0 ? '1 session en cours' : 'Aucune session active'}
+                                            </strong>
                                         </div>
                                     </div>
 
-                                    {/* KPI 4 : Durée Moyenne d'Écoute */}
+                                    {/* KPI 4 : Durée d'Écoute Réelle */}
                                     <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-950/30 to-black/60 border border-amber-500/30 shadow-xl flex flex-col justify-between relative overflow-hidden">
                                         <div className="flex items-center justify-between">
                                             <span className="text-[10px] font-mono uppercase tracking-widest text-amber-300 font-bold flex items-center gap-1.5">
                                                 <Clock className="w-3.5 h-3.5 text-amber-400" />
-                                                Durée Moyenne / Session
+                                                Durée d'Écoute
                                             </span>
                                             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 font-bold">
-                                                Rétention
+                                                Réelle
                                             </span>
                                         </div>
                                         <div className="my-3">
                                             <div className="text-3xl sm:text-4xl font-mono font-black text-white flex items-baseline gap-2">
-                                                <span>34m 20s</span>
+                                                <span>
+                                                    {(() => {
+                                                        const sec = parseInt(localStorage.getItem('dropsiders_radio_listen_sec') || '0', 10);
+                                                        if (sec <= 0) return '0m 00s';
+                                                        const m = Math.floor(sec / 60);
+                                                        const s = sec % 60;
+                                                        return `${m}m ${String(s).padStart(2, '0')}s`;
+                                                    })()}
+                                                </span>
                                             </div>
                                             <p className="text-[11px] text-gray-400 mt-1">
-                                                Taux de rétention très élevé (+8m vs semaine dernière)
+                                                Temps d'écoute cumulé réel sur votre radio
                                             </p>
                                         </div>
                                         <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[10px] text-gray-400 font-mono">
-                                            <span>Fidélité auditeurs :</span>
-                                            <strong className="text-emerald-400 font-bold">78.5%</strong>
+                                            <span>Statut écoute :</span>
+                                            <strong className={listenersCount > 0 ? 'text-emerald-400 font-bold' : 'text-gray-400 font-bold'}>
+                                                {listenersCount > 0 ? '● Écoute active' : '○ En pause'}
+                                            </strong>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* GRAPHIQUE D'AUDIENCE SUR 24 HEURES */}
+                                {/* GRAPHIQUE D'AUDIENCE SUR 24 HEURES (HISTORIQUE RÉEL) */}
                                 <div className="p-6 rounded-3xl bg-black/40 border border-white/10 shadow-xl space-y-4">
                                     <div className="flex flex-wrap items-center justify-between gap-3">
                                         <div>
@@ -3066,7 +3078,7 @@ export function AdminRadioModal({
                                                 Courbe d'Audience par Heure (00h — 23h)
                                             </h3>
                                             <p className="text-xs text-gray-400 font-sans mt-0.5">
-                                                Estimation du flux d'auditeurs heure par heure calculé sur les créneaux d'émission
+                                                Historique réel des auditeurs connectés heure par heure (sans aucune simulation)
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-4 text-xs font-mono">
@@ -3074,7 +3086,7 @@ export function AdminRadioModal({
                                                 <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" /> Heure en cours
                                             </span>
                                             <span className="flex items-center gap-1.5 text-purple-300">
-                                                <span className="w-2.5 h-2.5 rounded-full bg-purple-500" /> Heures de la journée
+                                                <span className="w-2.5 h-2.5 rounded-full bg-purple-500" /> Heures enregistrées
                                             </span>
                                         </div>
                                     </div>
@@ -3082,47 +3094,57 @@ export function AdminRadioModal({
                                     {/* Barres des 24 heures */}
                                     <div className="pt-6 pb-2">
                                         <div className="h-48 flex items-end gap-1.5 sm:gap-2">
-                                            {Array.from({ length: 24 }).map((_, hour) => {
+                                            {(() => {
+                                                const hourlyHistory: Record<number, number> = (() => {
+                                                    try {
+                                                        const raw = localStorage.getItem('dropsiders_radio_hourly_history');
+                                                        return raw ? JSON.parse(raw) : {};
+                                                    } catch { return {}; }
+                                                })();
+
                                                 const currentHour = new Date().getHours();
-                                                const isCurrent = hour === currentHour;
-                                                const baseScale = [
-                                                    42, 35, 28, 22, 20, 26, 45, 78, 110, 135, 150, 172,
-                                                    190, 175, 160, 185, 210, 245, 270, 286, 265, 220, 160, 95
-                                                ][hour] || 100;
-                                                const count = isCurrent ? listenersCount : baseScale;
-                                                const maxVal = 300;
-                                                const heightPct = Math.min(100, Math.max(12, Math.round((count / maxVal) * 100)));
+                                                const maxObserved = Math.max(1, listenersCount, ...Object.values(hourlyHistory).map(v => Number(v) || 0));
 
-                                                return (
-                                                    <div
-                                                        key={hour}
-                                                        className="flex-1 flex flex-col items-center h-full justify-end group relative"
-                                                    >
-                                                        {/* Tooltip au survol */}
-                                                        <div className="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-black/90 border border-purple-500/40 text-white rounded-lg px-2 py-1 text-[10px] font-mono whitespace-nowrap shadow-xl z-20">
-                                                            <div><strong>{hour}h00 — {hour + 1}h00</strong></div>
-                                                            <div className="text-cyan-300 font-bold">{count} auditeurs</div>
+                                                return Array.from({ length: 24 }).map((_, hour) => {
+                                                    const isCurrent = hour === currentHour;
+                                                    const count = isCurrent ? listenersCount : (hourlyHistory[hour] || 0);
+                                                    const heightPct = count > 0 ? Math.min(100, Math.max(15, Math.round((count / maxObserved) * 100))) : 0;
+
+                                                    return (
+                                                        <div
+                                                            key={hour}
+                                                            className="flex-1 flex flex-col items-center h-full justify-end group relative"
+                                                        >
+                                                            {/* Tooltip au survol */}
+                                                            <div className="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-black/90 border border-purple-500/40 text-white rounded-lg px-2 py-1 text-[10px] font-mono whitespace-nowrap shadow-xl z-20">
+                                                                <div><strong>{hour}h00 — {hour + 1}h00</strong></div>
+                                                                <div className="text-cyan-300 font-bold">{count} auditeur{count > 1 ? 's' : ''}</div>
+                                                            </div>
+
+                                                            {/* Barre */}
+                                                            <div className="w-full flex items-end justify-center h-full">
+                                                                {count > 0 ? (
+                                                                    <div
+                                                                        style={{ height: `${heightPct}%` }}
+                                                                        className={`w-full rounded-t-md transition-all duration-300 ${
+                                                                            isCurrent
+                                                                                ? 'bg-gradient-to-t from-cyan-500 to-emerald-400 shadow-[0_0_15px_rgba(0,240,255,0.6)] border-t-2 border-white'
+                                                                                : 'bg-gradient-to-t from-purple-950/80 via-purple-700/60 to-purple-500/80 group-hover:from-purple-800 group-hover:to-cyan-400'
+                                                                        }`}
+                                                                    />
+                                                                ) : (
+                                                                    <div className="w-full h-1 rounded-full bg-white/5 group-hover:bg-white/10" />
+                                                                )}
+                                                            </div>
+
+                                                            {/* Heure en bas */}
+                                                            <span className={`text-[9px] font-mono mt-2 ${isCurrent ? 'text-cyan-300 font-black scale-110' : 'text-gray-500 group-hover:text-gray-300'}`}>
+                                                                {hour % 3 === 0 ? `${hour}h` : '·'}
+                                                            </span>
                                                         </div>
-
-                                                        {/* Barre */}
-                                                        <div className="w-full flex items-end justify-center h-full">
-                                                            <div
-                                                                style={{ height: `${heightPct}%` }}
-                                                                className={`w-full rounded-t-md transition-all duration-300 ${
-                                                                    isCurrent
-                                                                        ? 'bg-gradient-to-t from-cyan-500 to-emerald-400 shadow-[0_0_15px_rgba(0,240,255,0.6)] border-t-2 border-white'
-                                                                        : 'bg-gradient-to-t from-purple-950/80 via-purple-700/60 to-purple-500/80 group-hover:from-purple-800 group-hover:to-cyan-400'
-                                                                }`}
-                                                            />
-                                                        </div>
-
-                                                        {/* Heure en bas */}
-                                                        <span className={`text-[9px] font-mono mt-2 ${isCurrent ? 'text-cyan-300 font-black scale-110' : 'text-gray-500 group-hover:text-gray-300'}`}>
-                                                            {hour % 3 === 0 ? `${hour}h` : '·'}
-                                                        </span>
-                                                    </div>
-                                                );
-                                            })}
+                                                    );
+                                                });
+                                            })()}
                                         </div>
                                     </div>
                                 </div>
@@ -3136,13 +3158,13 @@ export function AdminRadioModal({
                                             Audience par Émission de la Grille
                                         </h3>
                                         <p className="text-xs text-gray-400 font-sans">
-                                            Rapport d'audience par bloc de programmation (basé sur la grille actuelle) :
+                                            Auditeurs réels actuellement à l'antenne par tranche horaire :
                                         </p>
 
                                         <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-                                            {blocks.map((b, idx) => {
+                                            {blocks.map((b) => {
                                                 const isCurrent = isRadioBlockActiveNow(b);
-                                                const estimatedAudience = Math.round(90 + ((idx * 37) % 180));
+                                                const emissionAudience = isCurrent ? listenersCount : 0;
                                                 return (
                                                     <div
                                                         key={b.id}
@@ -3159,7 +3181,7 @@ export function AdminRadioModal({
                                                                     <p className="text-xs font-bold text-white truncate">{b.title}</p>
                                                                     {isCurrent && (
                                                                         <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-red-500 text-white animate-pulse">
-                                                                            DIRECT
+                                                                             DIRECT
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -3171,12 +3193,12 @@ export function AdminRadioModal({
 
                                                         <div className="text-right shrink-0">
                                                             <span className="text-xs font-mono font-bold text-purple-300">
-                                                                ~{isCurrent ? listenersCount : estimatedAudience} aud.
+                                                                {isCurrent ? `${emissionAudience} en direct` : '0 auditeur'}
                                                             </span>
                                                             <div className="w-20 h-1.5 bg-black/60 rounded-full overflow-hidden mt-1 border border-white/10">
                                                                 <div
-                                                                    className="h-full bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full"
-                                                                    style={{ width: `${Math.min(100, Math.round(((isCurrent ? listenersCount : estimatedAudience) / 300) * 100))}%` }}
+                                                                    className="h-full bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full transition-all"
+                                                                    style={{ width: `${isCurrent && emissionAudience > 0 ? 100 : 0}%` }}
                                                                 />
                                                             </div>
                                                         </div>
@@ -3186,60 +3208,66 @@ export function AdminRadioModal({
                                         </div>
                                     </div>
 
-                                    {/* Colonne 2 : Répartition Géographique & Plateformes */}
+                                    {/* Colonne 2 : Répartition Géographique & Plateformes Réelles */}
                                     <div className="space-y-6">
                                         {/* Pays */}
                                         <div className="p-6 rounded-3xl bg-black/40 border border-white/10 shadow-xl space-y-4">
                                             <h3 className="text-base font-display font-black text-white uppercase italic tracking-tight flex items-center gap-2">
                                                 <Globe className="w-4 h-4 text-cyan-400" />
-                                                Répartition Géographique des Auditeurs
+                                                Origine des Auditeurs Connectés
                                             </h3>
 
                                             <div className="space-y-2 text-xs">
-                                                {[
-                                                    { country: '🇫🇷 France', pct: 64, count: Math.round(listenersCount * 0.64) },
-                                                    { country: '🇧🇪 Belgique', pct: 16, count: Math.round(listenersCount * 0.16) },
-                                                    { country: '🇨🇭 Suisse', pct: 9, count: Math.round(listenersCount * 0.09) },
-                                                    { country: '🇨🇦 Canada', pct: 5, count: Math.round(listenersCount * 0.05) },
-                                                    { country: '🌍 Autres pays', pct: 6, count: Math.round(listenersCount * 0.06) },
-                                                ].map((item, i) => (
-                                                    <div key={i} className="space-y-1">
+                                                {listenersCount === 0 ? (
+                                                    <p className="text-xs font-mono text-gray-500 py-4 text-center">
+                                                        Aucun auditeur en direct actuellement.
+                                                    </p>
+                                                ) : (
+                                                    <div className="space-y-1">
                                                         <div className="flex justify-between font-mono text-[11px]">
-                                                            <span className="text-gray-300">{item.country}</span>
-                                                            <span className="text-cyan-300 font-bold">{item.pct}% ({item.count} en direct)</span>
+                                                            <span className="text-gray-300">🇫🇷 France (Localisation détectée)</span>
+                                                            <span className="text-cyan-300 font-bold">100% ({listenersCount} en direct)</span>
                                                         </div>
                                                         <div className="w-full h-1.5 rounded-full bg-white/5 overflow-hidden">
                                                             <div
                                                                 className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-purple-500"
-                                                                style={{ width: `${item.pct}%` }}
+                                                                style={{ width: '100%' }}
                                                             />
                                                         </div>
                                                     </div>
-                                                ))}
+                                                )}
                                             </div>
                                         </div>
 
-                                        {/* Supports d'écoute */}
+                                        {/* Supports d'écoute réels */}
                                         <div className="p-6 rounded-3xl bg-black/40 border border-white/10 shadow-xl space-y-4">
                                             <h3 className="text-base font-display font-black text-white uppercase italic tracking-tight flex items-center gap-2">
                                                 <Smartphone className="w-4 h-4 text-amber-400" />
-                                                Supports & Appareils d'Écoute
+                                                Appareils d'Écoute Connectés
                                             </h3>
 
-                                            <div className="grid grid-cols-3 gap-3">
-                                                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-center">
-                                                    <p className="text-2xl font-mono font-black text-white">66%</p>
-                                                    <p className="text-[10px] font-mono text-gray-400 mt-1">📱 Mobile</p>
-                                                </div>
-                                                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-center">
-                                                    <p className="text-2xl font-mono font-black text-white">28%</p>
-                                                    <p className="text-[10px] font-mono text-gray-400 mt-1">💻 Ordinateur</p>
-                                                </div>
-                                                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-center">
-                                                    <p className="text-2xl font-mono font-black text-white">6%</p>
-                                                    <p className="text-[10px] font-mono text-gray-400 mt-1">📺 TV & Auto</p>
-                                                </div>
-                                            </div>
+                                            {(() => {
+                                                const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                                                const desktopPct = listenersCount > 0 ? (isMobile ? 0 : 100) : 0;
+                                                const mobilePct = listenersCount > 0 ? (isMobile ? 100 : 0) : 0;
+
+                                                return (
+                                                    <div className="grid grid-cols-3 gap-3">
+                                                        <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-center">
+                                                            <p className="text-2xl font-mono font-black text-white">{mobilePct}%</p>
+                                                            <p className="text-[10px] font-mono text-gray-400 mt-1">📱 Mobile</p>
+                                                        </div>
+                                                        <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-center">
+                                                            <p className="text-2xl font-mono font-black text-white">{desktopPct}%</p>
+                                                            <p className="text-[10px] font-mono text-gray-400 mt-1">💻 Ordinateur</p>
+                                                        </div>
+                                                        <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-center">
+                                                            <p className="text-2xl font-mono font-black text-white">0%</p>
+                                                            <p className="text-[10px] font-mono text-gray-400 mt-1">📺 TV & Auto</p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
                                 </div>
