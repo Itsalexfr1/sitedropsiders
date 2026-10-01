@@ -51,7 +51,24 @@ export function RadioDedicationsPanel() {
     const [hostMessage, setHostMessage] = useState('');
     const [unreadCount, setUnreadCount] = useState(0);
 
-    // Sauvegarde et synchronisation temps réel inter-onglets
+    // Son de notification à l'arrivée d'une dédicace
+    const playDingSound = () => {
+        try {
+            const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.setValueAtTime(880, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.12);
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.35);
+        } catch {}
+    };
+
+    // Sauvegarde et synchronisation temps réel inter-onglets et Cloud
     const saveDedications = (items: RadioDedication[]) => {
         setDedications(items);
         try {
@@ -64,7 +81,43 @@ export function RadioDedicationsPanel() {
         } catch {}
     };
 
-    // Écoute BroadcastChannel pour recevoir les dédicaces envoyées par les auditeurs
+    // ─── SYNCHRONISATION CLOUD EN TEMPS RÉEL (TOUS LES INTERNAUTES DU MONDE) ───
+    const fetchCloudDedications = async () => {
+        try {
+            const res = await fetch('/api/radio/dedications');
+            if (res.ok) {
+                const cloudItems: RadioDedication[] = await res.json();
+                if (Array.isArray(cloudItems) && cloudItems.length > 0) {
+                    setDedications(prev => {
+                        const prevIds = new Set(prev.map(p => p.id));
+                        const hasNew = cloudItems.some(c => !prevIds.has(c.id));
+                        if (hasNew) {
+                            playDingSound();
+                        }
+
+                        // Fusionner sans doublons en gardant le statut local si plus récent
+                        const map = new Map<string, RadioDedication>();
+                        cloudItems.forEach(item => map.set(item.id, item));
+                        prev.forEach(item => {
+                            if (!map.has(item.id)) map.set(item.id, item);
+                        });
+                        const merged = Array.from(map.values()).sort((a, b) => b.timestamp - a.timestamp);
+                        try { localStorage.setItem(DEDICATIONS_STORAGE_KEY, JSON.stringify(merged)); } catch {}
+                        return merged;
+                    });
+                }
+            }
+        } catch {}
+    };
+
+    // Interroge le serveur toutes les 4s pour recevoir en direct les messages de n'importe quel auditeur
+    useEffect(() => {
+        fetchCloudDedications();
+        const timer = setInterval(fetchCloudDedications, 4000);
+        return () => clearInterval(timer);
+    }, []);
+
+    // Écoute BroadcastChannel et CustomEvent pour réception instantanée en local
     useEffect(() => {
         let channel: BroadcastChannel | null = null;
         try {
@@ -75,6 +128,7 @@ export function RadioDedicationsPanel() {
                         const newD = ev.data.dedication;
                         setDedications(prev => {
                             if (prev.some(d => d.id === newD.id)) return prev;
+                            playDingSound();
                             const updated = [newD, ...prev];
                             try { localStorage.setItem(DEDICATIONS_STORAGE_KEY, JSON.stringify(updated)); } catch {}
                             return updated;
@@ -87,8 +141,23 @@ export function RadioDedicationsPanel() {
             }
         } catch {}
 
+        const onLocal = (e: any) => {
+            if (e?.detail) {
+                const newD = e.detail;
+                setDedications(prev => {
+                    if (prev.some(d => d.id === newD.id)) return prev;
+                    playDingSound();
+                    const updated = [newD, ...prev];
+                    try { localStorage.setItem(DEDICATIONS_STORAGE_KEY, JSON.stringify(updated)); } catch {}
+                    return updated;
+                });
+            }
+        };
+        window.addEventListener('dropsiders_radio_new_dedication', onLocal);
+
         return () => {
             if (channel) channel.close();
+            window.removeEventListener('dropsiders_radio_new_dedication', onLocal);
         };
     }, []);
 

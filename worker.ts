@@ -399,7 +399,7 @@ export default {
         // CORS Headers
         const headers = {
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, DELETE',
+            'Access-Control-Allow-Methods': 'GET, POST, PATCH, OPTIONS, DELETE',
             'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Password, X-Admin-Username, X-Google-Token, X-Session-ID',
             'Content-Type': 'application/json'
         };
@@ -1048,6 +1048,107 @@ ${urls.map(u => `  <url>
                 });
             }
             return new Response(JSON.stringify({ error: 'Données manquantes' }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+        }
+
+        // --- API: RADIO DEDICATIONS (MESSAGES AUDITEURS EN DIRECT) ---
+        if (path === '/api/radio/dedications' && request.method === 'GET') {
+            if (!env.CHAT_KV) {
+                return new Response(JSON.stringify([]), { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+            }
+            const data = await env.CHAT_KV.get('radio_dedications') || '[]';
+            return new Response(data, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                    'Cache-Control': 'no-store, no-cache, must-revalidate'
+                }
+            });
+        }
+
+        if (path === '/api/radio/dedications' && request.method === 'POST') {
+            if (!env.CHAT_KV) {
+                return new Response(JSON.stringify({ error: 'KV non configuré' }), { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+            }
+            try {
+                const body = await request.json();
+                const { author, location, message, currentTrack } = body;
+                if (!author || !message) {
+                    return new Response(JSON.stringify({ error: 'Auteur et message requis' }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+                }
+
+                const newDedication = {
+                    id: body.id || ('ded-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6)),
+                    author: String(author).trim().slice(0, 60),
+                    location: location ? String(location).trim().slice(0, 60) : undefined,
+                    message: String(message).trim().slice(0, 300),
+                    currentTrack: currentTrack ? String(currentTrack).trim().slice(0, 100) : undefined,
+                    timestamp: body.timestamp || Date.now(),
+                    status: 'new'
+                };
+
+                const raw = await env.CHAT_KV.get('radio_dedications') || '[]';
+                let list = [];
+                try {
+                    list = JSON.parse(raw);
+                } catch {
+                    list = [];
+                }
+
+                // Évite les doublons par id
+                list = list.filter(d => d.id !== newDedication.id);
+                list = [newDedication, ...list].slice(0, 100);
+                await env.CHAT_KV.put('radio_dedications', JSON.stringify(list));
+
+                return new Response(JSON.stringify({ success: true, dedication: newDedication }), {
+                    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+                });
+            } catch (err) {
+                return new Response(JSON.stringify({ error: 'Données invalides' }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+            }
+        }
+
+        if (path === '/api/radio/dedications' && request.method === 'PATCH') {
+            if (!env.CHAT_KV) {
+                return new Response(JSON.stringify({ error: 'KV non configuré' }), { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+            }
+            try {
+                const body = await request.json();
+                const { id, status, isPinned } = body;
+                const raw = await env.CHAT_KV.get('radio_dedications') || '[]';
+                let list = [];
+                try { list = JSON.parse(raw); } catch { list = []; }
+                list = list.map(d => d.id === id ? { ...d, ...(status ? { status } : {}), ...(isPinned !== undefined ? { isPinned } : {}) } : d);
+                await env.CHAT_KV.put('radio_dedications', JSON.stringify(list));
+                return new Response(JSON.stringify({ success: true, dedications: list }), {
+                    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+                });
+            } catch {
+                return new Response(JSON.stringify({ error: 'Erreur mise à jour' }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+            }
+        }
+
+        if (path === '/api/radio/dedications' && request.method === 'DELETE') {
+            if (!env.CHAT_KV) {
+                return new Response(JSON.stringify({ error: 'KV non configuré' }), { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+            }
+            try {
+                const url = new URL(request.url);
+                const id = url.searchParams.get('id');
+                if (id) {
+                    const raw = await env.CHAT_KV.get('radio_dedications') || '[]';
+                    let list = [];
+                    try { list = JSON.parse(raw); } catch { list = []; }
+                    list = list.filter(d => d.id !== id);
+                    await env.CHAT_KV.put('radio_dedications', JSON.stringify(list));
+                } else {
+                    await env.CHAT_KV.delete('radio_dedications');
+                }
+                return new Response(JSON.stringify({ success: true }), {
+                    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+                });
+            } catch {
+                return new Response(JSON.stringify({ error: 'Erreur suppression' }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+            }
         }
 
         // --- API: COMMUNITY USER SYNC & SEARCH ---

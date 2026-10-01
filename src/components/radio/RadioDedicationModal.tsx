@@ -54,6 +54,22 @@ export function RadioDedicationModal({
         // 3. CustomEvent local au cas où
         window.dispatchEvent(new CustomEvent('dropsiders_radio_new_dedication', { detail: newDedication }));
 
+        // 4. Envoi au serveur Cloud (Cloudflare Worker KV) pour réception par l'animateur depuis n'importe quel appareil
+        try {
+            fetch('/api/radio/dedications', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: newDedication.id,
+                    author: newDedication.author,
+                    location: newDedication.location,
+                    message: newDedication.message,
+                    currentTrack: currentTrackTitle,
+                    timestamp: newDedication.timestamp
+                })
+            }).catch(() => {});
+        } catch {}
+
         setIsSent(true);
         setTimeout(() => {
             setIsSent(false);
