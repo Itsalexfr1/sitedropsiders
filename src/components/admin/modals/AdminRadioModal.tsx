@@ -355,10 +355,30 @@ export function AdminRadioModal({
     const [isMicTesting, setIsMicTesting] = useState(false);
     const [isHeadphoneMonitor, setIsHeadphoneMonitor] = useState(true);
     const [audioLevel, setAudioLevel] = useState(0);
+    const [micDevices, setMicDevices] = useState<MediaDeviceInfo[]>([]);
+    const [selectedMicDeviceId, setSelectedMicDeviceId] = useState<string>('');
     const micStreamRef = useRef<MediaStream | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const monitorGainNodeRef = useRef<GainNode | null>(null);
     const animFrameRef = useRef<number | null>(null);
+
+    // Énumère les micros disponibles (nécessite la permission d'abord)
+    const enumerateMicDevices = async () => {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const mics = devices.filter(d => d.kind === 'audioinput');
+            setMicDevices(mics);
+            if (mics.length > 0 && !selectedMicDeviceId) {
+                setSelectedMicDeviceId(mics[0].deviceId);
+            }
+        } catch {}
+    };
+
+    // Écoute les changements de périphériques (branchement/débranchement)
+    useEffect(() => {
+        navigator.mediaDevices?.addEventListener?.('devicechange', enumerateMicDevices);
+        return () => navigator.mediaDevices?.removeEventListener?.('devicechange', enumerateMicDevices);
+    }, []);
 
     const stopMicrophone = () => {
         if (micStreamRef.current) {
@@ -381,8 +401,18 @@ export function AdminRadioModal({
         try {
             let stream = micStreamRef.current;
             if (!stream) {
-                stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                const audioConstraints: MediaTrackConstraints = {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    sampleRate: 48000,
+                };
+                if (selectedMicDeviceId) {
+                    audioConstraints.deviceId = { exact: selectedMicDeviceId };
+                }
+                stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints, video: false });
                 micStreamRef.current = stream;
+                // On profite de l'accord de permission pour énumérer les devices
+                await enumerateMicDevices();
             }
 
             let audioCtx = audioContextRef.current;
@@ -2063,6 +2093,42 @@ export function AdminRadioModal({
                                             <Users className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
                                             <span>{listenersCount}</span>
                                             <span className="text-[10px] text-gray-400 font-normal hidden sm:inline">auditeurs</span>
+                                        </div>
+
+                                        {/* Sélecteur de Microphone */}
+                                        <div className="flex items-center gap-1.5">
+                                            <Mic className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+                                            {micDevices.length === 0 ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={enumerateMicDevices}
+                                                    className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[10px] font-mono cursor-pointer transition-all"
+                                                    title="Détecter les micros disponibles"
+                                                >
+                                                    Détecter micros
+                                                </button>
+                                            ) : (
+                                                <select
+                                                    value={selectedMicDeviceId}
+                                                    onChange={e => {
+                                                        setSelectedMicDeviceId(e.target.value);
+                                                        // Si un micro est actif, on le redémarre avec le nouveau device
+                                                        if (isLiveMicActive || isMicTesting) {
+                                                            const mode = isLiveMicActive ? 'on_air' : 'test';
+                                                            stopMicrophone();
+                                                            setTimeout(() => startMicrophone(mode), 100);
+                                                        }
+                                                    }}
+                                                    className="max-w-[160px] px-2 py-1.5 bg-black/60 border border-white/15 rounded-xl text-[10px] font-mono text-white cursor-pointer focus:outline-none focus:border-purple-500/60 truncate"
+                                                    title="Choisir le microphone à utiliser"
+                                                >
+                                                    {micDevices.map(d => (
+                                                        <option key={d.deviceId} value={d.deviceId}>
+                                                            {d.label || `Micro ${d.deviceId.slice(0, 8)}...`}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            )}
                                         </div>
 
                                         {/* Bouton Test Micro Privé (Hors Antenne / Retour Casque) */}
