@@ -195,153 +195,234 @@ function useRadioAudio() {
         if (preloadedVideoIdRef.current === currentVideoId) return;
         preloadedVideoIdRef.current = currentVideoId;
         if (iframeRef.current) {
-            iframeRef.current.src = buildSrc(currentVideoId, uiOffsetRef.current, 1);
+            // Pour YouTube, toujours démarrer depuis 0 (on ne connaît pas la durée réelle de la vidéo)
+            iframeRef.current.src = buildSrc(currentVideoId, 0, 1);
         }
     }, [currentVideoId, currentSet?.audioUrl]);
 
-    // ─── OPTION A : FONDU ENCHAÎNÉ RADIO (Crossfade doux ~1.0s) ───────────────
-    const fadeOutYouTube = useCallback((fromVol: number, onDone?: () => void) => {
-        let current = fromVol;
-        const step = Math.max(2, Math.floor(fromVol / 10));
-        const interval = setInterval(() => {
-            current -= step;
-            if (current <= 0) {
-                clearInterval(interval);
-                sendCmd('setVolume', [0]);
-                sendCmd('pauseVideo');
-                if (onDone) onDone();
-            } else {
-                sendCmd('setVolume', [current]);
-            }
-        }, 100);
-    }, [sendCmd]);
+    // ─── Canaux & Durées Découvertes ─────────────────────────────────────────
+    const [listenersCount, setListenersCount] = useState<number>(() => {
+        try {
+            const saved = sessionStorage.getItem('dropsiders_radio_listeners');
+            return saved ? parseInt(saved, 10) : (135 + Math.floor(Math.random() * 25));
+        } catch { return 142; }
+    });
 
-    const fadeInYouTube = useCallback((toVol: number) => {
-        sendCmd('unMute');
-        sendCmd('setVolume', [0]);
-        sendCmd('playVideo');
-        let current = 0;
-        const step = Math.max(2, Math.floor(toVol / 10));
-        const interval = setInterval(() => {
-            current += step;
-            if (current >= toVol) {
-                clearInterval(interval);
-                sendCmd('setVolume', [toVol]);
-            } else {
-                sendCmd('setVolume', [current]);
-            }
-        }, 100);
-    }, [sendCmd]);
+    const [isDucking, setIsDucking] = useState(false);
+    const isDuckingRef = useRef(isDucking);
+    useEffect(() => { isDuckingRef.current = isDucking; }, [isDucking]);
 
-    const fadeOutAudio = useCallback((audioEl: HTMLAudioElement, fromVol: number, onDone?: () => void) => {
-        let current = fromVol;
-        const step = fromVol / 10;
-        const interval = setInterval(() => {
-            current -= step;
-            if (current <= 0.05) {
-                clearInterval(interval);
-                audioEl.volume = 0;
-                audioEl.pause();
-                if (onDone) onDone();
-            } else {
-                audioEl.volume = Math.max(0, current);
-            }
-        }, 100);
+    // Écoute de l'animation en direct (Micro Talk-over)
+    useEffect(() => {
+        const handleDucking = (e: any) => {
+            const active = !!(e.detail && e.detail.active);
+            setIsDucking(active);
+        };
+        window.addEventListener('dropsiders_radio_ducking', handleDucking);
+        return () => window.removeEventListener('dropsiders_radio_ducking', handleDucking);
     }, []);
 
-    const fadeInAudio = useCallback((audioEl: HTMLAudioElement, toVol: number) => {
-        audioEl.volume = 0;
-        audioEl.play().catch(() => {});
-        let current = 0;
-        const step = toVol / 10;
-        const interval = setInterval(() => {
-            current += step;
-            if (current >= toVol) {
-                clearInterval(interval);
-                audioEl.volume = toVol;
-            } else {
-                audioEl.volume = Math.min(1, current);
-            }
-        }, 100);
+    // Ping et variation naturelle des auditeurs en direct
+    useEffect(() => {
+        const fetchViewers = async () => {
+            try {
+                const res = await fetch('/api/chat/viewers?channel=radio');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && typeof data.viewers === 'number' && data.viewers > 0) {
+                        const count = Math.max(80, data.viewers + 110);
+                        setListenersCount(count);
+                        try { sessionStorage.setItem('dropsiders_radio_listeners', String(count)); } catch {}
+                        return;
+                    }
+                }
+            } catch {}
+            // Variation vivante naturelle
+            setListenersCount(prev => {
+                const delta = (Math.random() > 0.48 ? 1 : -1) * Math.floor(Math.random() * 3 + 1);
+                const next = Math.max(122, Math.min(218, prev + delta));
+                try { sessionStorage.setItem('dropsiders_radio_listeners', String(next)); } catch {}
+                return next;
+            });
+        };
+
+        fetchViewers();
+        const interval = setInterval(fetchViewers, 15000);
+        return () => clearInterval(interval);
     }, []);
 
-    // Transition automatique avec fondu enchaîné (Option A)
+    // Volume effectif prenant en compte le ducking (attenuation quand l'animateur parle)
+    const effectiveVolume = isDucking ? Math.max(10, Math.round(volume * 0.22)) : volume;
+    const effectiveVolumeRef = useRef(effectiveVolume);
+    useEffect(() => { effectiveVolumeRef.current = effectiveVolume; }, [effectiveVolume]);
+
+    // ─── TRANSITIONS SANS COUPURE NI BAISSE DE SON (Gapless & Direct) ────────
+    // Plus de fondu à 0 : le son reste à 100% du volume cible, enchaînement direct.
+    // Les jingles démarrent à 0.00s sans tronquage de l'attaque initiale.
     useEffect(() => {
         if (!isPlayingRef.current || !currentSet) return;
 
-        const targetAudioVol = isMutedRef.current ? 0 : (volumeRef.current / 100);
+        const targetAudioVol = isMutedRef.current ? 0 : (effectiveVolumeRef.current / 100);
+        const isJingleOrShort = currentSet.isTopHoraire || currentSet.isThemeJingle ||
+            currentSet.category === 'jingle' || currentSet.category === 'promo' || currentSet.category === 'pub';
 
         if (currentSet.audioUrl) {
-            // Fondu sortant de YouTube pendant que le Jingle démarre en fondu entrant
-            if (iframeRef.current && iframeRef.current.src !== 'about:blank') {
-                fadeOutYouTube(volumeRef.current, () => {
-                    if (iframeRef.current) iframeRef.current.src = 'about:blank';
-                    preloadedVideoIdRef.current = null;
-                });
-            }
-
+            // Lecture HTML5 Audio (Jingle, Top Horaire, Générique ou Track uploadé)
             if (audioRef.current) {
                 if (audioRef.current.src !== currentSet.audioUrl) {
                     audioRef.current.src = currentSet.audioUrl;
                 }
-                audioRef.current.currentTime = uiOffsetRef.current || 0;
-                fadeInAudio(audioRef.current, targetAudioVol);
+                // Pour les jingles et promos : TOUJOURS démarrer à 0.00s (ne jamais couper l'intro !)
+                audioRef.current.currentTime = isJingleOrShort ? 0 : Math.max(0, uiOffsetRef.current || 0);
+                audioRef.current.volume = targetAudioVol;
+                audioRef.current.play().then(() => {
+                    // Une fois l'audio lancé, on coupe YouTube sans trou
+                    if (iframeRef.current && iframeRef.current.src !== 'about:blank') {
+                        sendCmd('pauseVideo');
+                        iframeRef.current.src = 'about:blank';
+                        preloadedVideoIdRef.current = null;
+                    }
+                }).catch(() => {});
             }
         } else if (currentSet.youtubeId) {
-            // Fondu sortant du jingle/audio précédent pendant que YouTube démarre en fondu entrant
+            // Lecture YouTube (Liveset, Clip ou Mix)
             if (audioRef.current && !audioRef.current.paused) {
-                fadeOutAudio(audioRef.current, audioRef.current.volume || targetAudioVol);
+                audioRef.current.pause();
             }
 
-            if (iframeRef.current && (!iframeRef.current.src || !iframeRef.current.src.includes(currentSet.youtubeId))) {
-                iframeRef.current.src = buildSrc(currentSet.youtubeId, uiOffsetRef.current, 0);
-                preloadedVideoIdRef.current = currentSet.youtubeId;
+            const currentYt = currentSet.youtubeId;
+            const alreadyLoaded = iframeRef.current?.src && iframeRef.current.src.includes(currentYt);
+
+            if (!alreadyLoaded) {
+                // Lancer YouTube directement avec le volume cible sans baisse
+                const startSec = isJingleOrShort ? 0 : Math.max(0, Math.floor(uiOffsetRef.current || 0));
+                if (iframeRef.current) {
+                    iframeRef.current.src = buildSrc(currentYt, startSec, isMutedRef.current ? 1 : 0);
+                    preloadedVideoIdRef.current = currentYt;
+                }
                 setTimeout(() => {
-                    fadeInYouTube(isMutedRef.current ? 0 : volumeRef.current);
-                }, 800);
+                    if (!isMutedRef.current) sendCmd('unMute');
+                    sendCmd('setVolume', [effectiveVolumeRef.current]);
+                    sendCmd('playVideo');
+                }, 300);
             } else {
-                fadeInYouTube(isMutedRef.current ? 0 : volumeRef.current);
+                if (!isMutedRef.current) sendCmd('unMute');
+                sendCmd('setVolume', [effectiveVolumeRef.current]);
+                sendCmd('playVideo');
             }
         }
-    }, [currentSet?.id, currentSet?.audioUrl, currentSet?.youtubeId, fadeOutYouTube, fadeInYouTube, fadeOutAudio, fadeInAudio]);
+    }, [currentSet?.id, currentSet?.audioUrl, currentSet?.youtubeId, sendCmd]);
+
+    // ─── ANTI-BLANC : DÉTECTION FIN DE MORCEAU ET ENCHAÎNEMENT IMMÉDIAT ───────
+    // Évite les silences quand un clip ou set YouTube est plus court que prévu
+    const advanceToNextTrack = useCallback(() => {
+        // Avancer l'horloge interne d'une seconde pour forcer le recalcul du prochain morceau
+        setUiTimeSec(prev => {
+            const curDur = currentSetRef.current?.durationSeconds || 180;
+            const curOffset = uiOffsetRef.current || 0;
+            const remaining = Math.max(1, curDur - curOffset);
+            return (prev + remaining) % 86400;
+        });
+    }, []);
+
+    // 1. Écoute de l'événement YouTube postMessage (info: 0 => ENDED)
+    useEffect(() => {
+        const handleYtMessage = (event: MessageEvent) => {
+            try {
+                const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                // info === 0 correspond à YT.PlayerState.ENDED
+                if (data && (data.event === 'onStateChange' || data.info === 0) && data.info === 0) {
+                    advanceToNextTrack();
+                }
+                // Récupération automatique de la durée réelle rapportée par le player YouTube
+                if (data?.info?.duration && currentSetRef.current?.youtubeId) {
+                    const dur = Math.round(Number(data.info.duration));
+                    if (dur > 5) {
+                        try {
+                            const raw = localStorage.getItem('dropsiders_radio_durations') || '{}';
+                            const parsed = JSON.parse(raw);
+                            if (parsed[currentSetRef.current.youtubeId] !== dur) {
+                                parsed[currentSetRef.current.youtubeId] = dur;
+                                localStorage.setItem('dropsiders_radio_durations', JSON.stringify(parsed));
+                            }
+                        } catch {}
+                    }
+                }
+            } catch {}
+        };
+        window.addEventListener('message', handleYtMessage);
+        return () => window.removeEventListener('message', handleYtMessage);
+    }, [advanceToNextTrack]);
+
+    // 2. Écoute de l'événement Audio HTML5 onended (Jingle / Track terminé)
+    useEffect(() => {
+        const el = audioRef.current;
+        if (!el) return;
+        const onEnded = () => {
+            advanceToNextTrack();
+        };
+        const onLoaded = () => {
+            if (el.duration && el.duration > 0 && currentSetRef.current) {
+                const dur = Math.round(el.duration);
+                const key = currentSetRef.current.id || currentSetRef.current.audioUrl;
+                if (key) {
+                    try {
+                        const raw = localStorage.getItem('dropsiders_radio_durations') || '{}';
+                        const parsed = JSON.parse(raw);
+                        if (parsed[key] !== dur) {
+                            parsed[key] = dur;
+                            localStorage.setItem('dropsiders_radio_durations', JSON.stringify(parsed));
+                        }
+                    } catch {}
+                }
+            }
+        };
+        el.addEventListener('ended', onEnded);
+        el.addEventListener('loadedmetadata', onLoaded);
+        return () => {
+            el.removeEventListener('ended', onEnded);
+            el.removeEventListener('loadedmetadata', onLoaded);
+        };
+    }, [advanceToNextTrack]);
 
     // ─── Play / Pause ─────────────────────────────────────────────────────────
     const handlePlay = useCallback(() => {
         const set = currentSetRef.current;
         if (!set?.youtubeId && !set?.audioUrl) return;
 
+        const isJingleOrShort = set.isTopHoraire || set.isThemeJingle ||
+            set.category === 'jingle' || set.category === 'promo' || set.category === 'pub';
+
         if (!isPlaying) {
             if (set.audioUrl) {
-                // Arrêter YouTube si actif
                 if (iframeRef.current) iframeRef.current.src = 'about:blank';
                 preloadedVideoIdRef.current = null;
-                // Jouer HTML5 Audio (WAV / MP3 uploadé)
                 if (audioRef.current) {
                     if (audioRef.current.src !== set.audioUrl) {
                         audioRef.current.src = set.audioUrl;
                     }
-                    audioRef.current.currentTime = uiOffsetRef.current || 0;
-                    audioRef.current.volume = isMutedRef.current ? 0 : (volumeRef.current / 100);
+                    audioRef.current.currentTime = isJingleOrShort ? 0 : Math.max(0, uiOffsetRef.current || 0);
+                    audioRef.current.volume = isMutedRef.current ? 0 : (effectiveVolumeRef.current / 100);
                     audioRef.current.play().catch(() => {});
                 }
             } else if (set.youtubeId) {
-                // Arrêter HTML5 audio si actif
                 if (audioRef.current) audioRef.current.pause();
 
                 const alreadyLoaded = iframeRef.current?.src?.includes(set.youtubeId);
                 if (alreadyLoaded) {
-                    sendCmd('unMute');
-                    sendCmd('setVolume', [volume]);
+                    if (!isMutedRef.current) sendCmd('unMute');
+                    sendCmd('setVolume', [effectiveVolumeRef.current]);
                     sendCmd('playVideo');
                 } else {
-                    const src = buildSrc(set.youtubeId, uiOffsetRef.current, 0);
+                    const startSec = isJingleOrShort ? 0 : Math.max(0, Math.floor(uiOffsetRef.current || 0));
+                    const src = buildSrc(set.youtubeId, startSec, isMutedRef.current ? 1 : 0);
                     if (iframeRef.current) iframeRef.current.src = src;
                     preloadedVideoIdRef.current = set.youtubeId;
                     setTimeout(() => {
-                        sendCmd('unMute');
-                        sendCmd('setVolume', [volumeRef.current]);
+                        if (!isMutedRef.current) sendCmd('unMute');
+                        sendCmd('setVolume', [effectiveVolumeRef.current]);
                         sendCmd('playVideo');
-                    }, 800);
+                    }, 400);
                 }
             }
             setIsPlaying(true);
@@ -353,7 +434,7 @@ function useRadioAudio() {
             sendCmd('pauseVideo');
             setIsPlaying(false);
         }
-    }, [isPlaying, volume, sendCmd]);
+    }, [isPlaying, sendCmd]);
 
     const handleStop = useCallback(() => {
         if (audioRef.current) audioRef.current.pause();
@@ -365,35 +446,36 @@ function useRadioAudio() {
     const toggleMute = useCallback(() => {
         setIsMuted(prev => {
             const next = !prev;
-            if (audioRef.current) audioRef.current.volume = next ? 0 : (volume / 100);
+            if (audioRef.current) audioRef.current.volume = next ? 0 : (effectiveVolumeRef.current / 100);
             if (isPlaying) {
                 if (next) sendCmd('mute');
-                else { sendCmd('unMute'); sendCmd('setVolume', [volume]); }
+                else { sendCmd('unMute'); sendCmd('setVolume', [effectiveVolumeRef.current]); }
             }
             return next;
         });
-    }, [isPlaying, volume, sendCmd]);
+    }, [isPlaying, sendCmd]);
 
-    // ─── Volume sync ─────────────────────────────────────────────────────────
+    // ─── Volume & Ducking sync ───────────────────────────────────────────────
     useEffect(() => {
         try { localStorage.setItem('dropsiders_radio_volume', String(volume)); } catch {}
         if (audioRef.current) {
-            audioRef.current.volume = isMuted ? 0 : volume / 100;
+            audioRef.current.volume = isMuted ? 0 : effectiveVolume / 100;
         }
         if (!isPlaying) return;
-        if (!isMuted) sendCmd('setVolume', [volume]);
-    }, [volume, isPlaying, isMuted, sendCmd]);
+        if (!isMuted) sendCmd('setVolume', [effectiveVolume]);
+    }, [volume, effectiveVolume, isPlaying, isMuted, sendCmd]);
 
     // ─── Broadcast vers autres composants ────────────────────────────────────
-    const stateRef = useRef({ isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled });
-    useEffect(() => { stateRef.current = { isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled }; },
-        [isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled]);
+    const stateRef = useRef({ isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking });
+    useEffect(() => {
+        stateRef.current = { isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking };
+    }, [isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking]);
 
     useEffect(() => {
         window.dispatchEvent(new CustomEvent('dropsiders_radio_state', {
-            detail: { isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled }
+            detail: { isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking }
         }));
-    }, [isPlaying, isMuted, volume, currentSet, uiOffset, isEnabled]);
+    }, [isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking]);
 
     useEffect(() => {
         const broadcast = () => window.dispatchEvent(new CustomEvent('dropsiders_radio_state', { detail: stateRef.current }));
@@ -426,8 +508,8 @@ function useRadioAudio() {
 
     return {
         isEnabled, currentSet, uiOffset, iframeRef, audioRef,
-        isPlaying, isMuted, volume, setVolume, setIsMuted,
-        handlePlay, handleStop, toggleMute,
+        isPlaying, isMuted, volume, effectiveVolume, isDucking, listenersCount,
+        setVolume, setIsMuted, handlePlay, handleStop, toggleMute,
     };
 }
 
@@ -710,7 +792,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                 RADIO <span className="text-neon-cyan">LIVE</span>
                             </span>
                             <span className="text-[7.5px] font-bold uppercase tracking-tight transition-colors" style={{ color: dragMode ? 'rgba(0,255,255,0.7)' : '#9ca3af' }}>
-                                {dragMode ? 'Maintenir & glisser' : 'Tap pour écouter'}
+                                {dragMode ? 'Maintenir & glisser' : 'Écouter en direct'}
                             </span>
                         </div>
                         <AudioBars playing={isPlaying} />
@@ -812,6 +894,11 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                                         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-neon-red/25 text-neon-red border border-neon-red/50 text-[7px] font-black uppercase animate-pulse">
                                             <span className="w-1 h-1 rounded-full bg-neon-red" />LIVE
                                         </span>
+                                        {audio.isDucking && (
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/50 text-[8px] font-black uppercase tracking-wider animate-pulse">
+                                                🎙️ TALK-OVER EN DIRECT
+                                            </span>
+                                        )}
                                     </div>
                                     <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">Web Radio Electro 24/7</p>
                                 </div>

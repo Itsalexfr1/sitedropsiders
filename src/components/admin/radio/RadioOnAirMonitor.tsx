@@ -11,7 +11,11 @@ import {
     Activity,
     ExternalLink,
     FileAudio,
-    Flame
+    Flame,
+    Mic,
+    MicOff,
+    Users,
+    Headphones
 } from 'lucide-react';
 import {
     getCurrentLiveRadioTrack,
@@ -30,6 +34,15 @@ interface RadioOnAirMonitorProps {
     onToggleRadio: () => void;
     onGoToRundown: () => void;
     onGoToMediaPool: () => void;
+    listenersCount?: number;
+    isLiveMicActive?: boolean;
+    isMicTesting?: boolean;
+    audioLevel?: number;
+    isHeadphoneMonitor?: boolean;
+    onToggleLiveMic?: () => void;
+    onToggleMicTest?: () => void;
+    onToggleHeadphoneMonitor?: () => void;
+    onGoToStats?: () => void;
 }
 
 export function RadioOnAirMonitor({
@@ -38,7 +51,16 @@ export function RadioOnAirMonitor({
     isRadioActive,
     onToggleRadio,
     onGoToRundown,
-    onGoToMediaPool
+    onGoToMediaPool,
+    listenersCount,
+    isLiveMicActive,
+    isMicTesting,
+    audioLevel = 0,
+    isHeadphoneMonitor = true,
+    onToggleLiveMic,
+    onToggleMicTest,
+    onToggleHeadphoneMonitor,
+    onGoToStats
 }: RadioOnAirMonitorProps) {
     // Horloge temps réel Europe/Paris
     const [nowSec, setNowSec] = useState<number>(getParisSeconds);
@@ -142,9 +164,61 @@ export function RadioOnAirMonitor({
                     </div>
                 </div>
 
-                {/* Commande ON AIR */}
-                <div className="flex items-center gap-4">
-                    <div className="text-right">
+                {/* Commandes régie : Auditeurs + Micro Talk-Over + ON AIR */}
+                <div className="flex items-center gap-3 flex-wrap">
+                    {/* Compteur Auditeurs (Raccourci privé vers Onglet Stats) */}
+                    <button
+                        type="button"
+                        onClick={onGoToStats}
+                        className={`flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-purple-300 font-mono text-xs font-bold shadow-[0_0_15px_rgba(168,85,247,0.15)] transition-all ${
+                            onGoToStats ? 'hover:bg-purple-500/25 cursor-pointer' : ''
+                        }`}
+                        title="Ouvrir l'onglet complet des Statistiques d'Audience (Privé régie)"
+                    >
+                        <Users className="w-4 h-4 text-purple-400 animate-pulse" />
+                        <span>{listenersCount ?? 142}</span>
+                        <span className="text-[10px] text-gray-400 font-normal hidden sm:inline">auditeurs (Stats →)</span>
+                    </button>
+
+                    {/* Bouton Test Micro Privé (PFL / Retour casque hors antenne) */}
+                    {onToggleMicTest && (
+                        <button
+                            type="button"
+                            onClick={onToggleMicTest}
+                            disabled={isLiveMicActive}
+                            className={`px-4 py-2.5 rounded-2xl font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-lg disabled:opacity-40 disabled:cursor-not-allowed ${
+                                isMicTesting
+                                    ? 'bg-cyan-500 text-black shadow-cyan-500/50'
+                                    : 'bg-cyan-500/10 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30'
+                            }`}
+                            title="Écouter votre micro en privé dans votre casque, sans diffusion à la radio (PFL)"
+                        >
+                            <Headphones className="w-4 h-4" />
+                            <span>{isMicTesting ? 'Arrêter Test' : '🎧 Tester Micro'}</span>
+                        </button>
+                    )}
+
+                    {/* Micro Studio Talk-over */}
+                    {onToggleLiveMic && (
+                        <button
+                            type="button"
+                            onClick={onToggleLiveMic}
+                            disabled={isMicTesting}
+                            className={`px-4 py-2.5 rounded-2xl font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-lg disabled:opacity-40 disabled:cursor-not-allowed ${
+                                isLiveMicActive
+                                    ? 'bg-red-500 text-white animate-pulse shadow-red-500/50'
+                                    : 'bg-purple-600/20 hover:bg-purple-600 text-purple-200 hover:text-white border border-purple-500/40'
+                            }`}
+                            title="Prendre l'antenne au micro avec ducking automatique de la musique"
+                        >
+                            {isLiveMicActive ? <MicOff className="w-4 h-4 text-white" /> : <Mic className="w-4 h-4 text-purple-400" />}
+                            <span>{isLiveMicActive ? 'COUPER MICRO' : '🎙️ ANIMER EN DIRECT'}</span>
+                        </button>
+                    )}
+
+                    <div className="h-8 w-[1px] bg-white/10 hidden sm:block" />
+
+                    <div className="text-right hidden md:block">
                         <p className="text-[9px] font-mono text-gray-400 uppercase tracking-widest">Diffusion Antenne</p>
                         <p className={`text-xs font-display font-black uppercase italic ${isRadioActive ? 'text-emerald-400' : 'text-red-400'}`}>
                             {isRadioActive ? '● DIRECT ACTIF' : '○ EN PAUSE'}
@@ -154,7 +228,7 @@ export function RadioOnAirMonitor({
                     <button
                         type="button"
                         onClick={onToggleRadio}
-                        className={`px-5 py-3 rounded-2xl font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-2.5 transition-all cursor-pointer shadow-lg ${
+                        className={`px-5 py-2.5 rounded-2xl font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-2.5 transition-all cursor-pointer shadow-lg ${
                             isRadioActive
                                 ? 'bg-emerald-500 text-black hover:bg-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.4)]'
                                 : 'bg-red-500/20 hover:bg-red-500 text-red-200 hover:text-black border border-red-500/40'
@@ -165,6 +239,140 @@ export function RadioOnAirMonitor({
                     </button>
                 </div>
             </div>
+
+            {/* ── BANNIÈRE PFL / TEST MICRO PRIVÉ (HORS ANTENNE) ── */}
+            {isMicTesting && (
+                <div className="p-5 rounded-3xl bg-gradient-to-r from-blue-950/90 via-cyan-950/80 to-indigo-950/90 border-2 border-cyan-400 shadow-2xl flex flex-wrap items-center justify-between gap-4 animate-in fade-in duration-300">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-400 flex items-center justify-center text-cyan-300 shadow-[0_0_20px_rgba(0,240,255,0.4)]">
+                            <Headphones className="w-6 h-6 animate-pulse text-cyan-300" />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-[10px] font-display font-black uppercase italic px-2 py-0.5 rounded bg-cyan-500 text-black">
+                                    🎧 TEST MICRO PRIVÉ — HORS ANTENNE (PFL)
+                                </span>
+                                <span className="text-[10px] font-mono text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30 font-bold">
+                                    ✓ NON DIFFUSÉ À LA RADIO
+                                </span>
+                            </div>
+                            <p className="text-xs text-gray-200 mt-1">
+                                Vous vous entendez dans vos écouteurs pour calibrer votre son. Les auditeurs n'entendent rien.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 flex-wrap">
+                        {/* VU Mètre test */}
+                        <div className="flex flex-col items-end gap-1">
+                            <div className="flex items-center gap-1.5">
+                                <Activity className="w-3.5 h-3.5 text-cyan-400" />
+                                <span className="text-[10px] font-mono text-gray-300 uppercase">Niveau Voix</span>
+                                <span className="text-xs font-mono font-bold text-cyan-300">{audioLevel}%</span>
+                            </div>
+                            <div className="w-48 h-3.5 bg-black/60 rounded-full overflow-hidden border border-white/20 p-0.5">
+                                <div
+                                    className={`h-full rounded-full transition-all duration-75 ${
+                                        audioLevel > 80 ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : audioLevel > 40 ? 'bg-cyan-400' : 'bg-emerald-400'
+                                    }`}
+                                    style={{ width: `${audioLevel}%` }}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            {onToggleLiveMic && (
+                                <button
+                                    type="button"
+                                    onClick={onToggleLiveMic}
+                                    className="px-4 py-2 rounded-xl bg-red-500 hover:bg-white text-black font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-1.5 cursor-pointer shadow-lg shadow-red-500/30 transition-all"
+                                >
+                                    <Mic className="w-3.5 h-3.5" />
+                                    <span>🔴 Passer en Direct (ON AIR)</span>
+                                </button>
+                            )}
+                            {onToggleMicTest && (
+                                <button
+                                    type="button"
+                                    onClick={onToggleMicTest}
+                                    className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white font-display font-bold text-xs uppercase italic transition-all cursor-pointer border border-white/10"
+                                >
+                                    Arrêter
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── BANNIÈRE MICRO LIVE / TALK-OVER EN COURS ── */}
+            {isLiveMicActive && (
+                <div className="p-5 rounded-3xl bg-gradient-to-r from-red-950/80 via-purple-950/70 to-red-950/80 border-2 border-red-500 shadow-2xl flex flex-wrap items-center justify-between gap-4 animate-in fade-in duration-300">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500 flex items-center justify-center text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.5)]">
+                            <Mic className="w-6 h-6 animate-pulse text-red-400" />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-display font-black uppercase italic px-2 py-0.5 rounded bg-red-500 text-white animate-pulse">
+                                    ● ON AIR — MICRO STUDIO EN DIRECT
+                                </span>
+                                <span className="text-[10px] font-mono text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30">
+                                    Ducking actif (-75% musique)
+                                </span>
+                            </div>
+                            <p className="text-xs text-gray-200 mt-1">
+                                Votre micro est ouvert à l'antenne avec ducking automatique.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 flex-wrap">
+                        {/* Toggle Retour Casque pendant le direct */}
+                        {onToggleHeadphoneMonitor && (
+                            <button
+                                type="button"
+                                onClick={onToggleHeadphoneMonitor}
+                                className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                                    isHeadphoneMonitor
+                                        ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm'
+                                        : 'bg-black/40 text-gray-400 border-white/10 hover:text-white'
+                                }`}
+                                title="Activer ou couper le retour de votre propre voix dans vos écouteurs"
+                            >
+                                <Headphones className="w-3.5 h-3.5" />
+                                <span>Retour casque : {isHeadphoneMonitor ? 'ON' : 'OFF'}</span>
+                            </button>
+                        )}
+
+                        <div className="flex flex-col items-end gap-1">
+                            <div className="flex items-center gap-1.5">
+                                <Activity className="w-3.5 h-3.5 text-red-400" />
+                                <span className="text-[10px] font-mono text-gray-300 uppercase">Niveau Micro</span>
+                                <span className="text-xs font-mono font-bold text-cyan-300">{audioLevel}%</span>
+                            </div>
+                            <div className="w-48 h-3.5 bg-black/60 rounded-full overflow-hidden border border-white/20 p-0.5">
+                                <div
+                                    className={`h-full rounded-full transition-all duration-75 ${
+                                        audioLevel > 80 ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : audioLevel > 40 ? 'bg-amber-400' : 'bg-emerald-400'
+                                    }`}
+                                    style={{ width: `${audioLevel}%` }}
+                                />
+                            </div>
+                        </div>
+
+                        {onToggleLiveMic && (
+                            <button
+                                type="button"
+                                onClick={onToggleLiveMic}
+                                className="px-4 py-2 rounded-xl bg-red-500 hover:bg-white text-black font-display font-black text-xs uppercase italic tracking-wider cursor-pointer shadow-lg shadow-red-500/30 transition-all"
+                            >
+                                Couper Micro
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* ── MONITOR EN DIRECT (CE QUI TOURNE MAINTENANT) ── */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

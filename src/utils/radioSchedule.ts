@@ -998,12 +998,58 @@ export function getCurrentLiveRadioTrack(
     };
 }
 
+export const STORAGE_RADIO_DURATIONS_KEY = 'dropsiders_radio_durations';
+
+export function getCachedRadioDurations(): Record<string, number> {
+    try {
+        if (typeof window !== 'undefined') {
+            const raw = localStorage.getItem(STORAGE_RADIO_DURATIONS_KEY);
+            if (raw) return JSON.parse(raw);
+        }
+    } catch {}
+    return {};
+}
+
+export function saveCachedRadioDuration(idOrYt: string, durationSec: number): void {
+    if (!idOrYt || !durationSec || durationSec <= 0) return;
+    try {
+        if (typeof window !== 'undefined') {
+            const map = getCachedRadioDurations();
+            if (map[idOrYt] !== durationSec) {
+                map[idOrYt] = Math.round(durationSec);
+                localStorage.setItem(STORAGE_RADIO_DURATIONS_KEY, JSON.stringify(map));
+                window.dispatchEvent(new CustomEvent('dropsiders_radio_durations_updated', { detail: { id: idOrYt, duration: durationSec } }));
+            }
+        }
+    } catch {}
+}
+
+export function sanitizeTrackDuration(t: RadioTrackItem): number {
+    const cached = getCachedRadioDurations();
+    const key = t.youtubeId || t.id || t.audioUrl;
+    if (key && cached && cached[key] && cached[key] > 0) {
+        return cached[key];
+    }
+    let d = t.duration && t.duration > 0 ? t.duration : 3600;
+    if ((t.category === 'clip' || t.category === 'promo') && d >= 3600) {
+        d = t.category === 'promo' ? 60 : 210;
+    }
+    if (t.category === 'jingle' && d > 120) {
+        d = 15;
+    }
+    if (t.category === 'pub' && (d > 180 || d >= 3600)) {
+        d = 30;
+    }
+    return d;
+}
+
 /**
  * Calcule la grille 24/7 de la radio pour une journée donnée avec seeded shuffle identique
+ * Inclut fidèlement le Top Horaire et le Générique d'émission, et synchronise isCurrentlyLive avec nowSec.
  */
 export function computeRadioDaySchedule(
     blocks: RadioScheduleBlock[],
-    date: Date = new Date()
+    dateOrSec: Date | number = new Date()
 ): ComputedRadioScheduleItem[] {
     const list = Array.isArray(blocks) && blocks.length > 0 ? blocks : DEFAULT_RADIO_BLOCKS;
     const dayOfWeek = getParisDayOfWeek();
@@ -1011,7 +1057,9 @@ export function computeRadioDaySchedule(
     const sorted = sortRadioBlocksByBroadcastOrder(activeBlocks.length > 0 ? activeBlocks : list);
     const todayStr = getParisTodayString();
 
-    const nowSec = getParisSeconds();
+    const nowSec = typeof dateOrSec === 'number' ? dateOrSec : getParisSeconds();
+    const topHoraire = getTopHoraireConfig();
+    const topDuration = (topHoraire.enabled && topHoraire.duration > 0) ? topHoraire.duration : 0;
     const items: ComputedRadioScheduleItem[] = [];
 
     sorted.forEach((block) => {
@@ -1021,76 +1069,236 @@ export function computeRadioDaySchedule(
 
         let blockDurationHours = endH - startH;
         if (blockDurationHours <= 0) blockDurationHours += 24;
-        const blockDurationSec = blockDurationHours * 3600;
 
         const blockStartSec = startH * 3600;
-
-        // Utiliser le même interleaving déterministe que getCurrentLiveRadioTrack
         const tracks = buildInterleavedPlaylist(block, todayStr);
-
-        let cursor = 0;
         let trackIdx = 0;
 
-        while (cursor < blockDurationSec && trackIdx < 100) {
-            const track = tracks[trackIdx % tracks.length];
-            // Sanitize duration: clips should never be 1h (old default bug), use 210s (3min30) as fallback
-            let dur = track.duration && track.duration > 0 ? track.duration : 3600;
-            if ((track.category === 'clip' || track.category === 'promo') && dur >= 3600) {
-                dur = track.category === 'promo' ? 60 : 210;
+        // Générer heure par heure pour insérer exactement le Top Horaire et le Générique
+        for (let hOffset = 0; hOffset < blockDurationHours; hOffset++) {
+            const currentH = (startH + hOffset) % 24;
+            const hourStartSec = (blockStartSec + hOffset * 3600) % 86400;
+
+            // 1. Top Horaire à chaque début d'heure
+            if (topDuration > 0) {
+                const itemStart = hourStartSec;
+                const itemEnd = (itemStart + topDuration) % 86400;
+                const isLive = (itemStart <= itemEnd)
+                    ? (nowSec >= itemStart && nowSec < itemEnd)
+                    : (nowSec >= itemStart || nowSec < itemEnd);
+
+                const sH = Math.floor(itemStart / 3600);
+                const sM = Math.floor((itemStart % 3600) / 60);
+                const sS = Math.floor(itemStart % 60);
+                const eH = Math.floor(itemEnd / 3600);
+                const eM = Math.floor((itemEnd % 3600) / 60);
+                const eS = Math.floor(itemEnd % 60);
+
+                items.push({
+                    id: `top_horaire_${currentH}`,
+                    blockId: block.id,
+                    blockTitle: block.title,
+                    blockColor: '#00f0ff',
+                    blockEmoji: '🔔',
+                    title: topHoraire.title || 'Dropsiders Radio • Top Horaire Officiel',
+                    artist: 'DROPSIDERS RADIO',
+                    event: 'TOP HORAIRE (DÉBUT D\'HEURE)',
+                    youtubeId: topHoraire.youtubeId,
+                    audioUrl: topHoraire.audioUrl,
+                    startTime: `${String(sH).padStart(2, '0')}h00:${String(sS).padStart(2, '0')}`,
+                    endTime: `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}:${String(eS).padStart(2, '0')}`,
+                    startSecondsFromMidnight: itemStart,
+                    durationSeconds: topDuration,
+                    durationFormatted: formatDurationExact(topDuration),
+                    isCurrentlyLive: isLive,
+                    category: 'jingle',
+                    isTopHoraire: true
+                });
             }
-            if (track.category === 'jingle' && dur > 120) {
-                dur = 15;
+
+            // 2. Générique d'émission à la première heure de l'émission
+            let hourAvailableSec = 3600 - topDuration;
+            let hourCursor = topDuration;
+
+            if (hOffset === 0 && block.themeJingle && block.themeJingle.enabled && block.themeJingle.duration > 0) {
+                const themeDur = block.themeJingle.duration;
+                const itemStart = (hourStartSec + hourCursor) % 86400;
+                const itemEnd = (itemStart + themeDur) % 86400;
+                const isLive = (itemStart <= itemEnd)
+                    ? (nowSec >= itemStart && nowSec < itemEnd)
+                    : (nowSec >= itemStart || nowSec < itemEnd);
+
+                const sH = Math.floor(itemStart / 3600);
+                const sM = Math.floor((itemStart % 3600) / 60);
+                const sS = Math.floor(itemStart % 60);
+                const eH = Math.floor(itemEnd / 3600);
+                const eM = Math.floor((itemEnd % 3600) / 60);
+                const eS = Math.floor(itemEnd % 60);
+
+                items.push({
+                    id: `theme_${block.id}`,
+                    blockId: block.id,
+                    blockTitle: block.title,
+                    blockColor: block.color,
+                    blockEmoji: block.emoji,
+                    title: block.themeJingle.title || `Générique • ${block.title}`,
+                    artist: 'DROPSIDERS RADIO',
+                    event: `GÉNÉRIQUE D'ÉMISSION • ${block.title}`,
+                    youtubeId: block.themeJingle.youtubeId,
+                    audioUrl: block.themeJingle.audioUrl,
+                    startTime: `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}:${String(sS).padStart(2, '0')}`,
+                    endTime: `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}:${String(eS).padStart(2, '0')}`,
+                    startSecondsFromMidnight: itemStart,
+                    durationSeconds: themeDur,
+                    durationFormatted: formatDurationExact(themeDur),
+                    isCurrentlyLive: isLive,
+                    category: 'jingle',
+                    isThemeJingle: true
+                });
+
+                hourCursor += themeDur;
+                hourAvailableSec -= themeDur;
             }
-            const itemStartFromMidnight = (blockStartSec + cursor) % 86400;
-            const itemEndFromMidnight = (itemStartFromMidnight + dur) % 86400;
 
-            const sH = Math.floor(itemStartFromMidnight / 3600);
-            const sM = Math.floor((itemStartFromMidnight % 3600) / 60);
-            const sS = Math.floor(itemStartFromMidnight % 60);
-            const eH = Math.floor(itemEndFromMidnight / 3600);
-            const eM = Math.floor((itemEndFromMidnight % 3600) / 60);
-            const eS = Math.floor(itemEndFromMidnight % 60);
+            // 3. Remplissage des morceaux de l'heure
+            while (hourCursor < 3600 && trackIdx < 150) {
+                const track = tracks[trackIdx % tracks.length];
+                const dur = sanitizeTrackDuration(track);
 
-            const isLive = (itemStartFromMidnight <= itemEndFromMidnight)
-                ? (nowSec >= itemStartFromMidnight && nowSec < itemEndFromMidnight)
-                : (nowSec >= itemStartFromMidnight || nowSec < itemEndFromMidnight);
+                const itemStart = (hourStartSec + hourCursor) % 86400;
+                const itemEnd = (itemStart + dur) % 86400;
 
-            const { artist } = parseArtistAndEvent(track.title);
+                const isLive = (itemStart <= itemEnd)
+                    ? (nowSec >= itemStart && nowSec < itemEnd)
+                    : (nowSec >= itemStart || nowSec < itemEnd);
 
-            // Format time with seconds when start & end are in the same minute
-            const needSeconds = (sH === eH && sM === eM);
-            const startTimeStr = needSeconds
-                ? `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}:${String(sS).padStart(2, '0')}`
-                : `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}`;
-            const endTimeStr = needSeconds
-                ? `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}:${String(eS).padStart(2, '0')}`
-                : `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}`;
+                const { artist } = parseArtistAndEvent(track.title);
 
-            items.push({
-                id: `${block.id}_t_${trackIdx}_${track.id || track.youtubeId}`,
-                blockId: block.id,
-                blockTitle: block.title,
-                blockColor: block.color,
-                blockEmoji: block.emoji,
-                title: track.title,
-                artist: track.artist || artist || 'Artiste',
-                event: block.title,
-                youtubeId: track.youtubeId,
-                audioUrl: track.audioUrl,
-                startTime: startTimeStr,
-                endTime: endTimeStr,
-                startSecondsFromMidnight: itemStartFromMidnight,
-                durationSeconds: dur,
-                durationFormatted: formatDurationExact(dur),
-                isCurrentlyLive: isLive,
-                category: track.category
-            });
+                const sH = Math.floor(itemStart / 3600);
+                const sM = Math.floor((itemStart % 3600) / 60);
+                const sS = Math.floor(itemStart % 60);
+                const eH = Math.floor(itemEnd / 3600);
+                const eM = Math.floor((itemEnd % 3600) / 60);
+                const eS = Math.floor(itemEnd % 60);
 
-            cursor += dur;
-            trackIdx++;
+                const needSeconds = (sH === eH && sM === eM);
+                const startTimeStr = needSeconds
+                    ? `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}:${String(sS).padStart(2, '0')}`
+                    : `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}`;
+                const endTimeStr = needSeconds
+                    ? `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}:${String(eS).padStart(2, '0')}`
+                    : `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}`;
+
+                items.push({
+                    id: `${block.id}_h${currentH}_t${trackIdx}_${track.id || track.youtubeId}`,
+                    blockId: block.id,
+                    blockTitle: block.title,
+                    blockColor: block.color,
+                    blockEmoji: block.emoji,
+                    title: track.title,
+                    artist: track.artist || artist || 'Artiste',
+                    event: block.title,
+                    youtubeId: track.youtubeId,
+                    audioUrl: track.audioUrl,
+                    startTime: startTimeStr,
+                    endTime: endTimeStr,
+                    startSecondsFromMidnight: itemStart,
+                    durationSeconds: dur,
+                    durationFormatted: formatDurationExact(dur),
+                    isCurrentlyLive: isLive,
+                    category: track.category
+                });
+
+                hourCursor += dur;
+                trackIdx++;
+            }
         }
     });
 
     return items;
 }
+
+export interface RadioTimeScheduleResult {
+    currentLive: ComputedRadioScheduleItem | null;
+    currentBlock: RadioScheduleBlock | null;
+    items: ComputedRadioScheduleItem[];
+    pastCount: number;
+    upcomingCount: number;
+    nowSec: number;
+}
+
+/**
+ * Filtre la programmation radio "EN FONCTION DE L'HEURE QU'IL EST"
+ * (ne montre pas toute la journée mais se focalise sur ce qui passe maintenant et à suivre)
+ */
+export function getRadioTimeBasedSchedule(
+    blocks: RadioScheduleBlock[],
+    nowSec: number = getParisSeconds(),
+    mode: 'now_upcoming' | 'current_show' | 'full_day' = 'now_upcoming',
+    maxUpcoming: number = 35
+): RadioTimeScheduleResult {
+    const all = computeRadioDaySchedule(blocks, nowSec);
+    const activeBlock = getActiveRadioBlock(blocks, Math.floor(nowSec / 3600), getParisDayOfWeek());
+
+    const liveItem = all.find(item => item.isCurrentlyLive) || null;
+
+    if (mode === 'full_day') {
+        return {
+            currentLive: liveItem,
+            currentBlock: activeBlock,
+            items: all,
+            pastCount: 0,
+            upcomingCount: all.length,
+            nowSec
+        };
+    }
+
+    if (mode === 'current_show' && activeBlock) {
+        const showItems = all.filter(item => item.blockId === activeBlock.id);
+        const past = showItems.filter(item => {
+            const end = (item.startSecondsFromMidnight + item.durationSeconds) % 86400;
+            return !item.isCurrentlyLive && item.startSecondsFromMidnight < nowSec && end <= nowSec;
+        });
+        return {
+            currentLive: liveItem,
+            currentBlock: activeBlock,
+            items: showItems,
+            pastCount: past.length,
+            upcomingCount: showItems.length - past.length,
+            nowSec
+        };
+    }
+
+    // Mode par défaut : 'now_upcoming' (En direct + Prochains titres à venir)
+    // On conserve le live en cours, puis tous les titres suivants à partir de maintenant
+    const filtered: ComputedRadioScheduleItem[] = [];
+    let pastCount = 0;
+
+    for (const item of all) {
+        const itemEnd = (item.startSecondsFromMidnight + item.durationSeconds) % 86400;
+        const isPast = !item.isCurrentlyLive && (
+            (item.startSecondsFromMidnight < nowSec && itemEnd <= nowSec) &&
+            !(item.startSecondsFromMidnight > itemEnd) // exclusion cross midnight
+        );
+
+        if (item.isCurrentlyLive) {
+            filtered.push(item);
+        } else if (isPast) {
+            pastCount++;
+        } else {
+            filtered.push(item);
+            if (filtered.length >= maxUpcoming) break;
+        }
+    }
+
+    return {
+        currentLive: liveItem,
+        currentBlock: activeBlock,
+        items: filtered,
+        pastCount,
+        upcomingCount: Math.max(0, filtered.length - (liveItem ? 1 : 0)),
+        nowSec
+    };
+}
+
 
