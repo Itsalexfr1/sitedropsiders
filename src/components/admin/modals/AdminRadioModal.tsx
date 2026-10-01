@@ -36,6 +36,7 @@ import {
 import { extractYouTubeId, fetchYouTubeTitle } from './AdminTVModal';
 import { YouTubeSearchModal } from './YouTubeSearchModal';
 import { apiFetch, getAuthHeaders } from '../../../utils/auth';
+import { uploadFile } from '../../../utils/uploadService';
 import defaultSettings from '../../../data/settings.json';
 import { ConfirmModal } from '../../ui/ConfirmModal';
 import { DuplicateAuditModal, detectRadioDuplicates, type DuplicateEntry } from '../../ui/DuplicateAuditModal';
@@ -1934,29 +1935,30 @@ export function AdminRadioModal({
                                                         if (!file) return;
                                                         setIntroUploading(true);
                                                         try {
-                                                            const formData = new FormData();
-                                                            formData.append('file', file);
-                                                            formData.append('category', 'generique');
-                                                            const res = await apiFetch('/api/upload/audio', {
-                                                                method: 'POST',
-                                                                headers: getAuthHeaders(),
-                                                                body: formData
-                                                            });
-                                                            if (res.ok) {
-                                                                const data = await res.json();
-                                                                const url = data.url || data.audioUrl || '';
+                                                            let url = '';
+                                                            try {
+                                                                url = await uploadFile(file);
+                                                            } catch (err) {
+                                                                // Fallback to data URI if upload fails
+                                                                url = await new Promise((resolve) => {
+                                                                    const r = new FileReader();
+                                                                    r.onload = () => resolve(r.result as string);
+                                                                    r.readAsDataURL(file);
+                                                                });
+                                                            }
+                                                            
+                                                            if (url) {
                                                                 setEditBlockForm(f => ({
                                                                     ...f,
                                                                     introAudioUrl: url,
                                                                     introYoutubeId: '',
-                                                                    introTitle: f.introTitle || file.name.replace(/\.[^.]+$/, ''),
-                                                                    introDuration: data.duration || f.introDuration
+                                                                    introTitle: f.introTitle || file.name.replace(/\.[^.]+$/, '')
                                                                 }));
                                                                 showToast('✓ Générique uploadé avec succès !', 'success');
                                                             } else {
                                                                 showToast('Erreur lors de l\'upload du générique', 'warn');
                                                             }
-                                                        } catch {
+                                                        } catch (err) {
                                                             showToast('Erreur réseau lors de l\'upload', 'warn');
                                                         } finally {
                                                             setIntroUploading(false);
