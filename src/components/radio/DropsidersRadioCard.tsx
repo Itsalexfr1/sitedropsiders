@@ -8,8 +8,10 @@ import {
     VolumeX, 
     Sparkles, 
     Disc3, 
-    Clock 
+    Clock,
+    MessageSquare
 } from 'lucide-react';
+import { RadioDedicationModal } from './RadioDedicationModal';
 import { 
     formatDurationExact, 
     getCurrentLiveRadioTrack, 
@@ -42,6 +44,7 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
     const [currentSet, setCurrentSet] = useState<ComputedRadioScheduleItem | null>(() => initialLive?.item || null);
     const [uiOffset, setUiOffset] = useState(() => initialLive?.offsetSeconds || 0);
     const [listenersCount, setListenersCount] = useState<number>(0);
+    const [isDedicationModalOpen, setIsDedicationModalOpen] = useState(false);
 
     // Synchronisation avec DropsidersRadioPlayer via custom events
     useEffect(() => {
@@ -238,6 +241,17 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
                     />
                 </div>
 
+                {/* Dédicace Auditeur */}
+                <button
+                    type="button"
+                    onClick={() => setIsDedicationModalOpen(true)}
+                    className="px-2.5 sm:px-3 py-2 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-purple-300 hover:text-white text-[9px] sm:text-[10px] font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
+                    title="Envoyer un message ou une dédicace en direct à l'animateur"
+                >
+                    <MessageSquare className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Dédicace</span>
+                </button>
+
                 {/* Volume & Mute */}
                 <div className="flex items-center gap-2">
                     <button 
@@ -262,6 +276,13 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
                     />
                 </div>
             </div>
+
+            {/* Modale Dédicace Auditeur */}
+            <RadioDedicationModal
+                isOpen={isDedicationModalOpen}
+                onClose={() => setIsDedicationModalOpen(false)}
+                currentTrackTitle={currentSet ? `${currentSet.title} - ${currentSet.artist}` : undefined}
+            />
         </motion.div>
     );
 }

@@ -44,7 +44,10 @@ import {
     Smartphone,
     Headphones,
     ArrowUpRight,
-    ShieldCheck
+    ShieldCheck,
+    MessageSquare,
+    Disc,
+    Timer
 } from 'lucide-react';
 import { extractYouTubeId, fetchYouTubeTitle } from './AdminTVModal';
 import { YouTubeSearchModal } from './YouTubeSearchModal';
@@ -86,6 +89,8 @@ import {
 import { parseArtistAndEvent } from '../../../utils/tvSchedule';
 import { RadioJingleUploadModal } from '../radio/RadioJingleUploadModal';
 import { RadioOnAirMonitor } from '../radio/RadioOnAirMonitor';
+import { RadioDedicationsPanel } from '../radio/RadioDedicationsPanel';
+import { RadioBroadcastRecorder } from '../radio/RadioBroadcastRecorder';
 import { DEFAULT_JINGLES_PUBS, type RadionomyItem } from './RadionomyJinglesBox';
 
 const PRESET_EMOJIS = ['🎧', '🔥', '⚡', '🚀', '🎵', '🕺', '📻', '💎', '🎉', '🌙', '☀️', '⭐', '🌅', '🎪'];
@@ -1579,6 +1584,28 @@ export function AdminRadioModal({
                             >
                                 📊 Stats
                             </button>
+                            <button
+                                type="button"
+                                onClick={() => setActiveFolder('dedications')}
+                                className={`px-3.5 py-1.5 rounded-lg transition-all ${
+                                    activeFolder === 'dedications'
+                                        ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40 shadow-sm font-bold'
+                                        : 'text-gray-400 hover:text-white'
+                                }`}
+                            >
+                                💬 Dédicaces
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setActiveFolder('recorder')}
+                                className={`px-3.5 py-1.5 rounded-lg transition-all ${
+                                    activeFolder === 'recorder'
+                                        ? 'bg-red-500/20 text-red-300 border border-red-500/30 shadow-sm font-bold'
+                                        : 'text-gray-400 hover:text-white'
+                                }`}
+                            >
+                                🎙️ Enregistreur
+                            </button>
                         </div>
                     </div>
 
@@ -1972,6 +1999,32 @@ export function AdminRadioModal({
                                     <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${topHoraireConfig.enabled ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-400'}`}>
                                         {topHoraireConfig.enabled ? 'ON' : 'OFF'}
                                     </span>
+                                </button>
+                            </div>
+
+                            {/* DOSSIER 6 : DÉDICACES & ENREGISTREUR PODCAST */}
+                            <div className="pt-2 border-t border-white/5 space-y-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveFolder('dedications')}
+                                    className={`w-full flex items-center justify-between py-1.5 px-2 rounded-lg font-bold uppercase tracking-wider text-[11px] transition-all ${
+                                        activeFolder === 'dedications'
+                                            ? 'bg-purple-600 text-white shadow-sm'
+                                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    }`}
+                                >
+                                    <span className="flex items-center gap-2">💬 Dédicaces Auditeurs</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveFolder('recorder')}
+                                    className={`w-full flex items-center justify-between py-1.5 px-2 rounded-lg font-bold uppercase tracking-wider text-[11px] transition-all ${
+                                        activeFolder === 'recorder'
+                                            ? 'bg-red-600 text-white shadow-sm'
+                                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    }`}
+                                >
+                                    <span className="flex items-center gap-2">🎙️ Enregistreur Podcast</span>
                                 </button>
                             </div>
                         </div>
@@ -2844,6 +2897,7 @@ export function AdminRadioModal({
                                             onToggleMicTest={handleToggleMicTest}
                                             onToggleHeadphoneMonitor={handleToggleHeadphoneMonitor}
                                             onGoToStats={() => setActiveFolder('stats')}
+                                            micStream={micStreamRef.current}
                                         />
                                     </div>
                                 )}
@@ -3197,6 +3251,20 @@ export function AdminRadioModal({
                                         <strong>Mode Privé Actif :</strong> Ce compteur d'auditeurs et ces métriques sont strictement cantonnés à cet onglet Stats de l'administration. Aucun visiteur ou auditeur public ne peut voir le nombre d'écoutes sur le site.
                                     </span>
                                 </div>
+                            </div>
+                        )}
+
+                        {/* ── PANEL DÉDICACES & CHAT AUDITEURS EN RÉGIE ── */}
+                        {activeFolder === 'dedications' && (
+                            <div className="flex-1 overflow-y-auto p-6 flex flex-col min-h-0 bg-[#0a0e17]">
+                                <RadioDedicationsPanel />
+                            </div>
+                        )}
+
+                        {/* ── PANEL ENREGISTREUR D'ÉMISSIONS (PODCAST / REPLAY) ── */}
+                        {activeFolder === 'recorder' && (
+                            <div className="flex-1 overflow-y-auto p-6 flex flex-col min-h-0 bg-[#0a0e17]">
+                                <RadioBroadcastRecorder micStream={micStreamRef.current} />
                             </div>
                         )}
 

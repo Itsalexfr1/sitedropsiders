@@ -15,8 +15,15 @@ import {
     Mic,
     MicOff,
     Users,
-    Headphones
+    Headphones,
+    Timer,
+    MessageSquare,
+    Disc,
+    Smartphone
 } from 'lucide-react';
+import { RadioSpeakerTimer } from './RadioSpeakerTimer';
+import { RadioDedicationsPanel } from './RadioDedicationsPanel';
+import { RadioBroadcastRecorder } from './RadioBroadcastRecorder';
 import {
     getCurrentLiveRadioTrack,
     getParisSeconds,
@@ -43,6 +50,7 @@ interface RadioOnAirMonitorProps {
     onToggleMicTest?: () => void;
     onToggleHeadphoneMonitor?: () => void;
     onGoToStats?: () => void;
+    micStream?: MediaStream | null;
 }
 
 export function RadioOnAirMonitor({
@@ -60,8 +68,42 @@ export function RadioOnAirMonitor({
     onToggleLiveMic,
     onToggleMicTest,
     onToggleHeadphoneMonitor,
-    onGoToStats
+    onGoToStats,
+    micStream
 }: RadioOnAirMonitorProps) {
+    const [studioTab, setStudioTab] = useState<'on_air' | 'timer' | 'dedications' | 'recorder'>('on_air');
+    const [unreadDedications, setUnreadDedications] = useState<number>(0);
+
+    // Écoute des dédicaces reçues pour badge de notification
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem('dropsiders_radio_dedications');
+            if (raw) {
+                const arr = JSON.parse(raw);
+                if (Array.isArray(arr)) {
+                    setUnreadDedications(arr.filter((d: any) => d.status === 'new').length);
+                }
+            }
+        } catch {}
+
+        let channel: BroadcastChannel | null = null;
+        try {
+            if (typeof BroadcastChannel !== 'undefined') {
+                channel = new BroadcastChannel('dropsiders_radio_dedications');
+                channel.onmessage = (ev) => {
+                    if (ev.data?.type === 'new_dedication') {
+                        setUnreadDedications(c => c + 1);
+                    } else if (ev.data?.type === 'sync' && Array.isArray(ev.data?.dedications)) {
+                        setUnreadDedications(ev.data.dedications.filter((d: any) => d.status === 'new').length);
+                    }
+                };
+            }
+        } catch {}
+
+        return () => {
+            if (channel) channel.close();
+        };
+    }, []);
     // Horloge temps réel Europe/Paris
     const [nowSec, setNowSec] = useState<number>(getParisSeconds);
     const [parisTimeStr, setParisTimeStr] = useState<string>('');
@@ -143,10 +185,70 @@ export function RadioOnAirMonitor({
     const liveCategoryMeta = liveItem ? getRadioCategoryMeta(liveItem.category, liveItem.isThemeJingle, liveItem.isTopHoraire) : null;
 
     return (
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            {/* ── BANDEAU PRINCIPAL : HORLOGE + STATUT MASTER ── */}
-            <div className="p-6 rounded-3xl bg-gradient-to-r from-[#0d101a] via-[#111626] to-[#0d101a] border border-white/10 shadow-2xl flex flex-wrap items-center justify-between gap-6 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-neon-cyan via-purple-500 to-neon-red" />
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+            {/* ── SOUS-ONGLETS STUDIO RÉGIE & MODE MOBILE ── */}
+            <div className="flex items-center gap-2 p-1.5 bg-black/60 rounded-2xl border border-white/10 overflow-x-auto">
+                <button
+                    type="button"
+                    onClick={() => setStudioTab('on_air')}
+                    className={`px-3.5 sm:px-4 py-2 rounded-xl font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                        studioTab === 'on_air'
+                            ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/20'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                >
+                    <Radio className="w-3.5 h-3.5" />
+                    <span>Direct Antenne</span>
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setStudioTab('timer')}
+                    className={`px-3.5 sm:px-4 py-2 rounded-xl font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                        studioTab === 'timer'
+                            ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                >
+                    <Timer className="w-3.5 h-3.5" />
+                    <span>⏱️ Minuteur Animateur</span>
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setStudioTab('dedications')}
+                    className={`px-3.5 sm:px-4 py-2 rounded-xl font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                        studioTab === 'dedications'
+                            ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>💬 Dédicaces Auditeurs</span>
+                    {unreadDedications > 0 && (
+                        <span className="px-1.5 py-0.2 rounded-full bg-red-500 text-white font-mono text-[9px] font-black animate-pulse">
+                            {unreadDedications}
+                        </span>
+                    )}
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setStudioTab('recorder')}
+                    className={`px-3.5 sm:px-4 py-2 rounded-xl font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                        studioTab === 'recorder'
+                            ? 'bg-red-600 text-white shadow-lg shadow-red-600/20'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                >
+                    <Disc className="w-3.5 h-3.5" />
+                    <span>🎙️ Enregistreur Podcast</span>
+                </button>
+            </div>
+
+            {/* VUE 1 : DIRECT ANTENNE & SOUNDBOARD */}
+            {studioTab === 'on_air' && (
+                <>
+                    {/* ── BANDEAU PRINCIPAL : HORLOGE + STATUT MASTER ── */}
+                    <div className="p-4 sm:p-6 rounded-3xl bg-gradient-to-r from-[#0d101a] via-[#111626] to-[#0d101a] border border-white/10 shadow-2xl flex flex-wrap items-center justify-between gap-4 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-neon-cyan via-purple-500 to-neon-red" />
 
                 {/* Horloge de Paris */}
                 <div className="flex items-center gap-5">
@@ -471,71 +573,172 @@ export function RadioOnAirMonitor({
                     </div>
                 </div>
 
-                {/* Soundboard / Cartwall Express */}
-                <div className="lg:col-span-4 p-5 rounded-3xl bg-[#0b0d14]/90 border border-white/10 shadow-xl flex flex-col justify-between">
-                    <div>
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[10px] font-display font-black uppercase italic tracking-wider text-purple-300 flex items-center gap-1.5">
-                                <Flame className="w-3.5 h-3.5 text-purple-400" />
-                                Cartwall · Jingles Express :
-                            </span>
-                            <button
-                                type="button"
-                                onClick={onGoToMediaPool}
-                                className="text-[9px] font-mono text-gray-400 hover:text-white underline cursor-pointer"
-                            >
-                                Bac complet
-                            </button>
-                        </div>
+                {/* Soundboard / Cartwall Express + Minuteur Animateur Compact */}
+                <div className="lg:col-span-4 space-y-6 flex flex-col justify-between">
+                    {/* Minuteur Animateur Compact */}
+                    <RadioSpeakerTimer
+                        trackRemainingSeconds={remainingSeconds}
+                        currentTrackTitle={liveItem?.title}
+                        compact
+                    />
 
-                        <p className="text-[9px] text-gray-400 font-sans mb-3">
-                            Cliquez pour écouter ou tester un drop audio instantanément en régie :
-                        </p>
+                    {/* Soundboard Cartwall */}
+                    <div className="p-5 rounded-3xl bg-[#0b0d14]/90 border border-white/10 shadow-xl flex flex-col justify-between">
+                        <div>
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-[10px] font-display font-black uppercase italic tracking-wider text-purple-300 flex items-center gap-1.5">
+                                    <Flame className="w-3.5 h-3.5 text-purple-400" />
+                                    Cartwall · Jingles Express :
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={onGoToMediaPool}
+                                    className="text-[9px] font-mono text-gray-400 hover:text-white underline cursor-pointer"
+                                >
+                                    Bac complet
+                                </button>
+                            </div>
 
-                        <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
-                            {cartwallItems.length === 0 ? (
-                                <div className="col-span-2 py-6 text-center text-gray-500 text-[10px] font-mono">
-                                    Aucun jingle dans le bac rapide.
-                                </div>
-                            ) : (
-                                cartwallItems.map((item) => {
-                                    const isPlaying = previewAudioId === item.id;
-                                    return (
-                                        <button
-                                            key={item.id}
-                                            type="button"
-                                            onClick={() => handlePlayInstantSound(item.id, item.audioUrl)}
-                                            disabled={!item.audioUrl}
-                                            className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between relative group ${
-                                                isPlaying
-                                                    ? 'bg-purple-600 text-white border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.5)] scale-[1.02]'
-                                                    : 'bg-white/[0.03] hover:bg-white/[0.08] border-white/10 hover:border-purple-500/40 text-gray-300'
-                                            } ${!item.audioUrl ? 'opacity-40 cursor-not-allowed' : ''}`}
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-[8px] font-display font-black uppercase italic px-1.5 py-0.5 rounded bg-black/40 text-purple-300">
-                                                    {item.category === 'top_horaire' ? '⏰ TOP' : '🔔 JINGLE'}
+                            <p className="text-[9px] text-gray-400 font-sans mb-3">
+                                Cliquez pour écouter ou tester un drop audio instantanément en régie :
+                            </p>
+
+                            <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
+                                {cartwallItems.length === 0 ? (
+                                    <div className="col-span-2 py-6 text-center text-gray-500 text-[10px] font-mono">
+                                        Aucun jingle dans le bac rapide.
+                                    </div>
+                                ) : (
+                                    cartwallItems.map((item) => {
+                                        const isPlaying = previewAudioId === item.id;
+                                        return (
+                                            <button
+                                                key={item.id}
+                                                type="button"
+                                                onClick={() => handlePlayInstantSound(item.id, item.audioUrl)}
+                                                disabled={!item.audioUrl}
+                                                className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between relative group ${
+                                                    isPlaying
+                                                        ? 'bg-purple-600 text-white border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.5)] scale-[1.02]'
+                                                        : 'bg-white/[0.03] hover:bg-white/[0.08] border-white/10 hover:border-purple-500/40 text-gray-300'
+                                                } ${!item.audioUrl ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[8px] font-display font-black uppercase italic px-1.5 py-0.5 rounded bg-black/40 text-purple-300">
+                                                        {item.category === 'top_horaire' ? '⏰ TOP' : '🔔 JINGLE'}
+                                                    </span>
+                                                    {isPlaying ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current opacity-60 group-hover:opacity-100" />}
+                                                </div>
+                                                <p className="text-[10px] font-display font-black uppercase italic truncate mt-2 leading-tight">
+                                                    {item.title}
+                                                </p>
+                                                <span className="text-[8px] font-mono text-gray-400 mt-1">
+                                                    {item.duration}s {item.audioUrl ? '· WAV/MP3' : ''}
                                                 </span>
-                                                {isPlaying ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current opacity-60 group-hover:opacity-100" />}
-                                            </div>
-                                            <p className="text-[10px] font-display font-black uppercase italic truncate mt-2 leading-tight">
-                                                {item.title}
-                                            </p>
-                                            <span className="text-[8px] font-mono text-gray-400 mt-1">
-                                                {item.duration}s {item.audioUrl ? '· WAV/MP3' : ''}
-                                            </span>
-                                        </button>
-                                    );
-                                })
-                            )}
+                                            </button>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="pt-3 mt-3 border-t border-white/10 text-center">
+                            <span className="text-[8.5px] font-mono text-gray-500">
+                                💡 Glissez des MP3 dans l'onglet Médiathèque pour enrichir ce pad
+                            </span>
                         </div>
                     </div>
+                </div>
+            </div>
+            </>
+            )}
 
-                    <div className="pt-3 mt-3 border-t border-white/10 text-center">
-                        <span className="text-[8.5px] font-mono text-gray-500">
-                            💡 Glissez des MP3 dans l'onglet Médiathèque pour enrichir ce pad
-                        </span>
-                    </div>
+            {/* VUE 2 : MINUTEUR ANIMATEUR GRAND FORMAT */}
+            {studioTab === 'timer' && (
+                <div className="max-w-2xl mx-auto py-4">
+                    <RadioSpeakerTimer
+                        trackRemainingSeconds={remainingSeconds}
+                        currentTrackTitle={liveItem?.title}
+                    />
+                </div>
+            )}
+
+            {/* VUE 3 : DÉDICACES & CHAT AUDITEURS */}
+            {studioTab === 'dedications' && (
+                <div className="max-w-4xl mx-auto py-2">
+                    <RadioDedicationsPanel />
+                </div>
+            )}
+
+            {/* VUE 4 : ENREGISTREUR D'ÉMISSION (PODCAST / REPLAY) */}
+            {studioTab === 'recorder' && (
+                <div className="max-w-3xl mx-auto py-2">
+                    <RadioBroadcastRecorder
+                        micStream={micStream}
+                        currentShowTitle={liveItem?.blockTitle || liveItem?.title || 'Émission Dropsiders Radio Live'}
+                    />
+                </div>
+            )}
+
+            {/* ── BARRE TACTILE STUDIO MOBILE (FLOTTANTE SUR PETIT ÉCRAN) ── */}
+            <div className="block lg:hidden sticky bottom-0 z-30 bg-[#070a12]/95 border-t border-white/15 p-2 backdrop-blur-xl rounded-t-2xl shadow-2xl">
+                <div className="flex items-center justify-between gap-2">
+                    {/* Bouton ON AIR XXL */}
+                    <button
+                        type="button"
+                        onClick={onToggleRadio}
+                        className={`flex-1 py-2.5 rounded-xl font-display font-black text-xs uppercase italic tracking-wider flex items-center justify-center gap-1.5 cursor-pointer shadow-lg ${
+                            isRadioActive
+                                ? 'bg-emerald-500 text-black shadow-emerald-500/30'
+                                : 'bg-red-500 text-white shadow-red-500/30'
+                        }`}
+                    >
+                        <span className={`w-2 h-2 rounded-full ${isRadioActive ? 'bg-black animate-ping' : 'bg-white'}`} />
+                        <span>{isRadioActive ? 'ON AIR' : 'OFFLINE'}</span>
+                    </button>
+
+                    {/* Bouton Micro Talk-over Mobile */}
+                    {onToggleLiveMic && (
+                        <button
+                            type="button"
+                            onClick={onToggleLiveMic}
+                            className={`flex-1 py-2.5 rounded-xl font-display font-black text-xs uppercase italic tracking-wider flex items-center justify-center gap-1.5 cursor-pointer shadow-lg ${
+                                isLiveMicActive
+                                    ? 'bg-red-500 text-white animate-pulse shadow-red-500/50'
+                                    : 'bg-purple-600 text-white shadow-purple-600/30'
+                            }`}
+                        >
+                            {isLiveMicActive ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+                            <span>{isLiveMicActive ? 'COUPER' : 'TALK-OVER'}</span>
+                        </button>
+                    )}
+
+                    {/* Accès rapide dédicaces */}
+                    <button
+                        type="button"
+                        onClick={() => setStudioTab('dedications')}
+                        className={`p-2.5 rounded-xl border relative cursor-pointer ${
+                            studioTab === 'dedications' ? 'bg-purple-600 text-white border-purple-400' : 'bg-white/5 border-white/10 text-gray-300'
+                        }`}
+                        title="Dédicaces"
+                    >
+                        <MessageSquare className="w-4 h-4" />
+                        {unreadDedications > 0 && (
+                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+                        )}
+                    </button>
+
+                    {/* Accès rapide timer */}
+                    <button
+                        type="button"
+                        onClick={() => setStudioTab('timer')}
+                        className={`p-2.5 rounded-xl border cursor-pointer ${
+                            studioTab === 'timer' ? 'bg-amber-500 text-black border-amber-400' : 'bg-white/5 border-white/10 text-gray-300'
+                        }`}
+                        title="Minuteur"
+                    >
+                        <Timer className="w-4 h-4" />
+                    </button>
                 </div>
             </div>
         </div>
