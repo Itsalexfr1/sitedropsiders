@@ -7974,6 +7974,14 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
           "category": "jingle"
+        },
+        {
+          "id": "track_1790877463722_jipa",
+          "title": "Spectrum (Say My Name) (Calvin Harris Radio Edit)",
+          "artist": "Florence + The Machine",
+          "youtubeId": "SZhLrOghfTI",
+          "duration": 3600,
+          "category": "clip"
         }
       ],
       "specialJingles": [
@@ -13884,6 +13892,14 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 46,
       "category": "jingle"
+    },
+    {
+      "id": "track_1790877463722_jipa",
+      "title": "Spectrum (Say My Name) (Calvin Harris Radio Edit)",
+      "artist": "Florence + The Machine",
+      "youtubeId": "SZhLrOghfTI",
+      "duration": 3600,
+      "category": "clip"
     },
     {
       "id": "rt_tv_1790257302402_26gf",
