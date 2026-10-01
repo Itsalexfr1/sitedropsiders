@@ -293,5 +293,19 @@
       "soundcloud": "https://soundcloud.com/expertsonly",
       "beatport": "https://www.beatport.com/fr/label/experts-only/103008?srsltid=AfmBOophaGOuabJppP7sf1GyvOunc5v2wgs03RwFwkMF4pF34IK27-33"
     }
+  },
+  {
+    "name": "EDC LAS VEGAS",
+    "socials": {
+      "website": "https://lasvegas.edc.com",
+      "instagram": "https://www.instagram.com/edc_lasvegas/",
+      "tiktok": "https://www.tiktok.com/@electric_daisy_carnival",
+      "youtube": "https://www.youtube.com/insomniac",
+      "facebook": "https://www.facebook.com/electricdaisycarnival",
+      "x": "https://twitter.com/EDC_LasVegas",
+      "spotify": "https://open.spotify.com/playlist/6aKeNXbP3MirExlGu1tVXf?si=8fcd416e93f046a3",
+      "soundcloud": "",
+      "beatport": ""
+    }
   }
 ]
