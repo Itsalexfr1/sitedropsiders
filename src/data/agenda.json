@@ -801,5 +801,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1127,
+    "title": "Fairgrounds Festival ",
+    "date": "2026-11-28",
+    "startDate": "2026-11-28",
+    "endDate": "2026-11-28",
+    "venue": "Messe Hannover",
+    "location": "HANOVRE",
+    "country": "ALLEMAGNE",
+    "type": "Festival",
+    "image": "/uploads/uploads/6d3afa987795e1f9-img_5322.png",
+    "url": "https://fairground-festival.de/",
+    "genre": "Multi Styles",
+    "month": "NOVEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
