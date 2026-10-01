@@ -4517,9 +4517,9 @@
       "id": "radio_bloc_1790256873762_k89p",
       "name": "L'AFTER WORK",
       "title": "L'AFTER WORK",
-      "timeSlot": "16h - 20h",
+      "timeSlot": "16h - 18h",
       "startHour": 16,
-      "endHour": 20,
+      "endHour": 18,
       "color": "#f59e0b",
       "emoji": "⚡",
       "randomize": true,
@@ -5363,15 +5363,16 @@
           "enabled": true
         }
       ],
-      "rotationRule": "son_special_son_jingle_promo"
+      "rotationRule": "son_special_son_jingle_promo",
+      "jingleFrequency": 2
     },
     {
       "id": "radio_bloc_1790257094891_kg2l",
       "name": "DROP TIME",
       "title": "DROP TIME",
-      "timeSlot": "20h - 22h",
-      "startHour": 20,
-      "endHour": 22,
+      "timeSlot": "18h - 20h",
+      "startHour": 18,
+      "endHour": 20,
       "color": "#10b981",
       "emoji": "🚀",
       "randomize": true,
@@ -5918,8 +5919,8 @@
       "title": "CLASSIC TIME",
       "name": "CLASSIC TIME",
       "startHour": 20,
-      "endHour": 22,
-      "timeSlot": "20h - 22h",
+      "endHour": 24,
+      "timeSlot": "20h - 00h",
       "color": "#00f0ff",
       "emoji": "🎧",
       "randomize": true,
