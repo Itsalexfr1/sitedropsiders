@@ -1832,10 +1832,13 @@ export function AdminRadioModal({
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2">
-                                                <h2 className="text-xl sm:text-2xl font-display font-black text-white uppercase italic tracking-tight">
-                                                    📅 Grille & Programmation Radio 24h/24
+                                                <h2 className="text-xl sm:text-2xl font-display font-black text-white uppercase italic tracking-tight truncate">
+                                                    📅 Programmation Radio
                                                 </h2>
-                                                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                                                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">
+                                                    24h/24
+                                                </span>
+                                                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shrink-0">
                                                     DIRECT UTC+2
                                                 </span>
                                             </div>
