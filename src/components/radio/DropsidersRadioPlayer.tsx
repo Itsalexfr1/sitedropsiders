@@ -201,12 +201,8 @@ function useRadioAudio() {
     }, [currentVideoId, currentSet?.audioUrl]);
 
     // ─── Canaux & Durées Découvertes ─────────────────────────────────────────
-    const [listenersCount, setListenersCount] = useState<number>(() => {
-        try {
-            const saved = sessionStorage.getItem('dropsiders_radio_listeners');
-            return saved ? parseInt(saved, 10) : (135 + Math.floor(Math.random() * 25));
-        } catch { return 142; }
-    });
+    // ─── Comptage Réel des Auditeurs (Sans Simulation Artificielle) ─────────
+    const [listenersCount, setListenersCount] = useState<number>(0);
 
     const [isDucking, setIsDucking] = useState(false);
     const isDuckingRef = useRef(isDucking);
@@ -222,33 +218,90 @@ function useRadioAudio() {
         return () => window.removeEventListener('dropsiders_radio_ducking', handleDucking);
     }, []);
 
-    // Ping et variation naturelle des auditeurs en direct
+    // Suivi en temps réel des auditeurs réels (Présence multi-onglets + API réelle sans +110 artificiel)
     useEffect(() => {
-        const fetchViewers = async () => {
+        const tabSessionId = 'tab_' + Math.random().toString(36).slice(2, 9);
+        const presenceMap = new Map<string, number>();
+
+        let channel: BroadcastChannel | null = null;
+        try {
+            if (typeof BroadcastChannel !== 'undefined') {
+                channel = new BroadcastChannel('dropsiders_radio_presence');
+                channel.onmessage = (ev) => {
+                    const data = ev.data;
+                    if (data && data.type === 'radio_ping' && data.id) {
+                        if (data.isPlaying) {
+                            presenceMap.set(data.id, Date.now());
+                        } else {
+                            presenceMap.delete(data.id);
+                        }
+                        updateTotalCount();
+                    } else if (data && data.type === 'radio_bye' && data.id) {
+                        presenceMap.delete(data.id);
+                        updateTotalCount();
+                    }
+                };
+            }
+        } catch {}
+
+        let remoteViewers = 0;
+
+        const updateTotalCount = () => {
+            const now = Date.now();
+            // Nettoyage des onglets inactifs depuis plus de 6 secondes
+            for (const [id, ts] of presenceMap.entries()) {
+                if (now - ts > 6000) presenceMap.delete(id);
+            }
+            const localActiveTabs = (isPlayingRef.current ? 1 : 0) + presenceMap.size;
+            const finalCount = Math.max(localActiveTabs, remoteViewers);
+            setListenersCount(finalCount);
+
+            // Mémorisation du pic réel
+            try {
+                const currentPeak = parseInt(localStorage.getItem('dropsiders_radio_peak_listeners') || '0', 10);
+                if (finalCount > currentPeak) {
+                    localStorage.setItem('dropsiders_radio_peak_listeners', String(finalCount));
+                }
+            } catch {}
+        };
+
+        const pingPresence = async () => {
+            if (channel) {
+                try {
+                    channel.postMessage({
+                        type: 'radio_ping',
+                        id: tabSessionId,
+                        isPlaying: isPlayingRef.current && !isMutedRef.current,
+                    });
+                } catch {}
+            }
+
+            // Requête API réelle si disponible (sans aucun ajout artificiel)
             try {
                 const res = await fetch('/api/chat/viewers?channel=radio');
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && typeof data.viewers === 'number' && data.viewers > 0) {
-                        const count = Math.max(80, data.viewers + 110);
-                        setListenersCount(count);
-                        try { sessionStorage.setItem('dropsiders_radio_listeners', String(count)); } catch {}
-                        return;
+                    if (data && typeof data.viewers === 'number') {
+                        remoteViewers = Math.max(0, data.viewers);
                     }
                 }
             } catch {}
-            // Variation vivante naturelle
-            setListenersCount(prev => {
-                const delta = (Math.random() > 0.48 ? 1 : -1) * Math.floor(Math.random() * 3 + 1);
-                const next = Math.max(122, Math.min(218, prev + delta));
-                try { sessionStorage.setItem('dropsiders_radio_listeners', String(next)); } catch {}
-                return next;
-            });
+
+            updateTotalCount();
         };
 
-        fetchViewers();
-        const interval = setInterval(fetchViewers, 15000);
-        return () => clearInterval(interval);
+        pingPresence();
+        const interval = setInterval(pingPresence, 3000);
+
+        return () => {
+            clearInterval(interval);
+            if (channel) {
+                try {
+                    channel.postMessage({ type: 'radio_bye', id: tabSessionId });
+                    channel.close();
+                } catch {}
+            }
+        };
     }, []);
 
     // Volume effectif prenant en compte le ducking (attenuation quand l'animateur parle)

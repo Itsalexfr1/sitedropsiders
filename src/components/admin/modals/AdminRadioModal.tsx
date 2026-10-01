@@ -290,8 +290,8 @@ export function AdminRadioModal({
         return () => clearInterval(interval);
     }, []);
 
-    // Auditeurs en direct (synchro avec DropsidersRadioPlayer)
-    const [listenersCount, setListenersCount] = useState<number>(142);
+    // Auditeurs en direct réels (synchro avec DropsidersRadioPlayer)
+    const [listenersCount, setListenersCount] = useState<number>(0);
     useEffect(() => {
         const handleState = (e: any) => {
             if (e?.detail && typeof e.detail.listenersCount === 'number') {
@@ -362,22 +362,41 @@ export function AdminRadioModal({
     const monitorGainNodeRef = useRef<GainNode | null>(null);
     const animFrameRef = useRef<number | null>(null);
 
-    // Énumère les micros disponibles (nécessite la permission d'abord)
-    const enumerateMicDevices = async () => {
+    // Énumère les micros disponibles en déclenchant la demande d'autorisation navigateur si demandé
+    const enumerateMicDevices = async (requestPermission = false) => {
         try {
+            if (requestPermission) {
+                // Déclenche la popup de permission micro du navigateur
+                const tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                tempStream.getTracks().forEach(t => t.stop());
+            }
             const devices = await navigator.mediaDevices.enumerateDevices();
             const mics = devices.filter(d => d.kind === 'audioinput');
             setMicDevices(mics);
-            if (mics.length > 0 && !selectedMicDeviceId) {
+            if (mics.length > 0 && (!selectedMicDeviceId || !mics.some(m => m.deviceId === selectedMicDeviceId))) {
                 setSelectedMicDeviceId(mics[0].deviceId);
             }
-        } catch {}
+            return mics;
+        } catch (err: any) {
+            console.warn('Microphone permission / enumeration error:', err);
+            return [];
+        }
     };
 
-    // Écoute les changements de périphériques (branchement/débranchement)
+    // Détection initiale et écoute des changements de périphériques (branchement/débranchement)
     useEffect(() => {
-        navigator.mediaDevices?.addEventListener?.('devicechange', enumerateMicDevices);
-        return () => navigator.mediaDevices?.removeEventListener?.('devicechange', enumerateMicDevices);
+        if (navigator.mediaDevices?.enumerateDevices) {
+            navigator.mediaDevices.enumerateDevices().then(devices => {
+                const mics = devices.filter(d => d.kind === 'audioinput');
+                if (mics.length > 0) {
+                    setMicDevices(mics);
+                    if (!selectedMicDeviceId) setSelectedMicDeviceId(mics[0].deviceId);
+                }
+            }).catch(() => {});
+        }
+        const onDevChange = () => enumerateMicDevices(false);
+        navigator.mediaDevices?.addEventListener?.('devicechange', onDevChange);
+        return () => navigator.mediaDevices?.removeEventListener?.('devicechange', onDevChange);
     }, []);
 
     const stopMicrophone = () => {
@@ -399,28 +418,40 @@ export function AdminRadioModal({
 
     const startMicrophone = async (mode: 'test' | 'on_air') => {
         try {
-            let stream = micStreamRef.current;
-            if (!stream) {
-                const audioConstraints: MediaTrackConstraints = {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    sampleRate: 48000,
-                };
-                if (selectedMicDeviceId) {
-                    audioConstraints.deviceId = { exact: selectedMicDeviceId };
-                }
-                stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints, video: false });
-                micStreamRef.current = stream;
-                // On profite de l'accord de permission pour énumérer les devices
-                await enumerateMicDevices();
-            }
-
+            // Débloquer l'AudioContext immédiatement pendant le clic utilisateur
+            const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
             let audioCtx = audioContextRef.current;
             if (!audioCtx || audioCtx.state === 'closed') {
-                const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
                 audioCtx = new AudioCtx();
                 audioContextRef.current = audioCtx;
             }
+            if (audioCtx.state === 'suspended') {
+                await audioCtx.resume();
+            }
+
+            // Arrêter tout flux précédent pour réappliquer les contraintes ou le device
+            if (micStreamRef.current) {
+                micStreamRef.current.getTracks().forEach(t => t.stop());
+                micStreamRef.current = null;
+            }
+
+            const audioConstraints: MediaTrackConstraints = {
+                // En mode test : pas d'echo cancellation pour entendre directement son propre retour casque
+                echoCancellation: mode === 'on_air',
+                noiseSuppression: mode === 'on_air',
+                autoGainControl: mode === 'on_air',
+                sampleRate: 48000,
+            };
+            if (selectedMicDeviceId) {
+                audioConstraints.deviceId = { exact: selectedMicDeviceId };
+            }
+
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints, video: false });
+            micStreamRef.current = stream;
+
+            // Ré-énumérer les micros pour afficher les vrais labels
+            await enumerateMicDevices(false);
+
             if (audioCtx.state === 'suspended') {
                 await audioCtx.resume();
             }
@@ -430,10 +461,11 @@ export function AdminRadioModal({
             analyser.fftSize = 64;
             source.connect(analyser);
 
-            // Nœud de gain pour retour casque local (vous entendez votre voix sans passer à la radio si mode test)
+            // Nœud de gain pour retour casque local
             const monitorGain = audioCtx.createGain();
+            // En mode test : gain 1.0 (on s'entend fort et clair dans le casque)
             const shouldHear = mode === 'test' ? true : isHeadphoneMonitor;
-            monitorGain.gain.value = shouldHear ? 0.85 : 0.0;
+            monitorGain.gain.value = shouldHear ? 1.0 : 0.0;
             source.connect(monitorGain);
             monitorGain.connect(audioCtx.destination);
             monitorGainNodeRef.current = monitorGain;
@@ -460,10 +492,10 @@ export function AdminRadioModal({
                 setIsMicTesting(true);
                 // En mode test : pas de ducking, pas de diffusion à la radio
                 window.dispatchEvent(new CustomEvent('dropsiders_radio_ducking', { detail: { active: false } }));
-                showToast('🎧 TEST MICRO PRIVÉ : Vous seul vous entendez dans vos écouteurs (hors antenne).', 'info');
+                showToast('🎧 RETOUR CASQUE ACTIF : Vous vous entendez en direct dans vos écouteurs.', 'info');
             }
         } catch (err: any) {
-            showToast('Accès micro refusé : ' + (err.message || 'activez l\'autorisation micro'), 'warn');
+            showToast('Accès micro refusé : ' + (err.message || 'veuillez autoriser l\'accès micro'), 'warn');
             stopMicrophone();
         }
     };
@@ -2095,39 +2127,50 @@ export function AdminRadioModal({
                                             <span className="text-[10px] text-gray-400 font-normal hidden sm:inline">auditeurs</span>
                                         </div>
 
-                                        {/* Sélecteur de Microphone */}
+                                        {/* Sélecteur de Microphone avec activation de permission */}
                                         <div className="flex items-center gap-1.5">
-                                            <Mic className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-                                            {micDevices.length === 0 ? (
+                                            <Mic className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                                            {micDevices.length === 0 || !micDevices.some(d => d.label) ? (
                                                 <button
                                                     type="button"
-                                                    onClick={enumerateMicDevices}
-                                                    className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[10px] font-mono cursor-pointer transition-all"
-                                                    title="Détecter les micros disponibles"
+                                                    onClick={() => enumerateMicDevices(true)}
+                                                    className="px-2.5 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-200 hover:text-white text-[10px] font-mono cursor-pointer transition-all flex items-center gap-1.5"
+                                                    title="Activer et autoriser l'accès micro pour choisir votre entrée audio"
                                                 >
-                                                    Détecter micros
+                                                    <Mic className="w-3 h-3 text-purple-400" />
+                                                    <span>Activer micro</span>
                                                 </button>
                                             ) : (
-                                                <select
-                                                    value={selectedMicDeviceId}
-                                                    onChange={e => {
-                                                        setSelectedMicDeviceId(e.target.value);
-                                                        // Si un micro est actif, on le redémarre avec le nouveau device
-                                                        if (isLiveMicActive || isMicTesting) {
-                                                            const mode = isLiveMicActive ? 'on_air' : 'test';
-                                                            stopMicrophone();
-                                                            setTimeout(() => startMicrophone(mode), 100);
-                                                        }
-                                                    }}
-                                                    className="max-w-[160px] px-2 py-1.5 bg-black/60 border border-white/15 rounded-xl text-[10px] font-mono text-white cursor-pointer focus:outline-none focus:border-purple-500/60 truncate"
-                                                    title="Choisir le microphone à utiliser"
-                                                >
-                                                    {micDevices.map(d => (
-                                                        <option key={d.deviceId} value={d.deviceId}>
-                                                            {d.label || `Micro ${d.deviceId.slice(0, 8)}...`}
-                                                        </option>
-                                                    ))}
-                                                </select>
+                                                <div className="flex items-center gap-1">
+                                                    <select
+                                                        value={selectedMicDeviceId}
+                                                        onChange={e => {
+                                                            const newId = e.target.value;
+                                                            setSelectedMicDeviceId(newId);
+                                                            if (isLiveMicActive || isMicTesting) {
+                                                                const currentMode = isLiveMicActive ? 'on_air' : 'test';
+                                                                stopMicrophone();
+                                                                setTimeout(() => startMicrophone(currentMode), 100);
+                                                            }
+                                                        }}
+                                                        className="max-w-[170px] px-2 py-1.5 bg-black/70 border border-white/15 rounded-xl text-[10px] font-mono text-white cursor-pointer focus:outline-none focus:border-purple-500/60 truncate"
+                                                        title="Microphone sélectionné"
+                                                    >
+                                                        {micDevices.map((d, idx) => (
+                                                            <option key={d.deviceId || idx} value={d.deviceId}>
+                                                                {d.label || `Microphone ${idx + 1}`}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => enumerateMicDevices(true)}
+                                                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                                                        title="Actualiser les micros"
+                                                    >
+                                                        <RefreshCw className="w-3 h-3" />
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
 
@@ -2882,29 +2925,29 @@ export function AdminRadioModal({
                                         </div>
                                     </div>
 
-                                    {/* KPI 2 : Pic du Jour */}
+                                    {/* KPI 2 : Pic du Jour (Réel) */}
                                     <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-950/30 to-black/60 border border-emerald-500/30 shadow-xl flex flex-col justify-between relative overflow-hidden">
                                         <div className="flex items-center justify-between">
                                             <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-300 font-bold flex items-center gap-1.5">
                                                 <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-                                                Pic d'Audience 24h
+                                                Pic d'Audience Réel
                                             </span>
                                             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold">
-                                                +19.2%
+                                                LIVE
                                             </span>
                                         </div>
                                         <div className="my-3">
                                             <div className="text-3xl sm:text-4xl font-mono font-black text-white flex items-baseline gap-2">
-                                                <span>286</span>
+                                                <span>{Math.max(listenersCount, parseInt(localStorage.getItem('dropsiders_radio_peak_listeners') || '0', 10))}</span>
                                                 <span className="text-xs font-sans text-gray-400">max</span>
                                             </div>
                                             <p className="text-[11px] text-gray-400 mt-1">
-                                                Atteint à 19:45 pendant le set Bassline
+                                                Pic réel enregistré pendant les sessions
                                             </p>
                                         </div>
                                         <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[10px] text-gray-400 font-mono">
-                                            <span>Moyenne journée :</span>
-                                            <strong className="text-white">164 auditeurs</strong>
+                                            <span>Auditeurs actuels :</span>
+                                            <strong className="text-white">{listenersCount} en direct</strong>
                                         </div>
                                     </div>
 

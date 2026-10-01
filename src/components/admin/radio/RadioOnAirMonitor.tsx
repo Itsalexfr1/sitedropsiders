@@ -176,7 +176,7 @@ export function RadioOnAirMonitor({
                         title="Ouvrir l'onglet complet des Statistiques d'Audience (Privé régie)"
                     >
                         <Users className="w-4 h-4 text-purple-400 animate-pulse" />
-                        <span>{listenersCount ?? 142}</span>
+                        <span>{listenersCount ?? 0}</span>
                         <span className="text-[10px] text-gray-400 font-normal hidden sm:inline">auditeurs (Stats →)</span>
                     </button>
 

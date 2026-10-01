@@ -41,7 +41,7 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
     });
     const [currentSet, setCurrentSet] = useState<ComputedRadioScheduleItem | null>(() => initialLive?.item || null);
     const [uiOffset, setUiOffset] = useState(() => initialLive?.offsetSeconds || 0);
-    const [listenersCount, setListenersCount] = useState<number>(142);
+    const [listenersCount, setListenersCount] = useState<number>(0);
 
     // Synchronisation avec DropsidersRadioPlayer via custom events
     useEffect(() => {
