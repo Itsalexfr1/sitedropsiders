@@ -210,25 +210,6 @@
     "isLiveDropsiders": false
   },
   {
-    "id": 384,
-    "title": "David Guetta présent Galactic Circus ",
-    "date": "2026-10-02",
-    "startDate": "2026-10-02",
-    "endDate": "2026-10-02",
-    "venue": "UNVRS",
-    "location": "IBIZA",
-    "country": "ESPAGNE",
-    "type": "Résidence",
-    "image": "https://www.dropsiders.fr/uploads/uploads/d323cf800fb16340-Residencia_de_David_Guetta_en_.webp",
-    "url": "https://www.unvrs.com/events/2026/david-guetta-galactic-circus/19-06-2026",
-    "genre": "Big Room",
-    "month": "OCTOBRE",
-    "isWeekly": true,
-    "dayOfWeek": 5,
-    "isSoldOut": false,
-    "isLiveDropsiders": false
-  },
-  {
     "id": 400,
     "title": "Carl Cox",
     "date": "2026-10-04",
@@ -263,25 +244,6 @@
     "month": "OCTOBRE",
     "isWeekly": true,
     "dayOfWeek": 6,
-    "isSoldOut": false,
-    "isLiveDropsiders": false
-  },
-  {
-    "id": 473,
-    "title": "Calvin Harris",
-    "date": "2026-10-02",
-    "startDate": "2026-10-02",
-    "endDate": "2026-10-02",
-    "venue": "Ushuaïa",
-    "location": "IBIZA",
-    "country": "ESPAGNE",
-    "type": "Résidence",
-    "image": "https://www.dropsiders.fr/uploads/uploads/08d444d29fce7f7e-fiesta_calvin_harris_ushuaia_i.webp",
-    "url": "https://www.theushuaiaexperience.com/en/club/calendar",
-    "genre": "Tech House",
-    "month": "OCTOBRE",
-    "isWeekly": true,
-    "dayOfWeek": 5,
     "isSoldOut": false,
     "isLiveDropsiders": false
   },
@@ -687,25 +649,6 @@
     "additionalDates": [
       "2026-12-05"
     ]
-  },
-  {
-    "id": 1121,
-    "title": "Titan Legacy",
-    "date": "2026-10-02",
-    "startDate": "2026-10-02",
-    "endDate": "2026-10-02",
-    "venue": "Titan ",
-    "location": "LYON",
-    "country": "FRANCE",
-    "type": "Events",
-    "image": "/uploads/uploads/0b4955f0ac311dac-hf_20260921_111250_e6348f35_17.avif",
-    "url": "https://shotgun.live/fr/events/titan-legacy",
-    "genre": "Hard Techno",
-    "month": "OCTOBRE",
-    "isWeekly": false,
-    "isSoldOut": false,
-    "isLiveDropsiders": false,
-    "additionalDates": []
   },
   {
     "id": 1122,
