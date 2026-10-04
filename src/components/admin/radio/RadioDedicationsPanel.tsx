@@ -18,6 +18,7 @@ import {
 import type { RadioDedication } from '../../../types/radioDedications';
 
 const DEDICATIONS_STORAGE_KEY = 'dropsiders_radio_dedications';
+const DELETED_IDS_KEY = 'dropsiders_radio_dedications_deleted';
 
 export function RadioDedicationsPanel() {
     const [dedications, setDedications] = useState<RadioDedication[]>(() => {
@@ -50,6 +51,23 @@ export function RadioDedicationsPanel() {
     const [filter, setFilter] = useState<'all' | 'new' | 'pinned' | 'on_air'>('all');
     const [hostMessage, setHostMessage] = useState('');
     const [unreadCount, setUnreadCount] = useState(0);
+
+    // IDs des dédicaces supprimées localement (persistant en localStorage)
+    // Utilisé pour empêcher le cloud de les réimporter
+    const deletedIdsRef = React.useRef<Set<string>>((() => {
+        try {
+            const raw = localStorage.getItem(DELETED_IDS_KEY);
+            if (raw) return new Set<string>(JSON.parse(raw));
+        } catch {}
+        return new Set<string>();
+    })());
+
+    const addToDeleted = (id: string) => {
+        deletedIdsRef.current.add(id);
+        try {
+            localStorage.setItem(DELETED_IDS_KEY, JSON.stringify([...deletedIdsRef.current]));
+        } catch {}
+    };
 
     // Son de notification à l'arrivée d'une dédicace
     const playDingSound = () => {
@@ -90,16 +108,19 @@ export function RadioDedicationsPanel() {
                 if (Array.isArray(cloudItems) && cloudItems.length > 0) {
                     setDedications(prev => {
                         const prevIds = new Set(prev.map(p => p.id));
-                        const hasNew = cloudItems.some(c => !prevIds.has(c.id));
+                        // Filtrer les items supprimés localement avant le merge
+                        const filteredCloud = cloudItems.filter(c => !deletedIdsRef.current.has(c.id));
+                        const hasNew = filteredCloud.some(c => !prevIds.has(c.id));
                         if (hasNew) {
                             playDingSound();
                         }
 
                         // Fusionner sans doublons en gardant le statut local si plus récent
                         const map = new Map<string, RadioDedication>();
-                        cloudItems.forEach(item => map.set(item.id, item));
+                        filteredCloud.forEach(item => map.set(item.id, item));
                         prev.forEach(item => {
-                            if (!map.has(item.id)) map.set(item.id, item);
+                            // Ne pas réintégrer les items supprimés
+                            if (!map.has(item.id) && !deletedIdsRef.current.has(item.id)) map.set(item.id, item);
                         });
                         const merged = Array.from(map.values()).sort((a, b) => b.timestamp - a.timestamp);
                         try { localStorage.setItem(DEDICATIONS_STORAGE_KEY, JSON.stringify(merged)); } catch {}
@@ -126,6 +147,8 @@ export function RadioDedicationsPanel() {
                 channel.onmessage = (ev) => {
                     if (ev.data?.type === 'new_dedication' && ev.data?.dedication) {
                         const newD = ev.data.dedication;
+                        // Ignorer si déjà supprimée
+                        if (deletedIdsRef.current.has(newD.id)) return;
                         setDedications(prev => {
                             if (prev.some(d => d.id === newD.id)) return prev;
                             playDingSound();
@@ -135,7 +158,9 @@ export function RadioDedicationsPanel() {
                         });
                         setUnreadCount(c => c + 1);
                     } else if (ev.data?.type === 'sync' && Array.isArray(ev.data?.dedications)) {
-                        setDedications(ev.data.dedications);
+                        // Filtrer les supprimées lors d'une sync broadcast
+                        const filtered = ev.data.dedications.filter((d: RadioDedication) => !deletedIdsRef.current.has(d.id));
+                        setDedications(filtered);
                     }
                 };
             }
@@ -193,8 +218,13 @@ export function RadioDedicationsPanel() {
 
     // Supprimer une dédicace
     const handleDelete = (id: string) => {
+        // 1. Marquer comme supprimée localement pour bloquer les re-sync cloud
+        addToDeleted(id);
+        // 2. Retirer du state et du localStorage
         const updated = dedications.filter(d => d.id !== id);
         saveDedications(updated);
+        // 3. Propager la suppression au cloud
+        fetch(`/api/radio/dedications/${id}`, { method: 'DELETE' }).catch(() => {});
     };
 
     // Tout marquer comme lu

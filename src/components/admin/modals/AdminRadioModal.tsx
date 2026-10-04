@@ -281,7 +281,7 @@ export function AdminRadioModal({
     const [topHoraireConfig, setTopHoraireConfig] = useState<RadioTopHoraireConfig>(getTopHoraireConfig);
 
     // ─── Onglet Programmation Radio & Conducteur 24/7 ────────────────────────
-    const [progSubTab, setProgSubTab] = useState<'timeline' | 'grid' | 'on_air'>('timeline');
+    const [progSubTab, setProgSubTab] = useState<'timeline' | 'grid' | 'on_air' | 'youtube_cue'>('timeline');
     const [progSearch, setProgSearch] = useState('');
     const [progBlockFilter, setProgBlockFilter] = useState<string>('all');
     // Mode de vue : 'now_upcoming' (en fonction de l'heure qu'il est, pas toute la journée) par défaut
@@ -1607,17 +1607,6 @@ export function AdminRadioModal({
                             >
                                 🎙️ Enregistreur
                             </button>
-                            <button
-                                type="button"
-                                onClick={() => setActiveFolder('youtube_cue')}
-                                className={`px-3.5 py-1.5 rounded-lg transition-all ${
-                                    activeFolder === 'youtube_cue'
-                                        ? 'bg-red-500/20 text-red-300 border border-red-500/30 shadow-sm font-bold'
-                                        : 'text-gray-400 hover:text-white'
-                                }`}
-                            >
-                                ▶️ YouTube Cue
-                            </button>
                         </div>
                     </div>
 
@@ -2470,7 +2459,19 @@ export function AdminRadioModal({
                                             }`}
                                         >
                                             <Radio className="w-3.5 h-3.5" />
-                                            <span>Régie Live & Soundboard</span>
+                                            <span>Régie Live &amp; Soundboard</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setProgSubTab('youtube_cue')}
+                                            className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                                                progSubTab === 'youtube_cue'
+                                                    ? 'bg-red-500/80 text-white shadow-md shadow-red-500/30 font-black'
+                                                    : 'text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            <span className="text-[11px]">▶️</span>
+                                            <span>YouTube Cue</span>
                                         </button>
                                     </div>
 
@@ -2914,6 +2915,13 @@ export function AdminRadioModal({
                                         />
                                     </div>
                                 )}
+
+                                {/* SOUS-ONGLET 4 : YOUTUBE CUE PLAYER (CALAGE AUDIO EN DIRECT) */}
+                                {progSubTab === 'youtube_cue' && (
+                                    <div className="rounded-2xl border border-white/10 overflow-hidden bg-black/40 p-1">
+                                        <RadioYouTubeCuePlayer />
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -3306,13 +3314,6 @@ export function AdminRadioModal({
                         {activeFolder === 'recorder' && (
                             <div className="flex-1 overflow-y-auto p-6 flex flex-col min-h-0 bg-[#0a0e17]">
                                 <RadioBroadcastRecorder micStream={micStreamRef.current} />
-                            </div>
-                        )}
-
-                        {/* ── PANEL YOUTUBE CUE PLAYER (CALAGE AUDIO EN DIRECT) ── */}
-                        {activeFolder === 'youtube_cue' && (
-                            <div className="flex-1 overflow-y-auto p-6 flex flex-col min-h-0 bg-[#0a0e17]">
-                                <RadioYouTubeCuePlayer />
                             </div>
                         )}
 
