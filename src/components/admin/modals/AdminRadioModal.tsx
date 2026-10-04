@@ -367,6 +367,10 @@ export function AdminRadioModal({
     const audioContextRef = useRef<AudioContext | null>(null);
     const monitorGainNodeRef = useRef<GainNode | null>(null);
     const animFrameRef = useRef<number | null>(null);
+    // Volume musique pendant le ducking (% envoyé via event radio)
+    const [duckingMusicVol, setDuckingMusicVol] = useState<number>(22);
+    // Gain micro moniteur retour casque (0 à 200%)
+    const [micMonitorGain, setMicMonitorGain] = useState<number>(100);
 
     // Énumère les micros disponibles en déclenchant la demande d'autorisation navigateur si demandé
     const enumerateMicDevices = async (requestPermission = false) => {
@@ -541,6 +545,28 @@ export function AdminRadioModal({
             stopMicrophone();
         };
     }, []);
+
+    // Appliquer le gain micro au nœud WebAudio quand il change
+    useEffect(() => {
+        if (monitorGainNodeRef.current && isLiveMicActive) {
+            monitorGainNodeRef.current.gain.value = micMonitorGain / 100;
+        }
+    }, [micMonitorGain, isLiveMicActive]);
+
+    // Envoyer le volume musique via l'event radio quand le slider change ET qu'on est en live
+    useEffect(() => {
+        if (!isLiveMicActive) return;
+        window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_volume', { detail: duckingMusicVol }));
+    }, [duckingMusicVol, isLiveMicActive]);
+
+    // Quand on coupe le micro, remettre la musique à 80
+    const prevLiveMicModalRef = useRef(isLiveMicActive);
+    useEffect(() => {
+        if (prevLiveMicModalRef.current && !isLiveMicActive) {
+            window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_volume', { detail: 80 }));
+        }
+        prevLiveMicModalRef.current = isLiveMicActive;
+    }, [isLiveMicActive]);
 
     // ─── RECONNAISSANCE AUTOMATIQUE DES DURÉES (ANTI-BLANCS) ─────────────────
     const [isDetectingDurations, setIsDetectingDurations] = useState(false);
@@ -2378,7 +2404,7 @@ export function AdminRadioModal({
                                             </div>
                                         </div>
 
-                                        {/* VU MÈTRE + RETOUR CASQUE + BOUTON COUPER */}
+                                        {/* VU MÈTRE + RETOUR CASQUE + SLIDERS + BOUTON COUPER */}
                                         <div className="flex items-center gap-4 flex-wrap">
                                             {/* Bouton Toggle Retour Casque */}
                                             <button
@@ -2409,6 +2435,46 @@ export function AdminRadioModal({
                                                         style={{ width: `${audioLevel}%` }}
                                                     />
                                                 </div>
+                                            </div>
+
+                                            {/* ── SLIDERS VOLUME MICRO / MUSIQUE ── */}
+                                            <div className="flex flex-col gap-2 min-w-[170px]">
+                                                {/* Volume musique ducking */}
+                                                <div className="flex items-center gap-2">
+                                                    <VolumeX className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                                                    <div className="flex-1">
+                                                        <div className="flex justify-between text-[9px] font-mono text-gray-400 mb-0.5">
+                                                            <span className="text-amber-300 font-bold uppercase">Musique</span>
+                                                            <span>{duckingMusicVol}%</span>
+                                                        </div>
+                                                        <input
+                                                            type="range" min="0" max="100" step="1"
+                                                            value={duckingMusicVol}
+                                                            onChange={e => setDuckingMusicVol(Number(e.target.value))}
+                                                            className="w-full h-1.5 rounded-full appearance-none accent-amber-400 cursor-pointer"
+                                                            title="Volume de la musique pendant le talk-over"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                {/* Volume micro casque */}
+                                                {isHeadphoneMonitor && monitorGainNodeRef.current && (
+                                                    <div className="flex items-center gap-2">
+                                                        <Mic className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                                                        <div className="flex-1">
+                                                            <div className="flex justify-between text-[9px] font-mono text-gray-400 mb-0.5">
+                                                                <span className="text-red-300 font-bold uppercase">Gain micro</span>
+                                                                <span>{micMonitorGain}%</span>
+                                                            </div>
+                                                            <input
+                                                                type="range" min="0" max="200" step="5"
+                                                                value={micMonitorGain}
+                                                                onChange={e => setMicMonitorGain(Number(e.target.value))}
+                                                                className="w-full h-1.5 rounded-full appearance-none accent-red-400 cursor-pointer"
+                                                                title="Volume du micro dans votre casque (0–200%)"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <button

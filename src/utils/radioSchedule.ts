@@ -1,4 +1,4 @@
-﻿import { 
+import { 
     DEFAULT_TV_BLOCKS, 
     parseArtistAndEvent, 
     formatDurationExact, 
@@ -853,6 +853,8 @@ export function computeRadioDaySchedule(
     const topHoraire = getTopHoraireConfig();
     const topDuration = (topHoraire.enabled && topHoraire.duration > 0) ? topHoraire.duration : 0;
     const items: ComputedRadioScheduleItem[] = [];
+    // Garde trace des heures où le top horaire a déjà été inséré (un seul par heure, pas un par bloc)
+    const topHoraireInsertedHours = new Set<number>();
 
     sorted.forEach((block) => {
         const startH = block.startHour ?? 0;
@@ -871,8 +873,9 @@ export function computeRadioDaySchedule(
             const currentH = (startH + hOffset) % 24;
             const hourStartSec = (blockStartSec + hOffset * 3600) % 86400;
 
-            // 1. Top Horaire à chaque début d'heure
-            if (topDuration > 0) {
+            // 1. Top Horaire à chaque début d'heure (UN SEUL par heure, pas un par bloc)
+            if (topDuration > 0 && !topHoraireInsertedHours.has(currentH)) {
+                topHoraireInsertedHours.add(currentH);
                 const itemStart = hourStartSec;
                 const itemEnd = (itemStart + topDuration) % 86400;
                 const isLive = (itemStart <= itemEnd)
