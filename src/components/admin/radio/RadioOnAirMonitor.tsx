@@ -5,6 +5,7 @@ import {
     Play,
     Pause,
     Volume2,
+    VolumeX,
     Sparkles,
     Sliders,
     Layers,
@@ -51,6 +52,7 @@ interface RadioOnAirMonitorProps {
     onToggleHeadphoneMonitor?: () => void;
     onGoToStats?: () => void;
     micStream?: MediaStream | null;
+    monitorGainNode?: GainNode | null;
 }
 
 export function RadioOnAirMonitor({
@@ -69,10 +71,39 @@ export function RadioOnAirMonitor({
     onToggleMicTest,
     onToggleHeadphoneMonitor,
     onGoToStats,
-    micStream
+    micStream,
+    monitorGainNode,
 }: RadioOnAirMonitorProps) {
     const [studioTab, setStudioTab] = useState<'on_air' | 'timer' | 'dedications' | 'recorder'>('on_air');
     const [unreadDedications, setUnreadDedications] = useState<number>(0);
+
+    // ─── Contrôles volume micro / musique ──────────────────────────────
+    // Volume musique pendant le ducking (% envoyé via event radio)
+    const [duckingMusicVol, setDuckingMusicVol] = useState<number>(22);
+    // Gain micro moniteur (retour casque) - 0à200%
+    const [micMonitorGain, setMicMonitorGain] = useState<number>(100);
+
+    // Appliquer le gain micro au noeud WebAudio quand il change
+    useEffect(() => {
+        if (monitorGainNode && isLiveMicActive) {
+            monitorGainNode.gain.value = micMonitorGain / 100;
+        }
+    }, [micMonitorGain, monitorGainNode, isLiveMicActive]);
+
+    // Envoyer le volume musique via l'event radio quand le slider change ET qu'on est en live
+    useEffect(() => {
+        if (!isLiveMicActive) return;
+        window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_volume', { detail: duckingMusicVol }));
+    }, [duckingMusicVol, isLiveMicActive]);
+
+    // Quand on coupe le micro, remettre la musique à 80
+    const prevLiveMicRef = useRef(isLiveMicActive);
+    useEffect(() => {
+        if (prevLiveMicRef.current && !isLiveMicActive) {
+            window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_volume', { detail: 80 }));
+        }
+        prevLiveMicRef.current = isLiveMicActive;
+    }, [isLiveMicActive]);
 
     // Écoute des dédicaces reçues pour badge de notification
     useEffect(() => {
@@ -461,6 +492,46 @@ export function RadioOnAirMonitor({
                                     style={{ width: `${audioLevel}%` }}
                                 />
                             </div>
+                        </div>
+
+                        {/* ── SLIDERS VOLUME MICRO / MUSIQUE (pendant le live) ── */}
+                        <div className="flex flex-col gap-2.5 min-w-[180px]">
+                            {/* Volume musique (ducking) */}
+                            <div className="flex items-center gap-2">
+                                <VolumeX className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                                <div className="flex-1">
+                                    <div className="flex justify-between text-[9px] font-mono text-gray-400 mb-0.5">
+                                        <span className="text-amber-300 font-bold uppercase">Musique</span>
+                                        <span>{duckingMusicVol}%</span>
+                                    </div>
+                                    <input
+                                        type="range" min="0" max="100" step="1"
+                                        value={duckingMusicVol}
+                                        onChange={e => setDuckingMusicVol(Number(e.target.value))}
+                                        className="w-full h-1.5 rounded-full appearance-none accent-amber-400 cursor-pointer"
+                                        title="Volume de la musique pendant le talk-over"
+                                    />
+                                </div>
+                            </div>
+                            {/* Volume micro moniteur (retour casque) */}
+                            {isHeadphoneMonitor && monitorGainNode && (
+                                <div className="flex items-center gap-2">
+                                    <Mic className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                                    <div className="flex-1">
+                                        <div className="flex justify-between text-[9px] font-mono text-gray-400 mb-0.5">
+                                            <span className="text-red-300 font-bold uppercase">Micro casque</span>
+                                            <span>{micMonitorGain}%</span>
+                                        </div>
+                                        <input
+                                            type="range" min="0" max="200" step="5"
+                                            value={micMonitorGain}
+                                            onChange={e => setMicMonitorGain(Number(e.target.value))}
+                                            className="w-full h-1.5 rounded-full appearance-none accent-red-400 cursor-pointer"
+                                            title="Volume du retour micro dans votre casque (0-200%)"
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {onToggleLiveMic && (

@@ -13,7 +13,12 @@ import { useLocation } from 'react-router-dom';
 import { usePlayer } from '../../context/PlayerContext';
 import { RadioDedicationModal } from './RadioDedicationModal';
 
+// ─── Détection mobile fiable ──────────────────────────────────────────────────
+const IS_MOBILE = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
 // ─── URL YouTube embed ────────────────────────────────────────────────────────
+// FIX MOBILE SOUND: Sur iOS, le volume YouTube via JS (setVolume) est ignoré.
+// La seule façon d'avoir du son sur mobile = mute=0 dans l'URL + laisser le volume physique gérer.
 function buildSrc(youtubeId: string, start: number, muted: 0 | 1) {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     return `https://www.youtube.com/embed/${youtubeId}`
@@ -189,14 +194,15 @@ function useRadioAudio() {
     useEffect(() => { volumeRef.current = volume; }, [volume]);
 
     // ─── Préchargement muet dès qu'un set YouTube est disponible ────────────
+    // SKIP sur mobile: iOS bloque le autoplay muet dans les iframes de toute façon
     const preloadedVideoIdRef = useRef<string | null>(null);
     useEffect(() => {
+        if (IS_MOBILE) return; // Pas de preload sur mobile
         if (!currentVideoId || currentSet?.audioUrl) return;
         if (isPlayingRef.current) return;
         if (preloadedVideoIdRef.current === currentVideoId) return;
         preloadedVideoIdRef.current = currentVideoId;
         if (iframeRef.current) {
-            // Pour YouTube, toujours démarrer depuis 0 (on ne connaît pas la durée réelle de la vidéo)
             iframeRef.current.src = buildSrc(currentVideoId, 0, 1);
         }
     }, [currentVideoId, currentSet?.audioUrl]);
@@ -337,7 +343,6 @@ function useRadioAudio() {
     useEffect(() => { effectiveVolumeRef.current = effectiveVolume; }, [effectiveVolume]);
 
     // ─── TRANSITIONS SANS COUPURE NI BAISSE DE SON (Gapless & Direct) ────────
-    // ─── TRANSITIONS SANS COUPURE NI BAISSE DE SON (Gapless & Direct) ────────
     const currentPlayingMediaRef = useRef<string | null>(null);
 
     useEffect(() => {
@@ -363,6 +368,7 @@ function useRadioAudio() {
                 }
                 const targetOffset = Math.max(0, uiOffsetRef.current || 0);
                 audioRef.current.currentTime = (targetOffset > 2 && targetOffset < (currentSet.durationSeconds || 3600)) ? targetOffset : 0;
+                // FIX VOLUME RESET: appliquer le volume AVANT play() pour éviter le reset
                 audioRef.current.volume = targetAudioVol;
                 audioRef.current.play().then(() => {
                     currentPlayingMediaRef.current = currentSet.audioUrl || null;
@@ -396,19 +402,21 @@ function useRadioAudio() {
                 const targetOffset = Math.max(0, Math.floor(uiOffsetRef.current || 0));
                 const startSec = (targetOffset > 2 && targetOffset < (currentSet.durationSeconds || 3600)) ? targetOffset : 0;
                 if (iframeRef.current) {
-                    iframeRef.current.src = buildSrc(currentYt, startSec, isMutedRef.current ? 1 : 0);
+                    // FIX MOBILE SOUND: toujours mute=0 sur iOS pour que le son sorte dès le départ
+                    iframeRef.current.src = buildSrc(currentYt, startSec, IS_MOBILE ? 0 : (isMutedRef.current ? 1 : 0));
                     preloadedVideoIdRef.current = currentYt;
                 }
                 currentPlayingMediaRef.current = currentYt;
                 setTimeout(() => {
                     if (!isMutedRef.current) sendCmd('unMute');
-                    sendCmd('setVolume', [effectiveVolumeRef.current]);
+                    // FIX MOBILE SOUND: sur iOS, setVolume est ignoré - forcer 100 dans l'iframe
+                    sendCmd('setVolume', [IS_MOBILE ? 100 : effectiveVolumeRef.current]);
                     sendCmd('playVideo');
                 }, 300);
             } else {
                 currentPlayingMediaRef.current = currentYt;
                 if (!isMutedRef.current) sendCmd('unMute');
-                sendCmd('setVolume', [effectiveVolumeRef.current]);
+                sendCmd('setVolume', [IS_MOBILE ? 100 : effectiveVolumeRef.current]);
                 sendCmd('playVideo');
             }
         }
@@ -426,12 +434,20 @@ function useRadioAudio() {
     }, []);
 
     // 1. Écoute de l'événement YouTube postMessage (info: 0 => ENDED)
+    // IMPORTANT: on vérifie STRICTEMENT que c'est un événement 'onStateChange'
+    // pour éviter qu'un postMessage quelconque avec {info:0} déclenche un advance
     useEffect(() => {
         const handleYtMessage = (event: MessageEvent) => {
             try {
                 const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-                // info === 0 correspond à YT.PlayerState.ENDED
-                if (data && (data.event === 'onStateChange' || data.info === 0) && data.info === 0) {
+                // Uniquement sur onStateChange ENDED (state 0) — et seulement si on joue vraiment une vidéo YT
+                if (
+                    data &&
+                    data.event === 'onStateChange' &&
+                    data.info === 0 &&
+                    isPlayingRef.current &&
+                    currentSetRef.current?.youtubeId
+                ) {
                     advanceToNextTrack();
                 }
                 // Récupération automatique de la durée réelle rapportée par le player YouTube
@@ -483,12 +499,110 @@ function useRadioAudio() {
         };
     }, [advanceToNextTrack]);
 
+    // 3. ─── ANTI-BLANC audio HTML5 : stall/silence détecté (> 8s sans progression) ──
+    // NOTE: seulement pour les fichiers audio (audioUrl), PAS pour YouTube
+    // YouTube gère son propre buffering et on ne veut pas interférer
+    useEffect(() => {
+        const el = audioRef.current;
+        if (!el) return;
+
+        let silenceTimer: ReturnType<typeof setTimeout> | null = null;
+        let lastTimeUpdate = Date.now();
+
+        const clearSilenceTimer = () => {
+            if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
+        };
+        const onTimeUpdate = () => {
+            lastTimeUpdate = Date.now();
+            clearSilenceTimer();
+        };
+        const onStalled = () => {
+            if (!isPlayingRef.current || !el.src || el.src === 'about:blank') return;
+            clearSilenceTimer();
+            // 8 secondes de stall avant de passer au suivant (laisse le temps au fichier de charger)
+            silenceTimer = setTimeout(() => {
+                if (isPlayingRef.current && !el.ended) advanceToNextTrack();
+            }, 8000);
+        };
+        const onWaiting = () => {
+            if (!isPlayingRef.current || !el.src || el.src === 'about:blank') return;
+            clearSilenceTimer();
+            silenceTimer = setTimeout(() => {
+                if (isPlayingRef.current && !el.ended && Date.now() - lastTimeUpdate > 5000) advanceToNextTrack();
+            }, 8000);
+        };
+
+        el.addEventListener('timeupdate', onTimeUpdate);
+        el.addEventListener('stalled', onStalled);
+        el.addEventListener('waiting', onWaiting);
+        return () => {
+            el.removeEventListener('timeupdate', onTimeUpdate);
+            el.removeEventListener('stalled', onStalled);
+            el.removeEventListener('waiting', onWaiting);
+            clearSilenceTimer();
+        };
+    }, [advanceToNextTrack]);
+
+    // NOTE: Pas de polling YouTube agressif — YouTube gère son propre buffering.
+    // Un buffering de 3-15s est normal sur les longs sets. On se fie uniquement
+    // à l'événement 'onStateChange: 0' (ENDED) pour avancer.
+
+    // 5. ─── MOBILE BACKGROUND AUDIO : Page Visibility API ────────────────────
+    // Reprendre la lecture quand l'utilisateur revient sur l'app (depuis une autre appli)
+    useEffect(() => {
+        if (!IS_MOBILE) return;
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible' && isPlayingRef.current) {
+                const set = currentSetRef.current;
+                if (!set) return;
+                if (set.audioUrl && audioRef.current && audioRef.current.paused && !audioRef.current.ended) {
+                    audioRef.current.play().catch(() => {});
+                }
+                if (set.youtubeId && !set.audioUrl) {
+                    setTimeout(() => { sendCmd('playVideo'); }, 300);
+                }
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [sendCmd]);
+
+    // 6. ─── MediaSession API : Contrôles lock screen / notifications ──────────
+    useEffect(() => {
+        if (!('mediaSession' in navigator) || !currentSet) return;
+        try {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: currentSet.title || currentSet.artist || 'Dropsiders Radio',
+                artist: currentSet.artist || 'Dropsiders Radio',
+                album: 'Web Radio Electro 24/7',
+                artwork: [{ src: '/favicon.png', sizes: '96x96', type: 'image/png' }],
+            });
+            navigator.mediaSession.setActionHandler('play', () => window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_play')));
+            navigator.mediaSession.setActionHandler('pause', () => window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_pause')));
+            navigator.mediaSession.setActionHandler('stop', () => window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_stop')));
+            navigator.mediaSession.setActionHandler('nexttrack', () => window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_next')));
+        } catch {}
+        return () => {
+            try {
+                navigator.mediaSession.setActionHandler('play', null);
+                navigator.mediaSession.setActionHandler('pause', null);
+                navigator.mediaSession.setActionHandler('stop', null);
+                navigator.mediaSession.setActionHandler('nexttrack', null);
+            } catch {}
+        };
+    }, [currentSet?.id]);
+
+    useEffect(() => {
+        if (!('mediaSession' in navigator)) return;
+        try { navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused'; } catch {}
+    }, [isPlaying]);
+
     // ─── Play / Pause ─────────────────────────────────────────────────────────
     const handlePlay = useCallback(() => {
         const set = currentSetRef.current;
         if (!set?.youtubeId && !set?.audioUrl) return;
 
-        if (!isPlaying) {
+        if (!isPlayingRef.current) {
             if (set.audioUrl) {
                 if (iframeRef.current && iframeRef.current.src !== 'about:blank') {
                     sendCmd('pauseVideo');
@@ -499,9 +613,11 @@ function useRadioAudio() {
                     const isSameSrc = audioRef.current.src === set.audioUrl;
                     if (!isSameSrc) {
                         audioRef.current.src = set.audioUrl;
+                        // FIX: ne repositionner que si src a changé (évite reset currentTime si même src)
                         const targetOffset = Math.max(0, uiOffsetRef.current || 0);
                         audioRef.current.currentTime = (targetOffset > 2 && targetOffset < (set.durationSeconds || 3600)) ? targetOffset : 0;
                     }
+                    // FIX VOLUME RESET: volume appliqué AVANT play() — évite le bug de remise à zéro
                     audioRef.current.volume = isMutedRef.current ? 0 : (effectiveVolumeRef.current / 100);
                     audioRef.current.play().then(() => {
                         currentPlayingMediaRef.current = set.audioUrl || null;
@@ -510,24 +626,29 @@ function useRadioAudio() {
             } else if (set.youtubeId) {
                 if (audioRef.current && !audioRef.current.paused) audioRef.current.pause();
 
-                const alreadyLoaded = iframeRef.current?.src?.includes(set.youtubeId);
+                // Sur mobile, TOUJOURS recharger l'iframe avec mute=0 directement
+                // car iOS ne respecte pas toujours le postMessage('unMute')
+                const alreadyLoaded = !IS_MOBILE && iframeRef.current?.src?.includes(set.youtubeId);
                 if (alreadyLoaded) {
                     if (!isMutedRef.current) sendCmd('unMute');
-                    sendCmd('setVolume', [effectiveVolumeRef.current]);
+                    // FIX MOBILE SOUND: iOS ignore setVolume — forcer 100 dans l'iframe
+                    sendCmd('setVolume', [IS_MOBILE ? 100 : effectiveVolumeRef.current]);
                     sendCmd('playVideo');
                     currentPlayingMediaRef.current = set.youtubeId;
                 } else {
                     const targetOffset = Math.max(0, Math.floor(uiOffsetRef.current || 0));
                     const startSec = (targetOffset > 2 && targetOffset < (set.durationSeconds || 3600)) ? targetOffset : 0;
-                    const src = buildSrc(set.youtubeId, startSec, isMutedRef.current ? 1 : 0);
+                    // Sur mobile: toujours mute=0 dans l'URL pour que iOS joue le son directement
+                    const mobileMute = IS_MOBILE ? 0 : (isMutedRef.current ? 1 : 0);
+                    const src = buildSrc(set.youtubeId, startSec, mobileMute as 0 | 1);
                     if (iframeRef.current) iframeRef.current.src = src;
                     preloadedVideoIdRef.current = set.youtubeId;
                     currentPlayingMediaRef.current = set.youtubeId;
                     setTimeout(() => {
                         if (!isMutedRef.current) sendCmd('unMute');
-                        sendCmd('setVolume', [effectiveVolumeRef.current]);
+                        sendCmd('setVolume', [IS_MOBILE ? 100 : effectiveVolumeRef.current]);
                         sendCmd('playVideo');
-                    }, 400);
+                    }, IS_MOBILE ? 800 : 400);
                 }
             }
             setIsPlaying(true);
@@ -537,7 +658,7 @@ function useRadioAudio() {
             sendCmd('pauseVideo');
             setIsPlaying(false);
         }
-    }, [isPlaying, sendCmd]);
+    }, [sendCmd]);
 
     const handleStop = useCallback(() => {
         currentPlayingMediaRef.current = null;
@@ -547,17 +668,22 @@ function useRadioAudio() {
         setIsPlaying(false);
     }, [sendCmd]);
 
+    const handleNext = useCallback(() => {
+        advanceToNextTrack();
+    }, [advanceToNextTrack]);
+
     const toggleMute = useCallback(() => {
         setIsMuted(prev => {
             const next = !prev;
             if (audioRef.current) audioRef.current.volume = next ? 0 : (effectiveVolumeRef.current / 100);
-            if (isPlaying) {
+            if (isPlayingRef.current) {
                 if (next) sendCmd('mute');
-                else { sendCmd('unMute'); sendCmd('setVolume', [effectiveVolumeRef.current]); }
+                // FIX MOBILE SOUND: iOS ignore setVolume, on force 100 et laisse le volume physique
+                else { sendCmd('unMute'); sendCmd('setVolume', [IS_MOBILE ? 100 : effectiveVolumeRef.current]); }
             }
             return next;
         });
-    }, [isPlaying, sendCmd]);
+    }, [sendCmd]);
 
     // ─── Volume & Ducking sync ───────────────────────────────────────────────
     useEffect(() => {
@@ -566,7 +692,8 @@ function useRadioAudio() {
             audioRef.current.volume = isMuted ? 0 : effectiveVolume / 100;
         }
         if (!isPlaying) return;
-        if (!isMuted) sendCmd('setVolume', [effectiveVolume]);
+        // FIX MOBILE SOUND: ne pas appeler setVolume sur iOS (ignoré)
+        if (!isMuted && !IS_MOBILE) sendCmd('setVolume', [effectiveVolume]);
     }, [volume, effectiveVolume, isPlaying, isMuted, sendCmd]);
 
     // ─── Broadcast vers autres composants ────────────────────────────────────
@@ -587,6 +714,7 @@ function useRadioAudio() {
         const onPlay = () => { if (!stateRef.current.isPlaying) handlePlay(); };
         const onPause = () => { if (stateRef.current.isPlaying) handlePlay(); };
         const onStop = () => handleStop();
+        const onNext = () => handleNext();
         const onMute = () => toggleMute();
         const onVolume = (e: any) => {
             if (typeof e.detail === 'number') { setVolume(Math.max(0, Math.min(100, e.detail))); if (isMuted) setIsMuted(false); }
@@ -595,6 +723,7 @@ function useRadioAudio() {
         window.addEventListener('dropsiders_radio_cmd_play', onPlay);
         window.addEventListener('dropsiders_radio_cmd_pause', onPause);
         window.addEventListener('dropsiders_radio_cmd_stop', onStop);
+        window.addEventListener('dropsiders_radio_cmd_next', onNext);
         window.addEventListener('dropsiders_radio_cmd_mute', onMute);
         window.addEventListener('dropsiders_radio_cmd_volume', onVolume);
         window.addEventListener('dropsiders_radio_query_state', broadcast);
@@ -604,16 +733,17 @@ function useRadioAudio() {
             window.removeEventListener('dropsiders_radio_cmd_play', onPlay);
             window.removeEventListener('dropsiders_radio_cmd_pause', onPause);
             window.removeEventListener('dropsiders_radio_cmd_stop', onStop);
+            window.removeEventListener('dropsiders_radio_cmd_next', onNext);
             window.removeEventListener('dropsiders_radio_cmd_mute', onMute);
             window.removeEventListener('dropsiders_radio_cmd_volume', onVolume);
             window.removeEventListener('dropsiders_radio_query_state', broadcast);
         };
-    }, [handlePlay, handleStop, toggleMute, isMuted]);
+    }, [handlePlay, handleStop, handleNext, toggleMute, isMuted]);
 
     return {
         isEnabled, currentSet, uiOffset, iframeRef, audioRef,
         isPlaying, isMuted, volume, effectiveVolume, isDucking, listenersCount,
-        setVolume, setIsMuted, handlePlay, handleStop, toggleMute,
+        setVolume, setIsMuted, handlePlay, handleStop, handleNext, toggleMute,
     };
 }
 
@@ -643,7 +773,13 @@ function RadioIframe({ iframeRef, audioRef }: {
                 title="Dropsiders Radio"
                 style={{ width: '100%', height: '100%', border: 'none' }}
             />
-            <audio ref={audioRef as React.RefObject<HTMLAudioElement>} playsInline preload="auto" />
+            {/* FIX MOBILE BACKGROUND: x-webkit-airplay aide iOS à garder l'audio en arrière-plan */}
+            <audio
+                ref={audioRef as React.RefObject<HTMLAudioElement>}
+                playsInline
+                preload="auto"
+                {...({ 'x-webkit-airplay': 'allow' } as any)}
+            />
         </div>
     );
 }
@@ -780,7 +916,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-center gap-8 relative z-10 mb-5">
+                                <div className="flex items-center justify-center gap-8 relative z-10 mb-4">
                                     <button onClick={toggleMute}
                                         className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-300 active:scale-90 active:bg-white/10 transition-all">
                                         {isMuted ? <VolumeX className="w-5 h-5 text-neon-red" /> : <Volume2 className="w-5 h-5" />}
@@ -795,6 +931,25 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                         <AudioBars playing={isPlaying} />
                                     </div>
                                 </div>
+
+                                {/* Volume slider mobile */}
+                                <div className="flex items-center gap-3 px-2 mb-5 relative z-10">
+                                    <VolumeX className={`w-3.5 h-3.5 shrink-0 ${isMuted ? 'text-neon-red' : 'text-gray-500'}`} />
+                                    <input
+                                        type="range" min="0" max="100"
+                                        value={isMuted ? 0 : audio.volume}
+                                        onChange={e => { audio.setVolume(Number(e.target.value)); if (isMuted) audio.setIsMuted(false); }}
+                                        className="w-full h-1.5 bg-white/15 rounded-full appearance-none accent-neon-cyan"
+                                    />
+                                    <Volume2 className="w-3.5 h-3.5 shrink-0 text-gray-500" />
+                                </div>
+
+                                {/* Note iOS volume : sur mobile le volume est géré par les boutons physiques */}
+                                {IS_MOBILE && (
+                                    <p className="text-center text-[8px] text-amber-400/70 font-bold uppercase tracking-widest relative z-10 mb-3">
+                                        🔊 Volume contrôlé par les boutons physiques
+                                    </p>
+                                )}
 
                                 {/* Bouton Message / Dédicace à l'animateur */}
                                 <button
@@ -811,6 +966,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                         Appuie sur ► pour démarrer
                                     </p>
                                 )}
+
 
                                 <button onClick={() => setExpanded(false)}
                                     className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[9px] text-gray-600 font-bold uppercase tracking-widest active:text-white transition-colors relative z-10">

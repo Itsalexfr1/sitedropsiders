@@ -91,6 +91,7 @@ import { RadioJingleUploadModal } from '../radio/RadioJingleUploadModal';
 import { RadioOnAirMonitor } from '../radio/RadioOnAirMonitor';
 import { RadioDedicationsPanel } from '../radio/RadioDedicationsPanel';
 import { RadioBroadcastRecorder } from '../radio/RadioBroadcastRecorder';
+import { RadioYouTubeCuePlayer } from '../radio/RadioYouTubeCuePlayer';
 import { DEFAULT_JINGLES_PUBS, type RadionomyItem } from './RadionomyJinglesBox';
 
 const PRESET_EMOJIS = ['🎧', '🔥', '⚡', '🚀', '🎵', '🕺', '📻', '💎', '🎉', '🌙', '☀️', '⭐', '🌅', '🎪'];
@@ -1606,6 +1607,17 @@ export function AdminRadioModal({
                             >
                                 🎙️ Enregistreur
                             </button>
+                            <button
+                                type="button"
+                                onClick={() => setActiveFolder('youtube_cue')}
+                                className={`px-3.5 py-1.5 rounded-lg transition-all ${
+                                    activeFolder === 'youtube_cue'
+                                        ? 'bg-red-500/20 text-red-300 border border-red-500/30 shadow-sm font-bold'
+                                        : 'text-gray-400 hover:text-white'
+                                }`}
+                            >
+                                ▶️ YouTube Cue
+                            </button>
                         </div>
                     </div>
 
@@ -2898,6 +2910,7 @@ export function AdminRadioModal({
                                             onToggleHeadphoneMonitor={handleToggleHeadphoneMonitor}
                                             onGoToStats={() => setActiveFolder('stats')}
                                             micStream={micStreamRef.current}
+                                            monitorGainNode={monitorGainNodeRef.current}
                                         />
                                     </div>
                                 )}
@@ -3293,6 +3306,13 @@ export function AdminRadioModal({
                         {activeFolder === 'recorder' && (
                             <div className="flex-1 overflow-y-auto p-6 flex flex-col min-h-0 bg-[#0a0e17]">
                                 <RadioBroadcastRecorder micStream={micStreamRef.current} />
+                            </div>
+                        )}
+
+                        {/* ── PANEL YOUTUBE CUE PLAYER (CALAGE AUDIO EN DIRECT) ── */}
+                        {activeFolder === 'youtube_cue' && (
+                            <div className="flex-1 overflow-y-auto p-6 flex flex-col min-h-0 bg-[#0a0e17]">
+                                <RadioYouTubeCuePlayer />
                             </div>
                         )}
 
