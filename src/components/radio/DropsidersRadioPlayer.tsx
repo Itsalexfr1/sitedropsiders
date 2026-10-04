@@ -7,6 +7,7 @@ import {
 import {
     DEFAULT_RADIO_BLOCKS, STORAGE_RADIO_BLOCKS_KEY,
     getParisSeconds, formatDurationExact, getCurrentLiveRadioTrack,
+    computeRadioDaySchedule,
     type RadioScheduleBlock, type ComputedRadioScheduleItem
 } from '../../utils/radioSchedule';
 import { useLocation } from 'react-router-dom';
@@ -434,14 +435,39 @@ function useRadioAudio() {
         }
     }, [currentSet?.id, currentSet?.audioUrl, currentSet?.youtubeId, sendCmd]);
 
-    // ─── ANTI-BLANC : DÉTECTION FIN DE MORCEAU ET ENCHAÎNEMENT IMMÉDIAT ───────
+    // ─── Référence sur les blocs radio (pour advanceToNextTrack) ─────────────
+    const radioBlocksRef = useRef(radioBlocks);
+    useEffect(() => { radioBlocksRef.current = radioBlocks; }, [radioBlocks]);
+
+    // ─── ENCHAÎNEMENT DE PISTE : passe au track suivant dans la liste ─────────
+    // IMPORTANT : on cherche le prochain item dans computeRadioDaySchedule par index
+    // et on saute directement à son startSecondsFromMidnight.
+    // Ainsi : PAS de dépendance à durationSeconds, PAS de coupure à 3min.
     const advanceToNextTrack = useCallback(() => {
         currentPlayingMediaRef.current = null;
         setUiTimeSec(prev => {
-            const curDur = currentSetRef.current?.durationSeconds || 180;
-            const curOffset = uiOffsetRef.current || 0;
-            const remaining = Math.max(1, curDur - curOffset);
-            return (prev + remaining) % 86400;
+            const cur = currentSetRef.current;
+            if (!cur) return (prev + 300) % 86400; // fallback
+
+            try {
+                const schedule = computeRadioDaySchedule(radioBlocksRef.current, prev);
+                if (!schedule || schedule.length === 0) return (prev + 300) % 86400;
+
+                // Trouver l'index du track courant dans le schedule
+                const curIdx = schedule.findIndex(s => s.id === cur.id);
+
+                if (curIdx >= 0 && curIdx < schedule.length - 1) {
+                    // Sauter directement au début du track suivant
+                    const nextTrack = schedule[curIdx + 1];
+                    return nextTrack.startSecondsFromMidnight;
+                } else {
+                    // Dernier track du schedule : revenir au premier
+                    const firstTrack = schedule[0];
+                    return firstTrack.startSecondsFromMidnight;
+                }
+            } catch {
+                return (prev + 300) % 86400;
+            }
         });
     }, []);
 
