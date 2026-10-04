@@ -308,15 +308,7 @@ export function buildDefaultRadioBlocksFromTV(): RadioScheduleBlock[] {
                     });
                 }
 
-                // 1 Pub toutes les 2 sets
-                if ((tIdx + 1) % 2 === 0 && DEFAULT_SYSTEM_PUBS.length > 0) {
-                    const p = DEFAULT_SYSTEM_PUBS[pIdx % DEFAULT_SYSTEM_PUBS.length];
-                    pIdx++;
-                    scheduledTracks.push({
-                        ...p,
-                        id: `sched_pub_${b.id}_${tIdx}`
-                    });
-                }
+
 
                 // 1 Interview sur l'émission prime (au 2ème set)
                 if (idx === 1 && tIdx === 1 && DEFAULT_SYSTEM_INTERVIEWS.length > 0) {
@@ -548,6 +540,7 @@ export function getGeneralPromosList(): RadioTrackItem[] {
             }
         }
     } catch {}
+    // Promos depuis les settings JSON (si configurées)
     const fromSettings = ((settings as any)?.radio_general_jingles || [])
         .filter((j: any) => j.category === 'promo' || j.category === 'pub');
     if (fromSettings.length > 0) return fromSettings.map((p: any) => ({
@@ -559,7 +552,8 @@ export function getGeneralPromosList(): RadioTrackItem[] {
         duration: p.duration || 30,
         category: (p.category || 'promo') as RadioTrackCategory
     }));
-    return DEFAULT_SYSTEM_PUBS;
+    // Aucune promo configurée — retourner tableau vide (pas de promos codées en dur)
+    return [];
 }
 
 /**

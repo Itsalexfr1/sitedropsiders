@@ -153,9 +153,21 @@ function useRadioAudio() {
     }, []);
 
     // ─── Horloge Paris ───────────────────────────────────────────────────────
+    // CRITICAL FIX: On ne met PAS à jour uiTimeSec en permanence depuis l'horloge réelle.
+    // Si on le faisait, après 3 min (durationSeconds par défaut = 180), getCurrentLiveRadioTrack
+    // retournerait le track suivant → player coupe au bout de 3min exactement.
+    // uiTimeSec avance uniquement via advanceToNextTrack() (quand la vidéo se termine vraiment).
+    // Quand on est en pause, on resynchronise sur l'heure Paris pour que le schedule soit correct.
     const [uiTimeSec, setUiTimeSec] = useState<number>(getParisSeconds);
+    const isPlayingRef2 = useRef(false); // ref locale pour le interval (évite stale closure)
     useEffect(() => {
-        const id = setInterval(() => setUiTimeSec(getParisSeconds()), 2000);
+        // Tick toutes les 5s SEULEMENT si on ne joue pas
+        // → maintient le schedule correct quand la radio est stoppée/pausée
+        const id = setInterval(() => {
+            if (!isPlayingRef2.current) {
+                setUiTimeSec(getParisSeconds());
+            }
+        }, 5000);
         return () => clearInterval(id);
     }, []);
 
@@ -189,7 +201,7 @@ function useRadioAudio() {
     const isPlayingRef = useRef(isPlaying);
     const isMutedRef = useRef(isMuted);
     const volumeRef = useRef(volume);
-    useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
+    useEffect(() => { isPlayingRef.current = isPlaying; isPlayingRef2.current = isPlaying; }, [isPlaying]);
     useEffect(() => { isMutedRef.current = isMuted; }, [isMuted]);
     useEffect(() => { volumeRef.current = volume; }, [volume]);
 
@@ -657,8 +669,10 @@ function useRadioAudio() {
             if (audioRef.current) audioRef.current.pause();
             sendCmd('pauseVideo');
             setIsPlaying(false);
+            // Resynchroniser l'horloge sur l'heure Paris réelle quand on pause
+            setUiTimeSec(getParisSeconds());
         }
-    }, [sendCmd]);
+    }, [sendCmd, setUiTimeSec]);
 
     const handleStop = useCallback(() => {
         currentPlayingMediaRef.current = null;
@@ -666,7 +680,9 @@ function useRadioAudio() {
         if (iframeRef.current) iframeRef.current.src = 'about:blank';
         sendCmd('pauseVideo');
         setIsPlaying(false);
-    }, [sendCmd]);
+        // Resynchroniser l'horloge sur Paris réel quand on arrête
+        setUiTimeSec(getParisSeconds());
+    }, [sendCmd, setUiTimeSec]);
 
     const handleNext = useCallback(() => {
         advanceToNextTrack();
