@@ -1147,20 +1147,15 @@ export function getRadioTimeBasedSchedule(
     }
 
     // Mode par défaut : 'now_upcoming' (En direct + Prochains titres à venir)
-    // IMPORTANT: trier 'all' par ordre chronologique relatif à nowSec
-    // car computeRadioDaySchedule place MORNING en premier (6h = offset 0)
-    // mais Zone Rouge (00h) est en dernier → à minuit, Morning apparaissait avant Zone Rouge
+    // Tri par TEMPS RESTANT AVANT LE DÉBUT (pas par temps écoulé depuis le début)
+    // timeUntil(01h) = (3600 - nowSec + 86400) % 86400 = petit → vient en premier
+    // timeUntil(23h) = grand → vient en dernier (c'est du passé d'hier)
+    const timeUntil = (start: number) => (start - nowSec + 86400) % 86400;
     const allSorted = [...all].sort((a, b) => {
-        const dA = circOff(a.startSecondsFromMidnight);
-        const dB = circOff(b.startSecondsFromMidnight);
-        // L'item live (distance la plus faible) passe en premier
-        // Les futurs (grande distance > 6h par ex) passent après, triés par start absolu
-        const isLiveA = a.isCurrentlyLive;
-        const isLiveB = b.isCurrentlyLive;
-        if (isLiveA && !isLiveB) return -1;
-        if (!isLiveA && isLiveB) return 1;
-        // Pour les futurs : trier par startSecondsFromMidnight dans le sens croissant circulaire
-        return dA - dB;
+        // L'item live passe toujours en premier
+        if (a.isCurrentlyLive && !b.isCurrentlyLive) return -1;
+        if (!a.isCurrentlyLive && b.isCurrentlyLive) return 1;
+        return timeUntil(a.startSecondsFromMidnight) - timeUntil(b.startSecondsFromMidnight);
     });
 
     const filtered: ComputedRadioScheduleItem[] = [];
