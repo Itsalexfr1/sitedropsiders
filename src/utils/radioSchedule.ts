@@ -1026,26 +1026,51 @@ export function getCurrentLiveRadioTrack(
     const all = computeRadioDaySchedule(list, nowSec);
     if (!all || all.length === 0) return null;
 
-    // 1. Chercher l'élément explicitement marqué comme actuellement en direct
-    let liveItem = all.find(item => item.isCurrentlyLive);
+    // Calculer la distance circulaire entre un start et nowSec
+    // (distance depuis le debut du morceau jusqu'a nowSec, dans le sens positif)
+    const circularOffset = (start: number) => {
+        let d = nowSec - start;
+        if (d < 0) d += 86400;
+        return d;
+    };
 
-    // 2. Si aucun n'est marqué (ex: transition exacte de seconde), trouver celui dont l'intervalle englobe nowSec
+    // 1. Chercher l'élément explicitement marqué comme actuellement en direct
+    //    Parmi les candidats, choisir celui dont le start est le plus récent (distance min à nowSec)
+    const liveItems = all.filter(item => item.isCurrentlyLive);
+    let liveItem: ComputedRadioScheduleItem | undefined;
+
+    if (liveItems.length > 0) {
+        // Le bon item est celui dont le start est le plus proche de nowSec dans le passé
+        liveItem = liveItems.reduce((best, cur) => {
+            return circularOffset(cur.startSecondsFromMidnight) < circularOffset(best.startSecondsFromMidnight) ? cur : best;
+        });
+    }
+
+    // 2. Si aucun n'est marqué, trouver via l'intervalle — en prenant le plus récent
     if (!liveItem) {
-        liveItem = all.find(item => {
+        const candidates = all.filter(item => {
             const start = item.startSecondsFromMidnight;
             const end = (start + item.durationSeconds) % 86400;
-            if (start <= end) {
-                return nowSec >= start && nowSec < end;
-            } else {
-                return nowSec >= start || nowSec < end;
-            }
+            if (start <= end) return nowSec >= start && nowSec < end;
+            return nowSec >= start || nowSec < end;
         });
+        if (candidates.length > 0) {
+            liveItem = candidates.reduce((best, cur) => {
+                return circularOffset(cur.startSecondsFromMidnight) < circularOffset(best.startSecondsFromMidnight) ? cur : best;
+            });
+        }
     }
 
     // 3. Fallback: prendre le plus récent dans le passé
     if (!liveItem) {
-        const pastItems = all.filter(item => item.startSecondsFromMidnight <= nowSec);
-        liveItem = pastItems.length > 0 ? pastItems[pastItems.length - 1] : all[0];
+        const pastItems = all.filter(item => circularOffset(item.startSecondsFromMidnight) < 86400);
+        if (pastItems.length > 0) {
+            liveItem = pastItems.reduce((best, cur) => {
+                return circularOffset(cur.startSecondsFromMidnight) < circularOffset(best.startSecondsFromMidnight) ? cur : best;
+            });
+        } else {
+            liveItem = all[0];
+        }
     }
 
     if (!liveItem) return null;
@@ -1055,7 +1080,8 @@ export function getCurrentLiveRadioTrack(
 
     return {
         item: liveItem,
-        offsetSeconds: Math.min(liveItem.durationSeconds, Math.max(0, offsetSeconds))
+        // Ne pas limiter l'offset à durationSeconds : pour les longs sets, l'offset peut dépasser l'estimation
+        offsetSeconds: Math.max(0, offsetSeconds)
     };
 }
 

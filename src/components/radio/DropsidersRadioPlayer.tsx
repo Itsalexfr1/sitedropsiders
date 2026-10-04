@@ -759,7 +759,7 @@ function useRadioAudio() {
                         audioRef.current.src = set.audioUrl;
                         // FIX: ne repositionner que si src a changé (évite reset currentTime si même src)
                         const targetOffset = Math.max(0, uiOffsetRef.current || 0);
-                        audioRef.current.currentTime = (targetOffset > 2 && targetOffset < (set.durationSeconds || 3600)) ? targetOffset : 0;
+                        audioRef.current.currentTime = targetOffset > 2 ? targetOffset : 0;
                     }
                     // FIX VOLUME RESET: volume appliqué AVANT play() — évite le bug de remise à zéro
                     audioRef.current.volume = isMutedRef.current ? 0 : (effectiveVolumeRef.current / 100);
@@ -781,7 +781,8 @@ function useRadioAudio() {
                     currentPlayingMediaRef.current = set.youtubeId;
                 } else {
                     const targetOffset = Math.max(0, Math.floor(uiOffsetRef.current || 0));
-                    const startSec = (targetOffset > 2 && targetOffset < (set.durationSeconds || 3600)) ? targetOffset : 0;
+                    // Rejoindre le morceau en cours (vrai comportement radio)
+                    const startSec = targetOffset > 2 ? targetOffset : 0;
                     // Sur mobile: toujours mute=0 dans l'URL pour que iOS joue le son directement
                     const mobileMute = IS_MOBILE ? 0 : (isMutedRef.current ? 1 : 0);
                     const src = buildSrc(set.youtubeId, startSec, mobileMute as 0 | 1);
