@@ -366,11 +366,14 @@ export function AdminRadioModal({
     const micStreamRef = useRef<MediaStream | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const monitorGainNodeRef = useRef<GainNode | null>(null);
+    const micBoostGainNodeRef = useRef<GainNode | null>(null);
     const animFrameRef = useRef<number | null>(null);
     // Volume musique pendant le ducking (% envoyé via event radio)
     const [duckingMusicVol, setDuckingMusicVol] = useState<number>(22);
     // Gain micro moniteur retour casque (0 à 200%)
     const [micMonitorGain, setMicMonitorGain] = useState<number>(100);
+    // Amplification du signal micro brut (0 à 400% — boost avant casque et VU-mètre)
+    const [micBoost, setMicBoost] = useState<number>(100);
 
     // Énumère les micros disponibles en déclenchant la demande d'autorisation navigateur si demandé
     const enumerateMicDevices = async (requestPermission = false) => {
@@ -420,6 +423,7 @@ export function AdminRadioModal({
         }
         if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
         monitorGainNodeRef.current = null;
+        micBoostGainNodeRef.current = null;
         setIsLiveMicActive(false);
         setIsMicTesting(false);
         setAudioLevel(0);
@@ -467,16 +471,23 @@ export function AdminRadioModal({
             }
 
             const source = audioCtx.createMediaStreamSource(stream);
+
+            // Nœud d'amplification brute du micro (boost avant casque + VU-mètre)
+            const micBoostNode = audioCtx.createGain();
+            micBoostNode.gain.value = micBoost / 100;
+            source.connect(micBoostNode);
+            micBoostGainNodeRef.current = micBoostNode;
+
             const analyser = audioCtx.createAnalyser();
             analyser.fftSize = 64;
-            source.connect(analyser);
+            micBoostNode.connect(analyser);
 
             // Nœud de gain pour retour casque local
             const monitorGain = audioCtx.createGain();
             // En mode test : gain 1.0 (on s'entend fort et clair dans le casque)
             const shouldHear = mode === 'test' ? true : isHeadphoneMonitor;
             monitorGain.gain.value = shouldHear ? 1.0 : 0.0;
-            source.connect(monitorGain);
+            micBoostNode.connect(monitorGain);
             monitorGain.connect(audioCtx.destination);
             monitorGainNodeRef.current = monitorGain;
 
@@ -2362,7 +2373,29 @@ export function AdminRadioModal({
                                             </div>
 
                                             {/* ── SLIDER GAIN MICRO (test PFL) ── */}
-                                            <div className="flex flex-col gap-1.5 min-w-[150px]">
+                                            <div className="flex flex-col gap-2 min-w-[150px]">
+                                                {/* Amplification signal micro */}
+                                                <div className="flex items-center gap-2">
+                                                    <Sliders className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                                    <div className="flex-1">
+                                                        <div className="flex justify-between text-[9px] font-mono text-gray-400 mb-0.5">
+                                                            <span className="text-emerald-300 font-bold uppercase">Amplification micro</span>
+                                                            <span className={micBoost > 200 ? 'text-orange-300 font-bold' : ''}>{micBoost}%</span>
+                                                        </div>
+                                                        <input
+                                                            type="range" min="0" max="400" step="10"
+                                                            value={micBoost}
+                                                            onChange={e => {
+                                                                const v = Number(e.target.value);
+                                                                setMicBoost(v);
+                                                                if (micBoostGainNodeRef.current) micBoostGainNodeRef.current.gain.value = v / 100;
+                                                            }}
+                                                            className="w-full h-1.5 rounded-full appearance-none accent-emerald-400 cursor-pointer"
+                                                            title="Amplification du signal micro brut (100% = normal, 200% = double, 400% = max)"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                {/* Volume casque */}
                                                 <div className="flex items-center gap-2">
                                                     <Mic className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                                                     <div className="flex-1">
@@ -2463,6 +2496,27 @@ export function AdminRadioModal({
 
                                             {/* ── SLIDERS VOLUME MICRO / MUSIQUE ── */}
                                             <div className="flex flex-col gap-2 min-w-[170px]">
+                                                {/* Amplification signal micro brut */}
+                                                <div className="flex items-center gap-2">
+                                                    <Sliders className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                                    <div className="flex-1">
+                                                        <div className="flex justify-between text-[9px] font-mono text-gray-400 mb-0.5">
+                                                            <span className="text-emerald-300 font-bold uppercase">Amplification</span>
+                                                            <span className={micBoost > 200 ? 'text-orange-300 font-bold' : ''}>{micBoost}%</span>
+                                                        </div>
+                                                        <input
+                                                            type="range" min="0" max="400" step="10"
+                                                            value={micBoost}
+                                                            onChange={e => {
+                                                                const v = Number(e.target.value);
+                                                                setMicBoost(v);
+                                                                if (micBoostGainNodeRef.current) micBoostGainNodeRef.current.gain.value = v / 100;
+                                                            }}
+                                                            className="w-full h-1.5 rounded-full appearance-none accent-emerald-400 cursor-pointer"
+                                                            title="Amplification du signal micro brut (100% = normal, 400% = max)"
+                                                        />
+                                                    </div>
+                                                </div>
                                                 {/* Volume musique ducking */}
                                                 <div className="flex items-center gap-2">
                                                     <VolumeX className="w-3.5 h-3.5 text-amber-400 shrink-0" />
