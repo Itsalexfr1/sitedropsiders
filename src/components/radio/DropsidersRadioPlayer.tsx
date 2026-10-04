@@ -451,6 +451,8 @@ function useRadioAudio() {
     // dans computeRadioDaySchedule par rapport à l'activeTrack courant.
     const advanceToNextTrack = useCallback(() => {
         currentPlayingMediaRef.current = null;
+        // Signaler le changement de track pour resetter le watchdog
+        window.dispatchEvent(new CustomEvent('dropsiders_radio_track_changed'));
         const cur = activeTrackRef.current;
         try {
             // Utiliser getParisSeconds() pour obtenir le schedule du bon jour
@@ -482,6 +484,8 @@ function useRadioAudio() {
     // 1. Écoute de l'événement YouTube postMessage (info: 0 => ENDED)
     // IMPORTANT: on vérifie STRICTEMENT que c'est un événement 'onStateChange'
     // pour éviter qu'un postMessage quelconque avec {info:0} déclenche un advance
+    // States YouTube : -1=unstarted, 0=ended, 1=playing, 2=paused, 3=buffering, 5=cued
+    const ytStateRef = useRef<number>(-1);
     useEffect(() => {
         const handleYtMessage = (event: MessageEvent) => {
             try {
@@ -490,11 +494,14 @@ function useRadioAudio() {
                 if (
                     data &&
                     data.event === 'onStateChange' &&
-                    data.info === 0 &&
                     isPlayingRef.current &&
                     currentSetRef.current?.youtubeId
                 ) {
-                    advanceToNextTrack();
+                    ytStateRef.current = typeof data.info === 'number' ? data.info : -1;
+                    if (data.info === 0) {
+                        // ENDED : avancer immédiatement
+                        advanceToNextTrack();
+                    }
                 }
                 // Récupération automatique de la durée réelle rapportée par le player YouTube
                 if (data?.info?.duration && currentSetRef.current?.youtubeId) {
@@ -509,6 +516,10 @@ function useRadioAudio() {
                             localStorage.setItem('dropsiders_radio_durations', JSON.stringify(parsed));
                         } catch {}
                     }
+                }
+                // Réponse aux getCurrentTime polling : si le player répond avec currentTime
+                if (data?.event === 'infoDelivery' && data?.info?.currentTime !== undefined) {
+                    window.dispatchEvent(new CustomEvent('yt_current_time', { detail: data.info.currentTime }));
                 }
             } catch {}
         };
@@ -589,9 +600,57 @@ function useRadioAudio() {
         };
     }, [advanceToNextTrack]);
 
-    // NOTE: Pas de polling YouTube agressif — YouTube gère son propre buffering.
-    // Un buffering de 3-15s est normal sur les longs sets. On se fie uniquement
-    // à l'événement 'onStateChange: 0' (ENDED) pour avancer.
+    // 4. ─── WATCHDOG YOUTUBE : détection de blanc / fin de clip sans événement ENDED ────
+    // Certains clips YouTube ne déclenchent pas onStateChange:0 fiablement.
+    // On poll getCurrentTime toutes les 3s via postMessage.
+    // Si la position ne progresse plus pendant 10s alors que le state=1 (playing),
+    // on considère le clip terminé (blanc détecté) et on avance.
+    useEffect(() => {
+        let lastYtTime = -1;
+        let lastYtTimeStamp = Date.now();
+        let watchdogInterval: ReturnType<typeof setInterval> | null = null;
+
+        const onYtCurrentTime = (e: any) => {
+            const ct = typeof e.detail === 'number' ? e.detail : -1;
+            if (ct > 0 && ct !== lastYtTime) {
+                // La vidéo progresse normalement
+                lastYtTime = ct;
+                lastYtTimeStamp = Date.now();
+            }
+        };
+        // Reset du watchdog dès qu'un nouveau track démarre (évite faux positif au chargement)
+        const onTrackChange = () => {
+            lastYtTime = -1;
+            lastYtTimeStamp = Date.now();
+        };
+        window.addEventListener('yt_current_time', onYtCurrentTime);
+        window.addEventListener('dropsiders_radio_track_changed', onTrackChange);
+
+        watchdogInterval = setInterval(() => {
+            if (!isPlayingRef.current || !currentSetRef.current?.youtubeId || currentSetRef.current?.audioUrl) return;
+            // Demander la position courante au player YouTube
+            sendCmd('getCurrentTime');
+            // Si la position n'a pas bougé depuis 10s et que le state est 1 (playing) ou -1 (inconnu)
+            // → on suppose que le clip est terminé sans événement ENDED
+            const elapsed = Date.now() - lastYtTimeStamp;
+            if (
+                lastYtTime >= 0 &&
+                elapsed > 10000 &&
+                ytStateRef.current !== 2 && // pas en pause intentionnelle
+                ytStateRef.current !== 3    // pas en buffering
+            ) {
+                lastYtTime = -1;
+                lastYtTimeStamp = Date.now();
+                advanceToNextTrack();
+            }
+        }, 3000);
+
+        return () => {
+            if (watchdogInterval) clearInterval(watchdogInterval);
+            window.removeEventListener('yt_current_time', onYtCurrentTime);
+            window.removeEventListener('dropsiders_radio_track_changed', onTrackChange);
+        };
+    }, [advanceToNextTrack, sendCmd]);
 
     // 5. ─── MOBILE BACKGROUND AUDIO : Page Visibility API ────────────────────
     // Reprendre la lecture quand l'utilisateur revient sur l'app (depuis une autre appli)

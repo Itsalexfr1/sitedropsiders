@@ -813,21 +813,26 @@ export function saveCachedRadioDuration(idOrYt: string, durationSec: number): vo
 
 export function sanitizeTrackDuration(t: RadioTrackItem): number {
     const cached = getCachedRadioDurations();
-    // 1. Durée réelle mesurée et mise en cache lors de la lecture
+    // 1. Durée réelle mesurée et mise en cache lors de la lecture (prioritaire)
     if (t.youtubeId && cached[t.youtubeId] && cached[t.youtubeId] > 0) return cached[t.youtubeId];
     if (t.audioUrl && cached[t.audioUrl] && cached[t.audioUrl] > 0) return cached[t.audioUrl];
     if (t.id && cached[t.id] && cached[t.id] > 0) return cached[t.id];
 
-    // 2. Durée réelle explicite enregistrée dans les données (< 3600s)
-    if (t.duration && t.duration > 0 && t.duration < 3600) {
+    // 2. Durée réelle explicite enregistrée dans les données
+    // NOTE: on accepte toute durée > 0, y compris les live sets > 3600s
+    if (t.duration && t.duration > 0) {
         return t.duration;
     }
 
-    // 3. Estimations de sécurité selon le type de média
+    // 3. Estimations de sécurité selon le type de média (affichage uniquement)
+    // Le changement de piste réel se fait via détection de blanc, PAS via ces durées
     if (t.category === 'promo') return 47;
     if (t.category === 'jingle' || t.isTopHoraire || t.isThemeJingle) return 15;
     if (t.category === 'pub') return 30;
-    return 210; // ~3m30 pour les clips sans durée renseignée
+    if (t.category === 'clip') return 240;       // ~4min pour les clips vidéo
+    if (t.category === 'interview') return 600;   // ~10min pour les interviews
+    if (t.category === 'liveset' || t.category === 'set') return 3600; // ~1h pour les live sets
+    return 240; // ~4min par défaut
 }
 
 /**
