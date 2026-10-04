@@ -2361,6 +2361,30 @@ export function AdminRadioModal({
                                                 </div>
                                             </div>
 
+                                            {/* ── SLIDER GAIN MICRO (test PFL) ── */}
+                                            <div className="flex flex-col gap-1.5 min-w-[150px]">
+                                                <div className="flex items-center gap-2">
+                                                    <Mic className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                                                    <div className="flex-1">
+                                                        <div className="flex justify-between text-[9px] font-mono text-gray-400 mb-0.5">
+                                                            <span className="text-cyan-300 font-bold uppercase">Gain micro casque</span>
+                                                            <span>{micMonitorGain}%</span>
+                                                        </div>
+                                                        <input
+                                                            type="range" min="0" max="200" step="5"
+                                                            value={micMonitorGain}
+                                                            onChange={e => {
+                                                                const v = Number(e.target.value);
+                                                                setMicMonitorGain(v);
+                                                                if (monitorGainNodeRef.current) monitorGainNodeRef.current.gain.value = v / 100;
+                                                            }}
+                                                            className="w-full h-1.5 rounded-full appearance-none accent-cyan-400 cursor-pointer"
+                                                            title="Volume du micro dans votre casque (0–200%)"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     type="button"
@@ -2457,7 +2481,7 @@ export function AdminRadioModal({
                                                     </div>
                                                 </div>
                                                 {/* Volume micro casque */}
-                                                {isHeadphoneMonitor && monitorGainNodeRef.current && (
+                                                {isHeadphoneMonitor && (
                                                     <div className="flex items-center gap-2">
                                                         <Mic className="w-3.5 h-3.5 text-red-400 shrink-0" />
                                                         <div className="flex-1">
@@ -2468,7 +2492,11 @@ export function AdminRadioModal({
                                                             <input
                                                                 type="range" min="0" max="200" step="5"
                                                                 value={micMonitorGain}
-                                                                onChange={e => setMicMonitorGain(Number(e.target.value))}
+                                                                onChange={e => {
+                                                                    const v = Number(e.target.value);
+                                                                    setMicMonitorGain(v);
+                                                                    if (monitorGainNodeRef.current) monitorGainNodeRef.current.gain.value = v / 100;
+                                                                }}
                                                                 className="w-full h-1.5 rounded-full appearance-none accent-red-400 cursor-pointer"
                                                                 title="Volume du micro dans votre casque (0–200%)"
                                                             />
