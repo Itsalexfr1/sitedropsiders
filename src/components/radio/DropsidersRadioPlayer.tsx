@@ -447,22 +447,18 @@ function useRadioAudio() {
     }, [currentSet?.id, currentSet?.audioUrl, currentSet?.youtubeId, sendCmd]);
 
     // ─── ENCHAÎNEMENT : passe au track suivant par INDEX dans le schedule ───────
-    // N'utilise JAMAIS uiTimeSec / durationSeconds. Cherche le prochain item
-    // dans computeRadioDaySchedule par rapport à l'activeTrack courant.
+    // Charge le prochain track DIRECTEMENT et IMPERATIVEMENT (sans attendre le useEffect)
+    // pour éviter le problème où deux tracks consécutifs ont le même youtubeId (le useEffect
+    // ne se re-déclenche pas si la dépendance ne change pas).
     const advanceToNextTrack = useCallback(() => {
-        currentPlayingMediaRef.current = null;
         // Signaler le changement de track pour resetter le watchdog
         window.dispatchEvent(new CustomEvent('dropsiders_radio_track_changed'));
         const cur = activeTrackRef.current;
         try {
-            // Utiliser getParisSeconds() pour obtenir le schedule du bon jour
             const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
             if (!schedule || schedule.length === 0) return;
 
             let curIdx = cur ? schedule.findIndex(s => s.id === cur.id) : -1;
-
-            // Si le track courant n'est pas trouvé dans le schedule (ex: jingle intercalé),
-            // chercher par youtubeId ou audioUrl
             if (curIdx < 0 && cur) {
                 curIdx = schedule.findIndex(s =>
                     (cur.youtubeId && s.youtubeId === cur.youtubeId) ||
@@ -472,14 +468,57 @@ function useRadioAudio() {
 
             const nextIdx = curIdx >= 0 && curIdx < schedule.length - 1 ? curIdx + 1 : 0;
             const nextTrack = schedule[nextIdx];
+
+            // ── Mise à jour de l'état React (pour l'UI) ──────────────────────
+            activeTrackRef.current = nextTrack; // sync immédiat de la ref
+            currentSetRef.current = nextTrack;  // sync immédiat de la ref
+            currentPlayingMediaRef.current = null;
             setActiveTrack(nextTrack);
-            // Mettre aussi à jour uiTimeSec pour que l'affichage du schedule soit cohérent
             setUiTimeSec(nextTrack.startSecondsFromMidnight);
+
+            // ── Chargement IMPÉRATIF du prochain track ───────────────────────
+            // On n'attend PAS le useEffect réactif : on charge directement ici.
+            if (!isPlayingRef.current) return; // pas en lecture → rien à faire
+
+            if (nextTrack.audioUrl) {
+                // Stopper l'iframe YouTube si active
+                if (iframeRef.current && iframeRef.current.src !== 'about:blank') {
+                    sendCmd('pauseVideo');
+                    iframeRef.current.src = 'about:blank';
+                    preloadedVideoIdRef.current = null;
+                }
+                if (audioRef.current) {
+                    audioRef.current.src = nextTrack.audioUrl;
+                    audioRef.current.currentTime = 0;
+                    audioRef.current.volume = isMutedRef.current ? 0 : (effectiveVolumeRef.current / 100);
+                    audioRef.current.play().then(() => {
+                        currentPlayingMediaRef.current = nextTrack.audioUrl || null;
+                    }).catch(() => {});
+                }
+            } else if (nextTrack.youtubeId) {
+                // Stopper l'audio HTML5 si actif
+                if (audioRef.current && !audioRef.current.paused) {
+                    audioRef.current.pause();
+                    audioRef.current.src = '';
+                }
+                const ytId = nextTrack.youtubeId;
+                const mobileMute: 0 | 1 = IS_MOBILE ? 0 : (isMutedRef.current ? 1 : 0);
+                if (iframeRef.current) {
+                    iframeRef.current.src = buildSrc(ytId, 0, mobileMute);
+                    preloadedVideoIdRef.current = ytId;
+                }
+                currentPlayingMediaRef.current = ytId;
+                setTimeout(() => {
+                    if (!isMutedRef.current) sendCmd('unMute');
+                    sendCmd('setVolume', [IS_MOBILE ? 100 : effectiveVolumeRef.current]);
+                    sendCmd('playVideo');
+                }, IS_MOBILE ? 800 : 300);
+            }
         } catch {
             // Fallback: avancer de 5 min dans le schedule
             setUiTimeSec(prev => (prev + 300) % 86400);
         }
-    }, []);
+    }, [sendCmd]);
 
     // 1. Écoute de l'événement YouTube postMessage (info: 0 => ENDED)
     // IMPORTANT: on vérifie STRICTEMENT que c'est un événement 'onStateChange'
