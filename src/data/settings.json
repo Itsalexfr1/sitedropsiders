@@ -76,18 +76,7 @@
   "unsplash_access_key": "",
   "pexels_api_key": "",
   "tv_start_time": 1789420139214,
-  "tv_promos": [
-    {
-      "id": "promo_1789420138099",
-      "title": "Tomorrowland Winter 2027 Promo",
-      "youtubeId": "pQdsHoG2yhw"
-    },
-    {
-      "id": "promo_1789421449603",
-      "title": "EDC Orlando 2026 Official Trailer",
-      "youtubeId": "61tiIdIrjUQ"
-    }
-  ],
+  "tv_promos": [],
   "tv_blocks": [
     {
       "id": "bloc_1",
@@ -6944,14 +6933,6 @@
           "category": "clip"
         },
         {
-          "id": "pr_bloc_1790809306418_p_44",
-          "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "pQdsHoG2yhw",
-          "duration": 30,
-          "category": "pub"
-        },
-        {
           "id": "track_1790810473170_v733",
           "title": "Mufasa",
           "artist": "Laidback Luke & Peking Duk",
@@ -6990,14 +6971,6 @@
           "youtubeId": "jbk1SKfjKWo",
           "duration": 3600,
           "category": "clip"
-        },
-        {
-          "id": "pr_bloc_1790809306418_p_47",
-          "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "61tiIdIrjUQ",
-          "duration": 25,
-          "category": "pub"
         },
         {
           "id": "track_1790810530377_8ya1",
@@ -7712,14 +7685,6 @@
           "category": "clip"
         },
         {
-          "id": "pr_bloc_1790809306418_p_92",
-          "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "pQdsHoG2yhw",
-          "duration": 30,
-          "category": "pub"
-        },
-        {
           "id": "track_1790875213210_opy2",
           "title": "DVNO",
           "artist": "Justice",
@@ -7758,14 +7723,6 @@
           "youtubeId": "ZbbTmR6Xaag",
           "duration": 3600,
           "category": "clip"
-        },
-        {
-          "id": "pr_bloc_1790809306418_p_95",
-          "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "61tiIdIrjUQ",
-          "duration": 25,
-          "category": "pub"
         },
         {
           "id": "track_1790875338171_fwvb",
@@ -8480,14 +8437,6 @@
           "category": "clip"
         },
         {
-          "id": "pr_bloc_1790809306418_p_140",
-          "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "pQdsHoG2yhw",
-          "duration": 30,
-          "category": "pub"
-        },
-        {
           "id": "track_1790879579145_fsbf",
           "title": "Break Through The Silence",
           "artist": "Martin Garrix vs Matisse & Sadko",
@@ -8526,14 +8475,6 @@
           "youtubeId": "V5_YsnS8AwQ",
           "duration": 3600,
           "category": "clip"
-        },
-        {
-          "id": "pr_bloc_1790809306418_p_143",
-          "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-          "artist": "PUBLICITÉ / SPONSOR",
-          "youtubeId": "61tiIdIrjUQ",
-          "duration": 25,
-          "category": "pub"
         },
         {
           "id": "track_1790879707491_l7kx",
@@ -13910,14 +13851,6 @@
       "category": "clip"
     },
     {
-      "id": "pr_bloc_1790809306418_p_44",
-      "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "pQdsHoG2yhw",
-      "duration": 30,
-      "category": "pub"
-    },
-    {
       "id": "track_1790810473170_v733",
       "title": "Mufasa",
       "artist": "Laidback Luke & Peking Duk",
@@ -13956,14 +13889,6 @@
       "youtubeId": "jbk1SKfjKWo",
       "duration": 3600,
       "category": "clip"
-    },
-    {
-      "id": "pr_bloc_1790809306418_p_47",
-      "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "61tiIdIrjUQ",
-      "duration": 25,
-      "category": "pub"
     },
     {
       "id": "track_1790810530377_8ya1",
@@ -14678,14 +14603,6 @@
       "category": "clip"
     },
     {
-      "id": "pr_bloc_1790809306418_p_92",
-      "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "pQdsHoG2yhw",
-      "duration": 30,
-      "category": "pub"
-    },
-    {
       "id": "track_1790875213210_opy2",
       "title": "DVNO",
       "artist": "Justice",
@@ -14724,14 +14641,6 @@
       "youtubeId": "ZbbTmR6Xaag",
       "duration": 3600,
       "category": "clip"
-    },
-    {
-      "id": "pr_bloc_1790809306418_p_95",
-      "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "61tiIdIrjUQ",
-      "duration": 25,
-      "category": "pub"
     },
     {
       "id": "track_1790875338171_fwvb",
@@ -15446,14 +15355,6 @@
       "category": "clip"
     },
     {
-      "id": "pr_bloc_1790809306418_p_140",
-      "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "pQdsHoG2yhw",
-      "duration": 30,
-      "category": "pub"
-    },
-    {
       "id": "track_1790879579145_fsbf",
       "title": "Break Through The Silence",
       "artist": "Martin Garrix vs Matisse & Sadko",
@@ -15492,14 +15393,6 @@
       "youtubeId": "V5_YsnS8AwQ",
       "duration": 3600,
       "category": "clip"
-    },
-    {
-      "id": "pr_bloc_1790809306418_p_143",
-      "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "youtubeId": "61tiIdIrjUQ",
-      "duration": 25,
-      "category": "pub"
     },
     {
       "id": "track_1790879707491_l7kx",
@@ -17004,22 +16897,6 @@
       "category": "promo",
       "duration": 32,
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav"
-    },
-    {
-      "id": "pub_voyages",
-      "title": "Publicité Dropsiders Voyages • Packs Festivals & Bus",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "category": "pub",
-      "duration": 30,
-      "youtubeId": "pQdsHoG2yhw"
-    },
-    {
-      "id": "pub_shop",
-      "title": "Spot Partenaire • Dropsiders Shop Officiel & Goodies",
-      "artist": "PUBLICITÉ / SPONSOR",
-      "category": "pub",
-      "duration": 25,
-      "youtubeId": "61tiIdIrjUQ"
     }
   ]
 }

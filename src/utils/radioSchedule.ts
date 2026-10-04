@@ -244,24 +244,7 @@ const DEFAULT_SYSTEM_JINGLES: RadioTrackItem[] = [
     }
 ];
 
-const DEFAULT_SYSTEM_PUBS: RadioTrackItem[] = [
-    {
-        id: 'def_pub_1',
-        title: 'Publicité Dropsiders Voyages • Packs Festivals & Bus',
-        artist: 'SPONSOR',
-        youtubeId: 'pQdsHoG2yhw',
-        duration: 30,
-        category: 'pub'
-    },
-    {
-        id: 'def_pub_2',
-        title: 'Spot Partenaire • Dropsiders Shop Officiel & Goodies',
-        artist: 'SPONSOR',
-        youtubeId: '61tiIdIrjUQ',
-        duration: 25,
-        category: 'pub'
-    }
-];
+
 
 const DEFAULT_SYSTEM_INTERVIEWS: RadioTrackItem[] = [
     {
