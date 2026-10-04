@@ -1147,11 +1147,26 @@ export function getRadioTimeBasedSchedule(
     }
 
     // Mode par défaut : 'now_upcoming' (En direct + Prochains titres à venir)
-    // On conserve le live en cours, puis tous les titres suivants à partir de maintenant
+    // IMPORTANT: trier 'all' par ordre chronologique relatif à nowSec
+    // car computeRadioDaySchedule place MORNING en premier (6h = offset 0)
+    // mais Zone Rouge (00h) est en dernier → à minuit, Morning apparaissait avant Zone Rouge
+    const allSorted = [...all].sort((a, b) => {
+        const dA = circOff(a.startSecondsFromMidnight);
+        const dB = circOff(b.startSecondsFromMidnight);
+        // L'item live (distance la plus faible) passe en premier
+        // Les futurs (grande distance > 6h par ex) passent après, triés par start absolu
+        const isLiveA = a.isCurrentlyLive;
+        const isLiveB = b.isCurrentlyLive;
+        if (isLiveA && !isLiveB) return -1;
+        if (!isLiveA && isLiveB) return 1;
+        // Pour les futurs : trier par startSecondsFromMidnight dans le sens croissant circulaire
+        return dA - dB;
+    });
+
     const filtered: ComputedRadioScheduleItem[] = [];
     let pastCount = 0;
 
-    for (const item of all) {
+    for (const item of allSorted) {
         const itemEnd = (item.startSecondsFromMidnight + item.durationSeconds) % 86400;
         const isPast = !item.isCurrentlyLive && (
             (item.startSecondsFromMidnight < nowSec && itemEnd <= nowSec) &&
