@@ -1,4 +1,4 @@
-import { 
+﻿import { 
     DEFAULT_TV_BLOCKS, 
     parseArtistAndEvent, 
     formatDurationExact, 
@@ -1107,7 +1107,16 @@ export function getRadioTimeBasedSchedule(
     const all = computeRadioDaySchedule(blocks, nowSec);
     const activeBlock = getActiveRadioBlock(blocks, Math.floor(nowSec / 3600), getParisDayOfWeek());
 
-    const liveItem = all.find(item => item.isCurrentlyLive) || null;
+    // Fix: trouver le bon item live par circularOffset (Zone Rouge a minuit, pas Morning)
+    const circOff = (start: number) => { let d = nowSec - start; if (d < 0) d += 86400; return d; };
+    const liveItemCandidates = all.filter(item => item.isCurrentlyLive);
+    let liveItem: ComputedRadioScheduleItem | null = null;
+    if (liveItemCandidates.length > 0) {
+        liveItem = liveItemCandidates.reduce((best, cur) =>
+            circOff(cur.startSecondsFromMidnight) < circOff(best.startSecondsFromMidnight) ? cur : best
+        );
+    }
+    if (!liveItem) liveItem = all.find(item => item.isCurrentlyLive) || null;
 
     if (mode === 'full_day') {
         return {
@@ -1120,8 +1129,9 @@ export function getRadioTimeBasedSchedule(
         };
     }
 
-    if (mode === 'current_show' && activeBlock) {
-        const showItems = all.filter(item => item.blockId === activeBlock.id);
+    if (mode === 'current_show') {
+        const currentBlockId = liveItem?.blockId || activeBlock?.id;
+        const showItems = currentBlockId ? all.filter(item => item.blockId === currentBlockId) : all;
         const past = showItems.filter(item => {
             const end = (item.startSecondsFromMidnight + item.durationSeconds) % 86400;
             return !item.isCurrentlyLive && item.startSecondsFromMidnight < nowSec && end <= nowSec;
