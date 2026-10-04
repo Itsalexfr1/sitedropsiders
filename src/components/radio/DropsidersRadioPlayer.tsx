@@ -382,8 +382,14 @@ function useRadioAudio() {
                 if (audioRef.current.src !== currentSet.audioUrl) {
                     audioRef.current.src = currentSet.audioUrl;
                 }
-                const targetOffset = Math.max(0, uiOffsetRef.current || 0);
-                audioRef.current.currentTime = (targetOffset > 2 && targetOffset < (currentSet.durationSeconds || 3600)) ? targetOffset : 0;
+                // FIX JINGLES COUPÉS : si on est en mode activeTrack découplé (advanceToNextTrack),
+                // l'uiOffset représente l'heure Paris réelle et peut être BIEN supérieur
+                // à la durée réelle du fichier (∞ jingle de 15s avec offset de 660s = skip instantané).
+                // => On ne se sert de l'offset QUE pour le PREMIER play (depuis l'horloge).
+                // Après, chaque track avancé par advanceToNextTrack repart de 0.
+                const isFirstPlay = activeTrackRef.current === null || !currentPlayingMediaRef.current;
+                const targetOffset = isFirstPlay ? Math.max(0, uiOffsetRef.current || 0) : 0;
+                audioRef.current.currentTime = (targetOffset > 2 && targetOffset < (audioRef.current.duration || 3600)) ? targetOffset : 0;
                 // FIX VOLUME RESET: appliquer le volume AVANT play() pour éviter le reset
                 audioRef.current.volume = targetAudioVol;
                 audioRef.current.play().then(() => {
@@ -415,7 +421,9 @@ function useRadioAudio() {
             const alreadyLoaded = iframeRef.current?.src && iframeRef.current.src.includes(currentYt);
 
             if (!alreadyLoaded) {
-                const targetOffset = Math.max(0, Math.floor(uiOffsetRef.current || 0));
+                // FIX JINGLES COUPÉS : même logique que pour l'audio — offset uniquement au premier play
+                const isFirstPlay = !currentPlayingMediaRef.current;
+                const targetOffset = isFirstPlay ? Math.max(0, Math.floor(uiOffsetRef.current || 0)) : 0;
                 const startSec = (targetOffset > 2 && targetOffset < (currentSet.durationSeconds || 3600)) ? targetOffset : 0;
                 if (iframeRef.current) {
                     // FIX MOBILE SOUND: toujours mute=0 sur iOS pour que le son sorte dès le départ
