@@ -210,18 +210,10 @@ function useRadioAudio() {
     useEffect(() => { volumeRef.current = volume; }, [volume]);
 
     // ─── Préchargement muet dès qu'un set YouTube est disponible ────────────
-    // SKIP sur mobile: iOS bloque le autoplay muet dans les iframes de toute façon
+    // PRELOAD SUPPRIMÉ : le preload muet à start=0 causait un redémarrage
+    // depuis le début quand handlePlay détectait alreadyLoaded=true.
+    // YouTube bufferise automatiquement — pas besoin de preload manuel.
     const preloadedVideoIdRef = useRef<string | null>(null);
-    useEffect(() => {
-        if (IS_MOBILE) return; // Pas de preload sur mobile
-        if (!currentVideoId || currentSet?.audioUrl) return;
-        if (isPlayingRef.current) return;
-        if (preloadedVideoIdRef.current === currentVideoId) return;
-        preloadedVideoIdRef.current = currentVideoId;
-        if (iframeRef.current) {
-            iframeRef.current.src = buildSrc(currentVideoId, 0, 1);
-        }
-    }, [currentVideoId, currentSet?.audioUrl]);
 
     // ─── Canaux & Durées Découvertes ─────────────────────────────────────────
     // ─── Comptage Réel des Auditeurs (Sans Simulation Artificielle) ─────────
@@ -757,9 +749,12 @@ function useRadioAudio() {
                     const isSameSrc = audioRef.current.src === set.audioUrl;
                     if (!isSameSrc) {
                         audioRef.current.src = set.audioUrl;
-                        // FIX: ne repositionner que si src a changé (évite reset currentTime si même src)
-                        const targetOffset = Math.max(0, uiOffsetRef.current || 0);
-                        audioRef.current.currentTime = targetOffset > 2 ? targetOffset : 0;
+                        // Offset frais depuis l'horloge Paris pour comportement radio
+                        const freshNow = getParisSeconds();
+                        const tStart = set.startSecondsFromMidnight ?? 0;
+                        let off = freshNow - tStart;
+                        if (off < 0) off += 86400;
+                        audioRef.current.currentTime = (off > 2 && off < 21600) ? off : 0;
                     }
                     // FIX VOLUME RESET: volume appliqué AVANT play() — évite le bug de remise à zéro
                     audioRef.current.volume = isMutedRef.current ? 0 : (effectiveVolumeRef.current / 100);
@@ -770,22 +765,26 @@ function useRadioAudio() {
             } else if (set.youtubeId) {
                 if (audioRef.current && !audioRef.current.paused) audioRef.current.pause();
 
-                // Sur mobile, TOUJOURS recharger l'iframe avec mute=0 directement
-                // car iOS ne respecte pas toujours le postMessage('unMute')
+                // Calcul FRAIS de l'offset au moment du clic (pas de ref périmée)
+                // = secondes écoulées depuis le début du track selon l'horloge Paris
+                const freshNowSec = getParisSeconds();
+                const trackStartSec = set.startSecondsFromMidnight ?? 0;
+                let freshOffset = freshNowSec - trackStartSec;
+                if (freshOffset < 0) freshOffset += 86400; // wrap minuit
+                // Sanity check : si offset > 6h, quelque chose est incohérent → repartir à 0
+                const safeOffset = (freshOffset > 2 && freshOffset < 21600) ? Math.floor(freshOffset) : 0;
+
                 const alreadyLoaded = !IS_MOBILE && iframeRef.current?.src?.includes(set.youtubeId);
                 if (alreadyLoaded) {
+                    // L'iframe est chargée mais peut-être à la mauvaise position → seekTo
+                    if (safeOffset > 2) sendCmd('seekTo', [safeOffset, true]);
                     if (!isMutedRef.current) sendCmd('unMute');
-                    // FIX MOBILE SOUND: iOS ignore setVolume — forcer 100 dans l'iframe
                     sendCmd('setVolume', [IS_MOBILE ? 100 : effectiveVolumeRef.current]);
                     sendCmd('playVideo');
                     currentPlayingMediaRef.current = set.youtubeId;
                 } else {
-                    const targetOffset = Math.max(0, Math.floor(uiOffsetRef.current || 0));
-                    // Rejoindre le morceau en cours (vrai comportement radio)
-                    const startSec = targetOffset > 2 ? targetOffset : 0;
-                    // Sur mobile: toujours mute=0 dans l'URL pour que iOS joue le son directement
                     const mobileMute = IS_MOBILE ? 0 : (isMutedRef.current ? 1 : 0);
-                    const src = buildSrc(set.youtubeId, startSec, mobileMute as 0 | 1);
+                    const src = buildSrc(set.youtubeId, safeOffset, mobileMute as 0 | 1);
                     if (iframeRef.current) iframeRef.current.src = src;
                     preloadedVideoIdRef.current = set.youtubeId;
                     currentPlayingMediaRef.current = set.youtubeId;
