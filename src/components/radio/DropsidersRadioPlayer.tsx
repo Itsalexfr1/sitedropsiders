@@ -153,27 +153,28 @@ function useRadioAudio() {
         }).catch(() => {});
     }, []);
 
-    // ─── Horloge Paris ───────────────────────────────────────────────────────
-    // CRITICAL FIX: On ne met PAS à jour uiTimeSec en permanence depuis l'horloge réelle.
-    // Si on le faisait, après 3 min (durationSeconds par défaut = 180), getCurrentLiveRadioTrack
-    // retournerait le track suivant → player coupe au bout de 3min exactement.
-    // uiTimeSec avance uniquement via advanceToNextTrack() (quand la vidéo se termine vraiment).
-    // Quand on est en pause, on resynchronise sur l'heure Paris pour que le schedule soit correct.
+    // ─── Horloge Paris (sert UNIQUEMENT au display schedule et au démarrage) ─────
     const [uiTimeSec, setUiTimeSec] = useState<number>(getParisSeconds);
-    const isPlayingRef2 = useRef(false); // ref locale pour le interval (évite stale closure)
     useEffect(() => {
-        // Tick toutes les 5s SEULEMENT si on ne joue pas
-        // → maintient le schedule correct quand la radio est stoppée/pausée
-        const id = setInterval(() => {
-            if (!isPlayingRef2.current) {
-                setUiTimeSec(getParisSeconds());
-            }
-        }, 5000);
+        // Tick toutes les 5s pour garder le schedule à jour (affichage admin, etc.)
+        const id = setInterval(() => setUiTimeSec(getParisSeconds()), 5000);
         return () => clearInterval(id);
     }, []);
 
     const liveInfo = useMemo(() => getCurrentLiveRadioTrack(radioBlocks, uiTimeSec), [radioBlocks, uiTimeSec]);
-    const currentSet = liveInfo?.item || null;
+
+    // ─── TRACK ACTIF : SOURCE DE VÉRITÉ PENDANT LA LECTURE ──────────────────────
+    // activeTrack est définitivement découplé de l'horloge :
+    // - Initialisé quand on appuie sur Play (= liveInfo.item de ce moment)
+    // - Mis à jour UNIQUEMENT par advanceToNextTrack()
+    // - Réinitialisé sur Stop
+    // => Aucun setInterval, storage event ou update radioBlocks ne peut le changer.
+    const [activeTrack, setActiveTrack] = useState<ComputedRadioScheduleItem | null>(null);
+    const activeTrackRef = useRef<ComputedRadioScheduleItem | null>(null);
+    useEffect(() => { activeTrackRef.current = activeTrack; }, [activeTrack]);
+
+    // currentSet = activeTrack si on joue, sinon liveInfo (pour l'affichage quand en pause)
+    const currentSet = activeTrack || liveInfo?.item || null;
     const uiOffset = liveInfo?.offsetSeconds ?? 0;
     const uiOffsetRef = useRef(uiOffset);
     useEffect(() => { uiOffsetRef.current = uiOffset; }, [uiOffset]);
@@ -202,7 +203,9 @@ function useRadioAudio() {
     const isPlayingRef = useRef(isPlaying);
     const isMutedRef = useRef(isMuted);
     const volumeRef = useRef(volume);
-    useEffect(() => { isPlayingRef.current = isPlaying; isPlayingRef2.current = isPlaying; }, [isPlaying]);
+    const radioBlocksRef = useRef(radioBlocks);
+    useEffect(() => { radioBlocksRef.current = radioBlocks; }, [radioBlocks]);
+    useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
     useEffect(() => { isMutedRef.current = isMuted; }, [isMuted]);
     useEffect(() => { volumeRef.current = volume; }, [volume]);
 
@@ -435,40 +438,37 @@ function useRadioAudio() {
         }
     }, [currentSet?.id, currentSet?.audioUrl, currentSet?.youtubeId, sendCmd]);
 
-    // ─── Référence sur les blocs radio (pour advanceToNextTrack) ─────────────
-    const radioBlocksRef = useRef(radioBlocks);
-    useEffect(() => { radioBlocksRef.current = radioBlocks; }, [radioBlocks]);
-
-    // ─── ENCHAÎNEMENT DE PISTE : passe au track suivant dans la liste ─────────
-    // IMPORTANT : on cherche le prochain item dans computeRadioDaySchedule par index
-    // et on saute directement à son startSecondsFromMidnight.
-    // Ainsi : PAS de dépendance à durationSeconds, PAS de coupure à 3min.
+    // ─── ENCHAÎNEMENT : passe au track suivant par INDEX dans le schedule ───────
+    // N'utilise JAMAIS uiTimeSec / durationSeconds. Cherche le prochain item
+    // dans computeRadioDaySchedule par rapport à l'activeTrack courant.
     const advanceToNextTrack = useCallback(() => {
         currentPlayingMediaRef.current = null;
-        setUiTimeSec(prev => {
-            const cur = currentSetRef.current;
-            if (!cur) return (prev + 300) % 86400; // fallback
+        const cur = activeTrackRef.current;
+        try {
+            // Utiliser getParisSeconds() pour obtenir le schedule du bon jour
+            const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
+            if (!schedule || schedule.length === 0) return;
 
-            try {
-                const schedule = computeRadioDaySchedule(radioBlocksRef.current, prev);
-                if (!schedule || schedule.length === 0) return (prev + 300) % 86400;
+            let curIdx = cur ? schedule.findIndex(s => s.id === cur.id) : -1;
 
-                // Trouver l'index du track courant dans le schedule
-                const curIdx = schedule.findIndex(s => s.id === cur.id);
-
-                if (curIdx >= 0 && curIdx < schedule.length - 1) {
-                    // Sauter directement au début du track suivant
-                    const nextTrack = schedule[curIdx + 1];
-                    return nextTrack.startSecondsFromMidnight;
-                } else {
-                    // Dernier track du schedule : revenir au premier
-                    const firstTrack = schedule[0];
-                    return firstTrack.startSecondsFromMidnight;
-                }
-            } catch {
-                return (prev + 300) % 86400;
+            // Si le track courant n'est pas trouvé dans le schedule (ex: jingle intercalé),
+            // chercher par youtubeId ou audioUrl
+            if (curIdx < 0 && cur) {
+                curIdx = schedule.findIndex(s =>
+                    (cur.youtubeId && s.youtubeId === cur.youtubeId) ||
+                    (cur.audioUrl && s.audioUrl === cur.audioUrl)
+                );
             }
-        });
+
+            const nextIdx = curIdx >= 0 && curIdx < schedule.length - 1 ? curIdx + 1 : 0;
+            const nextTrack = schedule[nextIdx];
+            setActiveTrack(nextTrack);
+            // Mettre aussi à jour uiTimeSec pour que l'affichage du schedule soit cohérent
+            setUiTimeSec(nextTrack.startSecondsFromMidnight);
+        } catch {
+            // Fallback: avancer de 5 min dans le schedule
+            setUiTimeSec(prev => (prev + 300) % 86400);
+        }
     }, []);
 
     // 1. Écoute de l'événement YouTube postMessage (info: 0 => ENDED)
@@ -689,16 +689,22 @@ function useRadioAudio() {
                     }, IS_MOBILE ? 800 : 400);
                 }
             }
+            // Lance la lecture et initialise activeTrack
             setIsPlaying(true);
+            // Figer le track actif au moment du Play (découplé de l'horloge)
+            if (!activeTrackRef.current) {
+                setActiveTrack(currentSetRef.current);
+            }
         } else {
             // Pause propre sans vider l'iframe ni réinitialiser la position
             if (audioRef.current) audioRef.current.pause();
             sendCmd('pauseVideo');
             setIsPlaying(false);
-            // Resynchroniser l'horloge sur l'heure Paris réelle quand on pause
+            // En pause : libérer activeTrack pour retomber sur l'horloge
+            setActiveTrack(null);
             setUiTimeSec(getParisSeconds());
         }
-    }, [sendCmd, setUiTimeSec]);
+    }, [sendCmd]);
 
     const handleStop = useCallback(() => {
         currentPlayingMediaRef.current = null;
@@ -706,9 +712,10 @@ function useRadioAudio() {
         if (iframeRef.current) iframeRef.current.src = 'about:blank';
         sendCmd('pauseVideo');
         setIsPlaying(false);
-        // Resynchroniser l'horloge sur Paris réel quand on arrête
+        // Clear activeTrack et resynchroniser l'horloge
+        setActiveTrack(null);
         setUiTimeSec(getParisSeconds());
-    }, [sendCmd, setUiTimeSec]);
+    }, [sendCmd]);
 
     const handleNext = useCallback(() => {
         advanceToNextTrack();
