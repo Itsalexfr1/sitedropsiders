@@ -219,6 +219,31 @@ function useRadioAudio() {
             );
         } catch {}
     }, []);
+
+    // Re-forcer le volume utilisateur sur le lecteur actif
+    const applyVolumeToActiveMedia = useCallback(() => {
+        if (IS_MOBILE) return;
+        const vol = isMutedRef.current ? 0 : effectiveVolumeRef.current;
+        if (audioRef.current) {
+            audioRef.current.volume = vol / 100;
+        }
+        if (isMutedRef.current) {
+            sendCmd('mute');
+        } else {
+            sendCmd('unMute');
+        }
+        sendCmd('setVolume', [vol]);
+    }, [sendCmd]);
+
+    // Répéter l'application du volume aux moments clés de chargement d'un nouveau son
+    const scheduleVolumeEnforcement = useCallback(() => {
+        if (IS_MOBILE) return;
+        applyVolumeToActiveMedia();
+        [50, 150, 300, 600, 1000, 1500, 2500, 4000].forEach(delay => {
+            setTimeout(applyVolumeToActiveMedia, delay);
+        });
+    }, [applyVolumeToActiveMedia]);
+
     // sendCmdBuffer : envoie la commande à l'iframe BUFFER (pour le preload silencieux)
     const sendCmdBuffer = useCallback((func: string, args: any = '') => {
         const bufIframe = activeSlotRef.current === 'A' ? iframeRefB.current : iframeRef.current;
@@ -495,20 +520,15 @@ function useRadioAudio() {
                     preloadedVideoIdRef.current = currentYt;
                 }
                 currentPlayingMediaRef.current = currentYt;
-                setTimeout(() => {
-                    if (!isMutedRef.current) sendCmd('unMute');
-                    // FIX MOBILE SOUND: sur iOS, setVolume est ignoré - forcer 100 dans l'iframe
-                    sendCmd('setVolume', [IS_MOBILE ? 100 : effectiveVolumeRef.current]);
-                    sendCmd('playVideo');
-                }, 300);
+                scheduleVolumeEnforcement();
+                sendCmd('playVideo');
             } else {
                 currentPlayingMediaRef.current = currentYt;
-                if (!isMutedRef.current) sendCmd('unMute');
-                sendCmd('setVolume', [IS_MOBILE ? 100 : effectiveVolumeRef.current]);
+                scheduleVolumeEnforcement();
                 sendCmd('playVideo');
             }
         }
-    }, [currentSet?.id, currentSet?.audioUrl, currentSet?.youtubeId, sendCmd]);
+    }, [currentSet?.id, currentSet?.audioUrl, currentSet?.youtubeId, sendCmd, scheduleVolumeEnforcement]);
 
     // ─── Helper : preload le track suivant en silence dans l'iframe BUFFER ────
     const preloadNextTrack = useCallback((nextTrack: ComputedRadioScheduleItem) => {
@@ -655,8 +675,7 @@ function useRadioAudio() {
                 if (isPreloadedInBuffer && bufIframe) {
                     // ── SWAP INSTANTANÉ : activer le slot buffer → zéro blanc ──
                     activeSlotRef.current = bufSlot;
-                    bufIframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: '' }), '*');
-                    bufIframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'setVolume', args: [effectiveVolumeRef.current] }), '*');
+                    scheduleVolumeEnforcement();
                     bufIframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: '' }), '*');
                     // Réinitialiser l'ancien slot (devient buffer)
                     const oldIframe = bufSlot === 'A' ? iframeRefB.current : iframeRef.current;
@@ -678,20 +697,17 @@ function useRadioAudio() {
                         preloadedVideoIdRef.current = ytId;
                     }
                     currentPlayingMediaRef.current = ytId;
-                    setTimeout(() => {
-                        if (!isMutedRef.current) sendCmd('unMute');
-                        sendCmd('setVolume', [IS_MOBILE ? 100 : effectiveVolumeRef.current]);
-                        sendCmd('playVideo');
-                        // Preloader N+2
-                        const nextNextIdx = nextIdx < schedule.length - 1 ? nextIdx + 1 : 0;
-                        setTimeout(() => preloadNextTrack(schedule[nextNextIdx]), 1000);
-                    }, IS_MOBILE ? 800 : 200);
+                    scheduleVolumeEnforcement();
+                    sendCmd('playVideo');
+                    // Preloader N+2
+                    const nextNextIdx = nextIdx < schedule.length - 1 ? nextIdx + 1 : 0;
+                    setTimeout(() => preloadNextTrack(schedule[nextNextIdx]), 1000);
                 }
             }
         } catch {
             setUiTimeSec(prev => (prev + 300) % 86400);
         }
-    }, [sendCmd, preloadNextTrack]);
+    }, [sendCmd, preloadNextTrack, scheduleVolumeEnforcement]);
 
     // ─── SYNC AUTOMATIQUE HORLOGE → TRACK ACTIF ──────────────────────────────
     // Quand le schedule passe au bloc suivant, on force la transition si :
@@ -748,7 +764,9 @@ function useRadioAudio() {
                         // ENDED : avancer immédiatement
                         advanceToNextTrack();
                     } else if (data.info === 1 && prevState !== 1) {
-                        // PLAYING démarre → preloader le track suivant en avance dans le slot buffer
+                        // PLAYING démarre → forcer la ré-application du volume utilisateur immédiatement
+                        scheduleVolumeEnforcement();
+                        // preloader le track suivant en avance dans le slot buffer
                         const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
                         const cur = currentSetRef.current;
                         const curIdx = cur ? schedule.findIndex(s => s.id === cur.id ||
@@ -819,7 +837,7 @@ function useRadioAudio() {
         };
         window.addEventListener('message', handleYtMessage);
         return () => window.removeEventListener('message', handleYtMessage);
-    }, [advanceToNextTrack, preloadNextTrack]);
+    }, [advanceToNextTrack, preloadNextTrack, scheduleVolumeEnforcement]);
 
 
     // 2. Écoute de l'événement Audio HTML5 onended (Jingle / Track terminé)
@@ -1124,8 +1142,7 @@ function useRadioAudio() {
                 if (alreadyLoaded) {
                     // L'iframe est chargée mais peut-être à la mauvaise position → seekTo
                     if (safeOffset > 2) sendCmd('seekTo', [safeOffset, true]);
-                    if (!isMutedRef.current) sendCmd('unMute');
-                    sendCmd('setVolume', [IS_MOBILE ? 100 : effectiveVolumeRef.current]);
+                    scheduleVolumeEnforcement();
                     sendCmd('playVideo');
                     currentPlayingMediaRef.current = set.youtubeId;
                 } else {
@@ -1134,11 +1151,8 @@ function useRadioAudio() {
                     if (iframeRef.current) iframeRef.current.src = src;
                     preloadedVideoIdRef.current = set.youtubeId;
                     currentPlayingMediaRef.current = set.youtubeId;
-                    setTimeout(() => {
-                        if (!isMutedRef.current) sendCmd('unMute');
-                        sendCmd('setVolume', [IS_MOBILE ? 100 : effectiveVolumeRef.current]);
-                        sendCmd('playVideo');
-                    }, IS_MOBILE ? 800 : 400);
+                    scheduleVolumeEnforcement();
+                    sendCmd('playVideo');
                 }
             }
             // Lance la lecture et initialise activeTrack
@@ -1171,7 +1185,7 @@ function useRadioAudio() {
             setActiveTrack(null);
             setUiTimeSec(getParisSeconds());
         }
-    }, [sendCmd, preloadNextTrack]);
+    }, [sendCmd, preloadNextTrack, scheduleVolumeEnforcement]);
 
     const handleStop = useCallback(() => {
         currentPlayingMediaRef.current = null;
