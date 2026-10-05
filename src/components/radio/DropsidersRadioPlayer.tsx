@@ -1401,7 +1401,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                         </div>
                                         <button
                                             type="button"
-                                            onClick={() => { setExpanded(false); navigate('/radio'); }}
+                                            onClick={() => { setExpanded(false); window.open('/radio', '_blank', 'noopener,noreferrer'); }}
                                             className="text-left cursor-pointer hover:opacity-80 transition-opacity"
                                             title="Ouvrir la page radio"
                                         >
@@ -1707,7 +1707,7 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                             {/* Icône + Label Radio — cliquable pour ouvrir la page radio */}
                             <button
                                 type="button"
-                                onClick={() => navigate('/radio')}
+                                onClick={() => window.open('/radio', '_blank', 'noopener,noreferrer')}
                                 className="flex items-center gap-2.5 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                                 title="Ouvrir la page radio"
                             >

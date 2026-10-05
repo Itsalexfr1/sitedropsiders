@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Radio, Play, Pause, Volume2, VolumeX, Clock, Sparkles,
-    MessageSquare, Send, Calendar, ChevronRight, History,
+    MessageSquare, Send, History,
     User, MapPin, Disc3, Music2, Zap, Check, Search, X
 } from 'lucide-react';
 import {
@@ -582,7 +582,7 @@ export function RadioPage() {
         };
     }, []);
 
-    const [activeTab, setActiveTab] = useState<'now' | 'history' | 'schedule' | 'message'>('now');
+    const [activeTab, setActiveTab] = useState<'now' | 'history' | 'message'>('now');
 
     const schedule = useMemo(() => {
         try { return computeRadioDaySchedule(radioBlocks, parisSec); } catch { return []; }
@@ -633,7 +633,6 @@ export function RadioPage() {
 
     const tabs = [
         { id: 'now' as const, label: 'En Direct', icon: <Zap className="w-3.5 h-3.5" /> },
-        { id: 'schedule' as const, label: 'Programme', icon: <Calendar className="w-3.5 h-3.5" /> },
         { id: 'history' as const, label: 'Historique', icon: <History className="w-3.5 h-3.5" /> },
         ...(messagesEnabled ? [{ id: 'message' as const, label: 'Message', icon: <MessageSquare className="w-3.5 h-3.5" /> }] : []),
     ];
@@ -772,45 +771,6 @@ export function RadioPage() {
                                         </div>
                                     )
                             }
-                        </motion.div>
-                    )}
-
-                    {activeTab === 'schedule' && (
-                        <motion.div key="schedule" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-2">
-                            {schedule.length === 0 ? (
-                                <div className="py-16 text-center">
-                                    <Calendar className="w-10 h-10 text-gray-600 mx-auto mb-3" />
-                                    <p className="text-gray-500 text-xs font-mono uppercase tracking-widest">Aucun programme configuré</p>
-                                </div>
-                            ) : schedule.filter(item => !isTransientItem(item)).map((item, i) => {
-                                const isCurrentLive = item.id === liveInfo?.item?.id ||
-                                    (publicCurrentSet && item.id === publicCurrentSet.id);
-                                const isPast = item.startSecondsFromMidnight + (item.durationSeconds || 0) < parisSec;
-                                return (
-                                    <motion.div key={item.id + i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}
-                                        className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all ${isCurrentLive
-                                            ? 'bg-gradient-to-r from-cyan-950/50 to-[#07070f] border-cyan-500/40 shadow-[0_0_15px_rgba(0,255,255,0.08)]'
-                                            : isPast ? 'bg-white/[0.02] border-white/5 opacity-50'
-                                            : 'bg-white/[0.03] border-white/[0.08] hover:border-white/15 hover:bg-white/[0.05]'
-                                        }`}>
-                                        <div className="shrink-0 text-center w-12">
-                                            <p className={`text-[10px] font-mono font-bold ${isCurrentLive ? 'text-cyan-400' : 'text-gray-500'}`}>{item.startTime}</p>
-                                        </div>
-                                        <div className="w-px h-8 bg-white/10 shrink-0" />
-                                        <div className="min-w-0 flex-1">
-                                            {isCurrentLive && (
-                                                <div className="flex items-center gap-1 mb-0.5">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />
-                                                    <span className="text-[8px] font-black uppercase tracking-widest text-red-400">EN DIRECT</span>
-                                                </div>
-                                            )}
-                                            <p className={`text-[12px] font-black uppercase italic tracking-tight truncate ${isCurrentLive ? 'text-white' : 'text-gray-300'}`}>{item.artist}</p>
-                                            <p className="text-[10px] text-gray-500 truncate">{item.title} · {item.durationFormatted}</p>
-                                        </div>
-                                        {isCurrentLive && <AudioBars playing={radioState.isPlaying} />}
-                                    </motion.div>
-                                );
-                            })}
                         </motion.div>
                     )}
 
