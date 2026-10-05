@@ -5107,6 +5107,62 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
           "category": "jingle"
+        },
+        {
+          "id": "track_1791198070734_mne5",
+          "title": "Come Back Tomorrow (Extended Mix)",
+          "artist": "Makèz & LYMA",
+          "youtubeId": "ItDjR4Knub0",
+          "duration": 300,
+          "category": "clip"
+        },
+        {
+          "id": "track_1791198089494_c5f8",
+          "title": "I Never Knew (Extended Mix)",
+          "artist": "Adam Ten",
+          "youtubeId": "nfP3XCBfM3g",
+          "duration": 300,
+          "category": "clip"
+        },
+        {
+          "id": "track_1791198102694_pya0",
+          "title": "How Good (Extended Mix) [DFTD]",
+          "artist": "Ammo Avenue",
+          "youtubeId": "PcS8f-p0tWA",
+          "duration": 300,
+          "category": "clip"
+        },
+        {
+          "id": "track_1791198125431_00w8",
+          "title": "Contemplation (King Britt Funke Remix) [DFTD]",
+          "artist": "Josh One vs Salomé Le Chat",
+          "youtubeId": "07-wDej8s3g",
+          "duration": 300,
+          "category": "clip"
+        },
+        {
+          "id": "track_1791198142550_c7en",
+          "title": "Forever (Extended Mix)",
+          "artist": "Solardo vs Key To Life ft. Sabrina Johnston",
+          "youtubeId": "pn9AloUdioM",
+          "duration": 300,
+          "category": "clip"
+        },
+        {
+          "id": "track_1791198193752_yd5t",
+          "title": "My Temptations (Live from Defected Malta)",
+          "artist": "Oden & Fatzo x Barney Bones",
+          "youtubeId": "zfZzGKXgt-U",
+          "duration": 300,
+          "category": "clip"
+        },
+        {
+          "id": "track_1791198216403_6xf5",
+          "title": "Take Me As I Am (Moodymann Remix)",
+          "artist": "Dames Brown & Amp Fiddler",
+          "youtubeId": "dNuMB8xsiCE",
+          "duration": 300,
+          "category": "clip"
         }
       ],
       "specialJingles": []
@@ -13035,6 +13091,62 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
       "category": "jingle"
+    },
+    {
+      "id": "track_1791198070734_mne5",
+      "title": "Come Back Tomorrow (Extended Mix)",
+      "artist": "Makèz & LYMA",
+      "youtubeId": "ItDjR4Knub0",
+      "duration": 300,
+      "category": "clip"
+    },
+    {
+      "id": "track_1791198089494_c5f8",
+      "title": "I Never Knew (Extended Mix)",
+      "artist": "Adam Ten",
+      "youtubeId": "nfP3XCBfM3g",
+      "duration": 300,
+      "category": "clip"
+    },
+    {
+      "id": "track_1791198102694_pya0",
+      "title": "How Good (Extended Mix) [DFTD]",
+      "artist": "Ammo Avenue",
+      "youtubeId": "PcS8f-p0tWA",
+      "duration": 300,
+      "category": "clip"
+    },
+    {
+      "id": "track_1791198125431_00w8",
+      "title": "Contemplation (King Britt Funke Remix) [DFTD]",
+      "artist": "Josh One vs Salomé Le Chat",
+      "youtubeId": "07-wDej8s3g",
+      "duration": 300,
+      "category": "clip"
+    },
+    {
+      "id": "track_1791198142550_c7en",
+      "title": "Forever (Extended Mix)",
+      "artist": "Solardo vs Key To Life ft. Sabrina Johnston",
+      "youtubeId": "pn9AloUdioM",
+      "duration": 300,
+      "category": "clip"
+    },
+    {
+      "id": "track_1791198193752_yd5t",
+      "title": "My Temptations (Live from Defected Malta)",
+      "artist": "Oden & Fatzo x Barney Bones",
+      "youtubeId": "zfZzGKXgt-U",
+      "duration": 300,
+      "category": "clip"
+    },
+    {
+      "id": "track_1791198216403_6xf5",
+      "title": "Take Me As I Am (Moodymann Remix)",
+      "artist": "Dames Brown & Amp Fiddler",
+      "youtubeId": "dNuMB8xsiCE",
+      "duration": 300,
+      "category": "clip"
     },
     {
       "id": "special_radio_bloc_1790256873762_k89p_1791164617237_10_kt00",
