@@ -2885,7 +2885,8 @@
           "artist": "PROMO DROPSIDERS",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 40,
-          "category": "promo"
+          "category": "promo",
+          "expiresAt": "2026-10-31T23:59:59"
         },
         {
           "id": "rt_tv_1790255680923_1axj",
@@ -3197,7 +3198,8 @@
           "artist": "PROMO DROPSIDERS",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 40,
-          "category": "promo"
+          "category": "promo",
+          "expiresAt": "2026-10-31T23:59:59"
         },
         {
           "id": "rt_tv_1790256329104_fza5",
@@ -3509,7 +3511,8 @@
           "artist": "PROMO DROPSIDERS",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 40,
-          "category": "promo"
+          "category": "promo",
+          "expiresAt": "2026-10-31T23:59:59"
         },
         {
           "id": "rt_tv_1790256366901_zy67",
@@ -3821,7 +3824,8 @@
           "artist": "PROMO DROPSIDERS",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 40,
-          "category": "promo"
+          "category": "promo",
+          "expiresAt": "2026-10-31T23:59:59"
         },
         {
           "id": "rt_tv_1790259664067_j1ku",
@@ -4123,7 +4127,8 @@
           "artist": "PROMO DROPSIDERS",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 40,
-          "category": "promo"
+          "category": "promo",
+          "expiresAt": "2026-10-31T23:59:59"
         },
         {
           "id": "track_1790880712327_6h1n",
@@ -4355,7 +4360,8 @@
           "artist": "PROMO DROPSIDERS",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 40,
-          "category": "promo"
+          "category": "promo",
+          "expiresAt": "2026-10-31T23:59:59"
         },
         {
           "id": "rt_tv_1790256664253_8rci",
@@ -7105,7 +7111,8 @@
           "artist": "PROMO DROPSIDERS",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 40,
-          "category": "promo"
+          "category": "promo",
+          "expiresAt": "2026-10-31T23:59:59"
         },
         {
           "id": "rt_tv_1790257171395_mp87",
