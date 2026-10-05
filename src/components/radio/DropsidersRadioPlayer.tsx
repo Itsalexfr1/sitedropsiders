@@ -116,6 +116,8 @@ function useRadioAudio() {
     // interval le remet à l'heure réelle, ce qui fait changer liveInfo.item.id et
     // déclenche le sync-auto à nouveau en boucle.
     const syncAutoCooldownUntilRef = useRef<number>(0);
+    // Index séquentiel absolu dans la grille du jour (empèche les boucles sur le morceau 0/1)
+    const currentTrackIndexRef = useRef<number>(-1);
 
     // ─── Activation ──────────────────────────────────────────────────────────
     const [isEnabled, setIsEnabled] = useState<boolean>(() => {
@@ -597,20 +599,34 @@ function useRadioAudio() {
             const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
             if (!schedule || schedule.length === 0) return;
 
-            let curIdx = cur ? schedule.findIndex(s => s.id === cur.id) : -1;
-            if (curIdx < 0 && cur) {
-                curIdx = schedule.findIndex(s =>
-                    (cur.youtubeId && s.youtubeId === cur.youtubeId) ||
-                    (cur.audioUrl && s.audioUrl === cur.audioUrl)
-                );
+            let curIdx = currentTrackIndexRef.current;
+
+            // Si curIdx est invalide ou négatif, retrouver la position exacte du morceau actuel dans la grille
+            if (curIdx < 0 || curIdx >= schedule.length) {
+                if (cur) {
+                    curIdx = schedule.findIndex(s => s.id === cur.id);
+                    if (curIdx < 0) {
+                        curIdx = schedule.findIndex(s => s.title === cur.title && Math.abs(s.startSecondsFromMidnight - cur.startSecondsFromMidnight) < 3600);
+                    }
+                    if (curIdx < 0) {
+                        const nowSec = getParisSeconds();
+                        const candidates = schedule.filter(s => (cur.youtubeId && s.youtubeId === cur.youtubeId) || (cur.audioUrl && s.audioUrl === cur.audioUrl));
+                        if (candidates.length > 0) {
+                            const best = candidates.reduce((a, b) => Math.abs(a.startSecondsFromMidnight - nowSec) < Math.abs(b.startSecondsFromMidnight - nowSec) ? a : b);
+                            curIdx = schedule.findIndex(s => s === best);
+                        }
+                    }
+                }
             }
 
-            const nextIdx = curIdx >= 0 && curIdx < schedule.length - 1 ? curIdx + 1 : 0;
+            // Avancer strictement d'un pas (+1) dans la grille quotidienne 24/7
+            const nextIdx = (curIdx >= 0 && curIdx < schedule.length - 1) ? curIdx + 1 : 0;
+            currentTrackIndexRef.current = nextIdx;
             const nextTrack = schedule[nextIdx];
 
             activeTrackRef.current = nextTrack;
             currentSetRef.current = nextTrack;
-            currentPlayingMediaRef.current = nextTrack.youtubeId || nextTrack.audioUrl || null;
+            currentPlayingMediaRef.current = nextTrack.id || nextTrack.youtubeId || nextTrack.audioUrl || null;
             setActiveTrack(nextTrack);
             setUiTimeSec(nextTrack.startSecondsFromMidnight);
 
@@ -646,7 +662,7 @@ function useRadioAudio() {
                         audioRef.current.currentTime = 0;
                         audioRef.current.volume = targetVol;
                         audioRef.current.play().then(() => {
-                            currentPlayingMediaRef.current = nextTrack.audioUrl || null;
+                            currentPlayingMediaRef.current = nextTrack.id || nextTrack.audioUrl || null;
                             preEl.pause(); preEl.src = '';
                         }).catch(() => {});
                     }
@@ -656,7 +672,7 @@ function useRadioAudio() {
                     audioRef.current.currentTime = 0;
                     audioRef.current.volume = targetVol;
                     audioRef.current.play().then(() => {
-                        currentPlayingMediaRef.current = nextTrack.audioUrl || null;
+                        currentPlayingMediaRef.current = nextTrack.id || nextTrack.audioUrl || null;
                     }).catch(() => {});
                 }
             } else if (nextTrack.youtubeId) {
@@ -683,7 +699,7 @@ function useRadioAudio() {
                         oldIframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
                         oldIframe.src = 'about:blank';
                     }
-                    currentPlayingMediaRef.current = ytId;
+                    currentPlayingMediaRef.current = nextTrack.id || ytId;
                     preloadedVideoIdRef.current = null;
                     // Preloader le track N+2 en avance
                     const nextNextIdx = nextIdx < schedule.length - 1 ? nextIdx + 1 : 0;
@@ -693,10 +709,15 @@ function useRadioAudio() {
                     const activeIframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
                     const mobileMute: 0 | 1 = IS_MOBILE ? 0 : (isMutedRef.current ? 1 : 0);
                     if (activeIframe) {
-                        activeIframe.src = buildSrc(ytId, 0, mobileMute);
+                        const newSrc = buildSrc(ytId, 0, mobileMute);
+                        if (activeIframe.src === newSrc) {
+                            sendCmd('seekTo', [0, true]);
+                        } else {
+                            activeIframe.src = newSrc;
+                        }
                         preloadedVideoIdRef.current = ytId;
                     }
-                    currentPlayingMediaRef.current = ytId;
+                    currentPlayingMediaRef.current = nextTrack.id || ytId;
                     scheduleVolumeEnforcement();
                     sendCmd('playVideo');
                     // Preloader N+2
@@ -1162,17 +1183,26 @@ function useRadioAudio() {
             if (!activeTrackRef.current) {
                 setActiveTrack(currentSetRef.current);
             }
+            // Recaler l'index séquentiel dans la grille du jour
+            try {
+                const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
+                const cur = currentSetRef.current;
+                if (cur && schedule.length > 0) {
+                    let idx = schedule.findIndex(s => s.id === cur.id);
+                    if (idx < 0) {
+                        idx = schedule.findIndex(s => s.title === cur.title && Math.abs(s.startSecondsFromMidnight - cur.startSecondsFromMidnight) < 3600);
+                    }
+                    currentTrackIndexRef.current = idx >= 0 ? idx : 0;
+                }
+            } catch {}
+
             // Preloader le track suivant ~2s après le démarrage (sur desktop uniquement)
             if (!IS_MOBILE) {
                 setTimeout(() => {
                     const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
-                    const cur = currentSetRef.current;
-                    const curIdx = cur ? schedule.findIndex(s => s.id === cur.id ||
-                        (cur.youtubeId && s.youtubeId === cur.youtubeId) ||
-                        (cur.audioUrl && s.audioUrl === cur.audioUrl)) : -1;
-                    if (curIdx >= 0) {
-                        const nextIdx = curIdx < schedule.length - 1 ? curIdx + 1 : 0;
-                        preloadNextTrack(schedule[nextIdx]);
+                    const curIdx = currentTrackIndexRef.current;
+                    if (curIdx >= 0 && curIdx < schedule.length - 1) {
+                        preloadNextTrack(schedule[curIdx + 1]);
                     }
                 }, 2000);
             }
@@ -1183,6 +1213,7 @@ function useRadioAudio() {
             setIsPlaying(false);
             // En pause : libérer activeTrack pour retomber sur l'horloge
             setActiveTrack(null);
+            currentTrackIndexRef.current = -1;
             setUiTimeSec(getParisSeconds());
         }
     }, [sendCmd, preloadNextTrack, scheduleVolumeEnforcement]);
@@ -1191,6 +1222,7 @@ function useRadioAudio() {
         currentPlayingMediaRef.current = null;
         preloadedVideoIdRef.current = null;
         preloadedAudioUrlRef.current = null;
+        currentTrackIndexRef.current = -1;
         if (audioRef.current) audioRef.current.pause();
         if (audioPreloadRef.current) { audioPreloadRef.current.pause(); audioPreloadRef.current.src = ''; }
         // Stopper et vider les deux slots iframe
