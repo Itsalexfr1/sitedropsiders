@@ -7,7 +7,7 @@ import {
 import {
     DEFAULT_RADIO_BLOCKS, STORAGE_RADIO_BLOCKS_KEY,
     getParisSeconds, formatDurationExact, getCurrentLiveRadioTrack,
-    computeRadioDaySchedule,
+    computeRadioDaySchedule, getCachedRadioDurations, saveCachedRadioDuration,
     type RadioScheduleBlock, type ComputedRadioScheduleItem
 } from '../../utils/radioSchedule';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -543,11 +543,34 @@ function useRadioAudio() {
         isAdvancingRef.current = true;
         setTimeout(() => { isAdvancingRef.current = false; }, 2500);
 
+        const cur = activeTrackRef.current;
+
+        // Si la piste précédente s'est terminée prématurément (ex: morceau de 2 min),
+        // enregistrer sa durée réelle pour recaler immédiatement la grille sans aucun blanc.
+        if (cur && trackStartedAtRef.current > 0) {
+            const playedSec = Math.round((Date.now() - trackStartedAtRef.current) / 1000);
+            if (playedSec > 10) {
+                const ytId = cur.youtubeId;
+                if (ytId) {
+                    saveCachedRadioDuration(ytId, playedSec);
+                    if (cur.id) saveCachedRadioDuration(cur.id, playedSec);
+                    if (Array.isArray(radioBlocksRef.current)) {
+                        radioBlocksRef.current.forEach(block => {
+                            (block.tracks || []).forEach(t => {
+                                if (t.youtubeId === ytId || t.id === cur.id) {
+                                    t.duration = playedSec;
+                                }
+                            });
+                        });
+                    }
+                }
+            }
+        }
+
         window.dispatchEvent(new CustomEvent('dropsiders_radio_track_changed'));
         trackStartedAtRef.current = Date.now();
-        // Activer le cooldown : bloque le sync-auto pendant 20s pour éviter la boucle
-        syncAutoCooldownUntilRef.current = Date.now() + 20000;
-        const cur = activeTrackRef.current;
+        // Activer le cooldown : empêche l'horloge de forcer un retour en arrière sur un morceau terminé
+        syncAutoCooldownUntilRef.current = Date.now() + 60000;
         try {
             const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
             if (!schedule || schedule.length === 0) return;
@@ -740,12 +763,25 @@ function useRadioAudio() {
                     const dur = Math.round(Number(data.info.duration));
                     if (dur > 5) {
                         try {
-                            const raw = localStorage.getItem('dropsiders_radio_durations') || '{}';
-                            const parsed = JSON.parse(raw);
                             const cur = currentSetRef.current;
-                            if (cur.youtubeId) parsed[cur.youtubeId] = dur;
-                            if (cur.id) parsed[cur.id] = dur;
-                            localStorage.setItem('dropsiders_radio_durations', JSON.stringify(parsed));
+                            const ytId = cur?.youtubeId;
+                            if (ytId) {
+                                const cached = getCachedRadioDurations();
+                                if (!cached[ytId] || Math.abs((cached[ytId] || 0) - dur) > 2) {
+                                    saveCachedRadioDuration(ytId, dur);
+                                    if (cur.id) saveCachedRadioDuration(cur.id, dur);
+                                    if (Array.isArray(radioBlocksRef.current)) {
+                                        radioBlocksRef.current.forEach(block => {
+                                            (block.tracks || []).forEach(t => {
+                                                if (t.youtubeId === ytId || t.id === cur.id) {
+                                                    t.duration = dur;
+                                                }
+                                            });
+                                        });
+                                    }
+                                    window.dispatchEvent(new CustomEvent('dropsiders_radio_durations_updated'));
+                                }
+                            }
                         } catch {}
                     }
                 }
