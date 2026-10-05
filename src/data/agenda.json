@@ -668,5 +668,25 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1129,
+    "title": "Armin Van Buuren presents A State Of Trance",
+    "date": "2026-10-05",
+    "startDate": "2026-10-05",
+    "endDate": "2026-10-05",
+    "venue": "UNVRS",
+    "location": "IBIZA",
+    "country": "ESPAGNE",
+    "type": "Résidence",
+    "image": "/uploads/uploads/32cff313318e45e0-7844111409841e7993c344e4433cac.jpg",
+    "url": "https://www.unvrs.com/events/2026/armin-van-buuren-asot/05-10-2026",
+    "genre": "Trance",
+    "month": "OCTOBRE",
+    "isWeekly": true,
+    "dayOfWeek": 1,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
