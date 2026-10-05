@@ -668,5 +668,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1130,
+    "title": "CLOSING HÏ ",
+    "date": "2026-10-05",
+    "startDate": "2026-10-05",
+    "endDate": "2026-10-05",
+    "venue": "HÏ ",
+    "location": "IBIZA",
+    "country": "ESPAGNE",
+    "type": "Events",
+    "image": "/uploads/uploads/3bd4dc89f054e6c1-2026_hi_closing_lineup_sm_feed.webp",
+    "url": "https://www.hiibiza.com/events/2026/hi-ibiza-closing-party",
+    "genre": "Multi Styles",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
