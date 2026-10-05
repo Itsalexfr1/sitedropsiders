@@ -787,14 +787,12 @@ function useRadioAudio() {
                     } else if (data.info === 1 && prevState !== 1) {
                         // PLAYING démarre → forcer la ré-application du volume utilisateur immédiatement
                         scheduleVolumeEnforcement();
-                        // preloader le track suivant en avance dans le slot buffer
+                        // preloader le track suivant immédiatement dans le slot buffer pour zéro blanc (même sur sons courts)
                         const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
-                        const cur = currentSetRef.current;
-                        const curIdx = cur ? schedule.findIndex(s => s.id === cur.id ||
-                            (cur.youtubeId && s.youtubeId === cur.youtubeId)) : -1;
+                        const curIdx = currentTrackIndexRef.current;
                         if (curIdx >= 0) {
                             const nextIdx = curIdx < schedule.length - 1 ? curIdx + 1 : 0;
-                            setTimeout(() => preloadNextTrack(schedule[nextIdx]), 2000);
+                            setTimeout(() => preloadNextTrack(schedule[nextIdx]), 1500);
                         }
                     }
                 }
@@ -839,14 +837,12 @@ function useRadioAudio() {
                         return;
                     }
 
-                    // Preload anticipé : quand il reste ~35s sur le track courant → charger le suivant
+                    // Preload anticipé : quand il reste ~45s sur le track courant → s'assurer que le suivant est préchargé
                     if (dur && dur > 0 && ct > 0 && !IS_MOBILE) {
                         const remaining = dur - ct;
-                        if (remaining > 0 && remaining < 35 && currentSetRef.current?.youtubeId) {
+                        if (remaining > 0 && remaining < 45 && currentSetRef.current?.youtubeId) {
                             const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
-                            const cur = currentSetRef.current;
-                            const curIdx = cur ? schedule.findIndex(s => s.id === cur.id ||
-                                (cur.youtubeId && s.youtubeId === cur.youtubeId)) : -1;
+                            const curIdx = currentTrackIndexRef.current;
                             if (curIdx >= 0) {
                                 const nextIdx = curIdx < schedule.length - 1 ? curIdx + 1 : 0;
                                 preloadNextTrack(schedule[nextIdx]);
