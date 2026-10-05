@@ -618,12 +618,18 @@ export function RadioPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentSet?.artist, currentSet?.title]);
 
-    const upcomingTracks = useMemo(() => {
-        if (!schedule.length) return [];
-        const liveIdx = liveInfo?.item ? schedule.findIndex(s => s.id === liveInfo.item!.id) : -1;
-        const startIdx = liveIdx >= 0 ? liveIdx + 1 : 0;
-        return schedule.slice(startIdx, startIdx + 8);
-    }, [schedule, liveInfo]);
+    // Filtre : tracks visibles dans le programme (pas les jingles/promos/pubs/courts)
+    const isTransientItem = (item: ComputedRadioScheduleItem) => (
+        item.category === 'jingle' ||
+        item.category === 'promo' ||
+        item.category === 'pub' ||
+        (item as any).isTopHoraire ||
+        (item as any).isThemeJingle ||
+        (item.durationSeconds ?? 9999) < 120
+    );
+
+    // Track "public" : on masque les jingles/promos dans la vue auditeur
+    const publicCurrentSet = currentSet && !isTransientItem(currentSet) ? currentSet : null;
 
     const tabs = [
         { id: 'now' as const, label: 'En Direct', icon: <Zap className="w-3.5 h-3.5" /> },
@@ -682,14 +688,20 @@ export function RadioPage() {
                                     <span className="text-[9px] font-black uppercase tracking-widest text-cyan-400">EN CE MOMENT</span>
                                     <AudioBars playing={radioState.isPlaying} />
                                 </div>
-                                <h2 className="text-base font-black text-white uppercase italic tracking-tight truncate leading-tight">{currentSet.artist}</h2>
-                                <p className="text-xs text-gray-400 font-semibold truncate mt-0.5">{currentSet.title || (currentSet as any).event}</p>
-                                <div className="flex items-center gap-2 mt-1.5 text-[9px] font-mono text-gray-500">
-                                    <Clock className="w-2.5 h-2.5 text-cyan-500" />
-                                    <span className="text-cyan-400 font-bold">{currentSet.startTime}</span>
-                                    <span>·</span>
-                                    <span>{currentSet.durationFormatted}</span>
-                                </div>
+                                {publicCurrentSet ? (
+                                    <>
+                                        <h2 className="text-base font-black text-white uppercase italic tracking-tight truncate leading-tight">{publicCurrentSet.artist}</h2>
+                                        <p className="text-xs text-gray-400 font-semibold truncate mt-0.5">{publicCurrentSet.title || (publicCurrentSet as any).event}</p>
+                                        <div className="flex items-center gap-2 mt-1.5 text-[9px] font-mono text-gray-500">
+                                            <Clock className="w-2.5 h-2.5 text-cyan-500" />
+                                            <span className="text-cyan-400 font-bold">{publicCurrentSet.startTime}</span>
+                                            <span>·</span>
+                                            <span>{publicCurrentSet.durationFormatted}</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <p className="text-sm font-bold text-gray-400 italic mt-1">🎶 Jingle / Promo en cours...</p>
+                                )}
                             </div>
                             <button
                                 onClick={() => window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_toggle'))}
@@ -748,17 +760,18 @@ export function RadioPage() {
                 <AnimatePresence mode="wait">
                     {activeTab === 'now' && (
                         <motion.div key="now" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
-                            {liveInfo?.item && <TrackCard item={liveInfo.item} isLive offsetSec={liveInfo.offsetSeconds} />}
-                            {upcomingTracks.length > 0 && (
-                                <>
-                                    <div className="flex items-center gap-2 pt-2">
-                                        <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">À VENIR</span>
-                                        <div className="flex-1 h-px bg-white/5" />
-                                    </div>
-                                    {upcomingTracks.map(item => <TrackCard key={item.id} item={item} />)}
-                                </>
-                            )}
+                            {/* Seulement le track en cours — pas de jingles/promos, pas de suivants */}
+                            {liveInfo?.item && !isTransientItem(liveInfo.item)
+                                ? <TrackCard item={liveInfo.item} isLive offsetSec={liveInfo.offsetSeconds} />
+                                : publicCurrentSet
+                                    ? <TrackCard item={publicCurrentSet} isLive offsetSec={liveInfo?.offsetSeconds} />
+                                    : (
+                                        <div className="py-12 text-center">
+                                            <Disc3 className="w-8 h-8 text-gray-600 mx-auto mb-3 animate-spin" style={{ animationDuration: '6s' }} />
+                                            <p className="text-gray-500 text-xs font-mono uppercase tracking-widest">🎶 Jingle en cours</p>
+                                        </div>
+                                    )
+                            }
                         </motion.div>
                     )}
 
@@ -769,8 +782,9 @@ export function RadioPage() {
                                     <Calendar className="w-10 h-10 text-gray-600 mx-auto mb-3" />
                                     <p className="text-gray-500 text-xs font-mono uppercase tracking-widest">Aucun programme configuré</p>
                                 </div>
-                            ) : schedule.map((item, i) => {
-                                const isCurrentLive = item.id === liveInfo?.item?.id;
+                            ) : schedule.filter(item => !isTransientItem(item)).map((item, i) => {
+                                const isCurrentLive = item.id === liveInfo?.item?.id ||
+                                    (publicCurrentSet && item.id === publicCurrentSet.id);
                                 const isPast = item.startSecondsFromMidnight + (item.durationSeconds || 0) < parisSec;
                                 return (
                                     <motion.div key={item.id + i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}
