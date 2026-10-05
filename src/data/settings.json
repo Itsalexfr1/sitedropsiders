@@ -4819,6 +4819,94 @@
       ],
       "tracks": [
         {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164617237_10_kt00",
+          "title": "Mode Detente Activé 2",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/c03e13bf8c33087a-Mode_Detente_Activ__2.wav",
+          "duration": 15,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164615907_9_ruur",
+          "title": "Mode Detente Activé 1",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/4bb945d5c0f301d4-Mode_Detente_Activ__1.wav",
+          "duration": 13,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164615479_8_30hs",
+          "title": "Fini le boulot",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/aab2b86a09aa0ead-Fini_le_boulot.wav",
+          "duration": 25,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164615053_7_j98l",
+          "title": "Fini le boulot Genrique",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6c706e2e70b45670-Fini_le_boulot_Genrique.wav",
+          "duration": 18,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164613872_6_2uuu",
+          "title": "Fini le boulot 8",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/cf11a5e3a484f30f-Fini_le_boulot_8.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164613583_5_33vr",
+          "title": "Fini le boulot 7",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/ca02d56579ea329d-Fini_le_boulot_7.wav",
+          "duration": 13,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164613264_4_rssk",
+          "title": "Fini le boulot 6",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/be1708ebd27812e0-Fini_le_boulot_6.wav",
+          "duration": 14,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164612967_3_54pp",
+          "title": "Fini le boulot 5",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/69ca44abfa2327d2-Fini_le_boulot_5.wav",
+          "duration": 16,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164612552_2_93un",
+          "title": "Fini le boulot 4",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/484e346cee926c99-Fini_le_boulot_4.wav",
+          "duration": 17,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164612211_1_abwr",
+          "title": "Fini le boulot 3",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/14ed5c286b7f2e6a-Fini_le_boulot_3.wav",
+          "duration": 15,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164611049_0_lakb",
+          "title": "Fini le boulot 2",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/71e139fed26be4b2-Fini_le_boulot_2.wav",
+          "duration": 17,
+          "category": "jingle"
+        },
+        {
           "id": "sj_radio_bloc_1790256873762_k89p_emission_start_special",
           "title": "Dropsiders Radio Jingle 3",
           "artist": "L'AFTER WORK JINGLE SPÉCIAL",
@@ -5773,6 +5861,83 @@
           "title": "After Work 2",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
           "duration": 14,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164611049_0_lakb",
+          "title": "Fini le boulot 2",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/71e139fed26be4b2-Fini_le_boulot_2.wav",
+          "duration": 17,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164612211_1_abwr",
+          "title": "Fini le boulot 3",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/14ed5c286b7f2e6a-Fini_le_boulot_3.wav",
+          "duration": 15,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164612552_2_93un",
+          "title": "Fini le boulot 4",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/484e346cee926c99-Fini_le_boulot_4.wav",
+          "duration": 17,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164612967_3_54pp",
+          "title": "Fini le boulot 5",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/69ca44abfa2327d2-Fini_le_boulot_5.wav",
+          "duration": 16,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164613264_4_rssk",
+          "title": "Fini le boulot 6",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/be1708ebd27812e0-Fini_le_boulot_6.wav",
+          "duration": 14,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164613583_5_33vr",
+          "title": "Fini le boulot 7",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/ca02d56579ea329d-Fini_le_boulot_7.wav",
+          "duration": 13,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164613872_6_2uuu",
+          "title": "Fini le boulot 8",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/cf11a5e3a484f30f-Fini_le_boulot_8.wav",
+          "duration": 8,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164615053_7_j98l",
+          "title": "Fini le boulot Genrique",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6c706e2e70b45670-Fini_le_boulot_Genrique.wav",
+          "duration": 18,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164615479_8_30hs",
+          "title": "Fini le boulot",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/aab2b86a09aa0ead-Fini_le_boulot.wav",
+          "duration": 25,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164615907_9_ruur",
+          "title": "Mode Detente Activé 1",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/4bb945d5c0f301d4-Mode_Detente_Activ__1.wav",
+          "duration": 13,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164617237_10_kt00",
+          "title": "Mode Detente Activé 2",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/c03e13bf8c33087a-Mode_Detente_Activ__2.wav",
+          "duration": 15,
           "enabled": true
         }
       ],
@@ -12348,6 +12513,94 @@
       "artist": "FEEL THE VIBE JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
       "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164617237_10_kt00",
+      "title": "Mode Detente Activé 2",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/c03e13bf8c33087a-Mode_Detente_Activ__2.wav",
+      "duration": 15,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164615907_9_ruur",
+      "title": "Mode Detente Activé 1",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/4bb945d5c0f301d4-Mode_Detente_Activ__1.wav",
+      "duration": 13,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164615479_8_30hs",
+      "title": "Fini le boulot",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/aab2b86a09aa0ead-Fini_le_boulot.wav",
+      "duration": 25,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164615053_7_j98l",
+      "title": "Fini le boulot Genrique",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6c706e2e70b45670-Fini_le_boulot_Genrique.wav",
+      "duration": 18,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164613872_6_2uuu",
+      "title": "Fini le boulot 8",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/cf11a5e3a484f30f-Fini_le_boulot_8.wav",
+      "duration": 8,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164613583_5_33vr",
+      "title": "Fini le boulot 7",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/ca02d56579ea329d-Fini_le_boulot_7.wav",
+      "duration": 13,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164613264_4_rssk",
+      "title": "Fini le boulot 6",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/be1708ebd27812e0-Fini_le_boulot_6.wav",
+      "duration": 14,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164612967_3_54pp",
+      "title": "Fini le boulot 5",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/69ca44abfa2327d2-Fini_le_boulot_5.wav",
+      "duration": 16,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164612552_2_93un",
+      "title": "Fini le boulot 4",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/484e346cee926c99-Fini_le_boulot_4.wav",
+      "duration": 17,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164612211_1_abwr",
+      "title": "Fini le boulot 3",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/14ed5c286b7f2e6a-Fini_le_boulot_3.wav",
+      "duration": 15,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164611049_0_lakb",
+      "title": "Fini le boulot 2",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/71e139fed26be4b2-Fini_le_boulot_2.wav",
+      "duration": 17,
       "category": "jingle"
     },
     {
