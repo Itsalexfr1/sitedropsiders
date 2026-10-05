@@ -118,6 +118,8 @@ function useRadioAudio() {
     const syncAutoCooldownUntilRef = useRef<number>(0);
     // Index séquentiel absolu dans la grille du jour (empèche les boucles sur le morceau 0/1)
     const currentTrackIndexRef = useRef<number>(-1);
+    // Flag pour indiquer que la transition a été gérée en direct par advanceToNextTrack (évite le re-render conflictuel)
+    const isHandledByAdvanceRef = useRef<boolean>(false);
 
     // ─── Activation ──────────────────────────────────────────────────────────
     const [isEnabled, setIsEnabled] = useState<boolean>(() => {
@@ -452,6 +454,10 @@ function useRadioAudio() {
 
     useEffect(() => {
         if (!isPlayingRef.current || !currentSet) return;
+        if (isHandledByAdvanceRef.current) {
+            isHandledByAdvanceRef.current = false;
+            return;
+        }
 
         const targetAudioVol = isMutedRef.current ? 0 : (effectiveVolumeRef.current / 100);
 
@@ -565,6 +571,7 @@ function useRadioAudio() {
     const advanceToNextTrack = useCallback(() => {
         if (isAdvancingRef.current) return;
         isAdvancingRef.current = true;
+        isHandledByAdvanceRef.current = true;
         setTimeout(() => { isAdvancingRef.current = false; }, 2500);
 
         const cur = activeTrackRef.current;
