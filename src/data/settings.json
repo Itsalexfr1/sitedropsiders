@@ -5651,6 +5651,38 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
           "category": "promo"
+        },
+        {
+          "id": "track_1791200496998_056c",
+          "title": "This Sound",
+          "artist": "CASSIMM",
+          "youtubeId": "yPZAzpVYo_g",
+          "duration": 180,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_s_52",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 22,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1791200517361_5pmg",
+          "title": "The Vibe",
+          "artist": "Draxx (ITA)",
+          "youtubeId": "CAExWjnJA2g",
+          "duration": 180,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_n_53",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
+          "category": "jingle"
         }
       ],
       "specialJingles": []
@@ -14123,6 +14155,38 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
       "category": "promo"
+    },
+    {
+      "id": "track_1791200496998_056c",
+      "title": "This Sound",
+      "artist": "CASSIMM",
+      "youtubeId": "yPZAzpVYo_g",
+      "duration": 180,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_s_52",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 22,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791200517361_5pmg",
+      "title": "The Vibe",
+      "artist": "Draxx (ITA)",
+      "youtubeId": "CAExWjnJA2g",
+      "duration": 180,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_n_53",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
+      "category": "jingle"
     },
     {
       "id": "special_radio_bloc_1790256873762_k89p_1791164617237_10_kt00",
