@@ -5117,12 +5117,28 @@
           "category": "clip"
         },
         {
+          "id": "nj_bloc_1791197234957_s2_18",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "track_1791198089494_c5f8",
           "title": "I Never Knew (Extended Mix)",
           "artist": "Adam Ten",
           "youtubeId": "nfP3XCBfM3g",
           "duration": 300,
           "category": "clip"
+        },
+        {
+          "id": "pr_bloc_1791197234957_p_19",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 30,
+          "category": "promo"
         },
         {
           "id": "track_1791198102694_pya0",
@@ -5133,12 +5149,28 @@
           "category": "clip"
         },
         {
+          "id": "nj_bloc_1791197234957_s_20",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
           "id": "track_1791198125431_00w8",
           "title": "Contemplation (King Britt Funke Remix) [DFTD]",
           "artist": "Josh One vs Salomé Le Chat",
           "youtubeId": "07-wDej8s3g",
           "duration": 300,
           "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_n_21",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
+          "category": "jingle"
         },
         {
           "id": "track_1791198142550_c7en",
@@ -5149,6 +5181,14 @@
           "category": "clip"
         },
         {
+          "id": "nj_bloc_1791197234957_s2_22",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
           "id": "track_1791198193752_yd5t",
           "title": "My Temptations (Live from Defected Malta)",
           "artist": "Oden & Fatzo x Barney Bones",
@@ -5157,12 +5197,28 @@
           "category": "clip"
         },
         {
+          "id": "pr_bloc_1791197234957_p_23",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 28,
+          "category": "promo"
+        },
+        {
           "id": "track_1791198216403_6xf5",
           "title": "Take Me As I Am (Moodymann Remix)",
           "artist": "Dames Brown & Amp Fiddler",
           "youtubeId": "dNuMB8xsiCE",
           "duration": 300,
           "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_s_24",
+          "title": "Dropsiders Radio Jingle 5",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+          "duration": 14,
+          "category": "jingle"
         }
       ],
       "specialJingles": []
@@ -13101,12 +13157,28 @@
       "category": "clip"
     },
     {
+      "id": "nj_bloc_1791197234957_s2_18",
+      "title": "Dropsiders Radio Jingle 2",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
       "id": "track_1791198089494_c5f8",
       "title": "I Never Knew (Extended Mix)",
       "artist": "Adam Ten",
       "youtubeId": "nfP3XCBfM3g",
       "duration": 300,
       "category": "clip"
+    },
+    {
+      "id": "pr_bloc_1791197234957_p_19",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 30,
+      "category": "promo"
     },
     {
       "id": "track_1791198102694_pya0",
@@ -13117,12 +13189,28 @@
       "category": "clip"
     },
     {
+      "id": "nj_bloc_1791197234957_s_20",
+      "title": "Dropsiders Radio Jingle 1",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+      "duration": 8,
+      "category": "jingle"
+    },
+    {
       "id": "track_1791198125431_00w8",
       "title": "Contemplation (King Britt Funke Remix) [DFTD]",
       "artist": "Josh One vs Salomé Le Chat",
       "youtubeId": "07-wDej8s3g",
       "duration": 300,
       "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_n_21",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
+      "category": "jingle"
     },
     {
       "id": "track_1791198142550_c7en",
@@ -13133,6 +13221,14 @@
       "category": "clip"
     },
     {
+      "id": "nj_bloc_1791197234957_s2_22",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
+      "category": "jingle"
+    },
+    {
       "id": "track_1791198193752_yd5t",
       "title": "My Temptations (Live from Defected Malta)",
       "artist": "Oden & Fatzo x Barney Bones",
@@ -13141,12 +13237,28 @@
       "category": "clip"
     },
     {
+      "id": "pr_bloc_1791197234957_p_23",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 28,
+      "category": "promo"
+    },
+    {
       "id": "track_1791198216403_6xf5",
       "title": "Take Me As I Am (Moodymann Remix)",
       "artist": "Dames Brown & Amp Fiddler",
       "youtubeId": "dNuMB8xsiCE",
       "duration": 300,
       "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_s_24",
+      "title": "Dropsiders Radio Jingle 5",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+      "duration": 14,
+      "category": "jingle"
     },
     {
       "id": "special_radio_bloc_1790256873762_k89p_1791164617237_10_kt00",
