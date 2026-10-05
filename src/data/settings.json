@@ -9236,6 +9236,94 @@
       ],
       "tracks": [
         {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164591977_10_vytv",
+          "title": "Zone Rouge Quand La Nuit Tombe 5",
+          "artist": "ZONE ROUGE JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/5ca2f30ce0742cbf-Zone_Rouge_Quand_La_Nuit_Tombe.wav",
+          "duration": 22,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164590817_9_ur7p",
+          "title": "Zone Rouge Quand La Nuit Tombe 4",
+          "artist": "ZONE ROUGE JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/44d8ebad060490a6-Zone_Rouge_Quand_La_Nuit_Tombe.wav",
+          "duration": 20,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164590364_8_o7w4",
+          "title": "Zone Rouge Quand La Nuit Tombe 3",
+          "artist": "ZONE ROUGE JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/c0c75a0844cbc316-Zone_Rouge_Quand_La_Nuit_Tombe.wav",
+          "duration": 20,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164590005_7_1jvu",
+          "title": "Zone Rouge Quand La Nuit Tombe 2",
+          "artist": "ZONE ROUGE JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/42f2106e5de93299-Zone_Rouge_Quand_La_Nuit_Tombe.wav",
+          "duration": 21,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164589591_6_1uhz",
+          "title": "Zone Rouge Quand La Nuit Tombe 1",
+          "artist": "ZONE ROUGE JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7678022cae2a71c8-Zone_Rouge_Quand_La_Nuit_Tombe.wav",
+          "duration": 23,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164589169_5_kstf",
+          "title": "Zone Rouge L'emission Nocturne 100% Hard Music 4",
+          "artist": "ZONE ROUGE JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/23edf4f3d4450e9d-Zone_Rouge_L_emission_Nocturne.wav",
+          "duration": 19,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164588811_4_ovd5",
+          "title": "Zone Rouge L'emission Nocturne 100% Hard Music 3",
+          "artist": "ZONE ROUGE JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0474e25c89e3c702-Zone_Rouge_L_emission_Nocturne.wav",
+          "duration": 15,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164588428_3_jir7",
+          "title": "Zone Rouge L'emission Nocturne 100% Hard Music 2",
+          "artist": "ZONE ROUGE JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/456704b523c28742-Zone_Rouge_L_emission_Nocturne.wav",
+          "duration": 23,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164588004_2_vufi",
+          "title": "Zone Rouge L'emission Nocturne 100% Hard Music 1",
+          "artist": "ZONE ROUGE JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/b6bb63ff8a978f8c-Zone_Rouge_L_emission_Nocturne.wav",
+          "duration": 20,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164587622_1_y1ba",
+          "title": "Zone Rouge La nuit commence ici 2 LONG",
+          "artist": "ZONE ROUGE JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a7d17d93cc3ec758-Zone_Rouge_La_nuit_commence_ic.wav",
+          "duration": 44,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164586961_0_2ulc",
+          "title": "Zone Rouge La nuit commence ici 1",
+          "artist": "ZONE ROUGE JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a723dd4d7c8bd27f-Zone_Rouge_La_nuit_commence_ic.wav",
+          "duration": 35,
+          "category": "jingle"
+        },
+        {
           "id": "rt_tv_1790257302402_26gf",
           "title": "Angerfist",
           "artist": "Qlimax 2016",
@@ -10201,6 +10289,83 @@
           "title": "Zone Rouge The Best Hard Musix Set",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0fb9afc4dc1c2a9c-Zone_Rouge_The_Best_Hard_Musix.wav",
           "duration": 16,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164586961_0_2ulc",
+          "title": "Zone Rouge La nuit commence ici 1",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a723dd4d7c8bd27f-Zone_Rouge_La_nuit_commence_ic.wav",
+          "duration": 35,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164587622_1_y1ba",
+          "title": "Zone Rouge La nuit commence ici 2 LONG",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a7d17d93cc3ec758-Zone_Rouge_La_nuit_commence_ic.wav",
+          "duration": 44,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164588004_2_vufi",
+          "title": "Zone Rouge L'emission Nocturne 100% Hard Music 1",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/b6bb63ff8a978f8c-Zone_Rouge_L_emission_Nocturne.wav",
+          "duration": 20,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164588428_3_jir7",
+          "title": "Zone Rouge L'emission Nocturne 100% Hard Music 2",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/456704b523c28742-Zone_Rouge_L_emission_Nocturne.wav",
+          "duration": 23,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164588811_4_ovd5",
+          "title": "Zone Rouge L'emission Nocturne 100% Hard Music 3",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0474e25c89e3c702-Zone_Rouge_L_emission_Nocturne.wav",
+          "duration": 15,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164589169_5_kstf",
+          "title": "Zone Rouge L'emission Nocturne 100% Hard Music 4",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/23edf4f3d4450e9d-Zone_Rouge_L_emission_Nocturne.wav",
+          "duration": 19,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164589591_6_1uhz",
+          "title": "Zone Rouge Quand La Nuit Tombe 1",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7678022cae2a71c8-Zone_Rouge_Quand_La_Nuit_Tombe.wav",
+          "duration": 23,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164590005_7_1jvu",
+          "title": "Zone Rouge Quand La Nuit Tombe 2",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/42f2106e5de93299-Zone_Rouge_Quand_La_Nuit_Tombe.wav",
+          "duration": 21,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164590364_8_o7w4",
+          "title": "Zone Rouge Quand La Nuit Tombe 3",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/c0c75a0844cbc316-Zone_Rouge_Quand_La_Nuit_Tombe.wav",
+          "duration": 20,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164590817_9_ur7p",
+          "title": "Zone Rouge Quand La Nuit Tombe 4",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/44d8ebad060490a6-Zone_Rouge_Quand_La_Nuit_Tombe.wav",
+          "duration": 20,
+          "enabled": true
+        },
+        {
+          "id": "special_radio_bloc_1790257291397_4y1e_1791164591977_10_vytv",
+          "title": "Zone Rouge Quand La Nuit Tombe 5",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/5ca2f30ce0742cbf-Zone_Rouge_Quand_La_Nuit_Tombe.wav",
+          "duration": 22,
           "enabled": true
         }
       ],
@@ -16352,6 +16517,94 @@
       "artist": "CLASSIC TIME JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/400d28986c937995-Classic_Time_6.wav",
       "duration": 7,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790257291397_4y1e_1791164591977_10_vytv",
+      "title": "Zone Rouge Quand La Nuit Tombe 5",
+      "artist": "ZONE ROUGE JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/5ca2f30ce0742cbf-Zone_Rouge_Quand_La_Nuit_Tombe.wav",
+      "duration": 22,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790257291397_4y1e_1791164590817_9_ur7p",
+      "title": "Zone Rouge Quand La Nuit Tombe 4",
+      "artist": "ZONE ROUGE JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/44d8ebad060490a6-Zone_Rouge_Quand_La_Nuit_Tombe.wav",
+      "duration": 20,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790257291397_4y1e_1791164590364_8_o7w4",
+      "title": "Zone Rouge Quand La Nuit Tombe 3",
+      "artist": "ZONE ROUGE JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/c0c75a0844cbc316-Zone_Rouge_Quand_La_Nuit_Tombe.wav",
+      "duration": 20,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790257291397_4y1e_1791164590005_7_1jvu",
+      "title": "Zone Rouge Quand La Nuit Tombe 2",
+      "artist": "ZONE ROUGE JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/42f2106e5de93299-Zone_Rouge_Quand_La_Nuit_Tombe.wav",
+      "duration": 21,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790257291397_4y1e_1791164589591_6_1uhz",
+      "title": "Zone Rouge Quand La Nuit Tombe 1",
+      "artist": "ZONE ROUGE JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7678022cae2a71c8-Zone_Rouge_Quand_La_Nuit_Tombe.wav",
+      "duration": 23,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790257291397_4y1e_1791164589169_5_kstf",
+      "title": "Zone Rouge L'emission Nocturne 100% Hard Music 4",
+      "artist": "ZONE ROUGE JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/23edf4f3d4450e9d-Zone_Rouge_L_emission_Nocturne.wav",
+      "duration": 19,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790257291397_4y1e_1791164588811_4_ovd5",
+      "title": "Zone Rouge L'emission Nocturne 100% Hard Music 3",
+      "artist": "ZONE ROUGE JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0474e25c89e3c702-Zone_Rouge_L_emission_Nocturne.wav",
+      "duration": 15,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790257291397_4y1e_1791164588428_3_jir7",
+      "title": "Zone Rouge L'emission Nocturne 100% Hard Music 2",
+      "artist": "ZONE ROUGE JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/456704b523c28742-Zone_Rouge_L_emission_Nocturne.wav",
+      "duration": 23,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790257291397_4y1e_1791164588004_2_vufi",
+      "title": "Zone Rouge L'emission Nocturne 100% Hard Music 1",
+      "artist": "ZONE ROUGE JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/b6bb63ff8a978f8c-Zone_Rouge_L_emission_Nocturne.wav",
+      "duration": 20,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790257291397_4y1e_1791164587622_1_y1ba",
+      "title": "Zone Rouge La nuit commence ici 2 LONG",
+      "artist": "ZONE ROUGE JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a7d17d93cc3ec758-Zone_Rouge_La_nuit_commence_ic.wav",
+      "duration": 44,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790257291397_4y1e_1791164586961_0_2ulc",
+      "title": "Zone Rouge La nuit commence ici 1",
+      "artist": "ZONE ROUGE JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a723dd4d7c8bd27f-Zone_Rouge_La_nuit_commence_ic.wav",
+      "duration": 35,
       "category": "jingle"
     },
     {
