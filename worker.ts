@@ -414,6 +414,46 @@ export default {
             return new Response(JSON.stringify({ country }), { headers });
         }
 
+        // ─── Radio Presence API (comptage auditeurs multi-appareils + mobile) ──────
+        // GET  /api/radio/presence → retourne { count: number } (total auditeurs actifs)
+        // POST /api/radio/presence → signale présence { sessionId, isPlaying }
+        if (path === '/api/radio/presence') {
+            const kv = env.CHAT_KV;
+            if (!kv) {
+                return new Response(JSON.stringify({ count: 0 }), { headers });
+            }
+
+            if (request.method === 'POST') {
+                try {
+                    const body = await request.json();
+                    const { sessionId, isPlaying } = body || {};
+                    if (sessionId) {
+                        if (isPlaying) {
+                            // Stocker la session avec TTL 15s — expire automatiquement si le client ne ping plus
+                            await kv.put(`radio_listener_${sessionId}`, '1', { expirationTtl: 15 });
+                        } else {
+                            // Client se déconnecte explicitement
+                            await kv.delete(`radio_listener_${sessionId}`);
+                        }
+                    }
+                    return new Response(JSON.stringify({ ok: true }), { headers });
+                } catch {
+                    return new Response(JSON.stringify({ ok: false }), { status: 400, headers });
+                }
+            }
+
+            if (request.method === 'GET') {
+                try {
+                    // Lister toutes les sessions actives (TTL géré par KV)
+                    const list = await kv.list({ prefix: 'radio_listener_' });
+                    const count = list?.keys?.length ?? 0;
+                    return new Response(JSON.stringify({ count }), { headers });
+                } catch {
+                    return new Response(JSON.stringify({ count: 0 }), { headers });
+                }
+            }
+        }
+
         // --- AUTH CHECK ---
         const decodePass = (p: string) => p && p.startsWith('b64:') ? atob(p.slice(4)) : p;
         const adminPassword = (env.ADMIN_PASSWORD || '').trim();

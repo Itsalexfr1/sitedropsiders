@@ -592,13 +592,18 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     const logout = () => {
         setUser(null);
+        // Nettoyer uniquement les credentials admin, PAS les données utilisateur locales
+        // (dropsiders_registered_users et dropsiders_user sont conservés pour permettre
+        //  la reconnexion sans traiter l'utilisateur comme "nouveau" au prochain login social)
         localStorage.removeItem('admin_auth_v2');
         localStorage.removeItem('admin_user');
         localStorage.removeItem('admin_permissions');
         localStorage.removeItem('admin_session_id');
         localStorage.removeItem('admin_provider');
         localStorage.removeItem('admin_password');
-        localStorage.removeItem('dropsiders_registered_users'); // Also clear the local registry
+        // Note: On ne supprime PAS dropsiders_registered_users ici car loginSocial l'utilise
+        // pour déterminer si l'utilisateur est nouveau (et déclencher triggerBooster).
+        // Le supprimer forcerait un faux triggerBooster à chaque reconnexion = bug déconnexion mobile.
     };
 
     const deleteAccount = async (): Promise<boolean> => {

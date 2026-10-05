@@ -258,11 +258,12 @@ function useRadioAudio() {
         return () => window.removeEventListener('dropsiders_radio_ducking', handleDucking);
     }, []);
 
-    // Suivi en temps réel des auditeurs réels (Présence multi-onglets + API réelle sans +110 artificiel)
+    // Suivi en temps réel des auditeurs réels (Présence multi-onglets + API réelle + ping mobile)
     useEffect(() => {
         const tabSessionId = 'tab_' + Math.random().toString(36).slice(2, 9);
         const presenceMap = new Map<string, number>();
 
+        // BroadcastChannel : sync entre onglets du MÊME appareil uniquement
         let channel: BroadcastChannel | null = null;
         try {
             if (typeof BroadcastChannel !== 'undefined') {
@@ -284,15 +285,18 @@ function useRadioAudio() {
             }
         } catch {}
 
+        // remoteViewers = auditeurs total rapportés par le serveur (TOUS appareils confondus)
         let remoteViewers = 0;
 
         const updateTotalCount = () => {
             const now = Date.now();
-            // Nettoyage des onglets inactifs depuis plus de 6 secondes
+            // Nettoyage des onglets inactifs depuis plus de 6 secondes (même appareil)
             for (const [id, ts] of presenceMap.entries()) {
                 if (now - ts > 6000) presenceMap.delete(id);
             }
+            // Sur mobile, les auditeurs distants (API) sont la source de vérité principale
             const localActiveTabs = (isPlayingRef.current ? 1 : 0) + presenceMap.size;
+            // On prend le max : si le serveur voit plus d'auditeurs que nous localement, on fait confiance au serveur
             const finalCount = Math.max(localActiveTabs, remoteViewers);
             setListenersCount(finalCount);
 
@@ -314,23 +318,49 @@ function useRadioAudio() {
         };
 
         const pingPresence = async () => {
+            const currentlyPlaying = isPlayingRef.current && !isMutedRef.current;
+
+            // Broadcast local (même appareil, multi-onglets)
             if (channel) {
                 try {
                     channel.postMessage({
                         type: 'radio_ping',
                         id: tabSessionId,
-                        isPlaying: isPlayingRef.current && !isMutedRef.current,
+                        isPlaying: currentlyPlaying,
                     });
                 } catch {}
             }
 
-            // Requête API réelle si disponible (sans aucun ajout artificiel)
+            // ─── PING SERVEUR (TOUS appareils, MOBILE inclus) ───────────────────────
+            // Envoie notre présence au serveur → les stats admin voient les auditeurs MOBILES
+            if (currentlyPlaying) {
+                try {
+                    await fetch('/api/radio/presence', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sessionId: tabSessionId, isPlaying: true }),
+                    });
+                } catch {}
+            }
+
+            // Récupération du count total depuis le serveur (agrège TOUS les appareils)
             try {
-                const res = await fetch('/api/chat/viewers?channel=radio');
+                const res = await fetch('/api/radio/presence');
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && typeof data.viewers === 'number') {
+                    if (data && typeof data.count === 'number') {
+                        remoteViewers = Math.max(0, data.count);
+                    } else if (data && typeof data.viewers === 'number') {
                         remoteViewers = Math.max(0, data.viewers);
+                    }
+                } else {
+                    // Fallback sur l'ancienne API viewers si /api/radio/presence n'existe pas
+                    const fallback = await fetch('/api/chat/viewers?channel=radio');
+                    if (fallback.ok) {
+                        const fallbackData = await fallback.json();
+                        if (fallbackData && typeof fallbackData.viewers === 'number') {
+                            remoteViewers = Math.max(0, fallbackData.viewers);
+                        }
                     }
                 }
             } catch {}
@@ -339,10 +369,19 @@ function useRadioAudio() {
         };
 
         pingPresence();
-        const interval = setInterval(pingPresence, 3000);
+        // Ping toutes les 5s (moins agressif sur mobile pour économiser la batterie)
+        const interval = setInterval(pingPresence, IS_MOBILE ? 5000 : 3000);
 
         return () => {
             clearInterval(interval);
+            // Signaler au serveur qu'on quitte
+            try {
+                fetch('/api/radio/presence', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId: tabSessionId, isPlaying: false }),
+                }).catch(() => {});
+            } catch {}
             if (channel) {
                 try {
                     channel.postMessage({ type: 'radio_bye', id: tabSessionId });
