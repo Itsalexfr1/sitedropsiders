@@ -687,5 +687,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1131,
+    "title": "CLOSING DAVID GUETTA",
+    "date": "2026-10-09",
+    "startDate": "2026-10-09",
+    "endDate": "2026-10-09",
+    "venue": "UNVRS",
+    "location": "IBIZA",
+    "country": "ESPAGNE",
+    "type": "Events",
+    "image": "/uploads/uploads/312e110c2b874f96-20261009_unvrs_david_guetta_cl.webp",
+    "url": "https://www.unvrs.com/events/2026/david-guetta-closing/09-10-2026",
+    "genre": "House",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
