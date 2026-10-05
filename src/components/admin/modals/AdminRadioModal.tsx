@@ -94,6 +94,7 @@ import { RadioDedicationsPanel } from '../radio/RadioDedicationsPanel';
 import { RadioBroadcastRecorder } from '../radio/RadioBroadcastRecorder';
 import { RadioYouTubeCuePlayer } from '../radio/RadioYouTubeCuePlayer';
 import { DEFAULT_JINGLES_PUBS, type RadionomyItem } from './RadionomyJinglesBox';
+import { SunoJingleStudioModal } from './SunoJingleStudioModal';
 
 const PRESET_EMOJIS = ['🎧', '🔥', '⚡', '🚀', '🎵', '🕺', '📻', '💎', '🎉', '🌙', '☀️', '⭐', '🌅', '🎪'];
 const PRESET_COLORS = [
@@ -198,6 +199,7 @@ export function AdminRadioModal({
 
     // ─── Modale d'Upload Jingle / Promo / Pub avec MENU DÉROULANT ─────────────
     const [isUploadJingleModalOpen, setIsUploadJingleModalOpen] = useState(false);
+    const [isSunoModalOpen, setIsSunoModalOpen] = useState(false);
     const [isAddMediaDropdownOpen, setIsAddMediaDropdownOpen] = useState(false);
     const [isYouTubeSearchOpen, setIsYouTubeSearchOpen] = useState(false);
 
@@ -1002,6 +1004,29 @@ export function AdminRadioModal({
         } catch {}
     };
 
+    // Définir un jingle généré comme générique d'ouverture d'émission
+    const handleSetAsThemeJingle = (blockId: string, item: { title: string; audioUrl: string; duration: number }) => {
+        setBlocks(prev => {
+            const next = prev.map(b => {
+                if (b.id !== blockId) return b;
+                return {
+                    ...b,
+                    themeJingle: {
+                        enabled: true,
+                        title: item.title,
+                        audioUrl: item.audioUrl,
+                        duration: item.duration || 15
+                    }
+                };
+            });
+            try {
+                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
+                window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+            } catch {}
+            return next;
+        });
+    };
+
     // ─── Ajout rapide de morceau dans l'émission active ───────────────────────
     const handleAddTrackToCurrentEmission = () => {
         if (!selectedBlock) {
@@ -1778,6 +1803,17 @@ export function AdminRadioModal({
 
                     {/* Actions droites */}
                     <div className="flex items-center gap-2.5">
+                        {/* Bouton Suno AI Studio */}
+                        <button
+                            type="button"
+                            onClick={() => setIsSunoModalOpen(true)}
+                            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-display font-black text-xs uppercase italic tracking-wider flex items-center gap-1.5 shadow-[0_0_20px_rgba(139,92,246,0.35)] transition-all cursor-pointer border border-violet-400/40"
+                            title="Créer des jingles et drops audio avec l'IA Suno"
+                        >
+                            <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                            <span>✨ Suno IA</span>
+                        </button>
+
                         {/* Bouton Groupé + Nouveau Média (Jingle / Promo / Pub) avec menu déroulant pour gagner de la place */}
                         <div className="relative">
                             <button
@@ -1792,9 +1828,20 @@ export function AdminRadioModal({
                             </button>
                             {isAddMediaDropdownOpen && (
                                 <div 
-                                    className="absolute right-0 mt-2 w-56 rounded-2xl bg-[#0e131f] border border-white/20 shadow-2xl p-1.5 z-[100] animate-in fade-in zoom-in-95 space-y-1"
+                                    className="absolute right-0 mt-2 w-60 rounded-2xl bg-[#0e131f] border border-white/20 shadow-2xl p-1.5 z-[100] animate-in fade-in zoom-in-95 space-y-1"
                                     onMouseLeave={() => setIsAddMediaDropdownOpen(false)}
                                 >
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsSunoModalOpen(true);
+                                            setIsAddMediaDropdownOpen(false);
+                                        }}
+                                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-violet-500/20 text-violet-300 flex items-center gap-2 text-xs font-bold transition-all cursor-pointer border border-violet-500/30 bg-violet-500/10"
+                                    >
+                                        <Sparkles className="w-3.5 h-3.5 text-violet-400 animate-pulse" />
+                                        <span>✨ Studio Suno IA (Jingles)</span>
+                                    </button>
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -4676,6 +4723,18 @@ export function AdminRadioModal({
                 initialCategory={uploadModalCategory}
                 onSaveJingleForBlock={handleSaveJingleForBlock}
                 onSaveGeneralJingle={handleSaveGeneralJingle}
+                onShowToast={showToast}
+            />
+
+            {/* ── MODALE STUDIO SUNO IA (JINGLES RADIO) ── */}
+            <SunoJingleStudioModal
+                isOpen={isSunoModalOpen}
+                onClose={() => setIsSunoModalOpen(false)}
+                blocks={blocks}
+                activeBlockId={selectedBlock?.id}
+                onSaveGeneralJingle={handleSaveGeneralJingle}
+                onSaveJingleForBlock={(blockId, item) => handleSaveJingleForBlock(blockId, item as any, true, (item.category === 'promo' || item.category === 'pub' ? item.category : 'jingle'))}
+                onSetAsThemeJingle={handleSetAsThemeJingle}
                 onShowToast={showToast}
             />
 
