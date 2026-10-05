@@ -2733,9 +2733,9 @@
       "id": "radio_bloc_1790255595165_5mni",
       "name": "LE MORNING DROPSIDERS",
       "title": "LE MORNING DROPSIDERS",
-      "timeSlot": "06h - 12h",
+      "timeSlot": "06h - 10h",
       "startHour": 6,
-      "endHour": 12,
+      "endHour": 10,
       "color": "#00f0ff",
       "emoji": "🎧",
       "randomize": true,
@@ -4232,15 +4232,16 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav"
         }
       ],
-      "rotationRule": "every_2_tracks"
+      "rotationRule": "every_2_tracks",
+      "jingleFrequency": 2
     },
     {
       "id": "radio_bloc_1790256648831_kmgn",
       "name": "LE 12 - 16",
       "title": "FEEL THE DROP",
-      "timeSlot": "12h - 16h",
-      "startHour": 12,
-      "endHour": 16,
+      "timeSlot": "10h - 13h",
+      "startHour": 10,
+      "endHour": 13,
       "color": "#8b5cf6",
       "emoji": "🔥",
       "randomize": true,
@@ -10454,6 +10455,21 @@
         "audioUrl": "https://dropsiders.fr/uploads/uploads/be041d18cfcf9c2f-Generique_ZONE_ROUGE.wav",
         "duration": 15
       }
+    },
+    {
+      "id": "bloc_1791197234957",
+      "title": "HOUSE SESSION",
+      "name": "HOUSE SESSION",
+      "startHour": 13,
+      "endHour": 16,
+      "timeSlot": "13h - 16h",
+      "color": "#00f0ff",
+      "emoji": "🎧",
+      "randomize": true,
+      "jingleFrequency": 2,
+      "rotationRule": "jingle_son_special_promo",
+      "tracks": [],
+      "specialJingles": []
     }
   ],
   "radio_tracks": [
