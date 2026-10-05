@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Radio, Play, Pause, Volume2, VolumeX, Clock, Sparkles,
-    MessageSquare, Send, History,
+    MessageSquare, Send, Calendar, History,
     User, MapPin, Disc3, Music2, Zap, Check, Search, X
 } from 'lucide-react';
 import {
