@@ -4800,6 +4800,142 @@
       "rotationRule": "son_special_son_jingle_promo"
     },
     {
+      "id": "bloc_1791197234957",
+      "title": "HOUSE SESSION",
+      "name": "HOUSE SESSION",
+      "startHour": 13,
+      "endHour": 16,
+      "timeSlot": "13h - 16h",
+      "color": "#00f0ff",
+      "emoji": "🎧",
+      "randomize": true,
+      "jingleFrequency": 2,
+      "rotationRule": "jingle_son_special_promo",
+      "tracks": [
+        {
+          "id": "nj_bloc_1791197234957_emission_start_special",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1791197299413_axbk",
+          "title": "Another Tomorrow",
+          "artist": "Melé",
+          "youtubeId": "xpj5cLXviME",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_s_0",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1791197319981_thrr",
+          "title": "Girl 2.0 (Extended Mix)",
+          "artist": "Jonas Blue x Wh0",
+          "youtubeId": "05wW9bIyNTs",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_n_1",
+          "title": "Dropsiders Radio Jingle 5",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+          "duration": 14,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1791197337661_wtis",
+          "title": "Push The Tempo (Extended Mix)",
+          "artist": "Denis Sulta & Capri",
+          "youtubeId": "FjF0tMr0B18",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_s2_2",
+          "title": "Dropsiders Radio Jingle 6",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+          "duration": 9,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1791197353125_98b6",
+          "title": "The Cure & The Cause",
+          "artist": "Fish Go Deep & Tracey K X Shy FX",
+          "youtubeId": "DKf6g9OjDwI",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "pr_bloc_1791197234957_p_3",
+          "title": "Promo Tomorrowland Winter",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+          "duration": 66,
+          "category": "promo"
+        },
+        {
+          "id": "track_1791197366597_revy",
+          "title": "Phreaky (Extended Mix) [DFTD]",
+          "artist": "Sorley x Mike Dunn",
+          "youtubeId": "VgoGx8Lt_kU",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_s_4",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 30,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1791197380677_1ewm",
+          "title": "Stamina (Extended Mix)",
+          "artist": "LEYO & Thierry Ganz",
+          "youtubeId": "a5A6fDVOojk",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_n_5",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 28,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1791197393845_01ac",
+          "title": "4Get The Girl (Samm Remix)",
+          "artist": "Route 94",
+          "youtubeId": "R4aJA0XA-Bk",
+          "duration": 3600,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_s2_6",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 22,
+          "category": "jingle"
+        }
+      ],
+      "specialJingles": []
+    },
+    {
       "id": "radio_bloc_1790256873762_k89p",
       "name": "L'AFTER WORK",
       "title": "L'AFTER WORK",
@@ -10455,21 +10591,6 @@
         "audioUrl": "https://dropsiders.fr/uploads/uploads/be041d18cfcf9c2f-Generique_ZONE_ROUGE.wav",
         "duration": 15
       }
-    },
-    {
-      "id": "bloc_1791197234957",
-      "title": "HOUSE SESSION",
-      "name": "HOUSE SESSION",
-      "startHour": 13,
-      "endHour": 16,
-      "timeSlot": "13h - 16h",
-      "color": "#00f0ff",
-      "emoji": "🎧",
-      "randomize": true,
-      "jingleFrequency": 2,
-      "rotationRule": "jingle_son_special_promo",
-      "tracks": [],
-      "specialJingles": []
     }
   ],
   "radio_tracks": [
@@ -12441,6 +12562,126 @@
       "artist": "FEEL THE VIBE JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
       "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "nj_bloc_1791197234957_emission_start_special",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791197299413_axbk",
+      "title": "Another Tomorrow",
+      "artist": "Melé",
+      "youtubeId": "xpj5cLXviME",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_s_0",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791197319981_thrr",
+      "title": "Girl 2.0 (Extended Mix)",
+      "artist": "Jonas Blue x Wh0",
+      "youtubeId": "05wW9bIyNTs",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_n_1",
+      "title": "Dropsiders Radio Jingle 5",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+      "duration": 14,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791197337661_wtis",
+      "title": "Push The Tempo (Extended Mix)",
+      "artist": "Denis Sulta & Capri",
+      "youtubeId": "FjF0tMr0B18",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_s2_2",
+      "title": "Dropsiders Radio Jingle 6",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+      "duration": 9,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791197353125_98b6",
+      "title": "The Cure & The Cause",
+      "artist": "Fish Go Deep & Tracey K X Shy FX",
+      "youtubeId": "DKf6g9OjDwI",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "pr_bloc_1791197234957_p_3",
+      "title": "Promo Tomorrowland Winter",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+      "duration": 66,
+      "category": "promo"
+    },
+    {
+      "id": "track_1791197366597_revy",
+      "title": "Phreaky (Extended Mix) [DFTD]",
+      "artist": "Sorley x Mike Dunn",
+      "youtubeId": "VgoGx8Lt_kU",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_s_4",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 30,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791197380677_1ewm",
+      "title": "Stamina (Extended Mix)",
+      "artist": "LEYO & Thierry Ganz",
+      "youtubeId": "a5A6fDVOojk",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_n_5",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 28,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791197393845_01ac",
+      "title": "4Get The Girl (Samm Remix)",
+      "artist": "Route 94",
+      "youtubeId": "R4aJA0XA-Bk",
+      "duration": 3600,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_s2_6",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 22,
       "category": "jingle"
     },
     {
