@@ -111,6 +111,11 @@ function useRadioAudio() {
     const currentSetRef = useRef<ComputedRadioScheduleItem | null>(null);
     // Timestamp du démarrage du track actuel (pour le guard anti-coupure < 90s)
     const trackStartedAtRef = useRef<number>(0);
+    // Cooldown pour le sync-auto : bloc toute re-déclenchement pendant 20s après une transition
+    // Fix du bug de boucle : advanceToNextTrack set uiTimeSec au futur, puis le clock
+    // interval le remet à l'heure réelle, ce qui fait changer liveInfo.item.id et
+    // déclenche le sync-auto à nouveau en boucle.
+    const syncAutoCooldownUntilRef = useRef<number>(0);
 
     // ─── Activation ──────────────────────────────────────────────────────────
     const [isEnabled, setIsEnabled] = useState<boolean>(() => {
@@ -535,6 +540,8 @@ function useRadioAudio() {
     const advanceToNextTrack = useCallback(() => {
         window.dispatchEvent(new CustomEvent('dropsiders_radio_track_changed'));
         trackStartedAtRef.current = Date.now();
+        // Activer le cooldown : bloque le sync-auto pendant 20s pour éviter la boucle
+        syncAutoCooldownUntilRef.current = Date.now() + 20000;
         const cur = activeTrackRef.current;
         try {
             const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
@@ -680,11 +687,15 @@ function useRadioAudio() {
             activeTrackRef.current &&
             newLiveId !== activeTrackRef.current.id
         ) {
+            // ⚠️ COOLDOWN : ne pas déclencher si on vient juste de faire une transition.
+            // Cela brise la boucle : advanceToNextTrack set uiTimeSec au futur,
+            // le clock interval le remet à l'heure réelle (créneau précédent),
+            // liveInfo.item.id change à nouveau → sans cooldown = boucle infinie.
+            if (Date.now() < syncAutoCooldownUntilRef.current) return;
+
             const active = activeTrackRef.current;
 
-            // ⚠️ Ne JAMAIS couper un jingle, promo, top horaire ou track court.
-            // Ces tracks sont éphémères (injectés dynamiquement) et se terminent
-            // via l'événement 'ended'. Le sync auto ne gère que les LONGS SETS.
+            // Ne JAMAIS couper un jingle, promo, top horaire ou track court.
             const isTransientTrack = (
                 active.category === 'jingle' ||
                 active.category === 'promo' ||
@@ -695,10 +706,10 @@ function useRadioAudio() {
             );
             if (isTransientTrack) return;
 
-            // Pour les longs sets : forcer si l'offset réel est > 90s
-            // (ce qui indique qu'on est bien avancé dans le créneau, pas juste au démarrage)
-            const offsetInCurrentTrack = uiOffsetRef.current;
-            if (offsetInCurrentTrack > 90) {
+            // Pour les longs sets : forcer la transition si on a joué pendant > 10s
+            // (assez pour confirmer que c'est une vraie transition, pas un artefact)
+            const elapsedSinceStart = Date.now() - trackStartedAtRef.current;
+            if (elapsedSinceStart > 10000) {
                 advanceToNextTrack();
             }
         }
