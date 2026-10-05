@@ -136,17 +136,32 @@ export function SunoJingleStudioModal({
     onSetAsThemeJingle,
     onShowToast
 }: SunoJingleStudioModalProps) {
-    // ─── Clé & Endpoint API Suno (stockés dans localStorage) ──────────────────────
+    // ─── Clé & Endpoint API APIMart/Suno (stockés dans localStorage) ──────────────────────
     const STORAGE_KEY_SUNO_KEY = 'dropsiders_suno_api_key';
     const STORAGE_KEY_SUNO_URL = 'dropsiders_suno_api_url';
+    const DEFAULT_API_URL = 'https://api.apimart.ai/v1';
+    const DEFAULT_API_KEY = 'sk-f4l1nqzQTIQqF0hQxCrVt2ZHAsQjO8ndQVRNGtQsqZap8jjM';
 
     const [apiKey, setApiKey] = useState(() => {
-        try { return localStorage.getItem(STORAGE_KEY_SUNO_KEY) || ''; } catch { return ''; }
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY_SUNO_KEY);
+            if (stored) return stored;
+            // Pré-remplir avec la clé APIMart fournie
+            localStorage.setItem(STORAGE_KEY_SUNO_KEY, DEFAULT_API_KEY);
+            return DEFAULT_API_KEY;
+        } catch { return DEFAULT_API_KEY; }
     });
     const [apiUrl, setApiUrl] = useState(() => {
-        try { return localStorage.getItem(STORAGE_KEY_SUNO_URL) || 'https://api.sunoapi.org/v1/generate'; } catch { return 'https://api.sunoapi.org/v1/generate'; }
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY_SUNO_URL);
+            if (stored && stored !== 'https://api.sunoapi.org/v1/generate') return stored;
+            // Pré-remplir avec l'URL APIMart correcte
+            localStorage.setItem(STORAGE_KEY_SUNO_URL, DEFAULT_API_URL);
+            return DEFAULT_API_URL;
+        } catch { return DEFAULT_API_URL; }
     });
     const [showSettingsDrawer, setShowSettingsDrawer] = useState(false);
+    const [apiError, setApiError] = useState<'balance' | 'auth' | 'other' | null>(null);
     const [tempKey, setTempKey] = useState(apiKey);
     const [tempUrl, setTempUrl] = useState(apiUrl);
 
@@ -256,19 +271,26 @@ export function SunoJingleStudioModal({
         const timer2 = setTimeout(() => setGenerationStep(3), 2200);
         const timer3 = setTimeout(() => setGenerationStep(4), 3300);
 
-        // Si l'utilisateur possède une clé, tenter un appel réel
+        setApiError(null);
+
+        // Si l'utilisateur possède une clé, tenter un appel réel via APIMart
         if (apiKey.trim()) {
             try {
-                // Tentative d'appel API Suno (ex: standard wrapper ou proxy)
+                // APIMart utilise le modèle suno-v4 via leur endpoint audio/generations
+                const baseUrl = apiUrl.trim().replace(/\/$/, '');
+                const generateUrl = baseUrl.includes('/audio') ? baseUrl : `${baseUrl}/audio/generations`;
+
                 const payload = {
+                    model: 'suno-v4',
                     prompt: isInstrumental ? `[Instrumental] ${promptStyle}` : promptLyrics,
                     tags: promptStyle,
                     title: jingleTitle,
                     make_instrumental: isInstrumental,
-                    wait_audio: true
+                    wait_audio: true,
+                    mv: 'chirp-v4'
                 };
 
-                const res = await fetch(apiUrl, {
+                const res = await fetch(generateUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -277,20 +299,37 @@ export function SunoJingleStudioModal({
                     body: JSON.stringify(payload)
                 });
 
+                if (res.status === 402) {
+                    // Solde insuffisant
+                    clearTimeout(timer1); clearTimeout(timer2); clearTimeout(timer3);
+                    setApiError('balance');
+                    setIsGenerating(false);
+                    return;
+                }
+
+                if (res.status === 401 || res.status === 403) {
+                    clearTimeout(timer1); clearTimeout(timer2); clearTimeout(timer3);
+                    setApiError('auth');
+                    setIsGenerating(false);
+                    return;
+                }
+
                 if (res.ok) {
                     const data = await res.json();
-                    if (Array.isArray(data) && data.length > 0) {
-                        const results: GeneratedJingleResult[] = data.slice(0, 2).map((item: any, idx: number) => ({
+                    const items = Array.isArray(data) ? data : (data.data || data.results || []);
+                    if (items.length > 0) {
+                        const results: GeneratedJingleResult[] = items.slice(0, 2).map((item: any, idx: number) => ({
                             id: item.id || `suno_${Date.now()}_${idx}`,
                             title: `${jingleTitle} (Var ${idx === 0 ? 'A' : 'B'})`,
                             style: promptStyle,
                             lyrics: promptLyrics,
-                            audioUrl: item.audio_url || item.audioUrl || selectedPreset.sampleAudioUrl,
+                            audioUrl: item.audio_url || item.audioUrl || item.url || selectedPreset.sampleAudioUrl,
                             duration: item.duration ? Math.round(item.duration) : selectedPreset.sampleDuration,
                             variation: idx === 0 ? 'A' : 'B',
                             bpm: selectedPreset.bpm,
                             createdAt: new Date().toLocaleTimeString()
                         }));
+                        clearTimeout(timer1); clearTimeout(timer2); clearTimeout(timer3);
                         setGeneratedResults(results);
                         setIsGenerating(false);
                         onShowToast('✨ 2 Jingles Suno IA générés avec succès !', 'success');
@@ -298,7 +337,7 @@ export function SunoJingleStudioModal({
                     }
                 }
             } catch (err) {
-                console.warn('Suno API call failed, falling back to instant preview mode', err);
+                console.warn('APIMart Suno API call failed, falling back to preview mode', err);
             }
         }
 
@@ -461,24 +500,58 @@ export function SunoJingleStudioModal({
                     </div>
                 </div>
 
-                {/* ─── BANDEAU INFO MODE SANS CLÉ (DÉCOUVERTE) ─── */}
-                {!apiKey.trim() && (
-                    <div className="px-4 py-2 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-transparent border-b border-amber-500/20 flex items-center justify-between gap-3 text-xs text-amber-200">
+                {/* ─── BANDEAU STATUT API ─── */}
+                {apiError === 'balance' && (
+                    <div className="px-4 py-2.5 bg-gradient-to-r from-red-500/20 via-orange-500/10 to-transparent border-b border-red-500/30 flex items-center justify-between gap-3 text-xs text-red-200">
                         <div className="flex items-center gap-2">
-                            <Info className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
                             <span>
-                                <strong>Mode Découverte Actif :</strong> Vous n'avez pas de clé Suno ? Aucun problème ! Vous pouvez concevoir vos paroles, tester les styles et écouter/injecter des démos prêtes à l'emploi.
+                                <strong>Solde APIMart insuffisant.</strong> Ton compte est à $0. Il faut recharger pour générer de vrais jingles Suno. Tu peux utiliser le Mode Aperçu en attendant.
                             </span>
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => setShowSettingsDrawer(true)}
-                            className="text-[11px] underline font-bold hover:text-white flex-shrink-0 cursor-pointer"
+                        <a
+                            href="https://apimart.ai/billing"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] underline font-bold hover:text-white flex-shrink-0 whitespace-nowrap flex items-center gap-1"
                         >
-                            Ajouter une clé plus tard
+                            <ExternalLink className="w-3 h-3" />
+                            Recharger le compte
+                        </a>
+                    </div>
+                )}
+                {apiError === 'auth' && (
+                    <div className="px-4 py-2.5 bg-gradient-to-r from-red-500/20 to-transparent border-b border-red-500/30 flex items-center justify-between gap-3 text-xs text-red-200">
+                        <div className="flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                            <span><strong>Clé API invalide ou expirée.</strong> Vérifier ta clé dans les paramètres.</span>
+                        </div>
+                        <button type="button" onClick={() => setShowSettingsDrawer(true)} className="text-[11px] underline font-bold hover:text-white flex-shrink-0 cursor-pointer">
+                            Modifier la clé
                         </button>
                     </div>
                 )}
+                {!apiError && apiKey.trim() && (
+                    <div className="px-4 py-2 bg-gradient-to-r from-emerald-500/10 to-transparent border-b border-emerald-500/20 flex items-center gap-2 text-xs text-emerald-300">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span>APIMart connecté · Clé <span className="font-mono">{apiKey.slice(0, 12)}…</span> · Modèle <strong>suno-v4</strong></span>
+                        <a href="https://apimart.ai/billing" target="_blank" rel="noreferrer" className="ml-auto text-emerald-400 hover:text-white flex items-center gap-1 underline">
+                            <ExternalLink className="w-3 h-3" />Solde & Recharge
+                        </a>
+                    </div>
+                )}
+                {!apiKey.trim() && !apiError && (
+                    <div className="px-4 py-2 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-transparent border-b border-amber-500/20 flex items-center justify-between gap-3 text-xs text-amber-200">
+                        <div className="flex items-center gap-2">
+                            <Info className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                            <span><strong>Mode Découverte Actif :</strong> Configurez une clé APIMart pour générer de vrais jingles IA.</span>
+                        </div>
+                        <button type="button" onClick={() => setShowSettingsDrawer(true)} className="text-[11px] underline font-bold hover:text-white flex-shrink-0 cursor-pointer">
+                            Configurer
+                        </button>
+                    </div>
+                )}
+
 
                 {/* ─── CONTENU PRINCIPAL (2 COLONNES) ─── */}
                 <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
