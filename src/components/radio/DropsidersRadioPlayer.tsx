@@ -1487,6 +1487,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                 )}
 
                                 {/* Bouton Message / Dédicace à l'animateur */}
+                                {messagesEnabled && (
                                 <button
                                     type="button"
                                     onClick={() => setIsDedicationOpen(true)}
@@ -1495,6 +1496,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                     <MessageSquare className="w-4 h-4 text-purple-300" />
                                     <span>💬 Envoyer un message à l'animateur</span>
                                 </button>
+                                )}
 
                                 {!isPlaying && (
                                     <p className="text-center text-[8.5px] text-gray-500 font-bold uppercase tracking-widest relative z-10 -mt-2 mb-3">
@@ -1675,6 +1677,7 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                             className="w-8 h-8 rounded-full bg-neon-cyan/25 hover:bg-neon-cyan text-neon-cyan hover:text-black flex items-center justify-center transition-all cursor-pointer ml-1 shrink-0 active:scale-90">
                             {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current ml-0.5" />}
                         </button>
+                        {messagesEnabled && (
                         <button
                             type="button"
                             onClick={e => { e.stopPropagation(); setIsDedicationOpen(true); }}
@@ -1683,6 +1686,7 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                         >
                             <MessageSquare className="w-3.5 h-3.5" />
                         </button>
+                        )}
                     </motion.button>
                 )}
             </AnimatePresence>
@@ -1775,6 +1779,7 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                             </div>
 
                             {/* Bouton Message / Dédicace à l'animateur */}
+                            {messagesEnabled && (
                             <button
                                 type="button"
                                 onClick={() => setIsDedicationOpen(true)}
@@ -1785,6 +1790,7 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                                 <span className="hidden xl:inline">Message Animateur</span>
                                 <span className="xl:hidden">Message</span>
                             </button>
+                            )}
 
                             {/* Bouton Play/Pause */}
                             <button onClick={handlePlay}
