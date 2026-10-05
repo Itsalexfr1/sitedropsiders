@@ -5299,6 +5299,38 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
+        },
+        {
+          "id": "track_1791198885191_smgo",
+          "title": "Visions (Extended Mix) [DFTD]",
+          "artist": "Calle Lebraun",
+          "youtubeId": "HmRJ0rzTDvw",
+          "duration": 300,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_s2_30",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1791198915727_iy21",
+          "title": "My Temptations",
+          "artist": "Oden & Fatzo x Barney Bones",
+          "youtubeId": "lWnkY6Io-p0",
+          "duration": 180,
+          "category": "clip"
+        },
+        {
+          "id": "pr_bloc_1791197234957_p_31",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 33,
+          "category": "promo"
         }
       ],
       "specialJingles": []
@@ -13419,6 +13451,38 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 22,
       "category": "jingle"
+    },
+    {
+      "id": "track_1791198885191_smgo",
+      "title": "Visions (Extended Mix) [DFTD]",
+      "artist": "Calle Lebraun",
+      "youtubeId": "HmRJ0rzTDvw",
+      "duration": 300,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_s2_30",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791198915727_iy21",
+      "title": "My Temptations",
+      "artist": "Oden & Fatzo x Barney Bones",
+      "youtubeId": "lWnkY6Io-p0",
+      "duration": 180,
+      "category": "clip"
+    },
+    {
+      "id": "pr_bloc_1791197234957_p_31",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 33,
+      "category": "promo"
     },
     {
       "id": "special_radio_bloc_1790256873762_k89p_1791164617237_10_kt00",
