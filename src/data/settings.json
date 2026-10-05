@@ -5443,6 +5443,70 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
           "category": "jingle"
+        },
+        {
+          "id": "track_1791199757656_rqie",
+          "title": "Work",
+          "artist": "KC Lights (feat. KTLN)",
+          "youtubeId": "Ub2JpEDlRNU",
+          "duration": 300,
+          "category": "clip"
+        },
+        {
+          "id": "pr_bloc_1791197234957_p_39",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 44,
+          "category": "promo"
+        },
+        {
+          "id": "track_1791199778792_xghh",
+          "title": "Deep House",
+          "artist": "Danny James (UK)",
+          "youtubeId": "i8oRv-gogCQ",
+          "duration": 300,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_s_40",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1791199792944_snl6",
+          "title": "I Won't Struggle No More [House]",
+          "artist": "Eachother",
+          "youtubeId": "peXRvwbDH-U",
+          "duration": 300,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_n_41",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1791199813128_u1d0",
+          "title": "Edge of Desire",
+          "artist": "Jonas Blue & Malive",
+          "youtubeId": "m8zJoCJ-WoI",
+          "duration": 120,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_s2_42",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
+          "category": "jingle"
         }
       ],
       "specialJingles": []
@@ -13706,6 +13770,70 @@
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791199757656_rqie",
+      "title": "Work",
+      "artist": "KC Lights (feat. KTLN)",
+      "youtubeId": "Ub2JpEDlRNU",
+      "duration": 300,
+      "category": "clip"
+    },
+    {
+      "id": "pr_bloc_1791197234957_p_39",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 44,
+      "category": "promo"
+    },
+    {
+      "id": "track_1791199778792_xghh",
+      "title": "Deep House",
+      "artist": "Danny James (UK)",
+      "youtubeId": "i8oRv-gogCQ",
+      "duration": 300,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_s_40",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791199792944_snl6",
+      "title": "I Won't Struggle No More [House]",
+      "artist": "Eachother",
+      "youtubeId": "peXRvwbDH-U",
+      "duration": 300,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_n_41",
+      "title": "Dropsiders Radio Jingle 2",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791199813128_u1d0",
+      "title": "Edge of Desire",
+      "artist": "Jonas Blue & Malive",
+      "youtubeId": "m8zJoCJ-WoI",
+      "duration": 120,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_s2_42",
+      "title": "Dropsiders Radio Jingle 1",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
