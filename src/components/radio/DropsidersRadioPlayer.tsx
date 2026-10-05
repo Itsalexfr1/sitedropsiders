@@ -680,17 +680,25 @@ function useRadioAudio() {
             activeTrackRef.current &&
             newLiveId !== activeTrackRef.current.id
         ) {
-            const isShortTrack = (
-                activeTrackRef.current.category === 'jingle' ||
-                activeTrackRef.current.isTopHoraire ||
-                activeTrackRef.current.isThemeJingle ||
-                (activeTrackRef.current.durationSeconds ?? 9999) < 120
+            const active = activeTrackRef.current;
+
+            // ⚠️ Ne JAMAIS couper un jingle, promo, top horaire ou track court.
+            // Ces tracks sont éphémères (injectés dynamiquement) et se terminent
+            // via l'événement 'ended'. Le sync auto ne gère que les LONGS SETS.
+            const isTransientTrack = (
+                active.category === 'jingle' ||
+                active.category === 'promo' ||
+                active.category === 'pub' ||
+                active.isTopHoraire ||
+                active.isThemeJingle ||
+                (active.durationSeconds ?? 9999) < 300
             );
-            // uiOffsetRef = offset réel dans le créneau horaire actuel (ex: 5400s
-            // si on est à 1h30 dans un set de 2h → TOUJOURS > 90, même si Play
-            // vient d'être appuyé)
+            if (isTransientTrack) return;
+
+            // Pour les longs sets : forcer si l'offset réel est > 90s
+            // (ce qui indique qu'on est bien avancé dans le créneau, pas juste au démarrage)
             const offsetInCurrentTrack = uiOffsetRef.current;
-            if (isShortTrack || offsetInCurrentTrack > 90) {
+            if (offsetInCurrentTrack > 90) {
                 advanceToNextTrack();
             }
         }
@@ -912,8 +920,10 @@ function useRadioAudio() {
 
             const elapsed = Date.now() - lastYtTimeStamp;
 
-            // Cas 1 : la vidéo a commencé à jouer (lastYtTime > 0) et
-            // le temps ne progresse plus depuis 12s → blanc ou fin non signalée
+            // Blanc détecté : la vidéo a commencé à jouer MAIS le temps ne progresse
+            // plus depuis 12s (fin non signalée par onStateChange:0)
+            // NOTE : on n'utilise PAS de comparaison avec knownDuration ici car
+            // knownDuration - 3 peut être ≤0 pour les jingles courts → faux positif immédiat.
             if (
                 lastYtTime > 0 &&
                 elapsed > 12000 &&
@@ -921,19 +931,6 @@ function useRadioAudio() {
                 ytStateRef.current !== 3    // pas en buffering
             ) {
                 console.warn('[Radio watchdog] Blanc détecté, skip track');
-                lastYtTime = -1;
-                lastYtTimeStamp = Date.now();
-                advanceToNextTrack();
-                return;
-            }
-
-            // Cas 2 : durée connue + position proche de la fin (< 3s restantes)
-            if (
-                knownDuration > 0 &&
-                lastYtTime > 0 &&
-                lastYtTime >= knownDuration - 3
-            ) {
-                console.warn('[Radio watchdog] Fin de clip détectée, skip track');
                 lastYtTime = -1;
                 lastYtTimeStamp = Date.now();
                 advanceToNextTrack();
@@ -962,24 +959,41 @@ function useRadioAudio() {
                 outOfSyncSince = 0;
                 return;
             }
+
+            const active = activeTrackRef.current;
+
+            // ⚠️ NE PAS intervenir sur les jingles, promos, tops horaires et tracks courts.
+            // Ces tracks sont injectés dynamiquement par advanceToNextTrack() et n'existent
+            // PAS dans getCurrentLiveRadioTrack() → seraient toujours "hors-créneau".
+            // On les laisse se terminer via l'événement 'ended' / watchdog YT.
+            const isTransientTrack = (
+                active.category === 'jingle' ||
+                active.category === 'promo' ||
+                active.category === 'pub' ||
+                active.isTopHoraire ||
+                active.isThemeJingle ||
+                (active.durationSeconds ?? 9999) < 300  // < 5 min = pas un long set
+            );
+            if (isTransientTrack) {
+                outOfSyncSince = 0;
+                return;
+            }
+
             const nowSec = getParisSeconds();
             const live = getCurrentLiveRadioTrack(radioBlocksRef.current, nowSec);
             const liveId = live?.item?.id;
-            const activeId = activeTrackRef.current.id;
+            const activeId = active.id;
 
             // Si le créneau horaire a changé et que le track actif n'est plus le bon
             if (liveId && liveId !== activeId) {
                 if (outOfSyncSince === 0) {
-                    // 1er tick hors-créneau : noter l'heure
                     outOfSyncSince = Date.now();
                 } else if (Date.now() - outOfSyncSince > 8000) {
-                    // Hors-créneau depuis > 8s → forcer la transition
-                    console.warn('[Radio super-watchdog] Track hors-créneau depuis > 8s, transition forcée');
+                    console.warn('[Radio super-watchdog] Long set hors-créneau > 8s → transition forcée');
                     outOfSyncSince = 0;
                     advanceToNextTrack();
                 }
             } else {
-                // Dans le bon créneau → reset
                 outOfSyncSince = 0;
             }
         }, 5000);
@@ -1279,6 +1293,27 @@ function RadioIframe({ iframeRef, iframeRefB, audioRef }: {
 
 // ─── Clé localStorage pour la position du bouton radio mobile ────────────────
 const RADIO_BTN_POS_KEY = 'radio_btn_position';
+const RADIO_MESSAGES_ENABLED_KEY = 'dropsiders_radio_messages_enabled';
+
+/** Lit la clé localStorage et se met à jour en temps réel quand l'admin toggle l'option. */
+function useMessagesEnabled() {
+    const [enabled, setEnabled] = useState(() => {
+        try { return localStorage.getItem(RADIO_MESSAGES_ENABLED_KEY) !== 'false'; } catch { return true; }
+    });
+    useEffect(() => {
+        const sync = () => {
+            try { setEnabled(localStorage.getItem(RADIO_MESSAGES_ENABLED_KEY) !== 'false'); } catch {}
+        };
+        window.addEventListener('dropsiders_radio_messages_toggle', sync);
+        window.addEventListener('storage', sync);
+        return () => {
+            window.removeEventListener('dropsiders_radio_messages_toggle', sync);
+            window.removeEventListener('storage', sync);
+        };
+    }, []);
+    return enabled;
+}
+
 
 function MobileRadioPlayer({ audio }: { audio: AudioState }) {
     const [expanded, setExpanded] = useState(false);
@@ -1286,6 +1321,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
     const [isDragging, setIsDragging] = useState(false);
     const [dragMode, setDragMode] = useState(false);
     const navigate = useNavigate();
+    const messagesEnabled = useMessagesEnabled();
     const dragRef = useRef<HTMLDivElement>(null);
     const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hasMoved = useRef(false);
@@ -1587,6 +1623,7 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
     });
     const [isDedicationOpen, setIsDedicationOpen] = useState(false);
     const navigate = useNavigate();
+    const messagesEnabled = useMessagesEnabled();
 
     if (!audio.isEnabled || !audio.currentSet) return null;
 
