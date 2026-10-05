@@ -2762,17 +2762,17 @@
           "title": "JUST A LITTLE BIT MORE",
           "artist": "Mau P",
           "youtubeId": "ke6hDTz3OoY",
-          "duration": 3600,
-          "category": "liveset",
+          "duration": 240,
+          "category": "clip",
           "addedAt": 1790255600257
         },
         {
           "id": "rt_tv_1790255611613_hych",
-          "title": "Movin’ To The Sun (Performance Clip)",
+          "title": "Movin’ To The Sun",
           "artist": "ULTRA NATÉ",
           "youtubeId": "bJ7yyX4Qic4",
-          "duration": 3600,
-          "category": "liveset",
+          "duration": 240,
+          "category": "clip",
           "addedAt": 1790255611613
         },
         {
@@ -2788,8 +2788,8 @@
           "title": "WHAT A LIFE (ft. Florence Arman)",
           "artist": "FISHER",
           "youtubeId": "CsRTKXYEhOM",
-          "duration": 3600,
-          "category": "liveset",
+          "duration": 240,
+          "category": "clip",
           "addedAt": 1790255617206
         },
         {
@@ -2837,7 +2837,7 @@
         },
         {
           "id": "rt_tv_1790255668796_f75q",
-          "title": "Happiness Is So Sad (Official Audio)",
+          "title": "Happiness Is So Sad",
           "artist": "Swedish House Mafia, Lykke Li",
           "youtubeId": "5N5RfaCyD-Y",
           "duration": 3600,
@@ -6108,11 +6108,116 @@
       ],
       "tracks": [
         {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164617237_10_kt00",
+          "title": "Mode Detente Activé 2",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/c03e13bf8c33087a-Mode_Detente_Activ__2.wav",
+          "duration": 15,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164615907_9_ruur",
+          "title": "Mode Detente Activé 1",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/4bb945d5c0f301d4-Mode_Detente_Activ__1.wav",
+          "duration": 13,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164615479_8_30hs",
+          "title": "Fini le boulot",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/aab2b86a09aa0ead-Fini_le_boulot.wav",
+          "duration": 25,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164615053_7_j98l",
+          "title": "Fini le boulot Genrique",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6c706e2e70b45670-Fini_le_boulot_Genrique.wav",
+          "duration": 18,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164613872_6_2uuu",
+          "title": "Fini le boulot 8",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/cf11a5e3a484f30f-Fini_le_boulot_8.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164613583_5_33vr",
+          "title": "Fini le boulot 7",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/ca02d56579ea329d-Fini_le_boulot_7.wav",
+          "duration": 13,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164613264_4_rssk",
+          "title": "Fini le boulot 6",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/be1708ebd27812e0-Fini_le_boulot_6.wav",
+          "duration": 14,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164612967_3_54pp",
+          "title": "Fini le boulot 5",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/69ca44abfa2327d2-Fini_le_boulot_5.wav",
+          "duration": 16,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164612552_2_93un",
+          "title": "Fini le boulot 4",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/484e346cee926c99-Fini_le_boulot_4.wav",
+          "duration": 17,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164612211_1_abwr",
+          "title": "Fini le boulot 3",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/14ed5c286b7f2e6a-Fini_le_boulot_3.wav",
+          "duration": 15,
+          "category": "jingle"
+        },
+        {
+          "id": "special_radio_bloc_1790256873762_k89p_1791164611049_0_lakb",
+          "title": "Fini le boulot 2",
+          "artist": "L'AFTER WORK JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/71e139fed26be4b2-Fini_le_boulot_2.wav",
+          "duration": 17,
+          "category": "jingle"
+        },
+        {
           "id": "sj_radio_bloc_1790256873762_k89p_emission_start_special",
           "title": "Dropsiders Radio Jingle 3",
           "artist": "L'AFTER WORK JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
           "duration": 12,
+          "category": "jingle"
+        },
+        {
+          "id": "rt_tv_1790256878961_ckdk",
+          "title": "DROPSIDERS TV",
+          "artist": "COMMENT ON PASSE D'UN BAR EN STATION À TOMORROWLAND ? (avec Thomas Moulène)",
+          "youtubeId": "xNVyYYvso6U",
+          "duration": 3600,
+          "category": "liveset",
+          "addedAt": 1790256878961
+        },
+        {
+          "id": "sj_radio_bloc_1790256873762_k89p_s_0",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -6125,11 +6230,11 @@
           "addedAt": 1790256883130
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_0",
-          "title": "Dropsiders Radio Jingle 4",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_1",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -6142,12 +6247,12 @@
           "addedAt": 1790256883899
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_1",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_2",
+          "title": "Promo Tomorrowland Winter",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+          "duration": 66,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256886549_6i49",
@@ -6159,12 +6264,12 @@
           "addedAt": 1790256886549
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_p_2",
-          "title": "Promo Tomorrowland Winter",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "promo"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_3",
+          "title": "After Work 1",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+          "duration": 15,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256887258_osmk",
@@ -6176,11 +6281,11 @@
           "addedAt": 1790256887258
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_3",
-          "title": "After Work 1",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
-          "duration": 15,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_4",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -6193,12 +6298,12 @@
           "addedAt": 1790256888086
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_4",
-          "title": "Dropsiders Radio Jingle 4",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_5",
+          "title": "Promo Escape Psycho Circus 2026 1",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 47,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256888634_oyul",
@@ -6210,12 +6315,12 @@
           "addedAt": 1790256888634
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_p_5",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "promo"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_6",
+          "title": "After Work 2",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+          "duration": 14,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256890720_05vo",
@@ -6227,10 +6332,10 @@
           "addedAt": 1790256890720
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_6",
-          "title": "After Work 2",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+          "id": "nj_radio_bloc_1790256873762_k89p_n_7",
+          "title": "Dropsiders Radio Jingle 5",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
           "duration": 14,
           "category": "jingle"
         },
@@ -6244,12 +6349,12 @@
           "addedAt": 1790256891869
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_7",
-          "title": "Dropsiders Radio Jingle 5",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_8",
+          "title": "Promo Escape Psycho Circus 2026 2",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 40,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790256896322_ly1g",
@@ -6261,12 +6366,12 @@
           "addedAt": 1790256896322
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_p_8",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "promo"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_9",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256898997_o9nt",
@@ -6278,11 +6383,11 @@
           "addedAt": 1790256898997
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_9",
-          "title": "Fini le boulot 2",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/71e139fed26be4b2-Fini_le_boulot_2.wav",
-          "duration": 17,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_10",
+          "title": "Dropsiders Radio Jingle 6",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+          "duration": 9,
           "category": "jingle"
         },
         {
@@ -6295,11 +6400,11 @@
           "addedAt": 1790256901001
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_10",
-          "title": "Dropsiders Radio Jingle 6",
+          "id": "pr_radio_bloc_1790256873762_k89p_p_11",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-          "duration": 9,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -6312,12 +6417,12 @@
           "addedAt": 1790256902828
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_p_11",
-          "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 15,
-          "category": "promo"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_12",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256906483_vhlw",
@@ -6329,11 +6434,11 @@
           "addedAt": 1790256906483
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_12",
-          "title": "Fini le boulot 3",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/14ed5c286b7f2e6a-Fini_le_boulot_3.wav",
-          "duration": 15,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_13",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 30,
           "category": "jingle"
         },
         {
@@ -6346,7 +6451,7 @@
           "addedAt": 1790256907122
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_13",
+          "id": "pr_radio_bloc_1790256873762_k89p_p_14",
           "title": "Dropsiders Radio Promo Insta & Tiktok 2",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
@@ -6363,12 +6468,12 @@
           "addedAt": 1790256907948
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_p_14",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 30,
-          "category": "promo"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_15",
+          "title": "After Work 1",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+          "duration": 15,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256910097_05yw",
@@ -6380,11 +6485,11 @@
           "addedAt": 1790256910097
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_15",
-          "title": "Fini le boulot 4",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/484e346cee926c99-Fini_le_boulot_4.wav",
-          "duration": 17,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_16",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 28,
           "category": "jingle"
         },
         {
@@ -6397,7 +6502,7 @@
           "addedAt": 1790256910777
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_16",
+          "id": "pr_radio_bloc_1790256873762_k89p_p_17",
           "title": "Dropsiders Radio Promo Insta & Tiktok 3",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
@@ -6414,12 +6519,12 @@
           "addedAt": 1790256911364
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_p_17",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 28,
-          "category": "promo"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_18",
+          "title": "After Work 2",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+          "duration": 14,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256914295_qka1",
@@ -6431,11 +6536,11 @@
           "addedAt": 1790256914295
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_18",
-          "title": "Fini le boulot 5",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/69ca44abfa2327d2-Fini_le_boulot_5.wav",
-          "duration": 16,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_19",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 22,
           "category": "jingle"
         },
         {
@@ -6448,7 +6553,7 @@
           "addedAt": 1790256914912
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_19",
+          "id": "pr_radio_bloc_1790256873762_k89p_p_20",
           "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
@@ -6465,12 +6570,12 @@
           "addedAt": 1790256915495
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_p_20",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 22,
-          "category": "promo"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_21",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256916256_1qsu",
@@ -6482,11 +6587,11 @@
           "addedAt": 1790256916256
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_21",
-          "title": "Fini le boulot 6",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/be1708ebd27812e0-Fini_le_boulot_6.wav",
-          "duration": 14,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_22",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -6499,7 +6604,7 @@
           "addedAt": 1790256917092
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_22",
+          "id": "pr_radio_bloc_1790256873762_k89p_p_23",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
@@ -6516,12 +6621,12 @@
           "addedAt": 1790256918361
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_p_23",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 33,
-          "category": "promo"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_24",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256919031_wpta",
@@ -6533,11 +6638,11 @@
           "addedAt": 1790256919031
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_24",
-          "title": "Fini le boulot 7",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/ca02d56579ea329d-Fini_le_boulot_7.wav",
-          "duration": 13,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_25",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -6550,7 +6655,7 @@
           "addedAt": 1790256921987
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_25",
+          "id": "pr_radio_bloc_1790256873762_k89p_p_26",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
@@ -6567,12 +6672,12 @@
           "addedAt": 1790256922634
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_p_26",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 46,
-          "category": "promo"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_27",
+          "title": "After Work 1",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+          "duration": 15,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256923356_vqcx",
@@ -6584,11 +6689,11 @@
           "addedAt": 1790256923356
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_27",
-          "title": "Fini le boulot 8",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/cf11a5e3a484f30f-Fini_le_boulot_8.wav",
-          "duration": 8,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_28",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -6601,7 +6706,7 @@
           "addedAt": 1790256926733
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_28",
+          "id": "pr_radio_bloc_1790256873762_k89p_p_29",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
@@ -6618,12 +6723,12 @@
           "addedAt": 1790256927558
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_p_29",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 44,
-          "category": "promo"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_30",
+          "title": "After Work 2",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+          "duration": 14,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256931699_lozg",
@@ -6635,11 +6740,11 @@
           "addedAt": 1790256931699
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_30",
-          "title": "Fini le boulot Genrique",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6c706e2e70b45670-Fini_le_boulot_Genrique.wav",
-          "duration": 18,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_31",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -6652,7 +6757,7 @@
           "addedAt": 1790256939283
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_31",
+          "id": "pr_radio_bloc_1790256873762_k89p_p_32",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
@@ -6669,12 +6774,12 @@
           "addedAt": 1790256941065
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_p_32",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 28,
-          "category": "promo"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_33",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256942158_1k39",
@@ -6686,11 +6791,11 @@
           "addedAt": 1790256942158
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_33",
-          "title": "Fini le boulot",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/aab2b86a09aa0ead-Fini_le_boulot.wav",
-          "duration": 25,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_34",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -6703,7 +6808,7 @@
           "addedAt": 1790256944668
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_34",
+          "id": "pr_radio_bloc_1790256873762_k89p_p_35",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
@@ -6720,12 +6825,12 @@
           "addedAt": 1790256945578
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_p_35",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 26,
-          "category": "promo"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_36",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256953963_r0nn",
@@ -6737,11 +6842,11 @@
           "addedAt": 1790256953963
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_36",
-          "title": "Mode Detente Activé 1",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/4bb945d5c0f301d4-Mode_Detente_Activ__1.wav",
-          "duration": 13,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_37",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -6754,7 +6859,7 @@
           "addedAt": 1790256956630
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_37",
+          "id": "pr_radio_bloc_1790256873762_k89p_p_38",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
@@ -6771,12 +6876,12 @@
           "addedAt": 1790256972956
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_p_38",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 32,
-          "category": "promo"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_39",
+          "title": "After Work 1",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+          "duration": 15,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790256975482_2io5",
@@ -6788,11 +6893,11 @@
           "addedAt": 1790256975482
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_39",
-          "title": "Mode Detente Activé 2",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/c03e13bf8c33087a-Mode_Detente_Activ__2.wav",
-          "duration": 15,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_40",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -6805,7 +6910,7 @@
           "addedAt": 1790256976974
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_40",
+          "id": "pr_radio_bloc_1790256873762_k89p_p_41",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
@@ -6822,12 +6927,12 @@
           "addedAt": 1790259726579
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_p_41",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 32,
-          "category": "promo"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_42",
+          "title": "After Work 2",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+          "duration": 14,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259735723_ilw3",
@@ -6839,11 +6944,11 @@
           "addedAt": 1790259735723
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_42",
-          "title": "Dropsiders Radio Jingle 3",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_43",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -6856,12 +6961,12 @@
           "addedAt": 1790259746674
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_43",
-          "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 32,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_44",
+          "title": "Promo Tomorrowland Winter",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+          "duration": 66,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790259747297_by65",
@@ -6873,12 +6978,12 @@
           "addedAt": 1790259747297
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_p_44",
-          "title": "Promo Tomorrowland Winter",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "promo"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_45",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259779475_biq1",
@@ -6890,11 +6995,11 @@
           "addedAt": 1790259779475
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_45",
-          "title": "Dropsiders Radio Jingle 4",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_46",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
           "category": "jingle"
         },
         {
@@ -6907,12 +7012,12 @@
           "addedAt": 1790259780084
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_46",
-          "title": "Dropsiders Radio Jingle 2",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
-          "duration": 10,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_47",
+          "title": "Promo Escape Psycho Circus 2026 1",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 47,
+          "category": "promo"
         },
         {
           "id": "rt_tv_1790259780642_7bxa",
@@ -6924,12 +7029,12 @@
           "addedAt": 1790259780642
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_p_47",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "promo"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_48",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
+          "category": "jingle"
         },
         {
           "id": "rt_tv_1790259783027_qyba",
@@ -6941,11 +7046,11 @@
           "addedAt": 1790259783027
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_48",
-          "title": "After Work 1",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
-          "duration": 15,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_49",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -6958,12 +7063,12 @@
           "addedAt": 1790259815757
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_49",
-          "title": "Dropsiders Radio Jingle 1",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
-          "category": "jingle"
+          "id": "pr_radio_bloc_1790256873762_k89p_p_50",
+          "title": "Promo Escape Psycho Circus 2026 2",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 40,
+          "category": "promo"
         },
         {
           "id": "rt_1790342700439",
@@ -6975,12 +7080,12 @@
           "addedAt": 1790342700439
         },
         {
-          "id": "pr_radio_bloc_1790256873762_k89p_p_50",
-          "title": "Promo Escape Psycho Circus 2026 2",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "promo"
+          "id": "sj_radio_bloc_1790256873762_k89p_s_51",
+          "title": "After Work 1",
+          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+          "duration": 15,
+          "category": "jingle"
         },
         {
           "id": "rt_1790556066536",
@@ -6992,11 +7097,11 @@
           "addedAt": 1790556066536
         },
         {
-          "id": "sj_radio_bloc_1790256873762_k89p_s_51",
-          "title": "After Work 2",
-          "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
-          "duration": 14,
+          "id": "nj_radio_bloc_1790256873762_k89p_n_52",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -7008,11 +7113,11 @@
           "category": "liveset"
         },
         {
-          "id": "nj_radio_bloc_1790256873762_k89p_n_52",
-          "title": "Dropsiders Radio Jingle 3",
+          "id": "pr_radio_bloc_1790256873762_k89p_p_53",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         }
       ],
@@ -11654,17 +11759,17 @@
       "title": "JUST A LITTLE BIT MORE",
       "artist": "Mau P",
       "youtubeId": "ke6hDTz3OoY",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 240,
+      "category": "clip",
       "addedAt": 1790255600257
     },
     {
       "id": "rt_tv_1790255611613_hych",
-      "title": "Movin’ To The Sun (Performance Clip)",
+      "title": "Movin’ To The Sun",
       "artist": "ULTRA NATÉ",
       "youtubeId": "bJ7yyX4Qic4",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 240,
+      "category": "clip",
       "addedAt": 1790255611613
     },
     {
@@ -11680,8 +11785,8 @@
       "title": "WHAT A LIFE (ft. Florence Arman)",
       "artist": "FISHER",
       "youtubeId": "CsRTKXYEhOM",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 240,
+      "category": "clip",
       "addedAt": 1790255617206
     },
     {
@@ -11729,7 +11834,7 @@
     },
     {
       "id": "rt_tv_1790255668796_f75q",
-      "title": "Happiness Is So Sad (Official Audio)",
+      "title": "Happiness Is So Sad",
       "artist": "Swedish House Mafia, Lykke Li",
       "youtubeId": "5N5RfaCyD-Y",
       "duration": 3600,
@@ -14884,11 +14989,116 @@
       "category": "jingle"
     },
     {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164617237_10_kt00",
+      "title": "Mode Detente Activé 2",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/c03e13bf8c33087a-Mode_Detente_Activ__2.wav",
+      "duration": 15,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164615907_9_ruur",
+      "title": "Mode Detente Activé 1",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/4bb945d5c0f301d4-Mode_Detente_Activ__1.wav",
+      "duration": 13,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164615479_8_30hs",
+      "title": "Fini le boulot",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/aab2b86a09aa0ead-Fini_le_boulot.wav",
+      "duration": 25,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164615053_7_j98l",
+      "title": "Fini le boulot Genrique",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6c706e2e70b45670-Fini_le_boulot_Genrique.wav",
+      "duration": 18,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164613872_6_2uuu",
+      "title": "Fini le boulot 8",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/cf11a5e3a484f30f-Fini_le_boulot_8.wav",
+      "duration": 8,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164613583_5_33vr",
+      "title": "Fini le boulot 7",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/ca02d56579ea329d-Fini_le_boulot_7.wav",
+      "duration": 13,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164613264_4_rssk",
+      "title": "Fini le boulot 6",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/be1708ebd27812e0-Fini_le_boulot_6.wav",
+      "duration": 14,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164612967_3_54pp",
+      "title": "Fini le boulot 5",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/69ca44abfa2327d2-Fini_le_boulot_5.wav",
+      "duration": 16,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164612552_2_93un",
+      "title": "Fini le boulot 4",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/484e346cee926c99-Fini_le_boulot_4.wav",
+      "duration": 17,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164612211_1_abwr",
+      "title": "Fini le boulot 3",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/14ed5c286b7f2e6a-Fini_le_boulot_3.wav",
+      "duration": 15,
+      "category": "jingle"
+    },
+    {
+      "id": "special_radio_bloc_1790256873762_k89p_1791164611049_0_lakb",
+      "title": "Fini le boulot 2",
+      "artist": "L'AFTER WORK JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/71e139fed26be4b2-Fini_le_boulot_2.wav",
+      "duration": 17,
+      "category": "jingle"
+    },
+    {
       "id": "sj_radio_bloc_1790256873762_k89p_emission_start_special",
       "title": "Dropsiders Radio Jingle 3",
       "artist": "L'AFTER WORK JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
       "duration": 12,
+      "category": "jingle"
+    },
+    {
+      "id": "rt_tv_1790256878961_ckdk",
+      "title": "DROPSIDERS TV",
+      "artist": "COMMENT ON PASSE D'UN BAR EN STATION À TOMORROWLAND ? (avec Thomas Moulène)",
+      "youtubeId": "xNVyYYvso6U",
+      "duration": 3600,
+      "category": "liveset",
+      "addedAt": 1790256878961
+    },
+    {
+      "id": "sj_radio_bloc_1790256873762_k89p_s_0",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -14901,11 +15111,11 @@
       "addedAt": 1790256883130
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_0",
-      "title": "Dropsiders Radio Jingle 4",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_1",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -14918,12 +15128,12 @@
       "addedAt": 1790256883899
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_1",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_2",
+      "title": "Promo Tomorrowland Winter",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+      "duration": 66,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256886549_6i49",
@@ -14935,12 +15145,12 @@
       "addedAt": 1790256886549
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_p_2",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_3",
+      "title": "After Work 1",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+      "duration": 15,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256887258_osmk",
@@ -14952,11 +15162,11 @@
       "addedAt": 1790256887258
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_3",
-      "title": "After Work 1",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
-      "duration": 15,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_4",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -14969,12 +15179,12 @@
       "addedAt": 1790256888086
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_4",
-      "title": "Dropsiders Radio Jingle 4",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_5",
+      "title": "Promo Escape Psycho Circus 2026 1",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 47,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256888634_oyul",
@@ -14986,12 +15196,12 @@
       "addedAt": 1790256888634
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_p_5",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "promo"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_6",
+      "title": "After Work 2",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+      "duration": 14,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256890720_05vo",
@@ -15003,10 +15213,10 @@
       "addedAt": 1790256890720
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_6",
-      "title": "After Work 2",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+      "id": "nj_radio_bloc_1790256873762_k89p_n_7",
+      "title": "Dropsiders Radio Jingle 5",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
       "duration": 14,
       "category": "jingle"
     },
@@ -15020,12 +15230,12 @@
       "addedAt": 1790256891869
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_7",
-      "title": "Dropsiders Radio Jingle 5",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_8",
+      "title": "Promo Escape Psycho Circus 2026 2",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 40,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790256896322_ly1g",
@@ -15037,12 +15247,12 @@
       "addedAt": 1790256896322
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_p_8",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "promo"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_9",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256898997_o9nt",
@@ -15054,11 +15264,11 @@
       "addedAt": 1790256898997
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_9",
-      "title": "Fini le boulot 2",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/71e139fed26be4b2-Fini_le_boulot_2.wav",
-      "duration": 17,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_10",
+      "title": "Dropsiders Radio Jingle 6",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+      "duration": 9,
       "category": "jingle"
     },
     {
@@ -15071,11 +15281,11 @@
       "addedAt": 1790256901001
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_10",
-      "title": "Dropsiders Radio Jingle 6",
+      "id": "pr_radio_bloc_1790256873762_k89p_p_11",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-      "duration": 9,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
@@ -15088,12 +15298,12 @@
       "addedAt": 1790256902828
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_p_11",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 15,
-      "category": "promo"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_12",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256906483_vhlw",
@@ -15105,11 +15315,11 @@
       "addedAt": 1790256906483
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_12",
-      "title": "Fini le boulot 3",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/14ed5c286b7f2e6a-Fini_le_boulot_3.wav",
-      "duration": 15,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_13",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 30,
       "category": "jingle"
     },
     {
@@ -15122,7 +15332,7 @@
       "addedAt": 1790256907122
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_13",
+      "id": "pr_radio_bloc_1790256873762_k89p_p_14",
       "title": "Dropsiders Radio Promo Insta & Tiktok 2",
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
@@ -15139,12 +15349,12 @@
       "addedAt": 1790256907948
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_p_14",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 30,
-      "category": "promo"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_15",
+      "title": "After Work 1",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+      "duration": 15,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256910097_05yw",
@@ -15156,11 +15366,11 @@
       "addedAt": 1790256910097
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_15",
-      "title": "Fini le boulot 4",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/484e346cee926c99-Fini_le_boulot_4.wav",
-      "duration": 17,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_16",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 28,
       "category": "jingle"
     },
     {
@@ -15173,7 +15383,7 @@
       "addedAt": 1790256910777
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_16",
+      "id": "pr_radio_bloc_1790256873762_k89p_p_17",
       "title": "Dropsiders Radio Promo Insta & Tiktok 3",
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
@@ -15190,12 +15400,12 @@
       "addedAt": 1790256911364
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_p_17",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 28,
-      "category": "promo"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_18",
+      "title": "After Work 2",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+      "duration": 14,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256914295_qka1",
@@ -15207,11 +15417,11 @@
       "addedAt": 1790256914295
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_18",
-      "title": "Fini le boulot 5",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/69ca44abfa2327d2-Fini_le_boulot_5.wav",
-      "duration": 16,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_19",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 22,
       "category": "jingle"
     },
     {
@@ -15224,7 +15434,7 @@
       "addedAt": 1790256914912
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_19",
+      "id": "pr_radio_bloc_1790256873762_k89p_p_20",
       "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
@@ -15241,12 +15451,12 @@
       "addedAt": 1790256915495
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_p_20",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 22,
-      "category": "promo"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_21",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256916256_1qsu",
@@ -15258,11 +15468,11 @@
       "addedAt": 1790256916256
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_21",
-      "title": "Fini le boulot 6",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/be1708ebd27812e0-Fini_le_boulot_6.wav",
-      "duration": 14,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_22",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
@@ -15275,7 +15485,7 @@
       "addedAt": 1790256917092
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_22",
+      "id": "pr_radio_bloc_1790256873762_k89p_p_23",
       "title": "Dropsiders Radio Promo Insta & Tiktok",
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
@@ -15292,12 +15502,12 @@
       "addedAt": 1790256918361
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_p_23",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 33,
-      "category": "promo"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_24",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256919031_wpta",
@@ -15309,11 +15519,11 @@
       "addedAt": 1790256919031
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_24",
-      "title": "Fini le boulot 7",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/ca02d56579ea329d-Fini_le_boulot_7.wav",
-      "duration": 13,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_25",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
@@ -15326,7 +15536,7 @@
       "addedAt": 1790256921987
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_25",
+      "id": "pr_radio_bloc_1790256873762_k89p_p_26",
       "title": "Dropsiders Radio Promo Insta & Tiktok",
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
@@ -15343,12 +15553,12 @@
       "addedAt": 1790256922634
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_p_26",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 46,
-      "category": "promo"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_27",
+      "title": "After Work 1",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+      "duration": 15,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256923356_vqcx",
@@ -15360,11 +15570,11 @@
       "addedAt": 1790256923356
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_27",
-      "title": "Fini le boulot 8",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/cf11a5e3a484f30f-Fini_le_boulot_8.wav",
-      "duration": 8,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_28",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
@@ -15377,7 +15587,7 @@
       "addedAt": 1790256926733
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_28",
+      "id": "pr_radio_bloc_1790256873762_k89p_p_29",
       "title": "Dropsiders Radio Promo Insta & Tiktok",
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
@@ -15394,12 +15604,12 @@
       "addedAt": 1790256927558
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_p_29",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 44,
-      "category": "promo"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_30",
+      "title": "After Work 2",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+      "duration": 14,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256931699_lozg",
@@ -15411,11 +15621,11 @@
       "addedAt": 1790256931699
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_30",
-      "title": "Fini le boulot Genrique",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6c706e2e70b45670-Fini_le_boulot_Genrique.wav",
-      "duration": 18,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_31",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
@@ -15428,7 +15638,7 @@
       "addedAt": 1790256939283
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_31",
+      "id": "pr_radio_bloc_1790256873762_k89p_p_32",
       "title": "Dropsiders Radio Promo Insta & Tiktok",
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
@@ -15445,12 +15655,12 @@
       "addedAt": 1790256941065
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_p_32",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 28,
-      "category": "promo"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_33",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256942158_1k39",
@@ -15462,11 +15672,11 @@
       "addedAt": 1790256942158
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_33",
-      "title": "Fini le boulot",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/aab2b86a09aa0ead-Fini_le_boulot.wav",
-      "duration": 25,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_34",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
@@ -15479,7 +15689,7 @@
       "addedAt": 1790256944668
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_34",
+      "id": "pr_radio_bloc_1790256873762_k89p_p_35",
       "title": "Dropsiders Radio Promo Insta & Tiktok",
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
@@ -15496,12 +15706,12 @@
       "addedAt": 1790256945578
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_p_35",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 26,
-      "category": "promo"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_36",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256953963_r0nn",
@@ -15513,11 +15723,11 @@
       "addedAt": 1790256953963
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_36",
-      "title": "Mode Detente Activé 1",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/4bb945d5c0f301d4-Mode_Detente_Activ__1.wav",
-      "duration": 13,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_37",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
@@ -15530,7 +15740,7 @@
       "addedAt": 1790256956630
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_37",
+      "id": "pr_radio_bloc_1790256873762_k89p_p_38",
       "title": "Dropsiders Radio Promo Insta & Tiktok",
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
@@ -15547,12 +15757,12 @@
       "addedAt": 1790256972956
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_p_38",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 32,
-      "category": "promo"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_39",
+      "title": "After Work 1",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+      "duration": 15,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790256975482_2io5",
@@ -15564,11 +15774,11 @@
       "addedAt": 1790256975482
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_39",
-      "title": "Mode Detente Activé 2",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/c03e13bf8c33087a-Mode_Detente_Activ__2.wav",
-      "duration": 15,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_40",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
@@ -15581,7 +15791,7 @@
       "addedAt": 1790256976974
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_40",
+      "id": "pr_radio_bloc_1790256873762_k89p_p_41",
       "title": "Dropsiders Radio Promo Insta & Tiktok",
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
@@ -15598,12 +15808,12 @@
       "addedAt": 1790259726579
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_p_41",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 32,
-      "category": "promo"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_42",
+      "title": "After Work 2",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
+      "duration": 14,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259735723_ilw3",
@@ -15615,11 +15825,11 @@
       "addedAt": 1790259735723
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_42",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_43",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
@@ -15632,12 +15842,12 @@
       "addedAt": 1790259746674
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_43",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 32,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_44",
+      "title": "Promo Tomorrowland Winter",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+      "duration": 66,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790259747297_by65",
@@ -15649,12 +15859,12 @@
       "addedAt": 1790259747297
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_p_44",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_45",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259779475_biq1",
@@ -15666,11 +15876,11 @@
       "addedAt": 1790259779475
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_45",
-      "title": "Dropsiders Radio Jingle 4",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_46",
+      "title": "Dropsiders Radio Jingle 2",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+      "duration": 10,
       "category": "jingle"
     },
     {
@@ -15683,12 +15893,12 @@
       "addedAt": 1790259780084
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_46",
-      "title": "Dropsiders Radio Jingle 2",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
-      "duration": 10,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_47",
+      "title": "Promo Escape Psycho Circus 2026 1",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 47,
+      "category": "promo"
     },
     {
       "id": "rt_tv_1790259780642_7bxa",
@@ -15700,12 +15910,12 @@
       "addedAt": 1790259780642
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_p_47",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "promo"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_48",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
+      "category": "jingle"
     },
     {
       "id": "rt_tv_1790259783027_qyba",
@@ -15717,11 +15927,11 @@
       "addedAt": 1790259783027
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_48",
-      "title": "After Work 1",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
-      "duration": 15,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_49",
+      "title": "Dropsiders Radio Jingle 1",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -15734,12 +15944,12 @@
       "addedAt": 1790259815757
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_49",
-      "title": "Dropsiders Radio Jingle 1",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
-      "category": "jingle"
+      "id": "pr_radio_bloc_1790256873762_k89p_p_50",
+      "title": "Promo Escape Psycho Circus 2026 2",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 40,
+      "category": "promo"
     },
     {
       "id": "rt_1790342700439",
@@ -15751,12 +15961,12 @@
       "addedAt": 1790342700439
     },
     {
-      "id": "pr_radio_bloc_1790256873762_k89p_p_50",
-      "title": "Promo Escape Psycho Circus 2026 2",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "promo"
+      "id": "sj_radio_bloc_1790256873762_k89p_s_51",
+      "title": "After Work 1",
+      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/99a729324b6819bb-After_Work_1_.wav",
+      "duration": 15,
+      "category": "jingle"
     },
     {
       "id": "rt_1790556066536",
@@ -15768,11 +15978,11 @@
       "addedAt": 1790556066536
     },
     {
-      "id": "sj_radio_bloc_1790256873762_k89p_s_51",
-      "title": "After Work 2",
-      "artist": "L'AFTER WORK JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6210849b844812dd-After_Work_2.wav",
-      "duration": 14,
+      "id": "nj_radio_bloc_1790256873762_k89p_n_52",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -15784,11 +15994,11 @@
       "category": "liveset"
     },
     {
-      "id": "nj_radio_bloc_1790256873762_k89p_n_52",
-      "title": "Dropsiders Radio Jingle 3",
+      "id": "pr_radio_bloc_1790256873762_k89p_p_53",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
