@@ -480,16 +480,18 @@ function useRadioAudio() {
                 audioRef.current.pause();
             }
 
-            const alreadyLoaded = iframeRef.current?.src && iframeRef.current.src.includes(currentYt);
+            const alreadyLoaded = (iframeRef.current?.src && iframeRef.current.src.includes(currentYt)) ||
+                                  (iframeRefB.current?.src && iframeRefB.current.src.includes(currentYt));
 
             if (!alreadyLoaded) {
                 // FIX JINGLES COUPÉS : même logique que pour l'audio — offset uniquement au premier play
                 const isFirstPlay = !currentPlayingMediaRef.current;
                 const targetOffset = isFirstPlay ? Math.max(0, Math.floor(uiOffsetRef.current || 0)) : 0;
                 const startSec = (targetOffset > 2 && targetOffset < (currentSet.durationSeconds || 3600)) ? targetOffset : 0;
-                if (iframeRef.current) {
+                const activeIframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
+                if (activeIframe) {
                     // FIX MOBILE SOUND: toujours mute=0 sur iOS pour que le son sorte dès le départ
-                    iframeRef.current.src = buildSrc(currentYt, startSec, IS_MOBILE ? 0 : (isMutedRef.current ? 1 : 0));
+                    activeIframe.src = buildSrc(currentYt, startSec, IS_MOBILE ? 0 : (isMutedRef.current ? 1 : 0));
                     preloadedVideoIdRef.current = currentYt;
                 }
                 currentPlayingMediaRef.current = currentYt;
@@ -588,7 +590,7 @@ function useRadioAudio() {
 
             activeTrackRef.current = nextTrack;
             currentSetRef.current = nextTrack;
-            currentPlayingMediaRef.current = null;
+            currentPlayingMediaRef.current = nextTrack.youtubeId || nextTrack.audioUrl || null;
             setActiveTrack(nextTrack);
             setUiTimeSec(nextTrack.startSecondsFromMidnight);
 
