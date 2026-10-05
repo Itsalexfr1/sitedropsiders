@@ -28,6 +28,7 @@ export interface RadioTrackItem {
     addedAt?: number;
     isTopHoraire?: boolean;
     isThemeJingle?: boolean;
+    expiresAt?: string; // Date limite de validité (YYYY-MM-DD)
 }
 
 export function getRadioCategoryMeta(category?: string, isTheme?: boolean, isTop?: boolean) {
@@ -178,6 +179,7 @@ export interface RadioScheduleBlock {
     id: string;
     name: string;
     title: string;
+    host?: string; // Nom de l'animateur (ex: "Alex", "DJ Snake", etc.)
     timeSlot: string;
     startHour: number; // 0..23
     endHour: number; // 1..24 (24 = minuit)
@@ -196,6 +198,7 @@ export interface ComputedRadioScheduleItem {
     id: string;
     blockId: string;
     blockTitle: string;
+    blockHost?: string;
     blockColor: string;
     blockEmoji: string;
     title: string;
@@ -212,6 +215,7 @@ export interface ComputedRadioScheduleItem {
     category?: RadioTrackCategory;
     isTopHoraire?: boolean;
     isThemeJingle?: boolean;
+    expiresAt?: string;
 }
 
 /**
@@ -500,6 +504,21 @@ export function getGeneralJinglesList(): RadioTrackItem[] {
 }
 
 /**
+ * Vérifie si un élément (promo, pub, etc.) a dépassé sa date limite d'expiration
+ */
+export function isItemExpired(item?: { expiresAt?: string } | null): boolean {
+    if (!item?.expiresAt) return false;
+    try {
+        const exp = new Date(item.expiresAt);
+        if (isNaN(exp.getTime())) return false;
+        exp.setHours(23, 59, 59, 999);
+        return Date.now() > exp.getTime();
+    } catch {
+        return false;
+    }
+}
+
+/**
  * Retourne la liste des promos et publicités générales
  */
 export function getGeneralPromosList(): RadioTrackItem[] {
@@ -509,7 +528,7 @@ export function getGeneralPromosList(): RadioTrackItem[] {
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed) && parsed.length > 0) {
-                    const promos = parsed.filter((j: any) => j.category === 'promo' || j.category === 'pub');
+                    const promos = parsed.filter((j: any) => (j.category === 'promo' || j.category === 'pub') && !isItemExpired(j));
                     if (promos.length > 0) return promos.map((p: any) => ({
                         id: p.id || `gp_${p.title?.slice(0, 8)}`,
                         title: p.title,
@@ -517,7 +536,8 @@ export function getGeneralPromosList(): RadioTrackItem[] {
                         audioUrl: p.audioUrl,
                         youtubeId: p.youtubeId,
                         duration: p.duration || 30,
-                        category: (p.category || 'promo') as RadioTrackCategory
+                        category: (p.category || 'promo') as RadioTrackCategory,
+                        expiresAt: p.expiresAt
                     }));
                 }
             }
@@ -525,7 +545,7 @@ export function getGeneralPromosList(): RadioTrackItem[] {
     } catch {}
     // Promos depuis les settings JSON (si configurées)
     const fromSettings = ((settings as any)?.radio_general_jingles || [])
-        .filter((j: any) => j.category === 'promo' || j.category === 'pub');
+        .filter((j: any) => (j.category === 'promo' || j.category === 'pub') && !isItemExpired(j));
     if (fromSettings.length > 0) return fromSettings.map((p: any) => ({
         id: p.id || `gp_${p.title?.slice(0, 8)}`,
         title: p.title,
@@ -533,7 +553,8 @@ export function getGeneralPromosList(): RadioTrackItem[] {
         audioUrl: p.audioUrl,
         youtubeId: p.youtubeId,
         duration: p.duration || 30,
-        category: (p.category || 'promo') as RadioTrackCategory
+        category: (p.category || 'promo') as RadioTrackCategory,
+        expiresAt: p.expiresAt
     }));
     // Aucune promo configurée — retourner tableau vide (pas de promos codées en dur)
     return [];
@@ -575,10 +596,11 @@ export function applyRotationPatternToTracks(
         ? overrideJingles
         : getGeneralJinglesList();
 
-    // 4. Promos & Sponsors
-    const promos = (overridePromos && overridePromos.length > 0)
+    // 4. Promos & Sponsors (exclure les expirées)
+    const rawPromos = (overridePromos && overridePromos.length > 0)
         ? overridePromos
         : getGeneralPromosList();
+    const promos = rawPromos.filter(p => !isItemExpired(p));
 
     const rule = block.rotationRule || 'jingle_son_special_promo';
 
@@ -739,7 +761,7 @@ export function buildInterleavedPlaylist(
     block: RadioScheduleBlock,
     todayStr: string
 ): RadioTrackItem[] {
-    const allTracks = block.tracks || [];
+    const allTracks = (block.tracks || []).filter(t => !isItemExpired(t));
     const musicTracks = allTracks.filter(
         t => t.category !== 'jingle' && t.category !== 'promo' && t.category !== 'pub'
     );
@@ -893,6 +915,7 @@ export function computeRadioDaySchedule(
                     id: `top_horaire_${currentH}`,
                     blockId: block.id,
                     blockTitle: block.title,
+                    blockHost: block.host,
                     blockColor: '#00f0ff',
                     blockEmoji: '🔔',
                     title: topHoraire.title || 'Dropsiders Radio • Top Horaire Officiel',
@@ -934,6 +957,7 @@ export function computeRadioDaySchedule(
                     id: `theme_${block.id}`,
                     blockId: block.id,
                     blockTitle: block.title,
+                    blockHost: block.host,
                     blockColor: block.color,
                     blockEmoji: block.emoji,
                     title: block.themeJingle.title || `Générique • ${block.title}`,
@@ -988,6 +1012,7 @@ export function computeRadioDaySchedule(
                     id: `${block.id}_h${currentH}_t${trackIdx}_${track.id || track.youtubeId}`,
                     blockId: block.id,
                     blockTitle: block.title,
+                    blockHost: block.host,
                     blockColor: block.color,
                     blockEmoji: block.emoji,
                     title: track.title,
@@ -1001,7 +1026,8 @@ export function computeRadioDaySchedule(
                     durationSeconds: dur,
                     durationFormatted: formatDurationExact(dur),
                     isCurrentlyLive: isLive,
-                    category: track.category
+                    category: track.category,
+                    expiresAt: track.expiresAt
                 });
 
                 hourCursor += dur;

@@ -78,6 +78,7 @@ import {
     sanitizeTrackDuration,
     getCurrentLiveRadioTrack,
     getParisSeconds,
+    isItemExpired,
     type RadioRotationRule,
     type RadioScheduleBlock,
     type RadioTrackItem,
@@ -253,6 +254,7 @@ export function AdminRadioModal({
     const [isEditingBlock, setIsEditingBlock] = useState(false);
     const [editBlockForm, setEditBlockForm] = useState({
         title: '',
+        host: '',
         emoji: '🎧',
         color: PRESET_COLORS[0].hex,
         startHour: 0,
@@ -301,6 +303,7 @@ export function AdminRadioModal({
         durationSeconds: number;
         youtubeId: string;
         audioUrl?: string;
+        expiresAt?: string;
     } | null>(null);
 
     const [topHoraireConfig, setTopHoraireConfig] = useState<RadioTopHoraireConfig>(getTopHoraireConfig);
@@ -665,9 +668,9 @@ export function AdminRadioModal({
             setBlocks(newBlocks);
             try {
                 localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(newBlocks));
-                apiFetch('/api/settings', {
+                apiFetch('/api/settings/update', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({ radio_blocks: newBlocks })
                 }).catch(() => {});
             } catch {}
@@ -801,6 +804,12 @@ export function AdminRadioModal({
                     if (data?.radio_top_horaire && typeof data.radio_top_horaire.enabled === 'boolean') {
                         setTopHoraireConfig(data.radio_top_horaire);
                         localStorage.setItem(STORAGE_RADIO_TOP_HORAIRE_KEY, JSON.stringify(data.radio_top_horaire));
+                    }
+                    if (Array.isArray(data?.radio_general_jingles) && data.radio_general_jingles.length > 0) {
+                        setGeneralJingles(data.radio_general_jingles);
+                        try {
+                            localStorage.setItem('dropsiders_radionomy_palette', JSON.stringify(data.radio_general_jingles));
+                        } catch {}
                     }
                     if (Array.isArray(data?.radio_blocks) && data.radio_blocks.length > 0) {
                         const sorted = sortRadioBlocksByBroadcastOrder(data.radio_blocks, true);
@@ -939,8 +948,10 @@ export function AdminRadioModal({
         const cat = (item as any).category as string | undefined;
 
         // 1. Toujours sauvegarder dans la palette générale
+        let nextGeneral: RadionomyItem[] = [];
         setGeneralJingles(prev => {
             const updated = [item, ...prev.filter(i => i.id !== item.id)];
+            nextGeneral = updated;
             try {
                 localStorage.setItem('dropsiders_radionomy_palette', JSON.stringify(updated));
             } catch {}
@@ -948,6 +959,7 @@ export function AdminRadioModal({
         });
 
         // 2. Si c'est une promo ou pub → injection directe dans la programmation de chaque émission
+        let nextBlocks = blocks;
         if (cat === 'promo' || cat === 'pub') {
             const defaultArtist = cat === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS';
             setBlocks(prev => {
@@ -964,10 +976,12 @@ export function AdminRadioModal({
                         audioUrl: item.audioUrl,
                         youtubeId: item.youtubeId,
                         duration: item.duration || 30,
-                        category: cat as RadioTrackCategory
+                        category: cat as RadioTrackCategory,
+                        expiresAt: item.expiresAt
                     };
                     return { ...b, tracks: [trackItem, ...(b.tracks || [])] };
                 });
+                nextBlocks = next;
                 try {
                     localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
                     window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
@@ -975,6 +989,17 @@ export function AdminRadioModal({
                 return next;
             });
         }
+
+        try {
+            apiFetch('/api/settings/update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    radio_general_jingles: nextGeneral,
+                    radio_blocks: nextBlocks
+                })
+            }).catch(() => {});
+        } catch {}
     };
 
     // ─── Ajout rapide de morceau dans l'émission active ───────────────────────
@@ -1093,8 +1118,33 @@ export function AdminRadioModal({
         const newCat = editingTrack.category as RadioTrackCategory;
         const newArtist = editingTrack.artist.trim() || (newCat === 'promo' ? 'PROMO DROPSIDERS' : newCat === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'Artiste');
         const newDur = Math.max(1, editingTrack.durationSeconds || 30);
+        const newExpiresAt = (newCat === 'promo' || newCat === 'pub') ? (editingTrack.expiresAt?.trim() || undefined) : undefined;
 
-        // 1. Mettre à jour dans TOUS les blocs (tracks + specialJingles)
+        // 1. Mettre à jour dans la palette générale
+        let nextGeneral = generalJingles;
+        setGeneralJingles(prev => {
+            const updated = prev.map(j => {
+                const isMatch = j.id === targetId || (targetAudioUrl && j.audioUrl === targetAudioUrl) || (targetTitle && j.title === targetTitle);
+                if (!isMatch) return j;
+                return {
+                    ...j,
+                    title: targetTitle || j.title,
+                    category: newCat as any,
+                    type: newCat as any,
+                    duration: newDur,
+                    audioUrl: editingTrack.audioUrl || j.audioUrl,
+                    youtubeId: ytId || j.youtubeId,
+                    expiresAt: newExpiresAt
+                };
+            });
+            nextGeneral = updated;
+            try {
+                localStorage.setItem('dropsiders_radionomy_palette', JSON.stringify(updated));
+            } catch {}
+            return updated;
+        });
+
+        // 2. Mettre à jour dans TOUS les blocs (tracks + specialJingles)
         setBlocks(prev => {
             const next = prev.map(b => {
                 let changed = false;
@@ -1111,7 +1161,8 @@ export function AdminRadioModal({
                         category: newCat,
                         duration: newDur,
                         youtubeId: ytId || t.youtubeId,
-                        audioUrl: editingTrack.audioUrl || t.audioUrl
+                        audioUrl: editingTrack.audioUrl || t.audioUrl,
+                        expiresAt: newExpiresAt
                     };
                 });
 
@@ -1126,7 +1177,8 @@ export function AdminRadioModal({
                         title: targetTitle || j.title,
                         duration: newDur,
                         youtubeId: ytId || j.youtubeId,
-                        audioUrl: editingTrack.audioUrl || j.audioUrl
+                        audioUrl: editingTrack.audioUrl || j.audioUrl,
+                        expiresAt: newExpiresAt
                     };
                 });
 
@@ -1137,32 +1189,20 @@ export function AdminRadioModal({
             try {
                 localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
                 window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+                // ⚠️ Sauvegarder sur le serveur via /api/settings/update avec authentification
+                apiFetch('/api/settings/update', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        radio_blocks: next,
+                        radio_general_jingles: nextGeneral
+                    })
+                }).catch(() => {});
             } catch {}
             return next;
         });
 
-        // 2. Mettre à jour dans la palette générale
-        setGeneralJingles(prev => {
-            const updated = prev.map(j => {
-                const isMatch = j.id === targetId || (targetAudioUrl && j.audioUrl === targetAudioUrl) || (targetTitle && j.title === targetTitle);
-                if (!isMatch) return j;
-                return {
-                    ...j,
-                    title: targetTitle || j.title,
-                    category: newCat as any,
-                    type: newCat as any,
-                    duration: newDur,
-                    audioUrl: editingTrack.audioUrl || j.audioUrl,
-                    youtubeId: ytId || j.youtubeId
-                };
-            });
-            try {
-                localStorage.setItem('dropsiders_radionomy_palette', JSON.stringify(updated));
-            } catch {}
-            return updated;
-        });
-
-        showToast(`✓ « ${targetTitle} » modifié en ${newCat.toUpperCase()} !`);
+        showToast(`✓ « ${targetTitle} » modifié avec succès !`);
         setEditingTrack(null);
     };
 
@@ -1201,6 +1241,63 @@ export function AdminRadioModal({
             showToast(`✓ ${removedCount} doublon(s) de sponsor/promo supprimé(s) !`, 'success');
         } else {
             showToast('Aucun doublon de sponsor/promo détecté.', 'info');
+        }
+    };
+
+    // Nettoyage et suppression automatique de toutes les promos expirées
+    const handlePurgeExpiredPromos = () => {
+        let purgedCount = 0;
+        let nextGeneral = generalJingles;
+        let nextBlocks = blocks;
+
+        // 1. Nettoyer dans la palette générale
+        setGeneralJingles(prev => {
+            const updated = prev.filter(j => {
+                if (((j as any).category === 'promo' || (j as any).category === 'pub') && isItemExpired(j)) {
+                    purgedCount++;
+                    return false;
+                }
+                return true;
+            });
+            nextGeneral = updated;
+            try {
+                localStorage.setItem('dropsiders_radionomy_palette', JSON.stringify(updated));
+            } catch {}
+            return updated;
+        });
+
+        // 2. Nettoyer dans les émissions
+        setBlocks(prev => {
+            const next = prev.map(b => ({
+                ...b,
+                tracks: (b.tracks || []).filter(t => {
+                    if ((t.category === 'promo' || t.category === 'pub') && isItemExpired(t)) {
+                        purgedCount++;
+                        return false;
+                    }
+                    return true;
+                })
+            }));
+            nextBlocks = next;
+            try {
+                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
+                window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+            } catch {}
+            return next;
+        });
+
+        if (purgedCount > 0) {
+            showToast(`✓ ${purgedCount} promo(s) expirée(s) supprimée(s) avec succès !`, 'success');
+            apiFetch('/api/settings/update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    radio_blocks: nextBlocks,
+                    radio_general_jingles: nextGeneral
+                })
+            }).catch(() => {});
+        } else {
+            showToast('Aucune promo expirée détectée.', 'info');
         }
     };
 
@@ -1392,6 +1489,7 @@ export function AdminRadioModal({
         try {
             localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(blocks));
             localStorage.setItem(STORAGE_RADIO_TOP_HORAIRE_KEY, JSON.stringify(topHoraireConfig));
+            localStorage.setItem('dropsiders_radionomy_palette', JSON.stringify(generalJingles));
             const flatTracks = blocks.flatMap(b => b.tracks || []);
             const res = await apiFetch('/api/settings/update', {
                 method: 'POST',
@@ -1399,6 +1497,7 @@ export function AdminRadioModal({
                 body: JSON.stringify({
                     radio_blocks: blocks,
                     radio_tracks: flatTracks,
+                    radio_general_jingles: generalJingles,
                     radio_top_horaire: topHoraireConfig,
                     tv_blocks: tvBlocks
                 }),
@@ -1428,6 +1527,7 @@ export function AdminRadioModal({
         audioUrl?: string;
         youtubeId?: string;
         isSpecialJingle?: boolean;
+        expiresAt?: string;
     }
 
     // Éléments affichés dans le grand tableau central selon le dossier actif
@@ -1460,7 +1560,8 @@ export function AdminRadioModal({
                     duration: j.duration || 15,
                     box: 'JINGLES GÉNÉRAUX',
                     audioUrl: j.audioUrl,
-                    youtubeId: j.youtubeId
+                    youtubeId: j.youtubeId,
+                    expiresAt: (j as any).expiresAt
                 }));
         }
 
@@ -1470,7 +1571,7 @@ export function AdminRadioModal({
             // 1. Scanner les émissions
             blocks.forEach(b => {
                 (b.tracks || []).forEach((t, tIdx) => {
-                    const isPromoOrPub = t.category === 'promo' || t.category === 'pub' || t.artist === 'SPONSOR' || t.artist === 'PUBLICITÉ / SPONSOR' || (t.title && t.title.toLowerCase().startsWith('promo '));
+                    const isPromoOrPub = (t.category === 'promo' || t.category === 'pub' || t.artist === 'SPONSOR' || t.artist === 'PUBLICITÉ / SPONSOR') && !t.title?.includes('Promo Insta & Tiktok');
                     if (isPromoOrPub) {
                         const key = ((t.audioUrl || t.title) + '').toLowerCase().trim();
                         const existing = promoPubMap.get(key);
@@ -1487,6 +1588,7 @@ export function AdminRadioModal({
                                 box: b.title,
                                 audioUrl: t.audioUrl,
                                 youtubeId: t.youtubeId,
+                                expiresAt: t.expiresAt,
                                 emissionCount: 1
                             });
                         }
@@ -1496,7 +1598,7 @@ export function AdminRadioModal({
 
             // 2. Scanner la palette générale
             generalJingles.forEach(j => {
-                const isPromo = (j as any).category === 'promo' || (j as any).type === 'promo' || (j.title && j.title.toLowerCase().startsWith('promo '));
+                const isPromo = ((j as any).category === 'promo' || (j as any).type === 'promo') && !j.title?.includes('Promo Insta & Tiktok');
                 const isPub = (j as any).category === 'pub' || (j as any).type === 'pub';
                 if (isPromo || isPub) {
                     const key = ((j.audioUrl || j.title) + '').toLowerCase().trim();
@@ -1510,6 +1612,7 @@ export function AdminRadioModal({
                             box: 'BACS PROMOS & SPONSORS',
                             audioUrl: j.audioUrl,
                             youtubeId: j.youtubeId,
+                            expiresAt: (j as any).expiresAt,
                             emissionCount: 0
                         });
                     }
@@ -1556,7 +1659,8 @@ export function AdminRadioModal({
                     box: selectedBlock.title,
                     audioUrl: t.audioUrl,
                     youtubeId: t.youtubeId,
-                    isSpecialJingle: t.category === 'jingle'
+                    isSpecialJingle: t.category === 'jingle',
+                    expiresAt: t.expiresAt
                 }));
         }
 
@@ -1847,6 +1951,7 @@ export function AdminRadioModal({
                                             setEditingBlockId(null);
                                             setEditBlockForm({
                                                 title: `ÉMISSION ${blocks.length + 1}`,
+                                                host: '',
                                                 emoji: '🎧',
                                                 color: '#00f0ff',
                                                 startHour: 0,
@@ -1889,6 +1994,7 @@ export function AdminRadioModal({
                                                         setEditingBlockId(b.id);
                                                         setEditBlockForm({
                                                             title: b.title,
+                                                            host: b.host || '',
                                                             emoji: b.emoji,
                                                             color: b.color,
                                                             startHour: b.startHour,
@@ -2671,6 +2777,7 @@ export function AdminRadioModal({
                                                 setEditingBlockId(null);
                                                 setEditBlockForm({
                                                     title: `Nouvelle Émission ${blocks.length + 1}`,
+                                                    host: '',
                                                     emoji: '🎧',
                                                     color: '#00f0ff',
                                                     startHour: 18,
@@ -3050,6 +3157,7 @@ export function AdminRadioModal({
                                                                 setEditingBlockId(b.id);
                                                                 setEditBlockForm({
                                                                     title: b.title,
+                                                                    host: b.host || '',
                                                                     emoji: b.emoji,
                                                                     color: b.color,
                                                                     startHour: b.startHour,
@@ -3522,16 +3630,29 @@ export function AdminRadioModal({
                                     </button>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-                                    <div className="md:col-span-5 space-y-1">
+                                    <div className="md:col-span-4 space-y-1">
                                         <label className="text-[10px] font-bold text-gray-400 uppercase">Nom de l'émission</label>
                                         <input
                                             type="text"
                                             value={editBlockForm.title}
                                             onChange={e => setEditBlockForm(f => ({ ...f, title: e.target.value }))}
+                                            placeholder="Ex: DROPSIDERS CLUB"
                                             className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:outline-none focus:border-cyan-400"
                                         />
                                     </div>
-                                    <div className="md:col-span-3 space-y-1">
+                                    <div className="md:col-span-4 space-y-1">
+                                        <label className="text-[10px] font-bold text-cyan-400 uppercase flex items-center gap-1">
+                                            <span>🎙️</span> Animateur / Host
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={editBlockForm.host}
+                                            onChange={e => setEditBlockForm(f => ({ ...f, host: e.target.value }))}
+                                            placeholder="Ex: Alex, DJ Snake, etc."
+                                            className="w-full px-3 py-2 rounded-xl bg-black/40 border border-cyan-500/30 text-white text-xs focus:outline-none focus:border-cyan-400"
+                                        />
+                                    </div>
+                                    <div className="md:col-span-4 space-y-1">
                                         <label className="text-[10px] font-bold text-gray-400 uppercase">Créneau</label>
                                         <div className="flex items-center gap-2">
                                             <input
@@ -3551,7 +3672,7 @@ export function AdminRadioModal({
                                         </div>
                                     </div>
                                     {/* ── Choix de la Règle d'Alternance personnalisée ── */}
-                                    <div className="md:col-span-4 space-y-1">
+                                    <div className="md:col-span-8 space-y-1">
                                         <label className="text-[10px] font-bold text-purple-400 uppercase flex items-center gap-1">
                                             <span>⚡</span> Règle d'alternance Jingles & Promos
                                         </label>
@@ -3568,7 +3689,7 @@ export function AdminRadioModal({
                                             <option value="music_only">🎧 100% Musique (non-stop)</option>
                                         </select>
                                     </div>
-                                    <div className="md:col-span-2 flex items-end gap-2">
+                                    <div className="md:col-span-4 flex items-end gap-2">
                                         <button
                                             type="button"
                                             onClick={() => {
@@ -3587,6 +3708,7 @@ export function AdminRadioModal({
                                                     setBlocks(prev => prev.map(b => b.id === editingBlockId ? {
                                                         ...b,
                                                         title: editBlockForm.title.trim().toUpperCase(),
+                                                        host: editBlockForm.host.trim() || undefined,
                                                         startHour: editBlockForm.startHour,
                                                         endHour: editBlockForm.endHour,
                                                         jingleFrequency: editBlockForm.jingleFrequency,
@@ -3601,6 +3723,7 @@ export function AdminRadioModal({
                                                         id: newId,
                                                         title: editBlockForm.title.trim().toUpperCase(),
                                                         name: editBlockForm.title.trim().toUpperCase(),
+                                                        host: editBlockForm.host.trim() || undefined,
                                                         startHour: editBlockForm.startHour,
                                                         endHour: editBlockForm.endHour,
                                                         timeSlot: formatRadioTimeSlot(editBlockForm.startHour, editBlockForm.endHour),
@@ -3620,9 +3743,9 @@ export function AdminRadioModal({
                                                 }
                                                 setIsEditingBlock(false);
                                             }}
-                                            className="flex-1 py-2 px-4 rounded-xl bg-cyan-500 hover:bg-white text-black font-display font-black text-xs uppercase italic cursor-pointer"
+                                            className="w-full py-2 px-4 rounded-xl bg-cyan-500 hover:bg-white text-black font-display font-black text-xs uppercase italic cursor-pointer shadow-lg shadow-cyan-500/20"
                                         >
-                                            Valider
+                                            Valider l'émission
                                         </button>
                                     </div>
                                 </div>
@@ -3833,20 +3956,20 @@ export function AdminRadioModal({
                                         <X className="w-4 h-4" />
                                     </button>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
                                     <input
                                         type="text"
                                         value={editingTrack.title}
                                         onChange={e => setEditingTrack(t => t ? { ...t, title: e.target.value } : null)}
                                         placeholder="Titre"
-                                        className="md:col-span-4 px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs font-bold"
+                                        className={`${(editingTrack.category === 'promo' || editingTrack.category === 'pub') ? 'md:col-span-3' : 'md:col-span-4'} px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs font-bold`}
                                     />
                                     <input
                                         type="text"
                                         value={editingTrack.artist}
                                         onChange={e => setEditingTrack(t => t ? { ...t, artist: e.target.value } : null)}
                                         placeholder="Artiste / DJ / Sponsor"
-                                        className="md:col-span-3 px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs"
+                                        className={`${(editingTrack.category === 'promo' || editingTrack.category === 'pub') ? 'md:col-span-2' : 'md:col-span-3'} px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs`}
                                     />
                                     <select
                                         value={editingTrack.category}
@@ -3900,10 +4023,37 @@ export function AdminRadioModal({
                                                 audioUrl: val.startsWith('http') && !yt ? val : t.audioUrl
                                             } : null);
                                         }}
-                                        placeholder="YouTube ID ou URL MP3/WAV"
-                                        className="md:col-span-1 px-2 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs font-mono truncate"
+                                        placeholder="YouTube ID ou URL MP3"
+                                        className={`${(editingTrack.category === 'promo' || editingTrack.category === 'pub') ? 'md:col-span-1' : 'md:col-span-1'} px-2 py-1.5 rounded-xl bg-black/50 border border-white/10 text-white text-xs font-mono truncate`}
                                         title="Lien YouTube ou URL audio"
                                     />
+                                    {(editingTrack.category === 'promo' || editingTrack.category === 'pub') && (
+                                        <div className="md:col-span-2 flex items-center gap-1 bg-black/40 border border-amber-500/40 rounded-xl px-2 py-1" title="Date d'expiration automatique (la promo sera supprimée après cette date)">
+                                            <span className="text-[10px] text-amber-400 font-bold whitespace-nowrap">⏳ Fin:</span>
+                                            <input
+                                                type="date"
+                                                value={editingTrack.expiresAt ? editingTrack.expiresAt.split('T')[0] : ''}
+                                                onChange={e => {
+                                                    const val = e.target.value;
+                                                    setEditingTrack(t => t ? {
+                                                        ...t,
+                                                        expiresAt: val ? `${val}T23:59:59` : undefined
+                                                    } : null);
+                                                }}
+                                                className="w-full bg-transparent text-amber-300 text-xs font-mono focus:outline-none"
+                                            />
+                                            {editingTrack.expiresAt && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setEditingTrack(t => t ? { ...t, expiresAt: undefined } : null)}
+                                                    className="text-gray-400 hover:text-red-400 text-xs px-1"
+                                                    title="Supprimer la date de fin"
+                                                >
+                                                    ✕
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
                                     <button
                                         type="button"
                                         onClick={handleSaveEditingTrack}
@@ -3940,6 +4090,7 @@ export function AdminRadioModal({
                                                 setEditingBlockId(selectedBlock.id);
                                                 setEditBlockForm({
                                                     title: selectedBlock.title,
+                                                    host: selectedBlock.host || '',
                                                     emoji: selectedBlock.emoji,
                                                     color: selectedBlock.color,
                                                     startHour: selectedBlock.startHour,
@@ -4041,6 +4192,19 @@ export function AdminRadioModal({
                                     >
                                         <Plus className="w-3.5 h-3.5" />
                                         <span>{showAddTrackBox ? 'Fermer ajout' : 'Ajouter par URL'}</span>
+                                    </button>
+                                )}
+
+                                {/* Bouton Nettoyer Promos Expirées */}
+                                {(activeFolder === 'promos' || activeFolder === 'pubs' || activeFolder === 'jingles_general') && (
+                                    <button
+                                        type="button"
+                                        onClick={handlePurgeExpiredPromos}
+                                        className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black border border-amber-500/40 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-sm"
+                                        title="Supprimer immédiatement toutes les promos dont la date limite est expirée"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                        <span>Purger expirées</span>
                                     </button>
                                 )}
 
@@ -4281,6 +4445,13 @@ export function AdminRadioModal({
                                                                     Pub
                                                                 </span>
                                                             )}
+                                                            {item.expiresAt && (
+                                                                <span className={`text-[8px] font-mono px-1.5 py-0.2 rounded font-bold ${
+                                                                    isItemExpired(item) ? 'bg-red-500/20 text-red-400 border border-red-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                                                }`} title={`Date limite : ${item.expiresAt}`}>
+                                                                    {isItemExpired(item) ? '⚠️ EXPIRÉ' : `⏳ Fin: ${new Date(item.expiresAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}`}
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     </td>
 
@@ -4333,7 +4504,8 @@ export function AdminRadioModal({
                                                                         category: (cat === 'promo' || cat === 'pub' || cat === 'jingle' || cat === 'clip' || cat === 'liveset' || cat === 'set') ? (cat === 'set' ? 'liveset' : cat) : 'liveset',
                                                                         durationSeconds: item.duration || (cat === 'jingle' ? 15 : (cat === 'promo' || cat === 'pub') ? 30 : 3600),
                                                                         youtubeId: item.youtubeId || '',
-                                                                        audioUrl: item.audioUrl || ''
+                                                                        audioUrl: item.audioUrl || '',
+                                                                        expiresAt: item.expiresAt
                                                                     });
                                                                 }}
                                                                 className="p-1 rounded text-gray-500 hover:text-cyan-400 hover:bg-cyan-500/10 cursor-pointer"

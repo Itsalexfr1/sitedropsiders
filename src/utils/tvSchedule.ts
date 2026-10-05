@@ -14,6 +14,19 @@ export interface PromoVideo {
     youtubeId: string;
     title: string;
     duration?: number;
+    expiresAt?: string; // Date limite de validité (YYYY-MM-DD)
+}
+
+export function isPromoExpired(p?: { expiresAt?: string } | null): boolean {
+    if (!p?.expiresAt) return false;
+    try {
+        const exp = new Date(p.expiresAt);
+        if (isNaN(exp.getTime())) return false;
+        exp.setHours(23, 59, 59, 999);
+        return Date.now() > exp.getTime();
+    } catch {
+        return false;
+    }
 }
 
 export interface TVScheduleBlock {
@@ -506,7 +519,8 @@ export function buildBlockSegments(
     if (!videos || videos.length === 0) return [];
 
     const segments: TVScheduleSegment[] = [];
-    const hasPromos = Array.isArray(promos) && promos.length > 0;
+    const activePromos = (Array.isArray(promos) ? promos : []).filter(p => !isPromoExpired(p));
+    const hasPromos = activePromos.length > 0;
 
     for (let i = 0; i < videos.length; i++) {
         const v = videos[i];
@@ -520,8 +534,8 @@ export function buildBlockSegments(
         });
 
         if (hasPromos) {
-            const promoIdx = i % promos.length;
-            const promo = promos[promoIdx];
+            const promoIdx = i % activePromos.length;
+            const promo = activePromos[promoIdx];
             if (promo) {
                 const pDur = (durationsMap && durationsMap[promo.youtubeId]) || promo.duration || 60;
                 segments.push({
@@ -876,7 +890,8 @@ export function computeDaySchedule(
 
         let currentSec = (validBlock.startHour ?? 0) * 3600;
         const blockEndSec = ((validBlock.endHour === 0 || validBlock.endHour === 24) ? 24 : (validBlock.endHour ?? 24)) * 3600;
-        const hasPromos = Array.isArray(promos) && promos.length > 0;
+        const activePromos = (Array.isArray(promos) ? promos : []).filter(p => !isPromoExpired(p));
+        const hasPromos = activePromos.length > 0;
 
         for (let i = 0; i < vids.length; i++) {
             const vid = vids[i];
@@ -932,7 +947,7 @@ export function computeDaySchedule(
 
             // Ajout du temps de promo intercalée si active
             if (hasPromos) {
-                const p = promos[i % promos.length];
+                const p = activePromos[i % activePromos.length];
                 const pDur = (p && ((durationsMap && durationsMap[p.youtubeId]) || DEFAULT_DURATIONS[p.youtubeId] || p.duration)) || 60;
                 currentSec += pDur;
             }

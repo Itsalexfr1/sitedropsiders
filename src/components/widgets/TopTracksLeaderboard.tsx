@@ -201,9 +201,21 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
             }
         };
 
+        const handleTrackVoted = () => {
+            fetchTopTracks();
+            try {
+                const savedVotes = localStorage.getItem('music_voted_tracks');
+                if (savedVotes) setVotedTracks(JSON.parse(savedVotes));
+            } catch {}
+        };
+
         fetchTopTracks();
         const interval = setInterval(fetchTopTracks, 30000);
-        return () => clearInterval(interval);
+        window.addEventListener('dropsiders_track_voted', handleTrackVoted);
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('dropsiders_track_voted', handleTrackVoted);
+        };
     }, []);
 
     const renderPlayer = (media: string, playerType: string) => {

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Radio, Play, Pause, Volume2, VolumeX, Clock, Sparkles,
     MessageSquare, Send, Calendar, History,
-    User, MapPin, Disc3, Music2, Zap, Check, Search, X
+    User, MapPin, Disc3, Music2, Zap, Check, Search, X, Heart
 } from 'lucide-react';
 import {
     DEFAULT_RADIO_BLOCKS,
@@ -84,10 +84,20 @@ function AudioBars({ playing }: { playing: boolean }) {
     );
 }
 
-function TrackCard({ item, isLive, offsetSec }: {
+function TrackCard({
+    item,
+    isLive,
+    offsetSec,
+    isVoted,
+    onVote,
+    voteLoading
+}: {
     item: ComputedRadioScheduleItem;
     isLive?: boolean;
     offsetSec?: number;
+    isVoted?: boolean;
+    onVote?: () => void;
+    voteLoading?: boolean;
 }) {
     const progress = offsetSec && item.durationSeconds
         ? Math.min(100, (offsetSec / item.durationSeconds) * 100) : 0;
@@ -112,30 +122,57 @@ function TrackCard({ item, isLive, offsetSec }: {
                     </div>
                 </>
             )}
-            <div className="flex items-center gap-3">
-                <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${isLive
-                    ? 'bg-cyan-500/20 border border-cyan-500/40 text-cyan-400'
-                    : 'bg-white/5 border border-white/10 text-gray-400'
-                }`}>
-                    {isLive
-                        ? <Disc3 className="w-5 h-5 animate-spin" style={{ animationDuration: '4s' }} />
-                        : <Music2 className="w-4 h-4" />}
+            <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${isLive
+                        ? 'bg-cyan-500/20 border border-cyan-500/40 text-cyan-400'
+                        : 'bg-white/5 border border-white/10 text-gray-400'
+                    }`}>
+                        {isLive
+                            ? <Disc3 className="w-5 h-5 animate-spin" style={{ animationDuration: '4s' }} />
+                            : <Music2 className="w-4 h-4" />}
+                    </div>
+                    <div className="min-w-0 flex-1 pr-4">
+                        <p className={`text-[10px] font-black uppercase tracking-widest mb-0.5 ${isLive ? 'text-cyan-400' : 'text-gray-500'}`}>
+                            {isLive ? '🎵 À L\'ANTENNE' : item.startTime}
+                        </p>
+                        <h4 className="text-base font-black text-white uppercase italic tracking-tight truncate leading-tight">{item.title || (item as any).event}</h4>
+                        <p className="text-[12px] text-gray-300 font-bold uppercase tracking-wider truncate mt-0.5">{item.artist}</p>
+                        {(item.blockTitle || item.blockHost) && (
+                            <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-wide flex items-center gap-1.5 mt-1 truncate">
+                                <span>📻 {item.blockTitle || 'DROPSIDERS RADIO'}</span>
+                                {item.blockHost && (
+                                    <span className="text-gray-400 font-normal">· avec <span className="text-white font-bold">{item.blockHost}</span></span>
+                                )}
+                            </p>
+                        )}
+                        {isLive && offsetSec !== undefined && (
+                            <div className="flex items-center gap-2 mt-1.5 text-[9px] font-mono text-gray-500">
+                                <Clock className="w-2.5 h-2.5 text-cyan-500" />
+                                <span className="text-cyan-400 font-bold">{formatDurationExact(offsetSec)}</span>
+                                <span>/</span>
+                                <span>{item.durationFormatted}</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
-                <div className="min-w-0 flex-1 pr-14">
-                    <p className={`text-[10px] font-black uppercase tracking-widest mb-0.5 ${isLive ? 'text-cyan-400' : 'text-gray-500'}`}>
-                        {isLive ? '🎵 À L\'ANTENNE' : item.startTime}
-                    </p>
-                    <h4 className="text-sm font-black text-white uppercase italic tracking-tight truncate leading-tight">{item.artist}</h4>
-                    <p className="text-[11px] text-gray-400 font-semibold truncate mt-0.5">{item.title || (item as any).event}</p>
-                    {isLive && offsetSec !== undefined && (
-                        <div className="flex items-center gap-2 mt-1.5 text-[9px] font-mono text-gray-500">
-                            <Clock className="w-2.5 h-2.5 text-cyan-500" />
-                            <span className="text-cyan-400 font-bold">{formatDurationExact(offsetSec)}</span>
-                            <span>/</span>
-                            <span>{item.durationFormatted}</span>
-                        </div>
-                    )}
-                </div>
+
+                {onVote && item.category !== 'jingle' && item.category !== 'promo' && item.category !== 'pub' && (
+                    <button
+                        type="button"
+                        onClick={onVote}
+                        disabled={voteLoading}
+                        className={`shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl border text-[10px] font-display font-black uppercase italic tracking-wider transition-all cursor-pointer active:scale-95 ${
+                            isVoted
+                                ? 'bg-red-500/20 text-red-400 border-red-500/50 shadow-[0_0_12px_rgba(255,0,85,0.3)]'
+                                : 'bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 border-white/10 hover:border-red-500/30'
+                        }`}
+                        title={isVoted ? 'Déjà voté pour le Top 5' : 'Voter pour ce morceau dans le Top 5'}
+                    >
+                        <Heart className={`w-3.5 h-3.5 ${isVoted ? 'fill-current text-red-400' : ''}`} />
+                        <span className="hidden sm:inline">{isVoted ? 'Voté Top 5' : 'Voter Top 5'}</span>
+                    </button>
+                )}
             </div>
         </motion.div>
     );
@@ -595,6 +632,63 @@ export function RadioPage() {
     const currentSet = radioState.currentSet || liveInfo?.item || null;
     const currentTrackTitle = currentSet ? `${currentSet.artist} - ${currentSet.title}` : undefined;
 
+    // ─── LIKE / VOTE pour le Top 5 Tracks ─────────────────────────────────────
+    const [votedTracks, setVotedTracks] = useState<string[]>(() => {
+        try {
+            const s = localStorage.getItem('music_voted_tracks');
+            return s ? JSON.parse(s) : [];
+        } catch {
+            return [];
+        }
+    });
+    const [voteLoading, setVoteLoading] = useState(false);
+    const [voteToast, setVoteToast] = useState<string | null>(null);
+
+    useEffect(() => {
+        const syncVotes = () => {
+            try {
+                const s = localStorage.getItem('music_voted_tracks');
+                if (s) setVotedTracks(JSON.parse(s));
+            } catch {}
+        };
+        window.addEventListener('dropsiders_track_voted', syncVotes);
+        return () => window.removeEventListener('dropsiders_track_voted', syncVotes);
+    }, []);
+
+    const handleVoteTrack = async (title: string, media?: string) => {
+        if (!title || voteLoading) return;
+        if (votedTracks.includes(title)) {
+            setVoteToast('Déjà voté pour ce morceau !');
+            setTimeout(() => setVoteToast(null), 3000);
+            return;
+        }
+        setVoteLoading(true);
+        try {
+            const res = await fetch('/api/music/vote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    trackTitle: title,
+                    media,
+                    playerType: 'radio'
+                })
+            });
+            if (res.ok) {
+                const next = [...votedTracks, title];
+                setVotedTracks(next);
+                try { localStorage.setItem('music_voted_tracks', JSON.stringify(next)); } catch {}
+                window.dispatchEvent(new CustomEvent('dropsiders_track_voted', { detail: { track: title } }));
+                setVoteToast('❤️ Vote pris en compte dans le Top 5 !');
+                setTimeout(() => setVoteToast(null), 3000);
+            }
+        } catch {
+            setVoteToast('Erreur lors du vote');
+            setTimeout(() => setVoteToast(null), 3000);
+        } finally {
+            setVoteLoading(false);
+        }
+    };
+
     // Auto-save history when track changes
     useEffect(() => {
         if (!currentSet) return;
@@ -689,8 +783,37 @@ export function RadioPage() {
                                 </div>
                                 {publicCurrentSet ? (
                                     <>
-                                        <h2 className="text-base font-black text-white uppercase italic tracking-tight truncate leading-tight">{publicCurrentSet.artist}</h2>
-                                        <p className="text-xs text-gray-400 font-semibold truncate mt-0.5">{publicCurrentSet.title || (publicCurrentSet as any).event}</p>
+                                        <div className="flex items-center justify-between gap-2">
+                                            <h2 className="text-lg font-black text-white uppercase italic tracking-tight truncate leading-tight">{publicCurrentSet.title || (publicCurrentSet as any).event}</h2>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleVoteTrack(`${publicCurrentSet.artist} - ${publicCurrentSet.title}`, publicCurrentSet.youtubeId || publicCurrentSet.audioUrl)}
+                                                disabled={voteLoading}
+                                                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl border text-[10px] font-display font-black uppercase italic tracking-wider transition-all cursor-pointer ${
+                                                    votedTracks.includes(`${publicCurrentSet.artist} - ${publicCurrentSet.title}`)
+                                                        ? 'bg-red-500/20 text-red-400 border-red-500/50 shadow-[0_0_10px_rgba(255,0,85,0.3)]'
+                                                        : 'bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 border-white/10'
+                                                }`}
+                                                title={votedTracks.includes(`${publicCurrentSet.artist} - ${publicCurrentSet.title}`) ? 'Déjà voté pour le Top 5' : 'Voter pour ce son dans le Top 5'}
+                                            >
+                                                <Heart className={`w-3.5 h-3.5 ${votedTracks.includes(`${publicCurrentSet.artist} - ${publicCurrentSet.title}`) ? 'fill-current text-red-400' : ''}`} />
+                                                <span className="hidden sm:inline">{votedTracks.includes(`${publicCurrentSet.artist} - ${publicCurrentSet.title}`) ? 'Voté Top 5' : 'Voter Top 5'}</span>
+                                            </button>
+                                        </div>
+                                        <p className="text-xs text-gray-300 font-bold uppercase tracking-wider truncate mt-0.5">{publicCurrentSet.artist}</p>
+                                        {(publicCurrentSet.blockTitle || publicCurrentSet.blockHost) && (
+                                            <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-wide flex items-center gap-1.5 mt-1.5 truncate">
+                                                <span>📻 {publicCurrentSet.blockTitle || 'DROPSIDERS RADIO'}</span>
+                                                {publicCurrentSet.blockHost && (
+                                                    <span className="text-gray-400 font-normal">· avec <span className="text-white font-bold">{publicCurrentSet.blockHost}</span></span>
+                                                )}
+                                            </p>
+                                        )}
+                                        {voteToast && (
+                                            <p className="text-[10px] text-cyan-400 font-bold mt-1 animate-pulse">
+                                                {voteToast}
+                                            </p>
+                                        )}
                                         <div className="flex items-center gap-2 mt-1.5 text-[9px] font-mono text-gray-500">
                                             <Clock className="w-2.5 h-2.5 text-cyan-500" />
                                             <span className="text-cyan-400 font-bold">{publicCurrentSet.startTime}</span>
@@ -761,9 +884,23 @@ export function RadioPage() {
                         <motion.div key="now" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
                             {/* Seulement le track en cours — pas de jingles/promos, pas de suivants */}
                             {liveInfo?.item && !isTransientItem(liveInfo.item)
-                                ? <TrackCard item={liveInfo.item} isLive offsetSec={liveInfo.offsetSeconds} />
+                                ? <TrackCard
+                                    item={liveInfo.item}
+                                    isLive
+                                    offsetSec={liveInfo.offsetSeconds}
+                                    isVoted={votedTracks.includes(`${liveInfo.item.artist} - ${liveInfo.item.title}`)}
+                                    onVote={() => handleVoteTrack(`${liveInfo.item.artist} - ${liveInfo.item.title}`, liveInfo.item.youtubeId || liveInfo.item.audioUrl)}
+                                    voteLoading={voteLoading}
+                                  />
                                 : publicCurrentSet
-                                    ? <TrackCard item={publicCurrentSet} isLive offsetSec={liveInfo?.offsetSeconds} />
+                                    ? <TrackCard
+                                        item={publicCurrentSet}
+                                        isLive
+                                        offsetSec={liveInfo?.offsetSeconds}
+                                        isVoted={votedTracks.includes(`${publicCurrentSet.artist} - ${publicCurrentSet.title}`)}
+                                        onVote={() => handleVoteTrack(`${publicCurrentSet.artist} - ${publicCurrentSet.title}`, publicCurrentSet.youtubeId || publicCurrentSet.audioUrl)}
+                                        voteLoading={voteLoading}
+                                      />
                                     : (
                                         <div className="py-12 text-center">
                                             <Disc3 className="w-8 h-8 text-gray-600 mx-auto mb-3 animate-spin" style={{ animationDuration: '6s' }} />
