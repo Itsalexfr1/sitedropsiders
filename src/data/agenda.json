@@ -725,5 +725,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1133,
+    "title": "CLOSING PARTY UNVRS",
+    "date": "2026-10-10",
+    "startDate": "2026-10-10",
+    "endDate": "2026-10-10",
+    "venue": "UNVRS",
+    "location": "IBIZA",
+    "country": "ESPAGNE",
+    "type": "Events",
+    "image": "/uploads/uploads/ffa0c34c5f46e46a-2026_unvrs_cp_v2_feed_1080x144.webp",
+    "url": "https://www.unvrs.com/events/2026/unvrs-closing",
+    "genre": "House",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
