@@ -5219,6 +5219,86 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
           "duration": 14,
           "category": "jingle"
+        },
+        {
+          "id": "track_1791198375694_nlgr",
+          "title": "Take Me As I Am (Moodymann Remix)",
+          "artist": "Dames Brown & Amp Fiddler -",
+          "youtubeId": "dNuMB8xsiCE",
+          "duration": 300,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_n_25",
+          "title": "Dropsiders Radio Jingle 6",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+          "duration": 9,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1791198394655_xipn",
+          "title": "2AM (Extended Mix) [DFTD]",
+          "artist": "Boogie Vice feat. Luukhanyo -",
+          "youtubeId": "UI63jjiHXZU",
+          "duration": 300,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_s2_26",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 30,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1791198420110_f8q2",
+          "title": "Say What You Mean",
+          "artist": "Ferreck Dawn",
+          "youtubeId": "RuPMQ9VKBjc",
+          "duration": 300,
+          "category": "clip"
+        },
+        {
+          "id": "pr_bloc_1791197234957_p_27",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 22,
+          "category": "promo"
+        },
+        {
+          "id": "track_1791198445094_fvht",
+          "title": "El Ritmo De Verdad (Aitor Astiz Remix) [DFTD]",
+          "artist": "Lego",
+          "youtubeId": "WmY9r5a_fVc",
+          "duration": 360,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_s_28",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 28,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1791198663169_22zw",
+          "title": "Jonas Rathsman - Tobago (Serve Cold, Bensy & Grigoré Remix)",
+          "artist": "Jonas Rathsman",
+          "youtubeId": "gpJK19912xk",
+          "duration": 360,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_n_29",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 22,
+          "category": "jingle"
         }
       ],
       "specialJingles": []
@@ -13258,6 +13338,86 @@
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
       "duration": 14,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791198375694_nlgr",
+      "title": "Take Me As I Am (Moodymann Remix)",
+      "artist": "Dames Brown & Amp Fiddler -",
+      "youtubeId": "dNuMB8xsiCE",
+      "duration": 300,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_n_25",
+      "title": "Dropsiders Radio Jingle 6",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+      "duration": 9,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791198394655_xipn",
+      "title": "2AM (Extended Mix) [DFTD]",
+      "artist": "Boogie Vice feat. Luukhanyo -",
+      "youtubeId": "UI63jjiHXZU",
+      "duration": 300,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_s2_26",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 30,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791198420110_f8q2",
+      "title": "Say What You Mean",
+      "artist": "Ferreck Dawn",
+      "youtubeId": "RuPMQ9VKBjc",
+      "duration": 300,
+      "category": "clip"
+    },
+    {
+      "id": "pr_bloc_1791197234957_p_27",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 22,
+      "category": "promo"
+    },
+    {
+      "id": "track_1791198445094_fvht",
+      "title": "El Ritmo De Verdad (Aitor Astiz Remix) [DFTD]",
+      "artist": "Lego",
+      "youtubeId": "WmY9r5a_fVc",
+      "duration": 360,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_s_28",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 28,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791198663169_22zw",
+      "title": "Jonas Rathsman - Tobago (Serve Cold, Bensy & Grigoré Remix)",
+      "artist": "Jonas Rathsman",
+      "youtubeId": "gpJK19912xk",
+      "duration": 360,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_n_29",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 22,
       "category": "jingle"
     },
     {
