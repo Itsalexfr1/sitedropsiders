@@ -10,7 +10,7 @@ import {
     computeRadioDaySchedule,
     type RadioScheduleBlock, type ComputedRadioScheduleItem
 } from '../../utils/radioSchedule';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { usePlayer } from '../../context/PlayerContext';
 import { RadioDedicationModal } from './RadioDedicationModal';
 
@@ -167,7 +167,7 @@ function useRadioAudio() {
     // ─── Horloge Paris (sert UNIQUEMENT au display schedule et au démarrage) ─────
     const [uiTimeSec, setUiTimeSec] = useState<number>(getParisSeconds);
     useEffect(() => {
-        // Tick toutes les 5s pour garder le schedule à jour (affichage admin, etc.)
+        // Tick toutes les 5s pour garder le schedule à jour (sync auto des transitions)
         const id = setInterval(() => setUiTimeSec(getParisSeconds()), 5000);
         return () => clearInterval(id);
     }, []);
@@ -193,7 +193,8 @@ function useRadioAudio() {
     useEffect(() => { currentSetRef.current = currentSet; }, [currentSet]);
 
     // ─── SYNC AUTOMATIQUE : déclarée après advanceToNextTrack (voir plus bas) ───
-    const liveTrackIdRef = useRef<string | undefined>(undefined);
+    // Initialisé avec l'id du live actuel pour que la 1ère comparaison soit cohérente
+    const liveTrackIdRef = useRef<string | undefined>(getCurrentLiveRadioTrack(radioBlocks, getParisSeconds())?.item?.id);
 
     // ─── État audio (UI only) ─────────────────────────────────────────────────
     const [isPlaying, setIsPlaying] = useState(false);
@@ -656,33 +657,43 @@ function useRadioAudio() {
     }, [sendCmd, preloadNextTrack]);
 
     // ─── SYNC AUTOMATIQUE HORLOGE → TRACK ACTIF ──────────────────────────────
-    // Quand le schedule change de plage (ex: jingle qui commence ou se termine),
-    // et qu'on est en lecture, on force la transition SAUF si le track actuel vient de
-    // démarrer (< 90s) et est un long set → on laisse 'ended' gérer la fin naturelle.
+    // Quand le schedule passe au bloc suivant, on force la transition si :
+    //   - le track actif n'est plus dans le bon créneau horaire
+    //   - ET soit c'est un track court (jingle/promo), soit on est déjà avancé
+    //     de plus de 90s dans ce créneau (offset réel dans la grille horaire)
+    //
+    // FIX : on utilisait trackStartedAtRef (temps depuis le Play, toujours petit
+    // si l'auditeur rejoignait un set en cours) → remplacé par uiOffsetRef
+    // (offset réel du track actuel dans la grille, toujours correct).
     useEffect(() => {
         const newLiveId = liveInfo?.item?.id;
+        const prevLiveId = liveTrackIdRef.current;
+
+        // Mettre à jour la ref AVANT tout return pour le prochain tick
+        liveTrackIdRef.current = newLiveId;
+
         if (
             newLiveId &&
-            newLiveId !== liveTrackIdRef.current &&
-            liveTrackIdRef.current !== undefined &&
+            prevLiveId !== undefined &&        // pas le premier tick (initialisation)
+            newLiveId !== prevLiveId &&         // le live a changé de créneau
             isPlayingRef.current &&
             activeTrackRef.current &&
             newLiveId !== activeTrackRef.current.id
         ) {
-            const elapsedSinceStart = Date.now() - trackStartedAtRef.current;
             const isShortTrack = (
                 activeTrackRef.current.category === 'jingle' ||
                 activeTrackRef.current.isTopHoraire ||
                 activeTrackRef.current.isThemeJingle ||
                 (activeTrackRef.current.durationSeconds ?? 9999) < 120
             );
-            // Forcer si : track court, ou track lancé il y a > 90s
-            if (isShortTrack || elapsedSinceStart > 90000) {
+            // uiOffsetRef = offset réel dans le créneau horaire actuel (ex: 5400s
+            // si on est à 1h30 dans un set de 2h → TOUJOURS > 90, même si Play
+            // vient d'être appuyé)
+            const offsetInCurrentTrack = uiOffsetRef.current;
+            if (isShortTrack || offsetInCurrentTrack > 90) {
                 advanceToNextTrack();
             }
-            // Sinon : laisser 'ended' / watchdog gérer la transition naturellement
         }
-        liveTrackIdRef.current = newLiveId;
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [liveInfo?.item?.id]);
 
@@ -849,56 +860,132 @@ function useRadioAudio() {
     }, [advanceToNextTrack]);
 
     // 4. ─── WATCHDOG YOUTUBE : détection de blanc / fin de clip sans événement ENDED ────
-    // Certains clips YouTube ne déclenchent pas onStateChange:0 fiablement.
-    // On poll getCurrentTime toutes les 3s via postMessage.
-    // Si la position ne progresse plus pendant 10s alors que le state=1 (playing),
-    // on considère le clip terminé (blanc détecté) et on avance.
+    // YouTube ne déclenche pas toujours onStateChange:0 (ended) de façon fiable.
+    // FIX : on poll getCurrentTime via postMessage ET on compare la durée connue.
+    // Si le time ne progresse plus depuis 12s alors qu'on est sensiblement à la fin
+    // (ou si le state reste -1/2 longtemps) → on considère le clip terminé.
     useEffect(() => {
         let lastYtTime = -1;
         let lastYtTimeStamp = Date.now();
+        let knownDuration = 0;
         let watchdogInterval: ReturnType<typeof setInterval> | null = null;
 
-        const onYtCurrentTime = (e: any) => {
+        const onYtCurrentTime = (e: CustomEvent) => {
             const ct = typeof e.detail === 'number' ? e.detail : -1;
-            if (ct > 0 && ct !== lastYtTime) {
-                // La vidéo progresse normalement
-                lastYtTime = ct;
-                lastYtTimeStamp = Date.now();
+            if (ct > 0) {
+                if (ct !== lastYtTime) {
+                    lastYtTime = ct;
+                    lastYtTimeStamp = Date.now();
+                }
             }
         };
-        // Reset du watchdog dès qu'un nouveau track démarre (évite faux positif au chargement)
+
+        // Intercepter la durée via infoDelivery
+        const onYtMessage = (event: MessageEvent) => {
+            try {
+                const d = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                if (d?.info?.duration && Number(d.info.duration) > 5) {
+                    knownDuration = Math.round(Number(d.info.duration));
+                }
+                // Certains players envoient currentTime directement dans info
+                if (typeof d?.info === 'number' && d?.event === 'infoDelivery') {
+                    // format alternatif
+                }
+            } catch {}
+        };
+
+        // Reset du watchdog dès qu'un nouveau track démarre
         const onTrackChange = () => {
             lastYtTime = -1;
             lastYtTimeStamp = Date.now();
+            knownDuration = 0;
         };
-        window.addEventListener('yt_current_time', onYtCurrentTime);
+        window.addEventListener('yt_current_time', onYtCurrentTime as EventListener);
+        window.addEventListener('message', onYtMessage);
         window.addEventListener('dropsiders_radio_track_changed', onTrackChange);
 
         watchdogInterval = setInterval(() => {
             if (!isPlayingRef.current || !currentSetRef.current?.youtubeId || currentSetRef.current?.audioUrl) return;
+
             // Demander la position courante au player YouTube
             sendCmd('getCurrentTime');
-            // Si la position n'a pas bougé depuis 10s et que le state est 1 (playing) ou -1 (inconnu)
-            // → on suppose que le clip est terminé sans événement ENDED
+
             const elapsed = Date.now() - lastYtTimeStamp;
+
+            // Cas 1 : la vidéo a commencé à jouer (lastYtTime > 0) et
+            // le temps ne progresse plus depuis 12s → blanc ou fin non signalée
             if (
-                lastYtTime >= 0 &&
-                elapsed > 10000 &&
+                lastYtTime > 0 &&
+                elapsed > 12000 &&
                 ytStateRef.current !== 2 && // pas en pause intentionnelle
                 ytStateRef.current !== 3    // pas en buffering
             ) {
+                console.warn('[Radio watchdog] Blanc détecté, skip track');
                 lastYtTime = -1;
                 lastYtTimeStamp = Date.now();
                 advanceToNextTrack();
+                return;
+            }
+
+            // Cas 2 : durée connue + position proche de la fin (< 3s restantes)
+            if (
+                knownDuration > 0 &&
+                lastYtTime > 0 &&
+                lastYtTime >= knownDuration - 3
+            ) {
+                console.warn('[Radio watchdog] Fin de clip détectée, skip track');
+                lastYtTime = -1;
+                lastYtTimeStamp = Date.now();
+                advanceToNextTrack();
+                return;
             }
         }, 3000);
 
         return () => {
             if (watchdogInterval) clearInterval(watchdogInterval);
-            window.removeEventListener('yt_current_time', onYtCurrentTime);
+            window.removeEventListener('yt_current_time', onYtCurrentTime as EventListener);
+            window.removeEventListener('message', onYtMessage);
             window.removeEventListener('dropsiders_radio_track_changed', onTrackChange);
         };
     }, [advanceToNextTrack, sendCmd]);
+
+    // 4b. ─── SUPER-WATCHDOG HORLOGE (filet de sécurité incassable) ───────────────────
+    // Toutes les 10s, vérifie que le track actif est bien dans son créneau horaire.
+    // Si le track actif n'est plus dans son créneau depuis > 20s → force la transition.
+    // Ce watchdog est indépendant de YouTube et de l'événement 'ended' — il
+    // s'assure qu'un blanc ne dure jamais plus de ~30s quoi qu'il arrive.
+    useEffect(() => {
+        let outOfSyncSince = 0; // timestamp où le décalage a été détecté pour la 1ère fois
+
+        const id = setInterval(() => {
+            if (!isPlayingRef.current || !activeTrackRef.current) {
+                outOfSyncSince = 0;
+                return;
+            }
+            const nowSec = getParisSeconds();
+            const live = getCurrentLiveRadioTrack(radioBlocksRef.current, nowSec);
+            const liveId = live?.item?.id;
+            const activeId = activeTrackRef.current.id;
+
+            // Si le créneau horaire a changé et que le track actif n'est plus le bon
+            if (liveId && liveId !== activeId) {
+                if (outOfSyncSince === 0) {
+                    // 1er tick hors-créneau : noter l'heure
+                    outOfSyncSince = Date.now();
+                } else if (Date.now() - outOfSyncSince > 8000) {
+                    // Hors-créneau depuis > 8s → forcer la transition
+                    console.warn('[Radio super-watchdog] Track hors-créneau depuis > 8s, transition forcée');
+                    outOfSyncSince = 0;
+                    advanceToNextTrack();
+                }
+            } else {
+                // Dans le bon créneau → reset
+                outOfSyncSince = 0;
+            }
+        }, 5000);
+
+        return () => clearInterval(id);
+    }, [advanceToNextTrack]);
 
     // 5. ─── MOBILE BACKGROUND AUDIO : Page Visibility API ────────────────────
     // Reprendre la lecture quand l'utilisateur revient sur l'app (depuis une autre appli)
@@ -1198,6 +1285,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
     const [isDedicationOpen, setIsDedicationOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [dragMode, setDragMode] = useState(false);
+    const navigate = useNavigate();
     const dragRef = useRef<HTMLDivElement>(null);
     const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hasMoved = useRef(false);
@@ -1271,16 +1359,21 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                 <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-5" />
 
                                 <div className="flex items-center justify-between mb-5 relative z-10">
-                                    <div className="flex items-center gap-2.5">
+                                <div className="flex items-center gap-2.5">
                                         <div className="p-2 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.25)]">
                                             <Radio className="w-4 h-4" />
                                         </div>
-                                        <div>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setExpanded(false); navigate('/radio'); }}
+                                            className="text-left cursor-pointer hover:opacity-80 transition-opacity"
+                                            title="Ouvrir la page radio"
+                                        >
                                             <p className="text-[11px] font-display font-black text-white uppercase italic tracking-tight">
                                                 DROPSIDERS <span className="text-neon-cyan">RADIO</span>
                                             </p>
                                             <p className="text-[8px] text-gray-500 uppercase tracking-widest font-bold">Web Radio Electro 24/7</p>
-                                        </div>
+                                        </button>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-neon-red/20 text-neon-red border border-neon-red/40 text-[7px] font-black uppercase animate-pulse">
@@ -1493,6 +1586,7 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
         try { return sessionStorage.getItem('radio_desktop_hidden') === 'true'; } catch { return false; }
     });
     const [isDedicationOpen, setIsDedicationOpen] = useState(false);
+    const navigate = useNavigate();
 
     if (!audio.isEnabled || !audio.currentSet) return null;
 
@@ -1573,8 +1667,13 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                         </div>
 
                         <div className="flex items-center gap-5 px-6 py-3 bg-[#07070f]/98 backdrop-blur-2xl border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.7)]">
-                            {/* Icône + Label Radio */}
-                            <div className="flex items-center gap-2.5 shrink-0">
+                            {/* Icône + Label Radio — cliquable pour ouvrir la page radio */}
+                            <button
+                                type="button"
+                                onClick={() => navigate('/radio')}
+                                className="flex items-center gap-2.5 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                                title="Ouvrir la page radio"
+                            >
                                 <div className={`relative p-2 rounded-xl bg-neon-cyan/15 border border-neon-cyan/40 text-neon-cyan ${isPlaying ? 'shadow-[0_0_14px_rgba(0,255,255,0.4)]' : ''}`}>
                                     <Radio className="w-4 h-4" />
                                     <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red animate-ping" />
@@ -1594,7 +1693,7 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                                     </div>
                                     <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">Web Radio Electro 24/7</p>
                                 </div>
-                            </div>
+                            </button>
 
                             {/* Divider */}
                             <div className="h-8 w-px bg-white/10 shrink-0" />

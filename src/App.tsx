@@ -74,6 +74,7 @@ const About = lazyRetry(() => import('./pages/About').then(m => m.About));
 const ProShop = lazyRetry(() => import('./pages/ProShop').then(m => m.ProShop));
 const BrandingPage = lazyRetry(() => import('./pages/BrandingPage').then(m => m.BrandingPage));
 const MixPage = lazyRetry(() => import('./pages/MixPage').then(m => m.MixPage));
+const RadioPage = lazyRetry(() => import('./pages/RadioPage').then(m => m.RadioPage));
 
 
 function ErrorFallback() {
@@ -199,6 +200,7 @@ const router = createBrowserRouter([
       { path: "voyage", element: <Voyage /> },
       { path: "voyage/:type", element: <Voyage /> },
       { path: "live", element: <LivePage /> },
+      { path: "radio", element: <RadioPage /> },
       { path: "tv", element: <DropsidersTVPage /> },
       { path: "news", element: <News /> },
       { path: "agenda", element: <Agenda /> },

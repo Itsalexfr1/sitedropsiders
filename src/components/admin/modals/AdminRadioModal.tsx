@@ -224,6 +224,31 @@ export function AdminRadioModal({
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
+    // ─── Activer/désactiver les messages auditeurs ──────────────────────────
+    const RADIO_MESSAGES_ENABLED_KEY = 'dropsiders_radio_messages_enabled';
+    const [messagesEnabled, setMessagesEnabled] = useState(() => {
+        try { return localStorage.getItem(RADIO_MESSAGES_ENABLED_KEY) !== 'false'; } catch { return true; }
+    });
+
+    const handleToggleMessages = () => {
+        const next = !messagesEnabled;
+        setMessagesEnabled(next);
+        try {
+            localStorage.setItem(RADIO_MESSAGES_ENABLED_KEY, next ? 'true' : 'false');
+            window.dispatchEvent(new CustomEvent('dropsiders_radio_messages_toggle'));
+        } catch {}
+        // Persister aussi côté API si possible
+        try {
+            apiFetch('/api/settings/update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ radio_messages_enabled: next })
+            }).catch(() => {});
+        } catch {}
+        showToast(next ? '💬 Messages auditeurs activés' : '🔇 Messages auditeurs désactivés', 'info');
+    };
+
+
     // Formulaire d'édition d'une émission
     const [isEditingBlock, setIsEditingBlock] = useState(false);
     const [editBlockForm, setEditBlockForm] = useState({
@@ -1706,6 +1731,21 @@ export function AdminRadioModal({
                         >
                             <span className={`w-2 h-2 rounded-full ${isRadioActive ? 'bg-emerald-400 animate-ping' : 'bg-red-500'}`} />
                             {isRadioActive ? 'ON AIR' : 'HORS LIGNE'}
+                        </button>
+
+                        {/* Toggle Messages Auditeurs */}
+                        <button
+                            type="button"
+                            onClick={handleToggleMessages}
+                            title={messagesEnabled ? 'Désactiver les messages auditeurs' : 'Activer les messages auditeurs'}
+                            className={`px-3.5 py-2 rounded-xl text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-2 border transition-all cursor-pointer ${
+                                messagesEnabled
+                                    ? 'bg-purple-500/15 border-purple-500/40 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.2)] hover:bg-purple-500/25'
+                                    : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'
+                            }`}
+                        >
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            <span>{messagesEnabled ? '💬 Messages ON' : 'Messages OFF'}</span>
                         </button>
 
                         {/* Sauvegarder */}
