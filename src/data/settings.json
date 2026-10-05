@@ -5827,6 +5827,102 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
           "category": "jingle"
+        },
+        {
+          "id": "track_1791200929361_ays5",
+          "title": "Beat Goes On",
+          "artist": "Adam Ten, Rafael",
+          "youtubeId": "obxiQ2tt3as",
+          "duration": 300,
+          "category": "clip"
+        },
+        {
+          "id": "pr_bloc_1791197234957_p_63",
+          "title": "Promo Escape Psycho Circus 2026 1",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 47,
+          "category": "promo"
+        },
+        {
+          "id": "track_1791200965841_d2p8",
+          "title": "Activated (Extended Mix)",
+          "artist": "Piem & SLM",
+          "youtubeId": "WgAxtTC5RWs",
+          "duration": 300,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_s_64",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1791200984433_mfqn",
+          "title": "Too Much (Extended Mix) [DFTD]",
+          "artist": "nocapz. & Coppola",
+          "youtubeId": "lNZ5G9TNbig",
+          "duration": 240,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_n_65",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1791201008273_x6xu",
+          "title": "Each Step (Powerhouse Mix)",
+          "artist": "Deetron & Seth Troxler",
+          "youtubeId": "o9q-7UFTOGk",
+          "duration": 420,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_s2_66",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
+          "category": "jingle"
+        },
+        {
+          "id": "track_1791201027674_5xb0",
+          "title": "Lease Of Life (Extended Mix)",
+          "artist": "James Poole",
+          "youtubeId": "DCox-Rk_dDE",
+          "duration": 240,
+          "category": "clip"
+        },
+        {
+          "id": "pr_bloc_1791197234957_p_67",
+          "title": "Promo Escape Psycho Circus 2026 2",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 40,
+          "category": "promo"
+        },
+        {
+          "id": "track_1791201052501_wjpp",
+          "title": "Shinjuku",
+          "artist": "Franky Rizardo",
+          "youtubeId": "WP1a5pBLctc",
+          "duration": 180,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_s_68",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
+          "category": "jingle"
         }
       ],
       "specialJingles": []
@@ -14474,6 +14570,102 @@
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791200929361_ays5",
+      "title": "Beat Goes On",
+      "artist": "Adam Ten, Rafael",
+      "youtubeId": "obxiQ2tt3as",
+      "duration": 300,
+      "category": "clip"
+    },
+    {
+      "id": "pr_bloc_1791197234957_p_63",
+      "title": "Promo Escape Psycho Circus 2026 1",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 47,
+      "category": "promo"
+    },
+    {
+      "id": "track_1791200965841_d2p8",
+      "title": "Activated (Extended Mix)",
+      "artist": "Piem & SLM",
+      "youtubeId": "WgAxtTC5RWs",
+      "duration": 300,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_s_64",
+      "title": "Dropsiders Radio Jingle 2",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791200984433_mfqn",
+      "title": "Too Much (Extended Mix) [DFTD]",
+      "artist": "nocapz. & Coppola",
+      "youtubeId": "lNZ5G9TNbig",
+      "duration": 240,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_n_65",
+      "title": "Dropsiders Radio Jingle 1",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+      "duration": 8,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791201008273_x6xu",
+      "title": "Each Step (Powerhouse Mix)",
+      "artist": "Deetron & Seth Troxler",
+      "youtubeId": "o9q-7UFTOGk",
+      "duration": 420,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_s2_66",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791201027674_5xb0",
+      "title": "Lease Of Life (Extended Mix)",
+      "artist": "James Poole",
+      "youtubeId": "DCox-Rk_dDE",
+      "duration": 240,
+      "category": "clip"
+    },
+    {
+      "id": "pr_bloc_1791197234957_p_67",
+      "title": "Promo Escape Psycho Circus 2026 2",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 40,
+      "category": "promo"
+    },
+    {
+      "id": "track_1791201052501_wjpp",
+      "title": "Shinjuku",
+      "artist": "Franky Rizardo",
+      "youtubeId": "WP1a5pBLctc",
+      "duration": 180,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_s_68",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
