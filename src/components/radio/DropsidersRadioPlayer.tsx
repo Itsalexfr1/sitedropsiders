@@ -96,10 +96,21 @@ function AudioBars({ playing }: { playing: boolean }) {
  * Le state React suit juste pour l'UI.
  */
 function useRadioAudio() {
-    const iframeRef = useRef<HTMLIFrameElement>(null);
+    // ─── DOUBLE IFRAME PING-PONG (Gapless YouTube) ───────────────────────────
+    // iframeRef = iframe ACTIVE (visible, son activé)
+    // iframeRefB = iframe BUFFER (cachée, son muté, precharge le track suivant)
+    // À chaque fin de track : on swap les deux → transition instantanée zéro blanc
+    const iframeRef = useRef<HTMLIFrameElement>(null);  // slot A (actif)
+    const iframeRefB = useRef<HTMLIFrameElement>(null); // slot B (buffer)
+    // Quel slot est actuellement actif : 'A' ou 'B'
+    const activeSlotRef = useRef<'A' | 'B'>('A');
     const audioRef = useRef<HTMLAudioElement>(null);
+    // Preload audio HTML5 caché (pour les jingles audioUrl)
+    const audioPreloadRef = useRef<HTMLAudioElement | null>(null);
     // Ref vers le set courant — toujours à jour, accessible en synchrone dans le click handler
     const currentSetRef = useRef<ComputedRadioScheduleItem | null>(null);
+    // Timestamp du démarrage du track actuel (pour le guard anti-coupure < 90s)
+    const trackStartedAtRef = useRef<number>(0);
 
     // ─── Activation ──────────────────────────────────────────────────────────
     const [isEnabled, setIsEnabled] = useState<boolean>(() => {
@@ -181,6 +192,9 @@ function useRadioAudio() {
     // Garde currentSetRef toujours à jour (pas de stale closure dans handlePlay)
     useEffect(() => { currentSetRef.current = currentSet; }, [currentSet]);
 
+    // ─── SYNC AUTOMATIQUE : déclarée après advanceToNextTrack (voir plus bas) ───
+    const liveTrackIdRef = useRef<string | undefined>(undefined);
+
     // ─── État audio (UI only) ─────────────────────────────────────────────────
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
@@ -190,9 +204,20 @@ function useRadioAudio() {
     });
 
     // ─── postMessage vers YouTube ────────────────────────────────────────────
+    // sendCmd : envoie la commande à l'iframe ACTIVE seulement
     const sendCmd = useCallback((func: string, args: any = '') => {
+        const activeIframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
         try {
-            iframeRef.current?.contentWindow?.postMessage(
+            activeIframe?.contentWindow?.postMessage(
+                JSON.stringify({ event: 'command', func, args }), '*'
+            );
+        } catch {}
+    }, []);
+    // sendCmdBuffer : envoie la commande à l'iframe BUFFER (pour le preload silencieux)
+    const sendCmdBuffer = useCallback((func: string, args: any = '') => {
+        const bufIframe = activeSlotRef.current === 'A' ? iframeRefB.current : iframeRef.current;
+        try {
+            bufIframe?.contentWindow?.postMessage(
                 JSON.stringify({ event: 'command', func, args }), '*'
             );
         } catch {}
@@ -209,11 +234,11 @@ function useRadioAudio() {
     useEffect(() => { isMutedRef.current = isMuted; }, [isMuted]);
     useEffect(() => { volumeRef.current = volume; }, [volume]);
 
-    // ─── Préchargement muet dès qu'un set YouTube est disponible ────────────
-    // PRELOAD SUPPRIMÉ : le preload muet à start=0 causait un redémarrage
-    // depuis le début quand handlePlay détectait alreadyLoaded=true.
-    // YouTube bufferise automatiquement — pas besoin de preload manuel.
+    // ─── Prebuffer YouTube : track preloadé dans l'iframe buffer ────────────
+    // preloadedVideoIdRef = videoId actuellement en train de charger dans le slot buffer
     const preloadedVideoIdRef = useRef<string | null>(null);
+    // preloadedAudioUrlRef = audioUrl en train d'être buffé dans audioPreloadRef
+    const preloadedAudioUrlRef = useRef<string | null>(null);
 
     // ─── Canaux & Durées Découvertes ─────────────────────────────────────────
     // ─── Comptage Réel des Auditeurs (Sans Simulation Artificielle) ─────────
@@ -438,13 +463,38 @@ function useRadioAudio() {
         }
     }, [currentSet?.id, currentSet?.audioUrl, currentSet?.youtubeId, sendCmd]);
 
-    // ─── ENCHAÎNEMENT : passe au track suivant par INDEX dans le schedule ───────
-    // Charge le prochain track DIRECTEMENT et IMPERATIVEMENT (sans attendre le useEffect)
-    // pour éviter le problème où deux tracks consécutifs ont le même youtubeId (le useEffect
-    // ne se re-déclenche pas si la dépendance ne change pas).
+    // ─── Helper : preload le track suivant en silence dans l'iframe BUFFER ────
+    const preloadNextTrack = useCallback((nextTrack: ComputedRadioScheduleItem) => {
+        if (!nextTrack) return;
+        if (nextTrack.youtubeId && !IS_MOBILE) {
+            // Charger dans l'iframe BUFFER (muted=1, start=0)
+            const bufIframe = activeSlotRef.current === 'A' ? iframeRefB.current : iframeRef.current;
+            if (bufIframe && preloadedVideoIdRef.current !== nextTrack.youtubeId) {
+                bufIframe.src = buildSrc(nextTrack.youtubeId, 0, 1); // muted=1 toujours
+                preloadedVideoIdRef.current = nextTrack.youtubeId;
+            }
+        } else if (nextTrack.audioUrl) {
+            // Preload audio HTML5 en silence
+            if (preloadedAudioUrlRef.current !== nextTrack.audioUrl) {
+                if (!audioPreloadRef.current) {
+                    audioPreloadRef.current = new Audio();
+                    audioPreloadRef.current.preload = 'auto';
+                    audioPreloadRef.current.volume = 0;
+                }
+                audioPreloadRef.current.src = nextTrack.audioUrl;
+                audioPreloadRef.current.load();
+                preloadedAudioUrlRef.current = nextTrack.audioUrl;
+            }
+        }
+    }, []);
+
+    // ─── ENCHAÎNEMENT : swap ping-pong instantané (zéro blanc) ──────────────
+    // Pour YouTube : si le track suivant était préchargé dans le slot buffer,
+    // on swap les deux iframes instantanément → transition sans blanc.
+    // Pour l'audio HTML5 : on swap avec l'élément préchargé.
     const advanceToNextTrack = useCallback(() => {
-        // Signaler le changement de track pour resetter le watchdog
         window.dispatchEvent(new CustomEvent('dropsiders_radio_track_changed'));
+        trackStartedAtRef.current = Date.now();
         const cur = activeTrackRef.current;
         try {
             const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
@@ -461,80 +511,189 @@ function useRadioAudio() {
             const nextIdx = curIdx >= 0 && curIdx < schedule.length - 1 ? curIdx + 1 : 0;
             const nextTrack = schedule[nextIdx];
 
-            // ── Mise à jour de l'état React (pour l'UI) ──────────────────────
-            activeTrackRef.current = nextTrack; // sync immédiat de la ref
-            currentSetRef.current = nextTrack;  // sync immédiat de la ref
+            activeTrackRef.current = nextTrack;
+            currentSetRef.current = nextTrack;
             currentPlayingMediaRef.current = null;
             setActiveTrack(nextTrack);
             setUiTimeSec(nextTrack.startSecondsFromMidnight);
 
-            // ── Chargement IMPÉRATIF du prochain track ───────────────────────
-            // On n'attend PAS le useEffect réactif : on charge directement ici.
-            if (!isPlayingRef.current) return; // pas en lecture → rien à faire
+            if (!isPlayingRef.current) return;
 
             if (nextTrack.audioUrl) {
-                // Stopper l'iframe YouTube si active
-                if (iframeRef.current && iframeRef.current.src !== 'about:blank') {
-                    sendCmd('pauseVideo');
-                    iframeRef.current.src = 'about:blank';
-                    preloadedVideoIdRef.current = null;
-                }
-                if (audioRef.current) {
+                // ── Track audio HTML5 ────────────────────────────────────────
+                // Couper les deux iframes YouTube
+                [iframeRef.current, iframeRefB.current].forEach(iframe => {
+                    if (iframe && iframe.src !== 'about:blank') {
+                        iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
+                        iframe.src = 'about:blank';
+                    }
+                });
+                preloadedVideoIdRef.current = null;
+                activeSlotRef.current = 'A';
+
+                // Si le track était préchargé dans audioPreloadRef → démarrage quasi-instantané
+                const isPreloaded = audioPreloadRef.current &&
+                    preloadedAudioUrlRef.current === nextTrack.audioUrl &&
+                    audioPreloadRef.current.readyState >= 3;
+
+                const targetVol = isMutedRef.current ? 0 : (effectiveVolumeRef.current / 100);
+                if (isPreloaded && audioPreloadRef.current) {
+                    const preEl = audioPreloadRef.current;
+                    preEl.volume = targetVol;
+                    preEl.currentTime = 0;
+                    preEl.play().catch(() => {});
+                    // Copier vers l'élément principal (pour que 'ended' soit écouté sur audioRef)
+                    if (audioRef.current) {
+                        if (audioRef.current && !audioRef.current.paused) audioRef.current.pause();
+                        audioRef.current.src = nextTrack.audioUrl;
+                        audioRef.current.currentTime = 0;
+                        audioRef.current.volume = targetVol;
+                        audioRef.current.play().then(() => {
+                            currentPlayingMediaRef.current = nextTrack.audioUrl || null;
+                            preEl.pause(); preEl.src = '';
+                        }).catch(() => {});
+                    }
+                    preloadedAudioUrlRef.current = null;
+                } else if (audioRef.current) {
                     audioRef.current.src = nextTrack.audioUrl;
                     audioRef.current.currentTime = 0;
-                    audioRef.current.volume = isMutedRef.current ? 0 : (effectiveVolumeRef.current / 100);
+                    audioRef.current.volume = targetVol;
                     audioRef.current.play().then(() => {
                         currentPlayingMediaRef.current = nextTrack.audioUrl || null;
                     }).catch(() => {});
                 }
             } else if (nextTrack.youtubeId) {
-                // Stopper l'audio HTML5 si actif
+                // ── Track YouTube — SWAP PING-PONG INSTANTANÉ ────────────────
                 if (audioRef.current && !audioRef.current.paused) {
                     audioRef.current.pause();
                     audioRef.current.src = '';
                 }
                 const ytId = nextTrack.youtubeId;
-                const mobileMute: 0 | 1 = IS_MOBILE ? 0 : (isMutedRef.current ? 1 : 0);
-                if (iframeRef.current) {
-                    iframeRef.current.src = buildSrc(ytId, 0, mobileMute);
-                    preloadedVideoIdRef.current = ytId;
+                const bufSlot = activeSlotRef.current === 'A' ? 'B' : 'A';
+                const bufIframe = bufSlot === 'A' ? iframeRef.current : iframeRefB.current;
+                const isPreloadedInBuffer = !IS_MOBILE &&
+                    bufIframe?.src?.includes(ytId) &&
+                    preloadedVideoIdRef.current === ytId;
+
+                if (isPreloadedInBuffer && bufIframe) {
+                    // ── SWAP INSTANTANÉ : activer le slot buffer → zéro blanc ──
+                    activeSlotRef.current = bufSlot;
+                    bufIframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: '' }), '*');
+                    bufIframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'setVolume', args: [effectiveVolumeRef.current] }), '*');
+                    bufIframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: '' }), '*');
+                    // Réinitialiser l'ancien slot (devient buffer)
+                    const oldIframe = bufSlot === 'A' ? iframeRefB.current : iframeRef.current;
+                    if (oldIframe) {
+                        oldIframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
+                        oldIframe.src = 'about:blank';
+                    }
+                    currentPlayingMediaRef.current = ytId;
+                    preloadedVideoIdRef.current = null;
+                    // Preloader le track N+2 en avance
+                    const nextNextIdx = nextIdx < schedule.length - 1 ? nextIdx + 1 : 0;
+                    setTimeout(() => preloadNextTrack(schedule[nextNextIdx]), 500);
+                } else {
+                    // ── Pas de preload : charger normalement (délai minimal 200ms) ──
+                    const activeIframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
+                    const mobileMute: 0 | 1 = IS_MOBILE ? 0 : (isMutedRef.current ? 1 : 0);
+                    if (activeIframe) {
+                        activeIframe.src = buildSrc(ytId, 0, mobileMute);
+                        preloadedVideoIdRef.current = ytId;
+                    }
+                    currentPlayingMediaRef.current = ytId;
+                    setTimeout(() => {
+                        if (!isMutedRef.current) sendCmd('unMute');
+                        sendCmd('setVolume', [IS_MOBILE ? 100 : effectiveVolumeRef.current]);
+                        sendCmd('playVideo');
+                        // Preloader N+2
+                        const nextNextIdx = nextIdx < schedule.length - 1 ? nextIdx + 1 : 0;
+                        setTimeout(() => preloadNextTrack(schedule[nextNextIdx]), 1000);
+                    }, IS_MOBILE ? 800 : 200);
                 }
-                currentPlayingMediaRef.current = ytId;
-                setTimeout(() => {
-                    if (!isMutedRef.current) sendCmd('unMute');
-                    sendCmd('setVolume', [IS_MOBILE ? 100 : effectiveVolumeRef.current]);
-                    sendCmd('playVideo');
-                }, IS_MOBILE ? 800 : 300);
             }
         } catch {
-            // Fallback: avancer de 5 min dans le schedule
             setUiTimeSec(prev => (prev + 300) % 86400);
         }
-    }, [sendCmd]);
+    }, [sendCmd, preloadNextTrack]);
 
-    // 1. Écoute de l'événement YouTube postMessage (info: 0 => ENDED)
-    // IMPORTANT: on vérifie STRICTEMENT que c'est un événement 'onStateChange'
-    // pour éviter qu'un postMessage quelconque avec {info:0} déclenche un advance
+    // ─── SYNC AUTOMATIQUE HORLOGE → TRACK ACTIF ──────────────────────────────
+    // Quand le schedule change de plage (ex: jingle qui commence ou se termine),
+    // et qu'on est en lecture, on force la transition SAUF si le track actuel vient de
+    // démarrer (< 90s) et est un long set → on laisse 'ended' gérer la fin naturelle.
+    useEffect(() => {
+        const newLiveId = liveInfo?.item?.id;
+        if (
+            newLiveId &&
+            newLiveId !== liveTrackIdRef.current &&
+            liveTrackIdRef.current !== undefined &&
+            isPlayingRef.current &&
+            activeTrackRef.current &&
+            newLiveId !== activeTrackRef.current.id
+        ) {
+            const elapsedSinceStart = Date.now() - trackStartedAtRef.current;
+            const isShortTrack = (
+                activeTrackRef.current.category === 'jingle' ||
+                activeTrackRef.current.isTopHoraire ||
+                activeTrackRef.current.isThemeJingle ||
+                (activeTrackRef.current.durationSeconds ?? 9999) < 120
+            );
+            // Forcer si : track court, ou track lancé il y a > 90s
+            if (isShortTrack || elapsedSinceStart > 90000) {
+                advanceToNextTrack();
+            }
+            // Sinon : laisser 'ended' / watchdog gérer la transition naturellement
+        }
+        liveTrackIdRef.current = newLiveId;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [liveInfo?.item?.id]);
+
+
+    // 1. Écoute de l'événement YouTube postMessage
     // States YouTube : -1=unstarted, 0=ended, 1=playing, 2=paused, 3=buffering, 5=cued
+    // Erreurs YouTube : 2=invalide, 5=HTML5 non supporté, 100=vidéo non trouvée, 101/150=restriction
     const ytStateRef = useRef<number>(-1);
     useEffect(() => {
         const handleYtMessage = (event: MessageEvent) => {
             try {
                 const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-                // Uniquement sur onStateChange ENDED (state 0) — et seulement si on joue vraiment une vidéo YT
+
+                // ── Erreur YouTube → skip automatique (géo-restriction, age-gate, vidéo supprimée)
+                if (data?.event === 'onError' && isPlayingRef.current) {
+                    const errCode = typeof data.info === 'number' ? data.info : 0;
+                    // Codes 100, 101, 150 = vidéo indisponible → passer au track suivant
+                    if ([2, 100, 101, 150].includes(errCode)) {
+                        advanceToNextTrack();
+                        return;
+                    }
+                }
+
+                // ── Changement d'état YouTube ──
                 if (
                     data &&
                     data.event === 'onStateChange' &&
                     isPlayingRef.current &&
                     currentSetRef.current?.youtubeId
                 ) {
+                    const prevState = ytStateRef.current;
                     ytStateRef.current = typeof data.info === 'number' ? data.info : -1;
+
                     if (data.info === 0) {
                         // ENDED : avancer immédiatement
                         advanceToNextTrack();
+                    } else if (data.info === 1 && prevState !== 1) {
+                        // PLAYING démarre → preloader le track suivant en avance dans le slot buffer
+                        const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
+                        const cur = currentSetRef.current;
+                        const curIdx = cur ? schedule.findIndex(s => s.id === cur.id ||
+                            (cur.youtubeId && s.youtubeId === cur.youtubeId)) : -1;
+                        if (curIdx >= 0) {
+                            const nextIdx = curIdx < schedule.length - 1 ? curIdx + 1 : 0;
+                            setTimeout(() => preloadNextTrack(schedule[nextIdx]), 2000);
+                        }
                     }
                 }
-                // Récupération automatique de la durée réelle rapportée par le player YouTube
+
+                // ── Durée réelle rapportée par le player YouTube ──
                 if (data?.info?.duration && currentSetRef.current?.youtubeId) {
                     const dur = Math.round(Number(data.info.duration));
                     if (dur > 5) {
@@ -548,15 +707,34 @@ function useRadioAudio() {
                         } catch {}
                     }
                 }
-                // Réponse aux getCurrentTime polling : si le player répond avec currentTime
+
+                // ── Réponse getCurrentTime polling (pour le watchdog et le preload anticipé) ──
                 if (data?.event === 'infoDelivery' && data?.info?.currentTime !== undefined) {
-                    window.dispatchEvent(new CustomEvent('yt_current_time', { detail: data.info.currentTime }));
+                    const ct = data.info.currentTime as number;
+                    const dur = data.info.duration as number | undefined;
+                    window.dispatchEvent(new CustomEvent('yt_current_time', { detail: ct }));
+
+                    // Preload anticipé : quand il reste ~30s sur le track courant → charger le suivant
+                    if (dur && dur > 0 && ct > 0 && !IS_MOBILE) {
+                        const remaining = dur - ct;
+                        if (remaining > 0 && remaining < 35 && currentSetRef.current?.youtubeId) {
+                            const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
+                            const cur = currentSetRef.current;
+                            const curIdx = cur ? schedule.findIndex(s => s.id === cur.id ||
+                                (cur.youtubeId && s.youtubeId === cur.youtubeId)) : -1;
+                            if (curIdx >= 0) {
+                                const nextIdx = curIdx < schedule.length - 1 ? curIdx + 1 : 0;
+                                preloadNextTrack(schedule[nextIdx]);
+                            }
+                        }
+                    }
                 }
             } catch {}
         };
         window.addEventListener('message', handleYtMessage);
         return () => window.removeEventListener('message', handleYtMessage);
-    }, [advanceToNextTrack]);
+    }, [advanceToNextTrack, preloadNextTrack]);
+
 
     // 2. Écoute de l'événement Audio HTML5 onended (Jingle / Track terminé)
     useEffect(() => {
@@ -796,10 +974,25 @@ function useRadioAudio() {
                 }
             }
             // Lance la lecture et initialise activeTrack
+            trackStartedAtRef.current = Date.now(); // marquer le début pour le guard anti-coupure
             setIsPlaying(true);
             // Figer le track actif au moment du Play (découplé de l'horloge)
             if (!activeTrackRef.current) {
                 setActiveTrack(currentSetRef.current);
+            }
+            // Preloader le track suivant ~2s après le démarrage (sur desktop uniquement)
+            if (!IS_MOBILE) {
+                setTimeout(() => {
+                    const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
+                    const cur = currentSetRef.current;
+                    const curIdx = cur ? schedule.findIndex(s => s.id === cur.id ||
+                        (cur.youtubeId && s.youtubeId === cur.youtubeId) ||
+                        (cur.audioUrl && s.audioUrl === cur.audioUrl)) : -1;
+                    if (curIdx >= 0) {
+                        const nextIdx = curIdx < schedule.length - 1 ? curIdx + 1 : 0;
+                        preloadNextTrack(schedule[nextIdx]);
+                    }
+                }, 2000);
             }
         } else {
             // Pause propre sans vider l'iframe ni réinitialiser la position
@@ -810,18 +1003,26 @@ function useRadioAudio() {
             setActiveTrack(null);
             setUiTimeSec(getParisSeconds());
         }
-    }, [sendCmd]);
+    }, [sendCmd, preloadNextTrack]);
 
     const handleStop = useCallback(() => {
         currentPlayingMediaRef.current = null;
+        preloadedVideoIdRef.current = null;
+        preloadedAudioUrlRef.current = null;
         if (audioRef.current) audioRef.current.pause();
-        if (iframeRef.current) iframeRef.current.src = 'about:blank';
-        sendCmd('pauseVideo');
+        if (audioPreloadRef.current) { audioPreloadRef.current.pause(); audioPreloadRef.current.src = ''; }
+        // Stopper et vider les deux slots iframe
+        [iframeRef.current, iframeRefB.current].forEach(iframe => {
+            if (iframe) {
+                iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
+                iframe.src = 'about:blank';
+            }
+        });
+        activeSlotRef.current = 'A'; // reset au slot A
         setIsPlaying(false);
-        // Clear activeTrack et resynchroniser l'horloge
         setActiveTrack(null);
         setUiTimeSec(getParisSeconds());
-    }, [sendCmd]);
+    }, []);
 
     const handleNext = useCallback(() => {
         advanceToNextTrack();
@@ -896,7 +1097,7 @@ function useRadioAudio() {
     }, [handlePlay, handleStop, handleNext, toggleMute, isMuted]);
 
     return {
-        isEnabled, currentSet, uiOffset, iframeRef, audioRef,
+        isEnabled, currentSet, uiOffset, iframeRef, iframeRefB, audioRef,
         isPlaying, isMuted, volume, effectiveVolume, isDucking, listenersCount,
         setVolume, setIsMuted, handlePlay, handleStop, handleNext, toggleMute,
     };
@@ -904,9 +1105,11 @@ function useRadioAudio() {
 
 type AudioState = ReturnType<typeof useRadioAudio>;
 
-// ─── Iframe unique & Element Audio — toujours montés ────────────────────
-function RadioIframe({ iframeRef, audioRef }: {
+// ─── Double Iframe (A + B ping-pong) + Element Audio — toujours montés ────
+// Slot A = iframe active (son), Slot B = iframe buffer (preload muet).
+function RadioIframe({ iframeRef, iframeRefB, audioRef }: {
     iframeRef: React.RefObject<HTMLIFrameElement | null>;
+    iframeRefB: React.RefObject<HTMLIFrameElement | null>;
     audioRef: React.RefObject<HTMLAudioElement | null>;
 }) {
     return (
@@ -921,12 +1124,21 @@ function RadioIframe({ iframeRef, audioRef }: {
             pointerEvents: 'none',
             zIndex: 1,
         }} aria-hidden="true">
+            {/* Slot A — iframe ACTIVE (par défaut) */}
             <iframe
                 ref={iframeRef as React.RefObject<HTMLIFrameElement>}
                 allow="autoplay; encrypted-media; picture-in-picture"
                 allowFullScreen
-                title="Dropsiders Radio"
-                style={{ width: '100%', height: '100%', border: 'none' }}
+                title="Dropsiders Radio A"
+                style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', top: 0, left: 0 }}
+            />
+            {/* Slot B — iframe BUFFER (preload silencieux du track suivant) */}
+            <iframe
+                ref={iframeRefB as React.RefObject<HTMLIFrameElement>}
+                allow="autoplay; encrypted-media; picture-in-picture"
+                allowFullScreen
+                title="Dropsiders Radio B"
+                style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', top: 0, left: 0 }}
             />
             {/* FIX MOBILE BACKGROUND: x-webkit-airplay aide iOS à garder l'audio en arrière-plan */}
             <audio
@@ -1472,7 +1684,7 @@ export function DropsidersRadioPlayer() {
     return (
         <>
             {/* Iframe & Audio TOUJOURS montés (jamais null) — dans le viewport, opacité 0 */}
-            <RadioIframe iframeRef={audio.iframeRef} audioRef={audio.audioRef} />
+            <RadioIframe iframeRef={audio.iframeRef} iframeRefB={audio.iframeRefB} audioRef={audio.audioRef} />
             {/* Sur version mobile : dès qu'un mix est en route OU sur une page studio, masquer la radio */}
             {!isMixActive && !isStudioPage && <MobileRadioPlayer audio={audio} />}
             {/* Sur desktop : masquer aussi sur les pages studio */}
