@@ -315,8 +315,26 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                             </span>
                                         </div>
 
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className={`text-xs font-black uppercase truncate transition-colors ${openTrackTitle === track.title ? 'text-neon-cyan' : 'text-white group-hover/item:text-neon-cyan'}`}>
+                                            <div className="flex-1 min-w-0 overflow-hidden">
+                                            <h4
+                                                className={`font-black uppercase whitespace-nowrap transition-colors leading-tight ${openTrackTitle === track.title ? 'text-neon-cyan' : 'text-white group-hover/item:text-neon-cyan'}`}
+                                                style={{
+                                                    fontSize: track.title.length > 60
+                                                        ? '7px'
+                                                        : track.title.length > 45
+                                                        ? '8.5px'
+                                                        : track.title.length > 32
+                                                        ? '10px'
+                                                        : track.title.length > 22
+                                                        ? '11px'
+                                                        : '12px',
+                                                    display: 'block',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    maxWidth: '100%'
+                                                }}
+                                                title={track.title}
+                                            >
                                                 {track.title}
                                             </h4>
                                             <div className="flex items-center gap-2 mt-1">

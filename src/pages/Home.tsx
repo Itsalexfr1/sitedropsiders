@@ -143,11 +143,11 @@ export function Home() {
             case 'tiktok':
                 return (
                     <section key="tiktok" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
-                        <div className="flex flex-col lg:flex-row gap-8 items-stretch">
-                            <div className="w-full lg:w-[50%]">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+                            <div className="w-full">
                                 <TikTokWidget accentColor={accentColor} resolvedColor={color} username={socials?.tiktok} />
                             </div>
-                            <div className="w-full lg:w-[50%]">
+                            <div className="w-full">
                                 <TopTracksLeaderboard resolvedColor={color} />
                             </div>
                         </div>
@@ -160,11 +160,11 @@ export function Home() {
                             <div className="h-[1px] w-full bg-red-900/40" />
                         </div>
                         <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
-                            <div className="flex flex-col lg:flex-row gap-8 items-stretch">
-                                <div className="w-full lg:w-[50%]">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+                                <div className="w-full">
                                     <SpotifyWidget accentColor={accentColor} resolvedColor={color} hideTabs={true} />
                                 </div>
-                                <div className="w-full lg:w-[50%]">
+                                <div className="w-full">
                                     <CommunityMixesLeaderboard />
                                 </div>
                             </div>

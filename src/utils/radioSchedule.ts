@@ -833,6 +833,14 @@ export function saveCachedRadioDuration(idOrYt: string, durationSec: number): vo
     } catch {}
 }
 
+const LIVE_SET_KEYWORDS = ['live', 'set', 'festival', 'tomorrowland', 'ultra', 'edc', 'lost lands', 'defqon', 'awakenings', 'b2b', 'stage', 'closing', 'opening', 'full set', 'session', 'journey'];
+
+export function isLikelySingleTrack(title?: string): boolean {
+    if (!title) return true;
+    const lower = title.toLowerCase();
+    return !LIVE_SET_KEYWORDS.some(k => lower.includes(k));
+}
+
 export function sanitizeTrackDuration(t: RadioTrackItem): number {
     const cached = getCachedRadioDurations();
     // 1. Durée réelle mesurée et mise en cache lors de la lecture (prioritaire)
@@ -840,21 +848,26 @@ export function sanitizeTrackDuration(t: RadioTrackItem): number {
     if (t.audioUrl && cached[t.audioUrl] && cached[t.audioUrl] > 0) return cached[t.audioUrl];
     if (t.id && cached[t.id] && cached[t.id] > 0) return cached[t.id];
 
-    // 2. Durée réelle explicite enregistrée dans les données
-    // NOTE: on accepte toute durée > 0, y compris les live sets > 3600s
+    // 2. Durée réelle explicite enregistrée dans les données avec correction des placeholders
     if (t.duration && t.duration > 0) {
+        if (t.category === 'clip' && t.duration >= 1800) return 210;
+        if ((t.category === 'jingle' || t.isTopHoraire || t.isThemeJingle) && t.duration > 120) return 15;
+        if ((t.category === 'promo' || t.category === 'pub') && t.duration > 300) return 45;
+        if (t.duration === 3600 && isLikelySingleTrack(t.title)) return 210;
         return t.duration;
     }
 
-    // 3. Estimations de sécurité selon le type de média (affichage uniquement)
-    // Le changement de piste réel se fait via détection de blanc, PAS via ces durées
-    if (t.category === 'promo') return 47;
+    // 3. Estimations de sécurité selon le type de média
+    if (t.category === 'promo') return 45;
     if (t.category === 'jingle' || t.isTopHoraire || t.isThemeJingle) return 15;
     if (t.category === 'pub') return 30;
-    if (t.category === 'clip') return 240;       // ~4min pour les clips vidéo
-    if (t.category === 'interview') return 600;   // ~10min pour les interviews
-    if (t.category === 'liveset' || t.category === 'set') return 3600; // ~1h pour les live sets
-    return 240; // ~4min par défaut
+    if (t.category === 'clip') return 210; // ~3m30 pour les clips vidéo
+    if (t.category === 'interview') return 600; // ~10min pour les interviews
+    if (t.category === 'liveset' || t.category === 'set') {
+        if (isLikelySingleTrack(t.title)) return 210;
+        return 3600; // ~1h pour les vrais live sets
+    }
+    return 210; // ~3m30 par défaut
 }
 
 /**

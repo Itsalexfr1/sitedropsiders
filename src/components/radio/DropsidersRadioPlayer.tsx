@@ -537,7 +537,12 @@ function useRadioAudio() {
     // Pour YouTube : si le track suivant était préchargé dans le slot buffer,
     // on swap les deux iframes instantanément → transition sans blanc.
     // Pour l'audio HTML5 : on swap avec l'élément préchargé.
+    const isAdvancingRef = useRef<boolean>(false);
     const advanceToNextTrack = useCallback(() => {
+        if (isAdvancingRef.current) return;
+        isAdvancingRef.current = true;
+        setTimeout(() => { isAdvancingRef.current = false; }, 2500);
+
         window.dispatchEvent(new CustomEvent('dropsiders_radio_track_changed'));
         trackStartedAtRef.current = Date.now();
         // Activer le cooldown : bloque le sync-auto pendant 20s pour éviter la boucle
@@ -679,40 +684,8 @@ function useRadioAudio() {
         // Mettre à jour la ref AVANT tout return pour le prochain tick
         liveTrackIdRef.current = newLiveId;
 
-        if (
-            newLiveId &&
-            prevLiveId !== undefined &&        // pas le premier tick (initialisation)
-            newLiveId !== prevLiveId &&         // le live a changé de créneau
-            isPlayingRef.current &&
-            activeTrackRef.current &&
-            newLiveId !== activeTrackRef.current.id
-        ) {
-            // ⚠️ COOLDOWN : ne pas déclencher si on vient juste de faire une transition.
-            // Cela brise la boucle : advanceToNextTrack set uiTimeSec au futur,
-            // le clock interval le remet à l'heure réelle (créneau précédent),
-            // liveInfo.item.id change à nouveau → sans cooldown = boucle infinie.
-            if (Date.now() < syncAutoCooldownUntilRef.current) return;
-
-            const active = activeTrackRef.current;
-
-            // Ne JAMAIS couper un jingle, promo, top horaire ou track court.
-            const isTransientTrack = (
-                active.category === 'jingle' ||
-                active.category === 'promo' ||
-                active.category === 'pub' ||
-                active.isTopHoraire ||
-                active.isThemeJingle ||
-                (active.durationSeconds ?? 9999) < 300
-            );
-            if (isTransientTrack) return;
-
-            // Pour les longs sets : forcer la transition si on a joué pendant > 10s
-            // (assez pour confirmer que c'est une vraie transition, pas un artefact)
-            const elapsedSinceStart = Date.now() - trackStartedAtRef.current;
-            if (elapsedSinceStart > 10000) {
-                advanceToNextTrack();
-            }
-        }
+        // Une fois qu'un morceau a commencé la lecture, on ne le coupe JAMAIS en cours de route.
+        // La transition se fera naturellement à la fin du morceau (événement ended / fin du clip).
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [liveInfo?.item?.id]);
 
@@ -783,7 +756,13 @@ function useRadioAudio() {
                     const dur = data.info.duration as number | undefined;
                     window.dispatchEvent(new CustomEvent('yt_current_time', { detail: ct }));
 
-                    // Preload anticipé : quand il reste ~30s sur le track courant → charger le suivant
+                    // FIN DU TRACK : dès que ct atteint dur - 0.8s → enchaîner INSTANTANÉMENT pile au moment où ça finit
+                    if (dur && dur > 5 && ct > 0 && ct >= dur - 0.8 && isPlayingRef.current) {
+                        advanceToNextTrack();
+                        return;
+                    }
+
+                    // Preload anticipé : quand il reste ~35s sur le track courant → charger le suivant
                     if (dur && dur > 0 && ct > 0 && !IS_MOBILE) {
                         const remaining = dur - ct;
                         if (remaining > 0 && remaining < 35 && currentSetRef.current?.youtubeId) {
