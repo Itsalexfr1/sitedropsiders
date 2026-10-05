@@ -6195,6 +6195,22 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
           "category": "jingle"
+        },
+        {
+          "id": "track_1791209148562_bkcj",
+          "title": "There Is Life",
+          "artist": "Disco Dom",
+          "youtubeId": "6gt0XdrPjDY",
+          "duration": 240,
+          "category": "clip"
+        },
+        {
+          "id": "nj_bloc_1791197234957_s2_86",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
+          "category": "jingle"
         }
       ],
       "specialJingles": []
@@ -15122,6 +15138,22 @@
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 32,
+      "category": "jingle"
+    },
+    {
+      "id": "track_1791209148562_bkcj",
+      "title": "There Is Life",
+      "artist": "Disco Dom",
+      "youtubeId": "6gt0XdrPjDY",
+      "duration": 240,
+      "category": "clip"
+    },
+    {
+      "id": "nj_bloc_1791197234957_s2_86",
+      "title": "Dropsiders Radio Jingle 2",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+      "duration": 10,
       "category": "jingle"
     },
     {
