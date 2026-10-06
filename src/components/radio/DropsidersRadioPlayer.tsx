@@ -712,14 +712,21 @@ function useRadioAudio() {
                     const nextNextIdx = nextIdx < schedule.length - 1 ? nextIdx + 1 : 0;
                     setTimeout(() => preloadNextTrack(schedule[nextNextIdx]), 500);
                 } else {
-                    // ── Pas de preload : recharger directement l'iframe.src (méthode la plus fiable pour l'autoplay après transition) ──
+                    // ── Pas de preload : utiliser loadVideoById (préserve le contexte autoplay du navigateur) ──
+                    // IMPORTANT : on utilise loadVideoById via postMessage comme méthode principale.
+                    // Recharger iframe.src détruit l'ancienne iframe → ses messages tardifs (onStateChange:0)
+                    // arrivent APRÈS le chargement du nouveau track et déclenchent un skip immédiat.
                     const activeIframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
                     const mobileMute: 0 | 1 = IS_MOBILE ? 0 : (isMutedRef.current ? 1 : 0);
                     if (activeIframe) {
-                        // On recharge toujours l'iframe.src directement : c'est la méthode la plus fiable.
-                        // loadVideoById via postMessage peut être silencieusement ignoré par le navigateur
-                        // après une transition sans geste utilisateur → le player reste bloqué en état -1.
-                        activeIframe.src = buildSrc(ytId, 0, mobileMute);
+                        if (activeIframe.src && activeIframe.src.includes('youtube.com/embed/')) {
+                            // Charger la nouvelle vidéo dans le player existant → autoplay préservé, zéro message tardif
+                            sendCmd('loadVideoById', [ytId, 0]);
+                            sendCmd('loadVideoById', { videoId: ytId, startSeconds: 0 });
+                        } else {
+                            // L'iframe n'était pas chargée → chargement initial normal
+                            activeIframe.src = buildSrc(ytId, 0, mobileMute);
+                        }
                         preloadedVideoIdRef.current = ytId;
                     }
                     currentPlayingMediaRef.current = nextTrack.id || ytId;
@@ -728,22 +735,20 @@ function useRadioAudio() {
                     // Preloader N+2
                     const nextNextIdx = nextIdx < schedule.length - 1 ? nextIdx + 1 : 0;
                     setTimeout(() => preloadNextTrack(schedule[nextNextIdx]), 1000);
-                    // ── FALLBACK ANTI-BLANC : si le player ne démarre pas en 5s, reforcer la lecture ──
-                    // Cas : autoplay bloqué ou message YT perdu → on re-envoie playVideo
+                    // ── FALLBACK ANTI-BLANC : si loadVideoById échoue (état != 1 après 6s), recharger l'iframe ──
+                    // Ce fallback ne se déclenche QUE si la vidéo n'a pas démarré, évitant les faux positifs.
                     setTimeout(() => {
                         if (!isPlayingRef.current) return;
-                        // Si le player est encore unstarted (-1) ou ended (0), refaire un playVideo
-                        if (ytStateRef.current === -1 || ytStateRef.current === 0 || ytStateRef.current === 2) {
+                        // Seulement si pas en lecture (1) ni en buffering (3)
+                        if (ytStateRef.current !== 1 && ytStateRef.current !== 3) {
                             const iframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
-                            if (iframe && iframe.src && iframe.src.includes(ytId)) {
-                                sendCmd('playVideo');
-                            } else if (iframe) {
-                                // Dernier recours : recharger l'iframe.src
+                            if (iframe) {
+                                // Rechargement iframe en dernier recours (loadVideoById a échoué)
                                 iframe.src = buildSrc(ytId, 0, mobileMute);
-                                setTimeout(() => sendCmd('playVideo'), 1000);
+                                setTimeout(() => sendCmd('playVideo'), 1500);
                             }
                         }
-                    }, 5000);
+                    }, 6000);
                 }
             }
         } catch {
