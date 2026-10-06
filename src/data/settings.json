@@ -4822,7 +4822,7 @@
       "emoji": "🎧",
       "randomize": true,
       "jingleFrequency": 2,
-      "rotationRule": "jingle_son_special_promo",
+      "rotationRule": "son_special_son_jingle_promo",
       "tracks": [
         {
           "id": "nj_bloc_1791197234957_emission_start_special",
@@ -4873,12 +4873,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_2",
-          "title": "Dropsiders Radio Jingle 4",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_2",
+          "title": "Promo Tomorrowland Winter",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+          "duration": 66,
+          "category": "promo"
         },
         {
           "id": "track_1791197353125_98b6",
@@ -4889,12 +4889,12 @@
           "category": "clip"
         },
         {
-          "id": "pr_bloc_1791197234957_p_3",
-          "title": "Promo Tomorrowland Winter",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "promo"
+          "id": "nj_bloc_1791197234957_s_3",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
+          "category": "jingle"
         },
         {
           "id": "track_1791197366597_revy",
@@ -4905,7 +4905,7 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s_4",
+          "id": "nj_bloc_1791197234957_n_4",
           "title": "Dropsiders Radio Jingle 5",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
@@ -4921,12 +4921,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_n_5",
-          "title": "Dropsiders Radio Jingle 6",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-          "duration": 9,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_5",
+          "title": "Promo Escape Psycho Circus 2026 1",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 47,
+          "category": "promo"
         },
         {
           "id": "track_1791197393845_01ac",
@@ -4937,11 +4937,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_6",
-          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "id": "nj_bloc_1791197234957_s_6",
+          "title": "Dropsiders Radio Jingle 6",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 15,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+          "duration": 9,
           "category": "jingle"
         },
         {
@@ -4953,12 +4953,12 @@
           "category": "clip"
         },
         {
-          "id": "pr_bloc_1791197234957_p_7",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "promo"
+          "id": "nj_bloc_1791197234957_n_7",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 15,
+          "category": "jingle"
         },
         {
           "id": "track_1791197440621_a53h",
@@ -4969,12 +4969,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s_8",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 30,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_8",
+          "title": "Promo Escape Psycho Circus 2026 2",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 40,
+          "category": "promo"
         },
         {
           "id": "track_1791197455653_ybtv",
@@ -4985,11 +4985,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_n_9",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+          "id": "nj_bloc_1791197234957_s_9",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 28,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 30,
           "category": "jingle"
         },
         {
@@ -5001,11 +5001,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_10",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+          "id": "nj_bloc_1791197234957_n_10",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 22,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 28,
           "category": "jingle"
         },
         {
@@ -5018,10 +5018,10 @@
         },
         {
           "id": "pr_bloc_1791197234957_p_11",
-          "title": "Promo Escape Psycho Circus 2026 2",
+          "title": "Promo Tomorrowland Winter",
           "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+          "duration": 66,
           "category": "promo"
         },
         {
@@ -5034,10 +5034,10 @@
         },
         {
           "id": "nj_bloc_1791197234957_s_12",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 33,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 22,
           "category": "jingle"
         },
         {
@@ -5050,10 +5050,10 @@
         },
         {
           "id": "nj_bloc_1791197234957_n_13",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 46,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 33,
           "category": "jingle"
         },
         {
@@ -5065,12 +5065,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_14",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 44,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_14",
+          "title": "Promo Escape Psycho Circus 2026 1",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 47,
+          "category": "promo"
         },
         {
           "id": "track_1791197555573_p9eq",
@@ -5081,12 +5081,12 @@
           "category": "clip"
         },
         {
-          "id": "pr_bloc_1791197234957_p_15",
-          "title": "Promo Tomorrowland Winter",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "promo"
+          "id": "nj_bloc_1791197234957_s_15",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 46,
+          "category": "jingle"
         },
         {
           "id": "track_1791197742366_k5k9",
@@ -5097,11 +5097,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s_16",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
+          "id": "nj_bloc_1791197234957_n_16",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 28,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 44,
           "category": "jingle"
         },
         {
@@ -5113,12 +5113,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_n_17",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 26,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_17",
+          "title": "Promo Escape Psycho Circus 2026 2",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 40,
+          "category": "promo"
         },
         {
           "id": "track_1791198070734_mne5",
@@ -5129,11 +5129,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_18",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
+          "id": "nj_bloc_1791197234957_s_18",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 32,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 28,
           "category": "jingle"
         },
         {
@@ -5145,12 +5145,12 @@
           "category": "clip"
         },
         {
-          "id": "pr_bloc_1791197234957_p_19",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "promo"
+          "id": "nj_bloc_1791197234957_n_19",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 26,
+          "category": "jingle"
         },
         {
           "id": "track_1791198102694_pya0",
@@ -5161,12 +5161,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s_20",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 32,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_20",
+          "title": "Promo Tomorrowland Winter",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+          "duration": 66,
+          "category": "promo"
         },
         {
           "id": "track_1791198125431_00w8",
@@ -5177,11 +5177,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_n_21",
-          "title": "Dropsiders Radio Jingle 1",
+          "id": "nj_bloc_1791197234957_s_21",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -5193,11 +5193,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_22",
-          "title": "Dropsiders Radio Jingle 2",
+          "id": "nj_bloc_1791197234957_n_22",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
-          "duration": 10,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -5210,10 +5210,10 @@
         },
         {
           "id": "pr_bloc_1791197234957_p_23",
-          "title": "Promo Escape Psycho Circus 2026 2",
+          "title": "Promo Escape Psycho Circus 2026 1",
           "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 47,
           "category": "promo"
         },
         {
@@ -5226,10 +5226,10 @@
         },
         {
           "id": "nj_bloc_1791197234957_s_24",
-          "title": "Dropsiders Radio Jingle 3",
+          "title": "Dropsiders Radio Jingle 1",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -5242,10 +5242,10 @@
         },
         {
           "id": "nj_bloc_1791197234957_n_25",
-          "title": "Dropsiders Radio Jingle 4",
+          "title": "Dropsiders Radio Jingle 2",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
           "category": "jingle"
         },
         {
@@ -5257,12 +5257,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_26",
-          "title": "Dropsiders Radio Jingle 5",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_26",
+          "title": "Promo Escape Psycho Circus 2026 2",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 40,
+          "category": "promo"
         },
         {
           "id": "track_1791198663169_22zw",
@@ -5273,12 +5273,12 @@
           "category": "clip"
         },
         {
-          "id": "pr_bloc_1791197234957_p_27",
-          "title": "Promo Tomorrowland Winter",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "promo"
+          "id": "nj_bloc_1791197234957_s_27",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
+          "category": "jingle"
         },
         {
           "id": "track_1791198885191_smgo",
@@ -5289,11 +5289,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s_28",
-          "title": "Dropsiders Radio Jingle 6",
+          "id": "nj_bloc_1791197234957_n_28",
+          "title": "Dropsiders Radio Jingle 4",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-          "duration": 9,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -5305,12 +5305,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_n_29",
-          "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 15,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_29",
+          "title": "Promo Tomorrowland Winter",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+          "duration": 66,
+          "category": "promo"
         },
         {
           "id": "track_1791199054080_kx54",
@@ -5321,11 +5321,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_30",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+          "id": "nj_bloc_1791197234957_s_30",
+          "title": "Dropsiders Radio Jingle 5",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 30,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+          "duration": 14,
           "category": "jingle"
         },
         {
@@ -5337,12 +5337,12 @@
           "category": "clip"
         },
         {
-          "id": "pr_bloc_1791197234957_p_31",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "promo"
+          "id": "nj_bloc_1791197234957_n_31",
+          "title": "Dropsiders Radio Jingle 6",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+          "duration": 9,
+          "category": "jingle"
         },
         {
           "id": "track_1791199495270_9ra1",
@@ -5353,12 +5353,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s_32",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 28,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_32",
+          "title": "Promo Escape Psycho Circus 2026 1",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 47,
+          "category": "promo"
         },
         {
           "id": "track_1791199514626_fzg8",
@@ -5369,11 +5369,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_n_33",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+          "id": "nj_bloc_1791197234957_s_33",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 22,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 15,
           "category": "jingle"
         },
         {
@@ -5385,11 +5385,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_34",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
+          "id": "nj_bloc_1791197234957_n_34",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 33,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 30,
           "category": "jingle"
         },
         {
@@ -5418,10 +5418,10 @@
         },
         {
           "id": "nj_bloc_1791197234957_s_36",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 46,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 28,
           "category": "jingle"
         },
         {
@@ -5434,10 +5434,10 @@
         },
         {
           "id": "nj_bloc_1791197234957_n_37",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 44,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 22,
           "category": "jingle"
         },
         {
@@ -5449,12 +5449,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_38",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 28,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_38",
+          "title": "Promo Tomorrowland Winter",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+          "duration": 66,
+          "category": "promo"
         },
         {
           "id": "track_1791199792944_snl6",
@@ -5465,12 +5465,12 @@
           "category": "clip"
         },
         {
-          "id": "pr_bloc_1791197234957_p_39",
-          "title": "Promo Tomorrowland Winter",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "promo"
+          "id": "nj_bloc_1791197234957_s_39",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 33,
+          "category": "jingle"
         },
         {
           "id": "track_1791199813128_u1d0",
@@ -5481,11 +5481,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s_40",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+          "id": "nj_bloc_1791197234957_n_40",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 26,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 46,
           "category": "jingle"
         },
         {
@@ -5497,12 +5497,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_n_41",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 32,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_41",
+          "title": "Promo Escape Psycho Circus 2026 1",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 47,
+          "category": "promo"
         },
         {
           "id": "track_1791199896345_b3gn",
@@ -5513,11 +5513,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_42",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
+          "id": "nj_bloc_1791197234957_s_42",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 32,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 44,
           "category": "jingle"
         },
         {
@@ -5529,12 +5529,12 @@
           "category": "clip"
         },
         {
-          "id": "pr_bloc_1791197234957_p_43",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "promo"
+          "id": "nj_bloc_1791197234957_n_43",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 28,
+          "category": "jingle"
         },
         {
           "id": "track_1791199934696_yq7z",
@@ -5545,12 +5545,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s_44",
-          "title": "Dropsiders Radio Jingle 1",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_44",
+          "title": "Promo Escape Psycho Circus 2026 2",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 40,
+          "category": "promo"
         },
         {
           "id": "track_1791199950536_8dts",
@@ -5561,11 +5561,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_n_45",
-          "title": "Dropsiders Radio Jingle 2",
+          "id": "nj_bloc_1791197234957_s_45",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
-          "duration": 10,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 26,
           "category": "jingle"
         },
         {
@@ -5577,11 +5577,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_46",
-          "title": "Dropsiders Radio Jingle 3",
+          "id": "nj_bloc_1791197234957_n_46",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -5594,10 +5594,10 @@
         },
         {
           "id": "pr_bloc_1791197234957_p_47",
-          "title": "Promo Escape Psycho Circus 2026 2",
+          "title": "Promo Tomorrowland Winter",
           "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+          "duration": 66,
           "category": "promo"
         },
         {
@@ -5610,10 +5610,10 @@
         },
         {
           "id": "nj_bloc_1791197234957_s_48",
-          "title": "Dropsiders Radio Jingle 4",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -5626,10 +5626,10 @@
         },
         {
           "id": "nj_bloc_1791197234957_n_49",
-          "title": "Dropsiders Radio Jingle 5",
+          "title": "Dropsiders Radio Jingle 1",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -5641,12 +5641,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_50",
-          "title": "Dropsiders Radio Jingle 6",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-          "duration": 9,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_50",
+          "title": "Promo Escape Psycho Circus 2026 1",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 47,
+          "category": "promo"
         },
         {
           "id": "track_1791200517361_5pmg",
@@ -5657,12 +5657,12 @@
           "category": "clip"
         },
         {
-          "id": "pr_bloc_1791197234957_p_51",
-          "title": "Promo Tomorrowland Winter",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "promo"
+          "id": "nj_bloc_1791197234957_s_51",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
+          "category": "jingle"
         },
         {
           "id": "track_1791200629381_b6qc",
@@ -5673,11 +5673,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s_52",
-          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "id": "nj_bloc_1791197234957_n_52",
+          "title": "Dropsiders Radio Jingle 3",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 15,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -5689,12 +5689,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_n_53",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 30,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_53",
+          "title": "Promo Escape Psycho Circus 2026 2",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 40,
+          "category": "promo"
         },
         {
           "id": "track_1791200671281_yh39",
@@ -5705,11 +5705,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_54",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+          "id": "nj_bloc_1791197234957_s_54",
+          "title": "Dropsiders Radio Jingle 4",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 28,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -5721,12 +5721,12 @@
           "category": "clip"
         },
         {
-          "id": "pr_bloc_1791197234957_p_55",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "promo"
+          "id": "nj_bloc_1791197234957_n_55",
+          "title": "Dropsiders Radio Jingle 5",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+          "duration": 14,
+          "category": "jingle"
         },
         {
           "id": "track_1791200701713_9o2o",
@@ -5737,12 +5737,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s_56",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 22,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_56",
+          "title": "Promo Tomorrowland Winter",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+          "duration": 66,
+          "category": "promo"
         },
         {
           "id": "track_1791200719386_8hs2",
@@ -5753,11 +5753,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_n_57",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
+          "id": "nj_bloc_1791197234957_s_57",
+          "title": "Dropsiders Radio Jingle 6",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 33,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+          "duration": 9,
           "category": "jingle"
         },
         {
@@ -5769,11 +5769,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_58",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+          "id": "nj_bloc_1791197234957_n_58",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 46,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 15,
           "category": "jingle"
         },
         {
@@ -5786,10 +5786,10 @@
         },
         {
           "id": "pr_bloc_1791197234957_p_59",
-          "title": "Promo Escape Psycho Circus 2026 2",
+          "title": "Promo Escape Psycho Circus 2026 1",
           "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 47,
           "category": "promo"
         },
         {
@@ -5802,10 +5802,10 @@
         },
         {
           "id": "nj_bloc_1791197234957_s_60",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 44,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 30,
           "category": "jingle"
         },
         {
@@ -5818,9 +5818,9 @@
         },
         {
           "id": "nj_bloc_1791197234957_n_61",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 28,
           "category": "jingle"
         },
@@ -5833,12 +5833,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_62",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 26,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_62",
+          "title": "Promo Escape Psycho Circus 2026 2",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 40,
+          "category": "promo"
         },
         {
           "id": "track_1791200984433_mfqn",
@@ -5849,12 +5849,12 @@
           "category": "clip"
         },
         {
-          "id": "pr_bloc_1791197234957_p_63",
-          "title": "Promo Tomorrowland Winter",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "promo"
+          "id": "nj_bloc_1791197234957_s_63",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 22,
+          "category": "jingle"
         },
         {
           "id": "track_1791201008273_x6xu",
@@ -5865,11 +5865,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s_64",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
+          "id": "nj_bloc_1791197234957_n_64",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 32,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 33,
           "category": "jingle"
         },
         {
@@ -5881,12 +5881,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_n_65",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 32,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_65",
+          "title": "Promo Tomorrowland Winter",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+          "duration": 66,
+          "category": "promo"
         },
         {
           "id": "track_1791201052501_wjpp",
@@ -5897,11 +5897,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_66",
-          "title": "Dropsiders Radio Jingle 1",
+          "id": "nj_bloc_1791197234957_s_66",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 46,
           "category": "jingle"
         },
         {
@@ -5913,12 +5913,12 @@
           "category": "clip"
         },
         {
-          "id": "pr_bloc_1791197234957_p_67",
-          "title": "Promo Escape Psycho Circus 2026 1",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "promo"
+          "id": "nj_bloc_1791197234957_n_67",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 44,
+          "category": "jingle"
         },
         {
           "id": "track_1791292443113_gf3j",
@@ -5929,12 +5929,12 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s_68",
-          "title": "Dropsiders Radio Jingle 2",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
-          "duration": 10,
-          "category": "jingle"
+          "id": "pr_bloc_1791197234957_p_68",
+          "title": "Promo Escape Psycho Circus 2026 1",
+          "artist": "PROMO DROPSIDERS",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+          "duration": 47,
+          "category": "promo"
         },
         {
           "id": "track_1791292462766_os97",
@@ -5945,11 +5945,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_n_69",
-          "title": "Dropsiders Radio Jingle 3",
+          "id": "nj_bloc_1791197234957_s_69",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 28,
           "category": "jingle"
         },
         {
@@ -5961,11 +5961,11 @@
           "category": "clip"
         },
         {
-          "id": "nj_bloc_1791197234957_s2_70",
-          "title": "Dropsiders Radio Jingle 4",
+          "id": "nj_bloc_1791197234957_n_70",
+          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 26,
           "category": "jingle"
         },
         {
@@ -5983,102 +5983,6 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
           "duration": 40,
           "category": "promo"
-        },
-        {
-          "id": "track_1791292535488_3ue3",
-          "title": "This Rhythm (feat. RAHH)",
-          "artist": "Prospa",
-          "youtubeId": "6ayiOciWuto",
-          "duration": 180,
-          "category": "clip"
-        },
-        {
-          "id": "nj_bloc_1791197234957_s_72",
-          "title": "Dropsiders Radio Jingle 5",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
-          "category": "jingle"
-        },
-        {
-          "id": "track_1791292557655_shwm",
-          "title": "Don’t Stop",
-          "artist": "Prospa",
-          "youtubeId": "82hopSpwqqg",
-          "duration": 120,
-          "category": "clip"
-        },
-        {
-          "id": "nj_bloc_1791197234957_n_73",
-          "title": "Dropsiders Radio Jingle 6",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-          "duration": 9,
-          "category": "jingle"
-        },
-        {
-          "id": "track_1791292572050_t2si",
-          "title": "Break Free",
-          "artist": "Prospa & KETTAMA",
-          "youtubeId": "mfWC0R-1qrU",
-          "duration": 240,
-          "category": "clip"
-        },
-        {
-          "id": "nj_bloc_1791197234957_s2_74",
-          "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 15,
-          "category": "jingle"
-        },
-        {
-          "id": "track_1791292601113_bf26",
-          "title": "TOO COOL TO BE CARELESS",
-          "artist": "PAWSA",
-          "youtubeId": "LhxjP0hsQE8",
-          "duration": 180,
-          "category": "clip"
-        },
-        {
-          "id": "pr_bloc_1791197234957_p_75",
-          "title": "Promo Tomorrowland Winter",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "promo"
-        },
-        {
-          "id": "track_1791292618976_8b6o",
-          "title": "You Don’t Own Me (feat. RAHH)",
-          "artist": "Prospa and Josh Baker -",
-          "youtubeId": "MjYLLtlEBXM",
-          "duration": 180,
-          "category": "clip"
-        },
-        {
-          "id": "nj_bloc_1791197234957_s_76",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 30,
-          "category": "jingle"
-        },
-        {
-          "id": "track_1791292642599_n8yn",
-          "title": "Free Your Mind",
-          "artist": "Prospa, Cloonee, & Sybil",
-          "youtubeId": "gJYjbDnyx-o",
-          "duration": 180,
-          "category": "clip"
-        },
-        {
-          "id": "nj_bloc_1791197234957_n_77",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 28,
-          "category": "jingle"
         }
       ],
       "specialJingles": []
@@ -13708,12 +13612,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_2",
-      "title": "Dropsiders Radio Jingle 4",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_2",
+      "title": "Promo Tomorrowland Winter",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+      "duration": 66,
+      "category": "promo"
     },
     {
       "id": "track_1791197353125_98b6",
@@ -13724,12 +13628,12 @@
       "category": "clip"
     },
     {
-      "id": "pr_bloc_1791197234957_p_3",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
+      "id": "nj_bloc_1791197234957_s_3",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
+      "category": "jingle"
     },
     {
       "id": "track_1791197366597_revy",
@@ -13740,7 +13644,7 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s_4",
+      "id": "nj_bloc_1791197234957_n_4",
       "title": "Dropsiders Radio Jingle 5",
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
@@ -13756,12 +13660,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_n_5",
-      "title": "Dropsiders Radio Jingle 6",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-      "duration": 9,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_5",
+      "title": "Promo Escape Psycho Circus 2026 1",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 47,
+      "category": "promo"
     },
     {
       "id": "track_1791197393845_01ac",
@@ -13772,11 +13676,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_6",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "id": "nj_bloc_1791197234957_s_6",
+      "title": "Dropsiders Radio Jingle 6",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 15,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+      "duration": 9,
       "category": "jingle"
     },
     {
@@ -13788,12 +13692,12 @@
       "category": "clip"
     },
     {
-      "id": "pr_bloc_1791197234957_p_7",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "promo"
+      "id": "nj_bloc_1791197234957_n_7",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 15,
+      "category": "jingle"
     },
     {
       "id": "track_1791197440621_a53h",
@@ -13804,12 +13708,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s_8",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 30,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_8",
+      "title": "Promo Escape Psycho Circus 2026 2",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 40,
+      "category": "promo"
     },
     {
       "id": "track_1791197455653_ybtv",
@@ -13820,11 +13724,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_n_9",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+      "id": "nj_bloc_1791197234957_s_9",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 28,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 30,
       "category": "jingle"
     },
     {
@@ -13836,11 +13740,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_10",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+      "id": "nj_bloc_1791197234957_n_10",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 22,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 28,
       "category": "jingle"
     },
     {
@@ -13853,10 +13757,10 @@
     },
     {
       "id": "pr_bloc_1791197234957_p_11",
-      "title": "Promo Escape Psycho Circus 2026 2",
+      "title": "Promo Tomorrowland Winter",
       "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+      "duration": 66,
       "category": "promo"
     },
     {
@@ -13869,10 +13773,10 @@
     },
     {
       "id": "nj_bloc_1791197234957_s_12",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 33,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 22,
       "category": "jingle"
     },
     {
@@ -13885,10 +13789,10 @@
     },
     {
       "id": "nj_bloc_1791197234957_n_13",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 46,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 33,
       "category": "jingle"
     },
     {
@@ -13900,12 +13804,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_14",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 44,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_14",
+      "title": "Promo Escape Psycho Circus 2026 1",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 47,
+      "category": "promo"
     },
     {
       "id": "track_1791197555573_p9eq",
@@ -13916,12 +13820,12 @@
       "category": "clip"
     },
     {
-      "id": "pr_bloc_1791197234957_p_15",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
+      "id": "nj_bloc_1791197234957_s_15",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 46,
+      "category": "jingle"
     },
     {
       "id": "track_1791197742366_k5k9",
@@ -13932,11 +13836,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s_16",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
+      "id": "nj_bloc_1791197234957_n_16",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 28,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 44,
       "category": "jingle"
     },
     {
@@ -13948,12 +13852,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_n_17",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 26,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_17",
+      "title": "Promo Escape Psycho Circus 2026 2",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 40,
+      "category": "promo"
     },
     {
       "id": "track_1791198070734_mne5",
@@ -13964,11 +13868,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_18",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
+      "id": "nj_bloc_1791197234957_s_18",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 32,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 28,
       "category": "jingle"
     },
     {
@@ -13980,12 +13884,12 @@
       "category": "clip"
     },
     {
-      "id": "pr_bloc_1791197234957_p_19",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "promo"
+      "id": "nj_bloc_1791197234957_n_19",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 26,
+      "category": "jingle"
     },
     {
       "id": "track_1791198102694_pya0",
@@ -13996,12 +13900,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s_20",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 32,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_20",
+      "title": "Promo Tomorrowland Winter",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+      "duration": 66,
+      "category": "promo"
     },
     {
       "id": "track_1791198125431_00w8",
@@ -14012,11 +13916,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_n_21",
-      "title": "Dropsiders Radio Jingle 1",
+      "id": "nj_bloc_1791197234957_s_21",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
@@ -14028,11 +13932,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_22",
-      "title": "Dropsiders Radio Jingle 2",
+      "id": "nj_bloc_1791197234957_n_22",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
-      "duration": 10,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
@@ -14045,10 +13949,10 @@
     },
     {
       "id": "pr_bloc_1791197234957_p_23",
-      "title": "Promo Escape Psycho Circus 2026 2",
+      "title": "Promo Escape Psycho Circus 2026 1",
       "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 47,
       "category": "promo"
     },
     {
@@ -14061,10 +13965,10 @@
     },
     {
       "id": "nj_bloc_1791197234957_s_24",
-      "title": "Dropsiders Radio Jingle 3",
+      "title": "Dropsiders Radio Jingle 1",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -14077,10 +13981,10 @@
     },
     {
       "id": "nj_bloc_1791197234957_n_25",
-      "title": "Dropsiders Radio Jingle 4",
+      "title": "Dropsiders Radio Jingle 2",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+      "duration": 10,
       "category": "jingle"
     },
     {
@@ -14092,12 +13996,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_26",
-      "title": "Dropsiders Radio Jingle 5",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_26",
+      "title": "Promo Escape Psycho Circus 2026 2",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 40,
+      "category": "promo"
     },
     {
       "id": "track_1791198663169_22zw",
@@ -14108,12 +14012,12 @@
       "category": "clip"
     },
     {
-      "id": "pr_bloc_1791197234957_p_27",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
+      "id": "nj_bloc_1791197234957_s_27",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
+      "category": "jingle"
     },
     {
       "id": "track_1791198885191_smgo",
@@ -14124,11 +14028,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s_28",
-      "title": "Dropsiders Radio Jingle 6",
+      "id": "nj_bloc_1791197234957_n_28",
+      "title": "Dropsiders Radio Jingle 4",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-      "duration": 9,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -14140,12 +14044,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_n_29",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 15,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_29",
+      "title": "Promo Tomorrowland Winter",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+      "duration": 66,
+      "category": "promo"
     },
     {
       "id": "track_1791199054080_kx54",
@@ -14156,11 +14060,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_30",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+      "id": "nj_bloc_1791197234957_s_30",
+      "title": "Dropsiders Radio Jingle 5",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 30,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+      "duration": 14,
       "category": "jingle"
     },
     {
@@ -14172,12 +14076,12 @@
       "category": "clip"
     },
     {
-      "id": "pr_bloc_1791197234957_p_31",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "promo"
+      "id": "nj_bloc_1791197234957_n_31",
+      "title": "Dropsiders Radio Jingle 6",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+      "duration": 9,
+      "category": "jingle"
     },
     {
       "id": "track_1791199495270_9ra1",
@@ -14188,12 +14092,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s_32",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 28,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_32",
+      "title": "Promo Escape Psycho Circus 2026 1",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 47,
+      "category": "promo"
     },
     {
       "id": "track_1791199514626_fzg8",
@@ -14204,11 +14108,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_n_33",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+      "id": "nj_bloc_1791197234957_s_33",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 22,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 15,
       "category": "jingle"
     },
     {
@@ -14220,11 +14124,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_34",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
+      "id": "nj_bloc_1791197234957_n_34",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 33,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 30,
       "category": "jingle"
     },
     {
@@ -14253,10 +14157,10 @@
     },
     {
       "id": "nj_bloc_1791197234957_s_36",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 46,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 28,
       "category": "jingle"
     },
     {
@@ -14269,10 +14173,10 @@
     },
     {
       "id": "nj_bloc_1791197234957_n_37",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 44,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 22,
       "category": "jingle"
     },
     {
@@ -14284,12 +14188,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_38",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 28,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_38",
+      "title": "Promo Tomorrowland Winter",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+      "duration": 66,
+      "category": "promo"
     },
     {
       "id": "track_1791199792944_snl6",
@@ -14300,12 +14204,12 @@
       "category": "clip"
     },
     {
-      "id": "pr_bloc_1791197234957_p_39",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
+      "id": "nj_bloc_1791197234957_s_39",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 33,
+      "category": "jingle"
     },
     {
       "id": "track_1791199813128_u1d0",
@@ -14316,11 +14220,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s_40",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+      "id": "nj_bloc_1791197234957_n_40",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 26,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 46,
       "category": "jingle"
     },
     {
@@ -14332,12 +14236,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_n_41",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 32,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_41",
+      "title": "Promo Escape Psycho Circus 2026 1",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 47,
+      "category": "promo"
     },
     {
       "id": "track_1791199896345_b3gn",
@@ -14348,11 +14252,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_42",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
+      "id": "nj_bloc_1791197234957_s_42",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 32,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 44,
       "category": "jingle"
     },
     {
@@ -14364,12 +14268,12 @@
       "category": "clip"
     },
     {
-      "id": "pr_bloc_1791197234957_p_43",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "promo"
+      "id": "nj_bloc_1791197234957_n_43",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 28,
+      "category": "jingle"
     },
     {
       "id": "track_1791199934696_yq7z",
@@ -14380,12 +14284,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s_44",
-      "title": "Dropsiders Radio Jingle 1",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_44",
+      "title": "Promo Escape Psycho Circus 2026 2",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 40,
+      "category": "promo"
     },
     {
       "id": "track_1791199950536_8dts",
@@ -14396,11 +14300,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_n_45",
-      "title": "Dropsiders Radio Jingle 2",
+      "id": "nj_bloc_1791197234957_s_45",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
-      "duration": 10,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 26,
       "category": "jingle"
     },
     {
@@ -14412,11 +14316,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_46",
-      "title": "Dropsiders Radio Jingle 3",
+      "id": "nj_bloc_1791197234957_n_46",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
@@ -14429,10 +14333,10 @@
     },
     {
       "id": "pr_bloc_1791197234957_p_47",
-      "title": "Promo Escape Psycho Circus 2026 2",
+      "title": "Promo Tomorrowland Winter",
       "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+      "duration": 66,
       "category": "promo"
     },
     {
@@ -14445,10 +14349,10 @@
     },
     {
       "id": "nj_bloc_1791197234957_s_48",
-      "title": "Dropsiders Radio Jingle 4",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
@@ -14461,10 +14365,10 @@
     },
     {
       "id": "nj_bloc_1791197234957_n_49",
-      "title": "Dropsiders Radio Jingle 5",
+      "title": "Dropsiders Radio Jingle 1",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -14476,12 +14380,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_50",
-      "title": "Dropsiders Radio Jingle 6",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-      "duration": 9,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_50",
+      "title": "Promo Escape Psycho Circus 2026 1",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 47,
+      "category": "promo"
     },
     {
       "id": "track_1791200517361_5pmg",
@@ -14492,12 +14396,12 @@
       "category": "clip"
     },
     {
-      "id": "pr_bloc_1791197234957_p_51",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
+      "id": "nj_bloc_1791197234957_s_51",
+      "title": "Dropsiders Radio Jingle 2",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+      "duration": 10,
+      "category": "jingle"
     },
     {
       "id": "track_1791200629381_b6qc",
@@ -14508,11 +14412,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s_52",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "id": "nj_bloc_1791197234957_n_52",
+      "title": "Dropsiders Radio Jingle 3",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 15,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
       "category": "jingle"
     },
     {
@@ -14524,12 +14428,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_n_53",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 30,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_53",
+      "title": "Promo Escape Psycho Circus 2026 2",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 40,
+      "category": "promo"
     },
     {
       "id": "track_1791200671281_yh39",
@@ -14540,11 +14444,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_54",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+      "id": "nj_bloc_1791197234957_s_54",
+      "title": "Dropsiders Radio Jingle 4",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 28,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
@@ -14556,12 +14460,12 @@
       "category": "clip"
     },
     {
-      "id": "pr_bloc_1791197234957_p_55",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "promo"
+      "id": "nj_bloc_1791197234957_n_55",
+      "title": "Dropsiders Radio Jingle 5",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+      "duration": 14,
+      "category": "jingle"
     },
     {
       "id": "track_1791200701713_9o2o",
@@ -14572,12 +14476,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s_56",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 22,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_56",
+      "title": "Promo Tomorrowland Winter",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+      "duration": 66,
+      "category": "promo"
     },
     {
       "id": "track_1791200719386_8hs2",
@@ -14588,11 +14492,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_n_57",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
+      "id": "nj_bloc_1791197234957_s_57",
+      "title": "Dropsiders Radio Jingle 6",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 33,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+      "duration": 9,
       "category": "jingle"
     },
     {
@@ -14604,11 +14508,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_58",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
+      "id": "nj_bloc_1791197234957_n_58",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 46,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 15,
       "category": "jingle"
     },
     {
@@ -14621,10 +14525,10 @@
     },
     {
       "id": "pr_bloc_1791197234957_p_59",
-      "title": "Promo Escape Psycho Circus 2026 2",
+      "title": "Promo Escape Psycho Circus 2026 1",
       "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 47,
       "category": "promo"
     },
     {
@@ -14637,10 +14541,10 @@
     },
     {
       "id": "nj_bloc_1791197234957_s_60",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 44,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 30,
       "category": "jingle"
     },
     {
@@ -14653,9 +14557,9 @@
     },
     {
       "id": "nj_bloc_1791197234957_n_61",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
       "duration": 28,
       "category": "jingle"
     },
@@ -14668,12 +14572,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_62",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 26,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_62",
+      "title": "Promo Escape Psycho Circus 2026 2",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 40,
+      "category": "promo"
     },
     {
       "id": "track_1791200984433_mfqn",
@@ -14684,12 +14588,12 @@
       "category": "clip"
     },
     {
-      "id": "pr_bloc_1791197234957_p_63",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
+      "id": "nj_bloc_1791197234957_s_63",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 22,
+      "category": "jingle"
     },
     {
       "id": "track_1791201008273_x6xu",
@@ -14700,11 +14604,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s_64",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
+      "id": "nj_bloc_1791197234957_n_64",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 2",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 32,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 33,
       "category": "jingle"
     },
     {
@@ -14716,12 +14620,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_n_65",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 8",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 32,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_65",
+      "title": "Promo Tomorrowland Winter",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
+      "duration": 66,
+      "category": "promo"
     },
     {
       "id": "track_1791201052501_wjpp",
@@ -14732,11 +14636,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_66",
-      "title": "Dropsiders Radio Jingle 1",
+      "id": "nj_bloc_1791197234957_s_66",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 3",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-      "duration": 8,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 46,
       "category": "jingle"
     },
     {
@@ -14748,12 +14652,12 @@
       "category": "clip"
     },
     {
-      "id": "pr_bloc_1791197234957_p_67",
-      "title": "Promo Escape Psycho Circus 2026 1",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "promo"
+      "id": "nj_bloc_1791197234957_n_67",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 4",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 44,
+      "category": "jingle"
     },
     {
       "id": "track_1791292443113_gf3j",
@@ -14764,12 +14668,12 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s_68",
-      "title": "Dropsiders Radio Jingle 2",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
-      "duration": 10,
-      "category": "jingle"
+      "id": "pr_bloc_1791197234957_p_68",
+      "title": "Promo Escape Psycho Circus 2026 1",
+      "artist": "PROMO DROPSIDERS",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
+      "duration": 47,
+      "category": "promo"
     },
     {
       "id": "track_1791292462766_os97",
@@ -14780,11 +14684,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_n_69",
-      "title": "Dropsiders Radio Jingle 3",
+      "id": "nj_bloc_1791197234957_s_69",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 28,
       "category": "jingle"
     },
     {
@@ -14796,11 +14700,11 @@
       "category": "clip"
     },
     {
-      "id": "nj_bloc_1791197234957_s2_70",
-      "title": "Dropsiders Radio Jingle 4",
+      "id": "nj_bloc_1791197234957_n_70",
+      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 26,
       "category": "jingle"
     },
     {
@@ -14818,102 +14722,6 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
       "category": "promo"
-    },
-    {
-      "id": "track_1791292535488_3ue3",
-      "title": "This Rhythm (feat. RAHH)",
-      "artist": "Prospa",
-      "youtubeId": "6ayiOciWuto",
-      "duration": 180,
-      "category": "clip"
-    },
-    {
-      "id": "nj_bloc_1791197234957_s_72",
-      "title": "Dropsiders Radio Jingle 5",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-      "duration": 14,
-      "category": "jingle"
-    },
-    {
-      "id": "track_1791292557655_shwm",
-      "title": "Don’t Stop",
-      "artist": "Prospa",
-      "youtubeId": "82hopSpwqqg",
-      "duration": 120,
-      "category": "clip"
-    },
-    {
-      "id": "nj_bloc_1791197234957_n_73",
-      "title": "Dropsiders Radio Jingle 6",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-      "duration": 9,
-      "category": "jingle"
-    },
-    {
-      "id": "track_1791292572050_t2si",
-      "title": "Break Free",
-      "artist": "Prospa & KETTAMA",
-      "youtubeId": "mfWC0R-1qrU",
-      "duration": 240,
-      "category": "clip"
-    },
-    {
-      "id": "nj_bloc_1791197234957_s2_74",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 15,
-      "category": "jingle"
-    },
-    {
-      "id": "track_1791292601113_bf26",
-      "title": "TOO COOL TO BE CARELESS",
-      "artist": "PAWSA",
-      "youtubeId": "LhxjP0hsQE8",
-      "duration": 180,
-      "category": "clip"
-    },
-    {
-      "id": "pr_bloc_1791197234957_p_75",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
-    },
-    {
-      "id": "track_1791292618976_8b6o",
-      "title": "You Don’t Own Me (feat. RAHH)",
-      "artist": "Prospa and Josh Baker -",
-      "youtubeId": "MjYLLtlEBXM",
-      "duration": 180,
-      "category": "clip"
-    },
-    {
-      "id": "nj_bloc_1791197234957_s_76",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 30,
-      "category": "jingle"
-    },
-    {
-      "id": "track_1791292642599_n8yn",
-      "title": "Free Your Mind",
-      "artist": "Prospa, Cloonee, & Sybil",
-      "youtubeId": "gJYjbDnyx-o",
-      "duration": 180,
-      "category": "clip"
-    },
-    {
-      "id": "nj_bloc_1791197234957_n_77",
-      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 28,
-      "category": "jingle"
     },
     {
       "id": "sj_radio_bloc_1790256873762_k89p_emission_start_special",
