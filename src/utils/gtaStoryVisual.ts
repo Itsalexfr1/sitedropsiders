@@ -15,6 +15,8 @@ export async function generateGTA6StoryVisual(params: {
     canvas.height = height;
     const ctx = canvas.getContext('2d');
     if (!ctx) return '';
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
     // 1. Fond de base dégradé Vice City sombre
     const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
@@ -26,7 +28,7 @@ export async function generateGTA6StoryVisual(params: {
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, width, height);
 
-    // 2. Image principale officielle GTA 6 (Lucia & Jason)
+    // 2. Image principale officielle GTA 6 (Lucia & Jason) HD
     try {
         const heroImg = new Image();
         heroImg.crossOrigin = 'anonymous';
@@ -45,10 +47,9 @@ export async function generateGTA6StoryVisual(params: {
         if (heroImg.complete && heroImg.naturalWidth > 0) {
             ctx.save();
             const imgAspect = heroImg.naturalWidth / heroImg.naturalHeight;
-            const targetH = 1140;
-            const targetW = targetH * imgAspect;
-            const imgX = (width - targetW) / 2;
-            ctx.drawImage(heroImg, imgX, 0, targetW, targetH);
+            const targetW = width;
+            const targetH = targetW / imgAspect;
+            ctx.drawImage(heroImg, 0, 0, targetW, targetH);
 
             // Fondu haut (pour le logo et le header sans assombrir excessivement)
             const topFade = ctx.createLinearGradient(0, 0, 0, 310);
@@ -58,14 +59,14 @@ export async function generateGTA6StoryVisual(params: {
             ctx.fillStyle = topFade;
             ctx.fillRect(0, 0, width, 310);
 
-            // Fondu bas cinématique vers le noir complet pour les textes
-            const bottomFade = ctx.createLinearGradient(0, 720, 0, 1160);
+            // Fondu bas cinématique vers le noir complet sous Jason & Lucia
+            const bottomFade = ctx.createLinearGradient(0, 820, 0, 1180);
             bottomFade.addColorStop(0, 'rgba(6, 1, 14, 0)');
-            bottomFade.addColorStop(0.35, 'rgba(6, 1, 14, 0.65)');
-            bottomFade.addColorStop(0.70, 'rgba(6, 1, 14, 0.95)');
-            bottomFade.addColorStop(1, 'rgba(5, 1, 12, 1)');
+            bottomFade.addColorStop(0.40, 'rgba(6, 1, 14, 0.75)');
+            bottomFade.addColorStop(0.80, 'rgba(6, 1, 14, 0.97)');
+            bottomFade.addColorStop(1, '#06010e');
             ctx.fillStyle = bottomFade;
-            ctx.fillRect(0, 720, width, 440);
+            ctx.fillRect(0, 820, width, height - 820);
             ctx.restore();
         }
     } catch {
