@@ -745,7 +745,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
-                    : canvas.height * 0.4; // Remonté de 0.5 à 0.4 pour couvrir le texte plus haut
+                    : (theme === 'CONCOURS' ? canvas.height * 0.35 : canvas.height * 0.4);
 
                 const grad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
                 grad.addColorStop(0, 'rgba(0,0,0,0)');
@@ -753,18 +753,41 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     grad.addColorStop(0.3, 'rgba(255,255,255,0.2)');
                     grad.addColorStop(0.8, 'rgba(255,255,255,0.8)');
                     grad.addColorStop(1, '#ffffff');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
+                } else if (theme === 'CONCOURS') {
+                    // Fond noir profond cinématographique pour garantir une lisibilité absolue des textes
+                    grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+                    grad.addColorStop(0.18, 'rgba(3, 4, 10, 0.65)');
+                    grad.addColorStop(0.40, 'rgba(5, 6, 14, 0.92)');
+                    grad.addColorStop(0.70, 'rgba(6, 7, 16, 0.98)');
+                    grad.addColorStop(1, 'rgba(4, 4, 10, 1)');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
+
+                    // Ambiance néon délicate tout en bas (sans saturer ni masquer le texte)
+                    if (concoursBottomColor) {
+                        const rgb = hexToRgb(concoursBottomColor);
+                        const neonAtmosphere = ctx.createLinearGradient(0, canvas.height * 0.72, 0, canvas.height);
+                        neonAtmosphere.addColorStop(0, `rgba(${rgb}, 0)`);
+                        neonAtmosphere.addColorStop(1, `rgba(${rgb}, 0.22)`);
+                        ctx.fillStyle = neonAtmosphere;
+                        ctx.fillRect(0, canvas.height * 0.72, canvas.width, canvas.height * 0.28);
+                    }
                 } else {
-                    const rgbGrad = (theme === 'CONCOURS' && concoursBottomColor) ? hexToRgb(concoursBottomColor) : activeData.grad;
+                    const rgbGrad = activeData.grad;
                     grad.addColorStop(0.3, 'rgba(0,0,0,0.2)');
                     grad.addColorStop(0.8, `rgba(${rgbGrad}, 0.7)`);
                     grad.addColorStop(1, `rgba(${rgbGrad}, 1)`);
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
                 }
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
             }
 
+            // Lignes de scan rétro (uniquement sur le haut pour CONCOURS afin de garder les textes 100% nets)
+            const scanlineLimitY = theme === 'CONCOURS' ? canvas.height * 0.42 : canvas.height;
             ctx.fillStyle = 'rgba(0,0,0,0.1)';
-            for (let i = 0; i < canvas.height; i += 6) ctx.fillRect(0, i, canvas.width, 2);
+            for (let i = 0; i < scanlineLimitY; i += 6) ctx.fillRect(0, i, canvas.width, 2);
 
             // Transition Slide logic
             let slideX = 0;
@@ -1924,121 +1947,199 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 if (isGTA) {
                     // ==========================================
-                    // 2. TEMPLATE GTA 6 (Style Vice City Néon)
+                    // 2. TEMPLATE GTA 6 (Style Vice City Ultra Lisible)
                     // ==========================================
                     const headline = (concoursGTAHeadline || 'DROPSIDERS TE FAIT GAGNER').toUpperCase();
                     const gtaTitle = (concoursGTATitle || 'GTA 6').toUpperCase();
                     const platform = (concoursGTAPlatformText || 'SUR LA PLATEFORME DE TON CHOIX').toUpperCase();
-                    const subtitle = "POUR PARTICIPER C'EST TRÈS SIMPLE :";
+                    const subtitle = "POUR PARTICIPER :";
 
-                    const baseStartY = effectiveTab === 'PUBLICATION' ? 800 : 1220;
-                    let curY = baseStartY;
+                    const isPub = effectiveTab === 'PUBLICATION';
+                    let curY = isPub ? 730 : 1130;
 
                     // A) HEADLINE : DROPSIDERS TE FAIT GAGNER
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'alphabetic';
-                    ctx.font = effectiveTab === 'PUBLICATION' ? '900 italic 36px "Montserrat", sans-serif' : '900 italic 42px "Montserrat", sans-serif';
+                    ctx.font = isPub ? '900 italic 38px "Montserrat", sans-serif' : '900 italic 44px "Montserrat", sans-serif';
                     ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                    ctx.shadowBlur = 14;
+                    ctx.shadowColor = 'rgba(0, 0, 0, 1)';
+                    ctx.shadowBlur = 18;
                     ctx.fillText(headline, canvas.width / 2, curY);
 
-                    // B) GRAND TITRE : GTA 6 (Néon Rose Vice City)
-                    curY += effectiveTab === 'PUBLICATION' ? 76 : 88;
-                    ctx.font = effectiveTab === 'PUBLICATION' ? '900 italic 82px "Montserrat", sans-serif' : '900 italic 96px "Montserrat", sans-serif';
+                    // B) GRAND TITRE DU LOT : GTA 6 (Énorme néon avec contour sombre et éclat)
+                    curY += isPub ? 86 : 105;
+                    const titleFontSize = isPub ? 96 : 115;
+                    ctx.font = `900 italic ${titleFontSize}px "Montserrat", sans-serif`;
+                    ctx.lineWidth = 8;
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)';
+                    ctx.strokeText(gtaTitle, canvas.width / 2, curY);
                     ctx.fillStyle = '#ff007f';
-                    ctx.shadowColor = 'rgba(255, 0, 127, 0.85)';
-                    ctx.shadowBlur = 26;
+                    ctx.shadowColor = 'rgba(255, 0, 127, 0.95)';
+                    ctx.shadowBlur = 30;
                     ctx.fillText(gtaTitle, canvas.width / 2, curY);
 
-                    // C) PLATEFORME : SUR LA PLATEFORME DE TON CHOIX (Néon Jaune Or)
-                    curY += effectiveTab === 'PUBLICATION' ? 44 : 52;
-                    ctx.font = effectiveTab === 'PUBLICATION' ? '900 italic 24px "Montserrat", sans-serif' : '900 italic 28px "Montserrat", sans-serif';
-                    ctx.fillStyle = '#ffe600';
-                    ctx.shadowColor = 'rgba(255, 230, 0, 0.55)';
-                    ctx.shadowBlur = 12;
-                    ctx.fillText(platform, canvas.width / 2, curY);
+                    // C) PLATEFORME : Pilule élégante jaune néon / or
+                    curY += isPub ? 48 : 58;
+                    ctx.font = isPub ? '900 italic 21px "Montserrat", sans-serif' : '900 italic 25px "Montserrat", sans-serif';
+                    const platLabel = `🎮  ${platform}`;
+                    const platTextW = ctx.measureText(platLabel).width;
+                    const platPillW = platTextW + 48;
+                    const platPillH = isPub ? 38 : 44;
+                    const platPillX = (canvas.width - platPillW) / 2;
+                    const platPillY = curY - (platPillH * 0.75);
 
-                    // D) SOUS-TITRE : POUR PARTICIPER C'EST TRÈS SIMPLE :
-                    curY += effectiveTab === 'PUBLICATION' ? 48 : 56;
-                    ctx.font = effectiveTab === 'PUBLICATION' ? '900 italic 25px "Montserrat", sans-serif' : '900 italic 28px "Montserrat", sans-serif';
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                    ctx.shadowBlur = 10;
+                    ctx.fillStyle = 'rgba(255, 230, 0, 0.16)';
+                    ctx.beginPath();
+                    ctx.roundRect(platPillX, platPillY, platPillW, platPillH, platPillH / 2);
+                    ctx.fill();
+
+                    ctx.strokeStyle = '#ffe600';
+                    ctx.lineWidth = 2;
+                    ctx.shadowColor = 'rgba(255, 230, 0, 0.6)';
+                    ctx.shadowBlur = 12;
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#ffe600';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                    ctx.shadowBlur = 8;
+                    ctx.fillText(platLabel, canvas.width / 2, curY);
+
+                    // D) SOUS-TITRE : POUR PARTICIPER :
+                    curY += isPub ? 50 : 60;
+                    ctx.font = isPub ? '900 italic 25px "Montserrat", sans-serif' : '900 italic 29px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 1)';
+                    ctx.shadowBlur = 12;
                     ctx.fillText(subtitle, canvas.width / 2, curY);
 
-                    // E) LES 4 CONDITIONS DE PARTICIPATION
-                    curY += effectiveTab === 'PUBLICATION' ? 52 : 58;
-                    const condLines = [
-                        concoursGTACondition1 || '1 - likez la publication',
-                        concoursGTACondition2 || '2 - identifiez 2 potes qui doivent liker la page',
-                        concoursGTACondition3 || '3 - partagez en storie',
-                        concoursGTACondition4 || '4 - pour validez la participation repondez aux 3 questions qui sont disponible sur le site dropsiders.fr'
+                    // E) CARTE ULTRA-LISIBLE POUR LES 4 CONDITIONS
+                    curY += isPub ? 25 : 30;
+                    const cardMargin = 50;
+                    const cardW = canvas.width - (cardMargin * 2);
+                    const cardH = isPub ? 355 : 430;
+                    const cardX = cardMargin;
+                    const cardY = curY;
+
+                    // Fond de carte sombre et opaque (assure une lisibilité parfaite à 100%)
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(8, 12, 24, 0.94)';
+                    ctx.beginPath();
+                    ctx.roundRect(cardX, cardY, cardW, cardH, 24);
+                    ctx.fill();
+
+                    // Bordure dégradé néon (Cyan vers Rose)
+                    const cardBorderGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
+                    cardBorderGrad.addColorStop(0, 'rgba(0, 240, 255, 0.7)');
+                    cardBorderGrad.addColorStop(1, 'rgba(255, 0, 127, 0.7)');
+                    ctx.strokeStyle = cardBorderGrad;
+                    ctx.lineWidth = 2.5;
+                    ctx.shadowColor = 'rgba(0, 240, 255, 0.35)';
+                    ctx.shadowBlur = 18;
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // 4 LIGNES DE CONDITIONS STRUCTURÉES AVEC BADGES
+                    const conditionsData = [
+                        {
+                            num: '1',
+                            badgeColor: '#ff007f',
+                            badgeBg: 'rgba(255, 0, 127, 0.25)',
+                            text: concoursGTACondition1 || '1 - likez la publication'
+                        },
+                        {
+                            num: '2',
+                            badgeColor: '#00f0ff',
+                            badgeBg: 'rgba(0, 240, 255, 0.25)',
+                            text: concoursGTACondition2 || '2 - identifiez 2 potes qui doivent liker la page'
+                        },
+                        {
+                            num: '3',
+                            badgeColor: '#ffe600',
+                            badgeBg: 'rgba(255, 230, 0, 0.25)',
+                            text: concoursGTACondition3 || '3 - partagez en storie'
+                        },
+                        {
+                            num: '4',
+                            badgeColor: '#00f0ff',
+                            badgeBg: 'rgba(0, 240, 255, 0.25)',
+                            text: concoursGTACondition4 || '4 - pour validez la participation repondez aux 3 questions qui sont disponible sur le site dropsiders.fr'
+                        }
                     ];
 
-                    const formatSegments = (rawText: string): Array<{ text: string; color: string }> => {
-                        const upper = rawText.toUpperCase();
-                        const prefixMatch = upper.match(/^(\d+\s*[-–.]\s*)/);
-                        const prefix = prefixMatch ? prefixMatch[1] : '';
-                        const body = prefixMatch ? upper.slice(prefix.length) : upper;
+                    const rowH = isPub ? 82 : 100;
+                    const badgeR = isPub ? 21 : 25;
+                    const badgeX = cardX + (isPub ? 46 : 56);
+                    const textStartX = badgeX + badgeR + (isPub ? 22 : 26);
 
-                        const segments: Array<{ text: string; color: string }> = [];
-                        if (prefix) {
-                            segments.push({ text: prefix, color: '#ffe600' });
-                        }
+                    conditionsData.forEach((cond, idx) => {
+                        const rowCenterY = cardY + 28 + (idx * rowH) + (badgeR);
+
+                        // 1. Badge numéro circulaire
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(badgeX, rowCenterY, badgeR, 0, Math.PI * 2);
+                        ctx.fillStyle = cond.badgeBg;
+                        ctx.fill();
+                        ctx.strokeStyle = cond.badgeColor;
+                        ctx.lineWidth = 2;
+                        ctx.shadowColor = cond.badgeColor;
+                        ctx.shadowBlur = 10;
+                        ctx.stroke();
+
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = `900 italic ${isPub ? 21 : 25}px "Montserrat", sans-serif`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                        ctx.shadowBlur = 6;
+                        ctx.fillText(cond.num, badgeX, rowCenterY + 1);
+                        ctx.restore();
+
+                        // 2. Texte de la condition (Gras, net, lisible)
+                        ctx.save();
+                        ctx.textAlign = 'left';
+                        ctx.textBaseline = 'middle';
+
+                        let fontSize = isPub ? (idx === 3 ? 19.5 : 22.5) : (idx === 3 ? 24 : 27);
+                        ctx.font = `800 italic ${fontSize}px "Montserrat", sans-serif`;
+
+                        const rawText = (cond.text || '').toUpperCase().trim();
+                        const cleanedText = rawText.replace(/^\d+\s*[-–.]\s*/, '');
 
                         const keywords = [
-                            { word: 'DROPSIDERS.FR', color: '#00ffff' },
-                            { word: '3 QUESTIONS', color: '#00ffff' },
-                            { word: '2 POTES', color: '#00ffff' },
+                            { word: 'DROPSIDERS.FR', color: '#00f0ff' },
+                            { word: '3 QUESTIONS', color: '#ffe600' },
+                            { word: '2 POTES', color: '#00f0ff' },
                             { word: 'EN STORIE', color: '#ffe600' },
                             { word: 'EN STORY', color: '#ffe600' },
                             { word: 'LIKEZ LA PUBLICATION', color: '#ff007f' },
                             { word: 'LA PUBLICATION', color: '#ff007f' }
                         ];
 
-                        const pattern = new RegExp(`(${keywords.map(k => k.word.replace('.', '\\.')).join('|')})`, 'g');
-                        const tokens = body.split(pattern);
+                        const kwPattern = new RegExp(`(${keywords.map(k => k.word.replace('.', '\\.')).join('|')})`, 'g');
+                        const tokens = cleanedText.split(kwPattern);
+
+                        let currentX = textStartX;
+                        const maxTextW = (cardX + cardW - 25) - textStartX;
+
+                        while (ctx.measureText(cleanedText).width > maxTextW && fontSize > 14) {
+                            fontSize -= 0.5;
+                            ctx.font = `800 italic ${fontSize}px "Montserrat", sans-serif`;
+                        }
 
                         tokens.forEach(tok => {
                             if (!tok) return;
-                            const kw = keywords.find(k => k.word === tok);
-                            if (kw) {
-                                segments.push({ text: tok, color: kw.color });
-                            } else {
-                                segments.push({ text: tok, color: '#ffffff' });
-                            }
-                        });
-                        return segments;
-                    };
+                            const matchedKw = keywords.find(k => k.word === tok);
+                            const textColor = matchedKw ? matchedKw.color : '#ffffff';
 
-                    let condFontSize = effectiveTab === 'PUBLICATION' ? 22 : 24;
-                    const condLineHeight = effectiveTab === 'PUBLICATION' ? 44 : 52;
-
-                    ctx.font = `800 italic ${condFontSize}px "Montserrat", sans-serif`;
-                    condLines.forEach(l => {
-                        const full = l.toUpperCase();
-                        while (ctx.measureText(full).width > (canvas.width - 90) && condFontSize > 14) {
-                            condFontSize -= 0.5;
-                            ctx.font = `800 italic ${condFontSize}px "Montserrat", sans-serif`;
-                        }
-                    });
-
-                    condLines.forEach(lineText => {
-                        const segments = formatSegments(lineText);
-                        const fullWidth = segments.reduce((acc, s) => acc + ctx.measureText(s.text).width, 0);
-                        let startX = (canvas.width / 2) - (fullWidth / 2);
-
-                        ctx.textAlign = 'left';
-                        segments.forEach(seg => {
-                            ctx.fillStyle = seg.color;
-                            ctx.shadowColor = (seg.color === '#00ffff' || seg.color === '#ff007f' || seg.color === '#ffe600') ? seg.color : 'rgba(0, 0, 0, 0.95)';
-                            ctx.shadowBlur = (seg.color === '#00ffff' || seg.color === '#ff007f' || seg.color === '#ffe600') ? 14 : 10;
-                            ctx.fillText(seg.text, startX, curY);
-                            startX += ctx.measureText(seg.text).width;
+                            ctx.fillStyle = textColor;
+                            ctx.shadowColor = matchedKw ? matchedKw.color : 'rgba(0, 0, 0, 0.95)';
+                            ctx.shadowBlur = matchedKw ? 12 : 8;
+                            ctx.fillText(tok, currentX, rowCenterY + 1);
+                            currentX += ctx.measureText(tok).width;
                         });
 
-                        curY += condLineHeight;
+                        ctx.restore();
                     });
 
                 } else {

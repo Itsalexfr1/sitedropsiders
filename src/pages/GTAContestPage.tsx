@@ -705,9 +705,9 @@ export function GTAContestPage() {
                                                     : 'bg-[#0070d1]/30 border-[#0070d1]/40'
                                             }`}>
                                                 <img 
-                                                    src="/images/ps5_logo_official.png" 
+                                                    src="/images/ps5_logo_white.png" 
                                                     alt="PlayStation 5" 
-                                                    className="h-6 w-auto max-w-[85px] object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" 
+                                                    className="h-7 w-auto max-w-[100px] object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]" 
                                                 />
                                             </div>
                                             <div>
