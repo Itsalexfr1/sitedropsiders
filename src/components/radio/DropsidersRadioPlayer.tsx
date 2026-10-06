@@ -580,28 +580,8 @@ function useRadioAudio() {
         setTimeout(() => { isAdvancingRef.current = false; }, 2500);
 
         const cur = activeTrackRef.current;
-
-        // Si la piste précédente s'est terminée prématurément (ex: morceau de 2 min),
-        // enregistrer sa durée réelle pour recaler immédiatement la grille sans aucun blanc.
-        if (cur && trackStartedAtRef.current > 0) {
-            const playedSec = Math.round((Date.now() - trackStartedAtRef.current) / 1000);
-            if (playedSec > 10) {
-                const ytId = cur.youtubeId;
-                if (ytId) {
-                    saveCachedRadioDuration(ytId, playedSec);
-                    if (cur.id) saveCachedRadioDuration(cur.id, playedSec);
-                    if (Array.isArray(radioBlocksRef.current)) {
-                        radioBlocksRef.current.forEach(block => {
-                            (block.tracks || []).forEach(t => {
-                                if (t.youtubeId === ytId || t.id === cur.id) {
-                                    t.duration = playedSec;
-                                }
-                            });
-                        });
-                    }
-                }
-            }
-        }
+        // Remarque : La durée réelle d'une vidéo YouTube est rapportée proprement par l'API YouTube (player.getDuration()),
+        // on n'écrase JAMAIS la durée avec le temps d'écoute utilisateur (playedSec) qui écourterait les pistes si l'utilisateur zappe.
 
         window.dispatchEvent(new CustomEvent('dropsiders_radio_track_changed'));
         trackStartedAtRef.current = Date.now();

@@ -843,10 +843,19 @@ export function isLikelySingleTrack(title?: string): boolean {
 
 export function sanitizeTrackDuration(t: RadioTrackItem): number {
     const cached = getCachedRadioDurations();
-    // 1. Durée réelle mesurée et mise en cache lors de la lecture (prioritaire)
-    if (t.youtubeId && cached[t.youtubeId] && cached[t.youtubeId] > 0) return cached[t.youtubeId];
-    if (t.audioUrl && cached[t.audioUrl] && cached[t.audioUrl] > 0) return cached[t.audioUrl];
-    if (t.id && cached[t.id] && cached[t.id] > 0) return cached[t.id];
+    const isLiveSet = t.category === 'liveset' || t.category === 'set';
+    const isClip = t.category === 'clip';
+
+    // 1. Durée réelle mesurée et mise en cache lors de la lecture (prioritaire si cohérente)
+    const rawCached = (t.youtubeId && cached[t.youtubeId]) || (t.audioUrl && cached[t.audioUrl]) || (t.id && cached[t.id]);
+    if (typeof rawCached === 'number' && rawCached > 0) {
+        // Sécurité anti-corruption (évite qu'un zapping au bout de 15s ait écrasé la durée d'un set ou d'un clip)
+        const isCorruptedForSet = isLiveSet && rawCached < 600; // Un live set fait au moins 10 min
+        const isCorruptedForClip = isClip && rawCached < 45;   // Un clip fait au moins 45s
+        if (!isCorruptedForSet && !isCorruptedForClip) {
+            return rawCached;
+        }
+    }
 
     // 2. Durée réelle explicite enregistrée dans les données avec correction des placeholders
     if (t.duration && t.duration > 0) {
