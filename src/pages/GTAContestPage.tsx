@@ -227,11 +227,8 @@ export function GTAContestPage() {
             const referralCode = generateReferralCode();
             const optInToken = 'ds_opt_' + Math.random().toString(36).substring(2, 12);
 
-            // Compute chances
-            // Base ticket: 1 (if correct)
-            // Account bonus: +1 if checked or logged in
-            const accountBonusGranted = createAccountBonus || isLoggedIn;
-            const totalTickets = evalResult.isAllCorrect ? (1 + (accountBonusGranted ? 1 : 0)) : 0;
+            // 1 valid entry for the official lottery
+            const totalTickets = evalResult.isAllCorrect ? 1 : 0;
 
             const newEntry: GTAContestEntry = {
                 id: 'gta_' + Date.now(),
@@ -240,9 +237,9 @@ export function GTAContestPage() {
                 instagram: instagram.trim().startsWith('@') ? instagram.trim() : `@${instagram.trim()}`,
                 email: email.trim().toLowerCase(),
                 plateforme,
-                hasAccountBonus: accountBonusGranted,
+                hasAccountBonus: false,
                 referralCode,
-                referredBy: referredBy || undefined,
+                referredBy: referredBy.trim() ? referredBy.trim().toUpperCase() : undefined,
                 referralCount: 0,
                 totalTickets,
                 answers: { q1: q1.trim(), q2: q2.trim(), q3: q3.trim() },
@@ -572,8 +569,8 @@ export function GTAContestPage() {
                                 </span>
                             </div>
                             <div className="flex justify-between text-xs border-t border-white/10 pt-3">
-                                <span className="text-gray-400 font-bold uppercase">Total Chances Tirage :</span>
-                                <span className="text-[#ff007f] font-black text-sm">🎟️ {existingEntry.totalTickets} Ticket(s)</span>
+                                <span className="text-gray-400 font-bold uppercase">Tirage au Sort :</span>
+                                <span className="text-[#00f0ff] font-black text-sm">🎟️ Participation Validée</span>
                             </div>
                         </div>
 
@@ -698,6 +695,32 @@ export function GTAContestPage() {
                                         className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder-gray-500 font-bold focus:outline-none focus:border-[#00f0ff] focus:bg-white/10 transition-all"
                                     />
                                 </div>
+
+                                {/* CHAMP CODE PARRAIN (OPTIONNEL) */}
+                                <div className="sm:col-span-2 bg-[#ffe600]/10 border border-[#ffe600]/30 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-[#ffe600]/20 border border-[#ffe600]/40 flex items-center justify-center shrink-0">
+                                            <Gift className="w-5 h-5 text-[#ffe600]" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-black uppercase tracking-widest text-[#ffe600]">
+                                                Code Parrain <span className="text-gray-400 font-medium normal-case">(optionnel)</span>
+                                            </label>
+                                            <p className="text-[11px] text-gray-300 font-medium">
+                                                Si un ami t'a partagé son code de parrainage (ex: en story), saisis-le ici !
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="w-full sm:w-60">
+                                        <input 
+                                            type="text" 
+                                            placeholder="Ex: DS-FTB43W"
+                                            value={referredBy}
+                                            onChange={(e) => setReferredBy(e.target.value.toUpperCase().trim())}
+                                            className="w-full bg-black/60 border border-[#ffe600]/50 rounded-xl px-4 py-3 text-[#ffe600] placeholder-gray-500 font-black tracking-widest text-center uppercase focus:outline-none focus:border-[#ffe600] focus:ring-2 focus:ring-[#ffe600]/30 transition-all text-sm"
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
                             {/* CHOIX DE LA PLATEFORME (RADIO BUTTONS CARDS) */}
@@ -794,29 +817,6 @@ export function GTAContestPage() {
                                 </div>
                             </div>
 
-                            {/* OPTION BONUS CRÉATION DE COMPTE */}
-                            <div className="bg-gradient-to-r from-[#ff007f]/10 to-[#00f0ff]/10 border border-[#ff007f]/30 rounded-2xl p-4 flex items-center justify-between gap-4">
-                                <label className="flex items-center gap-3 cursor-pointer select-none">
-                                    <input 
-                                        type="checkbox"
-                                        checked={createAccountBonus || isLoggedIn}
-                                        disabled={isLoggedIn}
-                                        onChange={(e) => setCreateAccountBonus(e.target.checked)}
-                                        className="w-5 h-5 rounded-md accent-[#ff007f] cursor-pointer"
-                                    />
-                                    <div>
-                                        <span className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
-                                            {isLoggedIn ? "Tu es connecté sur Dropsiders" : "Créer un compte sur Dropsiders"}
-                                            <span className="text-[10px] bg-[#ff007f] text-white px-2 py-0.5 rounded-full font-black">
-                                                +1 CHANCE BONUS
-                                            </span>
-                                        </span>
-                                        <p className="text-[10px] text-gray-400 font-medium">
-                                            Double immédiatement tes chances de victoire au tirage au sort officiel.
-                                        </p>
-                                    </div>
-                                </label>
-                            </div>
                         </div>
 
                         {/* =========================================================================

@@ -259,10 +259,10 @@ export async function generateGTA6StoryVisual(params: {
     ctx.fillText(cleanInsta, width / 2, cardY + 128);
     ctx.restore();
 
-    // Ligne 3 : Badge Tickets
+    // Ligne 3 : Badge Inscription Tirage au sort (sans mention de 2 chances)
     ctx.save();
-    const ticketText = `🎟️  ${params.tickets} CHANCE${params.tickets > 1 ? 'S' : ''} AU TIRAGE AU SORT`;
-    ctx.font = '900 italic 28px "Montserrat", sans-serif';
+    const ticketText = '🎟️  INSCRIT AU TIRAGE AU SORT OFFICIEL';
+    ctx.font = '900 italic 27px "Montserrat", sans-serif';
     const tBadgeW = ctx.measureText(ticketText).width + 50;
     const tBadgeH = 54;
     const tBadgeX = (width - tBadgeW) / 2;
@@ -314,12 +314,12 @@ export async function generateGTA6StoryVisual(params: {
     ctx.fillText(refText, width / 2, refY + refH / 2 + 1);
     ctx.restore();
 
-    // Hint bonus parrainage discret sous la capsule
+    // Mention parrainage sous la capsule
     ctx.save();
     ctx.textAlign = 'center';
     ctx.font = '800 uppercase 18px "Montserrat", sans-serif';
     ctx.fillStyle = 'rgba(255, 230, 0, 0.85)';
-    ctx.fillText('⚡ +1 CHANCE SUPPLÉMENTAIRE PAR AMI PARRAINÉ', width / 2, cardY + 345);
+    ctx.fillText('⚡ PARTAGE CE CODE POUR PARRAINER TES AMIS', width / 2, cardY + 345);
     ctx.restore();
 
     // =========================================================================
