@@ -366,36 +366,30 @@ export function GTAContestPage() {
         <div className="min-h-screen bg-[#0d0221] text-white relative overflow-hidden font-sans selection:bg-[#ff007f] selection:text-white">
             
             {/* =========================================================================
-                AMBIANCE VICE CITY : TEASER GTA 6 EN FOND DE PAGE + NEON GLOWS
+                AMBIANCE GTA 6 : VIDÉO OFFICIELLE EN FOND DE PAGE PLEIN ÉCRAN
             ========================================================================= */}
-            <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-                {/* Image de secours Vice City */}
-                <div 
-                    className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-screen scale-105"
-                    style={{ backgroundImage: `url('/images/gta_vice_city_sign.jpg')` }}
-                />
-
+            <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#0d0221]">
                 {/* Vidéo Teaser en plein écran en arrière-plan (Autoplay, Mute, Loop) */}
-                <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none opacity-45 mix-blend-screen">
+                <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none opacity-60">
                     <iframe
-                        className="w-[100vw] h-[56.25vw] min-h-[100vh] min-w-[177.77vh] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                        className="w-[100vw] h-[56.25vw] min-h-[100vh] min-w-[177.77vh] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none scale-105"
                         src="https://www.youtube.com/embed/QdBZY2fkU-0?autoplay=1&mute=1&loop=1&playlist=QdBZY2fkU-0&controls=0&showinfo=0&rel=0&iv_load_policy=3&disablekb=1&modestbranding=1&playsinline=1"
                         title="GTA VI Teaser Fond d'écran"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     />
                 </div>
 
-                {/* Voile sombre & Neons radiaux pour garantir une lisibilité parfaite des textes et formulaires */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#0d0221]/85 via-[#0d0221]/75 to-[#0d0221]/92" />
+                {/* Voile sombre pour garantir une lisibilité parfaite des textes et formulaires */}
+                <div className="absolute inset-0 bg-gradient-to-b from-[#0d0221]/75 via-[#0d0221]/60 to-[#0d0221]/85" />
                 <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[550px] bg-gradient-to-b from-[#ff007f]/20 via-[#9900ff]/15 to-transparent rounded-full blur-[140px]" />
-                <div className="absolute top-[40%] -left-40 w-[600px] h-[600px] bg-[#00f0ff]/15 rounded-full blur-[160px]" />
-                <div className="absolute top-[60%] -right-40 w-[600px] h-[600px] bg-[#ff007f]/15 rounded-full blur-[160px]" />
+                <div className="absolute top-[40%] -left-40 w-[600px] h-[600px] bg-[#00f0ff]/10 rounded-full blur-[160px]" />
+                <div className="absolute top-[60%] -right-40 w-[600px] h-[600px] bg-[#ff007f]/10 rounded-full blur-[160px]" />
                 
                 {/* Grille perspective rétro synthwave au bas */}
                 <div 
-                    className="absolute bottom-0 left-0 right-0 h-96 opacity-20"
+                    className="absolute bottom-0 left-0 right-0 h-96 opacity-15"
                     style={{
-                        background: 'linear-gradient(to bottom, transparent 0%, rgba(13, 2, 33, 0.9) 100%), repeating-linear-gradient(0deg, transparent, transparent 38px, rgba(0, 240, 255, 0.4) 38px, rgba(0, 240, 255, 0.4) 40px)',
+                        background: 'linear-gradient(to bottom, transparent 0%, rgba(13, 2, 33, 0.95) 100%), repeating-linear-gradient(0deg, transparent, transparent 38px, rgba(0, 240, 255, 0.3) 38px, rgba(0, 240, 255, 0.3) 40px)',
                         transform: 'perspective(500px) rotateX(60deg)',
                         transformOrigin: 'bottom center'
                     }}
@@ -810,13 +804,8 @@ export function GTAContestPage() {
                         {/* =========================================================================
                             CONDITIONS DE PARTICIPATION OBLIGATOIRES (AVANT LES QUESTIONS)
                         ========================================================================= */}
-                        <div className="relative rounded-[2.5rem] overflow-hidden border border-white/15 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl">
-                            {/* Background immersif Vice City Boat */}
-                            <div 
-                                className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity pointer-events-none"
-                                style={{ backgroundImage: `url('/images/gta_vice_city_boat.jpg')` }}
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-b from-[#0d0221]/90 via-black/85 to-[#0d0221]/95 pointer-events-none" />
+                        <div className="relative rounded-[2.5rem] overflow-hidden border border-white/15 p-6 sm:p-8 bg-black/70 backdrop-blur-2xl shadow-2xl">
+                            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#ff007f] via-[#ffe600] to-[#00f0ff]" />
 
                             <div className="relative z-10 space-y-6">
                                 <div className="text-center space-y-2">
