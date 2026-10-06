@@ -10850,11 +10850,11 @@
         },
         {
           "id": "rt_tv_1790257320099_qmlv",
-          "title": "DROPSIDERS TV",
-          "artist": "Rave Rebels presents: 999999999 (FULL SET)",
+          "title": "Rave Rebels presents:",
+          "artist": "999999999",
           "youtubeId": "meHW6iAyUXQ",
-          "duration": 210,
-          "category": "clip",
+          "duration": 3600,
+          "category": "liveset",
           "addedAt": 1790257320099
         },
         {
