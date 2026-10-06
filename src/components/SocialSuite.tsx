@@ -206,12 +206,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isConseilsLargeTitle, setIsConseilsLargeTitle] = useState(false);
 
     // CONCOURS Theme States
+    const [concoursMode, setConcoursMode] = useState<'FESTIVAL' | 'GTA6'>('GTA6');
     const [concoursFestivalName, setConcoursFestivalName] = useState('');
     const [concoursFestivalHandle, setConcoursFestivalHandle] = useState('');
-    const [concoursBottomColor, setConcoursBottomColor] = useState('#7000ff');
-    const [concoursLateralText, setConcoursLateralText] = useState('JEUX CONCOURS');
-    const [concoursLateralOpacity, setConcoursLateralOpacity] = useState(0.40);
-    const [concoursBadgeTextColor, setConcoursBadgeTextColor] = useState('#ffffff');
+    const [concoursBottomColor, setConcoursBottomColor] = useState('#ff007f');
+    const [concoursLateralText, setConcoursLateralText] = useState('JEU CONCOURS GTA 6');
+    const [concoursLateralOpacity, setConcoursLateralOpacity] = useState(0.50);
+    const [concoursBadgeTextColor, setConcoursBadgeTextColor] = useState('#00f0ff');
+
+    // GTA 6 Template specific states
+    const [concoursGTAHeadline, setConcoursGTAHeadline] = useState('DROPSIDERS TE FAIT GAGNER');
+    const [concoursGTATitle, setConcoursGTATitle] = useState('GTA 6');
+    const [concoursGTAPlatformText, setConcoursGTAPlatformText] = useState('SUR LA PLATEFORME DE TON CHOIX');
+    const [concoursGTACondition1, setConcoursGTACondition1] = useState('1 - LIKEZ LA PUBLICATION');
+    const [concoursGTACondition2, setConcoursGTACondition2] = useState('2 - IDENTIFIEZ 2 POTES QUI DOIVENT LIKER LA PAGE');
+    const [concoursGTACondition3, setConcoursGTACondition3] = useState('3 - PARTAGEZ EN STORIE');
+    const [concoursGTACondition4, setConcoursGTACondition4] = useState('4 - POUR VALIDER LA PARTICIPATION RÉPONDEZ AUX 3 QUESTIONS SUR DROPSIDERS.FR');
     const recordingStartTimeRef = useRef<number>(0);
     const ffmpegRef = useRef<any>(null);
     const audioCtxRef = useRef<AudioContext | null>(null);
@@ -1874,140 +1884,259 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } else if (theme === 'CONCOURS') {
                 ctx.save();
 
+                const isGTA = concoursMode === 'GTA6';
+
                 // 1. BANDEAU HAUT GAUCHE (Attaché au bord gauche x=0, ajusté finement au texte avec ~5-8% de marge, centré sur le logo à droite)
                 const wLogo = 320;
                 const logoH = logoRef.current ? (logoRef.current.height * wLogo) / logoRef.current.width : 65.5;
                 const yOffset = bgVideo ? 70 : 20;
-                // Centre vertical exact du logo Dropsiders
                 const logoCenterY = yOffset + (logoH / 2);
 
-                const lateralLabel = (concoursLateralText || 'JEUX CONCOURS').toUpperCase();
+                const lateralLabel = (concoursLateralText || (isGTA ? 'JEU CONCOURS GTA 6' : 'JEUX CONCOURS')).toUpperCase();
                 const textFontSize = 32;
                 ctx.font = `900 italic ${textFontSize}px "Montserrat", sans-serif`;
                 const textMetrics = ctx.measureText(lateralLabel);
 
-                // Épaisseur bandeau adaptée au texte : hauteur proportionnée (texte ~32px + ~5-8% de padding haut/bas)
-                const bandeauH = 48; // Fin et élégant, parfaitement proportionné au texte
+                const bandeauH = 48;
                 const bandeauY = Math.round(logoCenterY - (bandeauH / 2));
                 const bandeauCenterY = logoCenterY;
                 const bandeauW = Math.max(340, Math.round(textMetrics.width + 60));
 
-                // Bandeau qui part du bord gauche (x = 0) - fond violet avec cadre/bordure violette
-                const opacity = concoursLateralOpacity !== undefined ? concoursLateralOpacity : 0.40;
-                ctx.fillStyle = `rgba(112, 0, 255, ${opacity})`;
+                const opacity = concoursLateralOpacity !== undefined ? concoursLateralOpacity : (isGTA ? 0.50 : 0.40);
+                // Fond bandeau néon
+                ctx.fillStyle = isGTA ? `rgba(255, 0, 127, ${opacity})` : `rgba(112, 0, 255, ${opacity})`;
                 ctx.beginPath();
                 ctx.roundRect(0, bandeauY, bandeauW, bandeauH, [0, 12, 12, 0]);
                 ctx.fill();
 
-                // Cadre / liseré violet lumineux autour du bandeau
-                ctx.strokeStyle = 'rgba(168, 85, 247, 0.85)';
-                ctx.lineWidth = 2;
+                // Cadre / liseré néon autour du bandeau
+                ctx.strokeStyle = isGTA ? 'rgba(0, 240, 255, 0.95)' : 'rgba(168, 85, 247, 0.85)';
+                ctx.lineWidth = 2.5;
                 ctx.stroke();
 
-                // Texte blanc, centré optiquement par rapport au logo et au cadre
-                ctx.fillStyle = concoursBadgeTextColor || '#ffffff';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                ctx.shadowBlur = 10;
+                // Texte centré optiquement
+                ctx.fillStyle = concoursBadgeTextColor || (isGTA ? '#00f0ff' : '#ffffff');
+                ctx.shadowColor = isGTA ? 'rgba(0, 240, 255, 0.6)' : 'rgba(0, 0, 0, 0.95)';
+                ctx.shadowBlur = isGTA ? 12 : 10;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(lateralLabel, bandeauW / 2, bandeauCenterY + 2);
 
-                // 2. TEXTE EN BAS SUR LE FONDU (Style identique à NEWS, sans boîte opaque)
-                const festName = (concoursFestivalName || festivalNameText || 'NOM DU FESTIVAL').toUpperCase();
-                const headlineText = 'GAGNE TES INVITATIONS POUR';
-                const subtitleText = "POUR PARTICIPER C'EST TRÈS SIMPLE :";
+                if (isGTA) {
+                    // ==========================================
+                    // 2. TEMPLATE GTA 6 (Style Vice City Néon)
+                    // ==========================================
+                    const headline = (concoursGTAHeadline || 'DROPSIDERS TE FAIT GAGNER').toUpperCase();
+                    const gtaTitle = (concoursGTATitle || 'GTA 6').toUpperCase();
+                    const platform = (concoursGTAPlatformText || 'SUR LA PLATEFORME DE TON CHOIX').toUpperCase();
+                    const subtitle = "POUR PARTICIPER C'EST TRÈS SIMPLE :";
 
-                // Positionnement vertical sur le fondu
-                const baseStartY = effectiveTab === 'PUBLICATION' ? 950 : 1380;
-                let curY = baseStartY;
+                    const baseStartY = effectiveTab === 'PUBLICATION' ? 800 : 1220;
+                    let curY = baseStartY;
 
-                // A) GRAND TITRE : GAGNE TES INVITATIONS POUR
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'alphabetic';
-                ctx.font = '900 italic 44px "Montserrat", sans-serif';
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                ctx.shadowBlur = 14;
-                ctx.fillText(headlineText, canvas.width / 2, curY);
+                    // A) HEADLINE : DROPSIDERS TE FAIT GAGNER
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'alphabetic';
+                    ctx.font = effectiveTab === 'PUBLICATION' ? '900 italic 36px "Montserrat", sans-serif' : '900 italic 42px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                    ctx.shadowBlur = 14;
+                    ctx.fillText(headline, canvas.width / 2, curY);
 
-                // B) NOM DU FESTIVAL (En grand avec détection de largeur, sans guillemets, en Cyan Flashy #00ffff)
-                curY += 58;
-                let festFontSize = 52;
-                ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
-                while (ctx.measureText(festName).width > (canvas.width - 120) && festFontSize > 26) {
-                    festFontSize -= 2;
-                    ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
-                }
-                ctx.fillStyle = '#00ffff';
-                ctx.shadowColor = 'rgba(0, 255, 255, 0.45)';
-                ctx.shadowBlur = 18;
-                ctx.fillText(festName, canvas.width / 2, curY);
+                    // B) GRAND TITRE : GTA 6 (Néon Rose Vice City)
+                    curY += effectiveTab === 'PUBLICATION' ? 76 : 88;
+                    ctx.font = effectiveTab === 'PUBLICATION' ? '900 italic 82px "Montserrat", sans-serif' : '900 italic 96px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ff007f';
+                    ctx.shadowColor = 'rgba(255, 0, 127, 0.85)';
+                    ctx.shadowBlur = 26;
+                    ctx.fillText(gtaTitle, canvas.width / 2, curY);
 
-                // C) SOUS-TITRE : POUR PARTICIPER C'EST TRÈS SIMPLE :
-                // Descendu d'environ 10% de plus par rapport au festival (+62px au lieu de 56px)
-                curY += 62;
-                ctx.font = '900 italic 28px "Montserrat", sans-serif';
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                ctx.shadowBlur = 10;
-                ctx.fillText(subtitleText, canvas.width / 2, curY);
+                    // C) PLATEFORME : SUR LA PLATEFORME DE TON CHOIX (Néon Jaune Or)
+                    curY += effectiveTab === 'PUBLICATION' ? 44 : 52;
+                    ctx.font = effectiveTab === 'PUBLICATION' ? '900 italic 24px "Montserrat", sans-serif' : '900 italic 28px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ffe600';
+                    ctx.shadowColor = 'rgba(255, 230, 0, 0.55)';
+                    ctx.shadowBlur = 12;
+                    ctx.fillText(platform, canvas.width / 2, curY);
 
-                // D) CONDITIONS DE PARTICIPATION FIXES (Flottant sur le fondu comme NEWS)
-                // Descendu de 10% de plus par rapport au sous-titre (58px au lieu de 52px)
-                curY += 58;
-                const rawHandle = concoursFestivalHandle.trim();
-                const festHandle = rawHandle
-                    ? (rawHandle.startsWith('@') ? rawHandle : `@${rawHandle}`)
-                    : (festivalNameText ? `@${festivalNameText.toLowerCase().replace(/\s+/g, '')}` : '@FESTIVAL');
+                    // D) SOUS-TITRE : POUR PARTICIPER C'EST TRÈS SIMPLE :
+                    curY += effectiveTab === 'PUBLICATION' ? 48 : 56;
+                    ctx.font = effectiveTab === 'PUBLICATION' ? '900 italic 25px "Montserrat", sans-serif' : '900 italic 28px "Montserrat", sans-serif';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                    ctx.shadowBlur = 10;
+                    ctx.fillText(subtitle, canvas.width / 2, curY);
 
-                // Segments avec mise en couleur flashy pour les @ (Neon Cyan #00ffff / #ffe600)
-                const flashyColor = '#00ffff';
-                const stepSegments: Array<Array<{ text: string; color: string }>> = [
-                    [
-                        { text: '1. FOLLOW LA PAGE ', color: '#ffffff' },
-                        { text: '@DROPSIDERS.FR', color: flashyColor },
-                        { text: ' + ', color: '#ffffff' },
-                        { text: festHandle.toUpperCase(), color: flashyColor }
-                    ],
-                    [
-                        { text: "2. IDENTIFIE LA PERSONNE QUI T'ACCOMPAGNERA", color: '#ffffff' }
-                    ],
-                    [
-                        { text: '3. PARTAGE EN STORY (PUBLIC) EN NOUS IDENTIFIANT + ', color: '#ffffff' },
-                        { text: festHandle.toUpperCase(), color: flashyColor }
-                    ],
-                    [
-                        { text: '4. REPOST CE POST', color: '#ffffff' }
-                    ]
-                ];
+                    // E) LES 4 CONDITIONS DE PARTICIPATION
+                    curY += effectiveTab === 'PUBLICATION' ? 52 : 58;
+                    const condLines = [
+                        concoursGTACondition1 || '1 - likez la publication',
+                        concoursGTACondition2 || '2 - identifiez 2 potes qui doivent liker la page',
+                        concoursGTACondition3 || '3 - partagez en storie',
+                        concoursGTACondition4 || '4 - pour validez la participation repondez aux 3 questions qui sont disponible sur le site dropsiders.fr'
+                    ];
 
-                let ruleFontSize = effectiveTab === 'PUBLICATION' ? 24 : 26;
-                const ruleLineHeight = effectiveTab === 'PUBLICATION' ? 52 : 60; // Interligne encore plus aéré
+                    const formatSegments = (rawText: string): Array<{ text: string; color: string }> => {
+                        const upper = rawText.toUpperCase();
+                        const prefixMatch = upper.match(/^(\d+\s*[-–.]\s*)/);
+                        const prefix = prefixMatch ? prefixMatch[1] : '';
+                        const body = prefixMatch ? upper.slice(prefix.length) : upper;
 
-                ctx.font = `800 italic ${ruleFontSize}px "Montserrat", sans-serif`;
-                stepSegments.forEach(segments => {
-                    const fullText = segments.map(s => s.text).join('');
-                    while (ctx.measureText(fullText).width > (canvas.width - 100) && ruleFontSize > 18) {
-                        ruleFontSize -= 1;
-                        ctx.font = `800 italic ${ruleFontSize}px "Montserrat", sans-serif`;
-                    }
-                });
+                        const segments: Array<{ text: string; color: string }> = [];
+                        if (prefix) {
+                            segments.push({ text: prefix, color: '#ffe600' });
+                        }
 
-                stepSegments.forEach((segments) => {
-                    const fullWidth = segments.reduce((acc, s) => acc + ctx.measureText(s.text).width, 0);
-                    let startX = (canvas.width / 2) - (fullWidth / 2);
+                        const keywords = [
+                            { word: 'DROPSIDERS.FR', color: '#00ffff' },
+                            { word: '3 QUESTIONS', color: '#00ffff' },
+                            { word: '2 POTES', color: '#00ffff' },
+                            { word: 'EN STORIE', color: '#ffe600' },
+                            { word: 'EN STORY', color: '#ffe600' },
+                            { word: 'LIKEZ LA PUBLICATION', color: '#ff007f' },
+                            { word: 'LA PUBLICATION', color: '#ff007f' }
+                        ];
 
-                    ctx.textAlign = 'left';
-                    segments.forEach(seg => {
-                        ctx.fillStyle = seg.color;
-                        ctx.shadowColor = seg.color === flashyColor ? 'rgba(0, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.95)';
-                        ctx.shadowBlur = seg.color === flashyColor ? 14 : 12;
-                        ctx.fillText(seg.text, startX, curY);
-                        startX += ctx.measureText(seg.text).width;
+                        const pattern = new RegExp(`(${keywords.map(k => k.word.replace('.', '\\.')).join('|')})`, 'g');
+                        const tokens = body.split(pattern);
+
+                        tokens.forEach(tok => {
+                            if (!tok) return;
+                            const kw = keywords.find(k => k.word === tok);
+                            if (kw) {
+                                segments.push({ text: tok, color: kw.color });
+                            } else {
+                                segments.push({ text: tok, color: '#ffffff' });
+                            }
+                        });
+                        return segments;
+                    };
+
+                    let condFontSize = effectiveTab === 'PUBLICATION' ? 22 : 24;
+                    const condLineHeight = effectiveTab === 'PUBLICATION' ? 44 : 52;
+
+                    ctx.font = `800 italic ${condFontSize}px "Montserrat", sans-serif`;
+                    condLines.forEach(l => {
+                        const full = l.toUpperCase();
+                        while (ctx.measureText(full).width > (canvas.width - 90) && condFontSize > 14) {
+                            condFontSize -= 0.5;
+                            ctx.font = `800 italic ${condFontSize}px "Montserrat", sans-serif`;
+                        }
                     });
 
-                    curY += ruleLineHeight;
-                });
+                    condLines.forEach(lineText => {
+                        const segments = formatSegments(lineText);
+                        const fullWidth = segments.reduce((acc, s) => acc + ctx.measureText(s.text).width, 0);
+                        let startX = (canvas.width / 2) - (fullWidth / 2);
+
+                        ctx.textAlign = 'left';
+                        segments.forEach(seg => {
+                            ctx.fillStyle = seg.color;
+                            ctx.shadowColor = (seg.color === '#00ffff' || seg.color === '#ff007f' || seg.color === '#ffe600') ? seg.color : 'rgba(0, 0, 0, 0.95)';
+                            ctx.shadowBlur = (seg.color === '#00ffff' || seg.color === '#ff007f' || seg.color === '#ffe600') ? 14 : 10;
+                            ctx.fillText(seg.text, startX, curY);
+                            startX += ctx.measureText(seg.text).width;
+                        });
+
+                        curY += condLineHeight;
+                    });
+
+                } else {
+                    // ==========================================
+                    // 2. TEMPLATE FESTIVAL (Original)
+                    // ==========================================
+                    const festName = (concoursFestivalName || festivalNameText || 'NOM DU FESTIVAL').toUpperCase();
+                    const headlineText = 'GAGNE TES INVITATIONS POUR';
+                    const subtitleText = "POUR PARTICIPER C'EST TRÈS SIMPLE :";
+
+                    const baseStartY = effectiveTab === 'PUBLICATION' ? 950 : 1380;
+                    let curY = baseStartY;
+
+                    // A) GRAND TITRE : GAGNE TES INVITATIONS POUR
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'alphabetic';
+                    ctx.font = '900 italic 44px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                    ctx.shadowBlur = 14;
+                    ctx.fillText(headlineText, canvas.width / 2, curY);
+
+                    // B) NOM DU FESTIVAL
+                    curY += 58;
+                    let festFontSize = 52;
+                    ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
+                    while (ctx.measureText(festName).width > (canvas.width - 120) && festFontSize > 26) {
+                        festFontSize -= 2;
+                        ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
+                    }
+                    ctx.fillStyle = '#00ffff';
+                    ctx.shadowColor = 'rgba(0, 255, 255, 0.45)';
+                    ctx.shadowBlur = 18;
+                    ctx.fillText(festName, canvas.width / 2, curY);
+
+                    // C) SOUS-TITRE : POUR PARTICIPER C'EST TRÈS SIMPLE :
+                    curY += 62;
+                    ctx.font = '900 italic 28px "Montserrat", sans-serif';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                    ctx.shadowBlur = 10;
+                    ctx.fillText(subtitleText, canvas.width / 2, curY);
+
+                    // D) CONDITIONS DE PARTICIPATION FIXES
+                    curY += 58;
+                    const rawHandle = concoursFestivalHandle.trim();
+                    const festHandle = rawHandle
+                        ? (rawHandle.startsWith('@') ? rawHandle : `@${rawHandle}`)
+                        : (festivalNameText ? `@${festivalNameText.toLowerCase().replace(/\s+/g, '')}` : '@FESTIVAL');
+
+                    const flashyColor = '#00ffff';
+                    const stepSegments: Array<Array<{ text: string; color: string }>> = [
+                        [
+                            { text: '1. FOLLOW LA PAGE ', color: '#ffffff' },
+                            { text: '@DROPSIDERS.FR', color: flashyColor },
+                            { text: ' + ', color: '#ffffff' },
+                            { text: festHandle.toUpperCase(), color: flashyColor }
+                        ],
+                        [
+                            { text: "2. IDENTIFIE LA PERSONNE QUI T'ACCOMPAGNERA", color: '#ffffff' }
+                        ],
+                        [
+                            { text: '3. PARTAGE EN STORY (PUBLIC) EN NOUS IDENTIFIANT + ', color: '#ffffff' },
+                            { text: festHandle.toUpperCase(), color: flashyColor }
+                        ],
+                        [
+                            { text: '4. REPOST CE POST', color: '#ffffff' }
+                        ]
+                    ];
+
+                    let ruleFontSize = effectiveTab === 'PUBLICATION' ? 24 : 26;
+                    const ruleLineHeight = effectiveTab === 'PUBLICATION' ? 52 : 60;
+
+                    ctx.font = `800 italic ${ruleFontSize}px "Montserrat", sans-serif`;
+                    stepSegments.forEach(segments => {
+                        const fullText = segments.map(s => s.text).join('');
+                        while (ctx.measureText(fullText).width > (canvas.width - 100) && ruleFontSize > 18) {
+                            ruleFontSize -= 1;
+                            ctx.font = `800 italic ${ruleFontSize}px "Montserrat", sans-serif`;
+                        }
+                    });
+
+                    stepSegments.forEach((segments) => {
+                        const fullWidth = segments.reduce((acc, s) => acc + ctx.measureText(s.text).width, 0);
+                        let startX = (canvas.width / 2) - (fullWidth / 2);
+
+                        ctx.textAlign = 'left';
+                        segments.forEach(seg => {
+                            ctx.fillStyle = seg.color;
+                            ctx.shadowColor = seg.color === flashyColor ? 'rgba(0, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.95)';
+                            ctx.shadowBlur = seg.color === flashyColor ? 14 : 12;
+                            ctx.fillText(seg.text, startX, curY);
+                            startX += ctx.measureText(seg.text).width;
+                        });
+
+                        curY += ruleLineHeight;
+                    });
+                }
 
                 ctx.restore();
 
@@ -2739,7 +2868,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -3358,7 +3487,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         <div className="grid grid-cols-3 gap-1.5">
             <button onClick={() => handleSetTheme('NEWS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>NEWS</button>
             <button onClick={() => handleSetTheme('REELS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all leading-tight ${theme === 'REELS' || theme === 'CONSEILS' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>REELS<br/><span className="text-[7px] font-bold normal-case opacity-70">Conseils</span></button>
-            <button onClick={() => handleSetTheme('CONCOURS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONCOURS' ? 'bg-[#7000ff]/25 border-[#7000ff] text-[#c084fc] shadow-[0_0_15px_rgba(112,0,255,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎁 JEUX CONCOURS</button>
+            <button 
+                onClick={() => handleSetTheme('CONCOURS')} 
+                className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${
+                    theme === 'CONCOURS' 
+                        ? (concoursMode === 'GTA6' 
+                            ? 'bg-gradient-to-r from-pink-500/25 to-purple-600/25 border-pink-500 text-pink-300 shadow-[0_0_15px_rgba(255,0,127,0.4)]' 
+                            : 'bg-[#7000ff]/25 border-[#7000ff] text-[#c084fc] shadow-[0_0_15px_rgba(112,0,255,0.4)]') 
+                        : 'bg-white/5 border-white/10 text-gray-400'
+                }`}
+            >
+                🎁 {concoursMode === 'GTA6' ? 'CONCOURS GTA 6' : 'JEUX CONCOURS'}
+            </button>
             <button onClick={() => handleSetTheme('FOCUS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
             <button onClick={() => handleSetTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
             <button onClick={() => handleSetTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3]' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
@@ -4058,69 +4198,280 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const concoursEditor = (
         <div className="space-y-4">
-            <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Nom du Festival</label>
-                <input 
-                    value={concoursFestivalName} 
-                    onChange={e => setConcoursFestivalName(e.target.value)} 
-                    placeholder="EX: TOMORROWLAND / DELTA FESTIVAL" 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-white/40 outline-none transition-all shadow-md text-xs" 
-                />
+            {/* Mode Switcher */}
+            <div className="grid grid-cols-2 gap-2 p-1.5 bg-white/5 border border-white/10 rounded-2xl">
+                <button
+                    type="button"
+                    onClick={() => {
+                        setConcoursMode('GTA6');
+                        setConcoursBottomColor('#ff007f');
+                        setConcoursBadgeTextColor('#00f0ff');
+                        setConcoursLateralText('JEU CONCOURS GTA 6');
+                        if (!bgImage || !bgImage.includes('gta')) {
+                            setBgImage('/images/gta6_vice_city_hero.jpg');
+                            setBgVideo(null);
+                        }
+                        setTimeout(() => generateImage(), 50);
+                    }}
+                    className={`py-2.5 px-3 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-2 ${
+                        concoursMode === 'GTA6'
+                            ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-[0_0_15px_rgba(255,0,127,0.5)] border border-pink-400'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                >
+                    🎮 Template GTA 6
+                </button>
+                <button
+                    type="button"
+                    onClick={() => {
+                        setConcoursMode('FESTIVAL');
+                        setConcoursBottomColor('#7000ff');
+                        setConcoursBadgeTextColor('#ffffff');
+                        setConcoursLateralText('JEUX CONCOURS');
+                        setTimeout(() => generateImage(), 50);
+                    }}
+                    className={`py-2.5 px-3 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-2 ${
+                        concoursMode === 'FESTIVAL'
+                            ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(112,0,255,0.5)] border border-purple-400'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                >
+                    🎪 Mode Festival
+                </button>
             </div>
 
-            <div className="space-y-2">
-                <label className="text-[9px] font-black text-neon-cyan uppercase tracking-widest pl-1">@ du Festival (Instagram)</label>
-                <input 
-                    value={concoursFestivalHandle} 
-                    onChange={e => setConcoursFestivalHandle(e.target.value)} 
-                    placeholder="ex: @tomorrowland" 
-                    className="w-full bg-white/5 border border-neon-cyan/40 focus:border-neon-cyan rounded-xl p-3 text-white font-bold focus:shadow-[0_0_15px_rgba(0,255,255,0.2)] outline-none transition-all text-xs font-mono" 
-                />
-            </div>
+            {concoursMode === 'GTA6' ? (
+                <>
+                    {/* Visual Presets GTA 6 */}
+                    <div className="space-y-2">
+                        <label className="text-[9px] font-black text-neon-cyan uppercase tracking-widest pl-1">
+                            Fonds Vice City & GTA 6
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                            {[
+                                { name: '🌴 Vice City Néon', url: '/images/gta6_vice_city_hero.jpg' },
+                                { name: '🔥 Cover Officielle', url: '/images/gta6_cover.jpg' },
+                                { name: '👫 Lucia & Jason', url: '/images/gta6_lucia_jason.jpg' },
+                                { name: '🛥️ Vice City Boat', url: '/images/gta_vice_city_boat.jpg' },
+                                { name: '🏙️ Vice City Towers', url: '/images/gta_vice_city_towers.jpg' },
+                                { name: '🪧 Enseigne Vice', url: '/images/gta_vice_city_sign.jpg' },
+                            ].map((preset) => (
+                                <button
+                                    key={preset.url}
+                                    type="button"
+                                    onClick={() => {
+                                        setBgImage(preset.url);
+                                        setBgVideo(null);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`p-2 rounded-xl border text-[9px] font-bold text-center transition-all truncate ${
+                                        bgImage === preset.url
+                                            ? 'bg-pink-500/20 border-pink-500 text-pink-300 shadow-[0_0_10px_rgba(255,0,127,0.3)]'
+                                            : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
+                                    }`}
+                                >
+                                    {preset.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
 
-            <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Étapes de participation fixes</label>
-                <div className="p-3 bg-white/5 border border-white/10 rounded-xl space-y-1.5 text-[10px] text-gray-300 font-medium">
-                    <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full bg-neon-cyan/20 text-neon-cyan font-black text-[9px] flex items-center justify-center flex-shrink-0">1</span>
-                        <span>Follow la page <strong>@dropsiders.fr</strong> + <strong>{concoursFestivalHandle || '@festival'}</strong></span>
+                    {/* Titres GTA 6 */}
+                    <div className="space-y-2">
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest pl-1">Accroche Haute</label>
+                        <input
+                            value={concoursGTAHeadline}
+                            onChange={e => {
+                                setConcoursGTAHeadline(e.target.value);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            placeholder="DROPSIDERS TE FAIT GAGNER"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-white/40 outline-none transition-all shadow-md text-xs"
+                        />
                     </div>
-                    <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full bg-neon-cyan/20 text-neon-cyan font-black text-[9px] flex items-center justify-center flex-shrink-0">2</span>
-                        <span>Identifie la personne qui t'accompagnera</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full bg-neon-cyan/20 text-neon-cyan font-black text-[9px] flex items-center justify-center flex-shrink-0">3</span>
-                        <span>Partage en story <strong>(public)</strong> en nous identifiant + <strong>{concoursFestivalHandle || '@festival'}</strong></span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full bg-neon-cyan/20 text-neon-cyan font-black text-[9px] flex items-center justify-center flex-shrink-0">4</span>
-                        <span>Repost ce post</span>
-                    </div>
-                </div>
-            </div>
 
+                    <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-2">
+                            <label className="text-[9px] font-black text-pink-400 uppercase tracking-widest pl-1">Grand Titre (Lot)</label>
+                            <input
+                                value={concoursGTATitle}
+                                onChange={e => {
+                                    setConcoursGTATitle(e.target.value);
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                placeholder="GTA 6"
+                                className="w-full bg-white/5 border border-pink-500/30 rounded-xl p-3 text-pink-300 font-extrabold uppercase focus:border-pink-500 outline-none transition-all shadow-md text-xs"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[9px] font-black text-yellow-400 uppercase tracking-widest pl-1">Sous-titre Plateforme</label>
+                            <input
+                                value={concoursGTAPlatformText}
+                                onChange={e => {
+                                    setConcoursGTAPlatformText(e.target.value);
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                placeholder="SUR LA PLATEFORME DE TON CHOIX"
+                                className="w-full bg-white/5 border border-yellow-500/30 rounded-xl p-3 text-yellow-300 font-bold uppercase focus:border-yellow-400 outline-none transition-all shadow-md text-xs"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Les 4 Conditions demandées */}
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between pl-1">
+                            <label className="text-[9px] font-black text-neon-cyan uppercase tracking-widest">
+                                4 Conditions de Participation
+                            </label>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setConcoursGTACondition1('1 - likez la publication');
+                                    setConcoursGTACondition2('2 - identifiez 2 potes qui doivent liker la page');
+                                    setConcoursGTACondition3('3 - partagez en storie');
+                                    setConcoursGTACondition4('4 - pour validez la participation repondez aux 3 questions qui sont disponible sur le site dropsiders.fr');
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                className="text-[9px] font-bold text-gray-400 hover:text-white underline"
+                            >
+                                Réinitialiser
+                            </button>
+                        </div>
+                        <div className="space-y-2">
+                            <div className="space-y-1">
+                                <span className="text-[8px] font-black uppercase text-gray-400 block pl-1">Condition 1</span>
+                                <input
+                                    value={concoursGTACondition1}
+                                    onChange={e => {
+                                        setConcoursGTACondition1(e.target.value);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    placeholder="1 - likez la publication"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-medium focus:border-neon-cyan outline-none transition-all text-xs"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <span className="text-[8px] font-black uppercase text-gray-400 block pl-1">Condition 2</span>
+                                <input
+                                    value={concoursGTACondition2}
+                                    onChange={e => {
+                                        setConcoursGTACondition2(e.target.value);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    placeholder="2 - identifiez 2 potes qui doivent liker la page"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-medium focus:border-neon-cyan outline-none transition-all text-xs"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <span className="text-[8px] font-black uppercase text-gray-400 block pl-1">Condition 3</span>
+                                <input
+                                    value={concoursGTACondition3}
+                                    onChange={e => {
+                                        setConcoursGTACondition3(e.target.value);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    placeholder="3 - partagez en storie"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-medium focus:border-neon-cyan outline-none transition-all text-xs"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <span className="text-[8px] font-black uppercase text-neon-cyan block pl-1">Condition 4 (Validation site web)</span>
+                                <textarea
+                                    rows={2}
+                                    value={concoursGTACondition4}
+                                    onChange={e => {
+                                        setConcoursGTACondition4(e.target.value);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    placeholder="4 - pour validez la participation repondez aux 3 questions qui sont disponible sur le site dropsiders.fr"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-medium focus:border-neon-cyan outline-none transition-all text-xs resize-none"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </>
+            ) : (
+                /* Festival editor (original) */
+                <>
+                    <div className="space-y-2">
+                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Nom du Festival</label>
+                        <input 
+                            value={concoursFestivalName} 
+                            onChange={e => {
+                                setConcoursFestivalName(e.target.value);
+                                setTimeout(() => generateImage(), 50);
+                            }} 
+                            placeholder="EX: TOMORROWLAND / DELTA FESTIVAL" 
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-white/40 outline-none transition-all shadow-md text-xs" 
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-[9px] font-black text-neon-cyan uppercase tracking-widest pl-1">@ du Festival (Instagram)</label>
+                        <input 
+                            value={concoursFestivalHandle} 
+                            onChange={e => {
+                                setConcoursFestivalHandle(e.target.value);
+                                setTimeout(() => generateImage(), 50);
+                            }} 
+                            placeholder="ex: @tomorrowland" 
+                            className="w-full bg-white/5 border border-neon-cyan/40 focus:border-neon-cyan rounded-xl p-3 text-white font-bold focus:shadow-[0_0_15px_rgba(0,255,255,0.2)] outline-none transition-all text-xs font-mono" 
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Étapes de participation fixes</label>
+                        <div className="p-3 bg-white/5 border border-white/10 rounded-xl space-y-1.5 text-[10px] text-gray-300 font-medium">
+                            <div className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded-full bg-neon-cyan/20 text-neon-cyan font-black text-[9px] flex items-center justify-center flex-shrink-0">1</span>
+                                <span>Follow la page <strong>@dropsiders.fr</strong> + <strong>{concoursFestivalHandle || '@festival'}</strong></span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded-full bg-neon-cyan/20 text-neon-cyan font-black text-[9px] flex items-center justify-center flex-shrink-0">2</span>
+                                <span>Identifie la personne qui t'accompagnera</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded-full bg-neon-cyan/20 text-neon-cyan font-black text-[9px] flex items-center justify-center flex-shrink-0">3</span>
+                                <span>Partage en story <strong>(public)</strong> en nous identifiant + <strong>{concoursFestivalHandle || '@festival'}</strong></span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded-full bg-neon-cyan/20 text-neon-cyan font-black text-[9px] flex items-center justify-center flex-shrink-0">4</span>
+                                <span>Repost ce post</span>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* Common Color and Badge controls */}
             <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Couleur du Fondu Inférieur (Dégradé Style NEWS)</label>
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Couleur du Fondu Inférieur</label>
                 <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl p-2.5">
                     <input 
                         type="color" 
                         value={concoursBottomColor} 
-                        onChange={e => setConcoursBottomColor(e.target.value)} 
+                        onChange={e => {
+                            setConcoursBottomColor(e.target.value);
+                            setTimeout(() => generateImage(), 50);
+                        }} 
                         className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0" 
                     />
                     <span className="text-xs font-mono font-bold text-white uppercase">{concoursBottomColor}</span>
                     <div className="flex gap-1.5 ml-auto">
                         {[
+                            { color: '#ff007f', name: 'Vice City Rose Néon' },
                             { color: '#7000ff', name: 'Violet Royal Électrique' },
+                            { color: '#00ffff', name: 'Cyan Néon' },
+                            { color: '#ffe600', name: 'Jaune Or Néon' },
                             { color: '#00d26a', name: 'Émeraude' },
-                            { color: '#ff4757', name: 'Corail' },
-                            { color: '#00c8ff', name: 'Cyan' },
-                            { color: '#f59e0b', name: 'Ambre Or' }
                         ].map(c => (
                             <button
                                 key={c.color}
-                                onClick={() => setConcoursBottomColor(c.color)}
+                                type="button"
+                                onClick={() => {
+                                    setConcoursBottomColor(c.color);
+                                    setTimeout(() => generateImage(), 50);
+                                }}
                                 className="w-5 h-5 rounded-full border border-white/20 transition-transform hover:scale-110"
                                 style={{ backgroundColor: c.color }}
                                 title={c.name}
@@ -4132,14 +4483,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             <div className="space-y-2">
                 <div className="flex justify-between items-center pl-1">
-                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Bandeau Haut Gauche (Cadre Violet • Opacité 40%)</label>
+                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Bandeau Haut Gauche</label>
                     <span className="text-[9px] font-mono font-bold text-neon-cyan">{Math.round(concoursLateralOpacity * 100)}%</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                     <input 
                         value={concoursLateralText} 
-                        onChange={e => setConcoursLateralText(e.target.value)} 
-                        placeholder="JEUX CONCOURS" 
+                        onChange={e => {
+                            setConcoursLateralText(e.target.value);
+                            setTimeout(() => generateImage(), 50);
+                        }} 
+                        placeholder={concoursMode === 'GTA6' ? 'JEU CONCOURS GTA 6' : 'JEUX CONCOURS'} 
                         className="bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-bold uppercase focus:border-white/40 outline-none text-xs" 
                     />
                     <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3">
@@ -4149,7 +4503,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             max="0.9" 
                             step="0.05"
                             value={concoursLateralOpacity} 
-                            onChange={e => setConcoursLateralOpacity(parseFloat(e.target.value))} 
+                            onChange={e => {
+                                setConcoursLateralOpacity(parseFloat(e.target.value));
+                                setTimeout(() => generateImage(), 50);
+                            }} 
                             className="w-full accent-white cursor-pointer" 
                         />
                     </div>
@@ -4158,22 +4515,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <input 
                         type="color" 
                         value={concoursBadgeTextColor} 
-                        onChange={e => setConcoursBadgeTextColor(e.target.value)} 
+                        onChange={e => {
+                            setConcoursBadgeTextColor(e.target.value);
+                            setTimeout(() => generateImage(), 50);
+                        }} 
                         className="w-7 h-7 rounded-lg cursor-pointer bg-transparent border-0" 
                         title="Couleur du texte du bandeau"
                     />
                     <span className="text-[11px] font-mono font-bold text-white uppercase">{concoursBadgeTextColor} (Texte Bandeau)</span>
                     <div className="flex gap-1.5 ml-auto">
                         {[
-                            { color: '#ffe600', name: 'Jaune Néon / Or' },
-                            { color: '#ffffff', name: 'Blanc Pur' },
                             { color: '#00ffff', name: 'Cyan Néon' },
                             { color: '#ff007f', name: 'Rose Vif' },
+                            { color: '#ffe600', name: 'Jaune Néon / Or' },
+                            { color: '#ffffff', name: 'Blanc Pur' },
                             { color: '#00ff88', name: 'Vert Néon' }
                         ].map(c => (
                             <button
                                 key={c.color}
-                                onClick={() => setConcoursBadgeTextColor(c.color)}
+                                type="button"
+                                onClick={() => {
+                                    setConcoursBadgeTextColor(c.color);
+                                    setTimeout(() => generateImage(), 50);
+                                }}
                                 className="w-5 h-5 rounded-full border border-white/20 transition-transform hover:scale-110"
                                 style={{ backgroundColor: c.color }}
                                 title={c.name}
