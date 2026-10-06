@@ -41,11 +41,25 @@ export function GTAContestAdminModal({ isOpen, onClose }: GTAContestAdminModalPr
     // Load participants
     const refreshEntries = () => {
         const data = getAllContestEntries();
-        setEntries([...data]);
+        // Filtrer automatiquement les anciens faux participants de test
+        const clean = data.filter(e => !e.id?.startsWith('gta-10'));
+        setEntries([...clean]);
     };
 
     useEffect(() => {
         if (isOpen) {
+            // Nettoyage automatique immédiat de tout faux participant enregistré dans le localStorage du navigateur
+            const raw = localStorage.getItem('ds_gta6_contest_all_entries_v2');
+            if (raw) {
+                try {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) {
+                        const clean = parsed.filter((e: any) => !e.id?.startsWith('gta-10'));
+                        saveAllContestEntries(clean);
+                    }
+                } catch {}
+            }
+
             refreshEntries();
             // Fetch latest settings from server
             fetch('/api/settings')
@@ -59,6 +73,14 @@ export function GTAContestAdminModal({ isOpen, onClose }: GTAContestAdminModalPr
                 .catch(() => {});
         }
     }, [isOpen]);
+
+    const handleClearAllEntries = () => {
+        if (window.confirm("Es-tu sûr de vouloir effacer tous les participants enregistrés ?")) {
+            saveAllContestEntries([]);
+            localStorage.removeItem('ds_gta6_contest_all_entries_v2');
+            refreshEntries();
+        }
+    };
 
     const handleToggleMenuVisibility = async () => {
         const nextVal = !isMenuVisible;
@@ -253,6 +275,15 @@ export function GTAContestAdminModal({ isOpen, onClose }: GTAContestAdminModalPr
                                 title="Actualiser la liste"
                             >
                                 <RefreshCw className="w-5 h-5" />
+                            </button>
+
+                            {/* VIDER LES PARTICIPANTS */}
+                            <button
+                                onClick={handleClearAllEntries}
+                                className="p-3 bg-red-500/10 hover:bg-red-500/25 border border-red-500/20 rounded-2xl text-red-400 hover:text-red-300 transition-all"
+                                title="Vider tous les participants (Effacer les tests)"
+                            >
+                                <Trash2 className="w-5 h-5" />
                             </button>
 
                             {/* FERMER */}

@@ -169,14 +169,14 @@ export function getAllContestEntries(): GTAContestEntry[] {
         const raw = localStorage.getItem(REGISTRY_KEY);
         if (raw) {
             const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            if (Array.isArray(parsed)) {
+                // Filtrer automatiquement les anciens faux participants de test
+                return parsed.filter(e => !e.id.startsWith('gta-10'));
+            }
         }
     } catch {}
     
-    // Seed initial demo participants if empty so admin dashboard looks full and alive immediately
-    const seeded = getSeededParticipants();
-    saveAllContestEntries(seeded);
-    return seeded;
+    return [];
 }
 
 export function saveAllContestEntries(entries: GTAContestEntry[]) {
@@ -248,136 +248,4 @@ export function generateReferralCode(): string {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return code;
-}
-
-// 5. Seeded Demo Data for Admin Testing & Realism
-function getSeededParticipants(): GTAContestEntry[] {
-    return [
-        {
-            id: 'gta-101',
-            nom: 'Dubois',
-            prenom: 'Lucas',
-            instagram: '@lucas_electro',
-            email: 'lucas.dubois@gmail.com',
-            plateforme: 'PlayStation 5 (PS5)',
-            hasAccountBonus: true,
-            referralCode: 'DS-GTA-9X42L',
-            referralCount: 3,
-            totalTickets: 5, // 1 base + 1 account + 3 referrals
-            answers: { q1: 'Solomun', q2: 'Keinemusik', q3: 'Prospa & Cloonee' },
-            answersValid: { q1: true, q2: true, q3: true },
-            isAllCorrect: true,
-            isOptedIn: true,
-            optInToken: 'tok_lucas_101',
-            fingerprint: 'fp_a94b81c2',
-            createdAt: '2026-10-04T14:22:00.000Z',
-            optedInAt: '2026-10-04T14:23:12.000Z',
-            status: 'VALIDATED'
-        },
-        {
-            id: 'gta-102',
-            nom: 'Moreau',
-            prenom: 'Camille',
-            instagram: '@camille_mrz',
-            email: 'camille.moreau@outlook.fr',
-            plateforme: 'Xbox',
-            hasAccountBonus: false,
-            referralCode: 'DS-GTA-4Y88B',
-            referralCount: 1,
-            totalTickets: 2, // 1 base + 1 referral
-            answers: { q1: 'Solomun', q2: 'Keinemusik', q3: 'Prospa, Cloonee' },
-            answersValid: { q1: true, q2: true, q3: true },
-            isAllCorrect: true,
-            isOptedIn: true,
-            optInToken: 'tok_camille_102',
-            fingerprint: 'fp_b32e189a',
-            createdAt: '2026-10-05T09:15:30.000Z',
-            optedInAt: '2026-10-05T09:18:02.000Z',
-            status: 'VALIDATED'
-        },
-        {
-            id: 'gta-103',
-            nom: 'Benali',
-            prenom: 'Yanis',
-            instagram: '@yanis_b',
-            email: 'yanis.benali@yahoo.fr',
-            plateforme: 'PlayStation 5 (PS5)',
-            hasAccountBonus: true,
-            referralCode: 'DS-GTA-7Z19M',
-            referralCount: 0,
-            totalTickets: 2, // 1 base + 1 account
-            answers: { q1: 'DJ Solomun', q2: 'Keinemusik', q3: 'Cloonee et Prospa' },
-            answersValid: { q1: true, q2: true, q3: true },
-            isAllCorrect: true,
-            isOptedIn: true,
-            optInToken: 'tok_yanis_103',
-            fingerprint: 'fp_c54f227d',
-            createdAt: '2026-10-05T18:40:00.000Z',
-            optedInAt: '2026-10-05T18:41:22.000Z',
-            status: 'VALIDATED'
-        },
-        {
-            id: 'gta-104',
-            nom: 'Lemoine',
-            prenom: 'Théo',
-            instagram: '@theolemoine_',
-            email: 'theo.lemoine@proton.me',
-            plateforme: 'Xbox',
-            hasAccountBonus: true,
-            referralCode: 'DS-GTA-3K55T',
-            referralCount: 0,
-            totalTickets: 0,
-            answers: { q1: 'Solomun', q2: 'The Martinez Brothers', q3: 'Prospa & Cloonee' },
-            answersValid: { q1: true, q2: false, q3: true }, // Error on Q2!
-            isAllCorrect: false,
-            isOptedIn: true,
-            optInToken: 'tok_theo_104',
-            fingerprint: 'fp_d88a104c',
-            createdAt: '2026-10-05T20:12:00.000Z',
-            status: 'FAILED',
-            rejectionReason: 'Erreur à la Question 2 (Attendu : Keinemusik)'
-        },
-        {
-            id: 'gta-105',
-            nom: 'Roux',
-            prenom: 'Sophie',
-            instagram: '@sophieroux.wav',
-            email: 'sophie.roux@icloud.com',
-            plateforme: 'PlayStation 5 (PS5)',
-            hasAccountBonus: false,
-            referralCode: 'DS-GTA-8L22Q',
-            referralCount: 0,
-            totalTickets: 0,
-            answers: { q1: 'Solomun', q2: 'Keinemusik', q3: 'Prospa & Cloonee' },
-            answersValid: { q1: true, q2: true, q3: true },
-            isAllCorrect: true,
-            isOptedIn: false, // In pending opt-in!
-            optInToken: 'tok_sophie_105',
-            fingerprint: 'fp_e77c449f',
-            createdAt: '2026-10-06T11:05:00.000Z',
-            status: 'PENDING_OPT_IN',
-            rejectionReason: 'En attente de confirmation par e-mail'
-        },
-        {
-            id: 'gta-106',
-            nom: 'Girard',
-            prenom: 'Maxime',
-            instagram: '@max_girard',
-            email: 'maxime.girard@gmail.com',
-            plateforme: 'PlayStation 5 (PS5)',
-            hasAccountBonus: false,
-            referralCode: 'DS-GTA-2M99X',
-            referralCount: 0,
-            totalTickets: 0,
-            answers: { q1: 'David Guetta', q2: 'Keinemusik', q3: 'Bicep' },
-            answersValid: { q1: false, q2: true, q3: false },
-            isAllCorrect: false,
-            isOptedIn: false,
-            optInToken: 'tok_max_106',
-            fingerprint: 'fp_f12b663a',
-            createdAt: '2026-10-06T15:30:00.000Z',
-            status: 'FAILED',
-            rejectionReason: 'Erreur aux Questions 1 et 3'
-        }
-    ];
 }
