@@ -125,6 +125,7 @@ import { QRCodeGenerator } from "./QRCodeGenerator";
 import { IncomingCallGenerator } from "./IncomingCallGenerator";
 import { AdminCardsModal } from "../components/admin/modals/AdminCardsModal";
 import { FacebookRecoveryModal } from "../components/admin/FacebookRecoveryModal";
+import { GTAContestAdminModal } from "../components/admin/modals/GTAContestAdminModal";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
@@ -230,6 +231,7 @@ export function AdminDashboard() {
     useState(false);
   const [isRandomizerModalOpen, setIsRandomizerModalOpen] = useState(false);
   const [isGiveawayModalOpen, setIsGiveawayModalOpen] = useState(false);
+  const [isGTAContestModalOpen, setIsGTAContestModalOpen] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isLiveInteractivityModalOpen, setIsLiveInteractivityModalOpen] =
     useState(false);
@@ -4048,6 +4050,13 @@ export function AdminDashboard() {
                         </h3>
                       </div>
                       <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setIsGTAContestModalOpen(true)}
+                          className="px-4 py-2 bg-gradient-to-r from-[#ff007f]/30 to-[#00f0ff]/30 border border-[#ff007f]/40 rounded-xl text-[9px] font-black uppercase text-white hover:from-[#ff007f] hover:to-[#00f0ff] transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(255,0,127,0.3)]"
+                        >
+                          <Gamepad2 className="w-3 h-3 text-[#00f0ff]" />
+                          CONCOURS GTA 6
+                        </button>
                         <button
                           onClick={() => setIsGiveawayModalOpen(true)}
                           className="px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-xl text-[9px] font-black uppercase text-neon-red hover:bg-neon-red hover:text-white transition-all flex items-center gap-2"
@@ -13177,6 +13186,10 @@ export function AdminDashboard() {
           <SocialGiveawayModal
             isOpen={isGiveawayModalOpen}
             onClose={() => setIsGiveawayModalOpen(false)}
+          />
+          <GTAContestAdminModal
+            isOpen={isGTAContestModalOpen}
+            onClose={() => setIsGTAContestModalOpen(false)}
           />
           <LiveInteractivityModal
             isOpen={isLiveInteractivityModalOpen}

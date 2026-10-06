@@ -9365,6 +9365,60 @@ ${urls.map(u => `  <url>
             return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }
 
+        // --- API: GTA 6 CONTEST ---
+        if (path === '/api/gta-contest/participate' && request.method === 'POST') {
+            const entry = await request.json();
+            const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+
+            const logRaw = await env.CHAT_KV.get('gta6_contest_participation_log') || "{\"ips\":{},\"fingerprints\":{}}";
+            let log;
+            try { log = JSON.parse(logRaw); } catch (e) { log = { ips: {}, fingerprints: {} }; }
+            if (!log.ips) log.ips = {};
+            if (!log.fingerprints) log.fingerprints = {};
+
+            const alreadyPlayed = (ip !== 'unknown' && log.ips[ip]) || (entry.fingerprint && log.fingerprints[entry.fingerprint]);
+            if (alreadyPlayed) {
+                return new Response(JSON.stringify({
+                    success: false,
+                    error: 'Une seule participation par personne, IP et empreinte de navigateur est autorisée !'
+                }), { status: 403, headers });
+            }
+
+            if (ip !== 'unknown') log.ips[ip] = { timestamp: Date.now(), instagram: entry.instagram };
+            if (entry.fingerprint) log.fingerprints[entry.fingerprint] = { timestamp: Date.now(), instagram: entry.instagram };
+            await env.CHAT_KV.put('gta6_contest_participation_log', JSON.stringify(log));
+
+            const entriesRaw = await env.CHAT_KV.get('gta6_contest_entries') || "[]";
+            const entries = JSON.parse(entriesRaw);
+            entries.unshift({ ...entry, ip, createdAt: new Date().toISOString() });
+            await env.CHAT_KV.put('gta6_contest_entries', JSON.stringify(entries));
+
+            return new Response(JSON.stringify({ success: true, entry }), { status: 200, headers });
+        }
+
+        if (path === '/api/gta-contest/participants' && request.method === 'GET') {
+            const entriesRaw = await env.CHAT_KV.get('gta6_contest_entries') || "[]";
+            return new Response(entriesRaw, { status: 200, headers });
+        }
+
+        if (path === '/api/gta-contest/verify-optin' && request.method === 'POST') {
+            const { token } = await request.json();
+            const entriesRaw = await env.CHAT_KV.get('gta6_contest_entries') || "[]";
+            let entries = JSON.parse(entriesRaw);
+            let updated = false;
+            entries = entries.map((e: any) => {
+                if (e.optInToken === token && e.status === 'PENDING_OPT_IN' && e.isAllCorrect) {
+                    updated = true;
+                    return { ...e, status: 'VALIDATED', isOptedIn: true, optedInAt: new Date().toISOString() };
+                }
+                return e;
+            });
+            if (updated) {
+                await env.CHAT_KV.put('gta6_contest_entries', JSON.stringify(entries));
+            }
+            return new Response(JSON.stringify({ success: updated }), { status: 200, headers });
+        }
+
         if (path === '/api/musique/charts/update' && request.method === 'POST') {
             const adminPass = (request.headers.get('X-Admin-Password') || '').trim();
             const requiredPass = adminPassword;

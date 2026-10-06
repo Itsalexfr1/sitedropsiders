@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Video, Calendar, X, Users, Shield, Info, MoreHorizontal, Home, User, Plane, Newspaper } from 'lucide-react';
+import { Trophy, Video, Calendar, X, Users, Shield, Info, MoreHorizontal, Home, User, Plane, Newspaper, Gamepad2 } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useState, useEffect } from 'react';
 import settings from '../../data/settings.json';
@@ -62,6 +62,7 @@ export function MobileNavbar() {
     const navigate = useNavigate();
 
     const menuItems = [
+        { icon: Gamepad2, label: 'Concours GTA 6', path: '/concours-gta6', color: 'text-[#ff007f]' },
         // Live moved to center if active
         ...(isLiveActive ? [{ icon: Users, label: navLabels.communaute || 'Communaute', path: '/communaute', color: 'text-neon-cyan' }] : []),
         { icon: Newspaper, label: navLabels.news || 'News', path: '/news', color: 'text-neon-red' },

@@ -75,6 +75,8 @@ const ProShop = lazyRetry(() => import('./pages/ProShop').then(m => m.ProShop));
 const BrandingPage = lazyRetry(() => import('./pages/BrandingPage').then(m => m.BrandingPage));
 const MixPage = lazyRetry(() => import('./pages/MixPage').then(m => m.MixPage));
 const RadioPage = lazyRetry(() => import('./pages/RadioPage').then(m => m.RadioPage));
+const GTAContestPage = lazyRetry(() => import('./pages/GTAContestPage').then(m => m.GTAContestPage));
+const AdminGTAContestPage = lazyRetry(() => import('./pages/AdminGTAContestPage').then(m => m.AdminGTAContestPage));
 
 
 function ErrorFallback() {
@@ -228,7 +230,9 @@ const router = createBrowserRouter([
       { path: "contact", element: <Contact /> },
       { path: "a-propos", element: <About /> },
       { path: "pro/boutique", element: <ProShop /> },
-
+      { path: "concours-gta6", element: <GTAContestPage /> },
+      { path: "gta6", element: <GTAContestPage /> },
+      { path: "concours/gta6", element: <GTAContestPage /> },
       
       { path: "admin", element: <AdminDashboard /> },
       
@@ -251,6 +255,7 @@ const router = createBrowserRouter([
           { path: "admin/pdfs", element: <AdminPdfs /> },
           { path: "admin/interview-questions", element: <AdminInterviewQuestions /> },
           { path: "admin/signatures", element: <AdminSignatures /> },
+          { path: "admin/concours-gta6", element: <AdminGTAContestPage /> },
           { path: "social-studio", element: <SocialStudioPage /> },
           { path: "interview-visuals", element: <InterviewVisualGenerator /> },
           { path: "aftermovie", element: <VideoStudioGenerator /> },

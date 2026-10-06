@@ -102,6 +102,7 @@ export function Navbar() {
         { name: navLabels.communaute || t('nav.communaute'), path: '/communaute', color: 'neon-cyan' },
         { name: 'DropsidersTV', path: '/tv', color: 'neon-red', icon: Tv },
         { name: 'TOP', path: '/top-dropsiders', color: 'neon-yellow', suffix: 'DROPSIDERS', isPremium: true },
+        { name: 'GTA 6', path: '/concours-gta6', color: 'neon-pink', suffix: 'CONCOURS', isPremium: true },
         { name: navLabels.vols || t('nav.vols'), path: '/voyage/vols', color: 'neon-green' },
         { name: navLabels.team || t('nav.team'), path: '/team', color: 'neon-lime' },
         ...(shopEnabled && !shopPasswordProtected ? [{ name: 'SHOP', path: '/shop', color: 'neon-blue' }] : []),
