@@ -425,12 +425,22 @@ export function GTAContestPage() {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.6 }}
-                        className="text-3xl sm:text-5xl lg:text-6xl font-black font-display uppercase italic tracking-tighter text-center leading-[1.1] max-w-5xl"
+                        className="text-3xl sm:text-5xl lg:text-6xl font-black font-display uppercase italic tracking-tighter text-center leading-normal sm:leading-[1.25] max-w-5xl py-2"
                         style={{
                             textShadow: '0 0 20px rgba(255, 0, 127, 0.6), 0 0 45px rgba(0, 240, 255, 0.4)'
                         }}
                     >
-                        DROPSIDERS TE FAIT GAGNER <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff007f] via-[#ffe600] to-[#00f0ff]">GTA 6</span> SUR LA PLATEFORME DE TON CHOIX
+                        DROPSIDERS TE FAIT GAGNER{' '}
+                        <span 
+                            className="inline-block pb-4 pt-1 px-2 align-baseline text-transparent bg-clip-text bg-gradient-to-r from-[#ff007f] via-[#ffe600] to-[#00f0ff]"
+                            style={{
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                            }}
+                        >
+                            GTA 6
+                        </span>{' '}
+                        SUR LA PLATEFORME DE TON CHOIX
                     </motion.h1>
                 </div>
 
@@ -695,14 +705,16 @@ export function GTAContestPage() {
                                         }`}
                                     >
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${
+                                            <div className={`h-12 px-2.5 rounded-xl flex items-center justify-center shrink-0 border ${
                                                 plateforme === 'PlayStation 5 (PS5)'
                                                     ? 'bg-black/25 border-white/30'
                                                     : 'bg-[#0070d1]/30 border-[#0070d1]/40'
                                             }`}>
-                                                <svg viewBox="0 0 50 40" fill="currentColor" className="w-7 h-7 text-white">
-                                                    <path d="M5.8 32.5c-.2.5.3.9.8.7l13.1-4.7v-4.1l-10 3.6c-1.4.5-2.2.8-2.6.9-.4.2-.9.5-1.1.9-.3.5-.3 1.9-.2 2.7zm19-27.1v23.2l7.7 2.8c2 .7 4.1 1.2 6.1 1.2 3.8 0 6.6-1.5 6.6-4.9 0-3.1-2.4-4.8-6.1-5.6l-6.1-1.3v-4c2.8.4 5.7.8 7.3 1.6l1.2.6.8-4.2-2.1-.7c-2-.6-4.5-1-7.2-1.2V5.4H24.8zm0 18.2l4.8 1.1c2 .5 3.3 1.3 3.3 2.6 0 1.5-1.4 2.2-3.6 2.2-1.4 0-2.8-.2-4.5-.8V23.6zM0 34.6c.1.7.5 1.4 1.1 1.9 1 .8 2.6.8 4.7.4l14.1-3.3v-3.7L7.5 32.7c-2.8.7-4.4.9-5.4.9-.7 0-1.4-.2-1.8-.7-.2-.2-.3-.5-.3-.9v-2.1L0 34.6zm39.1-1.3c-2.3 0-4.6-.5-6.8-1.3l-7.5-2.7v4.1l6.7 2.4c2.5.9 5.1 1.4 7.6 1.4 4.8 0 8.3-2 8.3-6.1 0-3.9-3-6-7.8-6.9l-7.3-1.6v-3.8l6.3 1c3.1.5 5.9 1.1 8.2 2.1l1.4.6 1-4.6-2.5-.8c-2.3-.7-5.1-1.2-8.1-1.4V11h-4.3v18.7l5.4 1.2c2.5.6 4.1 1.6 4.1 3.2 0 1.8-1.7 2.8-4.5 2.8z"/>
-                                                </svg>
+                                                <img 
+                                                    src="/images/ps5_logo_official.png" 
+                                                    alt="PlayStation 5" 
+                                                    className="h-6 w-auto max-w-[85px] object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" 
+                                                />
                                             </div>
                                             <div>
                                                 <div className="font-black text-sm text-white flex items-center gap-2">
@@ -725,7 +737,7 @@ export function GTAContestPage() {
                                         </div>
                                     </button>
 
-                                    {/* CARTE XBOX SERIES X|S (FOND VERT) */}
+                                    {/* CARTE XBOX SERIES X (FOND VERT) */}
                                     <button
                                         type="button"
                                         onClick={() => setPlateforme('Xbox')}
@@ -736,18 +748,20 @@ export function GTAContestPage() {
                                         }`}
                                     >
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${
+                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border p-1 ${
                                                 plateforme === 'Xbox'
                                                     ? 'bg-black/25 border-white/30'
                                                     : 'bg-[#107c10]/30 border-[#107c10]/40'
                                             }`}>
-                                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 text-white">
-                                                    <path d="M12 0C5.373 0 0 5.373 0 12c0 6.627 5.373 12 12 12 6.627 0 12-5.373 12-12 0-6.627-5.373-12-12-12zm-3.03 3.655c1.07 0 2.245.545 3.03 1.435.785-.89 1.96-1.435 3.03-1.435 2.505 0 4.545 2.04 4.545 4.545 0 .28-.025.555-.075.82C18.23 7.84 15.65 7 12 7c-3.65 0-6.23.84-7.5 2.02-.05-.265-.075-.54-.075-.82 0-2.505 2.04-4.545 4.545-4.545zM3.46 10.74c1.68-1.12 4.67-1.88 8.54-1.88 3.87 0 6.86.76 8.54 1.88C21.49 12.38 22 14.34 22 16.5c0 2.52-1.02 4.8-2.67 6.45-1.57-2.14-4.22-3.83-7.33-4.55 1.57-.96 2.65-2.68 2.65-4.65 0-.58-.1-1.13-.27-1.65-.63.47-1.41.75-2.26.75s-1.63-.28-2.26-.75c-.17.52-.27 1.07-.27 1.65 0 1.97 1.08 3.69 2.65 4.65-3.11.72-5.76 2.41-7.33 4.55C3.02 21.3 2 19.02 2 16.5c0-2.16.51-4.12 1.46-5.76z"/>
-                                                </svg>
+                                                <img 
+                                                    src="/images/xbox_series_x_logo_official.png" 
+                                                    alt="Xbox Series X" 
+                                                    className="w-9 h-9 object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" 
+                                                />
                                             </div>
                                             <div>
                                                 <div className="font-black text-sm text-white flex items-center gap-2">
-                                                    <span>Xbox Series X|S</span>
+                                                    <span>Xbox Series X</span>
                                                     <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded font-black uppercase">
                                                         XBOX
                                                     </span>
