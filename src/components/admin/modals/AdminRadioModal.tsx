@@ -1683,11 +1683,13 @@ export function AdminRadioModal({
             // Les jingles spéciaux sont gérés dans leur dossier dédié et entrelacés automatiquement à l'antenne
             const tracksList = [...(selectedBlock.tracks || [])];
 
+            // ⚠️ IMPORTANT : on assigne l'index RÉEL dans le tableau original AVANT de filtrer.
+            // Si on assignait idx après .filter(), l'index 0 filtré ne correspondrait pas
+            // au bon élément dans le tableau complet → suppression du mauvais morceau.
             return tracksList
-                .filter(t => !query || t.title.toLowerCase().includes(query) || (t.artist && t.artist.toLowerCase().includes(query)))
-                .map((t, idx) => ({
-                    id: t.id || `idx_${idx}`,
-                    index: idx,
+                .map((t, realIdx) => ({
+                    id: t.id || `idx_${realIdx}`,
+                    index: realIdx,   // ← index réel dans selectedBlock.tracks (avant filtrage)
                     type: t.category || 'set',
                     title: t.title,
                     artist: t.artist || (t.category === 'jingle' ? `${selectedBlock.title} JINGLE` : 'Artiste'),
@@ -1697,7 +1699,8 @@ export function AdminRadioModal({
                     youtubeId: t.youtubeId,
                     isSpecialJingle: t.category === 'jingle',
                     expiresAt: t.expiresAt
-                }));
+                }))
+                .filter(t => !query || t.title.toLowerCase().includes(query) || (t.artist && t.artist.toLowerCase().includes(query)));
         }
 
         return [];
