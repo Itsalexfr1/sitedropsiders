@@ -147,71 +147,38 @@ export async function generateGTA6StoryVisual(params: {
     ctx.restore();
 
     // =========================================================================
-    // 5. TITRES : ZERO CHEVAUCHEMENT - ESPACEMENT ET HIÉRARCHIE PARFAITS
+    // 5. TITRES : ZERO CHEVAUCHEMENT - IMPACT MAXIMAL
     // =========================================================================
     // A) Accroche : JE JOUE POUR GAGNER
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
-    ctx.font = '900 italic 38px "Montserrat", sans-serif';
+    ctx.font = '900 italic 40px "Montserrat", sans-serif';
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = 'rgba(0, 0, 0, 1)';
     ctx.shadowBlur = 20;
-    ctx.fillText('JE JOUE POUR GAGNER', width / 2, 1050);
+    ctx.fillText('JE JOUE POUR GAGNER', width / 2, 1060);
     ctx.restore();
 
     // B) Grand Titre : GTA 6 (Massif, néon rose avec contour sombre net)
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
-    ctx.font = '900 italic 125px "Montserrat", sans-serif';
-    ctx.lineWidth = 12;
+    ctx.font = '900 italic 135px "Montserrat", sans-serif';
+    ctx.lineWidth = 14;
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.95)';
-    ctx.strokeText('GTA 6', width / 2, 1175);
+    ctx.strokeText('GTA 6', width / 2, 1195);
     ctx.fillStyle = '#ff007f';
     ctx.shadowColor = 'rgba(255, 0, 127, 0.95)';
     ctx.shadowBlur = 35;
-    ctx.fillText('GTA 6', width / 2, 1175);
-    ctx.restore();
-
-    // C) Plateforme : Pilule jaune or néon adaptée au texte
-    ctx.save();
-    const platClean = params.plateforme.includes('PS5') || params.plateforme.includes('PlayStation')
-        ? 'SUR PLAYSTATION 5'
-        : (params.plateforme.includes('Xbox') ? 'SUR XBOX SERIES X' : `SUR ${params.plateforme.toUpperCase()}`);
-    const platLabel = `🎮  ${platClean}`;
-
-    ctx.font = '900 italic 25px "Montserrat", sans-serif';
-    const platTextW = ctx.measureText(platLabel).width;
-    const platPillW = Math.min(width - 120, platTextW + 54);
-    const platPillH = 46;
-    const platPillX = (width - platPillW) / 2;
-    const platPillY = 1205;
-
-    ctx.fillStyle = 'rgba(255, 230, 0, 0.16)';
-    ctx.beginPath();
-    ctx.roundRect(platPillX, platPillY, platPillW, platPillH, 23);
-    ctx.fill();
-
-    ctx.strokeStyle = '#ffe600';
-    ctx.lineWidth = 2.5;
-    ctx.shadowColor = 'rgba(255, 230, 0, 0.6)';
-    ctx.shadowBlur = 14;
-    ctx.stroke();
-
-    ctx.fillStyle = '#ffe600';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-    ctx.shadowBlur = 8;
-    ctx.fillText(platLabel, width / 2, platPillY + platPillH / 2 + 1);
+    ctx.fillText('GTA 6', width / 2, 1195);
     ctx.restore();
 
     // =========================================================================
     // 6. CARTE VIP TICKET DU PARTICIPANT (Structure Pro et Haute Lisibilité)
     // =========================================================================
-    const cardY = 1285;
-    const cardH = 375;
+    const cardY = 1265;
+    const cardH = 385;
     const cardW = 940;
     const cardX = (width - cardW) / 2;
 
