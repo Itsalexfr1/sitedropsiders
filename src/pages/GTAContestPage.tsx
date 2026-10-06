@@ -120,8 +120,25 @@ export function GTAContestPage() {
                 // Check local participation
                 const check = checkHasAlreadyParticipated(fp);
                 if (check.alreadyPlayed && check.entry) {
-                    setExistingEntry(check.entry);
-                    setActiveEntry(check.entry);
+                    let entry = check.entry;
+                    // Auto-validation : si les réponses étaient correctes mais bloquées en attente d'opt-in email
+                    if (entry.status === 'PENDING_OPT_IN' && entry.isAllCorrect) {
+                        entry = {
+                            ...entry,
+                            status: 'VALIDATED',
+                            isOptedIn: true,
+                            optedInAt: entry.optedInAt || new Date().toISOString()
+                        };
+                        const all = getAllContestEntries();
+                        const idx = all.findIndex(e => e.id === entry.id);
+                        if (idx !== -1) {
+                            all[idx] = entry;
+                            saveAllContestEntries(all);
+                        }
+                        saveLocalContestEntry(entry);
+                    }
+                    setExistingEntry(entry);
+                    setActiveEntry(entry);
                 }
             } catch (err) {
                 console.error("Erreur d'initialisation du concours:", err);
@@ -235,11 +252,12 @@ export function GTAContestPage() {
                     q3: evalResult.q3Valid,
                 },
                 isAllCorrect: evalResult.isAllCorrect,
-                isOptedIn: false,
+                isOptedIn: evalResult.isAllCorrect,
+                optedInAt: evalResult.isAllCorrect ? new Date().toISOString() : undefined,
                 optInToken,
                 fingerprint: fingerprint || 'fp_' + Date.now(),
                 createdAt: new Date().toISOString(),
-                status: evalResult.isAllCorrect ? 'PENDING_OPT_IN' : 'FAILED',
+                status: evalResult.isAllCorrect ? 'VALIDATED' : 'FAILED',
                 rejectionReason: evalResult.isAllCorrect 
                     ? undefined 
                     : `Erreur aux questions : ${!evalResult.q1Valid ? 'Q1 ' : ''}${!evalResult.q2Valid ? 'Q2 ' : ''}${!evalResult.q3Valid ? 'Q3' : ''}`.trim()
@@ -276,9 +294,17 @@ export function GTAContestPage() {
                 // Local fallback handled gracefully
             }
 
-            // If answers were correct, prompt the Double Opt-in modal
+            // Direct validation without email waiting
             if (evalResult.isAllCorrect) {
-                setIsOptinModalOpen(true);
+                setIsShareModalOpen(true);
+                // Trigger Victory Confetti!
+                confetti({
+                    particleCount: 120,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: ['#ff007f', '#00f0ff', '#ffffff', '#ffe600']
+                });
+                showNotification?.("🎉 Félicitations ! Tes 3 réponses sont correctes, ta participation au concours GTA 6 est validée !", "success");
             } else {
                 // If failed, notify clearly
                 showNotification?.("⚠️ Réponses incorrectes. Votre participation a été enregistrée mais est malheureusement invalidée.", "error");
@@ -522,9 +548,6 @@ export function GTAContestPage() {
                             {existingEntry.status === 'VALIDATED' && (
                                 `Ta participation sur ${existingEntry.plateforme} est officiellement validée avec ${existingEntry.totalTickets} chance(s) au tirage au sort ! Partage ton lien de parrainage pour cumuler encore plus de chances.`
                             )}
-                            {existingEntry.status === 'PENDING_OPT_IN' && (
-                                `Tes 3 réponses sont correctes ! Il te suffit maintenant de valider l'e-mail de confirmation envoyé à ${existingEntry.email} pour activer tes chances.`
-                            )}
                             {existingEntry.status === 'FAILED' && (
                                 `Tu n'as pas obtenu les 3 bonnes réponses aux questions de connaissance. Conformément au règlement, une seule tentative par personne et par empreinte de navigateur est autorisée.`
                             )}
@@ -543,11 +566,9 @@ export function GTAContestPage() {
                             <div className="flex justify-between text-xs">
                                 <span className="text-gray-400 font-bold uppercase">Statut :</span>
                                 <span className={`font-black uppercase ${
-                                    existingEntry.status === 'VALIDATED' ? 'text-green-400' :
-                                    existingEntry.status === 'PENDING_OPT_IN' ? 'text-yellow-400' : 'text-red-400'
+                                    existingEntry.status === 'VALIDATED' ? 'text-green-400' : 'text-red-400'
                                 }`}>
-                                    {existingEntry.status === 'VALIDATED' ? '🟢 VALIDÉE' :
-                                     existingEntry.status === 'PENDING_OPT_IN' ? '🟡 EN ATTENTE OPT-IN' : '🔴 ÉCHOUÉE'}
+                                    {existingEntry.status === 'VALIDATED' ? '🟢 VALIDÉE' : '🔴 ÉCHOUÉE'}
                                 </span>
                             </div>
                             <div className="flex justify-between text-xs border-t border-white/10 pt-3">
@@ -558,16 +579,7 @@ export function GTAContestPage() {
 
                         {/* Action buttons */}
                         <div className="flex flex-wrap items-center justify-center gap-4">
-                            {existingEntry.status === 'PENDING_OPT_IN' && (
-                                <button
-                                    onClick={handleSimulateOptInConfirm}
-                                    className="px-8 py-4 bg-gradient-to-r from-[#ffe600] to-[#ff007f] text-black font-black uppercase text-xs tracking-[0.2em] rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all"
-                                >
-                                    Valider mon E-mail Maintenant (Opt-in)
-                                </button>
-                            )}
-
-                            {existingEntry.status === 'VALIDATED' && (
+                            {existingEntry.status !== 'FAILED' && (
                                 <>
                                     <button
                                         onClick={() => setIsShareModalOpen(true)}
@@ -1231,60 +1243,7 @@ export function GTAContestPage() {
                 )}
             </AnimatePresence>
 
-            {/* =========================================================================
-                MODAL 2 : DOUBLE OPT-IN E-MAIL CONFIRMATION
-            ========================================================================= */}
-            <AnimatePresence>
-                {isOptinModalOpen && activeEntry && (
-                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="bg-[#0d0221] border border-[#00f0ff]/50 rounded-[2.5rem] p-8 max-w-lg w-full shadow-[0_0_50px_rgba(0,240,255,0.3)] text-center relative overflow-hidden"
-                        >
-                            <div className="w-16 h-16 mx-auto rounded-2xl bg-[#00f0ff]/20 border border-[#00f0ff]/40 flex items-center justify-center mb-6">
-                                <Send className="w-8 h-8 text-[#00f0ff]" />
-                            </div>
 
-                            <span className="text-[10px] font-black uppercase tracking-widest text-[#00f0ff] bg-[#00f0ff]/10 px-3 py-1 rounded-full border border-[#00f0ff]/30">
-                                ÉTAPE 2 SUR 2 : DOUBLE OPT-IN
-                            </span>
-
-                            <h3 className="text-2xl font-black font-display uppercase italic tracking-tight text-white mt-4 mb-3">
-                                CONFIRME TON ADRESSE E-MAIL
-                            </h3>
-
-                            <p className="text-xs text-gray-300 leading-relaxed mb-6">
-                                Un e-mail de confirmation unique a été généré pour <strong>{activeEntry.email}</strong>. 
-                                Ta participation passera en statut <span className="text-[#00f0ff] font-bold">"Validée"</span> dès validation de ce lien.
-                            </p>
-
-                            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-left text-xs mb-6 space-y-2">
-                                <div className="text-gray-400 font-bold uppercase text-[10px]">Aperçu du lien sécurisé :</div>
-                                <div className="text-[#00f0ff] font-mono text-[11px] truncate">
-                                    https://dropsiders.fr/concours-gta6?confirm={activeEntry.optInToken}
-                                </div>
-                            </div>
-
-                            <div className="space-y-3">
-                                <button
-                                    onClick={handleSimulateOptInConfirm}
-                                    className="w-full py-4 bg-gradient-to-r from-[#00f0ff] to-[#ff007f] text-black font-black uppercase text-xs tracking-[0.2em] rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all"
-                                >
-                                    CONFIRMER MON E-MAIL (VALIDER MAINTENANT)
-                                </button>
-                                <button
-                                    onClick={() => setIsOptinModalOpen(false)}
-                                    className="w-full py-3 text-gray-500 hover:text-white font-bold uppercase text-[10px] tracking-widest transition-colors"
-                                >
-                                    Fermer et vérifier plus tard
-                                </button>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
 
             {/* =========================================================================
                 MODAL 3 : EXPÉDITION VIRALE (STORY INSTA & LIEN DE PARRAINAGE)
