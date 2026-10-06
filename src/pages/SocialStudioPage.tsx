@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { SocialSuite } from '../components/SocialSuite';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Instagram, Zap, Smartphone, Image as ImageIcon, Gamepad2 } from 'lucide-react';
+import { ChevronLeft, Instagram, Zap, Smartphone, Image as ImageIcon } from 'lucide-react';
 import { isSuperAdmin, hasPermission } from '../utils/auth';
-import { GTAContestAdminModal } from '../components/admin/modals/GTAContestAdminModal';
 
 export function SocialStudioPage() {
     const navigate = useNavigate();
@@ -16,7 +15,6 @@ export function SocialStudioPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(isAuthorized);
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [isGTAContestModalOpen, setIsGTAContestModalOpen] = useState(false);
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
@@ -78,15 +76,7 @@ export function SocialStudioPage() {
 
     return (
         <div className="min-h-screen bg-black">
-            <div className="flex fixed top-4 right-4 lg:top-8 lg:right-8 z-[210] items-center gap-3">
-                <button
-                    onClick={() => setIsGTAContestModalOpen(true)}
-                    className="p-3 lg:p-4 bg-gradient-to-r from-[#ff007f]/30 to-[#00f0ff]/30 hover:from-[#ff007f]/50 hover:to-[#00f0ff]/50 text-white rounded-2xl border border-[#ff007f]/40 transition-all flex items-center gap-2 font-black text-[10px] uppercase tracking-widest shadow-[0_0_20px_rgba(255,0,127,0.3)]"
-                >
-                    <Gamepad2 className="w-4 h-4 text-[#00f0ff]" />
-                    <span className="hidden sm:inline">JEUX CONCOURS GTA 6</span>
-                    <span className="sm:hidden">GTA 6</span>
-                </button>
+            <div className="flex fixed top-4 right-4 lg:top-8 lg:right-8 z-[210] items-center gap-6">
                 <button
                     onClick={() => navigate('/admin')}
                     className="p-3 lg:p-4 bg-white/10 hover:bg-neon-red/20 text-white rounded-2xl border border-white/20 transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-[0_0_20px_rgba(255,0,255,0.1)]"
@@ -119,11 +109,6 @@ export function SocialStudioPage() {
                     window.close();
                     navigate('/admin');
                 }}
-            />
-
-            <GTAContestAdminModal
-                isOpen={isGTAContestModalOpen}
-                onClose={() => setIsGTAContestModalOpen(false)}
             />
 
             {/* Landing UI if SocialSuite is closed or as a background */}
