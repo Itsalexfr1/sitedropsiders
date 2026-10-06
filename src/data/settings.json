@@ -5219,28 +5219,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1791198216403_6xf5",
-          "title": "Take Me As I Am (Moodymann Remix)",
-          "artist": "Dames Brown & Amp Fiddler",
-          "youtubeId": "dNuMB8xsiCE",
-          "duration": 300,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1791197234957_s_24",
           "title": "Dropsiders Radio Jingle 5",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
           "duration": 14,
           "category": "jingle"
-        },
-        {
-          "id": "track_1791198375694_nlgr",
-          "title": "Take Me As I Am (Moodymann Remix)",
-          "artist": "Dames Brown & Amp Fiddler -",
-          "youtubeId": "dNuMB8xsiCE",
-          "duration": 300,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1791197234957_n_25",
@@ -11550,8 +11534,8 @@
       "title": "JUST A LITTLE BIT MORE",
       "artist": "Mau P",
       "youtubeId": "ke6hDTz3OoY",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255600257
     },
     {
@@ -11559,8 +11543,8 @@
       "title": "Movin’ To The Sun (Performance Clip)",
       "artist": "ULTRA NATÉ",
       "youtubeId": "bJ7yyX4Qic4",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255611613
     },
     {
@@ -11576,8 +11560,8 @@
       "title": "WHAT A LIFE (ft. Florence Arman)",
       "artist": "FISHER",
       "youtubeId": "CsRTKXYEhOM",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255617206
     },
     {
@@ -11585,8 +11569,8 @@
       "title": "What A Life ft. Stevie Appleton",
       "artist": "John Summit, Guz",
       "youtubeId": "a6nw8XxdDu4",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255659500
     },
     {
@@ -11602,8 +11586,8 @@
       "title": "Kackvogel (music video)",
       "artist": "Solomun",
       "youtubeId": "9tBOtSPrNik",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255666383
     },
     {
@@ -11611,8 +11595,8 @@
       "title": "High On Life",
       "artist": "Martin Garrix feat. Bonn",
       "youtubeId": "Lpjcm1F8tY8",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255667651
     },
     {
@@ -11628,8 +11612,8 @@
       "title": "Happiness Is So Sad (Official Audio)",
       "artist": "Swedish House Mafia, Lykke Li",
       "youtubeId": "5N5RfaCyD-Y",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255668796
     },
     {
@@ -11637,8 +11621,8 @@
       "title": "Deep In The Bottom (of Africa)",
       "artist": "Monique Bingham, Black Coffee",
       "youtubeId": "BEKiRcCC1XY",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255671397
     },
     {
@@ -11654,8 +11638,8 @@
       "title": "QUE CE SOIT CLAIR",
       "artist": "Paul Kalkbrenner x Stromae",
       "youtubeId": "YQM7DKi11ho",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255672563
     },
     {
@@ -11663,8 +11647,8 @@
       "title": "Rumpta (Official Audio)",
       "artist": "Solomun, Skrillex",
       "youtubeId": "aFUqsPHEXhA",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255675199
     },
     {
@@ -11673,15 +11657,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790255680923_1axj",
       "title": "Bangarang feat. Sirah [Official Music Video]",
       "artist": "SKRILLEX",
       "youtubeId": "YJVmu6yttiw",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255680923
     },
     {
@@ -11689,8 +11674,8 @@
       "title": "We Could Be Dancing ft. Molly Hammar",
       "artist": "Bob Sinclar",
       "youtubeId": "kauqBzcqPFM",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255682374
     },
     {
@@ -11706,8 +11691,8 @@
       "title": "Beautiful (Official Music Video)",
       "artist": "Anyma, Joji",
       "youtubeId": "DnTC2P9kxO8",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255683756
     },
     {
@@ -11715,8 +11700,8 @@
       "title": "Born Like That",
       "artist": "Kevin de Vries & Jast",
       "youtubeId": "BG0PN9Xcho8",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255685077
     },
     {
@@ -11732,8 +11717,8 @@
       "title": "Feel The Vibe (Original)",
       "artist": "Axwell",
       "youtubeId": "889H0Am7vFo",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255712927
     },
     {
@@ -11741,8 +11726,8 @@
       "title": "Beat Goes On",
       "artist": "Adam Ten",
       "youtubeId": "2I0jW--BOzE",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255779415
     },
     {
@@ -11751,15 +11736,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_1790255829690",
       "title": "Nothing Wrong (Love Mix)",
       "artist": "Omri",
       "youtubeId": "QuHJZCbrI38",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255829690
     },
     {
@@ -11767,8 +11753,8 @@
       "title": "The Present (Extended Mix)",
       "artist": "Goodboys, Korolova",
       "youtubeId": "BLQaxpCAOKE",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255881886
     },
     {
@@ -11784,8 +11770,8 @@
       "title": "BOUNCE MUSIC (Official Music Video)",
       "artist": "INNELLEA",
       "youtubeId": "vgHasjtd0NQ",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255910133
     },
     {
@@ -11793,8 +11779,8 @@
       "title": "Swagon",
       "artist": "Detlef",
       "youtubeId": "1p6JePMTJVE",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790255974618
     },
     {
@@ -11810,8 +11796,8 @@
       "title": "Innerbloom",
       "artist": "RÜFÜS DU SOL",
       "youtubeId": "Tx9zMFodNtA",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256008619
     },
     {
@@ -11819,8 +11805,8 @@
       "title": "In the Moment (Adriatique Remix)",
       "artist": "RÜFÜS DU SOL",
       "youtubeId": "qP6xBFfTGeI",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256040583
     },
     {
@@ -11836,8 +11822,8 @@
       "title": "Polka",
       "artist": "OMMA",
       "youtubeId": "D8uZsgs6Woo",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256092462
     },
     {
@@ -11845,8 +11831,8 @@
       "title": "Out Of Touch",
       "artist": "Daryl Hall & John Oates",
       "youtubeId": "D00M2KZH1J0",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256131260
     },
     {
@@ -11862,8 +11848,8 @@
       "title": "4Get The Girl (Samm Remix)",
       "artist": "Route 94",
       "youtubeId": "R4aJA0XA-Bk",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256149615
     },
     {
@@ -11871,8 +11857,8 @@
       "title": "You Make Me Fall In Love",
       "artist": "Ajna feat. abrahamblue",
       "youtubeId": "YCqCBviJoGg",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256167935
     },
     {
@@ -11888,8 +11874,8 @@
       "title": "Baby Do You Wanna Bump [AFFAIRS 017]",
       "artist": "JØRD",
       "youtubeId": "cQEnrHD91R8",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256193204
     },
     {
@@ -11897,8 +11883,8 @@
       "title": "Lost [AFFAIRS 006]",
       "artist": "Vintage Culture, Gabss",
       "youtubeId": "wNoZnhsB2XA",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256215019
     },
     {
@@ -11914,8 +11900,8 @@
       "title": "Analog Ascent",
       "artist": "Vintage Culture, Roddy Lima",
       "youtubeId": "uJM4b-BRTWI",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256226318
     },
     {
@@ -11923,8 +11909,8 @@
       "title": "Turn The Tide (ft. Sylver)",
       "artist": "Dimitri Vegas, Sylver & Pat B",
       "youtubeId": "hFG5ZPtnxsw",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256245692
     },
     {
@@ -11940,8 +11926,8 @@
       "title": "Makina Time",
       "artist": "Dimitri Vegas & Like Mike x Marlon Hoffstadt x DJ Konik",
       "youtubeId": "jEIMDLAbOD0",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256261370
     },
     {
@@ -11949,8 +11935,8 @@
       "title": "It's That Time (FISHER Remix)",
       "artist": "Marlon Hoffstadt",
       "youtubeId": "GDWdul0nrYw",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256278044
     },
     {
@@ -11966,8 +11952,8 @@
       "title": "Hello",
       "artist": "Martin Solveig & Dragonette",
       "youtubeId": "kK42LZqO0wA",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256302438
     },
     {
@@ -11975,8 +11961,8 @@
       "title": "Titanium ft. Sia",
       "artist": "David Guetta",
       "youtubeId": "JRfuAukYTKg",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256323478
     },
     {
@@ -11985,15 +11971,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790256329104_fza5",
       "title": "Carry You (feat. Oaks & Declan J Donovan) [",
       "artist": "Martin Garrix & Third ≡ Party",
       "youtubeId": "xVGoGYb55NI",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256329104
     },
     {
@@ -12001,8 +11988,8 @@
       "title": "Medellin, Colombia (",
       "artist": "DJ Snake - Club Soda",
       "youtubeId": "csd9gajWjxE",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256330392
     },
     {
@@ -12018,8 +12005,8 @@
       "title": "Places ft. Ina Wroldsen",
       "artist": "Martin Solveig",
       "youtubeId": "NJlOmDWyoA8",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256332123
     },
     {
@@ -12027,8 +12014,8 @@
       "title": "SHADOWS (feat. LAVINIA)",
       "artist": "John Summit",
       "youtubeId": "TSZo2eZzD6s",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256333666
     },
     {
@@ -12044,8 +12031,8 @@
       "title": "Pull Up (feat. Scrufizzer)",
       "artist": "Matisse & Sadko, Vion Konger",
       "youtubeId": "0ibQSd4pFBI",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256342181
     },
     {
@@ -12053,8 +12040,8 @@
       "title": "Rotation",
       "artist": "MORTEN",
       "youtubeId": "B8ogM1VKlH8",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256343654
     },
     {
@@ -12063,15 +12050,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790256344591_qpb3",
       "title": "“Without You”",
       "artist": "Kygo, HAYLA",
       "youtubeId": "w304OXHrDmg",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256344591
     },
     {
@@ -12079,8 +12067,8 @@
       "title": "All That Matters (ARTBAT remix)",
       "artist": "Kolsch",
       "youtubeId": "iosaSwiYp4E",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256345565
     },
     {
@@ -12096,8 +12084,8 @@
       "title": "March (Visualizer)",
       "artist": "Goom Gum",
       "youtubeId": "NtMZ1IsxOxQ",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256347744
     },
     {
@@ -12105,8 +12093,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Stylo, Q.U.A.K.E, Eli & Dani – On The Ground [Live from ÆDEN Mexico City]",
       "youtubeId": "pKcV-69i-gY",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256349445
     },
     {
@@ -12122,8 +12110,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Kevin de Vries & Platero – Man Like Me (Visualizer)",
       "youtubeId": "mRZROQT4KSY",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256351317
     },
     {
@@ -12131,8 +12119,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Argy & 7 SKIES – Murda (Visualizer)",
       "youtubeId": "hUyIHwHNpWQ",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256352324
     },
     {
@@ -12148,8 +12136,8 @@
       "title": "DROPSIDERS TV",
       "artist": "SLVR – Say Less (Visualizer)",
       "youtubeId": "VhXPrapMuPU",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256354754
     },
     {
@@ -12157,8 +12145,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Jast – Dancin (Visualizer)",
       "youtubeId": "2InKUbzf0aw",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256355604
     },
     {
@@ -12174,8 +12162,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Massano & Humans Musik – Underground (Visualizer)",
       "youtubeId": "7HisqZ0QFtU",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256356223
     },
     {
@@ -12183,8 +12171,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Colyn – When The Fire Starts To Burn (Visualizer)",
       "youtubeId": "3CgZrNlFsTQ",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256357137
     },
     {
@@ -12200,8 +12188,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Skuro & Final Request – F*ck The Club (Visualizer)",
       "youtubeId": "R6gptKelYK0",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256357818
     },
     {
@@ -12261,8 +12249,8 @@
       "title": "Fireworks (Ft. Moss Kena & The Knocks) · Official Video",
       "artist": "Purple Disco Machine",
       "youtubeId": "8tcYQEk1EVQ",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256362966
     },
     {
@@ -12278,8 +12266,8 @@
       "title": "Stade de France 2026)",
       "artist": "ARTBAT, David Guetta, Gotye - Somebody That I Used To Know (",
       "youtubeId": "R2ZeYn8x2fg",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256363593
     },
     {
@@ -12297,15 +12285,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790256366901_zy67",
       "title": "Silence (ft. Sarah McLachlan) [John Summit Remix]",
       "artist": "Delerium",
       "youtubeId": "XSKweg0app8",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256366901
     },
     {
@@ -12313,8 +12302,8 @@
       "title": "I Need Your Lovin'",
       "artist": "Matroda",
       "youtubeId": "U6OBHb0iJDA",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256367494
     },
     {
@@ -12330,8 +12319,8 @@
       "title": "Blind feat. Emmi",
       "artist": "Feder",
       "youtubeId": "RONI_t9AU3k",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256368196
     },
     {
@@ -12356,8 +12345,8 @@
       "title": "This Is What You Came For",
       "artist": "Calvin Harris, Rihanna",
       "youtubeId": "kOkQ4T5WO9E",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256384500
     },
     {
@@ -12365,8 +12354,8 @@
       "title": "The World is Mine",
       "artist": "David Guetta",
       "youtubeId": "13EsiCjsssY",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256402933
     },
     {
@@ -12375,15 +12364,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_1790256416815",
       "title": "Music Sounds Better With You (Official Music Video)",
       "artist": "Stardust",
       "youtubeId": "FQlAEiCb8m0",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256416815
     },
     {
@@ -12486,8 +12476,8 @@
       "title": "E Samba",
       "artist": "Junior Jack",
       "youtubeId": "8vNN6PXm5q8",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256500279
     },
     {
@@ -12495,8 +12485,8 @@
       "title": "Thrill Me",
       "artist": "Junior Jack",
       "youtubeId": "C-NJ-B8ex0c",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256510461
     },
     {
@@ -12512,8 +12502,8 @@
       "title": "Dare Me (Stupidisco)",
       "artist": "Junior Jack",
       "youtubeId": "oDIJJHm0rqM",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256525142
     },
     {
@@ -12521,8 +12511,8 @@
       "title": "Da Hype",
       "artist": "Junior Jack feat Robert Smith",
       "youtubeId": "eNK6GWOVpQ4",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256537909
     },
     {
@@ -12538,8 +12528,8 @@
       "title": "Take Our Time (Extended Mix)",
       "artist": "Oden & Fatzo x ASTELS",
       "youtubeId": "Bc3dI-xLYLM",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256557829
     },
     {
@@ -12547,8 +12537,8 @@
       "title": "Push The Tempo (Extended Mix)",
       "artist": "Denis Sulta & Capri",
       "youtubeId": "FjF0tMr0B18",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256581300
     },
     {
@@ -12564,8 +12554,8 @@
       "title": "The Cure & The Cause",
       "artist": "Fish Go Deep & Tracey K X Shy FX",
       "youtubeId": "DKf6g9OjDwI",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256593118
     },
     {
@@ -12573,8 +12563,8 @@
       "title": "Stamina (Extended Mix)",
       "artist": "LEYO & Thierry Ganz",
       "youtubeId": "a5A6fDVOojk",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256614566
     },
     {
@@ -12590,8 +12580,8 @@
       "title": "Mayan Warrior · Burning Man 2025",
       "artist": "JOHN SUMMIT",
       "youtubeId": "d8zUK6nAbr8",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259637754
     },
     {
@@ -12599,8 +12589,8 @@
       "title": "DROPSIDERS TV",
       "artist": "RÜFÜS DU SOL Backstage at The Gorge, May 2026",
       "youtubeId": "A8Mz713rkE4",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259659370
     },
     {
@@ -12609,7 +12599,8 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790259664067_j1ku",
@@ -12625,8 +12616,8 @@
       "title": "Mayan Warrior · Burning Man 2022",
       "artist": "Keinemusik (&ME, Rampa, Adam Port)",
       "youtubeId": "2ECWX8GdDvA",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259669531
     },
     {
@@ -12642,8 +12633,8 @@
       "title": "Mayan Warrior x Robot Heart · Burning Man 2019",
       "artist": "Sainte Vie (Live)",
       "youtubeId": "q5cIAIeFN4E",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259670492
     },
     {
@@ -12651,8 +12642,8 @@
       "title": "Mayan Warrior · Burning Man 2018",
       "artist": "Monolink (live)",
       "youtubeId": "IvwS6BYjHG0",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259672074
     },
     {
@@ -12668,8 +12659,8 @@
       "title": "Burning Man 2025",
       "artist": "Monolink x Playground",
       "youtubeId": "XMkWwNK_7RU",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259674483
     },
     {
@@ -12677,8 +12668,8 @@
       "title": "Mayan Warrior · Burning Man 2025",
       "artist": "BLACK COFFEE",
       "youtubeId": "FH7lIOv1s3Q",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259675295
     },
     {
@@ -12687,15 +12678,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790259677531_gsv9",
       "title": "Playground - Burning Man 2025  )'(",
       "artist": "Rodriguez Jr. Hybrid",
       "youtubeId": "xaXb6VQ7_eo",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259677531
     },
     {
@@ -12703,8 +12695,8 @@
       "title": "Mayan Warrior · Burning Man 2025",
       "artist": "ANOTR",
       "youtubeId": "yZZnY_mWRrY",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259678426
     },
     {
@@ -12720,8 +12712,8 @@
       "title": "Mayan Warrior · Burning Man 2024",
       "artist": "Carl Cox",
       "youtubeId": "BtEka3j8lKM",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259679085
     },
     {
@@ -12729,8 +12721,8 @@
       "title": "Maxa x Mayan Warrior Link up · Burning Man 2025",
       "artist": "Colyn b2b Sainte Vie",
       "youtubeId": "ryMbV0Tj7C4",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259680293
     },
     {
@@ -12746,8 +12738,8 @@
       "title": "IBIZA 2026",
       "artist": "FRANKY RIZARDO at MUSIC ON DESTINO",
       "youtubeId": "l_JUBJ673mU",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259682190
     },
     {
@@ -12772,8 +12764,8 @@
       "title": "Mayan Warrior · Burning Man 2025",
       "artist": "YAMAGUCCI",
       "youtubeId": "MNkApftw_iM",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259741570
     },
     {
@@ -12781,8 +12773,8 @@
       "title": "Mayan Warrior, Burning Man, 2019",
       "artist": "WhoMadeWho",
       "youtubeId": "9lboizp9Kzc",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259742351
     },
     {
@@ -12798,7 +12790,7 @@
       "title": "Funky Pills",
       "artist": "SAGMO",
       "youtubeId": "7KfFG_Pa64Q",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -12806,7 +12798,7 @@
       "title": "Mix Master",
       "artist": "Krysh Sood",
       "youtubeId": "Atl2s03-aBU",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -12822,7 +12814,7 @@
       "title": "Dubplate",
       "artist": "Arundel",
       "youtubeId": "d0W76wstbpw",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -12830,7 +12822,7 @@
       "title": "I Get On",
       "artist": "xSoraa",
       "youtubeId": "8pO4piTzrAc",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -12846,7 +12838,7 @@
       "title": "Just A Feeling",
       "artist": "Peace Control, Eric Reyes, Nick Tew",
       "youtubeId": "OHMDPqECopc",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -12854,7 +12846,7 @@
       "title": "Voodoo Time",
       "artist": "Kadi, Yonadav",
       "youtubeId": "Zpe38hN3Els",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -12870,7 +12862,7 @@
       "title": "Loco Luck",
       "artist": "REBRN, Ben Lipshitz",
       "youtubeId": "hq54_KM_7UM",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -12878,7 +12870,7 @@
       "title": "Back To You (Feat. Chiara Gamo)",
       "artist": "Words Of Niō",
       "youtubeId": "O6hQfaVPLb8",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -12894,7 +12886,7 @@
       "title": "Get Messy",
       "artist": "Mishell, Toni B",
       "youtubeId": "w3eLVBw9G58",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -12902,7 +12894,7 @@
       "title": "Sexy M.F.",
       "artist": "Jackie, Aviv Sab",
       "youtubeId": "ryhuhP-JUjk",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -12911,14 +12903,15 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "track_1790880712327_6h1n",
       "title": "Feel Alive",
       "artist": "Fancy Inc, Zaro",
       "youtubeId": "GrZA0ZIPh6o",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -12926,7 +12919,7 @@
       "title": "Flowin'",
       "artist": "Elliot Simpson",
       "youtubeId": "SNXcyirlgzI",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -12942,7 +12935,7 @@
       "title": "French Fries",
       "artist": "Alya, Simon Erar & TEUS",
       "youtubeId": "rtN2OB2Ruxw",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -12950,7 +12943,7 @@
       "title": "Saying Hey",
       "artist": "Darco, DvirNuns",
       "youtubeId": "rxqNXlXFKVI",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -12966,7 +12959,7 @@
       "title": "That's Just Jazz",
       "artist": "Enamour",
       "youtubeId": "M6y7OVsBbYU",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -12974,7 +12967,7 @@
       "title": "No More Games",
       "artist": "Swarellie ,Toni B",
       "youtubeId": "e3EivSahXMM",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -12983,7 +12976,8 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790256655246_6ilu",
@@ -13041,8 +13035,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Keinemusik at Coachella 2025",
       "youtubeId": "5vX5XUGDEKY",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256657652
     },
     {
@@ -13058,8 +13052,8 @@
       "title": "COACHELLA 2026 -  2026.04.17",
       "artist": "HUGEL -",
       "youtubeId": "Xs187meJrMs",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256662679
     },
     {
@@ -13085,7 +13079,8 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790256664253_8rci",
@@ -13126,8 +13121,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Kaskade x Coachella 2026",
       "youtubeId": "I3ErnkE3pGM",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256667226
     },
     {
@@ -13136,15 +13131,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790256667964_9jjt",
       "title": "Coachella 2026",
       "artist": "Fatboy Slim",
       "youtubeId": "fQqusBEnwM4",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256667964
     },
     {
@@ -13228,8 +13224,8 @@
       "title": "COACHELLA 2026 DO LAB",
       "artist": "JOHN SUMMIT",
       "youtubeId": "Cx5FXDTQ__M",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256676052
     },
     {
@@ -13254,8 +13250,8 @@
       "title": "DROPSIDERS TV",
       "artist": "BUNT. at COACHELLA 2026",
       "youtubeId": "2BKazr739po",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256690027
     },
     {
@@ -13280,8 +13276,8 @@
       "title": "Yuma Tent",
       "artist": "Max Dean B2B Luke Dean at Coachella 2026",
       "youtubeId": "WoR8pdr07V0",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256692685
     },
     {
@@ -13297,8 +13293,8 @@
       "title": "Coachella Day 0 2026",
       "artist": "Disco Lines",
       "youtubeId": "pbu_4KBVQW4",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256694653
     },
     {
@@ -13314,8 +13310,8 @@
       "title": "Yuma · Coachella 2026",
       "artist": "Josh Baker b2b Carlita",
       "youtubeId": "7EtYEtkS_bs",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256703698
     },
     {
@@ -13323,8 +13319,8 @@
       "title": "Coachella 2026 - Yuma Tent",
       "artist": "Prospa",
       "youtubeId": "bWIth_h1s-E",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256704737
     },
     {
@@ -13383,8 +13379,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Format:B live from Berlin at Ritter Butzke",
       "youtubeId": "mny8WwKtjds",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256713755
     },
     {
@@ -13409,8 +13405,8 @@
       "title": "DROPSIDERS TV",
       "artist": "David Guetta Presents Galactic Circus Live From [UNVRS] Ibiza",
       "youtubeId": "lSk-DWAJPbA",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256726020
     },
     {
@@ -13426,8 +13422,8 @@
       "title": "DROPSIDERS TV",
       "artist": "FISHER PRESENTS OUT 2 LUNCH FESTIVAL [DAY 2- FULL LIVE SET]",
       "youtubeId": "3YctdJP8_eo",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256729924
     },
     {
@@ -13443,8 +13439,8 @@
       "title": "BONNAROO 2026",
       "artist": "SIDEPIECE",
       "youtubeId": "KLpgzqS1o28",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256730781
     },
     {
@@ -13486,8 +13482,8 @@
       "title": "Upclose 2026",
       "artist": "Joris Voorn Vinyl Only Techno Set",
       "youtubeId": "4JkIGKt1AHw",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259733065
     },
     {
@@ -13495,8 +13491,8 @@
       "title": "DROPSIDERS TV",
       "artist": "BUNT. at PACHA New York 2026",
       "youtubeId": "1MX4Vtc5aUU",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259791462
     },
     {
@@ -13632,7 +13628,7 @@
       "title": "Ay Sí (Extended Mix)",
       "artist": "Melé & RIA",
       "youtubeId": "9qgbeD2sFZI",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -13641,7 +13637,8 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "track_1791197440621_a53h",
@@ -13705,7 +13702,8 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "track_1791197502062_575x",
@@ -13900,28 +13898,12 @@
       "category": "jingle"
     },
     {
-      "id": "track_1791198216403_6xf5",
-      "title": "Take Me As I Am (Moodymann Remix)",
-      "artist": "Dames Brown & Amp Fiddler",
-      "youtubeId": "dNuMB8xsiCE",
-      "duration": 300,
-      "category": "clip"
-    },
-    {
       "id": "nj_bloc_1791197234957_s_24",
       "title": "Dropsiders Radio Jingle 5",
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
       "duration": 14,
       "category": "jingle"
-    },
-    {
-      "id": "track_1791198375694_nlgr",
-      "title": "Take Me As I Am (Moodymann Remix)",
-      "artist": "Dames Brown & Amp Fiddler -",
-      "youtubeId": "dNuMB8xsiCE",
-      "duration": 300,
-      "category": "clip"
     },
     {
       "id": "nj_bloc_1791197234957_n_25",
@@ -14537,7 +14519,8 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "track_1791200965841_d2p8",
@@ -14601,7 +14584,8 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "track_1791201052501_wjpp",
@@ -14632,8 +14616,8 @@
       "title": "DROPSIDERS TV",
       "artist": "COMMENT ON PASSE D'UN BAR EN STATION À TOMORROWLAND ? (avec Thomas Moulène)",
       "youtubeId": "xNVyYYvso6U",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256878961
     },
     {
@@ -14666,8 +14650,8 @@
       "title": "Objectif DJ Ep. 5",
       "artist": "Aazar : \"Le game des featuring c'est la mafia !\"",
       "youtubeId": "mVi4RgfsqI4",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256883899
     },
     {
@@ -14683,8 +14667,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Afrojack B2B Shimza at Coachella 2026",
       "youtubeId": "hJWNAznIj-I",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256886549
     },
     {
@@ -14700,8 +14684,8 @@
       "title": "DROPSIDERS TV",
       "artist": "TRINIX : LES COULISSES DE LEURS SUCCÈS… ET LES GALÈRES",
       "youtubeId": "RmR74Vj6vlA",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256887258
     },
     {
@@ -14734,8 +14718,8 @@
       "title": "Objectif DJ Ep. 3",
       "artist": "Upsilone  : « Je voulais pas qu'on me catalogue DJ Peignoir... »",
       "youtubeId": "paPKaGxWHuk",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256888634
     },
     {
@@ -14761,15 +14745,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790256891869_dl9g",
       "title": "DROPSIDERS TV",
       "artist": "PHILIPPE B : D.A. DE L'AMNÉSIA ET CO-CRÉATEUR DU WAREHOUSE NANTES !",
       "youtubeId": "hwY-2ghn9-Q",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256891869
     },
     {
@@ -14785,8 +14770,8 @@
       "title": "BURNING MAN 2025 · LONG FENG ART CAR",
       "artist": "VINTAGE CULTURE B2B DOOZIE",
       "youtubeId": "NBCyIHraayE",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256896322
     },
     {
@@ -14819,8 +14804,8 @@
       "title": "DROPSIDERS TV",
       "artist": "ÊTRE RÉSIDENT DE L'OPIUM ET DU PONEY CLUB, ÇA CHANGE QUOI ? (avec Thomas Pasko)",
       "youtubeId": "1w8LxYPTwu0",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256901001
     },
     {
@@ -14829,15 +14814,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790256902828_s7je",
       "title": "Objectif DJ Ep. 12",
       "artist": "A-Trak : \"J'ai fais découvrir les Daft Punk à Kanye West...\"",
       "youtubeId": "e2MTjWxP_NU",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256902828
     },
     {
@@ -14853,8 +14839,8 @@
       "title": "MAXA x BiPolar Express Link up · Burning Man 2025",
       "artist": "Adam Ten",
       "youtubeId": "mBR6FccSbDM",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256906483
     },
     {
@@ -14870,8 +14856,8 @@
       "title": "Objectif DJ Ep. 1",
       "artist": "Mercer : « Je me dis que c’est fini, faut que je trouve un taf normal »",
       "youtubeId": "4xOY5ga6b9U",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256907122
     },
     {
@@ -14887,8 +14873,8 @@
       "title": "Mayan Warrior · Burning Man 2024",
       "artist": "RÜFÜS DU SOL",
       "youtubeId": "eQ-OVsdK-hM",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256907948
     },
     {
@@ -14904,8 +14890,8 @@
       "title": "DROPSIDERS TV",
       "artist": "TONY ROMERA: DE SES PREMIÈRES PRODS AUX PLUS GRANDES SALLES, LE PARCOURS SANS FILTRE DE TONY ROMERA.",
       "youtubeId": "w025jWxEvNQ",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256910097
     },
     {
@@ -14921,8 +14907,8 @@
       "title": "Burning Man 2025",
       "artist": "Carl Cox x Playground",
       "youtubeId": "iyCsXPYxa6k",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256910777
     },
     {
@@ -14938,8 +14924,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Immersion au cœur d'une édition exceptionnelle de Burning Man -Documentaire complet",
       "youtubeId": "OpsQPFpHdx0",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256911364
     },
     {
@@ -14965,15 +14951,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790256914912_dvcn",
       "title": "DROPSIDERS TV",
       "artist": "David Guetta toutes les questions qu'on se pose sur les DJ",
       "youtubeId": "dNmk5Rd-e4g",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256914912
     },
     {
@@ -15006,8 +14993,8 @@
       "title": "DROPSIDERS TV",
       "artist": "BOB SINCLAR : CE QU'IL A VU DE PLUS INCROYABLE DANS SA CARRIÈRE (MANOIR PLAYBOY, DR0GUE, DÉPENSES)",
       "youtubeId": "upEEu3GJWEw",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256916256
     },
     {
@@ -15033,15 +15020,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790256918361_s3uj",
       "title": "DROPSIDERS TV",
       "artist": "LOBENZMUSIC : \"Les Daft Punk...Je me dis, c'est quoi cette m**de?\" Objectif DJ Ep.15",
       "youtubeId": "RKkYVQRDDc8",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256918361
     },
     {
@@ -15074,8 +15062,8 @@
       "title": "DROPSIDERS TV",
       "artist": "DJ Snake me dévoile l'envers du décor (tournée, Avicii, risques...)",
       "youtubeId": "SV_lv1lBhMs",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256921987
     },
     {
@@ -15108,8 +15096,8 @@
       "title": "DROPSIDERS TV",
       "artist": "PHOTOGRAPHE DE DJ SNAKE : COMMENT IL A RÉUSSI À TRAVAILLER AVEC UNE DES PLUS GRANDES STARS DU MONDE",
       "youtubeId": "VQlK0UWGw2c",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256923356
     },
     {
@@ -15125,8 +15113,8 @@
       "title": "DROPSIDERS TV",
       "artist": "David Guetta, Aya Nakamura : Il produit les plus grands shows",
       "youtubeId": "zonzHr0_gPg",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256926733
     },
     {
@@ -15142,8 +15130,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Paco Osuna Live From Elrow at [UNVRS] Ibiza",
       "youtubeId": "dI4-uIO5j2k",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256927558
     },
     {
@@ -15159,8 +15147,8 @@
       "title": "elrow at Ushuaïa Ibiza 2023",
       "artist": "Wade",
       "youtubeId": "maedoaD539M",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256931699
     },
     {
@@ -15169,15 +15157,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790256939283_etit",
       "title": "DROPSIDERS TV",
       "artist": "Réussir dans la vie vs. réussir Sa vie. Épisode spécial avec Martin Solveig & Léa Dassonville",
       "youtubeId": "bZrC31wF9-I",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256939283
     },
     {
@@ -15210,8 +15199,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Il rachète une boîte de nuit mythique à Paris pour 500 000€",
       "youtubeId": "zpp1Vm1jHjs",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256942158
     },
     {
@@ -15227,8 +15216,8 @@
       "title": "Paris L'Olympia",
       "artist": "Paul Kalkbrenner",
       "youtubeId": "LSLITRUecOo",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256944668
     },
     {
@@ -15237,15 +15226,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790256945578_n86w",
       "title": "HUGEL",
       "artist": "Comment ce Français est devenu l’un des DJ les plus chers de la planète ?",
       "youtubeId": "uuPenQH6oNA",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256945578
     },
     {
@@ -15278,8 +15268,8 @@
       "title": "DROPSIDERS TV",
       "artist": "LA VRAIE VIE DU DJ KUNGS",
       "youtubeId": "LxXQ8mRju58",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790256956630
     },
     {
@@ -15363,8 +15353,8 @@
       "title": "DA HOOL",
       "artist": "PAROOKAVILLE 2026",
       "youtubeId": "fN-VMscXKkg",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259735723
     },
     {
@@ -15373,15 +15363,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790259746674_34kz",
       "title": "Burning Man 2025",
       "artist": "Vintage Culture x Playground",
       "youtubeId": "v-lHC_vCrJc",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259746674
     },
     {
@@ -15397,8 +15388,8 @@
       "title": "Burning Man 2024 · Opulent Temple",
       "artist": "Mau P",
       "youtubeId": "2Yx9mTWzjzg",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259747297
     },
     {
@@ -15414,8 +15405,8 @@
       "title": "We Belong Here Miami 2026",
       "artist": "Tiësto -",
       "youtubeId": "2EQGqEvLAuE",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259779475
     },
     {
@@ -15441,7 +15432,8 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790259780642_7bxa",
@@ -15644,7 +15636,8 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790257171395_mp87",
@@ -15685,8 +15678,8 @@
       "title": "RESISTANCE MEGASTRUCTURE",
       "artist": "ERIC PRYDZ LIVE @ ULTRA MUSIC FESTIVAL MIAMI 2026",
       "youtubeId": "hU-z3iV0LOg",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257173917
     },
     {
@@ -15695,15 +15688,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790257200990_dxtb",
       "title": "SANDER VAN DOORN",
       "artist": "PAROOKAVILLE 2026",
       "youtubeId": "m8-x1RAO-IA",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257200990
     },
     {
@@ -15719,8 +15713,8 @@
       "title": "JOEL CORRY",
       "artist": "PAROOKAVILLE 2026",
       "youtubeId": "FMmCbqNvNc8",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257201635
     },
     {
@@ -15736,8 +15730,8 @@
       "title": "DENIZ KOYU",
       "artist": "PAROOKAVILLE 2026",
       "youtubeId": "nb0ZuAVradI",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257202682
     },
     {
@@ -15753,8 +15747,8 @@
       "title": "DYRO X DANNIC",
       "artist": "PAROOKAVILLE 2026",
       "youtubeId": "B7zXYX2Zzww",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257203483
     },
     {
@@ -15796,8 +15790,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Above & Beyond: Live from EDC Las Vegas 2026",
       "youtubeId": "OI02QgEA1Zw",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257226256
     },
     {
@@ -15813,8 +15807,8 @@
       "title": "quantumVALLEY",
       "artist": "Maddix live @ EDC Las Vegas 2026",
       "youtubeId": "okj8arPC3-k",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257229068
     },
     {
@@ -15830,8 +15824,8 @@
       "title": "LOLLAPALOOZA CHICAGO 2026",
       "artist": "JOHN SUMMIT",
       "youtubeId": "9TKqqBCmDHA",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259567545
     },
     {
@@ -15899,8 +15893,8 @@
       "title": "UNVRS Elrow, Ibiza 2025",
       "artist": "James Hype",
       "youtubeId": "tShcFObsQD4",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259760397
     },
     {
@@ -15916,8 +15910,8 @@
       "title": "Burning Man 2026 (Tower 69 Artcar)",
       "artist": "Dubdogz",
       "youtubeId": "tLpvvba8Y5g",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259766109
     },
     {
@@ -15968,8 +15962,8 @@
       "title": "[UNVRS] 2026",
       "artist": "Armin van Buuren F2F Argy",
       "youtubeId": "ij4YKYX98d0",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790527960620
     },
     {
@@ -15993,7 +15987,7 @@
       "title": "Animals",
       "artist": "Martin Garrix",
       "youtubeId": "gCYcHz2k5x0",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16009,7 +16003,7 @@
       "title": "Day 'n' Nite",
       "artist": "kid cudi vs crookers",
       "youtubeId": "IQHEk1l6Ayw",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16025,7 +16019,7 @@
       "title": "Rise Up",
       "artist": "Yves LaRock",
       "youtubeId": "S1x2LJbDkZg",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16041,7 +16035,7 @@
       "title": "Keep Control Plus (Fedde Legrand mix -Official 2009)",
       "artist": "SONO",
       "youtubeId": "YKsd1nXKKLw",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16057,7 +16051,7 @@
       "title": "Spaceships",
       "artist": "AREA21",
       "youtubeId": "khoylU3YZGM",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16073,7 +16067,7 @@
       "title": "Proper Education",
       "artist": "Eric Prydz vs Floyd",
       "youtubeId": "y5xKtFI9_6g",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16082,14 +16076,15 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "track_1790809579672_bj0e",
       "title": "Tell Me Why",
       "artist": "Supermode",
       "youtubeId": "0CrB_TwXlxM",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16105,7 +16100,7 @@
       "title": "In the Air (Axwell mix)",
       "artist": "Tv Rock ft Rudy",
       "youtubeId": "GQXtcEx3VR0",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16121,7 +16116,7 @@
       "title": "La Tromba (Original Mix)",
       "artist": "Lake & Lys",
       "youtubeId": "bIa1nQWXw_U",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16130,14 +16125,15 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "track_1790809635138_76ez",
       "title": "Let The Bass Kick in Miami Bitch",
       "artist": "Chuckie & LMFAO",
       "youtubeId": "juYSqSicV_U",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16153,7 +16149,7 @@
       "title": "Kidsos (Radio Edit)",
       "artist": "Sebastian Ingrosso",
       "youtubeId": "g5cd6fF9NCc",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16169,7 +16165,7 @@
       "title": "No Superstar",
       "artist": "Remady P&R",
       "youtubeId": "PXMGLfT5xhI",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16185,7 +16181,7 @@
       "title": "Pjanoo",
       "artist": "Eric Prydz",
       "youtubeId": "KggNzh-crfA",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16201,7 +16197,7 @@
       "title": "Cry For You",
       "artist": "September",
       "youtubeId": "7CUppvIv7Ak",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16217,7 +16213,7 @@
       "title": "I Think I Like It",
       "artist": "Fake Blood",
       "youtubeId": "3xKUiva2WSQ",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16233,7 +16229,7 @@
       "title": "Phazing (Radio Edit)",
       "artist": "Dirty South Feat. Rudy",
       "youtubeId": "_K8KVunYcq8",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16249,7 +16245,7 @@
       "title": "Live Your Life",
       "artist": "Erick Morillo & Eddie Thoneick feat. Shawnee Taylor",
       "youtubeId": "XyWED2RD3XY",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16265,7 +16261,7 @@
       "title": "Teenage Crime",
       "artist": "Adrian Lux",
       "youtubeId": "OcQFUWWLY54",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16281,7 +16277,7 @@
       "title": "Take Over Control",
       "artist": "Afrojack ft.Eva Simons",
       "youtubeId": "Xfii7PY_opg",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16297,7 +16293,7 @@
       "title": "Niton (The Reason)",
       "artist": "Eric Prydz",
       "youtubeId": "jkxusTBZKek",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16313,7 +16309,7 @@
       "title": "Gregory's Theme",
       "artist": "Basto",
       "youtubeId": "_700Zf0ULDw",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16329,7 +16325,7 @@
       "title": "Stronger",
       "artist": "Erick Morillo & Eddie Thoneick feat Shawnee Taylor",
       "youtubeId": "oXKJ9BApTcc",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16345,7 +16341,7 @@
       "title": "Tung !",
       "artist": "Deniz Koyu",
       "youtubeId": "_cpdg6-qekE",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16361,7 +16357,7 @@
       "title": "Pressure (Official Alesso Edit)",
       "artist": "NADIA ALI, Starkillers and Alex Kenji",
       "youtubeId": "cauDlAvfot0",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16377,7 +16373,7 @@
       "title": "No Beef",
       "artist": "Afrojack & Steve Aoki feat Miss Palmer",
       "youtubeId": "BBdVm0t7smg",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16393,7 +16389,7 @@
       "title": "Again & Again",
       "artist": "Basto",
       "youtubeId": "Lz4bz1alblA",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16409,7 +16405,7 @@
       "title": "Now That I've Found You (Official Director's Cut)",
       "artist": "Martin Garrix",
       "youtubeId": "_gE8IGq8M3s",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16425,7 +16421,7 @@
       "title": "Epic (Original Mix)",
       "artist": "Sandro Silva & Quintino",
       "youtubeId": "OV9S6px5M04",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16441,7 +16437,7 @@
       "title": "Can't Stop Me (Buddha Edit)",
       "artist": "Afrojack & Shermanology",
       "youtubeId": "7RavfVPExJo",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16457,7 +16453,7 @@
       "title": "Molly",
       "artist": "Cedric Gervais",
       "youtubeId": "VWuSUxy7JwM",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16473,7 +16469,7 @@
       "title": "I Rave You",
       "artist": "Basto",
       "youtubeId": "aM7wACxIr0w",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16489,7 +16485,7 @@
       "title": "Sparks (Turn off your Mind)",
       "artist": "Fedde Le Grand & Nicky Romero ft Matthew Koma",
       "youtubeId": "Lw6j9fh3WoE",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16505,7 +16501,7 @@
       "title": "Who",
       "artist": "Tujamo & Plastik Funk",
       "youtubeId": "2fJZaJaVClk",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16521,7 +16517,7 @@
       "title": "Kangaroo",
       "artist": "Sander Van Doorn & Julian Jordan",
       "youtubeId": "215iS_GF2Hk",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16537,7 +16533,7 @@
       "title": "Wakanda (Original Mix)",
       "artist": "Dimitri Vegas &  Like Mike",
       "youtubeId": "3A2Hpl1f-EU",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16553,7 +16549,7 @@
       "title": "Joyenergizer",
       "artist": "Sander Van Doorn",
       "youtubeId": "V9FL-kBScP8",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16569,7 +16565,7 @@
       "title": "Rockin N Rollin",
       "artist": "Fedde Le Grand",
       "youtubeId": "GwP7XDzfrxU",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16585,7 +16581,7 @@
       "title": "Turn It Up (Original Mix)",
       "artist": "Dimitri Vegas & Like Mike , GTA feat Wolfpack",
       "youtubeId": "l5n2MTouMpg",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16601,7 +16597,7 @@
       "title": "Boomerang",
       "artist": "Brooks & GRX",
       "youtubeId": "j8GSRFS-8tc",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16617,7 +16613,7 @@
       "title": "Center Of The Universe (Remode Version)",
       "artist": "Axwell feat. Magnus Carlsson",
       "youtubeId": "UKVGoibN5Zw",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16633,7 +16629,7 @@
       "title": "Into You (feat. Hanne Mjøen)",
       "artist": "Matisse & Sadko",
       "youtubeId": "RpVDEAG7nYY",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16649,7 +16645,7 @@
       "title": "Twerk Anthem (Radio Edit)",
       "artist": "Tony Junior",
       "youtubeId": "poROiKwR6vo",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16665,7 +16661,7 @@
       "title": "Eat Sleep Rave Repeat (Dimitri Vegas, Like Mike & Ummet Ozcan Tomorrowland Edit)",
       "artist": "Fatboy Slim",
       "youtubeId": "VmkLbTbqago",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16681,7 +16677,7 @@
       "title": "Fifteen (Hardwell Radio Edit)",
       "artist": "Blasterjaxx",
       "youtubeId": "5KHG7VzZbkw",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16697,7 +16693,7 @@
       "title": "Encore",
       "artist": "MAKJ & Henry Fong",
       "youtubeId": "UmsBK6pZXu8",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16713,7 +16709,7 @@
       "title": "Mufasa",
       "artist": "Laidback Luke & Peking Duk",
       "youtubeId": "8odeGq13TVA",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16729,7 +16725,7 @@
       "title": "Starlight (Could you Be Mine)",
       "artist": "Don Diablo & Matt Nash",
       "youtubeId": "aSyy-pr0dCM",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16745,7 +16741,7 @@
       "title": "Bigfoot",
       "artist": "W&W",
       "youtubeId": "jbk1SKfjKWo",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16754,14 +16750,15 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "track_1790810530377_8ya1",
       "title": "Howl At The Moon (Official Radio Edit)",
       "artist": "Stadiumx & Taylr Renee",
       "youtubeId": "tXWQTE2QxdU",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16777,7 +16774,7 @@
       "title": "Warriors (Radio Edit)",
       "artist": "Nicky Romero vs Volt & State",
       "youtubeId": "V9kNOoHZiBY",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16793,7 +16790,7 @@
       "title": "Melody",
       "artist": "Dimitri Vegas & Like Mike , Steve Aoki vs Ummet Ozcan",
       "youtubeId": "EmAunwRj5HM",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16802,14 +16799,15 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "track_1790810679129_zqhz",
       "title": "Lost In Love 2K16 (Radio Edit)",
       "artist": "Legend B vs Julien Creance",
       "youtubeId": "xPYgz5MtYbs",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16825,7 +16823,7 @@
       "title": "All Aboard (Dimitri Vegas & Like Mike Edit)",
       "artist": "Bassjackers vs D'Angello & Francis",
       "youtubeId": "zm8QEj3Sne8",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16841,7 +16839,7 @@
       "title": "Colors",
       "artist": "Tritonal & Paris Blohm ft. Sterling Fox",
       "youtubeId": "YU1Mc2KY0JU",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16857,7 +16855,7 @@
       "title": "Howl At The Moon",
       "artist": "Stadiumx & Taylr Renee",
       "youtubeId": "02xLqOurwI4",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16873,7 +16871,7 @@
       "title": "Let Me Feel (Volt & State Remix)",
       "artist": "Nicky Romero & Vicetone",
       "youtubeId": "pZoB6FDi7Fo",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16889,7 +16887,7 @@
       "title": "Demons",
       "artist": "Paris Blohm ft. Charles",
       "youtubeId": "r9aiIeI-_DU",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16905,7 +16903,7 @@
       "title": "Lift",
       "artist": "Deniz Koyu & Don Palm",
       "youtubeId": "yd69AvwUE9Y",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16921,7 +16919,7 @@
       "title": "Sandcastles",
       "artist": "Volt & State",
       "youtubeId": "YiuaTsJdWP8",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16937,7 +16935,7 @@
       "title": "Harmony",
       "artist": "Nicky Romero & Stadiumx",
       "youtubeId": "jkeELoTuoJo",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16953,7 +16951,7 @@
       "title": "Kids Of Africa",
       "artist": "Nico De Andrea",
       "youtubeId": "w2rsxjQjZ98",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16969,7 +16967,7 @@
       "title": "Coming Alive",
       "artist": "Arno Cost ft. River",
       "youtubeId": "MPo0rBo9OKU",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -16985,7 +16983,7 @@
       "title": "Novell",
       "artist": "Nicky Romero",
       "youtubeId": "RZL8dVVdlBc",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17001,7 +16999,7 @@
       "title": "Bring Back The Funk",
       "artist": "Teamworx",
       "youtubeId": "1rni2SHFuc8",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17017,7 +17015,7 @@
       "title": "Thriller Pt 1",
       "artist": "Simon De Jano & Madwill",
       "youtubeId": "IuTwmN7qlGk",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17033,7 +17031,7 @@
       "title": "K.I.T.T",
       "artist": "Simon de Jano & Bottai",
       "youtubeId": "bqzwQnH-hFc",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17049,7 +17047,7 @@
       "title": "Paradisco feat Ben Macklin",
       "artist": "Arno Cost & Norman Doray",
       "youtubeId": "8Le5lIQCP9Q",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17065,7 +17063,7 @@
       "title": "Tenpaku",
       "artist": "Corey James & Will K",
       "youtubeId": "v34gJ0h5gcw",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17081,7 +17079,7 @@
       "title": "House Nation",
       "artist": "Tom Tyger",
       "youtubeId": "_9HLcXr_DAU",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17097,7 +17095,7 @@
       "title": "Can't Do That",
       "artist": "Havoc & Lawn vs SOVTH",
       "youtubeId": "g6GXCUk4T74",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17113,7 +17111,7 @@
       "title": "Elektro (Radio edit) (feat. Mr Gee)",
       "artist": "OUTWORK",
       "youtubeId": "F1o6Abr5kj4",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17129,7 +17127,7 @@
       "title": "Bad ft.Vassy",
       "artist": "David Guetta & Showtek",
       "youtubeId": "oC-GflRB0y4",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17145,7 +17143,7 @@
       "title": "Waves (Robin Schulz Remix Radio Edit)",
       "artist": "Mr. Probz",
       "youtubeId": "pUjE9H8QlA4",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17161,7 +17159,7 @@
       "title": "Tsunami (Radio Edit)",
       "artist": "DVBBS",
       "youtubeId": "xpNJ0qzaX4Q",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17177,7 +17175,7 @@
       "title": "Call On Me",
       "artist": "Eric Prydz",
       "youtubeId": "qetW6R9Jxs4",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17193,7 +17191,7 @@
       "title": "Insomnia",
       "artist": "Faithless",
       "youtubeId": "P8JEm4d6Wu4",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17209,7 +17207,7 @@
       "title": "Pump It Up",
       "artist": "Endor",
       "youtubeId": "hRGIrrjuLYA",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17225,7 +17223,7 @@
       "title": "Let Me Think About It (Radio Edit)",
       "artist": "Ida Corr",
       "youtubeId": "X5SIQkVlB4Q",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17241,7 +17239,7 @@
       "title": "Silence (Niels van Gogh vs. Thomas Gold Remix)",
       "artist": "Delerium feat. Sarah McLachlan",
       "youtubeId": "dx9kksyjjbU",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17257,7 +17255,7 @@
       "title": "Lost",
       "artist": "Vintage Culture, Gabss",
       "youtubeId": "wNoZnhsB2XA",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17273,7 +17271,7 @@
       "title": "Alcoholic",
       "artist": "Tim Berg",
       "youtubeId": "s_BzGkzLK_Q",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17289,7 +17287,7 @@
       "title": "Adagio For Strings",
       "artist": "Tiësto",
       "youtubeId": "2EaE0_gQLw0",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17305,7 +17303,7 @@
       "title": "Music Sounds Better With You",
       "artist": "Stardust",
       "youtubeId": "FQlAEiCb8m0",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17321,7 +17319,7 @@
       "title": "Human After All",
       "artist": "Daft Punk",
       "youtubeId": "UsXubuXq1lM",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17337,7 +17335,7 @@
       "title": "Downpipe",
       "artist": "Mark Knight & D. Ramirez V Underworld",
       "youtubeId": "xZrDMDCknJo",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17353,7 +17351,7 @@
       "title": "Television Rules the Nation",
       "artist": "Daft Punk",
       "youtubeId": "StACmxSQKY8",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17369,7 +17367,7 @@
       "title": "Man With The Red Face (Radio Edit)",
       "artist": "Mark Knight & Funkagenda",
       "youtubeId": "tTWQRchgFp0",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17385,7 +17383,7 @@
       "title": "FADE INTO DARKNESS",
       "artist": "AVICII",
       "youtubeId": "t7WRkPbTjsk",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17401,7 +17399,7 @@
       "title": "Amplifier",
       "artist": "F.L.G",
       "youtubeId": "yr-m0BAuFIs",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17417,7 +17415,7 @@
       "title": "Make Love",
       "artist": "Daft Punk",
       "youtubeId": "0dbnYJRp6n8",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17426,14 +17424,15 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "track_1790874998299_qshl",
       "title": "D.A.N.C.E. (Radio Edit)",
       "artist": "Justice",
       "youtubeId": "EU5xgjmvIXc",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17449,7 +17448,7 @@
       "title": "Civilization (Radio Edit)",
       "artist": "Justice",
       "youtubeId": "v-Y-x8viREY",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17465,7 +17464,7 @@
       "title": "Stop",
       "artist": "Justice",
       "youtubeId": "x-R19oA1m8w",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17474,14 +17473,15 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "track_1790875213210_opy2",
       "title": "DVNO",
       "artist": "Justice",
       "youtubeId": "x0QNaMXrG2Q",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17497,7 +17497,7 @@
       "title": "Audio, Video, Disco.",
       "artist": "Justice",
       "youtubeId": "ifw8Lg_eLMk",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17513,7 +17513,7 @@
       "title": "Contact",
       "artist": "Daft Punk",
       "youtubeId": "ZbbTmR6Xaag",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17529,7 +17529,7 @@
       "title": "Around The World",
       "artist": "Daft Punk",
       "youtubeId": "K0HSD_i2DvA",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17545,7 +17545,7 @@
       "title": "Genesis - †",
       "artist": "Justice",
       "youtubeId": "VKzWLUQizz8",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17561,7 +17561,7 @@
       "title": "Stress",
       "artist": "Justice",
       "youtubeId": "QWaWsgBbFsA",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17577,7 +17577,7 @@
       "title": "Electric Feel (Justice Remix)",
       "artist": "MGMT",
       "youtubeId": "6QL_bUCuhvo",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17593,7 +17593,7 @@
       "title": "One More Time",
       "artist": "Daft Punk",
       "youtubeId": "A2VpR8HahKc",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17609,7 +17609,7 @@
       "title": "Veridis Quo",
       "artist": "Daft Punk",
       "youtubeId": "TCd6PfxOy0Y",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17625,7 +17625,7 @@
       "title": "Aerodynamic",
       "artist": "Daft Punk",
       "youtubeId": "Mjpu0-o9iek",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17641,7 +17641,7 @@
       "title": "Neverender",
       "artist": "Justice",
       "youtubeId": "47YNsf-7Y7c",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17657,7 +17657,7 @@
       "title": "Silhouettes",
       "artist": "Avicii",
       "youtubeId": "6VJBBUqr1wM",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17673,7 +17673,7 @@
       "title": "I COULD BE THE ONE",
       "artist": "AVICII VS NICKY ROMERO",
       "youtubeId": "7DsOV_ENxDM",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17689,7 +17689,7 @@
       "title": "Digital Love",
       "artist": "Daft Punk",
       "youtubeId": "4whD6uAryMs",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17705,7 +17705,7 @@
       "title": "Da Funk",
       "artist": "Daft Punk",
       "youtubeId": "PwILkY9gRrc",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17721,7 +17721,7 @@
       "title": "Don't You Worry Child (feat. John Martin) (Radio Edit)",
       "artist": "Swedish House Mafia",
       "youtubeId": "vRqbSgp8w38",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17737,7 +17737,7 @@
       "title": "One (Radio Edit)",
       "artist": "Swedish House Mafia",
       "youtubeId": "uM-zBercBoY",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17753,7 +17753,7 @@
       "title": "Save The World",
       "artist": "Swedish House Mafia feat. John Martin",
       "youtubeId": "Ko12fHBVUTY",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17769,7 +17769,7 @@
       "title": "Greyhound (Radio Edit)",
       "artist": "Swedish House Mafia",
       "youtubeId": "JZ_TDayvsI0",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17785,7 +17785,7 @@
       "title": "Leave The World Behind",
       "artist": "Axwell, Ingrosso, Angello, Laidback Luke ft. Deborah Cox",
       "youtubeId": "nDLUMFkoCv4",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17801,7 +17801,7 @@
       "title": "Reload",
       "artist": "Sebastian Ingrosso, Tommy Trash, John Martin",
       "youtubeId": "GuAtcpFQpMw",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17817,7 +17817,7 @@
       "title": "Calling (Lose My Mind) ft. Ryan Tedder",
       "artist": "Sebastian Ingrosso, Alesso",
       "youtubeId": "9G1I16gJBvU",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17833,7 +17833,7 @@
       "title": "Pressure (Alesso Radio Edit)",
       "artist": "Nadia Ali, Starkillers & Alex Kenji",
       "youtubeId": "-Lfpl0VGrGQ",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17849,7 +17849,7 @@
       "title": "Years ft. Matthew Koma",
       "artist": "Alesso",
       "youtubeId": "aIrB96V-UNI",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17865,7 +17865,7 @@
       "title": "I Wanna Know ft. Nico & Vinz",
       "artist": "Alesso",
       "youtubeId": "TnSfwONWlk8",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17881,7 +17881,7 @@
       "title": "If I Lose Myself ft. Alesso (Remix)",
       "artist": "Alesso Vs. OneRepublic",
       "youtubeId": "dLa_ryRjC7M",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17897,7 +17897,7 @@
       "title": "Heroes (we could be) ft. Tove Lo",
       "artist": "Alesso",
       "youtubeId": "a7SouU3ECpU",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17913,7 +17913,7 @@
       "title": "City Of Dreams ft. Ruben Haze",
       "artist": "Dirty South, Alesso",
       "youtubeId": "3C2KSaqm3so",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17929,7 +17929,7 @@
       "title": "Cool ft. Roy English",
       "artist": "Alesso",
       "youtubeId": "-aWtrEFfS4E",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17945,7 +17945,7 @@
       "title": "Million Voices Calling In My Mind (Tiesto Mashup)",
       "artist": "Axwell / Ingrosso / Alesso / Otto Knows",
       "youtubeId": "gWmUomg2HqM",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17961,7 +17961,7 @@
       "title": "Feel So Close (Radio Edit)",
       "artist": "Calvin Harris",
       "youtubeId": "R8egmh5dWzo",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17977,7 +17977,7 @@
       "title": "Summer",
       "artist": "Calvin Harris",
       "youtubeId": "q46otDTz29w",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -17993,7 +17993,7 @@
       "title": "I'm Not Alone (Radio Edit)",
       "artist": "Calvin Harris",
       "youtubeId": "wkczQYC_8TQ",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18009,8 +18009,8 @@
       "title": "How Deep Is Your Love",
       "artist": "Calvin Harris & Disciples",
       "youtubeId": "qWWSM3wCiKY",
-      "duration": 3600,
-      "category": "liveset"
+      "duration": 210,
+      "category": "clip"
     },
     {
       "id": "sj_bloc_1790809306418_s_126",
@@ -18025,8 +18025,8 @@
       "title": "Thinking About You ft. Ayah Marar",
       "artist": "Calvin Harris",
       "youtubeId": "cl3b7dDBLpo",
-      "duration": 3600,
-      "category": "liveset"
+      "duration": 210,
+      "category": "clip"
     },
     {
       "id": "nj_bloc_1790809306418_n_127",
@@ -18041,7 +18041,7 @@
       "title": "Spectrum (Say My Name) (Calvin Harris Radio Edit)",
       "artist": "Florence + The Machine",
       "youtubeId": "SZhLrOghfTI",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18057,7 +18057,7 @@
       "title": "Feel (Radio Edit)",
       "artist": "Third Party vs Cicada",
       "youtubeId": "EcjWfEeEi58",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18073,7 +18073,7 @@
       "title": "Like This",
       "artist": "Third Party, Pete K & Cory Lasser",
       "youtubeId": "YO3ueyEo9fk",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18089,7 +18089,7 @@
       "title": "Midnight",
       "artist": "Third ≡ Party",
       "youtubeId": "TtsRFPz6Kd4",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18098,14 +18098,15 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "track_1790879030328_v4ll",
       "title": "Come With Me",
       "artist": "Third ≡ Party",
       "youtubeId": "UKcqB2NIVRE",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18121,7 +18122,7 @@
       "title": "Remember",
       "artist": "Third Party",
       "youtubeId": "HBIBVS_v9Ns",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18137,7 +18138,7 @@
       "title": "Falling ft. First State & Anita Kelsey",
       "artist": "Third Party",
       "youtubeId": "mgfYt_xjaXM",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18146,14 +18147,15 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "track_1790879392889_56cq",
       "title": "Machine Gun (Radio Edit)",
       "artist": "Matisse & Sadk",
       "youtubeId": "GM2MtlrI3Ng",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18185,7 +18187,7 @@
       "title": "Hi Scandinavia! (Radio Edit)",
       "artist": "Matisse & Sadko",
       "youtubeId": "WH35uB1yOKg",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18201,7 +18203,7 @@
       "title": "SLVR (Radio Edit)",
       "artist": "Steve Angello VS. Matisse & Sadko",
       "youtubeId": "kc8rgvRArmg",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18217,7 +18219,7 @@
       "title": "Forever",
       "artist": "Martin Garrix, Matisse & Sadko",
       "youtubeId": "ScNsBpQ8KIg",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18233,7 +18235,7 @@
       "title": "Dragon",
       "artist": "Martin Garrix vs Matisse & Sadko",
       "youtubeId": "rRry3DEaCgE",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18249,7 +18251,7 @@
       "title": "Break Through The Silence",
       "artist": "Martin Garrix vs Matisse & Sadko",
       "youtubeId": "k0rwzGdWb68",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18265,7 +18267,7 @@
       "title": "Light Me Up",
       "artist": "Matisse & Sadko, Raiden",
       "youtubeId": "jGSqctq2j7I",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18281,7 +18283,7 @@
       "title": "Mistaken (Radio Edit)",
       "artist": "Martin Garrix, Matisse & Sadko feat. Alex Aris",
       "youtubeId": "V5_YsnS8AwQ",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18297,7 +18299,7 @@
       "title": "Destination (Radio Edit)",
       "artist": "DubVision & Feenixpawl",
       "youtubeId": "sQk7_xLw9D8",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18313,7 +18315,7 @@
       "title": "Rockin (Radio Edit)",
       "artist": "DubVision & Firebeatz",
       "youtubeId": "SE2KoWxEQYU",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18329,7 +18331,7 @@
       "title": "I Found Your Heart (Vocal Radio Edit)",
       "artist": "DubVision ft. Emeni",
       "youtubeId": "GXpXSefs6NE",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18345,7 +18347,7 @@
       "title": "Coming Home (Dirty South Radio Edit)",
       "artist": "Diddy",
       "youtubeId": "9xyshn7-pMc",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18361,7 +18363,7 @@
       "title": "It's Too Late (Dirty South Remix) (Radio Edit)",
       "artist": "Evermore",
       "youtubeId": "eO9WyBdWZPc",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18377,7 +18379,7 @@
       "title": "Let It Go (Vocal Radio Edit)",
       "artist": "Dirty South feat. Rudy",
       "youtubeId": "DDDc957jtp4",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18393,7 +18395,7 @@
       "title": "Let It Go (Axwell Radio Edit)",
       "artist": "Dirty South ft. Rudy",
       "youtubeId": "xK1CiFLw7gA",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18409,7 +18411,7 @@
       "title": "Freaks (Radio Edit)",
       "artist": "Timmy Trumpet & Savage",
       "youtubeId": "nz6xW7kPIDI",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18425,7 +18427,7 @@
       "title": "Louder (Radio Edit)",
       "artist": "Dimitri Vegas & Like Mike vs. VINAI",
       "youtubeId": "EaMb15_Z94Y",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18441,7 +18443,7 @@
       "title": "Mammoth (Radio Edit)",
       "artist": "Dimitri Vegas & Like Mike",
       "youtubeId": "8oP5dUVWSno",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18457,7 +18459,7 @@
       "title": "The Hum (Short Edit)",
       "artist": "Dimitri Vegas & Like Mike vs Ummet Ozcan",
       "youtubeId": "orMsXcvVG7M",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18473,7 +18475,7 @@
       "title": "Nova",
       "artist": "Dimitri Vegas & Like Mike Vs Tujamo & Felguk",
       "youtubeId": "o7Oibcmr81Y",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18489,7 +18491,7 @@
       "title": "Arcade (Radio Edit)",
       "artist": "Dimitri Vegas & Like Mike vs W&W",
       "youtubeId": "jApkrbXiBv8",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18505,7 +18507,7 @@
       "title": "Unity",
       "artist": "Dimitri Vegas & Like Mike vs Hardwell",
       "youtubeId": "rLlZE_G_fXo",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18521,7 +18523,7 @@
       "title": "Tremor",
       "artist": "Dimitri Vegas, Martin Garrix, Like Mike",
       "youtubeId": "9vMh9f41pqE",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18537,7 +18539,7 @@
       "title": "Melody",
       "artist": "Dimitri Vegas & Like Mike & Steve Aoki vs Ummet Ozcan",
       "youtubeId": "jXh22Al69KI",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18553,7 +18555,7 @@
       "title": "Find Tomorrow (Ocarina) (Official Radio Version)",
       "artist": "Dimitri Vegas & Like Mike ft. Wolfpack & Katy B",
       "youtubeId": "xPptVKXeU_o",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18569,7 +18571,7 @@
       "title": "Lava Lava (radio edit)",
       "artist": "Boys Noize",
       "youtubeId": "xtXMONzuy7E",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18585,7 +18587,7 @@
       "title": "My Moon My Man (Boys Noize Remix)",
       "artist": "Feist",
       "youtubeId": "6oJQme6iwCc",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18601,7 +18603,7 @@
       "title": "&Down",
       "artist": "BOYS NOIZE",
       "youtubeId": "bhxid63TDWQ",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18617,7 +18619,7 @@
       "title": "Never Going Home",
       "artist": "Kungs",
       "youtubeId": "QH2a6V-W87U",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18633,7 +18635,7 @@
       "title": "This Girl",
       "artist": "Kungs vs Cookin’ on 3 Burners",
       "youtubeId": "2Y6Nne8RvaA",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18649,7 +18651,7 @@
       "title": "- Don't You Know  ft. Jamie N Commons",
       "artist": "Kungs",
       "youtubeId": "Nf-FLiO4p3c",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18665,7 +18667,7 @@
       "title": "Feed Your Head (Radio Edit)",
       "artist": "Paul Kalkbrenner",
       "youtubeId": "g0dXvUQbxYo",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18681,7 +18683,7 @@
       "title": "Cloud Rider (Radio Version)",
       "artist": "Paul Kalkbrenner",
       "youtubeId": "6xRVHGW1p6g",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18697,7 +18699,7 @@
       "title": "Revolte (CITIZEN KAIN Easy Mix Edit)",
       "artist": "PAUL KALKBRENNER",
       "youtubeId": "CAdh63OoMUE",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18713,7 +18715,7 @@
       "title": "Sky and Sand",
       "artist": "Paul Kalkbrenner",
       "youtubeId": "8ybFb_wKlvQ",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18729,7 +18731,7 @@
       "title": "Te Quiero - Paul Kalkbrenner (Remix)",
       "artist": "Stromae",
       "youtubeId": "s1MOYA6mOsU",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18745,7 +18747,7 @@
       "title": "Train",
       "artist": "Paul Kalkbrenner",
       "youtubeId": "GvSoPbhQ9Nc",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18761,7 +18763,7 @@
       "title": "Azure",
       "artist": "Paul Kalkbrenner",
       "youtubeId": "LatePK8RO30",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18770,14 +18772,15 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "track_1790890871127_x9zx",
       "title": "Magenta",
       "artist": "Arno Cost & Norman Doray",
       "youtubeId": "2fH7NNKphgQ",
-      "duration": 3600,
+      "duration": 210,
       "category": "clip"
     },
     {
@@ -18793,8 +18796,8 @@
       "title": "Angerfist",
       "artist": "Qlimax 2016",
       "youtubeId": "bEGSijQFIDg",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257302403
     },
     {
@@ -18844,8 +18847,8 @@
       "title": "Qlimax 2024",
       "artist": "Deepack, Luna & Zany",
       "youtubeId": "go9jzCz8Lxc",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257305761
     },
     {
@@ -18861,8 +18864,8 @@
       "title": "Project One",
       "artist": "Qlimax 2016",
       "youtubeId": "R5sQx_UwYnk",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257306432
     },
     {
@@ -18878,8 +18881,8 @@
       "title": "Atmozfears",
       "artist": "Q-BASE 2016",
       "youtubeId": "7zsd_KbkoQo",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257307803
     },
     {
@@ -18888,15 +18891,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790257308419_b1y4",
       "title": "Frequencerz",
       "artist": "Q-BASE 2016",
       "youtubeId": "NfdBtcAHEF0",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257308419
     },
     {
@@ -18912,8 +18916,8 @@
       "title": "Korsakoff",
       "artist": "Q-BASE 2016",
       "youtubeId": "K5iiEybdq6o",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257309809
     },
     {
@@ -18929,8 +18933,8 @@
       "title": "Noisecontrollers",
       "artist": "Q-BASE 2018",
       "youtubeId": "5HFR3lnfHeM",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257310340
     },
     {
@@ -18939,15 +18943,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790257310845_ie5i",
       "title": "Enter the Void",
       "artist": "Brennan Heart presents Blademasterz I Qlimax 2023",
       "youtubeId": "EBO4id1eSSs",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257310845
     },
     {
@@ -18963,8 +18968,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Rave Rebels présents Klangkuenstler",
       "youtubeId": "MZZes5kr69E",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257313033
     },
     {
@@ -18980,8 +18985,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Rave Rebels présent TRYM",
       "youtubeId": "cJ6Twz6iH8o",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257313552
     },
     {
@@ -18997,8 +19002,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Rave Rebels presents: Patrick Mason (FULL SET)",
       "youtubeId": "1xO4ZxFvu1Y",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257314165
     },
     {
@@ -19099,8 +19104,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Rave Rebels presents: I Hate Models (FULL SET)",
       "youtubeId": "ip9UY6YqLVA",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257319570
     },
     {
@@ -19116,8 +19121,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Rave Rebels presents: 999999999 (FULL SET)",
       "youtubeId": "meHW6iAyUXQ",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257320099
     },
     {
@@ -19133,8 +19138,8 @@
       "title": "Ziggo Dome, Amsterdam",
       "artist": "FENRICK b2b DURDENHAUER @ Verknipt Ziggo Dome 2025",
       "youtubeId": "ujL5W6dEV5A",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257324344
     },
     {
@@ -19150,8 +19155,8 @@
       "title": "World's biggest 360° rave",
       "artist": "DYEN b2b FANTASM @ Verknipt ArenA 2025",
       "youtubeId": "1_P5LzX5vwE",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257325037
     },
     {
@@ -19167,8 +19172,8 @@
       "title": "World's biggest 360° rave",
       "artist": "Aphøtic b3b NYCO b3b XRTN - Opening set @ Verknipt ArenA 2025",
       "youtubeId": "OD_Z5P7bfG8",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257326011
     },
     {
@@ -19184,8 +19189,8 @@
       "title": "Strijkviertelplas, Utrecht",
       "artist": "6EJOU b2b MYU:SA @ Verknipt Festival 2025 Day 1",
       "youtubeId": "U1I2Mbenpf0",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257326873
     },
     {
@@ -19303,8 +19308,8 @@
       "title": "Halloween 2024",
       "artist": "CLOUDY B2B KUKO @ Blackworks Festival - The Purgatory",
       "youtubeId": "eLsREd3QqSU",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257338005
     },
     {
@@ -19320,8 +19325,8 @@
       "title": "BLACKWORKS FIREFIELD NYD 2025",
       "artist": "DION B2B PAWLOWSKI",
       "youtubeId": "LAsCRWFnxbI",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257338604
     },
     {
@@ -19371,8 +19376,8 @@
       "title": "Pat B",
       "artist": "Reverze 2026",
       "youtubeId": "Bs4cZ9SFAqI",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257340990
     },
     {
@@ -19388,8 +19393,8 @@
       "title": "Brennan Heart vs Coone",
       "artist": "Reverze 2026",
       "youtubeId": "vqun0DuD50Y",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257341633
     },
     {
@@ -19405,8 +19410,8 @@
       "title": "Ruthless vs The Darkraver",
       "artist": "Reverze 2026",
       "youtubeId": "FkXBhkSRVu8",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257342181
     },
     {
@@ -19422,8 +19427,8 @@
       "title": "B-Front",
       "artist": "Reverze 2026",
       "youtubeId": "H7f_gznlCKA",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257342808
     },
     {
@@ -19456,8 +19461,8 @@
       "title": "WASTELAND 2026",
       "artist": "LIL TEXAS B2B YOSUF",
       "youtubeId": "0yP1FO31tmM",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257345650
     },
     {
@@ -19473,8 +19478,8 @@
       "title": "Decibel outdoor 2025",
       "artist": "Ran-D LIVE",
       "youtubeId": "UyEjhlTjyC8",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257346715
     },
     {
@@ -19490,8 +19495,8 @@
       "title": "Halloween 2024",
       "artist": "THAM B2B KRL MX @ Blackworks Festival - The Purgatory",
       "youtubeId": "x8DqwF_GaYM",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257349628
     },
     {
@@ -19507,8 +19512,8 @@
       "title": "Decibel outdoor 2025",
       "artist": "Dual Damage",
       "youtubeId": "3oB8RpeM2pQ",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257350257
     },
     {
@@ -19524,8 +19529,8 @@
       "title": "Decibel outdoor 2025",
       "artist": "Crypsis",
       "youtubeId": "-UD7ldGoiB8",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257350832
     },
     {
@@ -19541,8 +19546,8 @@
       "title": "Decibel outdoor 2025",
       "artist": "Gezellige Uptempo",
       "youtubeId": "S2zL0pD4DEE",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257351396
     },
     {
@@ -19558,8 +19563,8 @@
       "title": "Decibel outdoor 2025",
       "artist": "Angerfist LIVE: Closing Session",
       "youtubeId": "QHUGte7ohQU",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257351972
     },
     {
@@ -19575,8 +19580,8 @@
       "title": "ESCAPE HALLOWEEN ( HARD TECHNO )",
       "artist": "DØMINA",
       "youtubeId": "D1O9K7EmINQ",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257354766
     },
     {
@@ -19592,8 +19597,8 @@
       "title": "DROPSIDERS TV",
       "artist": "Anoluxx Wasteland Full Set 2025",
       "youtubeId": "8bl0PcaO_4k",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257356210
     },
     {
@@ -19602,15 +19607,16 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 47,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790257357115_oz2l",
       "title": "Insomniac · Basscon",
       "artist": "JUNKIE KID  - PRESENTS THE PARADOX -  FROM WASTELAND 2025 (FULL SET)",
       "youtubeId": "IPHt8lM7epo",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790257357115
     },
     {
@@ -19653,7 +19659,8 @@
       "artist": "PROMO DROPSIDERS",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
       "duration": 40,
-      "category": "promo"
+      "category": "promo",
+      "expiresAt": "2026-10-31T23:59:59"
     },
     {
       "id": "rt_tv_1790259547701_6txu",
@@ -19711,8 +19718,8 @@
       "title": "Da Tweekaz",
       "artist": "Reverze 2026",
       "youtubeId": "2KIrPQWHW_g",
-      "duration": 3600,
-      "category": "liveset",
+      "duration": 210,
+      "category": "clip",
       "addedAt": 1790259785199
     },
     {
