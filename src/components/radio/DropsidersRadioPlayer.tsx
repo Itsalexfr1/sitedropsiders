@@ -214,13 +214,23 @@ function useRadioAudio() {
     });
 
     // ─── postMessage vers YouTube ────────────────────────────────────────────
-    // sendCmd : envoie la commande à l'iframe ACTIVE seulement
-    const sendCmd = useCallback((func: string, args: any = '') => {
+    // sendCmd : envoie la commande à l'iframe ACTIVE seulement (en garantissant args = array)
+    const sendCmd = useCallback((func: string, args: any = []) => {
         const activeIframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
+        const safeArgs = Array.isArray(args) ? args : (args === '' || args === undefined || args === null ? [] : [args]);
         try {
             activeIframe?.contentWindow?.postMessage(
-                JSON.stringify({ event: 'command', func, args }), '*'
+                JSON.stringify({ event: 'command', func, args: safeArgs }), '*'
             );
+        } catch {}
+    }, []);
+
+    // sendHandshake : envoie le handshake "listening" pour que YouTube transmette les events onStateChange
+    const sendHandshake = useCallback(() => {
+        const activeIframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
+        try {
+            activeIframe?.contentWindow?.postMessage(JSON.stringify({ event: 'listening' }), '*');
+            activeIframe?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'addEventListener', args: ['onStateChange'] }), '*');
         } catch {}
     }, []);
 
@@ -538,17 +548,12 @@ function useRadioAudio() {
         }
     }, [currentSet?.id, currentSet?.audioUrl, currentSet?.youtubeId, sendCmd, scheduleVolumeEnforcement]);
 
-    // ─── Helper : preload le track suivant en silence dans l'iframe BUFFER ────
+    // ─── Helper : preload le track suivant (audio HTML5 uniquement) ───────────
+    // NOTE : On ne précharge JAMAIS un flux YouTube avec autoplay=1 dans une iframe cachée,
+    // car cela lançait la lecture en cachette et le morceau finissait avant d'être écouté.
     const preloadNextTrack = useCallback((nextTrack: ComputedRadioScheduleItem) => {
         if (!nextTrack) return;
-        if (nextTrack.youtubeId && !IS_MOBILE) {
-            // Charger dans l'iframe BUFFER (muted=1, start=0)
-            const bufIframe = activeSlotRef.current === 'A' ? iframeRefB.current : iframeRef.current;
-            if (bufIframe && preloadedVideoIdRef.current !== nextTrack.youtubeId) {
-                bufIframe.src = buildSrc(nextTrack.youtubeId, 0, 1); // muted=1 toujours
-                preloadedVideoIdRef.current = nextTrack.youtubeId;
-            }
-        } else if (nextTrack.audioUrl) {
+        if (nextTrack.audioUrl) {
             // Preload audio HTML5 en silence
             if (preloadedAudioUrlRef.current !== nextTrack.audioUrl) {
                 if (!audioPreloadRef.current) {
@@ -683,73 +688,49 @@ function useRadioAudio() {
                     }).catch(() => {});
                 }
             } else if (nextTrack.youtubeId) {
-                // ── Track YouTube — SWAP PING-PONG INSTANTANÉ ────────────────
+                // ── Track YouTube — Enchaînement propre sans rechargement destructif ──
                 if (audioRef.current && !audioRef.current.paused) {
                     audioRef.current.pause();
                     audioRef.current.src = '';
                 }
                 const ytId = nextTrack.youtubeId;
-                const bufSlot = activeSlotRef.current === 'A' ? 'B' : 'A';
-                const bufIframe = bufSlot === 'A' ? iframeRef.current : iframeRefB.current;
-                const isPreloadedInBuffer = !IS_MOBILE &&
-                    bufIframe?.src?.includes(ytId) &&
-                    preloadedVideoIdRef.current === ytId;
+                const activeIframe = iframeRef.current;
+                const mobileMute: 0 | 1 = IS_MOBILE ? 0 : (isMutedRef.current ? 1 : 0);
 
-                if (isPreloadedInBuffer && bufIframe) {
-                    // ── SWAP INSTANTANÉ : activer le slot buffer → zéro blanc ──
-                    activeSlotRef.current = bufSlot;
-                    scheduleVolumeEnforcement();
-                    bufIframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: '' }), '*');
-                    // Réinitialiser l'ancien slot (devient buffer)
-                    const oldIframe = bufSlot === 'A' ? iframeRefB.current : iframeRef.current;
-                    if (oldIframe) {
-                        oldIframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
-                        oldIframe.src = 'about:blank';
+                if (activeIframe) {
+                    if (activeIframe.src && activeIframe.src.includes('youtube.com/embed/')) {
+                        // Charger la nouvelle vidéo dans le player existant avec un tableau d'arguments valide [ytId, 0]
+                        sendCmd('loadVideoById', [ytId, 0]);
+                        sendCmd('playVideo', []);
+                        // Réactiver le handshake
+                        try {
+                            activeIframe.contentWindow?.postMessage(JSON.stringify({ event: 'listening' }), '*');
+                            activeIframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'addEventListener', args: ['onStateChange'] }), '*');
+                        } catch {}
+                    } else {
+                        // Premier chargement de l'iframe
+                        activeIframe.src = buildSrc(ytId, 0, mobileMute);
                     }
-                    currentPlayingMediaRef.current = nextTrack.id || ytId;
-                    preloadedVideoIdRef.current = null;
-                    // Preloader le track N+2 en avance
-                    const nextNextIdx = nextIdx < schedule.length - 1 ? nextIdx + 1 : 0;
-                    setTimeout(() => preloadNextTrack(schedule[nextNextIdx]), 500);
-                } else {
-                    // ── Pas de preload : utiliser loadVideoById (préserve le contexte autoplay du navigateur) ──
-                    // IMPORTANT : on utilise loadVideoById via postMessage comme méthode principale.
-                    // Recharger iframe.src détruit l'ancienne iframe → ses messages tardifs (onStateChange:0)
-                    // arrivent APRÈS le chargement du nouveau track et déclenchent un skip immédiat.
-                    const activeIframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
-                    const mobileMute: 0 | 1 = IS_MOBILE ? 0 : (isMutedRef.current ? 1 : 0);
-                    if (activeIframe) {
-                        if (activeIframe.src && activeIframe.src.includes('youtube.com/embed/')) {
-                            // Charger la nouvelle vidéo dans le player existant → autoplay préservé, zéro message tardif
-                            sendCmd('loadVideoById', [ytId, 0]);
-                            sendCmd('loadVideoById', { videoId: ytId, startSeconds: 0 });
-                        } else {
-                            // L'iframe n'était pas chargée → chargement initial normal
-                            activeIframe.src = buildSrc(ytId, 0, mobileMute);
-                        }
-                        preloadedVideoIdRef.current = ytId;
-                    }
-                    currentPlayingMediaRef.current = nextTrack.id || ytId;
-                    scheduleVolumeEnforcement();
-                    sendCmd('playVideo');
-                    // Preloader N+2
-                    const nextNextIdx = nextIdx < schedule.length - 1 ? nextIdx + 1 : 0;
-                    setTimeout(() => preloadNextTrack(schedule[nextNextIdx]), 1000);
-                    // ── FALLBACK ANTI-BLANC : si loadVideoById échoue (état != 1 après 6s), recharger l'iframe ──
-                    // Ce fallback ne se déclenche QUE si la vidéo n'a pas démarré, évitant les faux positifs.
-                    setTimeout(() => {
-                        if (!isPlayingRef.current) return;
-                        // Seulement si pas en lecture (1) ni en buffering (3)
-                        if (ytStateRef.current !== 1 && ytStateRef.current !== 3) {
-                            const iframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
-                            if (iframe) {
-                                // Rechargement iframe en dernier recours (loadVideoById a échoué)
-                                iframe.src = buildSrc(ytId, 0, mobileMute);
-                                setTimeout(() => sendCmd('playVideo'), 1500);
-                            }
-                        }
-                    }, 6000);
+                    preloadedVideoIdRef.current = ytId;
                 }
+                currentPlayingMediaRef.current = nextTrack.id || ytId;
+                scheduleVolumeEnforcement();
+                sendCmd('playVideo', []);
+
+                // Sécurité fallback : si après 4s l'état n'est ni en lecture (1) ni en buffering (3)
+                setTimeout(() => {
+                    if (!isPlayingRef.current) return;
+                    if (ytStateRef.current !== 1 && ytStateRef.current !== 3) {
+                        const iframe = iframeRef.current;
+                        if (iframe) {
+                            iframe.src = buildSrc(ytId, 0, mobileMute);
+                            setTimeout(() => {
+                                sendCmd('playVideo', []);
+                                scheduleVolumeEnforcement();
+                            }, 1000);
+                        }
+                    }
+                }, 4000);
             }
         } catch {
             setUiTimeSec(prev => (prev + 300) % 86400);
@@ -778,101 +759,109 @@ function useRadioAudio() {
     }, [liveInfo?.item?.id]);
 
 
-    // 1. Écoute de l'événement YouTube postMessage
+    // 1. Écoute des événements YouTube postMessage
     // States YouTube : -1=unstarted, 0=ended, 1=playing, 2=paused, 3=buffering, 5=cued
     // Erreurs YouTube : 2=invalide, 5=HTML5 non supporté, 100=vidéo non trouvée, 101/150=restriction
     const ytStateRef = useRef<number>(-1);
+    const knownDurationRef = useRef<number>(0);
+    const lastYtTimeRef = useRef<number>(-1);
+    const lastYtTimeReceivedAtRef = useRef<number>(Date.now());
+
     useEffect(() => {
         const handleYtMessage = (event: MessageEvent) => {
             try {
+                // Vérifier la provenance du message
+                if (typeof event.origin === 'string' && !event.origin.includes('youtube.com') && !event.origin.includes('youtube-nocookie.com')) {
+                    return;
+                }
+
                 const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                if (!data) return;
+
+                // ── Handshake : dès que YouTube signale sa présence, s'enregistrer pour recevoir onStateChange
+                if (data.event === 'initial_delivery' || data.event === 'onReady') {
+                    try {
+                        (event.source as WindowProxy)?.postMessage(JSON.stringify({ event: 'listening' }), '*');
+                        (event.source as WindowProxy)?.postMessage(JSON.stringify({ event: 'command', func: 'addEventListener', args: ['onStateChange'] }), '*');
+                    } catch {}
+                }
 
                 // ── Erreur YouTube → skip automatique (géo-restriction, age-gate, vidéo supprimée)
-                if (data?.event === 'onError' && isPlayingRef.current) {
-                    const errCode = typeof data.info === 'number' ? data.info : 0;
-                    // Codes 100, 101, 150 = vidéo indisponible → passer au track suivant
-                    if ([2, 100, 101, 150].includes(errCode)) {
+                const isError = data.event === 'onError' || (data.event === 'infoDelivery' && data?.info?.errorCode !== undefined);
+                if (isError && isPlayingRef.current) {
+                    const errCode = typeof data.info === 'number' ? data.info : (data?.info?.errorCode ?? 0);
+                    if ([2, 5, 100, 101, 150].includes(errCode) || errCode > 0) {
                         advanceToNextTrack();
                         return;
                     }
                 }
 
-                // ── Changement d'état YouTube ──
-                if (
-                    data &&
-                    data.event === 'onStateChange' &&
-                    isPlayingRef.current &&
-                    currentSetRef.current?.youtubeId
-                ) {
-                    const prevState = ytStateRef.current;
-                    ytStateRef.current = typeof data.info === 'number' ? data.info : -1;
+                // ── Changement d'état YouTube (détecte onStateChange OU infoDelivery.playerState) ──
+                let playerState: number | undefined = undefined;
+                if (data.event === 'onStateChange' && typeof data.info === 'number') {
+                    playerState = data.info;
+                } else if (data.event === 'infoDelivery' && typeof data?.info?.playerState === 'number') {
+                    playerState = data.info.playerState;
+                }
 
-                    if (data.info === 0) {
-                        // ENDED : avancer immédiatement
+                if (playerState !== undefined && isPlayingRef.current) {
+                    const prevState = ytStateRef.current;
+                    ytStateRef.current = playerState;
+
+                    if (playerState === 0) {
+                        // ENDED : le morceau est terminé → enchaîner immédiatement sur le morceau suivant !
                         advanceToNextTrack();
-                    } else if (data.info === 1 && prevState !== 1) {
-                        // PLAYING démarre → forcer la ré-application du volume utilisateur immédiatement
+                        return;
+                    } else if (playerState === 1 && prevState !== 1) {
+                        // PLAYING démarre → forcer la ré-application du volume utilisateur
                         scheduleVolumeEnforcement();
-                        // preloader le track suivant immédiatement dans le slot buffer pour zéro blanc (même sur sons courts)
-                        const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
-                        const curIdx = currentTrackIndexRef.current;
-                        if (curIdx >= 0) {
-                            const nextIdx = curIdx < schedule.length - 1 ? curIdx + 1 : 0;
-                            setTimeout(() => preloadNextTrack(schedule[nextIdx]), 1500);
-                        }
                     }
                 }
 
                 // ── Durée réelle rapportée par le player YouTube ──
-                if (data?.info?.duration && currentSetRef.current?.youtubeId) {
-                    const dur = Math.round(Number(data.info.duration));
-                    if (dur > 5) {
-                        try {
-                            const cur = currentSetRef.current;
-                            const ytId = cur?.youtubeId;
-                            if (ytId) {
-                                const cached = getCachedRadioDurations();
-                                if (!cached[ytId] || Math.abs((cached[ytId] || 0) - dur) > 2) {
-                                    saveCachedRadioDuration(ytId, dur);
-                                    if (cur.id) saveCachedRadioDuration(cur.id, dur);
-                                    if (Array.isArray(radioBlocksRef.current)) {
-                                        radioBlocksRef.current.forEach(block => {
-                                            (block.tracks || []).forEach(t => {
-                                                if (t.youtubeId === ytId || t.id === cur.id) {
-                                                    t.duration = dur;
-                                                }
-                                            });
+                const reportedDur = typeof data?.info?.duration === 'number' ? data.info.duration : undefined;
+                if (reportedDur && reportedDur > 5) {
+                    const dur = Math.round(reportedDur);
+                    knownDurationRef.current = dur;
+                    try {
+                        const cur = currentSetRef.current;
+                        const ytId = cur?.youtubeId;
+                        if (ytId) {
+                            const cached = getCachedRadioDurations();
+                            if (!cached[ytId] || Math.abs((cached[ytId] || 0) - dur) > 2) {
+                                saveCachedRadioDuration(ytId, dur);
+                                if (cur.id) saveCachedRadioDuration(cur.id, dur);
+                                if (Array.isArray(radioBlocksRef.current)) {
+                                    radioBlocksRef.current.forEach(block => {
+                                        (block.tracks || []).forEach(t => {
+                                            if (t.youtubeId === ytId || t.id === cur.id) {
+                                                t.duration = dur;
+                                            }
                                         });
-                                    }
-                                    window.dispatchEvent(new CustomEvent('dropsiders_radio_durations_updated'));
+                                    });
                                 }
+                                window.dispatchEvent(new CustomEvent('dropsiders_radio_durations_updated'));
                             }
-                        } catch {}
-                    }
+                        }
+                    } catch {}
                 }
 
-                // ── Réponse getCurrentTime polling (pour le watchdog et le preload anticipé) ──
+                // ── Réponse getCurrentTime polling (pour le watchdog et fin de clip anticipée) ──
                 if (data?.event === 'infoDelivery' && data?.info?.currentTime !== undefined) {
-                    const ct = data.info.currentTime as number;
-                    const dur = data.info.duration as number | undefined;
-                    window.dispatchEvent(new CustomEvent('yt_current_time', { detail: ct }));
+                    const ct = Number(data.info.currentTime);
+                    if (!isNaN(ct) && ct >= 0) {
+                        lastYtTimeRef.current = ct;
+                        lastYtTimeReceivedAtRef.current = Date.now();
+                        window.dispatchEvent(new CustomEvent('yt_current_time', { detail: ct }));
 
-                    // FIN DU TRACK : dès que ct atteint dur - 0.8s → enchaîner INSTANTANÉMENT pile au moment où ça finit
-                    if (dur && dur > 5 && ct > 0 && ct >= dur - 0.8 && isPlayingRef.current) {
-                        advanceToNextTrack();
-                        return;
-                    }
+                        // FIN DU TRACK : dès que ct approche de la fin à moins de 0.8s → enchaîner
+                        const effectiveDur = (reportedDur && reportedDur > 5)
+                            ? reportedDur
+                            : (knownDurationRef.current > 5 ? knownDurationRef.current : (currentSetRef.current?.durationSeconds || 0));
 
-                    // Preload anticipé : quand il reste ~45s sur le track courant → s'assurer que le suivant est préchargé
-                    if (dur && dur > 0 && ct > 0 && !IS_MOBILE) {
-                        const remaining = dur - ct;
-                        if (remaining > 0 && remaining < 45 && currentSetRef.current?.youtubeId) {
-                            const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
-                            const curIdx = currentTrackIndexRef.current;
-                            if (curIdx >= 0) {
-                                const nextIdx = curIdx < schedule.length - 1 ? curIdx + 1 : 0;
-                                preloadNextTrack(schedule[nextIdx]);
-                            }
+                        if (effectiveDur > 5 && ct > 0 && ct >= effectiveDur - 0.8 && isPlayingRef.current) {
+                            advanceToNextTrack();
+                            return;
                         }
                     }
                 }
@@ -880,7 +869,7 @@ function useRadioAudio() {
         };
         window.addEventListener('message', handleYtMessage);
         return () => window.removeEventListener('message', handleYtMessage);
-    }, [advanceToNextTrack, preloadNextTrack, scheduleVolumeEnforcement]);
+    }, [advanceToNextTrack, scheduleVolumeEnforcement]);
 
 
     // 2. Écoute de l'événement Audio HTML5 onended (Jingle / Track terminé)
@@ -957,83 +946,56 @@ function useRadioAudio() {
     }, [advanceToNextTrack]);
 
     // 4. ─── WATCHDOG YOUTUBE : détection de blanc / fin de clip sans événement ENDED ────
-    // YouTube ne déclenche pas toujours onStateChange:0 (ended) de façon fiable.
-    // FIX : on poll getCurrentTime via postMessage ET on compare la durée connue.
-    // Si le time ne progresse plus depuis 12s alors qu'on est sensiblement à la fin
-    // (ou si le state reste -1/2 longtemps) → on considère le clip terminé.
+    // 4. ─── WATCHDOG YOUTUBE : détection de blocage ou fin de clip non signalée ────
     useEffect(() => {
-        let lastYtTime = -1;
-        let lastYtTimeStamp = Date.now();
-        let knownDuration = 0;
-        let watchdogInterval: ReturnType<typeof setInterval> | null = null;
-
-        const onYtCurrentTime = (e: CustomEvent) => {
-            const ct = typeof e.detail === 'number' ? e.detail : -1;
-            if (ct > 0) {
-                if (ct !== lastYtTime) {
-                    lastYtTime = ct;
-                    lastYtTimeStamp = Date.now();
-                }
-            }
-        };
-
-        // Intercepter la durée via infoDelivery
-        const onYtMessage = (event: MessageEvent) => {
-            try {
-                const d = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-                if (d?.info?.duration && Number(d.info.duration) > 5) {
-                    knownDuration = Math.round(Number(d.info.duration));
-                }
-                // Certains players envoient currentTime directement dans info
-                if (typeof d?.info === 'number' && d?.event === 'infoDelivery') {
-                    // format alternatif
-                }
-            } catch {}
-        };
-
         // Reset du watchdog dès qu'un nouveau track démarre
         const onTrackChange = () => {
-            lastYtTime = -1;
-            lastYtTimeStamp = Date.now();
-            knownDuration = 0;
+            lastYtTimeRef.current = -1;
+            lastYtTimeReceivedAtRef.current = Date.now();
+            knownDurationRef.current = 0;
+            ytStateRef.current = -1;
         };
-        window.addEventListener('yt_current_time', onYtCurrentTime as EventListener);
-        window.addEventListener('message', onYtMessage);
         window.addEventListener('dropsiders_radio_track_changed', onTrackChange);
 
-        watchdogInterval = setInterval(() => {
+        const watchdogInterval = setInterval(() => {
             if (!isPlayingRef.current || !currentSetRef.current?.youtubeId || currentSetRef.current?.audioUrl) return;
 
-            // Demander la position courante au player YouTube
-            sendCmd('getCurrentTime');
+            // Demander la position courante et renvoyer le handshake listening
+            sendCmd('getCurrentTime', []);
+            sendHandshake();
 
-            const elapsed = Date.now() - lastYtTimeStamp;
+            const now = Date.now();
+            const elapsedSinceStart = (now - trackStartedAtRef.current) / 1000;
+            const targetDur = knownDurationRef.current > 5
+                ? knownDurationRef.current
+                : (currentSetRef.current?.durationSeconds || 0);
 
-            // Blanc détecté : la vidéo a commencé à jouer MAIS le temps ne progresse
-            // plus depuis 12s (fin non signalée par onStateChange:0)
-            // NOTE : on n'utilise PAS de comparaison avec knownDuration ici car
-            // knownDuration - 3 peut être ≤0 pour les jingles courts → faux positif immédiat.
-            if (
-                lastYtTime > 0 &&
-                elapsed > 12000 &&
-                ytStateRef.current !== 2 && // pas en pause intentionnelle
-                ytStateRef.current !== 3    // pas en buffering
-            ) {
-                console.warn('[Radio watchdog] Blanc détecté, skip track');
-                lastYtTime = -1;
-                lastYtTimeStamp = Date.now();
+            // Filet de sécurité 1 : Le temps de lecture réel a dépassé la durée prévue (+ 3 secondes de marge)
+            if (targetDur > 10 && elapsedSinceStart > targetDur + 3) {
+                console.warn(`[Radio watchdog] Durée dépassée (${Math.round(elapsedSinceStart)}s / ${targetDur}s) → enchaînement automatique`);
                 advanceToNextTrack();
                 return;
             }
-        }, 3000);
+
+            // Filet de sécurité 2 : Si la vidéo a commencé à jouer mais que le temps ne bouge plus depuis 10s
+            const elapsedSinceLastTime = now - lastYtTimeReceivedAtRef.current;
+            if (
+                lastYtTimeRef.current > 0 &&
+                elapsedSinceLastTime > 10000 &&
+                ytStateRef.current !== 2 && // pas en pause
+                ytStateRef.current !== 3    // pas en buffering
+            ) {
+                console.warn('[Radio watchdog] Son figé / fin non signalée → enchaînement automatique');
+                advanceToNextTrack();
+                return;
+            }
+        }, 2500);
 
         return () => {
-            if (watchdogInterval) clearInterval(watchdogInterval);
-            window.removeEventListener('yt_current_time', onYtCurrentTime as EventListener);
-            window.removeEventListener('message', onYtMessage);
+            clearInterval(watchdogInterval);
             window.removeEventListener('dropsiders_radio_track_changed', onTrackChange);
         };
-    }, [advanceToNextTrack, sendCmd]);
+    }, [advanceToNextTrack, sendCmd, sendHandshake]);
 
     // 4b. ─── SUPER-WATCHDOG HORLOGE (filet de sécurité incassable) ───────────────────
     // Toutes les 10s, vérifie que le track actif est bien dans son créneau horaire.
@@ -1218,16 +1180,10 @@ function useRadioAudio() {
                 }
             } catch {}
 
-            // Preloader le track suivant ~2s après le démarrage (sur desktop uniquement)
-            if (!IS_MOBILE) {
-                setTimeout(() => {
-                    const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
-                    const curIdx = currentTrackIndexRef.current;
-                    if (curIdx >= 0 && curIdx < schedule.length - 1) {
-                        preloadNextTrack(schedule[curIdx + 1]);
-                    }
-                }, 2000);
-            }
+            // Envoi immédiat et répété du handshake pour s'assurer que YouTube active les écouteurs
+            [200, 600, 1200, 2500].forEach(delay => {
+                setTimeout(sendHandshake, delay);
+            });
         } else {
             // Pause propre sans vider l'iframe ni réinitialiser la position
             if (audioRef.current) audioRef.current.pause();
@@ -1367,6 +1323,12 @@ function RadioIframe({ iframeRef, iframeRefB, audioRef }: {
                 allowFullScreen
                 title="Dropsiders Radio A"
                 style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', top: 0, left: 0 }}
+                onLoad={() => {
+                    try {
+                        iframeRef.current?.contentWindow?.postMessage(JSON.stringify({ event: 'listening' }), '*');
+                        iframeRef.current?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'addEventListener', args: ['onStateChange'] }), '*');
+                    } catch {}
+                }}
             />
             {/* Slot B — iframe BUFFER (preload silencieux du track suivant) */}
             <iframe
