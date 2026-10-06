@@ -16106,7 +16106,7 @@
       "title": "Animals",
       "artist": "Martin Garrix",
       "youtubeId": "gCYcHz2k5x0",
-      "duration": 210,
+      "duration": 180,
       "category": "clip"
     },
     {
@@ -19663,8 +19663,8 @@
       "title": "Decibel outdoor 2025",
       "artist": "Gezellige Uptempo",
       "youtubeId": "S2zL0pD4DEE",
-      "duration": 210,
-      "category": "clip",
+      "duration": 3600,
+      "category": "liveset",
       "addedAt": 1790257351396
     },
     {
@@ -19680,8 +19680,8 @@
       "title": "Decibel outdoor 2025",
       "artist": "Angerfist LIVE: Closing Session",
       "youtubeId": "QHUGte7ohQU",
-      "duration": 210,
-      "category": "clip",
+      "duration": 3600,
+      "category": "liveset",
       "addedAt": 1790257351972
     },
     {
@@ -19694,11 +19694,11 @@
     },
     {
       "id": "rt_tv_1790257354766_bohj",
-      "title": "ESCAPE HALLOWEEN ( HARD TECHNO )",
+      "title": "ESCAPE HALLOWEEN",
       "artist": "DØMINA",
       "youtubeId": "D1O9K7EmINQ",
-      "duration": 210,
-      "category": "clip",
+      "duration": 3600,
+      "category": "liveset",
       "addedAt": 1790257354766
     },
     {
@@ -19711,11 +19711,11 @@
     },
     {
       "id": "rt_tv_1790257356210_is2d",
-      "title": "DROPSIDERS TV",
-      "artist": "Anoluxx Wasteland Full Set 2025",
+      "title": "Wasteland",
+      "artist": "Anoluxx",
       "youtubeId": "8bl0PcaO_4k",
-      "duration": 210,
-      "category": "clip",
+      "duration": 3600,
+      "category": "liveset",
       "addedAt": 1790257356210
     },
     {
@@ -19728,11 +19728,11 @@
     },
     {
       "id": "rt_tv_1790257357115_oz2l",
-      "title": "Insomniac · Basscon",
-      "artist": "JUNKIE KID  - PRESENTS THE PARADOX -  FROM WASTELAND 2025 (FULL SET)",
+      "title": "Basscon",
+      "artist": "JUNKIE KID  PRESENTS THE PARADOX",
       "youtubeId": "IPHt8lM7epo",
-      "duration": 210,
-      "category": "clip",
+      "duration": 3600,
+      "category": "liveset",
       "addedAt": 1790257357115
     },
     {
