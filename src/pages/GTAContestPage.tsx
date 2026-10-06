@@ -22,8 +22,8 @@ import {
 import { generateGTA6StoryVisual } from '../utils/gtaStoryVisual';
 import { useUser } from '../context/UserContext';
 
-// Countdown Target: GTA 6 Contest Close (e.g., Nov 30, 2026 or dynamic date)
-const CONTEST_CLOSE_DATE = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000 + 7 * 60 * 60 * 1000);
+// Countdown Target: Clôture le 12 novembre à 00h00
+const CONTEST_CLOSE_DATE = new Date('2026-11-12T00:00:00');
 
 export function GTAContestPage() {
     const [searchParams] = useSearchParams();
@@ -385,10 +385,6 @@ export function GTAContestPage() {
                     >
                         DROPSIDERS TE FAIT GAGNER <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff007f] via-[#ffe600] to-[#00f0ff]">GTA 6</span> SUR LA PLATEFORME DE TON CHOIX
                     </motion.h1>
-
-                    <p className="mt-4 text-sm sm:text-base text-gray-300 font-bold uppercase tracking-widest max-w-2xl text-center">
-                        🌴 Ambiance Vice City • PlayStation 5 ou Xbox • Clôture imminente
-                    </p>
                 </div>
 
                 {/* =========================================================================
@@ -403,7 +399,7 @@ export function GTAContestPage() {
                     <div className="bg-black/50 border border-[#00f0ff]/30 rounded-3xl p-5 backdrop-blur-xl shadow-[0_0_35px_rgba(0,240,255,0.15)] flex flex-col items-center">
                         <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.25em] text-[#00f0ff] mb-4">
                             <Clock className="w-4 h-4 animate-pulse text-[#ff007f]" />
-                            <span>TEMPS RESTANT AVANT LA CLÔTURE DÉFINITIVE DU CONCOURS</span>
+                            <span>TEMPS RESTANT AVANT LA CLÔTURE DÉFINITIVE (12 NOVEMBRE 00H00)</span>
                         </div>
 
                         <div className="grid grid-cols-4 gap-3 sm:gap-6 w-full text-center">
@@ -431,7 +427,7 @@ export function GTAContestPage() {
                 </motion.div>
 
                 {/* =========================================================================
-                    SECTION VIDÉO OFFICIELLE (YOUTUBE TEASER GTA 6)
+                    SECTION VIDÉO OFFICIELLE (ROCKSTAR GAMES TRAILER 1)
                 ========================================================================= */}
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
@@ -445,25 +441,37 @@ export function GTAContestPage() {
                         
                         <div className="relative bg-black rounded-[2.2rem] overflow-hidden border border-white/20 shadow-2xl">
                             {/* Video player header */}
-                            <div className="px-6 py-3.5 bg-black/80 border-b border-white/10 flex items-center justify-between">
+                            <div className="px-6 py-3.5 bg-black/80 border-b border-white/10 flex flex-wrap items-center justify-between gap-3">
                                 <div className="flex items-center gap-3">
                                     <div className="w-3 h-3 rounded-full bg-[#ff007f] shadow-[0_0_8px_#ff007f]" />
                                     <div className="w-3 h-3 rounded-full bg-[#ffe600]" />
                                     <div className="w-3 h-3 rounded-full bg-[#00f0ff]" />
                                     <span className="text-xs font-black uppercase tracking-widest text-white/80 ml-2">
-                                        TEASER OFFICIEL ROCKSTAR GAMES • GTA VI
+                                        TRAILER OFFICIEL ROCKSTAR GAMES • GTA VI
                                     </span>
                                 </div>
-                                <span className="text-[10px] font-black uppercase tracking-widest text-[#00f0ff] bg-[#00f0ff]/10 px-3 py-1 rounded-full border border-[#00f0ff]/30">
-                                    4K ULTRA HD
-                                </span>
+                                <div className="flex items-center gap-3">
+                                    <a 
+                                        href="https://www.youtube.com/watch?v=QdBZY2fkU-0" 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-[#00f0ff] hover:text-white bg-[#00f0ff]/10 hover:bg-[#00f0ff]/20 px-3 py-1 rounded-full border border-[#00f0ff]/30 transition-all"
+                                        title="Ouvrir sur YouTube si la vidéo est bloquée par l'âge sur ton navigateur"
+                                    >
+                                        <ExternalLink className="w-3 h-3" />
+                                        Ouvrir sur YouTube
+                                    </a>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#ff007f] bg-[#ff007f]/10 px-3 py-1 rounded-full border border-[#ff007f]/30">
+                                        4K ULTRA HD
+                                    </span>
+                                </div>
                             </div>
 
                             {/* Responsive 16:9 Iframe */}
                             <div className="relative w-full pt-[56.25%] bg-black">
                                 <iframe 
                                     className="absolute inset-0 w-full h-full"
-                                    src="https://www.youtube-nocookie.com/embed/tJbzMqJGH4k?rel=0&modestbranding=1"
+                                    src="https://www.youtube.com/embed/QdBZY2fkU-0?rel=0&modestbranding=1"
                                     title="Grand Theft Auto VI Trailer 1"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                     allowFullScreen
@@ -472,48 +480,6 @@ export function GTAContestPage() {
                         </div>
                     </div>
                 </motion.div>
-
-                {/* =========================================================================
-                    OFFICIAL ARTWORKS SHOWCASE (USER UPLOADED PHOTOS)
-                ========================================================================= */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-16 max-w-5xl mx-auto">
-                    {/* Lucia & Jason Artwork */}
-                    <div className="md:col-span-7 bg-white/5 border border-white/10 rounded-3xl p-4 overflow-hidden relative group hover:border-[#00f0ff]/40 transition-all shadow-xl">
-                        <div className="aspect-[16/10] rounded-2xl overflow-hidden relative">
-                            <img 
-                                src="/images/gta6_lucia_jason.jpg" 
-                                alt="Lucia & Jason Vice City GTA 6" 
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                                <div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#00f0ff]">VICE CITY WATERFRONT</span>
-                                    <h4 className="text-lg font-black italic uppercase font-display text-white">LUCIA & JASON</h4>
-                                </div>
-                                <span className="text-[9px] font-black uppercase tracking-widest bg-[#ff007f]/80 text-white px-3 py-1 rounded-full">
-                                    LOT OFFICIEL
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Comic Cover Artwork */}
-                    <div className="md:col-span-5 bg-white/5 border border-white/10 rounded-3xl p-4 overflow-hidden relative group hover:border-[#ff007f]/40 transition-all shadow-xl">
-                        <div className="aspect-[16/10] md:aspect-auto md:h-full rounded-2xl overflow-hidden relative">
-                            <img 
-                                src="/images/gta6_cover.jpg" 
-                                alt="GTA 6 Official Comic Cover" 
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                            <div className="absolute bottom-4 left-4 right-4">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-[#ffe600]">ÉDITION NÉON DROPSIDERS</span>
-                                <h4 className="text-lg font-black italic uppercase font-display text-white">JEU COMPLET OFFERT</h4>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 {/* =========================================================================
                     CHECK IF USER HAS ALREADY PARTICIPATED (LOCKED ANTI-CHEAT VIEW)

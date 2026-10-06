@@ -1,6 +1,7 @@
 {
   "master_session_id": "initial-session-id",
   "shop_enabled": true,
+  "gta_contest_menu_visible": true,
   "blocked_senders": [
     "k65192373@gmail.com"
   ],

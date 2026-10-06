@@ -2698,6 +2698,18 @@ export function AdminDashboard() {
       columns: 1,
     },
     {
+      title: "Concours GTA 6",
+      description: "Paramètres, tirage & menu",
+      icon: "Gamepad2",
+      category: "STUDIO",
+      link: "#GTA_CONTEST_MODAL",
+      color: "border-[#ff007f]/40 hover:border-[#ff007f]",
+      bg: "bg-[#ff007f]/10",
+      permission: "all",
+      baseColor: "pink",
+      columns: 1,
+    },
+    {
       title: "Fichiers Cloudflare",
       description: "Images, Vidéos, MP3",
       icon: "HardDrive",
@@ -4815,6 +4827,14 @@ export function AdminDashboard() {
                             ) {
                               e.preventDefault();
                               setIsQuizzConcoursModalOpen(true);
+                            } else if (
+                              action.title === "Concours GTA 6" ||
+                              action.title === "CONCOURS GTA 6" ||
+                              action.link === "#GTA_CONTEST_MODAL" ||
+                              action.link === "/admin/concours-gta6"
+                            ) {
+                              e.preventDefault();
+                              setIsGTAContestModalOpen(true);
                             } else if (action.title === "Vérifier Photos") {
                               e.preventDefault();
                               setModerationTab("wiki");

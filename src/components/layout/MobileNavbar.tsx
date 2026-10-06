@@ -17,10 +17,22 @@ export function MobileNavbar() {
     const [isAdmin, setIsAdmin] = useState(false);
     const { isLoggedIn, user, setIsAuthModalOpen } = useUser();
     const [navLabels, setNavLabels] = useState((settings as any).nav_labels || {});
+    const [gtaContestMenuVisible, setGtaContestMenuVisible] = useState<boolean>(() => {
+        const local = localStorage.getItem('dropsiders_gta_contest_menu_visible');
+        return local !== null ? local === 'true' : ((settings as any).gta_contest_menu_visible ?? true);
+    });
 
     useEffect(() => {
         const auth = localStorage.getItem('admin_auth_v2');
         setIsAdmin(auth === 'true');
+
+        const handleSettingsUpdate = () => {
+            const local = localStorage.getItem('dropsiders_gta_contest_menu_visible');
+            if (local !== null) {
+                setGtaContestMenuVisible(local === 'true');
+            }
+        };
+        window.addEventListener('dropsiders_settings_updated', handleSettingsUpdate);
 
         const fetchSettings = async () => {
             try {
@@ -32,10 +44,17 @@ export function MobileNavbar() {
                     if (data.nav_labels) {
                         setNavLabels(data.nav_labels);
                     }
+                    if (data.gta_contest_menu_visible !== undefined) {
+                        setGtaContestMenuVisible(data.gta_contest_menu_visible);
+                    }
                 }
             } catch (e) { }
         };
         fetchSettings();
+
+        return () => {
+            window.removeEventListener('dropsiders_settings_updated', handleSettingsUpdate);
+        };
     }, []);
 
     const isLiveActive = takeoverEnabled && takeoverStatus === 'live';
@@ -62,7 +81,7 @@ export function MobileNavbar() {
     const navigate = useNavigate();
 
     const menuItems = [
-        { icon: Gamepad2, label: 'Concours GTA 6', path: '/concours-gta6', color: 'text-[#ff007f]' },
+        ...(gtaContestMenuVisible ? [{ icon: Gamepad2, label: 'Concours GTA 6', path: '/concours-gta6', color: 'text-[#ff007f]' }] : []),
         // Live moved to center if active
         ...(isLiveActive ? [{ icon: Users, label: navLabels.communaute || 'Communaute', path: '/communaute', color: 'text-neon-cyan' }] : []),
         { icon: Newspaper, label: navLabels.news || 'News', path: '/news', color: 'text-neon-red' },

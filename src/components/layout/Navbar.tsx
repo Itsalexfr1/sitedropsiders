@@ -32,6 +32,10 @@ export function Navbar() {
     const [takeoverEnabled, setTakeoverEnabled] = useState(settings.takeover?.enabled || false);
     const [takeoverSettings, setTakeoverSettings] = useState(settings.takeover);
     const [navLabels, setNavLabels] = useState((settings as any).nav_labels || {});
+    const [gtaContestMenuVisible, setGtaContestMenuVisible] = useState<boolean>(() => {
+        const local = localStorage.getItem('dropsiders_gta_contest_menu_visible');
+        return local !== null ? local === 'true' : ((settings as any).gta_contest_menu_visible ?? true);
+    });
     const isMobile = window.innerWidth < 1024;
     const [isAdmin, setIsAdmin] = useState(false);
     const { isLoggedIn, user, setIsAuthModalOpen } = useUser();
@@ -72,6 +76,14 @@ export function Navbar() {
         // Check periodically or on focus
         window.addEventListener('focus', checkAuth);
 
+        const handleSettingsUpdate = () => {
+            const local = localStorage.getItem('dropsiders_gta_contest_menu_visible');
+            if (local !== null) {
+                setGtaContestMenuVisible(local === 'true');
+            }
+        };
+        window.addEventListener('dropsiders_settings_updated', handleSettingsUpdate);
+
         const fetchSettings = async () => {
             try {
                 const response = await fetch('/api/settings');
@@ -86,12 +98,20 @@ export function Navbar() {
                     if (data.nav_labels) {
                         setNavLabels(data.nav_labels);
                     }
+                    if (data.gta_contest_menu_visible !== undefined) {
+                        setGtaContestMenuVisible(data.gta_contest_menu_visible);
+                    }
                 }
             } catch (e: any) {
                 // Keep default
             }
         };
         fetchSettings();
+
+        return () => {
+            window.removeEventListener('focus', checkAuth);
+            window.removeEventListener('dropsiders_settings_updated', handleSettingsUpdate);
+        };
     }, []);
 
     const navItems = [
@@ -102,7 +122,7 @@ export function Navbar() {
         { name: navLabels.communaute || t('nav.communaute'), path: '/communaute', color: 'neon-cyan' },
         { name: 'DropsidersTV', path: '/tv', color: 'neon-red', icon: Tv },
         { name: 'TOP', path: '/top-dropsiders', color: 'neon-yellow', suffix: 'DROPSIDERS', isPremium: true },
-        { name: 'GTA 6', path: '/concours-gta6', color: 'neon-pink', suffix: 'CONCOURS', isPremium: true },
+        ...(gtaContestMenuVisible ? [{ name: 'GTA 6', path: '/concours-gta6', color: 'neon-pink', suffix: 'CONCOURS', isPremium: true }] : []),
         { name: navLabels.vols || t('nav.vols'), path: '/voyage/vols', color: 'neon-green' },
         { name: navLabels.team || t('nav.team'), path: '/team', color: 'neon-lime' },
         ...(shopEnabled && !shopPasswordProtected ? [{ name: 'SHOP', path: '/shop', color: 'neon-blue' }] : []),
