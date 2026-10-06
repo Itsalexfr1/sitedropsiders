@@ -336,7 +336,7 @@ export function GTAContestPage() {
                 {/* Background image overlay with soft blend */}
                 <div 
                     className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-screen"
-                    style={{ backgroundImage: `url('/images/gta6_vice_city_hero.jpg')` }}
+                    style={{ backgroundImage: `url('/images/gta_vice_city_sign.jpg')` }}
                 />
 
                 {/* Tropical Sunset & Neon Radial Blurs */}
@@ -471,7 +471,7 @@ export function GTAContestPage() {
                             <div className="relative w-full pt-[56.25%] bg-black">
                                 <iframe 
                                     className="absolute inset-0 w-full h-full"
-                                    src="https://www.youtube.com/embed/QdBZY2fkU-0?rel=0&modestbranding=1"
+                                    src="https://www.youtube.com/embed/QdBZY2fkU-0?autoplay=1&mute=1&rel=0&modestbranding=1"
                                     title="Grand Theft Auto VI Trailer 1"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                     allowFullScreen
@@ -695,22 +695,26 @@ export function GTAContestPage() {
                                     <button
                                         type="button"
                                         onClick={() => setPlateforme('PlayStation 5 (PS5)')}
-                                        className={`p-5 rounded-2xl border flex items-center justify-between text-left transition-all ${
+                                        className={`p-4 sm:p-5 rounded-2xl border flex items-center justify-between text-left transition-all ${
                                             plateforme === 'PlayStation 5 (PS5)'
-                                                ? 'bg-[#0070d1]/20 border-[#0070d1] shadow-[0_0_25px_rgba(0,112,209,0.3)]'
-                                                : 'bg-white/5 border-white/10 hover:border-white/20'
+                                                ? 'bg-[#0070d1]/20 border-[#0070d1] shadow-[0_0_30px_rgba(0,112,209,0.4)]'
+                                                : 'bg-black/60 border-white/10 hover:border-white/20'
                                         }`}
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-[#0070d1]/30 flex items-center justify-center font-black text-xs text-[#0070d1]">
-                                                PS5
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-20 sm:w-24 h-12 rounded-xl bg-black border border-white/10 flex items-center justify-center p-1.5 overflow-hidden">
+                                                <img 
+                                                    src="/images/gta_ps5_logo.jpg" 
+                                                    alt="PlayStation 5" 
+                                                    className="w-full h-full object-contain filter drop-shadow-[0_0_6px_rgba(0,112,209,0.8)]"
+                                                />
                                             </div>
                                             <div>
                                                 <div className="font-black text-sm text-white">PlayStation 5</div>
-                                                <div className="text-[10px] text-gray-400 font-bold">Code digital PS Store</div>
+                                                <div className="text-[10px] text-gray-400 font-bold">Code digital PS Store officiel</div>
                                             </div>
                                         </div>
-                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 ${
                                             plateforme === 'PlayStation 5 (PS5)' ? 'border-[#0070d1] bg-[#0070d1]' : 'border-white/30'
                                         }`}>
                                             {plateforme === 'PlayStation 5 (PS5)' && <Check className="w-3.5 h-3.5 text-white" />}
@@ -720,22 +724,26 @@ export function GTAContestPage() {
                                     <button
                                         type="button"
                                         onClick={() => setPlateforme('Xbox')}
-                                        className={`p-5 rounded-2xl border flex items-center justify-between text-left transition-all ${
+                                        className={`p-4 sm:p-5 rounded-2xl border flex items-center justify-between text-left transition-all ${
                                             plateforme === 'Xbox'
-                                                ? 'bg-[#107c10]/20 border-[#107c10] shadow-[0_0_25px_rgba(16,124,16,0.3)]'
-                                                : 'bg-white/5 border-white/10 hover:border-white/20'
+                                                ? 'bg-[#107c10]/20 border-[#107c10] shadow-[0_0_30px_rgba(16,124,16,0.4)]'
+                                                : 'bg-black/60 border-white/10 hover:border-white/20'
                                         }`}
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-[#107c10]/30 flex items-center justify-center font-black text-xs text-[#107c10]">
-                                                XBOX
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-20 sm:w-24 h-12 rounded-xl bg-black border border-white/10 flex items-center justify-center p-1.5 overflow-hidden">
+                                                <img 
+                                                    src="/images/gta_xbox_logo.jpg" 
+                                                    alt="Xbox Series X" 
+                                                    className="w-full h-full object-contain filter drop-shadow-[0_0_6px_rgba(16,124,16,0.8)]"
+                                                />
                                             </div>
                                             <div>
                                                 <div className="font-black text-sm text-white">Xbox Series X|S</div>
-                                                <div className="text-[10px] text-gray-400 font-bold">Code digital Microsoft Store</div>
+                                                <div className="text-[10px] text-gray-400 font-bold">Code digital Microsoft Store officiel</div>
                                             </div>
                                         </div>
-                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 ${
                                             plateforme === 'Xbox' ? 'border-[#107c10] bg-[#107c10]' : 'border-white/30'
                                         }`}>
                                             {plateforme === 'Xbox' && <Check className="w-3.5 h-3.5 text-white" />}
@@ -766,6 +774,103 @@ export function GTAContestPage() {
                                         </p>
                                     </div>
                                 </label>
+                            </div>
+                        </div>
+
+                        {/* =========================================================================
+                            CONDITIONS DE PARTICIPATION OBLIGATOIRES (AVANT LES QUESTIONS)
+                        ========================================================================= */}
+                        <div className="relative rounded-[2.5rem] overflow-hidden border border-white/15 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl">
+                            {/* Background immersif Vice City Boat */}
+                            <div 
+                                className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity pointer-events-none"
+                                style={{ backgroundImage: `url('/images/gta_vice_city_boat.jpg')` }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-b from-[#0d0221]/90 via-black/85 to-[#0d0221]/95 pointer-events-none" />
+
+                            <div className="relative z-10 space-y-6">
+                                <div className="text-center space-y-2">
+                                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#ff007f]/20 border border-[#ff007f]/40 text-[10px] font-black uppercase tracking-widest text-[#ff007f]">
+                                        <Flame className="w-3.5 h-3.5" />
+                                        CONDITIONS DU CONCOURS
+                                    </div>
+                                    <h3 className="text-2xl sm:text-3xl font-black font-display uppercase italic tracking-tight text-white">
+                                        Les 4 Étapes Pour Valider Ta Participation
+                                    </h3>
+                                    <p className="text-xs sm:text-sm text-gray-400 font-medium max-w-xl mx-auto">
+                                        Assure-toi d'effectuer toutes les étapes requises pour que ton tirage au sort soit validé !
+                                    </p>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    {/* Condition 1 */}
+                                    <div className="bg-black/60 border border-white/10 rounded-2xl p-5 relative overflow-hidden group hover:border-[#ff007f]/50 transition-all flex flex-col justify-between">
+                                        <div className="absolute top-0 left-0 right-0 h-1 bg-[#ff007f]" />
+                                        <div>
+                                            <div className="w-8 h-8 rounded-xl bg-[#ff007f]/20 text-[#ff007f] font-black text-xs flex items-center justify-center mb-3">
+                                                01
+                                            </div>
+                                            <div className="text-xs font-black uppercase tracking-wider text-white mb-1.5 flex items-center gap-2">
+                                                <Heart className="w-4 h-4 text-[#ff007f] shrink-0" />
+                                                Likez la publication
+                                            </div>
+                                            <p className="text-[11px] text-gray-400 leading-relaxed">
+                                                Like la publication officielle du jeu concours sur les réseaux Dropsiders.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Condition 2 */}
+                                    <div className="bg-black/60 border border-white/10 rounded-2xl p-5 relative overflow-hidden group hover:border-[#00f0ff]/50 transition-all flex flex-col justify-between">
+                                        <div className="absolute top-0 left-0 right-0 h-1 bg-[#00f0ff]" />
+                                        <div>
+                                            <div className="w-8 h-8 rounded-xl bg-[#00f0ff]/20 text-[#00f0ff] font-black text-xs flex items-center justify-center mb-3">
+                                                02
+                                            </div>
+                                            <div className="text-xs font-black uppercase tracking-wider text-white mb-1.5 flex items-center gap-2">
+                                                <UserPlus className="w-4 h-4 text-[#00f0ff] shrink-0" />
+                                                Identifiez 2 potes
+                                            </div>
+                                            <p className="text-[11px] text-gray-400 leading-relaxed">
+                                                Identifie 2 potes en commentaire qui doivent également liker la page.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Condition 3 */}
+                                    <div className="bg-black/60 border border-white/10 rounded-2xl p-5 relative overflow-hidden group hover:border-[#ffe600]/50 transition-all flex flex-col justify-between">
+                                        <div className="absolute top-0 left-0 right-0 h-1 bg-[#ffe600]" />
+                                        <div>
+                                            <div className="w-8 h-8 rounded-xl bg-[#ffe600]/20 text-[#ffe600] font-black text-xs flex items-center justify-center mb-3">
+                                                03
+                                            </div>
+                                            <div className="text-xs font-black uppercase tracking-wider text-white mb-1.5 flex items-center gap-2">
+                                                <Share2 className="w-4 h-4 text-[#ffe600] shrink-0" />
+                                                Partagez en storie
+                                            </div>
+                                            <p className="text-[11px] text-gray-400 leading-relaxed">
+                                                Partage en storie Instagram en mentionnant le compte @dropsiders.fr.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Condition 4 */}
+                                    <div className="bg-black/60 border border-white/10 rounded-2xl p-5 relative overflow-hidden group hover:border-green-400/50 transition-all flex flex-col justify-between">
+                                        <div className="absolute top-0 left-0 right-0 h-1 bg-green-400" />
+                                        <div>
+                                            <div className="w-8 h-8 rounded-xl bg-green-500/20 text-green-400 font-black text-xs flex items-center justify-center mb-3">
+                                                04
+                                            </div>
+                                            <div className="text-xs font-black uppercase tracking-wider text-white mb-1.5 flex items-center gap-2">
+                                                <Gamepad2 className="w-4 h-4 text-green-400 shrink-0" />
+                                                Répondez aux 3 questions
+                                            </div>
+                                            <p className="text-[11px] text-gray-400 leading-relaxed">
+                                                Pour valider la participation, répondez aux 3 questions qui sont disponibles sur le site.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
