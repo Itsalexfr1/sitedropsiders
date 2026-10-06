@@ -60,6 +60,42 @@ export function GTAContestPage() {
     const [isGeneratingStory, setIsGeneratingStory] = useState(false);
     const [copiedReferral, setCopiedReferral] = useState(false);
 
+    // Social post URLs for Contest like buttons
+    const [instaPostUrl, setInstaPostUrl] = useState<string>(() => {
+        return localStorage.getItem('dropsiders_gta_contest_insta_url') || 'https://www.instagram.com/dropsiders.fr';
+    });
+    const [tiktokPostUrl, setTiktokPostUrl] = useState<string>(() => {
+        return localStorage.getItem('dropsiders_gta_contest_tiktok_url') || 'https://www.tiktok.com/@dropsiders.fr';
+    });
+
+    // Synchronize social links from server settings
+    useEffect(() => {
+        fetch('/api/settings')
+            .then(r => r.json())
+            .then(data => {
+                if (data) {
+                    if (data.gta_contest_insta_url) {
+                        setInstaPostUrl(data.gta_contest_insta_url);
+                        localStorage.setItem('dropsiders_gta_contest_insta_url', data.gta_contest_insta_url);
+                    }
+                    if (data.gta_contest_tiktok_url) {
+                        setTiktokPostUrl(data.gta_contest_tiktok_url);
+                        localStorage.setItem('dropsiders_gta_contest_tiktok_url', data.gta_contest_tiktok_url);
+                    }
+                }
+            })
+            .catch(() => {});
+
+        const handleSettingsSync = () => {
+            const localInsta = localStorage.getItem('dropsiders_gta_contest_insta_url');
+            const localTiktok = localStorage.getItem('dropsiders_gta_contest_tiktok_url');
+            if (localInsta) setInstaPostUrl(localInsta);
+            if (localTiktok) setTiktokPostUrl(localTiktok);
+        };
+        window.addEventListener('dropsiders_settings_updated', handleSettingsSync);
+        return () => window.removeEventListener('dropsiders_settings_updated', handleSettingsSync);
+    }, []);
+
     // Countdown Timer State
     const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number }>({
         days: 0, hours: 0, minutes: 0, seconds: 0
@@ -330,23 +366,34 @@ export function GTAContestPage() {
         <div className="min-h-screen bg-[#0d0221] text-white relative overflow-hidden font-sans selection:bg-[#ff007f] selection:text-white">
             
             {/* =========================================================================
-                AMBIANCE VICE CITY : GLOWS, PALMS SILHOUETTES & RETRO GRID
+                AMBIANCE VICE CITY : TEASER GTA 6 EN FOND DE PAGE + NEON GLOWS
             ========================================================================= */}
             <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-                {/* Background image overlay with soft blend */}
+                {/* Image de secours Vice City */}
                 <div 
-                    className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-screen"
+                    className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-screen scale-105"
                     style={{ backgroundImage: `url('/images/gta_vice_city_sign.jpg')` }}
                 />
 
-                {/* Tropical Sunset & Neon Radial Blurs */}
-                <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[550px] bg-gradient-to-b from-[#ff007f]/25 via-[#9900ff]/20 to-transparent rounded-full blur-[140px]" />
+                {/* Vidéo Teaser en plein écran en arrière-plan (Autoplay, Mute, Loop) */}
+                <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none opacity-45 mix-blend-screen">
+                    <iframe
+                        className="w-[100vw] h-[56.25vw] min-h-[100vh] min-w-[177.77vh] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                        src="https://www.youtube.com/embed/QdBZY2fkU-0?autoplay=1&mute=1&loop=1&playlist=QdBZY2fkU-0&controls=0&showinfo=0&rel=0&iv_load_policy=3&disablekb=1&modestbranding=1&playsinline=1"
+                        title="GTA VI Teaser Fond d'écran"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    />
+                </div>
+
+                {/* Voile sombre & Neons radiaux pour garantir une lisibilité parfaite des textes et formulaires */}
+                <div className="absolute inset-0 bg-gradient-to-b from-[#0d0221]/85 via-[#0d0221]/75 to-[#0d0221]/92" />
+                <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[550px] bg-gradient-to-b from-[#ff007f]/20 via-[#9900ff]/15 to-transparent rounded-full blur-[140px]" />
                 <div className="absolute top-[40%] -left-40 w-[600px] h-[600px] bg-[#00f0ff]/15 rounded-full blur-[160px]" />
-                <div className="absolute top-[60%] -right-40 w-[600px] h-[600px] bg-[#ff007f]/20 rounded-full blur-[160px]" />
+                <div className="absolute top-[60%] -right-40 w-[600px] h-[600px] bg-[#ff007f]/15 rounded-full blur-[160px]" />
                 
-                {/* Synthwave perspective grid at bottom */}
+                {/* Grille perspective rétro synthwave au bas */}
                 <div 
-                    className="absolute bottom-0 left-0 right-0 h-96 opacity-25"
+                    className="absolute bottom-0 left-0 right-0 h-96 opacity-20"
                     style={{
                         background: 'linear-gradient(to bottom, transparent 0%, rgba(13, 2, 33, 0.9) 100%), repeating-linear-gradient(0deg, transparent, transparent 38px, rgba(0, 240, 255, 0.4) 38px, rgba(0, 240, 255, 0.4) 40px)',
                         transform: 'perspective(500px) rotateX(60deg)',
@@ -422,61 +469,6 @@ export function GTAContestPage() {
                                     </span>
                                 </div>
                             ))}
-                        </div>
-                    </div>
-                </motion.div>
-
-                {/* =========================================================================
-                    SECTION VIDÉO OFFICIELLE (ROCKSTAR GAMES TRAILER 1)
-                ========================================================================= */}
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.25 }}
-                    className="max-w-4xl mx-auto mb-16"
-                >
-                    <div className="relative group">
-                        {/* Neon Glow Border Effect */}
-                        <div className="absolute -inset-1 bg-gradient-to-r from-[#ff007f] via-[#00f0ff] to-[#ff007f] rounded-[2.5rem] blur-xl opacity-75 group-hover:opacity-100 transition duration-700 animate-pulse" />
-                        
-                        <div className="relative bg-black rounded-[2.2rem] overflow-hidden border border-white/20 shadow-2xl">
-                            {/* Video player header */}
-                            <div className="px-6 py-3.5 bg-black/80 border-b border-white/10 flex flex-wrap items-center justify-between gap-3">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-3 h-3 rounded-full bg-[#ff007f] shadow-[0_0_8px_#ff007f]" />
-                                    <div className="w-3 h-3 rounded-full bg-[#ffe600]" />
-                                    <div className="w-3 h-3 rounded-full bg-[#00f0ff]" />
-                                    <span className="text-xs font-black uppercase tracking-widest text-white/80 ml-2">
-                                        TRAILER OFFICIEL ROCKSTAR GAMES • GTA VI
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <a 
-                                        href="https://www.youtube.com/watch?v=QdBZY2fkU-0" 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-[#00f0ff] hover:text-white bg-[#00f0ff]/10 hover:bg-[#00f0ff]/20 px-3 py-1 rounded-full border border-[#00f0ff]/30 transition-all"
-                                        title="Ouvrir sur YouTube si la vidéo est bloquée par l'âge sur ton navigateur"
-                                    >
-                                        <ExternalLink className="w-3 h-3" />
-                                        Ouvrir sur YouTube
-                                    </a>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#ff007f] bg-[#ff007f]/10 px-3 py-1 rounded-full border border-[#ff007f]/30">
-                                        4K ULTRA HD
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Responsive 16:9 Iframe */}
-                            <div className="relative w-full pt-[56.25%] bg-black">
-                                <iframe 
-                                    className="absolute inset-0 w-full h-full"
-                                    src="https://www.youtube.com/embed/QdBZY2fkU-0?autoplay=1&mute=1&rel=0&modestbranding=1"
-                                    title="Grand Theft Auto VI Trailer 1"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                    allowFullScreen
-                                />
-                            </div>
                         </div>
                     </div>
                 </motion.div>
@@ -895,6 +887,61 @@ export function GTAContestPage() {
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* =========================================================================
+                            ACTION DIRECTE : LIKER LA PUBLICATION DU CONCOURS (INSTA & TIKTOK)
+                        ========================================================================= */}
+                        <div className="bg-black/60 border border-white/15 rounded-3xl p-6 sm:p-8 backdrop-blur-2xl shadow-2xl relative overflow-hidden text-center">
+                            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#ff007f] via-[#ffe600] to-[#00f0ff]" />
+
+                            <div className="max-w-2xl mx-auto space-y-4">
+                                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-[#00f0ff]">
+                                    <Heart className="w-3.5 h-3.5 text-[#ff007f] fill-[#ff007f]" />
+                                    <span>VALIDER L'ÉTAPE 1 DU CONCOURS</span>
+                                </div>
+
+                                <h4 className="text-xl sm:text-2xl font-black font-display uppercase italic tracking-tight text-white">
+                                    Like la publication officielle maintenant
+                                </h4>
+                                <p className="text-xs sm:text-sm text-gray-300 font-medium">
+                                    Clique sur le bouton ci-dessous pour ouvrir la publication officielle sur Instagram ou TikTok et y laisser ton like & tes mentions d'amis :
+                                </p>
+
+                                <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
+                                    {/* BOUTON LIKER SUR INSTAGRAM */}
+                                    <a
+                                        href={instaPostUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-full sm:w-auto px-6 py-4 rounded-2xl bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-black font-display uppercase italic text-xs tracking-wider flex items-center justify-center gap-3 shadow-[0_0_25px_rgba(220,39,67,0.4)] hover:scale-105 active:scale-95 transition-all group"
+                                    >
+                                        <Instagram className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                        <span>Liker sur Instagram</span>
+                                        <ExternalLink className="w-4 h-4 opacity-80" />
+                                    </a>
+
+                                    {/* BOUTON LIKER SUR TIKTOK */}
+                                    <a
+                                        href={tiktokPostUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-full sm:w-auto px-6 py-4 rounded-2xl bg-black border-2 border-white/20 hover:border-[#00f0ff] text-white font-black font-display uppercase italic text-xs tracking-wider flex items-center justify-center gap-3 shadow-[0_0_25px_rgba(0,240,255,0.25)] hover:scale-105 active:scale-95 transition-all group"
+                                    >
+                                        <div className="w-5 h-5 flex items-center justify-center">
+                                            <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-[#00f0ff] group-hover:scale-110 transition-transform">
+                                                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.86.12V9.32a6.34 6.34 0 0 0-.86-.06A6.34 6.34 0 0 0 3.14 15.6a6.34 6.34 0 0 0 6.34 6.34c3.5 0 6.34-2.84 6.34-6.34V9.08a8.28 8.28 0 0 0 4.87 1.57V7.2a4.83 4.83 0 0 1-1.1-.51z"/>
+                                            </svg>
+                                        </div>
+                                        <span>Liker sur TikTok</span>
+                                        <ExternalLink className="w-4 h-4 opacity-80" />
+                                    </a>
+                                </div>
+
+                                <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider">
+                                    💡 Le post s'ouvrira dans un nouvel onglet • Reviens ensuite répondre aux 3 questions ci-dessous !
+                                </p>
                             </div>
                         </div>
 
