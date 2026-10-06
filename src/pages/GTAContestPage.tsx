@@ -21,6 +21,7 @@ import {
 } from '../utils/gtaContestSecurity';
 import { generateGTA6StoryVisual } from '../utils/gtaStoryVisual';
 import { useUser } from '../context/UserContext';
+import { SEO } from '../components/utils/SEO';
 
 // Countdown Target: Clôture le 12 novembre à 00h00
 const CONTEST_CLOSE_DATE = new Date('2026-11-12T00:00:00');
@@ -364,6 +365,11 @@ export function GTAContestPage() {
 
     return (
         <div className="min-h-screen bg-[#0d0221] text-white relative overflow-hidden font-sans selection:bg-[#ff007f] selection:text-white">
+            <SEO 
+                title="🎮 GRAND JEU CONCOURS GTA 6 : Gagne ton jeu sur PS5 ou Xbox"
+                description="Participe gratuitement au grand jeu concours officiel Dropsiders et tente de gagner ton jeu GTA 6 sur PlayStation 5 ou Xbox ! Tirage au sort certifié."
+                image="https://dropsiders.fr/images/og_concours_gta6.jpg"
+            />
             
             {/* =========================================================================
                 AMBIANCE GTA 6 : VIDÉO OFFICIELLE EN FOND DE PAGE PLEIN ÉCRAN

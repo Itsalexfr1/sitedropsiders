@@ -9553,8 +9553,15 @@ const contentType = response.headers.get("content-type");
             const origin = url.origin;
             let title = "DROPSIDERS : L'actu de tous les festivals";
             let description = "Découvrez toute l'actualité des festivals, des recaps, des interviews et bien plus sur Dropsiders.";
-            let image = `${origin}/logo_presentation.png`;
+            let image = `${origin}/images/dropsiders_og_default.jpg`;
             let foundItem = null;
+
+            // Route dédiée pour le concours GTA 6
+            if (path === '/concours-gta6' || path.startsWith('/concours-gta') || path === '/concours') {
+                title = "🎮 GRAND CONCOURS GTA 6 : Gagne ton jeu sur PS5 ou Xbox | Dropsiders";
+                description = "Participe gratuitement au grand jeu concours officiel Dropsiders et tente de gagner ton jeu GTA 6 sur PlayStation 5 ou Xbox ! Tirage au sort certifié.";
+                image = `${origin}/images/og_concours_gta6.jpg`;
+            }
 
             const newsMatch = path.match(/^\/news\/([^\/]+)/);
             const recapMatch = path.match(/^\/recaps\/([^\/]+)/);
