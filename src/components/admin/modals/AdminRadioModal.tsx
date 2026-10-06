@@ -1084,15 +1084,26 @@ export function AdminRadioModal({
     // Supprimer un morceau ou un jingle de la liste (par index dans l'émission)
     const handleDeleteTrack = (index: number) => {
         if (!selectedBlock) return;
-        const currentTracks = [...(selectedBlock.tracks || [])];
-        const removed = currentTracks.splice(index, 1);
-        setBlocks(prev => prev.map(b => b.id === selectedBlock.id ? {
-            ...b,
-            tracks: currentTracks
-        } : b));
-        if (removed[0]) {
-            showToast(`« ${removed[0].title} » retiré de la liste`);
-        }
+        const blockId = selectedBlock.id;
+        let removedTitle = '';
+        setBlocks(prev => {
+            const next = prev.map(b => {
+                if (b.id !== blockId) return b;
+                const currentTracks = [...(b.tracks || [])];
+                const removed = currentTracks.splice(index, 1);
+                if (removed[0]) removedTitle = removed[0].title;
+                return { ...b, tracks: currentTracks };
+            });
+            // Sauvegarder immédiatement en localStorage et notifier le player radio
+            try {
+                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
+                window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+            } catch {}
+            return next;
+        });
+        setTimeout(() => {
+            if (removedTitle) showToast(`« ${removedTitle} » supprimé`);
+        }, 0);
     };
 
     // Supprimer n'importe quel item par son id (tous les bacs : émissions, promos, pubs, jingles)

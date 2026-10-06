@@ -712,16 +712,14 @@ function useRadioAudio() {
                     const nextNextIdx = nextIdx < schedule.length - 1 ? nextIdx + 1 : 0;
                     setTimeout(() => preloadNextTrack(schedule[nextNextIdx]), 500);
                 } else {
-                    // ── Pas de preload : charger normalement (délai minimal 200ms) ──
+                    // ── Pas de preload : recharger directement l'iframe.src (méthode la plus fiable pour l'autoplay après transition) ──
                     const activeIframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
                     const mobileMute: 0 | 1 = IS_MOBILE ? 0 : (isMutedRef.current ? 1 : 0);
                     if (activeIframe) {
-                        const newSrc = buildSrc(ytId, 0, mobileMute);
-                        if (activeIframe.src === newSrc) {
-                            sendCmd('seekTo', [0, true]);
-                        } else {
-                            activeIframe.src = newSrc;
-                        }
+                        // On recharge toujours l'iframe.src directement : c'est la méthode la plus fiable.
+                        // loadVideoById via postMessage peut être silencieusement ignoré par le navigateur
+                        // après une transition sans geste utilisateur → le player reste bloqué en état -1.
+                        activeIframe.src = buildSrc(ytId, 0, mobileMute);
                         preloadedVideoIdRef.current = ytId;
                     }
                     currentPlayingMediaRef.current = nextTrack.id || ytId;
@@ -730,6 +728,22 @@ function useRadioAudio() {
                     // Preloader N+2
                     const nextNextIdx = nextIdx < schedule.length - 1 ? nextIdx + 1 : 0;
                     setTimeout(() => preloadNextTrack(schedule[nextNextIdx]), 1000);
+                    // ── FALLBACK ANTI-BLANC : si le player ne démarre pas en 5s, reforcer la lecture ──
+                    // Cas : autoplay bloqué ou message YT perdu → on re-envoie playVideo
+                    setTimeout(() => {
+                        if (!isPlayingRef.current) return;
+                        // Si le player est encore unstarted (-1) ou ended (0), refaire un playVideo
+                        if (ytStateRef.current === -1 || ytStateRef.current === 0 || ytStateRef.current === 2) {
+                            const iframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
+                            if (iframe && iframe.src && iframe.src.includes(ytId)) {
+                                sendCmd('playVideo');
+                            } else if (iframe) {
+                                // Dernier recours : recharger l'iframe.src
+                                iframe.src = buildSrc(ytId, 0, mobileMute);
+                                setTimeout(() => sendCmd('playVideo'), 1000);
+                            }
+                        }
+                    }, 5000);
                 }
             }
         } catch {
