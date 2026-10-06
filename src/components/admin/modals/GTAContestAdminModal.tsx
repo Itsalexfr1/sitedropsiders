@@ -436,9 +436,17 @@ export function GTAContestAdminModal({ isOpen, onClose }: GTAContestAdminModalPr
                                                     <span className="font-black text-white text-sm">
                                                         {p.prenom} {p.nom}
                                                     </span>
-                                                    <span className="text-xs font-bold text-[#00f0ff]">
-                                                        {p.instagram}
-                                                    </span>
+                                                    <a 
+                                                        href={`https://instagram.com/${p.instagram.replace('@', '')}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="text-xs font-bold text-[#00f0ff] hover:underline hover:text-white flex items-center gap-1 group/insta"
+                                                        title="Voir le profil Instagram dans un nouvel onglet"
+                                                    >
+                                                        <span>{p.instagram}</span>
+                                                        <ExternalLink className="w-3 h-3 opacity-70 group-hover/insta:opacity-100" />
+                                                    </a>
                                                 </div>
                                                 <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
                                                     p.plateforme.includes('PS5') 
@@ -504,9 +512,17 @@ export function GTAContestAdminModal({ isOpen, onClose }: GTAContestAdminModalPr
                                                     <span className="font-black text-white text-sm">
                                                         {p.prenom} {p.nom}
                                                     </span>
-                                                    <span className="text-xs font-bold text-gray-400">
-                                                        {p.instagram}
-                                                    </span>
+                                                    <a 
+                                                        href={`https://instagram.com/${p.instagram.replace('@', '')}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="text-xs font-bold text-gray-400 hover:text-[#00f0ff] hover:underline flex items-center gap-1 group/insta"
+                                                        title="Voir le profil Instagram dans un nouvel onglet"
+                                                    >
+                                                        <span>{p.instagram}</span>
+                                                        <ExternalLink className="w-3 h-3 opacity-60 group-hover/insta:opacity-100" />
+                                                    </a>
                                                 </div>
                                                 <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${
                                                     p.status === 'PENDING_OPT_IN' 
@@ -595,8 +611,18 @@ export function GTAContestAdminModal({ isOpen, onClose }: GTAContestAdminModalPr
                                     <h3 className="text-3xl sm:text-4xl font-black font-display uppercase italic tracking-tight text-white mb-2">
                                         {winner.prenom} {winner.nom}
                                     </h3>
-                                    <div className="text-xl font-black text-[#00f0ff] mb-6">
-                                        {winner.instagram}
+                                    <div className="flex items-center justify-center mb-6">
+                                        <a 
+                                            href={`https://instagram.com/${winner.instagram.replace('@', '')}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-xl font-black text-[#00f0ff] hover:text-white hover:underline flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10"
+                                            title="Ouvrir le profil Instagram dans un nouvel onglet"
+                                        >
+                                            <Instagram className="w-5 h-5 text-[#ff007f]" />
+                                            <span>{winner.instagram}</span>
+                                            <ExternalLink className="w-4 h-4 text-gray-400" />
+                                        </a>
                                     </div>
 
                                     {/* Winner Details Card */}
@@ -675,7 +701,19 @@ export function GTAContestAdminModal({ isOpen, onClose }: GTAContestAdminModalPr
                                             <h4 className="text-xl font-black font-display uppercase italic text-white">
                                                 {selectedEntry.prenom} {selectedEntry.nom}
                                             </h4>
-                                            <p className="text-xs text-[#00f0ff] font-bold">{selectedEntry.instagram} • {selectedEntry.plateforme}</p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <a 
+                                                    href={`https://instagram.com/${selectedEntry.instagram.replace('@', '')}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-xs text-[#00f0ff] font-bold hover:underline flex items-center gap-1"
+                                                    title="Ouvrir le profil Instagram dans un nouvel onglet"
+                                                >
+                                                    <span>{selectedEntry.instagram}</span>
+                                                    <ExternalLink className="w-3 h-3" />
+                                                </a>
+                                                <span className="text-xs text-gray-400">• {selectedEntry.plateforme}</span>
+                                            </div>
                                         </div>
                                         <button
                                             onClick={() => setSelectedEntry(null)}
