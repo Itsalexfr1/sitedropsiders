@@ -1,5 +1,17 @@
 [
   {
+    "title": "Concours GTA 6",
+    "description": "Paramètres, tirage & menu",
+    "icon": "Gamepad2",
+    "category": "STUDIO",
+    "link": "#GTA_CONTEST_MODAL",
+    "color": "border-[#ff007f]/40 hover:border-[#ff007f]",
+    "bg": "bg-[#ff007f]/10",
+    "permission": "all",
+    "baseColor": "#ff00d0",
+    "columns": 1
+  },
+  {
     "title": "Dropsiders TV",
     "description": "Programmation des liens YouTube & Diffusion TV",
     "icon": "Monitor",
@@ -81,18 +93,6 @@
     "bg": "bg-neon-yellow/5",
     "permission": "agenda_events",
     "baseColor": "#a8a6f7",
-    "columns": 1
-  },
-  {
-    "title": "Concours GTA 6",
-    "description": "Paramètres, tirage & menu",
-    "icon": "Gamepad2",
-    "category": "STUDIO",
-    "link": "#GTA_CONTEST_MODAL",
-    "color": "border-[#ff007f]/40 hover:border-[#ff007f]",
-    "bg": "bg-[#ff007f]/10",
-    "permission": "all",
-    "baseColor": "#ff00d0",
     "columns": 1
   },
   {
