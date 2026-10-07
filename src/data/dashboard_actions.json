@@ -7,7 +7,7 @@
     "link": "#DROPSIDERS_TV",
     "color": "border-neon-red/20 hover:border-neon-red",
     "bg": "bg-neon-red/5",
-    "permission": "settings",
+    "permission": "tv_schedule",
     "baseColor": "#2b734e",
     "columns": 1
   },
@@ -19,7 +19,7 @@
     "link": "#DROPSIDERS_RADIO",
     "color": "border-neon-cyan/50 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/10",
-    "permission": "settings",
+    "permission": "radio",
     "baseColor": "#9670ff",
     "columns": 1
   },
@@ -81,6 +81,18 @@
     "bg": "bg-neon-yellow/5",
     "permission": "agenda_events",
     "baseColor": "#a8a6f7",
+    "columns": 1
+  },
+  {
+    "title": "Concours GTA 6",
+    "description": "Paramètres, tirage & menu",
+    "icon": "Gamepad2",
+    "category": "STUDIO",
+    "link": "#GTA_CONTEST_MODAL",
+    "color": "border-[#ff007f]/40 hover:border-[#ff007f]",
+    "bg": "bg-[#ff007f]/10",
+    "permission": "all",
+    "baseColor": "#ff00d0",
     "columns": 1
   },
   {
