@@ -72,6 +72,8 @@ import {
     getActiveRadioBlock,
     getRadioCategoryMeta,
     applyRotationPatternToTracks,
+    getGeneralPromosList,
+    DEFAULT_SYSTEM_PROMOS,
     computeRadioDaySchedule,
     getRadioTimeBasedSchedule,
     saveCachedRadioDuration,
@@ -1068,8 +1070,11 @@ export function AdminRadioModal({
                 // 1. Si des morceaux individuels ont été extraits de la playlist SoundCloud
                 if (data.extractedTracks && data.extractedTracks.length > 0) {
                     const musicTracks = data.extractedTracks;
+                    const blockPromos = (b.tracks || []).filter(t => (t.category === 'promo' || t.category === 'pub') && !isItemExpired(t));
+                    const systemPromos = getGeneralPromosList();
+                    const promosToUse = blockPromos.length > 0 ? blockPromos : systemPromos;
                     // Entrelacement automatique avec les jingles et promos existants de l'émission selon sa règle active
-                    const interleaved = applyRotationPatternToTracks(b, musicTracks);
+                    const interleaved = applyRotationPatternToTracks(b, musicTracks, undefined, promosToUse);
 
                     return {
                         ...b,
@@ -1617,11 +1622,15 @@ export function AdminRadioModal({
             rotationRule: specificRule || targetBlock.rotationRule || 'jingle_son_special_promo'
         };
 
+        const blockPromos = (targetBlock.tracks || []).filter(t => (t.category === 'promo' || t.category === 'pub') && !isItemExpired(t));
+        const systemPromos = getGeneralPromosList();
+        const finalPromosTracks = genPromosTracks.length > 0 ? genPromosTracks : (blockPromos.length > 0 ? blockPromos : systemPromos);
+
         const reordered = applyRotationPatternToTracks(
             updatedBlock,
             undefined,
             genJinglesTracks.length > 0 ? genJinglesTracks : undefined,
-            genPromosTracks.length > 0 ? genPromosTracks : undefined
+            finalPromosTracks.length > 0 ? finalPromosTracks : undefined
         );
 
         setBlocks(prev => {
@@ -1783,6 +1792,25 @@ export function AdminRadioModal({
                             emissionCount: 0
                         });
                     }
+                }
+            });
+
+            // 3. Scanner les promos système par défaut
+            DEFAULT_SYSTEM_PROMOS.forEach(j => {
+                const key = ((j.audioUrl || j.title) + '').toLowerCase().trim();
+                if (!promoPubMap.has(key)) {
+                    promoPubMap.set(key, {
+                        id: j.id,
+                        type: 'promo' as const,
+                        title: j.title,
+                        artist: j.artist || 'PROMO DROPSIDERS',
+                        duration: j.duration || 30,
+                        box: 'Bacs Promos & Sponsors',
+                        audioUrl: j.audioUrl,
+                        youtubeId: j.youtubeId,
+                        expiresAt: j.expiresAt,
+                        emissionCount: 0
+                    });
                 }
             });
 

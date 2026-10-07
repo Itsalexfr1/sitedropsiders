@@ -527,6 +527,68 @@ export function isItemExpired(item?: { expiresAt?: string } | null): boolean {
 }
 
 /**
+ * Promos officielles du système Dropsiders (par défaut pour assurer la rotation des promos)
+ */
+export const DEFAULT_SYSTEM_PROMOS: RadioTrackItem[] = [
+    {
+        id: 'promo_sys_tml_winter',
+        title: 'Promo Tomorrowland Winter',
+        artist: 'PROMO DROPSIDERS',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav',
+        duration: 66,
+        category: 'promo'
+    },
+    {
+        id: 'promo_sys_titan_lyon',
+        title: 'Promo Titan Lyon',
+        artist: 'PROMO DROPSIDERS',
+        audioUrl: 'https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav',
+        duration: 39,
+        category: 'promo'
+    },
+    {
+        id: 'promo_sys_escape_1',
+        title: 'Promo Escape Psycho Circus 2026 1',
+        artist: 'PROMO DROPSIDERS',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav',
+        duration: 47,
+        category: 'promo'
+    },
+    {
+        id: 'promo_sys_escape_2',
+        title: 'Promo Escape Psycho Circus 2026 2',
+        artist: 'PROMO DROPSIDERS',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav',
+        duration: 40,
+        category: 'promo'
+    },
+    {
+        id: 'promo_sys_insta_tiktok_1',
+        title: 'Dropsiders Radio Promo Insta & Tiktok',
+        artist: 'DROPSIDERS RADIO',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav',
+        duration: 22,
+        category: 'promo'
+    },
+    {
+        id: 'promo_sys_insta_tiktok_2',
+        title: 'Dropsiders Radio Promo Insta & Tiktok 2',
+        artist: 'DROPSIDERS RADIO',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav',
+        duration: 33,
+        category: 'promo'
+    },
+    {
+        id: 'promo_sys_insta_tiktok_3',
+        title: 'Dropsiders Radio Promo Insta & Tiktok 3',
+        artist: 'DROPSIDERS RADIO',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav',
+        duration: 46,
+        category: 'promo'
+    }
+];
+
+/**
  * Retourne la liste des promos et publicités générales
  */
 export function getGeneralPromosList(): RadioTrackItem[] {
@@ -536,7 +598,7 @@ export function getGeneralPromosList(): RadioTrackItem[] {
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed) && parsed.length > 0) {
-                    const promos = parsed.filter((j: any) => (j.category === 'promo' || j.category === 'pub') && !isItemExpired(j));
+                    const promos = parsed.filter((j: any) => (j.category === 'promo' || j.category === 'pub' || (j.type === 'promo' || j.type === 'pub') || (typeof j.title === 'string' && j.title.toLowerCase().includes('promo'))) && !isItemExpired(j));
                     if (promos.length > 0) return promos.map((p: any) => ({
                         id: p.id || `gp_${p.title?.slice(0, 8)}`,
                         title: p.title,
@@ -553,7 +615,7 @@ export function getGeneralPromosList(): RadioTrackItem[] {
     } catch {}
     // Promos depuis les settings JSON (si configurées)
     const fromSettings = ((settings as any)?.radio_general_jingles || [])
-        .filter((j: any) => (j.category === 'promo' || j.category === 'pub') && !isItemExpired(j));
+        .filter((j: any) => (j.category === 'promo' || j.category === 'pub' || j.type === 'promo' || j.type === 'pub' || (typeof j.title === 'string' && j.title.toLowerCase().includes('promo'))) && !isItemExpired(j));
     if (fromSettings.length > 0) return fromSettings.map((p: any) => ({
         id: p.id || `gp_${p.title?.slice(0, 8)}`,
         title: p.title,
@@ -564,8 +626,33 @@ export function getGeneralPromosList(): RadioTrackItem[] {
         category: (p.category || 'promo') as RadioTrackCategory,
         expiresAt: p.expiresAt
     }));
-    // Aucune promo configurée — retourner tableau vide (pas de promos codées en dur)
-    return [];
+
+    // Recherche dans les blocs existants de settings.json
+    try {
+        const blockPromos: RadioTrackItem[] = [];
+        const seenUrls = new Set<string>();
+        ((settings as any)?.radio_blocks || []).forEach((b: any) => {
+            (b.tracks || []).forEach((t: any) => {
+                if ((t.category === 'promo' || t.category === 'pub') && !isItemExpired(t) && t.audioUrl && !seenUrls.has(t.audioUrl)) {
+                    seenUrls.add(t.audioUrl);
+                    blockPromos.push({
+                        id: t.id || `bp_${t.title?.slice(0, 8)}`,
+                        title: t.title,
+                        artist: t.artist || (t.category === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS'),
+                        audioUrl: t.audioUrl,
+                        youtubeId: t.youtubeId,
+                        duration: t.duration || 30,
+                        category: (t.category || 'promo') as RadioTrackCategory,
+                        expiresAt: t.expiresAt
+                    });
+                }
+            });
+        });
+        if (blockPromos.length > 0) return blockPromos;
+    } catch {}
+
+    // Fallback toujours garanti avec les promos officielles intégrées
+    return DEFAULT_SYSTEM_PROMOS;
 }
 
 /**
@@ -605,9 +692,10 @@ export function applyRotationPatternToTracks(
         : getGeneralJinglesList();
 
     // 4. Promos & Sponsors (exclure les expirées)
+    const blockPromos = (block.tracks || []).filter(t => (t.category === 'promo' || t.category === 'pub') && !isItemExpired(t));
     const rawPromos = (overridePromos && overridePromos.length > 0)
         ? overridePromos
-        : getGeneralPromosList();
+        : (blockPromos.length > 0 ? blockPromos : getGeneralPromosList());
     const promos = rawPromos.filter(p => !isItemExpired(p));
 
     const rule = block.rotationRule || 'jingle_son_special_promo';
