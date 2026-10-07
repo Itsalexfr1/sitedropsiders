@@ -7621,20 +7621,22 @@
       "rotationRule": "son_special_son_jingle_promo",
       "tracks": [
         {
+          "id": "track_sc_bloc_1790809306418_1791398012751",
+          "title": "Dropsiders Radio : Classic Time by Alex Dropsiders",
+          "artist": "Alex Dropsiders",
+          "duration": 14400,
+          "category": "set",
+          "soundcloudUrl": "https://soundcloud.com/alexflex1/sets/dropsiders-radio-classic-time",
+          "coverUrl": "https://soundcloud.com/images/fb_placeholder.png",
+          "addedAt": 1791398012751
+        },
+        {
           "id": "sj_bloc_1790809306418_emission_start_special",
           "title": "Classic Time 1",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6b53dd9114606744-Classic_Time_1.wav",
           "duration": 10,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790809429546_1qa2",
-          "title": "Animals",
-          "artist": "Martin Garrix",
-          "youtubeId": "gCYcHz2k5x0",
-          "duration": 180,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_0",
@@ -7645,28 +7647,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790809458664_icy5",
-          "title": "Day 'n' Nite",
-          "artist": "kid cudi vs crookers",
-          "youtubeId": "IQHEk1l6Ayw",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_1",
           "title": "Dropsiders Radio Jingle 3",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
           "duration": 12,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790809488224_dl02",
-          "title": "Rise Up",
-          "artist": "Yves LaRock",
-          "youtubeId": "S1x2LJbDkZg",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_2",
@@ -7677,14 +7663,6 @@
           "category": "promo"
         },
         {
-          "id": "track_1790809508962_h3ld",
-          "title": "Keep Control Plus (Fedde Legrand mix -Official 2009)",
-          "artist": "SONO",
-          "youtubeId": "YKsd1nXKKLw",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_3",
           "title": "Classic Time 3",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
@@ -7693,28 +7671,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790809533393_uaaa",
-          "title": "Spaceships",
-          "artist": "AREA21",
-          "youtubeId": "khoylU3YZGM",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_4",
           "title": "Dropsiders Radio Jingle 4",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
           "duration": 8,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790809556784_zi7w",
-          "title": "Proper Education",
-          "artist": "Eric Prydz vs Floyd",
-          "youtubeId": "y5xKtFI9_6g",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_5",
@@ -7726,14 +7688,6 @@
           "expiresAt": "2026-10-31T23:59:59"
         },
         {
-          "id": "track_1790809579672_bj0e",
-          "title": "Tell Me Why",
-          "artist": "Supermode",
-          "youtubeId": "0CrB_TwXlxM",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_6",
           "title": "Classic Time 4",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
@@ -7742,28 +7696,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790809603666_wb09",
-          "title": "In the Air (Axwell mix)",
-          "artist": "Tv Rock ft Rudy",
-          "youtubeId": "GQXtcEx3VR0",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_7",
           "title": "Dropsiders Radio Jingle 5",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
           "duration": 14,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790809619200_k8cm",
-          "title": "La Tromba (Original Mix)",
-          "artist": "Lake & Lys",
-          "youtubeId": "bIa1nQWXw_U",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_8",
@@ -7775,28 +7713,12 @@
           "expiresAt": "2026-10-31T23:59:59"
         },
         {
-          "id": "track_1790809635138_76ez",
-          "title": "Let The Bass Kick in Miami Bitch",
-          "artist": "Chuckie & LMFAO",
-          "youtubeId": "juYSqSicV_U",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_9",
           "title": "Classic Time 5",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/788340a171828dd5-Classic_Time_5.wav",
           "duration": 14,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790809656120_nmss",
-          "title": "Kidsos (Radio Edit)",
-          "artist": "Sebastian Ingrosso",
-          "youtubeId": "g5cd6fF9NCc",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_10",
@@ -7807,28 +7729,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790809681674_me8b",
-          "title": "No Superstar",
-          "artist": "Remady P&R",
-          "youtubeId": "PXMGLfT5xhI",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_11",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790809730441_tvb7",
-          "title": "Pjanoo",
-          "artist": "Eric Prydz",
-          "youtubeId": "KggNzh-crfA",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_12",
@@ -7839,28 +7745,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790809760790_mofc",
-          "title": "Cry For You",
-          "artist": "September",
-          "youtubeId": "7CUppvIv7Ak",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_13",
           "title": "Dropsiders Radio Promo Insta & Tiktok 2",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 33,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790809774680_h2ko",
-          "title": "I Think I Like It",
-          "artist": "Fake Blood",
-          "youtubeId": "3xKUiva2WSQ",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_14",
@@ -7871,28 +7761,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790809795654_k9m4",
-          "title": "Phazing (Radio Edit)",
-          "artist": "Dirty South Feat. Rudy",
-          "youtubeId": "_K8KVunYcq8",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_15",
           "title": "Classic Time 7",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9ffe042f649201e6-Classic_Time_7.wav",
           "duration": 9,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790809818983_zc5z",
-          "title": "Live Your Life",
-          "artist": "Erick Morillo & Eddie Thoneick feat. Shawnee Taylor",
-          "youtubeId": "XyWED2RD3XY",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_16",
@@ -7903,28 +7777,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790809833929_hhx9",
-          "title": "Teenage Crime",
-          "artist": "Adrian Lux",
-          "youtubeId": "OcQFUWWLY54",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_17",
           "title": "Dropsiders Radio Promo Insta & Tiktok 3",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790809886819_uuhs",
-          "title": "Take Over Control",
-          "artist": "Afrojack ft.Eva Simons",
-          "youtubeId": "Xfii7PY_opg",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_18",
@@ -7935,28 +7793,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790809907833_rhz0",
-          "title": "Niton (The Reason)",
-          "artist": "Eric Prydz",
-          "youtubeId": "jkxusTBZKek",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_19",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790809932528_5391",
-          "title": "Gregory's Theme",
-          "artist": "Basto",
-          "youtubeId": "_700Zf0ULDw",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_20",
@@ -7967,28 +7809,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790809954706_afao",
-          "title": "Stronger",
-          "artist": "Erick Morillo & Eddie Thoneick feat Shawnee Taylor",
-          "youtubeId": "oXKJ9BApTcc",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_21",
           "title": "Classic Time 9",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/f3104b4ac3d90ca8-Classic_Time_9.wav",
           "duration": 9,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790809976898_ffyc",
-          "title": "Tung !",
-          "artist": "Deniz Koyu",
-          "youtubeId": "_cpdg6-qekE",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_22",
@@ -7999,28 +7825,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790809995202_dl2y",
-          "title": "Pressure (Official Alesso Edit)",
-          "artist": "NADIA ALI, Starkillers and Alex Kenji",
-          "youtubeId": "cauDlAvfot0",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_23",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790810014577_uvpu",
-          "title": "No Beef",
-          "artist": "Afrojack & Steve Aoki feat Miss Palmer",
-          "youtubeId": "BBdVm0t7smg",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_24",
@@ -8031,28 +7841,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790810037769_jabw",
-          "title": "Again & Again",
-          "artist": "Basto",
-          "youtubeId": "Lz4bz1alblA",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_25",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790810051256_t6yg",
-          "title": "Now That I've Found You (Official Director's Cut)",
-          "artist": "Martin Garrix",
-          "youtubeId": "_gE8IGq8M3s",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_26",
@@ -8063,28 +7857,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790810076537_w4xj",
-          "title": "Epic (Original Mix)",
-          "artist": "Sandro Silva & Quintino",
-          "youtubeId": "OV9S6px5M04",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_27",
           "title": "Classic Time 2",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9920a1dbc8ae5a5c-Classic_Time_2.wav",
           "duration": 14,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790810098210_7hwn",
-          "title": "Can't Stop Me (Buddha Edit)",
-          "artist": "Afrojack & Shermanology",
-          "youtubeId": "7RavfVPExJo",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_28",
@@ -8095,28 +7873,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790810116647_yd4v",
-          "title": "Molly",
-          "artist": "Cedric Gervais",
-          "youtubeId": "VWuSUxy7JwM",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_29",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790810151220_hvp2",
-          "title": "I Rave You",
-          "artist": "Basto",
-          "youtubeId": "aM7wACxIr0w",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_30",
@@ -8127,28 +7889,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790810177122_cd4q",
-          "title": "Sparks (Turn off your Mind)",
-          "artist": "Fedde Le Grand & Nicky Romero ft Matthew Koma",
-          "youtubeId": "Lw6j9fh3WoE",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_31",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790810194139_2dyd",
-          "title": "Who",
-          "artist": "Tujamo & Plastik Funk",
-          "youtubeId": "2fJZaJaVClk",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_32",
@@ -8159,28 +7905,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790810220586_z7gu",
-          "title": "Kangaroo",
-          "artist": "Sander Van Doorn & Julian Jordan",
-          "youtubeId": "215iS_GF2Hk",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_33",
           "title": "Classic Time 4",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/00fb30117db8923c-Classic_Time_4.wav",
           "duration": 14,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790810249962_expr",
-          "title": "Wakanda (Original Mix)",
-          "artist": "Dimitri Vegas &  Like Mike",
-          "youtubeId": "3A2Hpl1f-EU",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_34",
@@ -8191,28 +7921,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790810266563_pqtw",
-          "title": "Joyenergizer",
-          "artist": "Sander Van Doorn",
-          "youtubeId": "V9FL-kBScP8",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_35",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790810286699_kv9i",
-          "title": "Rockin N Rollin",
-          "artist": "Fedde Le Grand",
-          "youtubeId": "GwP7XDzfrxU",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_36",
@@ -8223,28 +7937,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790810301364_68i6",
-          "title": "Turn It Up (Original Mix)",
-          "artist": "Dimitri Vegas & Like Mike , GTA feat Wolfpack",
-          "youtubeId": "l5n2MTouMpg",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_37",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790810330368_v8l7",
-          "title": "Boomerang",
-          "artist": "Brooks & GRX",
-          "youtubeId": "j8GSRFS-8tc",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_38",
@@ -8255,28 +7953,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790810345349_xq1f",
-          "title": "Center Of The Universe (Remode Version)",
-          "artist": "Axwell feat. Magnus Carlsson",
-          "youtubeId": "UKVGoibN5Zw",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_39",
           "title": "Classic Time 6",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/400d28986c937995-Classic_Time_6.wav",
           "duration": 7,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790810367887_p00e",
-          "title": "Into You (feat. Hanne Mjøen)",
-          "artist": "Matisse & Sadko",
-          "youtubeId": "RpVDEAG7nYY",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_40",
@@ -8287,28 +7969,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790810411337_ek5k",
-          "title": "Twerk Anthem (Radio Edit)",
-          "artist": "Tony Junior",
-          "youtubeId": "poROiKwR6vo",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_41",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790810424686_a7b7",
-          "title": "Eat Sleep Rave Repeat (Dimitri Vegas, Like Mike & Ummet Ozcan Tomorrowland Edit)",
-          "artist": "Fatboy Slim",
-          "youtubeId": "VmkLbTbqago",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_42",
@@ -8319,28 +7985,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790810439529_974r",
-          "title": "Fifteen (Hardwell Radio Edit)",
-          "artist": "Blasterjaxx",
-          "youtubeId": "5KHG7VzZbkw",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_43",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790810454512_fodb",
-          "title": "Encore",
-          "artist": "MAKJ & Henry Fong",
-          "youtubeId": "UmsBK6pZXu8",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_44",
@@ -8351,14 +8001,6 @@
           "category": "promo"
         },
         {
-          "id": "track_1790810473170_v733",
-          "title": "Mufasa",
-          "artist": "Laidback Luke & Peking Duk",
-          "youtubeId": "8odeGq13TVA",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_45",
           "title": "Classic Time 8",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
@@ -8367,28 +8009,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790810494568_cdm5",
-          "title": "Starlight (Could you Be Mine)",
-          "artist": "Don Diablo & Matt Nash",
-          "youtubeId": "aSyy-pr0dCM",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_46",
           "title": "Dropsiders Radio Jingle 2",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
           "duration": 10,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790810510908_dbvs",
-          "title": "Bigfoot",
-          "artist": "W&W",
-          "youtubeId": "jbk1SKfjKWo",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_47",
@@ -8400,14 +8026,6 @@
           "expiresAt": "2026-10-31T23:59:59"
         },
         {
-          "id": "track_1790810530377_8ya1",
-          "title": "Howl At The Moon (Official Radio Edit)",
-          "artist": "Stadiumx & Taylr Renee",
-          "youtubeId": "tXWQTE2QxdU",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_48",
           "title": "Classic Time 9",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
@@ -8416,28 +8034,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790810590056_x8wa",
-          "title": "Warriors (Radio Edit)",
-          "artist": "Nicky Romero vs Volt & State",
-          "youtubeId": "V9kNOoHZiBY",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_49",
           "title": "Dropsiders Radio Jingle 1",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
           "duration": 8,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790810654072_fpis",
-          "title": "Melody",
-          "artist": "Dimitri Vegas & Like Mike , Steve Aoki vs Ummet Ozcan",
-          "youtubeId": "EmAunwRj5HM",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_50",
@@ -8449,28 +8051,12 @@
           "expiresAt": "2026-10-31T23:59:59"
         },
         {
-          "id": "track_1790810679129_zqhz",
-          "title": "Lost In Love 2K16 (Radio Edit)",
-          "artist": "Legend B vs Julien Creance",
-          "youtubeId": "xPYgz5MtYbs",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_51",
           "title": "Classic Time 1",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6b53dd9114606744-Classic_Time_1.wav",
           "duration": 10,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790810712502_0nb3",
-          "title": "All Aboard (Dimitri Vegas & Like Mike Edit)",
-          "artist": "Bassjackers vs D'Angello & Francis",
-          "youtubeId": "zm8QEj3Sne8",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_52",
@@ -8481,28 +8067,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790810827567_ilwy",
-          "title": "Colors",
-          "artist": "Tritonal & Paris Blohm ft. Sterling Fox",
-          "youtubeId": "YU1Mc2KY0JU",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_53",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790810858481_qi0u",
-          "title": "Howl At The Moon",
-          "artist": "Stadiumx & Taylr Renee",
-          "youtubeId": "02xLqOurwI4",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_54",
@@ -8513,28 +8083,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790810905693_bf9e",
-          "title": "Let Me Feel (Volt & State Remix)",
-          "artist": "Nicky Romero & Vicetone",
-          "youtubeId": "pZoB6FDi7Fo",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_55",
           "title": "Dropsiders Radio Jingle 4",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
           "duration": 8,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790810924244_x8gt",
-          "title": "Demons",
-          "artist": "Paris Blohm ft. Charles",
-          "youtubeId": "r9aiIeI-_DU",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_56",
@@ -8545,28 +8099,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790810939198_sr58",
-          "title": "Lift",
-          "artist": "Deniz Koyu & Don Palm",
-          "youtubeId": "yd69AvwUE9Y",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_57",
           "title": "Classic Time 3",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0e0091ff516c357b-Classic_Time_3.wav",
           "duration": 14,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790810977413_7t54",
-          "title": "Sandcastles",
-          "artist": "Volt & State",
-          "youtubeId": "YiuaTsJdWP8",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_58",
@@ -8577,28 +8115,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790811006099_euxv",
-          "title": "Harmony",
-          "artist": "Nicky Romero & Stadiumx",
-          "youtubeId": "jkeELoTuoJo",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_59",
           "title": "Dropsiders Radio Promo Insta & Tiktok 3",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790811030058_6w91",
-          "title": "Kids Of Africa",
-          "artist": "Nico De Andrea",
-          "youtubeId": "w2rsxjQjZ98",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_60",
@@ -8609,28 +8131,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790811050227_3js0",
-          "title": "Coming Alive",
-          "artist": "Arno Cost ft. River",
-          "youtubeId": "MPo0rBo9OKU",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_61",
           "title": "Dropsiders Radio Jingle 6",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
           "duration": 9,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790811078817_lu94",
-          "title": "Novell",
-          "artist": "Nicky Romero",
-          "youtubeId": "RZL8dVVdlBc",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_62",
@@ -8641,28 +8147,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790811126481_twku",
-          "title": "Bring Back The Funk",
-          "artist": "Teamworx",
-          "youtubeId": "1rni2SHFuc8",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_63",
           "title": "Classic Time 5",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/788340a171828dd5-Classic_Time_5.wav",
           "duration": 14,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790811188124_9wr9",
-          "title": "Thriller Pt 1",
-          "artist": "Simon De Jano & Madwill",
-          "youtubeId": "IuTwmN7qlGk",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_64",
@@ -8673,28 +8163,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790811204210_9iwd",
-          "title": "K.I.T.T",
-          "artist": "Simon de Jano & Bottai",
-          "youtubeId": "bqzwQnH-hFc",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_65",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790811240550_inks",
-          "title": "Paradisco feat Ben Macklin",
-          "artist": "Arno Cost & Norman Doray",
-          "youtubeId": "8Le5lIQCP9Q",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_66",
@@ -8705,28 +8179,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790811265836_gvk0",
-          "title": "Tenpaku",
-          "artist": "Corey James & Will K",
-          "youtubeId": "v34gJ0h5gcw",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_67",
           "title": "Dropsiders Radio Promo Insta & Tiktok 3",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790811299696_hh32",
-          "title": "House Nation",
-          "artist": "Tom Tyger",
-          "youtubeId": "_9HLcXr_DAU",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_68",
@@ -8737,28 +8195,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790811341860_cpij",
-          "title": "Can't Do That",
-          "artist": "Havoc & Lawn vs SOVTH",
-          "youtubeId": "g6GXCUk4T74",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_69",
           "title": "Classic Time 7",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9ffe042f649201e6-Classic_Time_7.wav",
           "duration": 9,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790874087932_jx8a",
-          "title": "Elektro (Radio edit) (feat. Mr Gee)",
-          "artist": "OUTWORK",
-          "youtubeId": "F1o6Abr5kj4",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_70",
@@ -8769,28 +8211,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790874110991_jp29",
-          "title": "Bad ft.Vassy",
-          "artist": "David Guetta & Showtek",
-          "youtubeId": "oC-GflRB0y4",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_71",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790874127005_h1p6",
-          "title": "Waves (Robin Schulz Remix Radio Edit)",
-          "artist": "Mr. Probz",
-          "youtubeId": "pUjE9H8QlA4",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_72",
@@ -8801,28 +8227,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790874145876_dd1y",
-          "title": "Tsunami (Radio Edit)",
-          "artist": "DVBBS",
-          "youtubeId": "xpNJ0qzaX4Q",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_73",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790874164493_uy4n",
-          "title": "Call On Me",
-          "artist": "Eric Prydz",
-          "youtubeId": "qetW6R9Jxs4",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_74",
@@ -8833,28 +8243,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790874181396_tzh5",
-          "title": "Insomnia",
-          "artist": "Faithless",
-          "youtubeId": "P8JEm4d6Wu4",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_75",
           "title": "Classic Time 9",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/f3104b4ac3d90ca8-Classic_Time_9.wav",
           "duration": 9,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790874198733_f52y",
-          "title": "Pump It Up",
-          "artist": "Endor",
-          "youtubeId": "hRGIrrjuLYA",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_76",
@@ -8865,28 +8259,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790874283987_yhdb",
-          "title": "Let Me Think About It (Radio Edit)",
-          "artist": "Ida Corr",
-          "youtubeId": "X5SIQkVlB4Q",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_77",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790874307704_jhm1",
-          "title": "Silence (Niels van Gogh vs. Thomas Gold Remix)",
-          "artist": "Delerium feat. Sarah McLachlan",
-          "youtubeId": "dx9kksyjjbU",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_78",
@@ -8897,28 +8275,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790874338302_4pb5",
-          "title": "Lost",
-          "artist": "Vintage Culture, Gabss",
-          "youtubeId": "wNoZnhsB2XA",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_79",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790874611050_v4ah",
-          "title": "Alcoholic",
-          "artist": "Tim Berg",
-          "youtubeId": "s_BzGkzLK_Q",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_80",
@@ -8929,28 +8291,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790874624051_37n0",
-          "title": "Adagio For Strings",
-          "artist": "Tiësto",
-          "youtubeId": "2EaE0_gQLw0",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_81",
           "title": "Classic Time 2",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9920a1dbc8ae5a5c-Classic_Time_2.wav",
           "duration": 14,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790874639243_mc2p",
-          "title": "Music Sounds Better With You",
-          "artist": "Stardust",
-          "youtubeId": "FQlAEiCb8m0",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_82",
@@ -8961,28 +8307,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790874669804_4b0e",
-          "title": "Human After All",
-          "artist": "Daft Punk",
-          "youtubeId": "UsXubuXq1lM",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_83",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790874756997_yia6",
-          "title": "Downpipe",
-          "artist": "Mark Knight & D. Ramirez V Underworld",
-          "youtubeId": "xZrDMDCknJo",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_84",
@@ -8993,28 +8323,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790874787391_ucw1",
-          "title": "Television Rules the Nation",
-          "artist": "Daft Punk",
-          "youtubeId": "StACmxSQKY8",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_85",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790874833715_g9uu",
-          "title": "Man With The Red Face (Radio Edit)",
-          "artist": "Mark Knight & Funkagenda",
-          "youtubeId": "tTWQRchgFp0",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_86",
@@ -9025,14 +8339,6 @@
           "category": "promo"
         },
         {
-          "id": "track_1790874868653_68k1",
-          "title": "FADE INTO DARKNESS",
-          "artist": "AVICII",
-          "youtubeId": "t7WRkPbTjsk",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_87",
           "title": "Classic Time 4",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
@@ -9041,28 +8347,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790874885885_suzz",
-          "title": "Amplifier",
-          "artist": "F.L.G",
-          "youtubeId": "yr-m0BAuFIs",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_88",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790874929212_bwka",
-          "title": "Make Love",
-          "artist": "Daft Punk",
-          "youtubeId": "0dbnYJRp6n8",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_89",
@@ -9074,14 +8364,6 @@
           "expiresAt": "2026-10-31T23:59:59"
         },
         {
-          "id": "track_1790874998299_qshl",
-          "title": "D.A.N.C.E. (Radio Edit)",
-          "artist": "Justice",
-          "youtubeId": "EU5xgjmvIXc",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_90",
           "title": "Classic Time 5",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
@@ -9090,28 +8372,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790875162598_x0zr",
-          "title": "Civilization (Radio Edit)",
-          "artist": "Justice",
-          "youtubeId": "v-Y-x8viREY",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_91",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790875183539_b37t",
-          "title": "Stop",
-          "artist": "Justice",
-          "youtubeId": "x-R19oA1m8w",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_92",
@@ -9123,28 +8389,12 @@
           "expiresAt": "2026-10-31T23:59:59"
         },
         {
-          "id": "track_1790875213210_opy2",
-          "title": "DVNO",
-          "artist": "Justice",
-          "youtubeId": "x0QNaMXrG2Q",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_93",
           "title": "Classic Time 6",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/400d28986c937995-Classic_Time_6.wav",
           "duration": 7,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790875229556_amnq",
-          "title": "Audio, Video, Disco.",
-          "artist": "Justice",
-          "youtubeId": "ifw8Lg_eLMk",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_94",
@@ -9155,28 +8405,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790875249287_ct2h",
-          "title": "Contact",
-          "artist": "Daft Punk",
-          "youtubeId": "ZbbTmR6Xaag",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_95",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790875338171_fwvb",
-          "title": "Around The World",
-          "artist": "Daft Punk",
-          "youtubeId": "K0HSD_i2DvA",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_96",
@@ -9187,28 +8421,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790875370103_lk5u",
-          "title": "Genesis - †",
-          "artist": "Justice",
-          "youtubeId": "VKzWLUQizz8",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_97",
           "title": "Dropsiders Radio Jingle 2",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
           "duration": 10,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790875385898_hzsx",
-          "title": "Stress",
-          "artist": "Justice",
-          "youtubeId": "QWaWsgBbFsA",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_98",
@@ -9219,28 +8437,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790875404541_qaxd",
-          "title": "Electric Feel (Justice Remix)",
-          "artist": "MGMT",
-          "youtubeId": "6QL_bUCuhvo",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_99",
           "title": "Classic Time 8",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/46b81b62526ccd0c-Classic_Time_8.wav",
           "duration": 14,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790875430228_ece1",
-          "title": "One More Time",
-          "artist": "Daft Punk",
-          "youtubeId": "A2VpR8HahKc",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_100",
@@ -9251,28 +8453,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790875449640_sgvi",
-          "title": "Veridis Quo",
-          "artist": "Daft Punk",
-          "youtubeId": "TCd6PfxOy0Y",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_101",
           "title": "Dropsiders Radio Promo Insta & Tiktok 3",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790875465619_m2lu",
-          "title": "Aerodynamic",
-          "artist": "Daft Punk",
-          "youtubeId": "Mjpu0-o9iek",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_102",
@@ -9283,28 +8469,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790875482672_shyz",
-          "title": "Neverender",
-          "artist": "Justice",
-          "youtubeId": "47YNsf-7Y7c",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_103",
           "title": "Dropsiders Radio Jingle 3",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
           "duration": 12,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790875526599_nmdq",
-          "title": "Silhouettes",
-          "artist": "Avicii",
-          "youtubeId": "6VJBBUqr1wM",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_104",
@@ -9315,28 +8485,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790875555678_dpfg",
-          "title": "I COULD BE THE ONE",
-          "artist": "AVICII VS NICKY ROMERO",
-          "youtubeId": "7DsOV_ENxDM",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_105",
           "title": "Classic Time 1",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6b53dd9114606744-Classic_Time_1.wav",
           "duration": 10,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790875579150_fgbu",
-          "title": "Digital Love",
-          "artist": "Daft Punk",
-          "youtubeId": "4whD6uAryMs",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_106",
@@ -9347,28 +8501,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790875596267_054c",
-          "title": "Da Funk",
-          "artist": "Daft Punk",
-          "youtubeId": "PwILkY9gRrc",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_107",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790875650026_q8xa",
-          "title": "Don't You Worry Child (feat. John Martin) (Radio Edit)",
-          "artist": "Swedish House Mafia",
-          "youtubeId": "vRqbSgp8w38",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_108",
@@ -9379,28 +8517,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790875668478_x6p7",
-          "title": "One (Radio Edit)",
-          "artist": "Swedish House Mafia",
-          "youtubeId": "uM-zBercBoY",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_109",
           "title": "Dropsiders Radio Jingle 5",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
           "duration": 14,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790875689676_4oab",
-          "title": "Save The World",
-          "artist": "Swedish House Mafia feat. John Martin",
-          "youtubeId": "Ko12fHBVUTY",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_110",
@@ -9411,28 +8533,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790875719501_c5h0",
-          "title": "Greyhound (Radio Edit)",
-          "artist": "Swedish House Mafia",
-          "youtubeId": "JZ_TDayvsI0",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_111",
           "title": "Classic Time 3",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0e0091ff516c357b-Classic_Time_3.wav",
           "duration": 14,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790875744619_1ing",
-          "title": "Leave The World Behind",
-          "artist": "Axwell, Ingrosso, Angello, Laidback Luke ft. Deborah Cox",
-          "youtubeId": "nDLUMFkoCv4",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_112",
@@ -9443,28 +8549,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790875761316_5z5g",
-          "title": "Reload",
-          "artist": "Sebastian Ingrosso, Tommy Trash, John Martin",
-          "youtubeId": "GuAtcpFQpMw",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_113",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790875798210_5j6u",
-          "title": "Calling (Lose My Mind) ft. Ryan Tedder",
-          "artist": "Sebastian Ingrosso, Alesso",
-          "youtubeId": "9G1I16gJBvU",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_114",
@@ -9475,28 +8565,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790875860752_1jul",
-          "title": "Pressure (Alesso Radio Edit)",
-          "artist": "Nadia Ali, Starkillers & Alex Kenji",
-          "youtubeId": "-Lfpl0VGrGQ",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_115",
           "title": "Dropsiders Radio Promo Insta & Tiktok 2",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 33,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790875879778_ekrh",
-          "title": "Years ft. Matthew Koma",
-          "artist": "Alesso",
-          "youtubeId": "aIrB96V-UNI",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_116",
@@ -9507,28 +8581,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790875894391_9r5j",
-          "title": "I Wanna Know ft. Nico & Vinz",
-          "artist": "Alesso",
-          "youtubeId": "TnSfwONWlk8",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_117",
           "title": "Classic Time 5",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/788340a171828dd5-Classic_Time_5.wav",
           "duration": 14,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790875952453_jq3w",
-          "title": "If I Lose Myself ft. Alesso (Remix)",
-          "artist": "Alesso Vs. OneRepublic",
-          "youtubeId": "dLa_ryRjC7M",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_118",
@@ -9539,28 +8597,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790875970220_lhst",
-          "title": "Heroes (we could be) ft. Tove Lo",
-          "artist": "Alesso",
-          "youtubeId": "a7SouU3ECpU",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_119",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790875985482_ciez",
-          "title": "City Of Dreams ft. Ruben Haze",
-          "artist": "Dirty South, Alesso",
-          "youtubeId": "3C2KSaqm3so",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_120",
@@ -9571,28 +8613,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790876003180_jrjp",
-          "title": "Cool ft. Roy English",
-          "artist": "Alesso",
-          "youtubeId": "-aWtrEFfS4E",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_121",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790876020310_oqp4",
-          "title": "Million Voices Calling In My Mind (Tiesto Mashup)",
-          "artist": "Axwell / Ingrosso / Alesso / Otto Knows",
-          "youtubeId": "gWmUomg2HqM",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_122",
@@ -9603,28 +8629,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790876069685_wowf",
-          "title": "Feel So Close (Radio Edit)",
-          "artist": "Calvin Harris",
-          "youtubeId": "R8egmh5dWzo",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_123",
           "title": "Classic Time 7",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9ffe042f649201e6-Classic_Time_7.wav",
           "duration": 9,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790876513170_v47d",
-          "title": "Summer",
-          "artist": "Calvin Harris",
-          "youtubeId": "q46otDTz29w",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_124",
@@ -9635,28 +8645,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790876530617_hzfb",
-          "title": "I'm Not Alone (Radio Edit)",
-          "artist": "Calvin Harris",
-          "youtubeId": "wkczQYC_8TQ",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_125",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790876810019_k9ak",
-          "title": "How Deep Is Your Love",
-          "artist": "Calvin Harris & Disciples",
-          "youtubeId": "qWWSM3wCiKY",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_126",
@@ -9667,28 +8661,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790876826260_8jzc",
-          "title": "Thinking About You ft. Ayah Marar",
-          "artist": "Calvin Harris",
-          "youtubeId": "cl3b7dDBLpo",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_127",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790877463722_jipa",
-          "title": "Spectrum (Say My Name) (Calvin Harris Radio Edit)",
-          "artist": "Florence + The Machine",
-          "youtubeId": "SZhLrOghfTI",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_128",
@@ -9699,14 +8677,6 @@
           "category": "promo"
         },
         {
-          "id": "track_1790878843260_vglf",
-          "title": "Feel (Radio Edit)",
-          "artist": "Third Party vs Cicada",
-          "youtubeId": "EcjWfEeEi58",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_129",
           "title": "Classic Time 9",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
@@ -9715,28 +8685,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790878986031_inoc",
-          "title": "Like This",
-          "artist": "Third Party, Pete K & Cory Lasser",
-          "youtubeId": "YO3ueyEo9fk",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_130",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790879008119_dbsv",
-          "title": "Midnight",
-          "artist": "Third ≡ Party",
-          "youtubeId": "TtsRFPz6Kd4",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_131",
@@ -9748,14 +8702,6 @@
           "expiresAt": "2026-10-31T23:59:59"
         },
         {
-          "id": "track_1790879030328_v4ll",
-          "title": "Come With Me",
-          "artist": "Third ≡ Party",
-          "youtubeId": "UKcqB2NIVRE",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_132",
           "title": "Classic Time 1",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
@@ -9764,28 +8710,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790879058991_mj7g",
-          "title": "Remember",
-          "artist": "Third Party",
-          "youtubeId": "HBIBVS_v9Ns",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_133",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790879134705_4scd",
-          "title": "Falling ft. First State & Anita Kelsey",
-          "artist": "Third Party",
-          "youtubeId": "mgfYt_xjaXM",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_134",
@@ -9797,28 +8727,12 @@
           "expiresAt": "2026-10-31T23:59:59"
         },
         {
-          "id": "track_1790879392889_56cq",
-          "title": "Machine Gun (Radio Edit)",
-          "artist": "Matisse & Sadk",
-          "youtubeId": "GM2MtlrI3Ng",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_135",
           "title": "Classic Time 2",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/9920a1dbc8ae5a5c-Classic_Time_2.wav",
           "duration": 14,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790879413446_9she",
-          "title": "Stars (Radio Edit)",
-          "artist": "Matisse & Sadko",
-          "youtubeId": "GyYl_3XvPkg",
-          "duration": 3540,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_136",
@@ -9829,28 +8743,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790879461335_hhau",
-          "title": "Hi Scandinavia! (Radio Edit)",
-          "artist": "Matisse & Sadko",
-          "youtubeId": "WH35uB1yOKg",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_137",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790879479443_6kd1",
-          "title": "SLVR (Radio Edit)",
-          "artist": "Steve Angello VS. Matisse & Sadko",
-          "youtubeId": "kc8rgvRArmg",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_138",
@@ -9861,28 +8759,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790879507852_8f9p",
-          "title": "Forever",
-          "artist": "Martin Garrix, Matisse & Sadko",
-          "youtubeId": "ScNsBpQ8KIg",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_139",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790879544445_rbay",
-          "title": "Dragon",
-          "artist": "Martin Garrix vs Matisse & Sadko",
-          "youtubeId": "rRry3DEaCgE",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_140",
@@ -9893,28 +8775,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790879579145_fsbf",
-          "title": "Break Through The Silence",
-          "artist": "Martin Garrix vs Matisse & Sadko",
-          "youtubeId": "k0rwzGdWb68",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_141",
           "title": "Classic Time 4",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/00fb30117db8923c-Classic_Time_4.wav",
           "duration": 14,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790879610509_prvp",
-          "title": "Light Me Up",
-          "artist": "Matisse & Sadko, Raiden",
-          "youtubeId": "jGSqctq2j7I",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_142",
@@ -9925,28 +8791,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790879663618_lgyc",
-          "title": "Mistaken (Radio Edit)",
-          "artist": "Martin Garrix, Matisse & Sadko feat. Alex Aris",
-          "youtubeId": "V5_YsnS8AwQ",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_143",
           "title": "Dropsiders Radio Promo Insta & Tiktok 3",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790879707491_l7kx",
-          "title": "Destination (Radio Edit)",
-          "artist": "DubVision & Feenixpawl",
-          "youtubeId": "sQk7_xLw9D8",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_144",
@@ -9957,28 +8807,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790879726390_7nms",
-          "title": "Rockin (Radio Edit)",
-          "artist": "DubVision & Firebeatz",
-          "youtubeId": "SE2KoWxEQYU",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_145",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790879753751_5ocb",
-          "title": "I Found Your Heart (Vocal Radio Edit)",
-          "artist": "DubVision ft. Emeni",
-          "youtubeId": "GXpXSefs6NE",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_146",
@@ -9989,28 +8823,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790879804457_ypjm",
-          "title": "Coming Home (Dirty South Radio Edit)",
-          "artist": "Diddy",
-          "youtubeId": "9xyshn7-pMc",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_147",
           "title": "Classic Time 6",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/400d28986c937995-Classic_Time_6.wav",
           "duration": 7,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790879818839_hkoz",
-          "title": "It's Too Late (Dirty South Remix) (Radio Edit)",
-          "artist": "Evermore",
-          "youtubeId": "eO9WyBdWZPc",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_148",
@@ -10021,28 +8839,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790879833967_vnb9",
-          "title": "Let It Go (Vocal Radio Edit)",
-          "artist": "Dirty South feat. Rudy",
-          "youtubeId": "DDDc957jtp4",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_149",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790879851703_1lgh",
-          "title": "Let It Go (Axwell Radio Edit)",
-          "artist": "Dirty South ft. Rudy",
-          "youtubeId": "xK1CiFLw7gA",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_150",
@@ -10053,28 +8855,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790880926373_7pru",
-          "title": "Freaks (Radio Edit)",
-          "artist": "Timmy Trumpet & Savage",
-          "youtubeId": "nz6xW7kPIDI",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_151",
           "title": "Dropsiders Radio Jingle 1",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
           "duration": 8,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790880964774_cwu2",
-          "title": "Louder (Radio Edit)",
-          "artist": "Dimitri Vegas & Like Mike vs. VINAI",
-          "youtubeId": "EaMb15_Z94Y",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_152",
@@ -10085,28 +8871,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790880990575_5u2b",
-          "title": "Mammoth (Radio Edit)",
-          "artist": "Dimitri Vegas & Like Mike",
-          "youtubeId": "8oP5dUVWSno",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_153",
           "title": "Classic Time 8",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/46b81b62526ccd0c-Classic_Time_8.wav",
           "duration": 14,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790881010362_1qj1",
-          "title": "The Hum (Short Edit)",
-          "artist": "Dimitri Vegas & Like Mike vs Ummet Ozcan",
-          "youtubeId": "orMsXcvVG7M",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_154",
@@ -10117,28 +8887,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790881029317_kmf9",
-          "title": "Nova",
-          "artist": "Dimitri Vegas & Like Mike Vs Tujamo & Felguk",
-          "youtubeId": "o7Oibcmr81Y",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_155",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790881046975_hyuv",
-          "title": "Arcade (Radio Edit)",
-          "artist": "Dimitri Vegas & Like Mike vs W&W",
-          "youtubeId": "jApkrbXiBv8",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_156",
@@ -10149,28 +8903,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790881078686_1mpk",
-          "title": "Unity",
-          "artist": "Dimitri Vegas & Like Mike vs Hardwell",
-          "youtubeId": "rLlZE_G_fXo",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_157",
           "title": "Dropsiders Radio Jingle 4",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
           "duration": 8,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790881094941_7squ",
-          "title": "Tremor",
-          "artist": "Dimitri Vegas, Martin Garrix, Like Mike",
-          "youtubeId": "9vMh9f41pqE",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_158",
@@ -10181,28 +8919,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790881133997_ikfq",
-          "title": "Melody",
-          "artist": "Dimitri Vegas & Like Mike & Steve Aoki vs Ummet Ozcan",
-          "youtubeId": "jXh22Al69KI",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_159",
           "title": "Classic Time 1",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/6b53dd9114606744-Classic_Time_1.wav",
           "duration": 10,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790881222322_6ang",
-          "title": "Find Tomorrow (Ocarina) (Official Radio Version)",
-          "artist": "Dimitri Vegas & Like Mike ft. Wolfpack & Katy B",
-          "youtubeId": "xPptVKXeU_o",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_160",
@@ -10213,28 +8935,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790882148525_sdfl",
-          "title": "Lava Lava (radio edit)",
-          "artist": "Boys Noize",
-          "youtubeId": "xtXMONzuy7E",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_161",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790882195894_h8qq",
-          "title": "My Moon My Man (Boys Noize Remix)",
-          "artist": "Feist",
-          "youtubeId": "6oJQme6iwCc",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_162",
@@ -10245,28 +8951,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790882218815_cgbk",
-          "title": "&Down",
-          "artist": "BOYS NOIZE",
-          "youtubeId": "bhxid63TDWQ",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_163",
           "title": "Dropsiders Radio Jingle 6",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
           "duration": 9,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790882256513_p9d9",
-          "title": "Never Going Home",
-          "artist": "Kungs",
-          "youtubeId": "QH2a6V-W87U",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_164",
@@ -10277,28 +8967,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790882288380_mgff",
-          "title": "This Girl",
-          "artist": "Kungs vs Cookin’ on 3 Burners",
-          "youtubeId": "2Y6Nne8RvaA",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_165",
           "title": "Classic Time 3",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/0e0091ff516c357b-Classic_Time_3.wav",
           "duration": 14,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790882305852_pdn4",
-          "title": "- Don't You Know  ft. Jamie N Commons",
-          "artist": "Kungs",
-          "youtubeId": "Nf-FLiO4p3c",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_166",
@@ -10309,28 +8983,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790882330017_ufgk",
-          "title": "Feed Your Head (Radio Edit)",
-          "artist": "Paul Kalkbrenner",
-          "youtubeId": "g0dXvUQbxYo",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_167",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790882343789_twef",
-          "title": "Cloud Rider (Radio Version)",
-          "artist": "Paul Kalkbrenner",
-          "youtubeId": "6xRVHGW1p6g",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_168",
@@ -10341,28 +8999,12 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790882359173_78e5",
-          "title": "Revolte (CITIZEN KAIN Easy Mix Edit)",
-          "artist": "PAUL KALKBRENNER",
-          "youtubeId": "CAdh63OoMUE",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "nj_bloc_1790809306418_n_169",
           "title": "Dropsiders Radio Promo Insta & Tiktok 3",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790882376556_9qoh",
-          "title": "Sky and Sand",
-          "artist": "Paul Kalkbrenner",
-          "youtubeId": "8ybFb_wKlvQ",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "pr_bloc_1790809306418_p_170",
@@ -10373,28 +9015,12 @@
           "category": "promo"
         },
         {
-          "id": "track_1790882434401_8tpj",
-          "title": "Te Quiero - Paul Kalkbrenner (Remix)",
-          "artist": "Stromae",
-          "youtubeId": "s1MOYA6mOsU",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "sj_bloc_1790809306418_s_171",
           "title": "Classic Time 5",
           "artist": "CLASSIC TIME JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/788340a171828dd5-Classic_Time_5.wav",
           "duration": 14,
           "category": "jingle"
-        },
-        {
-          "id": "track_1790882476871_23og",
-          "title": "Train",
-          "artist": "Paul Kalkbrenner",
-          "youtubeId": "GvSoPbhQ9Nc",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "nj_bloc_1790809306418_n_172",
@@ -10405,14 +9031,6 @@
           "category": "jingle"
         },
         {
-          "id": "track_1790882498698_kfjz",
-          "title": "Azure",
-          "artist": "Paul Kalkbrenner",
-          "youtubeId": "LatePK8RO30",
-          "duration": 210,
-          "category": "clip"
-        },
-        {
           "id": "pr_bloc_1790809306418_p_173",
           "title": "Promo Escape Psycho Circus 2026 1",
           "artist": "PROMO DROPSIDERS",
@@ -10420,14 +9038,6 @@
           "duration": 47,
           "category": "promo",
           "expiresAt": "2026-10-31T23:59:59"
-        },
-        {
-          "id": "track_1790890871127_x9zx",
-          "title": "Magenta",
-          "artist": "Arno Cost & Norman Doray",
-          "youtubeId": "2fH7NNKphgQ",
-          "duration": 210,
-          "category": "clip"
         },
         {
           "id": "sj_bloc_1790809306418_s_174",
@@ -10502,7 +9112,11 @@
           "duration": 9,
           "enabled": true
         }
-      ]
+      ],
+      "soundcloudPlaylistUrl": "https://soundcloud.com/alexflex1/sets/dropsiders-radio-classic-time",
+      "soundcloudPlaylistTitle": "Dropsiders Radio : Classic Time by Alex Dropsiders",
+      "soundcloudPlaylistAuthor": "Alex Dropsiders",
+      "soundcloudPlaylistCover": "https://soundcloud.com/images/fb_placeholder.png"
     },
     {
       "id": "radio_bloc_1790257291397_4y1e",
