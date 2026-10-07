@@ -247,12 +247,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     // AFFICHE Theme States (Poster Événement Flottant)
     const [afficheImage, setAfficheImage] = useState<string>('');
     const afficheImageRef = useRef<HTMLImageElement | null>(null);
-    const [afficheScale, setAfficheScale] = useState<number>(95);
-    const [afficheRadius, setAfficheRadius] = useState<number>(28);
     const [afficheGlow, setAfficheGlow] = useState<boolean>(true);
-    const [afficheBgBlur, setAfficheBgBlur] = useState<number>(0);
     const [afficheBorderColor, setAfficheBorderColor] = useState<string>('rgba(255, 255, 255, 0.22)');
-    const [afficheDateText, setAfficheDateText] = useState<string>('13.FEBRUARY.2027 • HALLE TONY GARNIER • LYON');
     const [afficheMode, setAfficheMode] = useState<'cover' | 'contain'>('cover');
     const afficheFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -658,7 +654,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else if (imgLayoutMode === 'BAS_LIGNE') {
                     y = ((canvas.height * 0.85 - bgVideo.videoHeight * scale) / 2) + bgOffsetY;
                 }
-                ctx.drawImage(bgVideo, x, y, bgVideo.videoWidth * scale, bgVideo.videoHeight * scale);
+                if (theme === 'AFFICHE') {
+                    ctx.save();
+                    ctx.filter = 'blur(14px)';
+                    const blurBleed = 28;
+                    ctx.drawImage(bgVideo, x - blurBleed, y - blurBleed, bgVideo.videoWidth * scale + blurBleed * 2, bgVideo.videoHeight * scale + blurBleed * 2);
+                    ctx.restore();
+                } else {
+                    ctx.drawImage(bgVideo, x, y, bgVideo.videoWidth * scale, bgVideo.videoHeight * scale);
+                }
             } else if (img) {
                 if (theme === 'SPOTLIGHT') {
                     const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
@@ -679,10 +683,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     } else if (imgLayoutMode === 'BAS_LIGNE') {
                         y = ((canvas.height * 0.85 - img.height * scale) / 2) + bgOffsetY;
                     }
-                    if (theme === 'AFFICHE' && afficheBgBlur > 0) {
+                    if (theme === 'AFFICHE') {
                         ctx.save();
-                        ctx.filter = `blur(${afficheBgBlur}px)`;
-                        const blurBleed = afficheBgBlur * 2;
+                        ctx.filter = 'blur(14px)';
+                        const blurBleed = 28;
                         ctx.drawImage(img, x - blurBleed, y - blurBleed, img.width * scale + blurBleed * 2, img.height * scale + blurBleed * 2);
                         ctx.restore();
                     } else {
@@ -2823,36 +2827,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillStyle = vig;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // 2. Official Dropsiders Logo (Centré en haut avec lueur réaliste)
-                if (logoRef.current) {
-                    const logo = logoRef.current;
-                    const lw = isStory ? 290 : 255;
-                    const lh = (logo.height / logo.width) * lw;
-                    const logoY = isStory ? 55 : 32;
-                    const logoX = (canvas.width - lw) / 2;
+                // 2. Dimensions fixes et constantes de la carte d'affiche
+                const cardW = 940;
+                const cardX = Math.round((canvas.width - cardW) / 2); // 70px
+                const cardY = isStory ? 150 : 120;
+                const cardH = isStory ? 1620 : 1110;
+                const rad = isStory ? 28 : 26;
 
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                    ctx.shadowBlur = 24;
-                    ctx.filter = 'brightness(0) invert(1)';
-                    ctx.drawImage(logo, logoX, logoY, lw, lh);
-                    ctx.restore();
-                }
-
-                // 3. Calculs géométriques de la carte d'affiche flottante
-                const topLimit = isStory ? 175 : 130;
-                const bottomLimit = isStory ? canvas.height - 130 : canvas.height - 95;
-                const slotH = bottomLimit - topLimit;
-                const slotW = canvas.width - (isStory ? 100 : 90);
-
-                const scaleFactor = (afficheScale || 95) / 100;
-                const cardW = Math.round(slotW * scaleFactor);
-                const cardH = Math.round(slotH * scaleFactor);
-                const cardX = Math.round((canvas.width - cardW) / 2);
-                const cardY = Math.round(topLimit + (slotH - cardH) / 2);
-                const rad = Math.max(0, afficheRadius);
-
-                // 4. Ombre portée 3D et halo ambiant néon
+                // 3. Ombre portée 3D et halo ambiant néon
                 ctx.save();
                 if (afficheGlow) {
                     ctx.shadowColor = `rgba(${activeColor.grad}, 0.35)`;
@@ -2875,7 +2857,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fill();
                 ctx.restore();
 
-                // 5. Rendu de l'affiche de l'événement dans le rectangle arrondi clippé
+                // 4. Rendu de l'affiche de l'événement dans le rectangle arrondi clippé
                 ctx.save();
                 ctx.beginPath();
                 ctx.roundRect(cardX, cardY, cardW, cardH, rad);
@@ -2933,7 +2915,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillRect(cardX, cardY, cardW, cardH * 0.35);
                 ctx.restore();
 
-                // 6. Contour bordure élégant
+                // 5. Contour bordure élégant
                 ctx.save();
                 ctx.beginPath();
                 ctx.roundRect(cardX, cardY, cardW, cardH, rad);
@@ -2941,56 +2923,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.lineWidth = 2.5;
                 ctx.stroke();
                 ctx.restore();
-
-                // 7. Éléments de pied de page (Signature Dropsiders)
-                const footerY = isStory ? canvas.height - 58 : canvas.height - 42;
-
-                // Bas Gauche : Infos Événement / Date / Lieu
-                if (afficheDateText && afficheDateText.trim()) {
-                    ctx.save();
-                    ctx.textAlign = 'left';
-                    ctx.textBaseline = 'middle';
-                    ctx.font = `800 ${isStory ? 20 : 18}px "Montserrat", sans-serif`;
-                    ctx.letterSpacing = '2px';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                    ctx.shadowBlur = 12;
-                    ctx.fillText(afficheDateText.trim().toUpperCase(), 60, footerY);
-                    ctx.restore();
-                }
-
-                // Bas Droite : Swipe Dropsiders si activé
-                if (showSwipe) {
-                    ctx.save();
-                    ctx.textAlign = 'right';
-                    ctx.textBaseline = 'middle';
-                    ctx.font = `900 italic ${isStory ? 20 : 18}px "Montserrat", sans-serif`;
-                    ctx.letterSpacing = '1px';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                    ctx.shadowBlur = 12;
-
-                    const swipeLabel = "SWIPE POUR PLUS D'INFOS";
-                    const chevronX = canvas.width - 55;
-                    const swipeTextX = chevronX - 25;
-
-                    ctx.fillText(swipeLabel, swipeTextX, footerY);
-
-                    // Chevron rouge Dropsiders
-                    ctx.beginPath();
-                    const chSize = isStory ? 10 : 9;
-                    ctx.moveTo(chevronX - chSize, footerY - chSize);
-                    ctx.lineTo(chevronX, footerY);
-                    ctx.lineTo(chevronX - chSize, footerY + chSize);
-                    ctx.strokeStyle = activeColor.color;
-                    ctx.lineWidth = 3.5;
-                    ctx.lineCap = 'round';
-                    ctx.lineJoin = 'round';
-                    ctx.shadowColor = `rgba(${activeColor.grad}, 0.8)`;
-                    ctx.shadowBlur = 10;
-                    ctx.stroke();
-                    ctx.restore();
-                }
 
             } else if (theme === 'MAP') {
                 // 1. Draw Map Tiles
@@ -3199,7 +3131,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // --- FINAL OVERLAYS (Logo & Swipe) ---
-            if (logoRef.current && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'PROMO' && theme !== 'AFFICHE') {
+            if (logoRef.current && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'PROMO') {
                 const logo = logoRef.current;
                 const w = 320;
                 // Move left and down for video backgrounds to avoid cropping and match requested safety margins
@@ -3247,7 +3179,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // Swipe & links: retirés uniquement pour les exports PROMO, conservés pour PNG POST/STORY
             const isPromoExport = exportMode === 'PROMO';
 
-            if (showSwipe && !isPromoExport && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'AFFICHE') {
+            if (showSwipe && !isPromoExport && theme !== 'CONSEILS' && theme !== 'REELS') {
                 ctx.save();
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'bottom';
@@ -3355,7 +3287,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheScale, afficheRadius, afficheGlow, afficheBgBlur, afficheBorderColor, afficheDateText, afficheMode]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode]);
 
     // Pre-charger l'affiche de l'événement dès que son URL change
     useEffect(() => {
@@ -5625,44 +5557,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </button>
                 </div>
 
-                {/* Sliders: Scale & Radius */}
-                <div className="space-y-2 pt-2 border-t border-white/5">
-                    <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-400">
-                        <span>Taille de l'affiche</span>
-                        <span className="text-neon-red font-mono">{afficheScale}%</span>
-                    </div>
-                    <input
-                        type="range"
-                        min="70"
-                        max="105"
-                        value={afficheScale}
-                        onChange={e => {
-                            setAfficheScale(parseInt(e.target.value));
-                            setTimeout(() => generateImage(), 30);
-                        }}
-                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-red"
-                    />
-                </div>
-
-                <div className="space-y-2">
-                    <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-400">
-                        <span>Arrondi des bords</span>
-                        <span className="text-neon-red font-mono">{afficheRadius}px</span>
-                    </div>
-                    <input
-                        type="range"
-                        min="0"
-                        max="48"
-                        value={afficheRadius}
-                        onChange={e => {
-                            setAfficheRadius(parseInt(e.target.value));
-                            setTimeout(() => generateImage(), 30);
-                        }}
-                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-red"
-                    />
-                </div>
-
-                <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center justify-between pt-2 border-t border-white/5">
                     <span className="text-[9px] font-black text-gray-400 uppercase">Lueur 3D & Ombre Portée</span>
                     <button
                         type="button"
@@ -5679,9 +5574,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             {/* 2. IMAGE DE FOND (SCÈNE / FESTIVAL / WAREHOUSE) */}
             <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                    🎆 Image de Fond (Ambiance)
-                </label>
+                <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                        🎆 Image de Fond (Ambiance)
+                    </label>
+                    <span className="text-[8px] font-bold text-neon-cyan uppercase bg-neon-cyan/10 px-2 py-0.5 rounded-full border border-neon-cyan/20">
+                        Flou auto cohérent
+                    </span>
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         type="button"
@@ -5708,59 +5608,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 >
                     <LinkIcon className="w-3.5 h-3.5 text-neon-cyan" /> Télécharger via Lien (URL)
                 </button>
-
-                {/* Flou de fond */}
-                <div className="space-y-2 pt-1 border-t border-white/5">
-                    <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-400">
-                        <span>Flou d'ambiance du fond</span>
-                        <span className="text-neon-cyan font-mono">{afficheBgBlur}px</span>
-                    </div>
-                    <input
-                        type="range"
-                        min="0"
-                        max="20"
-                        value={afficheBgBlur}
-                        onChange={e => {
-                            setAfficheBgBlur(parseInt(e.target.value));
-                            setTimeout(() => generateImage(), 30);
-                        }}
-                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
-                    />
-                </div>
             </div>
 
-            {/* 3. INFOS ÉVÉNEMENT & SWIPE (DESIGN DROPSIDERS) */}
-            <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                    📍 Infos Événement & Footer Dropsiders
-                </label>
-                <div className="space-y-1">
-                    <span className="text-[8px] font-bold text-gray-500 uppercase">Texte bas gauche (Date / Lieu)</span>
-                    <input
-                        type="text"
-                        value={afficheDateText}
-                        onChange={e => {
-                            setAfficheDateText(e.target.value);
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        placeholder="EX: 13.FEBRUARY.2027 • HALLE TONY GARNIER • LYON"
-                        className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white font-black italic uppercase text-xs outline-none focus:border-neon-red/50 transition-all"
-                    />
+            {/* 3. SWIPE DROPSIDERS >> */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
+                <div>
+                    <span className="text-[9px] font-black text-white uppercase block">Swipe Studio ({'>>'})</span>
+                    <span className="text-[8px] text-gray-500 font-medium">Afficher la mention swipe en bas à droite</span>
                 </div>
-
-                <div className="flex items-center justify-between pt-1">
-                    <span className="text-[9px] font-black text-gray-400 uppercase">Swipe Dropsiders (bas droite)</span>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setShowSwipe(!showSwipe);
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className={`px-3 py-1 rounded-full text-[8px] font-black uppercase transition-all ${showSwipe ? 'bg-neon-red/20 text-neon-red border border-neon-red/40' : 'bg-white/5 text-gray-500 border border-white/10'}`}
-                    >
-                        {showSwipe ? 'ACTIF' : 'MASQUÉ'}
-                    </button>
-                </div>
+                <button
+                    type="button"
+                    onClick={() => {
+                        setShowSwipe(!showSwipe);
+                        setTimeout(() => generateImage(), 50);
+                    }}
+                    className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase transition-all ${showSwipe ? 'bg-neon-red/20 text-neon-red border border-neon-red/40' : 'bg-white/5 text-gray-500 border border-white/10'}`}
+                >
+                    {showSwipe ? 'ACTIF' : 'MASQUÉ'}
+                </button>
             </div>
 
             {exportButtons}
