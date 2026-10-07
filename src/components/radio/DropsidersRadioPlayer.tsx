@@ -556,7 +556,7 @@ function useRadioAudio() {
             const activeIframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
             if (activeIframe) {
                 const targetSrc = buildSoundCloudSrc(scUrl);
-                if (activeIframe.src && activeIframe.src.includes('soundcloud.com')) {
+                if (activeIframe.src === targetSrc) {
                     try {
                         activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'play' }), '*');
                     } catch {}
@@ -747,7 +747,7 @@ function useRadioAudio() {
                 const activeIframe = iframeRef.current;
                 if (activeIframe) {
                     const targetSrc = buildSoundCloudSrc(scUrl);
-                    if (activeIframe.src && activeIframe.src.includes('soundcloud.com')) {
+                    if (activeIframe.src === targetSrc) {
                         try {
                             activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'play' }), '*');
                         } catch {}
@@ -937,8 +937,25 @@ function useRadioAudio() {
                 }
             } catch {}
         };
+
+        const handleSCMessage = (event: MessageEvent) => {
+            try {
+                if (typeof event.origin === 'string' && event.origin.includes('soundcloud.com')) {
+                    const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                    if (data?.method === 'finish' || data?.method === 'finishRecord') {
+                        if (isPlayingRef.current) {
+                            advanceToNextTrack();
+                        }
+                    }
+                }
+            } catch {}
+        };
         window.addEventListener('message', handleYtMessage);
-        return () => window.removeEventListener('message', handleYtMessage);
+        window.addEventListener('message', handleSCMessage);
+        return () => {
+            window.removeEventListener('message', handleYtMessage);
+            window.removeEventListener('message', handleSCMessage);
+        };
     }, [advanceToNextTrack, scheduleVolumeEnforcement]);
 
 
@@ -1028,7 +1045,22 @@ function useRadioAudio() {
         window.addEventListener('dropsiders_radio_track_changed', onTrackChange);
 
         const watchdogInterval = setInterval(() => {
-            if (!isPlayingRef.current || !currentSetRef.current?.youtubeId || currentSetRef.current?.audioUrl) return;
+            if (!isPlayingRef.current) return;
+
+            // Watchdog SoundCloud : fin de morceau individuel si durée écoulée
+            if (currentSetRef.current?.soundcloudUrl && !currentSetRef.current?.audioUrl && !currentSetRef.current?.youtubeId) {
+                const now = Date.now();
+                const elapsedSinceStart = (now - trackStartedAtRef.current) / 1000;
+                const targetDur = currentSetRef.current?.durationSeconds || 0;
+                if (targetDur > 10 && elapsedSinceStart > targetDur + 3) {
+                    console.warn(`[Radio watchdog SC] Morceau SoundCloud terminé (${Math.round(elapsedSinceStart)}s / ${targetDur}s) → enchaînement`);
+                    advanceToNextTrack();
+                    return;
+                }
+                return;
+            }
+
+            if (!currentSetRef.current?.youtubeId || currentSetRef.current?.audioUrl) return;
 
             // Demander la position courante et renvoyer le handshake listening
             sendCmd('getCurrentTime', []);

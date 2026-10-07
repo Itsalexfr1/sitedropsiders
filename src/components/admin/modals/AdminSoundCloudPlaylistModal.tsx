@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -11,9 +11,12 @@ import {
   Radio,
   Clock,
   Loader2,
-  Info
+  Info,
+  ListPlus,
+  RefreshCw,
+  FileText
 } from 'lucide-react';
-import { type RadioScheduleBlock, formatRadioTimeSlot } from '../../../utils/radioSchedule';
+import { type RadioScheduleBlock, type RadioTrackItem, formatRadioTimeSlot } from '../../../utils/radioSchedule';
 
 export const SoundCloudIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -34,6 +37,7 @@ interface AdminSoundCloudPlaylistModalProps {
       author?: string;
       coverUrl?: string;
       purgeClips?: boolean;
+      extractedTracks?: RadioTrackItem[];
     }
   ) => void;
   onRemoveSoundCloudPlaylist?: (blockId: string) => void;
@@ -55,8 +59,73 @@ export function AdminSoundCloudPlaylistModal({
   const [playlistAuthor, setPlaylistAuthor] = useState<string>('');
   const [playlistCover, setPlaylistCover] = useState<string>('');
   const [isFetchingInfo, setIsFetchingInfo] = useState<boolean>(false);
+  const [isExtractingTracks, setIsExtractingTracks] = useState<boolean>(false);
+  const [extractedTracks, setExtractedTracks] = useState<RadioTrackItem[]>([]);
+  const [showManualInput, setShowManualInput] = useState<boolean>(false);
+  const [manualTracklistText, setManualTracklistText] = useState<string>('');
   const [randomize, setRandomize] = useState<boolean>(true);
   const [purgeClips, setPurgeClips] = useState<boolean>(true);
+
+  const extractorIframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  // Extraire les morceaux de la playlist via le widget HTML5 SoundCloud officiel
+  const extractTracksFromWidget = (urlToExtract: string) => {
+    const trimmed = urlToExtract.trim();
+    if (!trimmed.includes('soundcloud.com')) return;
+    setIsExtractingTracks(true);
+
+    const iframe = extractorIframeRef.current;
+    if (!iframe) {
+      setIsExtractingTracks(false);
+      return;
+    }
+
+    const targetSrc = `https://w.soundcloud.com/player/?url=${encodeURIComponent(trimmed)}&auto_play=false`;
+    if (!iframe.src || !iframe.src.includes(encodeURIComponent(trimmed))) {
+      iframe.src = targetSrc;
+    }
+
+    const tryParseSounds = () => {
+      const SC = typeof window !== 'undefined' ? (window as any).SC : null;
+      if (!SC?.Widget) return false;
+      try {
+        const widget = SC.Widget(iframe);
+        widget.getSounds((sounds: any[]) => {
+          if (Array.isArray(sounds) && sounds.length > 0) {
+            const parsed: RadioTrackItem[] = sounds.map((s, idx) => ({
+              id: `sc_${s.id || Date.now()}_${idx}`,
+              title: s.title || `Morceau ${idx + 1}`,
+              artist: s.user?.username || s.publisher_metadata?.artist || playlistAuthor || 'Artiste SoundCloud',
+              duration: Math.max(30, Math.round((s.duration || 180000) / 1000)),
+              category: 'clip' as const,
+              soundcloudUrl: s.permalink_url || `${trimmed}#${idx}`,
+              coverUrl: s.artwork_url || playlistCover,
+              addedAt: Date.now()
+            }));
+            setExtractedTracks(parsed);
+            setIsExtractingTracks(false);
+            onShowToast(`✓ ${parsed.length} morceaux extraits de la playlist !`, 'success');
+            return true;
+          }
+          return false;
+        });
+      } catch {
+        return false;
+      }
+      return false;
+    };
+
+    // Tenter immédiatement et avec des délais progressifs
+    [600, 1500, 3000, 5000].forEach((delay) => {
+      setTimeout(() => {
+        tryParseSounds();
+      }, delay);
+    });
+
+    setTimeout(() => {
+      setIsExtractingTracks(false);
+    }, 6000);
+  };
 
   // Sync initial selection
   useEffect(() => {
@@ -70,11 +139,19 @@ export function AdminSoundCloudPlaylistModal({
         setPlaylistTitle(targetBlock.soundcloudPlaylistTitle || '');
         setPlaylistAuthor(targetBlock.soundcloudPlaylistAuthor || '');
         setPlaylistCover(targetBlock.soundcloudPlaylistCover || '');
+        // Si le bloc a déjà des morceaux individuels soundcloudUrl
+        const existingClips = (targetBlock.tracks || []).filter(t => t.category === 'clip' && t.soundcloudUrl);
+        if (existingClips.length > 0) {
+          setExtractedTracks(existingClips);
+        } else {
+          extractTracksFromWidget(targetBlock.soundcloudPlaylistUrl);
+        }
       } else {
         setPlaylistUrl('');
         setPlaylistTitle('');
         setPlaylistAuthor('');
         setPlaylistCover('');
+        setExtractedTracks([]);
       }
     }
   }, [isOpen, defaultBlockId, blocks]);
@@ -88,20 +165,29 @@ export function AdminSoundCloudPlaylistModal({
       setPlaylistTitle(targetBlock.soundcloudPlaylistTitle || '');
       setPlaylistAuthor(targetBlock.soundcloudPlaylistAuthor || '');
       setPlaylistCover(targetBlock.soundcloudPlaylistCover || '');
+      const existingClips = (targetBlock.tracks || []).filter(t => t.category === 'clip' && t.soundcloudUrl);
+      if (existingClips.length > 0) {
+        setExtractedTracks(existingClips);
+      } else {
+        extractTracksFromWidget(targetBlock.soundcloudPlaylistUrl);
+      }
     } else {
       setPlaylistUrl('');
       setPlaylistTitle('');
       setPlaylistAuthor('');
       setPlaylistCover('');
+      setExtractedTracks([]);
     }
   };
 
-  // Auto-fetch SoundCloud playlist oEmbed info
+  // Auto-fetch SoundCloud playlist oEmbed info & extraire morceaux
   const handleFetchOEmbed = async (urlToFetch: string) => {
     const trimmed = urlToFetch.trim();
     if (!trimmed.includes('soundcloud.com')) return;
 
     setIsFetchingInfo(true);
+    extractTracksFromWidget(trimmed);
+
     try {
       const endpoint = `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(trimmed)}`;
       const res = await fetch(endpoint);
@@ -122,6 +208,50 @@ export function AdminSoundCloudPlaylistModal({
       // Ignore network/CORS error, link can still be saved directly
     } finally {
       setIsFetchingInfo(false);
+    }
+  };
+
+  // Convertir une liste manuelle texte (ex: "Artiste - Titre") en morceaux
+  const handleParseManualText = () => {
+    if (!manualTracklistText.trim()) return;
+    const lines = manualTracklistText.split('\n').map(l => l.trim()).filter(Boolean);
+    const parsed: RadioTrackItem[] = lines.map((line, idx) => {
+      let artist = playlistAuthor || 'Artiste';
+      let title = line;
+      let duration = 210;
+
+      if (line.includes(' - ')) {
+        const parts = line.split(' - ');
+        artist = parts[0].trim();
+        title = parts.slice(1).join(' - ').trim();
+      } else if (line.includes(' — ')) {
+        const parts = line.split(' — ');
+        artist = parts[0].trim();
+        title = parts.slice(1).join(' — ').trim();
+      }
+
+      const durMatch = title.match(/\((\d+):(\d+)\)/);
+      if (durMatch) {
+        duration = parseInt(durMatch[1], 10) * 60 + parseInt(durMatch[2], 10);
+        title = title.replace(/\(\d+:\d+\)/, '').trim();
+      }
+
+      return {
+        id: `sc_man_${Date.now()}_${idx}`,
+        title,
+        artist,
+        duration,
+        category: 'clip' as const,
+        soundcloudUrl: playlistUrl || undefined,
+        coverUrl: playlistCover || undefined,
+        addedAt: Date.now()
+      };
+    });
+
+    if (parsed.length > 0) {
+      setExtractedTracks(parsed);
+      setShowManualInput(false);
+      onShowToast(`✓ ${parsed.length} morceaux ajoutés depuis la liste texte !`, 'success');
     }
   };
 
@@ -148,9 +278,11 @@ export function AdminSoundCloudPlaylistModal({
       author: playlistAuthor.trim() || undefined,
       coverUrl: playlistCover.trim() || undefined,
       purgeClips,
+      extractedTracks: extractedTracks.length > 0 ? extractedTracks : undefined,
     });
 
-    onShowToast(`✓ Playlist SoundCloud liée et fusionnée à « ${currentBlock?.title || 'l’émission'} » !`, 'success');
+    const trackCountMsg = extractedTracks.length > 0 ? ` (${extractedTracks.length} morceaux individuels)` : '';
+    onShowToast(`✓ Playlist SoundCloud importée à « ${currentBlock?.title || 'l’émission'} »${trackCountMsg} !`, 'success');
     onClose();
   };
 
@@ -349,6 +481,104 @@ export function AdminSoundCloudPlaylistModal({
                 </div>
               </div>
             )}
+
+            {/* Iframe invisible pour l'extraction SoundCloud Widget API */}
+            <iframe
+              ref={extractorIframeRef}
+              src={playlistUrl && playlistUrl.includes('soundcloud.com') ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(playlistUrl)}&auto_play=false` : ''}
+              style={{ width: 1, height: 1, border: 0, position: 'absolute', opacity: 0, pointerEvents: 'none' }}
+              title="SoundCloud Extractor"
+              allow="autoplay"
+            />
+
+            {/* État de l'extraction des morceaux */}
+            {isExtractingTracks && (
+              <div className="p-3.5 rounded-2xl bg-orange-950/20 border border-orange-500/40 flex items-center gap-3">
+                <Loader2 className="w-5 h-5 text-orange-400 animate-spin shrink-0" />
+                <div className="text-xs text-orange-200">
+                  <strong className="block font-bold">Extraction des morceaux en cours...</strong>
+                  <span className="text-[11px] text-gray-400">Récupération des titres, artistes et durées individuels depuis SoundCloud.</span>
+                </div>
+              </div>
+            )}
+
+            {/* Liste des morceaux extraits pour le conducteur d'antenne */}
+            {extractedTracks.length > 0 && (
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-950/25 to-black/60 border border-emerald-500/40 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-display font-black uppercase text-emerald-400 flex items-center gap-1.5">
+                    <Music className="w-3.5 h-3.5" />
+                    {extractedTracks.length} morceaux individuels détectés
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => extractTracksFromWidget(playlistUrl)}
+                      className="text-[10px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20 cursor-pointer"
+                    >
+                      <RefreshCw className="w-3 h-3" /> Ré-extraire
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setExtractedTracks([])}
+                      className="text-[10px] text-gray-400 hover:text-red-400"
+                    >
+                      Vider
+                    </button>
+                  </div>
+                </div>
+                <p className="text-[11px] text-gray-300">
+                  Chaque morceau apparaîtra individuellement dans le tableau et le conducteur de l&apos;antenne, pour que l&apos;option <strong>« C&apos;était quoi ce titre »</strong> fonctionne à la perfection !
+                </p>
+                <div className="max-h-40 overflow-y-auto space-y-1.5 pr-1">
+                  {extractedTracks.map((t, i) => (
+                    <div key={i} className="flex items-center justify-between py-1 px-2.5 rounded-lg bg-white/5 border border-white/5 text-[11px]">
+                      <span className="truncate flex-1 text-white font-medium">
+                        <strong className="text-gray-400 mr-2">#{i + 1}</strong>
+                        <span className="text-orange-400 mr-1.5">{t.artist}</span> - {t.title}
+                      </span>
+                      <span className="text-gray-400 font-mono text-[10px] shrink-0 ml-2">
+                        {Math.floor(t.duration / 60)}:{String(t.duration % 60).padStart(2, '0')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Option Coller manuellement la liste des morceaux */}
+            <div className="pt-0.5">
+              <button
+                type="button"
+                onClick={() => setShowManualInput(!showManualInput)}
+                className="text-[11px] text-gray-400 hover:text-orange-400 flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <FileText className="w-3 h-3 text-orange-400" />
+                <span>{showManualInput ? 'Masquer la saisie manuelle' : '📝 Coller ou ajuster manuellement la liste des titres (optionnel)'}</span>
+              </button>
+              {showManualInput && (
+                <div className="mt-2 p-3 rounded-2xl bg-black/60 border border-white/10 space-y-2">
+                  <label className="text-[10px] font-black uppercase text-gray-400 block">
+                    Collez vos titres (un par ligne au format « Artiste - Titre ») :
+                  </label>
+                  <textarea
+                    value={manualTracklistText}
+                    onChange={(e) => setManualTracklistText(e.target.value)}
+                    placeholder="Stadiumx - Howl At The Moon (3:30)&#10;Nicky Romero - Warriors&#10;Dimitri Vegas - Melody"
+                    rows={4}
+                    className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white font-mono text-xs placeholder:text-gray-600 focus:outline-none focus:border-orange-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleParseManualText}
+                    disabled={!manualTracklistText.trim()}
+                    className="px-3 py-1.5 rounded-xl bg-orange-500 text-black text-xs font-bold uppercase tracking-wider hover:bg-orange-400 transition-all cursor-pointer disabled:opacity-40"
+                  >
+                    Convertir en morceaux
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* 3. Option Suppression des anciens clips & Fusion */}
             <div className="p-4 rounded-2xl bg-gradient-to-r from-red-950/30 via-orange-950/20 to-black/40 border border-orange-500/40 space-y-2">

@@ -1052,13 +1052,36 @@ export function AdminRadioModal({
     // ─── Enregistrer ou retirer une playlist SoundCloud liée à une émission ────
     const handleSaveSoundCloudPlaylist = (
         blockId: string,
-        data: { url: string; title?: string; author?: string; coverUrl?: string; purgeClips?: boolean }
+        data: {
+            url: string;
+            title?: string;
+            author?: string;
+            coverUrl?: string;
+            purgeClips?: boolean;
+            extractedTracks?: RadioTrackItem[];
+        }
     ) => {
         setBlocks(prev => {
             const next = prev.map(b => {
                 if (b.id !== blockId) return b;
 
-                // 1. Purge définitive des clips et sets YouTube existants si demandé (par défaut true)
+                // 1. Si des morceaux individuels ont été extraits de la playlist SoundCloud
+                if (data.extractedTracks && data.extractedTracks.length > 0) {
+                    const musicTracks = data.extractedTracks;
+                    // Entrelacement automatique avec les jingles et promos existants de l'émission selon sa règle active
+                    const interleaved = applyRotationPatternToTracks(b, musicTracks);
+
+                    return {
+                        ...b,
+                        tracks: interleaved,
+                        soundcloudPlaylistUrl: data.url || undefined,
+                        soundcloudPlaylistTitle: data.title || undefined,
+                        soundcloudPlaylistAuthor: data.author || undefined,
+                        soundcloudPlaylistCover: data.coverUrl || undefined,
+                    };
+                }
+
+                // 2. Fallback si aucun morceau individuel n'a pu être extrait (création d'un flux continu)
                 const shouldPurge = data.purgeClips !== false;
                 const preservedHabillage = shouldPurge
                     ? (b.tracks || []).filter(t => 
@@ -1071,7 +1094,6 @@ export function AdminRadioModal({
                     )
                     : (b.tracks || []);
 
-                // 2. Création de l'élément SoundCloud pour l'émission
                 const showDurationSec = Math.max(3600, (((b.endHour ?? 24) - (b.startHour ?? 0) + 24) % 24) * 3600 || 7200);
                 const soundcloudTrack: RadioTrackItem = {
                     id: `track_sc_${b.id}_${Date.now()}`,
@@ -1084,10 +1106,9 @@ export function AdminRadioModal({
                     addedAt: Date.now()
                 };
 
-                // 3. Fusion avec les jingles/promos sans couper l'antenne
                 const mergedTracks = shouldPurge
                     ? [soundcloudTrack, ...preservedHabillage]
-                    : [soundcloudTrack, ...(b.tracks || [])];
+                    : [soundcloudTrack, ...(b.tracks || []).filter(t => !t.soundcloudUrl)];
 
                 return {
                     ...b,
@@ -4273,12 +4294,12 @@ export function AdminRadioModal({
                                     <button
                                         type="button"
                                         onClick={() => setIsSoundCloudModalOpen(true)}
-                                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-orange-500/15 border border-orange-500/40 text-orange-300 hover:bg-orange-500 hover:text-black text-[10px] font-bold transition-all cursor-pointer shadow-sm"
-                                        title="Modifier la playlist SoundCloud liée à cette émission"
+                                        className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-orange-500/20 border border-orange-500/40 text-orange-300 hover:bg-orange-500 hover:text-black text-[11px] font-bold transition-all cursor-pointer shadow-sm"
+                                        title="Extraire tous les morceaux de la playlist SoundCloud dans le tableau"
                                     >
-                                        <SoundCloudIcon className="w-3 h-3 text-orange-400" />
-                                        <span className="truncate max-w-[170px]">
-                                            {selectedBlock.soundcloudPlaylistTitle || 'SoundCloud active'}
+                                        <SoundCloudIcon className="w-3.5 h-3.5 text-orange-400" />
+                                        <span className="truncate max-w-[240px]">
+                                            {selectedBlock.soundcloudPlaylistTitle || 'SoundCloud'} • Extraire les morceaux
                                         </span>
                                     </button>
                                 )}
