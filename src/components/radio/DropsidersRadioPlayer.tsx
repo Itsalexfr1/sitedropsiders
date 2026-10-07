@@ -541,6 +541,11 @@ function useRadioAudio() {
                 scheduleVolumeEnforcement();
                 sendCmd('playVideo');
             } else {
+                const isFirstPlay = !currentPlayingMediaRef.current;
+                const targetOffset = isFirstPlay ? Math.max(0, Math.floor(uiOffsetRef.current || 0)) : 0;
+                if (targetOffset > 2) {
+                    sendCmd('seekTo', [targetOffset, true]);
+                }
                 currentPlayingMediaRef.current = currentYt;
                 scheduleVolumeEnforcement();
                 sendCmd('playVideo');
@@ -1084,77 +1089,80 @@ function useRadioAudio() {
 
     // ─── Play / Pause ─────────────────────────────────────────────────────────
     const handlePlay = useCallback(() => {
-        const set = currentSetRef.current;
-        if (!set?.youtubeId && !set?.audioUrl) return;
-
         if (!isPlayingRef.current) {
-            if (set.audioUrl) {
-                if (iframeRef.current && iframeRef.current.src !== 'about:blank') {
-                    sendCmd('pauseVideo');
-                    iframeRef.current.src = 'about:blank';
-                }
-                preloadedVideoIdRef.current = null;
-                if (audioRef.current) {
-                    const isSameSrc = audioRef.current.src === set.audioUrl;
-                    if (!isSameSrc) {
-                        audioRef.current.src = set.audioUrl;
-                        // Offset frais depuis l'horloge Paris pour comportement radio
-                        const freshNow = getParisSeconds();
-                        const tStart = set.startSecondsFromMidnight ?? 0;
-                        let off = freshNow - tStart;
-                        if (off < 0) off += 86400;
-                        audioRef.current.currentTime = (off > 2 && off < 21600) ? off : 0;
+            // ─── 1. OBTENIR LE MORCEAU EN DIRECT EXACT À LA SECONDE PRÈS ───
+            const freshNowSec = getParisSeconds();
+            setUiTimeSec(freshNowSec);
+            const freshLive = getCurrentLiveRadioTrack(radioBlocksRef.current, freshNowSec);
+            const liveTrack = freshLive?.item;
+            if (!liveTrack?.youtubeId && !liveTrack?.audioUrl) return;
+
+            // Recaler l'offset frais en temps réel
+            const freshOffset = freshLive?.offsetSeconds ?? 0;
+            const safeOffset = (freshOffset > 2 && freshOffset < (liveTrack.durationSeconds || 3600))
+                ? Math.floor(freshOffset)
+                : 0;
+
+            // Mettre à jour immédiatement les refs pour que l'état soit instantanément cohérent
+            activeTrackRef.current = liveTrack;
+            currentSetRef.current = liveTrack;
+            uiOffsetRef.current = freshOffset;
+            setActiveTrack(liveTrack);
+
+            if (liveTrack.audioUrl) {
+                // Arrêter YouTube
+                [iframeRef.current, iframeRefB.current].forEach(iframe => {
+                    if (iframe && iframe.src !== 'about:blank') {
+                        try { iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*'); } catch {}
+                        iframe.src = 'about:blank';
                     }
-                    // FIX VOLUME RESET: volume appliqué AVANT play() — évite le bug de remise à zéro
+                });
+                preloadedVideoIdRef.current = null;
+
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                    audioRef.current.src = liveTrack.audioUrl;
+                    audioRef.current.currentTime = safeOffset;
                     audioRef.current.volume = isMutedRef.current ? 0 : (effectiveVolumeRef.current / 100);
                     audioRef.current.play().then(() => {
-                        currentPlayingMediaRef.current = set.audioUrl || null;
+                        currentPlayingMediaRef.current = liveTrack.id || liveTrack.audioUrl || null;
                     }).catch(() => {});
                 }
-            } else if (set.youtubeId) {
-                if (audioRef.current && !audioRef.current.paused) audioRef.current.pause();
+            } else if (liveTrack.youtubeId) {
+                if (audioRef.current && !audioRef.current.paused) {
+                    audioRef.current.pause();
+                    audioRef.current.src = '';
+                }
 
-                // Calcul FRAIS de l'offset au moment du clic (pas de ref périmée)
-                // = secondes écoulées depuis le début du track selon l'horloge Paris
-                const freshNowSec = getParisSeconds();
-                const trackStartSec = set.startSecondsFromMidnight ?? 0;
-                let freshOffset = freshNowSec - trackStartSec;
-                if (freshOffset < 0) freshOffset += 86400; // wrap minuit
-                // Sanity check : si offset > 6h, quelque chose est incohérent → repartir à 0
-                const safeOffset = (freshOffset > 2 && freshOffset < 21600) ? Math.floor(freshOffset) : 0;
+                const ytId = liveTrack.youtubeId;
+                const mobileMute = IS_MOBILE ? 0 : (isMutedRef.current ? 1 : 0);
+                const activeIframe = iframeRef.current;
 
-                const alreadyLoaded = !IS_MOBILE && iframeRef.current?.src?.includes(set.youtubeId);
-                if (alreadyLoaded) {
-                    // L'iframe est chargée mais peut-être à la mauvaise position → seekTo
-                    if (safeOffset > 2) sendCmd('seekTo', [safeOffset, true]);
+                if (activeIframe) {
+                    // Toujours reconstruire l'URL avec le start offset live pour garantir la reprise en direct
+                    activeIframe.src = buildSrc(ytId, safeOffset, mobileMute as 0 | 1);
+                    preloadedVideoIdRef.current = ytId;
+                    currentPlayingMediaRef.current = liveTrack.id || ytId;
                     scheduleVolumeEnforcement();
-                    sendCmd('playVideo');
-                    currentPlayingMediaRef.current = set.youtubeId;
-                } else {
-                    const mobileMute = IS_MOBILE ? 0 : (isMutedRef.current ? 1 : 0);
-                    const src = buildSrc(set.youtubeId, safeOffset, mobileMute as 0 | 1);
-                    if (iframeRef.current) iframeRef.current.src = src;
-                    preloadedVideoIdRef.current = set.youtubeId;
-                    currentPlayingMediaRef.current = set.youtubeId;
-                    scheduleVolumeEnforcement();
-                    sendCmd('playVideo');
+                    setTimeout(() => {
+                        sendCmd('playVideo', []);
+                        scheduleVolumeEnforcement();
+                    }, 150);
                 }
             }
-            // Lance la lecture et initialise activeTrack
-            trackStartedAtRef.current = Date.now(); // marquer le début pour le guard anti-coupure
+
+            // Lance la lecture
+            trackStartedAtRef.current = Date.now();
+            isPlayingRef.current = true;
             setIsPlaying(true);
-            // Figer le track actif au moment du Play (découplé de l'horloge)
-            if (!activeTrackRef.current) {
-                setActiveTrack(currentSetRef.current);
-            }
+
             // Recaler l'index séquentiel dans la grille du jour
             try {
-                const schedule = computeRadioDaySchedule(radioBlocksRef.current, getParisSeconds());
-                const cur = currentSetRef.current;
-                if (cur && schedule.length > 0) {
-                    let idx = schedule.findIndex(s => s.id === cur.id);
+                const schedule = computeRadioDaySchedule(radioBlocksRef.current, freshNowSec);
+                if (schedule && schedule.length > 0) {
+                    let idx = schedule.findIndex(s => s.id === liveTrack.id);
                     if (idx < 0) {
-                        idx = schedule.findIndex(s => s.title === cur.title && Math.abs(s.startSecondsFromMidnight - cur.startSecondsFromMidnight) < 3600);
+                        idx = schedule.findIndex(s => s.title === liveTrack.title && Math.abs(s.startSecondsFromMidnight - liveTrack.startSecondsFromMidnight) < 3600);
                     }
                     currentTrackIndexRef.current = idx >= 0 ? idx : 0;
                 }
@@ -1165,35 +1173,56 @@ function useRadioAudio() {
                 setTimeout(sendHandshake, delay);
             });
         } else {
-            // Pause propre sans vider l'iframe ni réinitialiser la position
+            // Pause propre : tout couper et réinitialiser activeTrack pour que le prochain Play reparte du DIRECT
             if (audioRef.current) audioRef.current.pause();
-            sendCmd('pauseVideo');
+            sendCmd('pauseVideo', []);
+            isPlayingRef.current = false;
             setIsPlaying(false);
-            // En pause : libérer activeTrack pour retomber sur l'horloge
             setActiveTrack(null);
+            activeTrackRef.current = null;
+            currentPlayingMediaRef.current = null;
+            preloadedVideoIdRef.current = null;
+            preloadedAudioUrlRef.current = null;
             currentTrackIndexRef.current = -1;
-            setUiTimeSec(getParisSeconds());
+
+            const freshNowSec = getParisSeconds();
+            setUiTimeSec(freshNowSec);
+            const freshLive = getCurrentLiveRadioTrack(radioBlocksRef.current, freshNowSec);
+            currentSetRef.current = freshLive?.item || null;
+            uiOffsetRef.current = freshLive?.offsetSeconds ?? 0;
         }
-    }, [sendCmd, preloadNextTrack, scheduleVolumeEnforcement]);
+    }, [sendCmd, scheduleVolumeEnforcement, sendHandshake]);
 
     const handleStop = useCallback(() => {
         currentPlayingMediaRef.current = null;
         preloadedVideoIdRef.current = null;
         preloadedAudioUrlRef.current = null;
         currentTrackIndexRef.current = -1;
-        if (audioRef.current) audioRef.current.pause();
-        if (audioPreloadRef.current) { audioPreloadRef.current.pause(); audioPreloadRef.current.src = ''; }
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.src = '';
+        }
+        if (audioPreloadRef.current) {
+            audioPreloadRef.current.pause();
+            audioPreloadRef.current.src = '';
+        }
         // Stopper et vider les deux slots iframe
         [iframeRef.current, iframeRefB.current].forEach(iframe => {
             if (iframe) {
-                iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
+                try { iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*'); } catch {}
                 iframe.src = 'about:blank';
             }
         });
         activeSlotRef.current = 'A'; // reset au slot A
+        isPlayingRef.current = false;
         setIsPlaying(false);
         setActiveTrack(null);
-        setUiTimeSec(getParisSeconds());
+        activeTrackRef.current = null;
+        const freshNowSec = getParisSeconds();
+        setUiTimeSec(freshNowSec);
+        const freshLive = getCurrentLiveRadioTrack(radioBlocksRef.current, freshNowSec);
+        currentSetRef.current = freshLive?.item || null;
+        uiOffsetRef.current = freshLive?.offsetSeconds ?? 0;
     }, []);
 
     const handleNext = useCallback(() => {
@@ -2004,16 +2033,6 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                             {/* EQ Bars */}
                             <AudioBars playing={isPlaying} />
 
-                            {/* Temps */}
-                            <div className="shrink-0 text-right hidden xl:block">
-                                <div className="flex items-center gap-1.5 text-[8px] font-mono text-gray-500">
-                                    <Clock className="w-2.5 h-2.5 text-neon-cyan" />
-                                    <span className="text-neon-cyan">{currentSet.startTime}</span>
-                                    <span>·</span>
-                                    <span>{currentSet.durationFormatted}</span>
-                                </div>
-                                <div className="text-[8px] font-mono text-gray-600 mt-0.5">{formatDurationExact(uiOffset)} écoulé</div>
-                            </div>
 
                             {/* Divider */}
                             <div className="h-8 w-px bg-white/10 shrink-0" />

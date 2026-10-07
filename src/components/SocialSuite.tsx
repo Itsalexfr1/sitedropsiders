@@ -250,6 +250,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [afficheGlow, setAfficheGlow] = useState<boolean>(true);
     const [afficheBorderColor, setAfficheBorderColor] = useState<string>('rgba(255, 255, 255, 0.22)');
     const [afficheMode, setAfficheMode] = useState<'cover' | 'contain'>('cover');
+    const [afficheScale, setAfficheScale] = useState<number>(100);
+    const [afficheOffsetY, setAfficheOffsetY] = useState<number>(0);
     const afficheFileInputRef = useRef<HTMLInputElement>(null);
 
     const handleAfficheImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2827,12 +2829,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillStyle = vig;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // 2. Dimensions fixes et constantes de la carte d'affiche
-                const cardW = 940;
-                const cardX = Math.round((canvas.width - cardW) / 2); // 70px
-                const cardY = isStory ? 150 : 120;
-                const cardH = isStory ? 1620 : 1110;
-                const rad = isStory ? 28 : 26;
+                // 2. Dimensions de la carte d'affiche (réduite pour ne plus passer sous le logo Dropsiders)
+                const baseCardW = 800;
+                const baseCardH = isStory ? 1380 : 980;
+                const baseCardY = isStory ? (bgVideo ? 250 : 220) : (bgVideo ? 230 : 195);
+
+                const scale = (afficheScale || 100) / 100;
+                const cardW = Math.round(baseCardW * scale);
+                const cardH = Math.round(baseCardH * scale);
+                const cardX = Math.round((canvas.width - cardW) / 2);
+                const cardY = Math.round(baseCardY + ((baseCardH - cardH) / 2) + (afficheOffsetY || 0));
+                const rad = isStory ? 28 : 24;
 
                 // 3. Ombre portée 3D et halo ambiant néon
                 ctx.save();
@@ -3287,7 +3294,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY]);
 
     // Pre-charger l'affiche de l'événement dès que son URL change
     useEffect(() => {
@@ -5555,6 +5562,60 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     >
                         Entière (Contain)
                     </button>
+                </div>
+
+                {/* Contrôles de taille et position (évite de passer sous le logo Dropsiders) */}
+                <div className="space-y-2.5 pt-2 border-t border-white/5">
+                    <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
+                            <span>Taille de l'affiche</span>
+                            <span className="text-neon-red font-mono">{afficheScale}%</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="60"
+                            max="120"
+                            value={afficheScale}
+                            onChange={(e) => {
+                                setAfficheScale(Number(e.target.value));
+                                setTimeout(() => generateImage(), 30);
+                            }}
+                            className="w-full accent-neon-red bg-white/10 rounded-lg h-1.5 cursor-pointer"
+                        />
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
+                            <span>Position Verticale</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-gray-300 font-mono text-[8px]">{afficheOffsetY > 0 ? `+${afficheOffsetY}` : afficheOffsetY}px</span>
+                                {(afficheOffsetY !== 0 || afficheScale !== 100) && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setAfficheScale(100);
+                                            setAfficheOffsetY(0);
+                                            setTimeout(() => generateImage(), 30);
+                                        }}
+                                        className="text-[8px] text-neon-red hover:underline cursor-pointer uppercase font-bold"
+                                    >
+                                        Reset
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                        <input
+                            type="range"
+                            min="-150"
+                            max="150"
+                            value={afficheOffsetY}
+                            onChange={(e) => {
+                                setAfficheOffsetY(Number(e.target.value));
+                                setTimeout(() => generateImage(), 30);
+                            }}
+                            className="w-full accent-neon-red bg-white/10 rounded-lg h-1.5 cursor-pointer"
+                        />
+                    </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-white/5">
