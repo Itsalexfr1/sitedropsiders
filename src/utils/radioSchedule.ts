@@ -192,6 +192,10 @@ export interface RadioScheduleBlock {
     specialJingles?: RadioSpecialJingle[]; // Jingles spécifiques à cette émission
     jingleFrequency?: number; // Ex: tous les 2, 3 morceaux
     rotationRule?: RadioRotationRule; // Règle de rotation / mélange jingles & promos
+    soundcloudPlaylistUrl?: string; // Lien de la playlist SoundCloud
+    soundcloudPlaylistTitle?: string; // Titre de la playlist SoundCloud
+    soundcloudPlaylistAuthor?: string; // Curateur / Artiste SoundCloud
+    soundcloudPlaylistCover?: string; // Image de pochette de la playlist
 }
 
 export interface ComputedRadioScheduleItem {

@@ -95,6 +95,7 @@ import { RadioBroadcastRecorder } from '../radio/RadioBroadcastRecorder';
 import { RadioYouTubeCuePlayer } from '../radio/RadioYouTubeCuePlayer';
 import { DEFAULT_JINGLES_PUBS, type RadionomyItem } from './RadionomyJinglesBox';
 import { SunoJingleStudioModal } from './SunoJingleStudioModal';
+import { AdminSoundCloudPlaylistModal, SoundCloudIcon } from './AdminSoundCloudPlaylistModal';
 
 const PRESET_EMOJIS = ['🎧', '🔥', '⚡', '🚀', '🎵', '🕺', '📻', '💎', '🎉', '🌙', '☀️', '⭐', '🌅', '🎪'];
 const PRESET_COLORS = [
@@ -202,6 +203,7 @@ export function AdminRadioModal({
     const [isSunoModalOpen, setIsSunoModalOpen] = useState(false);
     const [isAddMediaDropdownOpen, setIsAddMediaDropdownOpen] = useState(false);
     const [isYouTubeSearchOpen, setIsYouTubeSearchOpen] = useState(false);
+    const [isSoundCloudModalOpen, setIsSoundCloudModalOpen] = useState(false);
 
     // ─── Formulaire rapide d'ajout de morceau ─────────────────────────────────
     const [showAddTrackBox, setShowAddTrackBox] = useState(false);
@@ -1047,6 +1049,60 @@ export function AdminRadioModal({
         });
     };
 
+    // ─── Enregistrer ou retirer une playlist SoundCloud liée à une émission ────
+    const handleSaveSoundCloudPlaylist = (
+        blockId: string,
+        data: { url: string; title?: string; author?: string; coverUrl?: string }
+    ) => {
+        setBlocks(prev => {
+            const next = prev.map(b => {
+                if (b.id !== blockId) return b;
+                return {
+                    ...b,
+                    soundcloudPlaylistUrl: data.url || undefined,
+                    soundcloudPlaylistTitle: data.title || undefined,
+                    soundcloudPlaylistAuthor: data.author || undefined,
+                    soundcloudPlaylistCover: data.coverUrl || undefined,
+                };
+            });
+            try {
+                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
+                window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+                apiFetch('/api/settings/update', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ radio_blocks: next })
+                }).catch(() => {});
+            } catch {}
+            return next;
+        });
+    };
+
+    const handleRemoveSoundCloudPlaylist = (blockId: string) => {
+        setBlocks(prev => {
+            const next = prev.map(b => {
+                if (b.id !== blockId) return b;
+                return {
+                    ...b,
+                    soundcloudPlaylistUrl: undefined,
+                    soundcloudPlaylistTitle: undefined,
+                    soundcloudPlaylistAuthor: undefined,
+                    soundcloudPlaylistCover: undefined,
+                };
+            });
+            try {
+                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
+                window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+                apiFetch('/api/settings/update', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ radio_blocks: next })
+                }).catch(() => {});
+            } catch {}
+            return next;
+        });
+    };
+
     // ─── Ajout rapide de morceau dans l'émission active ───────────────────────
     const handleAddTrackToCurrentEmission = () => {
         if (!selectedBlock) {
@@ -1868,6 +1924,17 @@ export function AdminRadioModal({
                                     <button
                                         type="button"
                                         onClick={() => {
+                                            setIsSoundCloudModalOpen(true);
+                                            setIsAddMediaDropdownOpen(false);
+                                        }}
+                                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-orange-500/20 text-orange-300 flex items-center gap-2 text-xs font-bold transition-all cursor-pointer border border-orange-500/30 bg-orange-500/10"
+                                    >
+                                        <SoundCloudIcon className="w-3.5 h-3.5 text-orange-400" />
+                                        <span>🟠 Playlist SoundCloud</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
                                             setIsSunoModalOpen(true);
                                             setIsAddMediaDropdownOpen(false);
                                         }}
@@ -2117,6 +2184,11 @@ export function AdminRadioModal({
                                                         {b.themeJingle && (b.themeJingle.audioUrl || b.themeJingle.youtubeId) && (
                                                             <span className="text-[8px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40 px-1 rounded" title="Générique d'intro configuré">
                                                                 🎙️
+                                                            </span>
+                                                        )}
+                                                        {b.soundcloudPlaylistUrl && (
+                                                            <span className="text-[8px] font-mono font-bold bg-orange-500/20 text-orange-300 border border-orange-500/40 px-1 rounded flex items-center gap-0.5" title="Playlist SoundCloud liée">
+                                                                <SoundCloudIcon className="w-2.5 h-2.5" /> SC
                                                             </span>
                                                         )}
                                                         {specialCount > 0 && (
@@ -4162,6 +4234,21 @@ export function AdminRadioModal({
                                     {currentTableItems.length} élément{currentTableItems.length > 1 ? 's' : ''}
                                 </span>
 
+                                {/* Badge Playlist SoundCloud active sur cette émission */}
+                                {selectedBlock?.soundcloudPlaylistUrl && activeFolder.startsWith('emission:') && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsSoundCloudModalOpen(true)}
+                                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-orange-500/15 border border-orange-500/40 text-orange-300 hover:bg-orange-500 hover:text-black text-[10px] font-bold transition-all cursor-pointer shadow-sm"
+                                        title="Modifier la playlist SoundCloud liée à cette émission"
+                                    >
+                                        <SoundCloudIcon className="w-3 h-3 text-orange-400" />
+                                        <span className="truncate max-w-[170px]">
+                                            {selectedBlock.soundcloudPlaylistTitle || 'SoundCloud active'}
+                                        </span>
+                                    </button>
+                                )}
+
                                 {/* Bouton rapide d'édition d'émission & réglage fréquence */}
                                 {selectedBlock && activeFolder.startsWith('emission:') && (
                                     <div className="flex items-center gap-2">
@@ -4264,15 +4351,16 @@ export function AdminRadioModal({
                                     </button>
                                 )}
 
-                                {/* Bouton Ajouter Morceau manuel */}
+                                {/* Bouton Playlist SoundCloud (remplace Ajouter par URL) */}
                                 {selectedBlock && !activeFolder.includes('jingle') && activeFolder !== 'tv_lib' && activeFolder !== 'promos' && activeFolder !== 'pubs' && (
                                     <button
                                         type="button"
-                                        onClick={() => setShowAddTrackBox(!showAddTrackBox)}
-                                        className="px-3.5 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500 text-cyan-300 hover:text-black border border-cyan-500/30 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+                                        onClick={() => setIsSoundCloudModalOpen(true)}
+                                        className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-orange-500/20 to-amber-500/20 hover:from-orange-500 hover:to-amber-500 text-orange-300 hover:text-black border border-orange-500/40 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-sm"
+                                        title="Associer ou importer une Playlist SoundCloud pour une émission"
                                     >
-                                        <Plus className="w-3.5 h-3.5" />
-                                        <span>{showAddTrackBox ? 'Fermer ajout' : 'Ajouter par URL'}</span>
+                                        <SoundCloudIcon className="w-3.5 h-3.5" />
+                                        <span>+ Playlist SoundCloud</span>
                                     </button>
                                 )}
 
@@ -4798,6 +4886,17 @@ export function AdminRadioModal({
                     setRadioDuplicates(prev => prev.filter(d => d.youtubeId !== ytId));
                     showToast('✓ Doublon résolu !');
                 }}
+            />
+
+            {/* ── MODALE PLAYLIST SOUNDCLOUD PAR ÉMISSION ── */}
+            <AdminSoundCloudPlaylistModal
+                isOpen={isSoundCloudModalOpen}
+                onClose={() => setIsSoundCloudModalOpen(false)}
+                blocks={blocks}
+                defaultBlockId={selectedBlock?.id}
+                onSaveSoundCloudPlaylist={handleSaveSoundCloudPlaylist}
+                onRemoveSoundCloudPlaylist={handleRemoveSoundCloudPlaylist}
+                onShowToast={showToast}
             />
         </div>
     );
