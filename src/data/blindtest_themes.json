@@ -1,16 +1,5 @@
 [
   {
-    "id": "edm-classics",
-    "title": "EDM Classics (2010-2016)",
-    "description": "Avicii, David Guetta, Swedish House Mafia, Calvin Harris, Martin Garrix...",
-    "deezerPlaylistId": "3264808726",
-    "deezerPlaylistUrl": "https://www.deezer.com/fr/playlist/3264808726",
-    "color": "#00f0ff",
-    "badge": "LÉGENDAIRE",
-    "coverUrl": "https://cdn-images.dzcdn.net/images/cover/6704168518eedd6eff222b5fb55f86c0/500x500-000000-80-0-0.jpg",
-    "enabled": true
-  },
-  {
     "id": "festival-bangers",
     "title": "Mainstage & Festival Bangers",
     "description": "Tomorrowland, Ultra Music Festival, Hardwell, Dimitri Vegas & Like Mike, Timmy Trumpet...",
