@@ -230,8 +230,28 @@ export function AdminRadioModal({
     // ─── Activer/désactiver les messages auditeurs ──────────────────────────
     const RADIO_MESSAGES_ENABLED_KEY = 'dropsiders_radio_messages_enabled';
     const [messagesEnabled, setMessagesEnabled] = useState(() => {
-        try { return localStorage.getItem(RADIO_MESSAGES_ENABLED_KEY) !== 'false'; } catch { return true; }
+        try {
+            const local = localStorage.getItem(RADIO_MESSAGES_ENABLED_KEY);
+            if (local !== null) return local === 'true';
+            return false;
+        } catch { return false; }
     });
+
+    useEffect(() => {
+        if (isOpen) {
+            fetch('/api/settings')
+                .then(r => r.ok ? r.json() : null)
+                .then(data => {
+                    if (data && typeof data.radio_messages_enabled === 'boolean') {
+                        setMessagesEnabled(data.radio_messages_enabled);
+                        try {
+                            localStorage.setItem(RADIO_MESSAGES_ENABLED_KEY, String(data.radio_messages_enabled));
+                        } catch {}
+                    }
+                })
+                .catch(() => {});
+        }
+    }, [isOpen]);
 
     const handleToggleMessages = () => {
         const next = !messagesEnabled;
@@ -240,7 +260,7 @@ export function AdminRadioModal({
             localStorage.setItem(RADIO_MESSAGES_ENABLED_KEY, next ? 'true' : 'false');
             window.dispatchEvent(new CustomEvent('dropsiders_radio_messages_toggle'));
         } catch {}
-        // Persister aussi côté API si possible
+        // Persister aussi côté API (pour tout le monde, y compris navigation privée)
         try {
             apiFetch('/api/settings/update', {
                 method: 'POST',

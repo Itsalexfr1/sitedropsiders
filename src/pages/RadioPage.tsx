@@ -600,17 +600,30 @@ export function RadioPage() {
     }, []);
 
     const [messagesEnabled, setMessagesEnabled] = useState(() => {
-        try { return localStorage.getItem(RADIO_MESSAGES_ENABLED_KEY) !== 'false'; } catch { return true; }
+        try {
+            const local = localStorage.getItem(RADIO_MESSAGES_ENABLED_KEY);
+            if (local !== null) return local === 'true';
+            return false;
+        } catch {
+            return false;
+        }
     });
 
     useEffect(() => {
-        const onStorage = () => setMessagesEnabled(localStorage.getItem(RADIO_MESSAGES_ENABLED_KEY) !== 'false');
+        const onStorage = () => {
+            try {
+                const local = localStorage.getItem(RADIO_MESSAGES_ENABLED_KEY);
+                if (local !== null) setMessagesEnabled(local === 'true');
+            } catch {}
+        };
         window.addEventListener('storage', onStorage);
         window.addEventListener('dropsiders_radio_messages_toggle', onStorage);
         fetch('/api/settings').then(r => r.ok ? r.json() : null).then(data => {
             if (data && typeof data.radio_messages_enabled === 'boolean') {
                 setMessagesEnabled(data.radio_messages_enabled);
-                localStorage.setItem(RADIO_MESSAGES_ENABLED_KEY, data.radio_messages_enabled ? 'true' : 'false');
+                try {
+                    localStorage.setItem(RADIO_MESSAGES_ENABLED_KEY, data.radio_messages_enabled ? 'true' : 'false');
+                } catch {}
             }
         }).catch(() => {});
         return () => {

@@ -1360,24 +1360,50 @@ function RadioIframe({ iframeRef, iframeRefB, audioRef }: {
 
 // ─── Clé localStorage pour la position du bouton radio mobile ────────────────
 const RADIO_BTN_POS_KEY = 'radio_btn_position';
-const RADIO_MESSAGES_ENABLED_KEY = 'dropsiders_radio_messages_enabled';
+export const RADIO_MESSAGES_ENABLED_KEY = 'dropsiders_radio_messages_enabled';
 
-/** Lit la clé localStorage et se met à jour en temps réel quand l'admin toggle l'option. */
-function useMessagesEnabled() {
+/** Lit la configuration serveur et le localStorage, et se met à jour en temps réel. */
+export function useMessagesEnabled() {
     const [enabled, setEnabled] = useState(() => {
-        try { return localStorage.getItem(RADIO_MESSAGES_ENABLED_KEY) !== 'false'; } catch { return true; }
+        try {
+            const local = localStorage.getItem(RADIO_MESSAGES_ENABLED_KEY);
+            if (local !== null) return local === 'true';
+            return false; // Par défaut désactivé pour navigation privée/sans cache tant que non confirmé par l'API
+        } catch {
+            return false;
+        }
     });
+
     useEffect(() => {
         const sync = () => {
-            try { setEnabled(localStorage.getItem(RADIO_MESSAGES_ENABLED_KEY) !== 'false'); } catch {}
+            try {
+                const local = localStorage.getItem(RADIO_MESSAGES_ENABLED_KEY);
+                if (local !== null) setEnabled(local === 'true');
+            } catch {}
         };
+
         window.addEventListener('dropsiders_radio_messages_toggle', sync);
         window.addEventListener('storage', sync);
+
+        // Synchronisation globale avec l'API du site (crucial pour la navigation privée et les nouveaux visiteurs)
+        fetch('/api/settings')
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (data && typeof data.radio_messages_enabled === 'boolean') {
+                    setEnabled(data.radio_messages_enabled);
+                    try {
+                        localStorage.setItem(RADIO_MESSAGES_ENABLED_KEY, String(data.radio_messages_enabled));
+                    } catch {}
+                }
+            })
+            .catch(() => {});
+
         return () => {
             window.removeEventListener('dropsiders_radio_messages_toggle', sync);
             window.removeEventListener('storage', sync);
         };
     }, []);
+
     return enabled;
 }
 

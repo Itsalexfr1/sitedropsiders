@@ -12,6 +12,7 @@ import {
     MessageSquare
 } from 'lucide-react';
 import { RadioDedicationModal } from './RadioDedicationModal';
+import { useMessagesEnabled } from './DropsidersRadioPlayer';
 import { 
     formatDurationExact, 
     getCurrentLiveRadioTrack, 
@@ -45,6 +46,7 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
     const [uiOffset, setUiOffset] = useState(() => initialLive?.offsetSeconds || 0);
     const [listenersCount, setListenersCount] = useState<number>(0);
     const [isDedicationModalOpen, setIsDedicationModalOpen] = useState(false);
+    const messagesEnabled = useMessagesEnabled();
 
     // Synchronisation avec DropsidersRadioPlayer via custom events
     useEffect(() => {
@@ -242,6 +244,7 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
                 </div>
 
                 {/* Dédicace Auditeur */}
+                {messagesEnabled && (
                 <button
                     type="button"
                     onClick={() => setIsDedicationModalOpen(true)}
@@ -251,6 +254,7 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
                     <MessageSquare className="w-3.5 h-3.5 text-purple-400" />
                     <span>Dédicace</span>
                 </button>
+                )}
 
                 {/* Volume & Mute */}
                 <div className="flex items-center gap-2">
