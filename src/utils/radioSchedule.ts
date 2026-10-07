@@ -224,6 +224,10 @@ export interface ComputedRadioScheduleItem {
     expiresAt?: string;
     soundcloudUrl?: string;
     coverUrl?: string;
+    mediaOffsetSeconds?: number;
+    totalMediaDurationSeconds?: number;
+    partIndex?: number;
+    isResumePart?: boolean;
 }
 
 /**
@@ -636,6 +640,30 @@ export const DEFAULT_SYSTEM_PROMOS: RadioTrackItem[] = [
         audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav',
         duration: 40,
         category: 'promo'
+    },
+    {
+        id: 'promo_sys_pub_voyages',
+        title: 'Publicité Dropsiders Voyages • Packs Festivals & Bus',
+        artist: 'PUBLICITÉ / SPONSOR',
+        youtubeId: 'pQdsHoG2yhw',
+        duration: 30,
+        category: 'pub'
+    },
+    {
+        id: 'promo_sys_pub_shop',
+        title: 'Spot Partenaire • Dropsiders Shop Officiel & Goodies',
+        artist: 'PUBLICITÉ / SPONSOR',
+        youtubeId: '61tiIdIrjUQ',
+        duration: 25,
+        category: 'pub'
+    },
+    {
+        id: 'promo_sys_promo_tv',
+        title: 'Promo Dropsiders TV & Live Stream 24/7',
+        artist: 'PROMO DROPSIDERS',
+        youtubeId: 'DuXXMZLfAkQ',
+        duration: 20,
+        category: 'promo'
     }
 ];
 
@@ -762,6 +790,7 @@ export function applyRotationPatternToTracks(
         ? overridePromos
         : (blockPromos.length > 0 ? blockPromos : getGeneralPromosList());
     const promos = rawPromos.filter(p => !isItemExpired(p));
+    const effectivePromos = promos.length > 0 ? promos : DEFAULT_SYSTEM_PROMOS;
 
     const rule = block.rotationRule || 'jingle_son_special_promo';
 
@@ -803,8 +832,8 @@ export function applyRotationPatternToTracks(
     };
 
     const pickPromo = (tag: string | number): RadioTrackItem | null => {
-        if (promos.length > 0) {
-            const p = promos[pIdx % promos.length];
+        if (effectivePromos.length > 0) {
+            const p = effectivePromos[pIdx % effectivePromos.length];
             pIdx++;
             return { ...p, id: `pr_${block.id}_${tag}` };
         }
@@ -912,6 +941,12 @@ export function applyRotationPatternToTracks(
         });
     }
 
+    // 🌟 Sécurité : garantir qu'au moins 1 promo officielle est incluse si la règle diffuse de l'habillage
+    if (rule !== 'jingles_only' && effectivePromos.length > 0 && !result.some(t => t.category === 'promo' || t.category === 'pub')) {
+        const pr = pickPromo('guaranteed_promo');
+        if (pr) result.push(pr);
+    }
+
     return result.length > 0 ? result : musicTracks;
 }
 
@@ -945,7 +980,12 @@ export function buildInterleavedPlaylist(
         ? musicTracks
         : getSeededShuffle(musicTracks, `${todayStr}_${block.id}`);
 
-    const interleaved = applyRotationPatternToTracks(block, shuffledMusic);
+    // Promos garanties pour la rotation du conducteur en direct
+    const blockPromos = allTracks.filter(t => (t.category === 'promo' || t.category === 'pub') && !isItemExpired(t));
+    const systemPromos = getGeneralPromosList();
+    const promosForLive = blockPromos.length > 0 ? blockPromos : (systemPromos.length > 0 ? systemPromos : DEFAULT_SYSTEM_PROMOS);
+
+    const interleaved = applyRotationPatternToTracks(block, shuffledMusic, undefined, promosForLive);
     return interleaved.length > 0 ? interleaved : [{
         id: `${block.id}_fallback`,
         title: `${block.title} - Continuous Mix`,
@@ -1008,7 +1048,11 @@ export function saveCachedRadioDuration(idOrYt: string, durationSec: number): vo
     } catch {}
 }
 
-const LIVE_SET_KEYWORDS = ['live', 'set', 'festival', 'tomorrowland', 'ultra', 'edc', 'lost lands', 'defqon', 'awakenings', 'b2b', 'stage', 'closing', 'opening', 'full set', 'session', 'journey'];
+const LIVE_SET_KEYWORDS = [
+    'live', 'set', 'festival', 'tomorrowland', 'ultra', 'edc', 'lost lands', 'defqon',
+    'awakenings', 'b2b', 'stage', 'closing', 'opening', 'full set', 'session', 'journey',
+    'verknipt', 'teletech', 'blackworks', 'qlimax', 'intents', 'hardstyle', 'uptempo'
+];
 
 export function isLikelySingleTrack(title?: string): boolean {
     if (!title) return true;
@@ -1018,8 +1062,8 @@ export function isLikelySingleTrack(title?: string): boolean {
 
 export function sanitizeTrackDuration(t: RadioTrackItem): number {
     const cached = getCachedRadioDurations();
-    const isLiveSet = t.category === 'liveset' || t.category === 'set';
-    const isClip = t.category === 'clip';
+    const isLiveSet = t.category === 'liveset' || t.category === 'set' || !isLikelySingleTrack(t.title) || (typeof t.duration === 'number' && t.duration >= 600);
+    const isClip = t.category === 'clip' && !isLiveSet;
 
     // 1. Durée réelle mesurée et mise en cache lors de la lecture (prioritaire si cohérente)
     const rawCached = (t.youtubeId && cached[t.youtubeId]) || (t.audioUrl && cached[t.audioUrl]) || (t.id && cached[t.id]);
@@ -1034,10 +1078,14 @@ export function sanitizeTrackDuration(t: RadioTrackItem): number {
 
     // 2. Durée réelle explicite enregistrée dans les données avec correction des placeholders
     if (t.duration && t.duration > 0) {
-        if (t.category === 'clip' && t.duration >= 1800) return 210;
+        // UN LIVE SET (ou track >= 10min) DOIT TOUJOURS CONSERVER SA VRAIE DURÉE ENTIÈRE (jusqu'à 2h+)
+        if (isLiveSet) {
+            return t.duration;
+        }
+        // Seuls les clips ordinaires avec l'anomalie de placeholder 1h (3600s) sont ramenés à 210s
+        if (t.category === 'clip' && t.duration === 3600 && isLikelySingleTrack(t.title)) return 210;
         if ((t.category === 'jingle' || t.isTopHoraire || t.isThemeJingle) && t.duration > 120) return 15;
         if ((t.category === 'promo' || t.category === 'pub') && t.duration > 300) return 45;
-        if (t.duration === 3600 && isLikelySingleTrack(t.title)) return 210;
         return t.duration;
     }
 
@@ -1045,12 +1093,11 @@ export function sanitizeTrackDuration(t: RadioTrackItem): number {
     if (t.category === 'promo') return 45;
     if (t.category === 'jingle' || t.isTopHoraire || t.isThemeJingle) return 15;
     if (t.category === 'pub') return 30;
+    if (isLiveSet || t.category === 'liveset' || t.category === 'set') {
+        return 3600; // ~1h pour les live sets sans durée explicite
+    }
     if (t.category === 'clip') return 210; // ~3m30 pour les clips vidéo
     if (t.category === 'interview') return 600; // ~10min pour les interviews
-    if (t.category === 'liveset' || t.category === 'set') {
-        if (isLikelySingleTrack(t.title)) return 210;
-        return 3600; // ~1h pour les vrais live sets
-    }
     return 210; // ~3m30 par défaut
 }
 
@@ -1084,104 +1131,343 @@ export function computeRadioDaySchedule(
         if (blockDurationHours <= 0) blockDurationHours += 24;
 
         const blockStartSec = startH * 3600;
+        const totalBlockSec = blockDurationHours * 3600;
         const tracks = buildInterleavedPlaylist(block, todayStr);
         let trackIdx = 0;
+        let blockCursor = 0;
 
-        // Générer heure par heure pour insérer exactement le Top Horaire et le Générique
-        for (let hOffset = 0; hOffset < blockDurationHours; hOffset++) {
-            const currentH = (startH + hOffset) % 24;
-            const hourStartSec = (blockStartSec + hOffset * 3600) % 86400;
+        // 1. Top Horaire à l'ouverture du bloc
+        if (topDuration > 0 && !topHoraireInsertedHours.has(startH)) {
+            topHoraireInsertedHours.add(startH);
+            const itemStart = blockStartSec;
+            const itemEnd = (itemStart + topDuration) % 86400;
+            const isLive = (itemStart <= itemEnd)
+                ? (nowSec >= itemStart && nowSec < itemEnd)
+                : (nowSec >= itemStart || nowSec < itemEnd);
 
-            // 1. Top Horaire à chaque début d'heure (UN SEUL par heure, pas un par bloc)
-            if (topDuration > 0 && !topHoraireInsertedHours.has(currentH)) {
-                topHoraireInsertedHours.add(currentH);
-                const itemStart = hourStartSec;
-                const itemEnd = (itemStart + topDuration) % 86400;
-                const isLive = (itemStart <= itemEnd)
-                    ? (nowSec >= itemStart && nowSec < itemEnd)
-                    : (nowSec >= itemStart || nowSec < itemEnd);
+            const sH = Math.floor(itemStart / 3600);
+            const sM = Math.floor((itemStart % 3600) / 60);
+            const sS = Math.floor(itemStart % 60);
+            const eH = Math.floor(itemEnd / 3600);
+            const eM = Math.floor((itemEnd % 3600) / 60);
+            const eS = Math.floor(itemEnd % 60);
 
-                const sH = Math.floor(itemStart / 3600);
-                const sM = Math.floor((itemStart % 3600) / 60);
-                const sS = Math.floor(itemStart % 60);
-                const eH = Math.floor(itemEnd / 3600);
-                const eM = Math.floor((itemEnd % 3600) / 60);
-                const eS = Math.floor(itemEnd % 60);
+            items.push({
+                id: `top_horaire_${startH}`,
+                blockId: block.id,
+                blockTitle: block.title,
+                blockHost: block.host,
+                blockColor: '#00f0ff',
+                blockEmoji: '🔔',
+                title: topHoraire.title || 'Dropsiders Radio • Top Horaire Officiel',
+                artist: 'DROPSIDERS RADIO',
+                event: 'TOP HORAIRE (DÉBUT D\'HEURE)',
+                youtubeId: topHoraire.youtubeId,
+                audioUrl: topHoraire.audioUrl,
+                startTime: `${String(sH).padStart(2, '0')}h00:${String(sS).padStart(2, '0')}`,
+                endTime: `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}:${String(eS).padStart(2, '0')}`,
+                startSecondsFromMidnight: itemStart,
+                durationSeconds: topDuration,
+                durationFormatted: formatDurationExact(topDuration),
+                isCurrentlyLive: isLive,
+                category: 'jingle',
+                isTopHoraire: true
+            });
+            blockCursor += topDuration;
+        }
 
-                items.push({
-                    id: `top_horaire_${currentH}`,
-                    blockId: block.id,
-                    blockTitle: block.title,
-                    blockHost: block.host,
-                    blockColor: '#00f0ff',
-                    blockEmoji: '🔔',
-                    title: topHoraire.title || 'Dropsiders Radio • Top Horaire Officiel',
-                    artist: 'DROPSIDERS RADIO',
-                    event: 'TOP HORAIRE (DÉBUT D\'HEURE)',
-                    youtubeId: topHoraire.youtubeId,
-                    audioUrl: topHoraire.audioUrl,
-                    startTime: `${String(sH).padStart(2, '0')}h00:${String(sS).padStart(2, '0')}`,
-                    endTime: `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}:${String(eS).padStart(2, '0')}`,
-                    startSecondsFromMidnight: itemStart,
-                    durationSeconds: topDuration,
-                    durationFormatted: formatDurationExact(topDuration),
-                    isCurrentlyLive: isLive,
-                    category: 'jingle',
-                    isTopHoraire: true
-                });
-            }
+        // 2. Générique d'émission à l'ouverture du bloc
+        if (block.themeJingle && block.themeJingle.enabled && block.themeJingle.duration > 0) {
+            const themeDur = block.themeJingle.duration;
+            const itemStart = (blockStartSec + blockCursor) % 86400;
+            const itemEnd = (itemStart + themeDur) % 86400;
+            const isLive = (itemStart <= itemEnd)
+                ? (nowSec >= itemStart && nowSec < itemEnd)
+                : (nowSec >= itemStart || nowSec < itemEnd);
 
-            // 2. Générique d'émission à la première heure de l'émission
-            let hourAvailableSec = 3600 - topDuration;
-            let hourCursor = topDuration;
+            const sH = Math.floor(itemStart / 3600);
+            const sM = Math.floor((itemStart % 3600) / 60);
+            const sS = Math.floor(itemStart % 60);
+            const eH = Math.floor(itemEnd / 3600);
+            const eM = Math.floor((itemEnd % 3600) / 60);
+            const eS = Math.floor(itemEnd % 60);
 
-            if (hOffset === 0 && block.themeJingle && block.themeJingle.enabled && block.themeJingle.duration > 0) {
-                const themeDur = block.themeJingle.duration;
-                const itemStart = (hourStartSec + hourCursor) % 86400;
-                const itemEnd = (itemStart + themeDur) % 86400;
-                const isLive = (itemStart <= itemEnd)
-                    ? (nowSec >= itemStart && nowSec < itemEnd)
-                    : (nowSec >= itemStart || nowSec < itemEnd);
+            items.push({
+                id: `theme_${block.id}`,
+                blockId: block.id,
+                blockTitle: block.title,
+                blockHost: block.host,
+                blockColor: block.color,
+                blockEmoji: block.emoji,
+                title: block.themeJingle.title || `Générique • ${block.title}`,
+                artist: 'DROPSIDERS RADIO',
+                event: `GÉNÉRIQUE D'ÉMISSION • ${block.title}`,
+                youtubeId: block.themeJingle.youtubeId,
+                audioUrl: block.themeJingle.audioUrl,
+                startTime: `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}:${String(sS).padStart(2, '0')}`,
+                endTime: `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}:${String(eS).padStart(2, '0')}`,
+                startSecondsFromMidnight: itemStart,
+                durationSeconds: themeDur,
+                durationFormatted: formatDurationExact(themeDur),
+                isCurrentlyLive: isLive,
+                category: 'jingle',
+                isThemeJingle: true
+            });
 
-                const sH = Math.floor(itemStart / 3600);
-                const sM = Math.floor((itemStart % 3600) / 60);
-                const sS = Math.floor(itemStart % 60);
-                const eH = Math.floor(itemEnd / 3600);
-                const eM = Math.floor((itemEnd % 3600) / 60);
-                const eS = Math.floor(itemEnd % 60);
+            blockCursor += themeDur;
+        }
 
-                items.push({
-                    id: `theme_${block.id}`,
-                    blockId: block.id,
-                    blockTitle: block.title,
-                    blockHost: block.host,
-                    blockColor: block.color,
-                    blockEmoji: block.emoji,
-                    title: block.themeJingle.title || `Générique • ${block.title}`,
-                    artist: 'DROPSIDERS RADIO',
-                    event: `GÉNÉRIQUE D'ÉMISSION • ${block.title}`,
-                    youtubeId: block.themeJingle.youtubeId,
-                    audioUrl: block.themeJingle.audioUrl,
-                    startTime: `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}:${String(sS).padStart(2, '0')}`,
-                    endTime: `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}:${String(eS).padStart(2, '0')}`,
-                    startSecondsFromMidnight: itemStart,
-                    durationSeconds: themeDur,
-                    durationFormatted: formatDurationExact(themeDur),
-                    isCurrentlyLive: isLive,
-                    category: 'jingle',
-                    isThemeJingle: true
-                });
+        // 3. Remplissage continu des morceaux de l'émission
+        while (blockCursor < totalBlockSec && trackIdx < 300) {
+            const track = tracks[trackIdx % tracks.length];
+            const dur = sanitizeTrackDuration(track);
+            const isLiveSet = track.category === 'liveset' || track.category === 'set' || !isLikelySingleTrack(track.title) || dur >= 600;
 
-                hourCursor += themeDur;
-                hourAvailableSec -= themeDur;
-            }
+            if (isLiveSet) {
+                // Pour les live sets : si l'heure pile arrive pendant le set, jouer la partie 1, puis le Top Horaire à l'heure pile, puis reprendre le set !
+                let remainingDur = dur;
+                let mediaOffset = 0;
+                let partIdx = 1;
 
-            // 3. Remplissage des morceaux de l'heure
-            while (hourCursor < 3600 && trackIdx < 150) {
-                const track = tracks[trackIdx % tracks.length];
-                const dur = sanitizeTrackDuration(track);
+                while (remainingDur > 0 && blockCursor < totalBlockSec) {
+                    const currentAbsSec = blockStartSec + blockCursor;
+                    const currentHourIndex = Math.floor(currentAbsSec / 3600);
+                    const nextHourMarkSec = (currentHourIndex + 1) * 3600;
+                    const secToNextHour = nextHourMarkSec - currentAbsSec;
+                    const nextH = (currentHourIndex + 1) % 24;
 
-                const itemStart = (hourStartSec + hourCursor) % 86400;
+                    // Si on atteint l'heure pile pendant le set avec un Top Horaire à jouer
+                    const willCrossHourWithTop = (
+                        topDuration > 0 &&
+                        !topHoraireInsertedHours.has(nextH) &&
+                        secToNextHour > 0 &&
+                        remainingDur > secToNextHour &&
+                        (nextHourMarkSec - blockStartSec + topDuration) <= totalBlockSec
+                    );
+
+                    if (willCrossHourWithTop) {
+                        // 1. Première partie du set jusqu'à l'heure pile
+                        const playDur = secToNextHour;
+                        const itemStart = currentAbsSec % 86400;
+                        const itemEnd = (itemStart + playDur) % 86400;
+
+                        const isLive = (itemStart <= itemEnd)
+                            ? (nowSec >= itemStart && nowSec < itemEnd)
+                            : (nowSec >= itemStart || nowSec < itemEnd);
+
+                        const { artist } = parseArtistAndEvent(track.title);
+
+                        const sH = Math.floor(itemStart / 3600);
+                        const sM = Math.floor((itemStart % 3600) / 60);
+                        const sS = Math.floor(itemStart % 60);
+                        const eH = Math.floor(itemEnd / 3600);
+                        const eM = Math.floor((itemEnd % 3600) / 60);
+                        const eS = Math.floor(itemEnd % 60);
+
+                        const needSeconds = (sH === eH && sM === eM);
+                        const startTimeStr = needSeconds
+                            ? `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}:${String(sS).padStart(2, '0')}`
+                            : `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}`;
+                        const endTimeStr = needSeconds
+                            ? `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}:${String(eS).padStart(2, '0')}`
+                            : `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}`;
+
+                        items.push({
+                            id: `${block.id}_t${trackIdx}_p${partIdx}_${track.id || track.youtubeId}`,
+                            blockId: block.id,
+                            blockTitle: block.title,
+                            blockHost: block.host,
+                            blockColor: block.color,
+                            blockEmoji: block.emoji,
+                            title: partIdx === 1 ? track.title : `${track.title} (Suite)`,
+                            artist: track.artist || artist || 'Artiste',
+                            event: block.title,
+                            youtubeId: track.youtubeId,
+                            audioUrl: track.audioUrl,
+                            soundcloudUrl: track.soundcloudUrl || block.soundcloudPlaylistUrl,
+                            coverUrl: track.coverUrl || block.soundcloudPlaylistCover,
+                            startTime: startTimeStr,
+                            endTime: endTimeStr,
+                            startSecondsFromMidnight: itemStart,
+                            durationSeconds: playDur,
+                            durationFormatted: formatDurationExact(playDur),
+                            isCurrentlyLive: isLive,
+                            category: track.category,
+                            expiresAt: track.expiresAt,
+                            mediaOffsetSeconds: mediaOffset,
+                            totalMediaDurationSeconds: dur,
+                            partIndex: partIdx,
+                            isResumePart: partIdx > 1
+                        });
+
+                        blockCursor += playDur;
+                        mediaOffset += playDur;
+                        remainingDur -= playDur;
+                        partIdx++;
+
+                        // 2. Le Top Horaire joue à l'heure pile
+                        topHoraireInsertedHours.add(nextH);
+                        const topStart = nextHourMarkSec % 86400;
+                        const topEnd = (topStart + topDuration) % 86400;
+                        const isTopLive = (topStart <= topEnd)
+                            ? (nowSec >= topStart && nowSec < topEnd)
+                            : (nowSec >= topStart || nowSec < topEnd);
+
+                        const tsH = Math.floor(topStart / 3600);
+                        const tsM = Math.floor((topStart % 3600) / 60);
+                        const tsS = Math.floor(topStart % 60);
+                        const teH = Math.floor(topEnd / 3600);
+                        const teM = Math.floor((topEnd % 3600) / 60);
+                        const teS = Math.floor(topEnd % 60);
+
+                        const needTopSec = (tsH === teH && tsM === teM);
+                        const topStartStr = needTopSec
+                            ? `${String(tsH).padStart(2, '0')}h${String(tsM).padStart(2, '0')}:${String(tsS).padStart(2, '0')}`
+                            : `${String(tsH).padStart(2, '0')}h${String(tsM).padStart(2, '0')}`;
+                        const topEndStr = needTopSec
+                            ? `${String(teH).padStart(2, '0')}h${String(teM).padStart(2, '0')}:${String(teS).padStart(2, '0')}`
+                            : `${String(teH).padStart(2, '0')}h${String(teM).padStart(2, '0')}`;
+
+                        items.push({
+                            id: `top_horaire_${nextH}`,
+                            blockId: block.id,
+                            blockTitle: block.title,
+                            blockHost: block.host,
+                            blockColor: '#00f0ff',
+                            blockEmoji: '🔔',
+                            title: topHoraire.title || 'Dropsiders Radio • Top Horaire Officiel',
+                            artist: 'DROPSIDERS RADIO',
+                            event: 'TOP HORAIRE (DÉBUT D\'HEURE)',
+                            youtubeId: topHoraire.youtubeId,
+                            audioUrl: topHoraire.audioUrl,
+                            startTime: topStartStr,
+                            endTime: topEndStr,
+                            startSecondsFromMidnight: topStart,
+                            durationSeconds: topDuration,
+                            durationFormatted: formatDurationExact(topDuration),
+                            isCurrentlyLive: isTopLive,
+                            category: 'jingle',
+                            isTopHoraire: true
+                        });
+
+                        blockCursor += topDuration;
+                        // On continue dans la boucle while : le set reprend immédiatement là où il s'est arrêté !
+                    } else {
+                        // Reprise du set ou fin du set
+                        const playDur = Math.min(remainingDur, totalBlockSec - blockCursor);
+                        const itemStart = currentAbsSec % 86400;
+                        const itemEnd = (itemStart + playDur) % 86400;
+
+                        const isLive = (itemStart <= itemEnd)
+                            ? (nowSec >= itemStart && nowSec < itemEnd)
+                            : (nowSec >= itemStart || nowSec < itemEnd);
+
+                        const { artist } = parseArtistAndEvent(track.title);
+
+                        const sH = Math.floor(itemStart / 3600);
+                        const sM = Math.floor((itemStart % 3600) / 60);
+                        const sS = Math.floor(itemStart % 60);
+                        const eH = Math.floor(itemEnd / 3600);
+                        const eM = Math.floor((itemEnd % 3600) / 60);
+                        const eS = Math.floor(itemEnd % 60);
+
+                        const needSeconds = (sH === eH && sM === eM);
+                        const startTimeStr = needSeconds
+                            ? `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}:${String(sS).padStart(2, '0')}`
+                            : `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}`;
+                        const endTimeStr = needSeconds
+                            ? `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}:${String(eS).padStart(2, '0')}`
+                            : `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}`;
+
+                        items.push({
+                            id: `${block.id}_t${trackIdx}_p${partIdx}_${track.id || track.youtubeId}`,
+                            blockId: block.id,
+                            blockTitle: block.title,
+                            blockHost: block.host,
+                            blockColor: block.color,
+                            blockEmoji: block.emoji,
+                            title: partIdx === 1 ? track.title : `${track.title} (Suite)`,
+                            artist: track.artist || artist || 'Artiste',
+                            event: block.title,
+                            youtubeId: track.youtubeId,
+                            audioUrl: track.audioUrl,
+                            soundcloudUrl: track.soundcloudUrl || block.soundcloudPlaylistUrl,
+                            coverUrl: track.coverUrl || block.soundcloudPlaylistCover,
+                            startTime: startTimeStr,
+                            endTime: endTimeStr,
+                            startSecondsFromMidnight: itemStart,
+                            durationSeconds: playDur,
+                            durationFormatted: formatDurationExact(playDur),
+                            isCurrentlyLive: isLive,
+                            category: track.category,
+                            expiresAt: track.expiresAt,
+                            mediaOffsetSeconds: mediaOffset,
+                            totalMediaDurationSeconds: dur,
+                            partIndex: partIdx,
+                            isResumePart: partIdx > 1
+                        });
+
+                        blockCursor += playDur;
+                        remainingDur = 0;
+                    }
+                }
+                trackIdx++;
+            } else {
+                // Morceaux standards (clips, jingles, promos) :
+                const currentAbsSec = blockStartSec + blockCursor;
+                const currentH = Math.floor(currentAbsSec / 3600) % 24;
+                const minuteInHour = Math.floor((currentAbsSec % 3600) / 60);
+
+                // Top Horaire inséré proprement à la transition
+                if (topDuration > 0 && !topHoraireInsertedHours.has(currentH) && minuteInHour <= 10 && (blockCursor + topDuration) <= totalBlockSec) {
+                    topHoraireInsertedHours.add(currentH);
+                    const itemStart = currentAbsSec % 86400;
+                    const itemEnd = (itemStart + topDuration) % 86400;
+                    const isLive = (itemStart <= itemEnd)
+                        ? (nowSec >= itemStart && nowSec < itemEnd)
+                        : (nowSec >= itemStart || nowSec < itemEnd);
+
+                    const sH = Math.floor(itemStart / 3600);
+                    const sM = Math.floor((itemStart % 3600) / 60);
+                    const sS = Math.floor(itemStart % 60);
+                    const eH = Math.floor(itemEnd / 3600);
+                    const eM = Math.floor((itemEnd % 3600) / 60);
+                    const eS = Math.floor(itemEnd % 60);
+
+                    const needSeconds = (sH === eH && sM === eM);
+                    const startTimeStr = needSeconds
+                        ? `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}:${String(sS).padStart(2, '0')}`
+                        : `${String(sH).padStart(2, '0')}h${String(sM).padStart(2, '0')}`;
+                    const endTimeStr = needSeconds
+                        ? `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}:${String(eS).padStart(2, '0')}`
+                        : `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}`;
+
+                    items.push({
+                        id: `top_horaire_${currentH}`,
+                        blockId: block.id,
+                        blockTitle: block.title,
+                        blockHost: block.host,
+                        blockColor: '#00f0ff',
+                        blockEmoji: '🔔',
+                        title: topHoraire.title || 'Dropsiders Radio • Top Horaire Officiel',
+                        artist: 'DROPSIDERS RADIO',
+                        event: 'TOP HORAIRE (DÉBUT D\'HEURE)',
+                        youtubeId: topHoraire.youtubeId,
+                        audioUrl: topHoraire.audioUrl,
+                        startTime: startTimeStr,
+                        endTime: endTimeStr,
+                        startSecondsFromMidnight: itemStart,
+                        durationSeconds: topDuration,
+                        durationFormatted: formatDurationExact(topDuration),
+                        isCurrentlyLive: isLive,
+                        category: 'jingle',
+                        isTopHoraire: true
+                    });
+
+                    blockCursor += topDuration;
+                }
+
+                const itemStart = (blockStartSec + blockCursor) % 86400;
                 const itemEnd = (itemStart + dur) % 86400;
 
                 const isLive = (itemStart <= itemEnd)
@@ -1206,7 +1492,7 @@ export function computeRadioDaySchedule(
                     : `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}`;
 
                 items.push({
-                    id: `${block.id}_h${currentH}_t${trackIdx}_${track.id || track.youtubeId}`,
+                    id: `${block.id}_t${trackIdx}_${track.id || track.youtubeId}`,
                     blockId: block.id,
                     blockTitle: block.title,
                     blockHost: block.host,
@@ -1229,7 +1515,7 @@ export function computeRadioDaySchedule(
                     expiresAt: track.expiresAt
                 });
 
-                hourCursor += dur;
+                blockCursor += dur;
                 trackIdx++;
             }
         }
@@ -1303,7 +1589,7 @@ export function getCurrentLiveRadioTrack(
 
     if (!liveItem) return null;
 
-    let offsetSeconds = nowSec - liveItem.startSecondsFromMidnight;
+    let offsetSeconds = (liveItem.mediaOffsetSeconds || 0) + (nowSec - liveItem.startSecondsFromMidnight);
     if (offsetSeconds < 0) offsetSeconds += 86400;
 
     return {

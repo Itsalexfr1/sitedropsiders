@@ -296,6 +296,10 @@ function useRadioAudio() {
                     const targetVol = isMutedRef.current ? 0 : effectiveVolumeRef.current;
                     widget.bind(SC.Widget.Events.READY, () => {
                         widget.setVolume(targetVol);
+                        const initialOffset = currentSetRef.current?.mediaOffsetSeconds || (uiOffsetRef.current || 0);
+                        if (initialOffset > 2) {
+                            widget.seekTo(initialOffset * 1000);
+                        }
                         if (isPlayingRef.current) widget.play();
                     });
                     widget.bind(SC.Widget.Events.PLAY, () => {
@@ -781,16 +785,17 @@ function useRadioAudio() {
                     audioPreloadRef.current.readyState >= 3;
 
                 const targetVol = isMutedRef.current ? 0 : (effectiveVolumeRef.current / 100);
+                const targetAudioOffset = nextTrack.mediaOffsetSeconds || 0;
                 if (isPreloaded && audioPreloadRef.current) {
                     const preEl = audioPreloadRef.current;
                     preEl.volume = targetVol;
-                    preEl.currentTime = 0;
+                    preEl.currentTime = targetAudioOffset;
                     preEl.play().catch(() => {});
                     // Copier vers l'élément principal (pour que 'ended' soit écouté sur audioRef)
                     if (audioRef.current) {
                         if (audioRef.current && !audioRef.current.paused) audioRef.current.pause();
                         audioRef.current.src = nextTrack.audioUrl;
-                        audioRef.current.currentTime = 0;
+                        audioRef.current.currentTime = targetAudioOffset;
                         audioRef.current.volume = targetVol;
                         audioRef.current.play().then(() => {
                             currentPlayingMediaRef.current = nextTrack.id || nextTrack.audioUrl || null;
@@ -800,7 +805,7 @@ function useRadioAudio() {
                     preloadedAudioUrlRef.current = null;
                 } else if (audioRef.current) {
                     audioRef.current.src = nextTrack.audioUrl;
-                    audioRef.current.currentTime = 0;
+                    audioRef.current.currentTime = targetAudioOffset;
                     audioRef.current.volume = targetVol;
                     audioRef.current.play().then(() => {
                         currentPlayingMediaRef.current = nextTrack.id || nextTrack.audioUrl || null;
@@ -814,6 +819,7 @@ function useRadioAudio() {
                 }
                 const scUrl = nextTrack.soundcloudUrl;
                 const activeIframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
+                const targetOffset = nextTrack.mediaOffsetSeconds || 0;
                 if (activeIframe) {
                     const targetSrc = buildSoundCloudSrc(scUrl);
                     const isAlreadySC = Boolean(activeIframe.src && activeIframe.src.includes('soundcloud.com'));
@@ -825,23 +831,35 @@ function useRadioAudio() {
                             const SC = (window as any).SC;
                             if (SC?.Widget) {
                                 const widget = SC.Widget(activeIframe);
-                                widget.load(scUrl, {
-                                    auto_play: true,
-                                    callback: () => {
-                                        const targetVol = isMutedRef.current ? 0 : effectiveVolumeRef.current;
-                                        widget.setVolume(targetVol);
-                                        widget.play();
-                                    }
-                                });
+                                // Si c'est le même morceau qui reprend après le Top Horaire
+                                if (targetOffset > 0) {
+                                    widget.seekTo(targetOffset * 1000);
+                                    widget.setVolume(isMutedRef.current ? 0 : effectiveVolumeRef.current);
+                                    widget.play();
+                                } else {
+                                    widget.load(scUrl, {
+                                        auto_play: true,
+                                        callback: () => {
+                                            const targetVol = isMutedRef.current ? 0 : effectiveVolumeRef.current;
+                                            widget.setVolume(targetVol);
+                                            widget.play();
+                                        }
+                                    });
+                                }
                             }
                         } catch {}
 
                         try {
-                            activeIframe.contentWindow?.postMessage(JSON.stringify({
-                                method: 'load',
-                                value: scUrl,
-                                options: { auto_play: true }
-                            }), '*');
+                            if (targetOffset === 0) {
+                                activeIframe.contentWindow?.postMessage(JSON.stringify({
+                                    method: 'load',
+                                    value: scUrl,
+                                    options: { auto_play: true }
+                                }), '*');
+                            }
+                            if (targetOffset > 0) {
+                                activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'seekTo', value: targetOffset * 1000 }), '*');
+                            }
                             activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'play' }), '*');
                         } catch {}
 
@@ -853,11 +871,15 @@ function useRadioAudio() {
                                     const SC = (window as any).SC;
                                     if (SC?.Widget) {
                                         const widget = SC.Widget(activeIframe);
+                                        if (targetOffset > 0) widget.seekTo(targetOffset * 1000);
                                         widget.play();
                                         widget.setVolume(isMutedRef.current ? 0 : effectiveVolumeRef.current);
                                     }
                                 } catch {}
                                 try {
+                                    if (targetOffset > 0) {
+                                        activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'seekTo', value: targetOffset * 1000 }), '*');
+                                    }
                                     activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'play' }), '*');
                                 } catch {}
                             }, delay);
@@ -879,11 +901,12 @@ function useRadioAudio() {
                 const ytId = nextTrack.youtubeId;
                 const activeIframe = iframeRef.current;
                 const mobileMute: 0 | 1 = IS_MOBILE ? 0 : (isMutedRef.current ? 1 : 0);
+                const targetYtOffset = nextTrack.mediaOffsetSeconds || 0;
 
                 if (activeIframe) {
                     if (activeIframe.src && activeIframe.src.includes('youtube.com/embed/')) {
-                        // Charger la nouvelle vidéo dans le player existant avec un tableau d'arguments valide [ytId, 0]
-                        sendCmd('loadVideoById', [ytId, 0]);
+                        // Charger la nouvelle vidéo ou reprise de set avec offset
+                        sendCmd('loadVideoById', [ytId, targetYtOffset]);
                         sendCmd('playVideo', []);
                         // Réactiver le handshake
                         try {
@@ -892,7 +915,7 @@ function useRadioAudio() {
                         } catch {}
                     } else {
                         // Premier chargement de l'iframe
-                        activeIframe.src = buildSrc(ytId, 0, mobileMute);
+                        activeIframe.src = buildSrc(ytId, targetYtOffset, mobileMute);
                     }
                     preloadedVideoIdRef.current = ytId;
                 }
@@ -1409,6 +1432,9 @@ function useRadioAudio() {
                                     auto_play: true,
                                     callback: () => {
                                         widget.setVolume(isMutedRef.current ? 0 : effectiveVolumeRef.current);
+                                        if (safeOffset > 2) {
+                                            widget.seekTo(safeOffset * 1000);
+                                        }
                                         widget.play();
                                     }
                                 });

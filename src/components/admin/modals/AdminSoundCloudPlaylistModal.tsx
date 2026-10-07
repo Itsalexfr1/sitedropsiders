@@ -16,7 +16,7 @@ import {
   RefreshCw,
   FileText
 } from 'lucide-react';
-import { type RadioScheduleBlock, type RadioTrackItem, formatRadioTimeSlot } from '../../../utils/radioSchedule';
+import { type RadioScheduleBlock, type RadioTrackItem, formatRadioTimeSlot, isLikelySingleTrack } from '../../../utils/radioSchedule';
 
 export const SoundCloudIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -125,16 +125,21 @@ export function AdminSoundCloudPlaylistModal({
         const widget = SC.Widget(iframe);
         widget.getSounds((sounds: any[]) => {
           if (Array.isArray(sounds) && sounds.length > 0) {
-            const parsed: RadioTrackItem[] = sounds.map((s, idx) => ({
-              id: `sc_${s.id || Date.now()}_${idx}`,
-              title: s.title || `Morceau ${idx + 1}`,
-              artist: s.user?.username || s.publisher_metadata?.artist || playlistAuthor || 'Artiste SoundCloud',
-              duration: Math.max(30, Math.round((s.duration || 180000) / 1000)),
-              category: 'clip' as const,
-              soundcloudUrl: s.permalink_url || `${trimmed}#${idx}`,
-              coverUrl: s.artwork_url || playlistCover,
-              addedAt: Date.now()
-            }));
+            const parsed: RadioTrackItem[] = sounds.map((s, idx) => {
+              const durSec = Math.max(30, Math.round((s.duration || 180000) / 1000));
+              const title = s.title || `Morceau ${idx + 1}`;
+              const isSet = durSec >= 600 || !isLikelySingleTrack(title);
+              return {
+                id: `sc_${s.id || Date.now()}_${idx}`,
+                title,
+                artist: s.user?.username || s.publisher_metadata?.artist || playlistAuthor || 'Artiste SoundCloud',
+                duration: durSec,
+                category: isSet ? 'set' : 'clip',
+                soundcloudUrl: s.permalink_url || `${trimmed}#${idx}`,
+                coverUrl: s.artwork_url || playlistCover,
+                addedAt: Date.now()
+              };
+            });
             setExtractedTracks(parsed);
             setIsExtractingTracks(false);
             onShowToast(`✓ ${parsed.length} morceaux extraits de la playlist !`, 'success');
@@ -172,8 +177,14 @@ export function AdminSoundCloudPlaylistModal({
         setPlaylistTitle(targetBlock.soundcloudPlaylistTitle || '');
         setPlaylistAuthor(targetBlock.soundcloudPlaylistAuthor || '');
         setPlaylistCover(targetBlock.soundcloudPlaylistCover || '');
-        // Si le bloc a déjà des morceaux individuels soundcloudUrl
-        const existingClips = (targetBlock.tracks || []).filter(t => t.category === 'clip' && t.soundcloudUrl);
+        // Si le bloc a déjà des morceaux individuels musicaux
+        const existingClips = (targetBlock.tracks || []).filter(t => 
+          t.category !== 'jingle' && 
+          t.category !== 'promo' && 
+          t.category !== 'pub' && 
+          !t.isThemeJingle && 
+          !t.isTopHoraire
+        );
         const hasGenericPlaceholders = existingClips.some(t => /^Morceau \d+$/i.test(t.title));
         if (existingClips.length > 0 && !hasGenericPlaceholders) {
           setExtractedTracks(existingClips);
@@ -199,7 +210,13 @@ export function AdminSoundCloudPlaylistModal({
       setPlaylistTitle(targetBlock.soundcloudPlaylistTitle || '');
       setPlaylistAuthor(targetBlock.soundcloudPlaylistAuthor || '');
       setPlaylistCover(targetBlock.soundcloudPlaylistCover || '');
-      const existingClips = (targetBlock.tracks || []).filter(t => t.category === 'clip' && t.soundcloudUrl);
+      const existingClips = (targetBlock.tracks || []).filter(t => 
+        t.category !== 'jingle' && 
+        t.category !== 'promo' && 
+        t.category !== 'pub' && 
+        !t.isThemeJingle && 
+        !t.isTopHoraire
+      );
       const hasGenericPlaceholders = existingClips.some(t => /^Morceau \d+$/i.test(t.title));
       if (existingClips.length > 0 && !hasGenericPlaceholders) {
         setExtractedTracks(existingClips);
@@ -272,12 +289,13 @@ export function AdminSoundCloudPlaylistModal({
         title = title.replace(/\(\d+:\d+\)/, '').trim();
       }
 
+      const isSet = duration >= 600 || !isLikelySingleTrack(title);
       return {
         id: `sc_man_${Date.now()}_${idx}`,
         title,
         artist,
         duration,
-        category: 'clip' as const,
+        category: isSet ? 'set' : 'clip',
         soundcloudUrl: playlistUrl || undefined,
         coverUrl: playlistCover || undefined,
         addedAt: Date.now()

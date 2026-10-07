@@ -1067,12 +1067,27 @@ export function AdminRadioModal({
             const next = prev.map(b => {
                 if (b.id !== blockId) return b;
 
+                // Récupérer les promos disponibles (palette générale, promos du bloc ou système)
+                const genPromos = generalJingles
+                    .filter(j => (j.category === 'promo' || j.category === 'pub' || (j as any).type === 'promo' || (j as any).type === 'pub') && !isItemExpired(j))
+                    .map(p => ({
+                        id: p.id,
+                        title: p.title,
+                        artist: p.category === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS',
+                        audioUrl: p.audioUrl,
+                        youtubeId: p.youtubeId,
+                        duration: p.duration || 30,
+                        category: (p.category || 'promo') as RadioTrackCategory
+                    }));
+                const blockPromos = (b.tracks || []).filter(t => (t.category === 'promo' || t.category === 'pub') && !isItemExpired(t));
+                const systemPromos = getGeneralPromosList();
+                const promosToUse = genPromos.length > 0 
+                    ? genPromos 
+                    : (blockPromos.length > 0 ? blockPromos : (systemPromos.length > 0 ? systemPromos : DEFAULT_SYSTEM_PROMOS));
+
                 // 1. Si des morceaux individuels ont été extraits de la playlist SoundCloud
                 if (data.extractedTracks && data.extractedTracks.length > 0) {
                     const musicTracks = data.extractedTracks;
-                    const blockPromos = (b.tracks || []).filter(t => (t.category === 'promo' || t.category === 'pub') && !isItemExpired(t));
-                    const systemPromos = getGeneralPromosList();
-                    const promosToUse = blockPromos.length > 0 ? blockPromos : systemPromos;
                     // Entrelacement automatique avec les jingles et promos existants de l'émission selon sa règle active
                     const interleaved = applyRotationPatternToTracks(b, musicTracks, undefined, promosToUse);
 
@@ -1111,9 +1126,14 @@ export function AdminRadioModal({
                     addedAt: Date.now()
                 };
 
-                const mergedTracks = shouldPurge
-                    ? [soundcloudTrack, ...preservedHabillage]
-                    : [soundcloudTrack, ...(b.tracks || []).filter(t => !t.soundcloudUrl)];
+                const hasPromoInHabillage = preservedHabillage.some(t => t.category === 'promo' || t.category === 'pub');
+                const promosToInject = hasPromoInHabillage ? [] : promosToUse.slice(0, 3);
+
+                const mergedTracks = [
+                    soundcloudTrack,
+                    ...preservedHabillage,
+                    ...promosToInject
+                ];
 
                 return {
                     ...b,
@@ -1624,7 +1644,9 @@ export function AdminRadioModal({
 
         const blockPromos = (targetBlock.tracks || []).filter(t => (t.category === 'promo' || t.category === 'pub') && !isItemExpired(t));
         const systemPromos = getGeneralPromosList();
-        const finalPromosTracks = genPromosTracks.length > 0 ? genPromosTracks : (blockPromos.length > 0 ? blockPromos : systemPromos);
+        const finalPromosTracks = genPromosTracks.length > 0 
+            ? genPromosTracks 
+            : (blockPromos.length > 0 ? blockPromos : (systemPromos.length > 0 ? systemPromos : DEFAULT_SYSTEM_PROMOS));
 
         const reordered = applyRotationPatternToTracks(
             updatedBlock,

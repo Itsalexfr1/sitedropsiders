@@ -530,12 +530,15 @@ export default {
                     const coverUrl = full.artwork_url || plArtwork;
                     const soundcloudUrl = full.permalink_url || `${targetUrl}#${index}`;
 
+                    const LIVE_SET_KEYWORDS = ['live', 'set', 'festival', 'tomorrowland', 'ultra', 'edc', 'lost lands', 'defqon', 'awakenings', 'b2b', 'stage', 'closing', 'opening', 'full set', 'session', 'journey', 'verknipt', 'teletech', 'blackworks', 'qlimax', 'intents', 'hardstyle', 'uptempo'];
+                    const isSet = duration >= 600 || LIVE_SET_KEYWORDS.some(k => (title || '').toLowerCase().includes(k));
+
                     return {
                         id: `sc_${full.id || Date.now()}_${index}`,
                         title,
                         artist,
                         duration,
-                        category: 'clip',
+                        category: isSet ? 'set' : 'clip',
                         soundcloudUrl,
                         coverUrl,
                         addedAt: Date.now()
