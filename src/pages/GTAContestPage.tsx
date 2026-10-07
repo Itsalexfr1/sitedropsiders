@@ -121,6 +121,11 @@ export function GTAContestPage() {
                 const check = checkHasAlreadyParticipated(fp);
                 if (check.alreadyPlayed && check.entry) {
                     let entry = check.entry;
+                    let shouldResave = false;
+                    if (!entry.referralCode) {
+                        entry.referralCode = generateReferralCode();
+                        shouldResave = true;
+                    }
                     // Auto-validation : si les réponses étaient correctes mais bloquées en attente d'opt-in email
                     if (entry.status === 'PENDING_OPT_IN' && entry.isAllCorrect) {
                         entry = {
@@ -129,6 +134,9 @@ export function GTAContestPage() {
                             isOptedIn: true,
                             optedInAt: entry.optedInAt || new Date().toISOString()
                         };
+                        shouldResave = true;
+                    }
+                    if (shouldResave) {
                         const all = getAllContestEntries();
                         const idx = all.findIndex(e => e.id === entry.id);
                         if (idx !== -1) {
@@ -559,6 +567,10 @@ export function GTAContestPage() {
                             <div className="flex justify-between text-xs">
                                 <span className="text-gray-400 font-bold uppercase">Instagram :</span>
                                 <span className="text-white font-black">{existingEntry.instagram}</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                                <span className="text-gray-400 font-bold uppercase">Numéro de Parrainage :</span>
+                                <span className="text-[#00f0ff] font-mono font-black">{existingEntry.referralCode || 'DS-N/A'}</span>
                             </div>
                             <div className="flex justify-between text-xs">
                                 <span className="text-gray-400 font-bold uppercase">Statut :</span>
