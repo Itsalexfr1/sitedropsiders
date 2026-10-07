@@ -125,6 +125,8 @@ function useRadioAudio() {
     const currentTrackIndexRef = useRef<number>(-1);
     // Flag pour indiquer que la transition a été gérée en direct par advanceToNextTrack (évite le re-render conflictuel)
     const isHandledByAdvanceRef = useRef<boolean>(false);
+    // Ref stable vers advanceToNextTrack pour les écouteurs du widget SoundCloud déclarés en amont
+    const advanceToNextTrackRef = useRef<() => void>(() => {});
 
     // ─── Activation ──────────────────────────────────────────────────────────
     const [isEnabled, setIsEnabled] = useState<boolean>(() => {
@@ -300,17 +302,17 @@ function useRadioAudio() {
                         widget.setVolume(targetVol);
                     });
                     widget.bind(SC.Widget.Events.FINISH, () => {
-                        if (isPlayingRef.current) advanceToNextTrack();
+                        if (isPlayingRef.current) advanceToNextTrackRef.current();
                     });
                     widget.bind(SC.Widget.Events.ERROR, () => {
-                        if (isPlayingRef.current) advanceToNextTrack();
+                        if (isPlayingRef.current) advanceToNextTrackRef.current();
                     });
                 }
             } catch {}
         };
         bindWidget();
         [300, 800, 1500].forEach(delay => setTimeout(bindWidget, delay));
-    }, [advanceToNextTrack]);
+    }, []);
 
     // Re-forcer le volume utilisateur sur le lecteur actif (Audio, YouTube et SoundCloud)
     const applyVolumeToActiveMedia = useCallback(() => {
@@ -917,6 +919,11 @@ function useRadioAudio() {
             setUiTimeSec(prev => (prev + 300) % 86400);
         }
     }, [sendCmd, preloadNextTrack, scheduleVolumeEnforcement]);
+
+    advanceToNextTrackRef.current = advanceToNextTrack;
+    useEffect(() => {
+        advanceToNextTrackRef.current = advanceToNextTrack;
+    }, [advanceToNextTrack]);
 
     // ─── SYNC AUTOMATIQUE HORLOGE → TRACK ACTIF ──────────────────────────────
     // Quand le schedule passe au bloc suivant, on force la transition si :
