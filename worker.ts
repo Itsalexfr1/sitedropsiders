@@ -9389,7 +9389,16 @@ ${urls.map(u => `  <url>
             await env.CHAT_KV.put('gta6_contest_participation_log', JSON.stringify(log));
 
             const entriesRaw = await env.CHAT_KV.get('gta6_contest_entries') || "[]";
-            const entries = JSON.parse(entriesRaw);
+            let entries: any[] = [];
+            try { entries = JSON.parse(entriesRaw); } catch (e) { entries = []; }
+            if (entry.referredBy) {
+                const cleanRef = String(entry.referredBy).trim().toUpperCase();
+                const referrer = entries.find((e: any) => e.referralCode === cleanRef);
+                if (referrer) {
+                    referrer.referralCount = (referrer.referralCount || 0) + 1;
+                    referrer.totalTickets = (referrer.totalTickets || 1) + 1;
+                }
+            }
             entries.unshift({ ...entry, ip, createdAt: new Date().toISOString() });
             await env.CHAT_KV.put('gta6_contest_entries', JSON.stringify(entries));
 

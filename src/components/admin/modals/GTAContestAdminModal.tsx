@@ -4,7 +4,7 @@ import {
     X, Trophy, RefreshCw, CheckCircle2, XCircle, AlertCircle, 
     Gift, Sparkles, User, Instagram, Search, Download, Trash2, 
     Dice5, ShieldCheck, Gamepad2, Mail, ExternalLink, Flame,
-    Eye, EyeOff, Settings, Check, Save
+    Eye, EyeOff, Settings, Check, Save, Send, Loader2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { 
@@ -47,6 +47,104 @@ export function GTAContestAdminModal({ isOpen, onClose }: GTAContestAdminModalPr
     const [currentRollName, setCurrentRollName] = useState('');
     const [winner, setWinner] = useState<GTAContestEntry | null>(null);
     const [isWinnerModalOpen, setIsWinnerModalOpen] = useState(false);
+
+    // Email Messaging State (Brevo via /api/contacts/reply)
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+    const [emailTarget, setEmailTarget] = useState<GTAContestEntry | null>(null);
+    const [emailSubject, setEmailSubject] = useState('');
+    const [emailBody, setEmailBody] = useState('');
+    const [isSendingEmail, setIsSendingEmail] = useState(false);
+    const [emailSuccess, setEmailSuccess] = useState(false);
+    const [emailError, setEmailError] = useState<string | null>(null);
+
+    const handleOpenEmailModal = (target: GTAContestEntry, isWinnerContext = true) => {
+        setEmailTarget(target);
+        setEmailError(null);
+        setEmailSuccess(false);
+
+        if (isWinnerContext) {
+            setEmailSubject('🏆 Félicitations ! Tu as gagné le jeu GTA 6 avec Dropsiders !');
+            setEmailBody(
+`Salut ${target.prenom},
+
+Toute l'équipe de Dropsiders te félicite chaleureusement ! 🎉
+
+Tu as été officiellement tiré(e) au sort comme grand(e) vainqueur de notre grand Jeu Concours GTA 6 (${target.plateforme}).
+
+Pour valider l'envoi de ton jeu lors de sa sortie officielle, merci de répondre directement à cet e-mail sous 72 heures avec les informations suivantes :
+1. Ton nom et prénom complets
+2. Ton adresse postale complète de livraison (avec code postal et ville)
+3. Ton numéro de téléphone (pour le transporteur)
+4. La confirmation de ta plateforme souhaitée : ${target.plateforme}
+
+Ton compte Instagram (${target.instagram}) sera également vérifié par nos équipes pour confirmer ton identité.
+
+Bravo encore pour ta participation et merci de faire partie de la communauté Dropsiders !
+
+Musicalement & Gaming,
+Alex et l'équipe Dropsiders
+contact@dropsiders.fr`
+            );
+        } else {
+            setEmailSubject(`Information Concours GTA 6 - Dropsiders`);
+            setEmailBody(
+`Bonjour ${target.prenom},
+
+Nous te contactons concernant ta participation au Jeu Concours GTA 6 Dropsiders (${target.plateforme}).
+
+[Écris ton message ici...]
+
+Musicalement,
+L'équipe Dropsiders
+contact@dropsiders.fr`
+            );
+        }
+
+        setIsEmailModalOpen(true);
+    };
+
+    const handleSendEmail = async () => {
+        if (!emailTarget || !emailSubject.trim() || !emailBody.trim()) {
+            setEmailError("Veuillez renseigner un objet et un message.");
+            return;
+        }
+
+        setIsSendingEmail(true);
+        setEmailError(null);
+        setEmailSuccess(false);
+
+        try {
+            const res = await apiFetch('/api/contacts/reply', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    to: emailTarget.email,
+                    from: 'contact@dropsiders.fr',
+                    name: `${emailTarget.prenom} ${emailTarget.nom}`,
+                    subject: emailSubject.trim(),
+                    message: emailBody.trim(),
+                    signerName: 'ALEX',
+                    signerRole: 'FONDATEUR & RÉDACTEUR'
+                })
+            });
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || `Erreur lors de l'envoi (${res.status})`);
+            }
+
+            setEmailSuccess(true);
+            setTimeout(() => {
+                setIsEmailModalOpen(false);
+                setEmailSuccess(false);
+            }, 2000);
+        } catch (err: any) {
+            console.error("Erreur envoi email gagnant:", err);
+            setEmailError(err.message || "Impossible d'envoyer l'e-mail. Vérifie la configuration du service.");
+        } finally {
+            setIsSendingEmail(false);
+        }
+    };
 
     // Load participants
     const refreshEntries = () => {
@@ -569,6 +667,17 @@ export function GTAContestAdminModal({ isOpen, onClose }: GTAContestAdminModalPr
                                                     <span className="text-xs font-black text-[#ff007f] bg-[#ff007f]/10 px-2.5 py-0.5 rounded-full border border-[#ff007f]/30">
                                                         🎟️ {p.totalTickets} chance{p.totalTickets > 1 ? 's' : ''}
                                                     </span>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleOpenEmailModal(p, true);
+                                                        }}
+                                                        className="px-2 py-0.5 rounded-lg bg-[#00f0ff]/10 hover:bg-[#00f0ff]/20 text-[#00f0ff] hover:text-white border border-[#00f0ff]/30 transition-all flex items-center gap-1 text-[10px] font-bold"
+                                                        title="Envoyer un e-mail officiel à ce participant via le site"
+                                                    >
+                                                        <Mail className="w-3 h-3" />
+                                                        <span>Email</span>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -747,11 +856,19 @@ export function GTAContestAdminModal({ isOpen, onClose }: GTAContestAdminModalPr
                                     {/* Actions */}
                                     <div className="space-y-3">
                                         <button
+                                            onClick={() => handleOpenEmailModal(winner, true)}
+                                            className="w-full py-4 bg-gradient-to-r from-emerald-500 via-teal-400 to-[#00f0ff] hover:opacity-95 text-black font-black uppercase text-xs tracking-[0.2em] rounded-2xl shadow-[0_0_30px_rgba(0,240,255,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5"
+                                        >
+                                            <Mail className="w-5 h-5 text-black" />
+                                            <span>ENVOYER L'E-MAIL DE VICTOIRE AU GAGNANT</span>
+                                        </button>
+
+                                        <button
                                             onClick={() => {
                                                 navigator.clipboard.writeText(`Gagnant GTA 6 Dropsiders: ${winner.prenom} ${winner.nom} (${winner.instagram}) - Email: ${winner.email} - Plateforme: ${winner.plateforme}`);
                                                 alert("Coordonnées du vainqueur copiées dans le presse-papiers !");
                                             }}
-                                            className="w-full py-4 bg-gradient-to-r from-[#ff007f] to-[#00f0ff] text-white font-black uppercase text-xs tracking-[0.2em] rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all"
+                                            className="w-full py-3.5 bg-gradient-to-r from-[#ff007f] to-[#00f0ff] text-white font-black uppercase text-xs tracking-[0.15em] rounded-2xl shadow-xl hover:scale-102 active:scale-98 transition-all"
                                         >
                                             COPIER LES COORDONNÉES DU VAINQUEUR
                                         </button>
@@ -858,12 +975,176 @@ export function GTAContestAdminModal({ isOpen, onClose }: GTAContestAdminModalPr
                                         </div>
                                     </div>
 
-                                    <button
-                                        onClick={() => setSelectedEntry(null)}
-                                        className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-black uppercase text-xs rounded-xl"
-                                    >
-                                        Fermer
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleOpenEmailModal(selectedEntry, false)}
+                                            className="flex-1 py-3 bg-gradient-to-r from-[#00f0ff] to-[#00a8ff] hover:opacity-90 text-black font-black uppercase text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg"
+                                        >
+                                            <Mail className="w-4 h-4 text-black" />
+                                            <span>Envoyer un e-mail</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setSelectedEntry(null)}
+                                            className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-black uppercase text-xs rounded-xl transition-all"
+                                        >
+                                            Fermer
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            </div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* =========================================================================
+                        MODAL ENVOI D'E-MAIL OFFICIEL VIA MESSAGERIE BREVO
+                    ========================================================================= */}
+                    <AnimatePresence>
+                        {isEmailModalOpen && emailTarget && (
+                            <div className="fixed inset-0 z-[220] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+                                <motion.div 
+                                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    className="bg-[#0d0221] border-2 border-[#00f0ff]/50 rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-[0_0_60px_rgba(0,240,255,0.3)] relative overflow-hidden flex flex-col max-h-[90vh]"
+                                >
+                                    {/* Header */}
+                                    <div className="flex justify-between items-start mb-5 pb-4 border-b border-white/10">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00f0ff] to-[#ff007f] flex items-center justify-center text-black shadow-lg">
+                                                <Mail className="w-5 h-5 text-black" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-lg font-black font-display uppercase tracking-wider text-white">
+                                                    Envoyer un e-mail officiel
+                                                </h4>
+                                                <p className="text-[11px] text-gray-400">
+                                                    Expéditeur : <span className="text-[#00f0ff] font-bold">contact@dropsiders.fr</span> (Brevo)
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => setIsEmailModalOpen(false)}
+                                            disabled={isSendingEmail}
+                                            className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    </div>
+
+                                    {/* Recipient summary badge */}
+                                    <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex flex-wrap items-center justify-between gap-2 mb-4 text-xs">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-gray-400 font-bold uppercase text-[10px]">Destinataire :</span>
+                                            <span className="text-white font-black">{emailTarget.prenom} {emailTarget.nom}</span>
+                                            <span className="text-[#00f0ff] font-bold">({emailTarget.email})</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-gray-300 font-bold">
+                                                {emailTarget.plateforme}
+                                            </span>
+                                            <span className="text-[10px] text-[#ff007f] font-bold">
+                                                {emailTarget.instagram}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Quick Templates */}
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Modèles rapides :</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleOpenEmailModal(emailTarget, true)}
+                                            className="px-2.5 py-1 bg-yellow-400/10 hover:bg-yellow-400/20 text-yellow-300 border border-yellow-400/30 rounded-lg text-[10px] font-bold uppercase transition-all"
+                                        >
+                                            🏆 Gagnant GTA 6
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleOpenEmailModal(emailTarget, false)}
+                                            className="px-2.5 py-1 bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 rounded-lg text-[10px] font-bold uppercase transition-all"
+                                        >
+                                            ✉️ Message libre
+                                        </button>
+                                    </div>
+
+                                    {/* Form Fields */}
+                                    <div className="space-y-4 flex-1 overflow-y-auto pr-1 custom-scrollbar mb-4">
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase text-gray-400 tracking-wider mb-1.5">
+                                                Objet de l'e-mail
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={emailSubject}
+                                                onChange={(e) => setEmailSubject(e.target.value)}
+                                                placeholder="Objet..."
+                                                className="w-full bg-black/40 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#00f0ff] font-medium"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase text-gray-400 tracking-wider mb-1.5">
+                                                Message (Signé automatiquement "Alex et l'équipe Dropsiders")
+                                            </label>
+                                            <textarea
+                                                rows={9}
+                                                value={emailBody}
+                                                onChange={(e) => setEmailBody(e.target.value)}
+                                                placeholder="Écrivez le message ici..."
+                                                className="w-full bg-black/40 border border-white/15 rounded-xl p-3.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#00f0ff] font-sans leading-relaxed resize-none custom-scrollbar"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Status / Alerts */}
+                                    {emailError && (
+                                        <div className="mb-4 p-3 rounded-xl bg-red-500/20 border border-red-500/40 text-red-200 text-xs flex items-center gap-2">
+                                            <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                                            <span>{emailError}</span>
+                                        </div>
+                                    )}
+
+                                    {emailSuccess && (
+                                        <div className="mb-4 p-3 rounded-xl bg-green-500/20 border border-green-500/40 text-green-200 text-xs flex items-center gap-2">
+                                            <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
+                                            <span>E-mail envoyé avec succès à <strong>{emailTarget.email}</strong> !</span>
+                                        </div>
+                                    )}
+
+                                    {/* Action Buttons */}
+                                    <div className="flex items-center gap-3 pt-3 border-t border-white/10">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsEmailModalOpen(false)}
+                                            disabled={isSendingEmail}
+                                            className="px-5 py-3 bg-white/10 hover:bg-white/15 text-gray-300 font-bold uppercase text-xs rounded-xl transition-all"
+                                        >
+                                            Annuler
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleSendEmail}
+                                            disabled={isSendingEmail || emailSuccess}
+                                            className="flex-1 py-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-[#00f0ff] hover:opacity-95 disabled:opacity-50 text-black font-black uppercase text-xs tracking-wider rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+                                        >
+                                            {isSendingEmail ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 animate-spin text-black" />
+                                                    <span>Envoi en cours via Brevo...</span>
+                                                </>
+                                            ) : emailSuccess ? (
+                                                <>
+                                                    <Check className="w-4 h-4 text-black" />
+                                                    <span>E-mail Envoyé !</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Send className="w-4 h-4 text-black" />
+                                                    <span>Envoyer l'e-mail officiel</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
                                 </motion.div>
                             </div>
                         )}

@@ -49,8 +49,15 @@ export function GTAContestPage() {
     const [q3, setQ3] = useState('');
 
     // Referral code incoming
-    const refParam = searchParams.get('ref') || '';
+    const refParam = searchParams.get('ref') || searchParams.get('parrain') || searchParams.get('code') || '';
     const [referredBy, setReferredBy] = useState(refParam);
+
+    useEffect(() => {
+        const ref = searchParams.get('ref') || searchParams.get('parrain') || searchParams.get('code');
+        if (ref) {
+            setReferredBy(ref.toUpperCase().trim());
+        }
+    }, [searchParams]);
 
     // UI States
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -545,6 +552,22 @@ export function GTAContestPage() {
                         <div className="inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 bg-white/10 text-white border border-white/20">
                             PARTICIPATION ENREGISTRÉE • TENTATIVE UNIQUE VERROUILLÉE
                         </div>
+
+                        {searchParams.get('ref') && (
+                            <div className="max-w-xl mx-auto mb-6 p-4 rounded-2xl bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-center animate-in fade-in">
+                                {searchParams.get('ref')?.toUpperCase().trim() === existingEntry.referralCode?.toUpperCase().trim() ? (
+                                    <div className="flex items-center justify-center gap-2 text-xs font-bold text-[#00f0ff]">
+                                        <CheckCircle2 className="w-4 h-4 shrink-0 text-[#00f0ff]" />
+                                        <span>C'est bien ton lien de parrainage personnel ({existingEntry.referralCode}) ! Partage-le à tes amis pour qu'ils s'inscrivent depuis leur téléphone ou ordinateur.</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-center gap-2 text-xs font-bold text-yellow-400">
+                                        <AlertTriangle className="w-4 h-4 shrink-0 text-yellow-400" />
+                                        <span>Lien de parrainage ami détecté ({searchParams.get('ref')}), mais ta propre participation est déjà enregistrée sur cet appareil !</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         <h2 className="text-3xl font-display font-black uppercase italic tracking-tight text-white mb-3">
                             {existingEntry.status === 'VALIDATED' && (
