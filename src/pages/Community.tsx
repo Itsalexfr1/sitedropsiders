@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Users, Camera, Star, Info,
@@ -6,11 +6,11 @@ import {
     Music, Shield, Palette, Megaphone, Lock,
     RefreshCw, X, Heart, Ticket, Euro,
     Flame, Search, Filter, Globe, Tv,
-    Share2, MessageSquare, Wand2, Instagram, Users as UsersIcon, LayoutGrid, ArrowLeftRight
+    Share2, MessageSquare, Wand2, Instagram, Users as UsersIcon, LayoutGrid, ArrowLeftRight,
+    Gamepad2, Play
 } from 'lucide-react';
-import { StoryGridGenerator } from './StoryGridGenerator';
 import { ConfirmationModal } from '../components/ConfirmationModal';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
 import { MemoryWall } from '../components/community/MemoryWall';
 import { QuizSection } from '../components/community/QuizSection';
@@ -18,9 +18,9 @@ import { AvisSection } from '../components/community/AvisSection';
 import { DjNameGenerator } from '../components/community/DjNameGenerator';
 import { PlaylistSharing } from '../components/community/PlaylistSharing';
 import { TrackIdForum } from '../components/community/TrackIdForum';
-import { VideoTranslator } from '../components/community/VideoTranslator';
 import { useUser } from '../context/UserContext';
 import { useEffect } from 'react';
+
 
 import { InstagramContest } from '../components/community/InstagramContest';
 import { TradeMarketplace } from '../components/community/TradeMarketplace';
@@ -268,7 +268,7 @@ export function Community() {
     const navigate = useNavigate();
 
     // --- TAB TYPE UPDATE ---
-    type TabType = 'WALL' | 'UPLOADS' | 'CONCOURS' | 'GAME' | 'AVIS' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB' | 'TV' | 'GRID' | 'TRADE';
+    type TabType = 'WALL' | 'UPLOADS' | 'BLINDTEST' | 'CONCOURS' | 'GAME' | 'AVIS' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB' | 'TRADE';
     const [activeTab, setActiveTab] = useState<TabType>('WALL');
     const location = useLocation();
 
@@ -276,10 +276,11 @@ export function Community() {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const tab = params.get('tab');
-        if (tab && ['WALL', 'UPLOADS', 'CONCOURS', 'GAME', 'AVIS', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB', 'TV', 'GRID', 'TRADE'].includes(tab)) {
+        if (tab && ['WALL', 'UPLOADS', 'BLINDTEST', 'CONCOURS', 'GAME', 'AVIS', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB', 'TRADE'].includes(tab)) {
             setActiveTab(tab as TabType);
         }
     }, [location.search]);
+
     
     // Sub-tabs for Contest
     const [contestTab, setContestTab] = useState<'QUIZ' | 'INSTAGRAM'>('QUIZ');
@@ -446,8 +447,8 @@ export function Community() {
     const [advisorTip, setAdvisorTip] = useState<{ name: string, tip: string, avatar: string } | null>(null);
     const [posterStyle, setPosterStyle] = useState<'ULTRA' | 'TOMORROWLAND' | 'EDC'>('ULTRA');
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-    const [isGridOpen, setIsGridOpen] = useState(false);
     const [showAlert, setShowAlert] = useState<{ isOpen: boolean, title: string, message: string }>({ isOpen: false, title: '', message: '' });
+
 
     const currentRank = useMemo(() => {
         return [...PROM_RANKS].reverse().find(r => promoterXP >= r.minXp) || PROM_RANKS[0];
@@ -949,16 +950,15 @@ export function Community() {
                             {([
                                 { id: 'WALL',          icon: Star,         label: 'Souvenirs',         multiline: false },
                                 { id: 'UPLOADS',       icon: Camera,       label: 'Vos Photos',        multiline: false },
-                                { id: 'AVIS',          icon: MessageSquare,label: 'Avis & Votes',      multiline: false },
+                                { id: 'BLINDTEST',     icon: Gamepad2,     label: 'Blind Test',        multiline: false, iconClass: 'text-neon-red' },
                                 { id: 'CONCOURS',      icon: Trophy,       label: 'Quizz & Concours',  multiline: false },
+                                { id: 'AVIS',          icon: MessageSquare,label: 'Avis & Votes',      multiline: false },
                                 { id: 'GAME',          icon: Sparkles,     label: 'PRODUCER',          multiline: false, iconClass: 'text-amber-400' },
 
                                 { id: 'TRACK_ID',      icon: Music,        label: 'TrackID',           multiline: false },
                                 { id: 'PLAYLISTS',     icon: Share2,       label: 'Mixs',              multiline: false },
                                 { id: 'LAB',           icon: Wand2,        label: 'Communauté',       multiline: false },
                                 { id: 'TRADE',         icon: ArrowLeftRight, label: 'Échanges',        multiline: false, iconClass: 'text-neon-fuchsia' },
-                                { id: 'TV',            icon: Tv,           label: 'TV Translator',     multiline: false, iconClass: 'text-neon-fuchsia' },
-                                { id: 'GRID',          icon: LayoutGrid,   label: 'Story Grid',        multiline: false, iconClass: 'text-neon-purple' },
                             ] as any[]).filter(tab => !tab.hidden).map((tab) => (
                                 <button
                                     key={tab.id}
@@ -1065,34 +1065,67 @@ export function Community() {
                             </motion.div>
                         )}
 
-                        {activeTab === 'GRID' && (
+                        {activeTab === 'BLINDTEST' && (
                             <motion.div
-                                key="grid"
+                                key="blindtest"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
-                                className="flex flex-col items-center justify-center py-20 gap-8 text-center"
+                                className="flex flex-col items-center justify-center py-12 md:py-20 gap-8 text-center max-w-4xl mx-auto"
                             >
-                                <div className="w-24 h-24 rounded-3xl bg-neon-purple/10 border border-neon-purple/30 flex items-center justify-center">
-                                    <LayoutGrid className="w-12 h-12 text-neon-purple" />
+                                <div className="w-24 h-24 rounded-3xl bg-neon-red/10 border border-neon-red/30 flex items-center justify-center shadow-[0_0_40px_rgba(255,0,51,0.3)]">
+                                    <Gamepad2 className="w-12 h-12 text-neon-red animate-pulse" />
                                 </div>
-                                <div className="space-y-3">
-                                    <h2 className="text-4xl md:text-5xl font-display font-black uppercase italic tracking-tighter text-white">
-                                        Story <span className="text-neon-purple">Grid</span> Generator
+                                <div className="space-y-4 max-w-2xl">
+                                    <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-neon-red/10 border border-neon-red/30 rounded-full text-[10px] font-black uppercase tracking-widest text-neon-red">
+                                        <Sparkles className="w-3.5 h-3.5" /> Dropsiders Blind Test
+                                    </div>
+                                    <h2 className="text-4xl md:text-6xl font-display font-black uppercase italic tracking-tighter text-white">
+                                        BLIND TEST <span className="text-neon-red">EDM</span>
                                     </h2>
-                                    <p className="text-white/40 font-bold uppercase tracking-widest text-[10px] max-w-md mx-auto">
-                                        Génère ta grille d'artistes pour tes stories Instagram.
+                                    <p className="text-gray-400 font-medium text-xs md:text-sm max-w-lg mx-auto leading-relaxed">
+                                        Devine les bangers en moins d&apos;une demi-seconde ! Écoute les extraits Deezer, débloque les paliers audio, utilise tes jokers et bats les records de la communauté.
                                     </p>
                                 </div>
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={() => setIsGridOpen(true)}
-                                    className="px-10 py-4 bg-neon-purple text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-[0_0_30px_rgba(189,0,255,0.3)] hover:shadow-[0_0_50px_rgba(189,0,255,0.5)] transition-all flex items-center gap-3"
-                                >
-                                    <LayoutGrid className="w-5 h-5" />
-                                    Ouvrir le Générateur
-                                </motion.button>
+
+                                <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+                                    <Link
+                                        to="/blind-test"
+                                        className="px-10 py-5 bg-gradient-to-r from-neon-red to-neon-purple text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_40px_rgba(255,0,51,0.5)] hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
+                                    >
+                                        <Play className="w-4 h-4 fill-current" />
+                                        Lancer une Partie
+                                    </Link>
+                                    <Link
+                                        to="/blind-test"
+                                        className="px-8 py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:border-white/30 transition-all flex items-center gap-2"
+                                    >
+                                        Choisir un Thème ↗
+                                    </Link>
+                                </div>
+
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-3xl mt-4">
+                                    {[
+                                        { title: 'EDM Classics', desc: 'Avicii, Guetta, SHM...', color: '#00f0ff' },
+                                        { title: 'Mainstage', desc: 'Tomorrowland & UMF', color: '#ff007f' },
+                                        { title: 'French Touch', desc: 'Daft Punk, Snake, Justice...', color: '#38bdf8' },
+                                        { title: 'Bass Music', desc: 'Skrillex, Excision...', color: '#a855f7' },
+                                    ].map((cat) => (
+                                        <Link
+                                            key={cat.title}
+                                            to="/blind-test"
+                                            className="p-4 bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 rounded-2xl text-left transition-all group"
+                                            style={{ borderTopColor: cat.color, borderTopWidth: '3px' }}
+                                        >
+                                            <p className="text-xs font-black uppercase italic text-white group-hover:text-neon-cyan transition-colors truncate">
+                                                {cat.title}
+                                            </p>
+                                            <p className="text-[10px] text-gray-500 font-medium truncate mt-1">
+                                                {cat.desc}
+                                            </p>
+                                        </Link>
+                                    ))}
+                                </div>
                             </motion.div>
                         )}
 
@@ -2176,17 +2209,6 @@ export function Community() {
                             </motion.div>
                         )}
 
-                        {activeTab === 'TV' && (
-                            <motion.div
-                                key="tv"
-                                initial={{ opacity: 0, x: 50 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -50 }}
-                            >
-                                <VideoTranslator />
-                            </motion.div>
-                        )}
-
                         {activeTab === 'TRADE' && (
                             <motion.div
                                 key="trade"
@@ -2264,11 +2286,6 @@ export function Community() {
                 onClose={() => setIsAuthModalOpen(false)} 
             />
 
-            <StoryGridGenerator
-                isOpen={isGridOpen}
-                onClose={() => setIsGridOpen(false)}
-                wikiData={wikiData}
-            />
 
             <AdminEditBar
                 pageName="Communauté"

@@ -168,16 +168,6 @@
     "columns": 1
   },
   {
-    "title": "Video Translator AI",
-    "description": "Analyse & Traduit MP4",
-    "icon": "Video",
-    "category": "ALL",
-    "link": "video-ai-translator",
-    "permission": "news",
-    "baseColor": "#d400ff",
-    "columns": 1
-  },
-  {
     "title": "TEAM & DROITS",
     "description": "Équipe & Accès Admin",
     "icon": "Users",

@@ -118,11 +118,10 @@ import { InterviewRandomizer } from "../components/admin/InterviewRandomizer";
 import { ScheduleVisualGenerator } from "../components/admin/modals/ScheduleVisualGenerator";
 import { LiveInteractivityModal } from "../components/admin/modals/LiveInteractivityModal";
 import { AdminLoginScreen } from "../components/admin/AdminLoginScreen";
-import { VideoUploaderTranslator } from "../components/admin/VideoUploaderTranslator";
 import { InterviewVisualGenerator } from "./InterviewVisualGenerator";
-import { StoryGridGenerator } from "./StoryGridGenerator";
 import { QRCodeGenerator } from "./QRCodeGenerator";
 import { IncomingCallGenerator } from "./IncomingCallGenerator";
+
 import { AdminCardsModal } from "../components/admin/modals/AdminCardsModal";
 import { FacebookRecoveryModal } from "../components/admin/FacebookRecoveryModal";
 import { GTAContestAdminModal } from "../components/admin/modals/GTAContestAdminModal";
@@ -246,11 +245,10 @@ export function AdminDashboard() {
     useState(false);
   const [isQuizzConcoursModalOpen, setIsQuizzConcoursModalOpen] = useState(false);
   const [isInterviewVisualsModalOpen, setIsInterviewVisualsModalOpen] = useState(false);
-  const [isStoryGridModalOpen, setIsStoryGridModalOpen] = useState(false);
   const [isQRCodeModalOpen, setIsQRCodeModalOpen] = useState(false);
   const [isIncomingCallModalOpen, setIsIncomingCallModalOpen] = useState(false);
-  const [isVideoAITranslatorModalOpen, setIsVideoAITranslatorModalOpen] = useState(false);
   const [isAdminCardsModalOpen, setIsAdminCardsModalOpen] = useState(false);
+
   const [teamModalTab, setTeamModalTab] = useState<"MEMBERS" | "TEAM" | "EDITORS" | "REQUESTS">("MEMBERS");
 
   const [isLoadingSocial, setIsLoadingSocial] = useState(false);
@@ -2544,9 +2542,17 @@ export function AdminDashboard() {
                 a.title.toLowerCase() === defaultAction.title.toLowerCase(),
             );
             if (!exists) {
-              mergedActions.push(defaultAction);
+              const radioIdx = mergedActions.findIndex((a) =>
+                a.title?.toLowerCase().includes("radio"),
+              );
+              if (radioIdx !== -1) {
+                mergedActions.splice(radioIdx + 1, 0, defaultAction);
+              } else {
+                mergedActions.splice(2, 0, defaultAction);
+              }
             }
           });
+
 
           // Filter out 'Bandeau' and also deleted actions that might be in the saved layout
           // Also sync category, permission, icon, bg, color from defaults
@@ -2557,6 +2563,9 @@ export function AdminDashboard() {
                 savedAction.title !== "Toutes les Photos" &&
                 savedAction.title !== "Quizz & CONCOURS" &&
                 savedAction.title !== "Quizz & Concours" &&
+                savedAction.title !== "Video Translator AI" &&
+                savedAction.title !== "Story Grid Generator" &&
+                savedAction.title !== "Story Grid" &&
                 defaultActions.some(
                   (def) =>
                     def.title.toLowerCase() === savedAction.title.toLowerCase(),
@@ -2663,6 +2672,18 @@ export function AdminDashboard() {
       baseColor: isRadioActive ? "cyan" : "white",
       columns: 1,
     },
+    {
+      title: "Blind Test",
+      description: "Thèmes, Playlists Deezer & Sessions",
+      icon: "Gamepad2",
+      category: "COMMUNAUTÉ",
+      link: "#BLINDTEST_ADMIN_MODAL",
+      color: "border-neon-red/30 hover:border-neon-red",
+      bg: "bg-neon-red/10",
+      permission: "all",
+      baseColor: "red",
+      columns: 1,
+    },
 
     // STUDIO & ANALYTICS
     {
@@ -2677,16 +2698,7 @@ export function AdminDashboard() {
       baseColor: "cyan",
       columns: 1,
     },
-    {
-      title: "Video Translator AI",
-      description: "Analyse & Traduction MP4",
-      icon: "Video",
-      category: "ALL",
-      link: "video-ai-translator",
-      permission: "news",
-      baseColor: "purple",
-      columns: 1,
-    },
+
     {
       title: "Générateurs",
       description: "Studio de création visuelle",
@@ -4817,14 +4829,8 @@ export function AdminDashboard() {
                               e.preventDefault();
                               navigate(action.link && action.link.startsWith("/admin/team") ? action.link : "/admin/team");
                             } else if (
-                              action.title === "Story Grid Generator" ||
-                              action.title === "Story Grid" ||
-                              action.link === "#STORY_GRID_MODAL"
-                            ) {
-                              e.preventDefault();
-                              setIsStoryGridModalOpen(true);
-                            } else if (
                               action.title === "Quizz & CONCOURS" ||
+
                               action.link === "#QUIZZ_CONCOURS_MODAL"
                             ) {
                               e.preventDefault();
@@ -4905,12 +4911,6 @@ export function AdminDashboard() {
                             ) {
                               e.preventDefault();
                               setIsBannerModalOpen(true);
-                            } else if (
-                              action.title === "Video Translator AI" ||
-                              action.link === "video-ai-translator"
-                            ) {
-                              e.preventDefault();
-                              setIsVideoAITranslatorModalOpen(true);
                             } else if (
                               action.title === "QR Code" ||
                               action.link === "#QR_CODE_MODAL"
@@ -5485,27 +5485,6 @@ export function AdminDashboard() {
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">
                           Slot Machine
-                        </p>
-                      </div>
-                    </button>
-
-
-                    <button
-                      onClick={() => {
-                        setIsGeneratorsModalOpen(false);
-                        setIsStoryGridModalOpen(true);
-                      }}
-                      className="p-4 md:p-8 bg-white/5 border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center gap-3 md:gap-6 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
-                    >
-                      <div className="w-10 h-10 md:w-16 md:h-16 bg-neon-cyan/20 rounded-xl md:rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
-                        <LayoutGrid className="w-5 h-5 md:w-8 md:h-8 text-neon-cyan" />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-xs md:text-lg font-bold text-white uppercase italic">
-                          STORY GRID
-                        </h3>
-                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">
-                          Grille Instagram
                         </p>
                       </div>
                     </button>
@@ -11801,18 +11780,6 @@ export function AdminDashboard() {
               setIsGeneratorsModalOpen(true);
             }}
           />
-          <StoryGridGenerator
-            isOpen={isStoryGridModalOpen}
-            onClose={() => {
-              setIsStoryGridModalOpen(false);
-              setIsGeneratorsModalOpen(true);
-            }}
-            wikiData={{
-              djs: wikiDjs,
-              clubs: wikiClubs,
-              festivals: wikiFestivals,
-            }}
-          />
           <QRCodeGenerator
             isOpen={isQRCodeModalOpen}
             onClose={() => {
@@ -14769,52 +14736,6 @@ export function AdminDashboard() {
             )}
           </AnimatePresence>
 
-          {/* VIDEO TRANSLATOR AI MODAL */}
-          <AnimatePresence>
-            {isVideoAITranslatorModalOpen && (
-              <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setIsVideoAITranslatorModalOpen(false)}
-                  className="absolute inset-0 bg-black/95 backdrop-blur-xl"
-                />
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                  className="relative w-full max-w-6xl bg-[#0a0a0a] border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl p-0 h-[85vh] flex flex-col"
-                >
-                  <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-neon-purple/20 rounded-2xl border border-neon-purple/30">
-                        <Video className="w-6 h-6 text-neon-purple" />
-                      </div>
-                      <div>
-                        <h2 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">
-                          Video Translator <span className="text-neon-purple">AI</span>
-                        </h2>
-                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
-                          Transcription & Traduction automatique de fichiers MP4
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setIsVideoAITranslatorModalOpen(false)}
-                      className="p-4 bg-white/5 hover:bg-neon-red/20 border border-white/10 rounded-2xl text-gray-500 hover:text-white transition-all group"
-                    >
-                      <X className="w-6 h-6 group-hover:rotate-90 transition-transform" />
-                    </button>
-                  </div>
-                  
-                  <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                    <VideoUploaderTranslator />
-                  </div>
-                </motion.div>
-              </div>
-            )}
-          </AnimatePresence>
           <AdminChat />
         </div>
       </div>
