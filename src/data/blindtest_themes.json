@@ -1,16 +1,5 @@
 [
   {
-    "id": "french-touch",
-    "title": "French Touch & Electro Français",
-    "description": "Daft Punk, Justice, DJ Snake, Madeon, Kungs, Bob Sinclar, Gesaffelstein...",
-    "deezerPlaylistId": "11600724204",
-    "deezerPlaylistUrl": "https://www.deezer.com/fr/playlist/11600724204",
-    "color": "#38bdf8",
-    "badge": "FRENCH TOUCH",
-    "coverUrl": "https://cdn-images.dzcdn.net/images/cover/e32ccdaea23d6c132f169d9828b8cf39/500x500-000000-80-0-0.jpg",
-    "enabled": true
-  },
-  {
     "id": "bass-dubstep",
     "title": "Bass Music & Dubstep",
     "description": "Skrillex, Zomboy, Excision, Subtronics, Marshmello, Joyryde...",
