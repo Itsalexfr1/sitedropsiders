@@ -36,6 +36,18 @@
     "columns": 1
   },
   {
+    "title": "Blind Test",
+    "description": "Thèmes, Playlists Deezer & Sessions",
+    "icon": "Gamepad2",
+    "category": "COMMUNAUTÉ",
+    "link": "#BLINDTEST_ADMIN_MODAL",
+    "color": "border-neon-red/30 hover:border-neon-red",
+    "bg": "bg-neon-red/10",
+    "permission": "all",
+    "baseColor": "#ff0033",
+    "columns": 1
+  },
+  {
     "title": "Générateurs",
     "description": "Studio de création visuelle",
     "icon": "Sparkles",

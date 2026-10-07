@@ -77,6 +77,7 @@ const MixPage = lazyRetry(() => import('./pages/MixPage').then(m => m.MixPage));
 const RadioPage = lazyRetry(() => import('./pages/RadioPage').then(m => m.RadioPage));
 const GTAContestPage = lazyRetry(() => import('./pages/GTAContestPage').then(m => m.GTAContestPage));
 const AdminGTAContestPage = lazyRetry(() => import('./pages/AdminGTAContestPage').then(m => m.AdminGTAContestPage));
+const BlindTestPage = lazyRetry(() => import('./pages/BlindTestPage').then(m => m.BlindTestPage));
 
 
 function ErrorFallback() {
@@ -233,6 +234,8 @@ const router = createBrowserRouter([
       { path: "concours-gta6", element: <GTAContestPage /> },
       { path: "gta6", element: <GTAContestPage /> },
       { path: "concours/gta6", element: <GTAContestPage /> },
+      { path: "blind-test", element: <BlindTestPage /> },
+      { path: "blindtest", element: <BlindTestPage /> },
       
       { path: "admin", element: <AdminDashboard /> },
       

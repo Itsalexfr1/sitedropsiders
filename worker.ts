@@ -414,6 +414,28 @@ export default {
             return new Response(JSON.stringify({ country }), { headers });
         }
 
+        // Deezer Proxy for Blind Test (Bypasses browser CORS restrictions)
+        if (path.startsWith('/api/deezer/')) {
+            const deezerSubPath = path.replace('/api/deezer/', '');
+            const targetUrl = `https://api.deezer.com/${deezerSubPath}${url.search}`;
+            try {
+                const dzRes = await fetch(targetUrl);
+                const dzData = await dzRes.text();
+                return new Response(dzData, {
+                    headers: {
+                        ...headers,
+                        'Content-Type': 'application/json',
+                    }
+                });
+            } catch (err: any) {
+                return new Response(JSON.stringify({ error: err.message || 'Failed to fetch Deezer' }), {
+                    status: 502,
+                    headers: { ...headers, 'Content-Type': 'application/json' }
+                });
+            }
+        }
+
+
         // ─── Radio Presence API (comptage auditeurs multi-appareils + mobile) ──────
         // GET  /api/radio/presence → retourne { count: number } (total auditeurs actifs)
         // POST /api/radio/presence → signale présence { sessionId, isPlaying }
@@ -4701,6 +4723,23 @@ ${urls.map(u => `  <url>
             const saved = await saveGitHubFile(ACTIONS_PATH, actions, `Update Dashboard actions order`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
+
+        // --- API: BLIND TEST THEMES MANAGEMENT ---
+        if (path === '/api/blindtest/themes' && request.method === 'GET') {
+            const THEMES_PATH = 'src/data/blindtest_themes.json';
+            const file = await fetchGitHubFile(THEMES_PATH, gitConfig);
+            if (!file) return new Response(JSON.stringify([]), { status: 200, headers });
+            return new Response(JSON.stringify(file.content), { status: 200, headers });
+        }
+
+        if (path === '/api/blindtest/themes' && request.method === 'POST') {
+            const THEMES_PATH = 'src/data/blindtest_themes.json';
+            const { themes } = await request.json();
+            const file = await fetchGitHubFile(THEMES_PATH, gitConfig) || { content: [], sha: null };
+            const saved = await saveGitHubFile(THEMES_PATH, themes, `Update Blind Test themes`, file.sha, gitConfig);
+            return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
+        }
+
 
         // --- API: SHOP PRODUCTS MANAGEMENT ---
 

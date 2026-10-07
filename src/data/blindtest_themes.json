@@ -1,0 +1,46 @@
+[
+  {
+    "id": "edm-classics",
+    "title": "EDM Classics (2010-2016)",
+    "description": "Avicii, David Guetta, Swedish House Mafia, Calvin Harris, Martin Garrix...",
+    "deezerPlaylistId": "3264808726",
+    "deezerPlaylistUrl": "https://www.deezer.com/fr/playlist/3264808726",
+    "color": "#00f0ff",
+    "badge": "LÉGENDAIRE",
+    "coverUrl": "https://cdn-images.dzcdn.net/images/cover/6704168518eedd6eff222b5fb55f86c0/500x500-000000-80-0-0.jpg",
+    "enabled": true
+  },
+  {
+    "id": "festival-bangers",
+    "title": "Mainstage & Festival Bangers",
+    "description": "Tomorrowland, Ultra Music Festival, Hardwell, Dimitri Vegas & Like Mike, Timmy Trumpet...",
+    "deezerPlaylistId": "11118315824",
+    "deezerPlaylistUrl": "https://www.deezer.com/fr/playlist/11118315824",
+    "color": "#ff007f",
+    "badge": "FESTIVAL",
+    "coverUrl": "https://cdn-images.dzcdn.net/images/cover/c65b3bd84e81056e060be144381c06c8/500x500-000000-80-0-0.jpg",
+    "enabled": true
+  },
+  {
+    "id": "french-touch",
+    "title": "French Touch & Electro Français",
+    "description": "Daft Punk, Justice, DJ Snake, Madeon, Kungs, Bob Sinclar, Gesaffelstein...",
+    "deezerPlaylistId": "11600724204",
+    "deezerPlaylistUrl": "https://www.deezer.com/fr/playlist/11600724204",
+    "color": "#38bdf8",
+    "badge": "FRENCH TOUCH",
+    "coverUrl": "https://cdn-images.dzcdn.net/images/cover/e32ccdaea23d6c132f169d9828b8cf39/500x500-000000-80-0-0.jpg",
+    "enabled": true
+  },
+  {
+    "id": "bass-dubstep",
+    "title": "Bass Music & Dubstep",
+    "description": "Skrillex, Zomboy, Excision, Subtronics, Marshmello, Joyryde...",
+    "deezerPlaylistId": "6237312204",
+    "deezerPlaylistUrl": "https://www.deezer.com/fr/playlist/6237312204",
+    "color": "#a855f7",
+    "badge": "BASS",
+    "coverUrl": "https://cdn-images.dzcdn.net/images/cover/34ac87f7b59494f99d47e06e9430ac4f/500x500-000000-80-0-0.jpg",
+    "enabled": true
+  }
+]

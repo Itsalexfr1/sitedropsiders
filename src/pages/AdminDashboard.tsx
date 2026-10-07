@@ -126,6 +126,7 @@ import { IncomingCallGenerator } from "./IncomingCallGenerator";
 import { AdminCardsModal } from "../components/admin/modals/AdminCardsModal";
 import { FacebookRecoveryModal } from "../components/admin/FacebookRecoveryModal";
 import { GTAContestAdminModal } from "../components/admin/modals/GTAContestAdminModal";
+import { AdminBlindTestModal } from "../components/admin/modals/AdminBlindTestModal";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
@@ -232,6 +233,7 @@ export function AdminDashboard() {
   const [isRandomizerModalOpen, setIsRandomizerModalOpen] = useState(false);
   const [isGiveawayModalOpen, setIsGiveawayModalOpen] = useState(false);
   const [isGTAContestModalOpen, setIsGTAContestModalOpen] = useState(false);
+  const [isBlindTestModalOpen, setIsBlindTestModalOpen] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isLiveInteractivityModalOpen, setIsLiveInteractivityModalOpen] =
     useState(false);
@@ -4835,7 +4837,15 @@ export function AdminDashboard() {
                             ) {
                               e.preventDefault();
                               setIsGTAContestModalOpen(true);
+                            } else if (
+                              action.title === "Blind Test" ||
+                              action.title === "Blind Test Deezer" ||
+                              action.link === "#BLINDTEST_ADMIN_MODAL"
+                            ) {
+                              e.preventDefault();
+                              setIsBlindTestModalOpen(true);
                             } else if (action.title === "Vérifier Photos") {
+
                               e.preventDefault();
                               setModerationTab("wiki");
                               setDashboardTab("COMMUNAUTÉ");
@@ -13210,6 +13220,10 @@ export function AdminDashboard() {
           <GTAContestAdminModal
             isOpen={isGTAContestModalOpen}
             onClose={() => setIsGTAContestModalOpen(false)}
+          />
+          <AdminBlindTestModal
+            isOpen={isBlindTestModalOpen}
+            onClose={() => setIsBlindTestModalOpen(false)}
           />
           <LiveInteractivityModal
             isOpen={isLiveInteractivityModalOpen}
