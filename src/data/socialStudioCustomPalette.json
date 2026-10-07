@@ -12,7 +12,7 @@
     "RECAP": { "label": "RÉCAP", "color": "#86198F", "grad": "134, 25, 143", "name": "Prune" },
     "LIVESTREAM": { "label": "DIRECT", "color": "#FFE600", "grad": "255, 230, 0", "name": "Jaune électrique" },
     "INTERVIEW": { "label": "INTERVIEW", "color": "#FFFFFF", "grad": "148, 163, 184", "name": "Blanc → Argent (#FFFFFF → #94A3B8)" },
-    "PLANNING": { "label": "PLANNING", "color": "#172554", "grad": "23, 37, 84", "name": "Bleu nuit" },
+    "PLANNING": { "label": "AGENDA", "color": "#FF3700", "grad": "255, 55, 0", "name": "Rouge-orange Rave" },
     "TOP 100 DROPSIDERS": { "label": "TOP 100 DROPSIDERS", "color": "#D4AF37", "grad": "212, 175, 55", "name": "Or métallique" },
     "SPOTLIGHT": { "label": "SPOTLIGHT", "color": "#00A86B", "grad": "0, 168, 107", "name": "Émeraude" },
     "CITATION": { "label": "CITATION", "color": "#CBD5E1", "grad": "203, 213, 225", "name": "Gris platine" },
