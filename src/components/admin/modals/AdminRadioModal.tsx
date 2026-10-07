@@ -1052,13 +1052,46 @@ export function AdminRadioModal({
     // ─── Enregistrer ou retirer une playlist SoundCloud liée à une émission ────
     const handleSaveSoundCloudPlaylist = (
         blockId: string,
-        data: { url: string; title?: string; author?: string; coverUrl?: string }
+        data: { url: string; title?: string; author?: string; coverUrl?: string; purgeClips?: boolean }
     ) => {
         setBlocks(prev => {
             const next = prev.map(b => {
                 if (b.id !== blockId) return b;
+
+                // 1. Purge définitive des clips et sets YouTube existants si demandé (par défaut true)
+                const shouldPurge = data.purgeClips !== false;
+                const preservedHabillage = shouldPurge
+                    ? (b.tracks || []).filter(t => 
+                        t.category === 'jingle' || 
+                        t.category === 'promo' || 
+                        t.category === 'pub' || 
+                        t.category === 'top_horaire' || 
+                        t.isThemeJingle || 
+                        t.isTopHoraire
+                    )
+                    : (b.tracks || []);
+
+                // 2. Création de l'élément SoundCloud pour l'émission
+                const showDurationSec = Math.max(3600, (((b.endHour ?? 24) - (b.startHour ?? 0) + 24) % 24) * 3600 || 7200);
+                const soundcloudTrack: RadioTrackItem = {
+                    id: `track_sc_${b.id}_${Date.now()}`,
+                    title: data.title || `Playlist SoundCloud • ${b.title}`,
+                    artist: data.author || 'SoundCloud Live',
+                    duration: showDurationSec,
+                    category: 'set',
+                    soundcloudUrl: data.url,
+                    coverUrl: data.coverUrl,
+                    addedAt: Date.now()
+                };
+
+                // 3. Fusion avec les jingles/promos sans couper l'antenne
+                const mergedTracks = shouldPurge
+                    ? [soundcloudTrack, ...preservedHabillage]
+                    : [soundcloudTrack, ...(b.tracks || [])];
+
                 return {
                     ...b,
+                    tracks: mergedTracks,
                     soundcloudPlaylistUrl: data.url || undefined,
                     soundcloudPlaylistTitle: data.title || undefined,
                     soundcloudPlaylistAuthor: data.author || undefined,
@@ -1084,6 +1117,7 @@ export function AdminRadioModal({
                 if (b.id !== blockId) return b;
                 return {
                     ...b,
+                    tracks: (b.tracks || []).filter(t => !t.soundcloudUrl),
                     soundcloudPlaylistUrl: undefined,
                     soundcloudPlaylistTitle: undefined,
                     soundcloudPlaylistAuthor: undefined,

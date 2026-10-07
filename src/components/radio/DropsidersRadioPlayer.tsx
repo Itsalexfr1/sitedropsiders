@@ -28,6 +28,11 @@ function buildSrc(youtubeId: string, start: number, muted: 0 | 1) {
         + `&origin=${encodeURIComponent(origin)}`;
 }
 
+// ─── URL SoundCloud widget embed ──────────────────────────────────────────────
+function buildSoundCloudSrc(url: string) {
+    return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false`;
+}
+
 // ─── Barres audio animées (vraie animation égaliseur) ────────────────────────
 const EQ_KEYFRAMES = `
 @keyframes eq-bar-1 {
@@ -150,7 +155,31 @@ function useRadioAudio() {
         const h = () => {
             try {
                 const s = localStorage.getItem(STORAGE_RADIO_BLOCKS_KEY);
-                if (s) { const p = JSON.parse(s); if (Array.isArray(p) && p.length > 0) setRadioBlocks(p); }
+                if (s) {
+                    const p = JSON.parse(s);
+                    if (Array.isArray(p) && p.length > 0) {
+                        setRadioBlocks(p);
+                        radioBlocksRef.current = p;
+
+                        // Si la radio est en cours de lecture et qu'une playlist SoundCloud a été assignée au bloc en direct
+                        if (isPlayingRef.current) {
+                            const nowSec = getParisSeconds();
+                            const live = getCurrentLiveRadioTrack(p, nowSec);
+                            const curActive = activeTrackRef.current;
+                            // Si le direct a désormais une playlist SoundCloud et que le morceau actuel est un ancien clip ou vide
+                            if (live?.item?.soundcloudUrl && (!curActive || curActive.youtubeId || curActive.category === 'clip' || curActive.category === 'liveset')) {
+                                setActiveTrack(live.item);
+                                activeTrackRef.current = live.item;
+                                currentPlayingMediaRef.current = live.item.soundcloudUrl;
+                                const activeIframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
+                                if (activeIframe) {
+                                    activeIframe.src = buildSoundCloudSrc(live.item.soundcloudUrl);
+                                    preloadedVideoIdRef.current = null;
+                                }
+                            }
+                        }
+                    }
+                }
             } catch {}
         };
         window.addEventListener('dropsiders_radio_blocks_updated', h);
@@ -499,13 +528,44 @@ function useRadioAudio() {
                 audioRef.current.volume = targetAudioVol;
                 audioRef.current.play().then(() => {
                     currentPlayingMediaRef.current = currentSet.audioUrl || null;
-                    if (iframeRef.current && iframeRef.current.src !== 'about:blank') {
+                    if (iframeRef.current && iframeRef.current.src !== 'about:blank' && !iframeRef.current.src.includes('soundcloud.com')) {
                         sendCmd('pauseVideo');
                         iframeRef.current.src = 'about:blank';
                         preloadedVideoIdRef.current = null;
                     }
                 }).catch(() => {});
             }
+        } else if (currentSet.soundcloudUrl) {
+            const scUrl = currentSet.soundcloudUrl;
+            const isSameSc = currentPlayingMediaRef.current === scUrl;
+            if (isSameSc) return;
+
+            // Si un son audio HTML5 est encore en cours, le laisser se terminer proprement
+            if (audioRef.current && !audioRef.current.paused && !audioRef.current.ended && audioRef.current.duration > 0) {
+                const remaining = audioRef.current.duration - audioRef.current.currentTime;
+                if (remaining > 2) {
+                    return;
+                }
+            }
+
+            if (audioRef.current && !audioRef.current.paused) {
+                audioRef.current.pause();
+                audioRef.current.src = '';
+            }
+
+            const activeIframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
+            if (activeIframe) {
+                const targetSrc = buildSoundCloudSrc(scUrl);
+                if (activeIframe.src && activeIframe.src.includes('soundcloud.com')) {
+                    try {
+                        activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'play' }), '*');
+                    } catch {}
+                } else {
+                    activeIframe.src = targetSrc;
+                }
+                preloadedVideoIdRef.current = null;
+            }
+            currentPlayingMediaRef.current = scUrl;
         } else if (currentSet.youtubeId) {
             const currentYt = currentSet.youtubeId;
             const isSameYt = currentPlayingMediaRef.current === currentYt;
@@ -551,7 +611,7 @@ function useRadioAudio() {
                 sendCmd('playVideo');
             }
         }
-    }, [currentSet?.id, currentSet?.audioUrl, currentSet?.youtubeId, sendCmd, scheduleVolumeEnforcement]);
+    }, [currentSet?.id, currentSet?.audioUrl, currentSet?.youtubeId, currentSet?.soundcloudUrl, sendCmd, scheduleVolumeEnforcement]);
 
     // ─── Helper : preload le track suivant (audio HTML5 uniquement) ───────────
     // NOTE : On ne précharge JAMAIS un flux YouTube avec autoplay=1 dans une iframe cachée,
@@ -632,10 +692,15 @@ function useRadioAudio() {
             if (nextTrack.audioUrl) {
                 // ── Track audio HTML5 ────────────────────────────────────────
                 // Couper les deux iframes YouTube
+                // Si YouTube jouait, on coupe les iframes. Si c'est SoundCloud, on pause sans détruire pour reprise fluide.
                 [iframeRef.current, iframeRefB.current].forEach(iframe => {
                     if (iframe && iframe.src !== 'about:blank') {
-                        iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
-                        iframe.src = 'about:blank';
+                        if (iframe.src.includes('soundcloud.com')) {
+                            try { iframe.contentWindow?.postMessage(JSON.stringify({ method: 'pause' }), '*'); } catch {}
+                        } else {
+                            iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
+                            iframe.src = 'about:blank';
+                        }
                     }
                 });
                 preloadedVideoIdRef.current = null;
@@ -672,6 +737,26 @@ function useRadioAudio() {
                         currentPlayingMediaRef.current = nextTrack.id || nextTrack.audioUrl || null;
                     }).catch(() => {});
                 }
+            } else if (nextTrack.soundcloudUrl) {
+                // ── Track SoundCloud — Enchaînement et reprise directe ──
+                if (audioRef.current && !audioRef.current.paused) {
+                    audioRef.current.pause();
+                    audioRef.current.src = '';
+                }
+                const scUrl = nextTrack.soundcloudUrl;
+                const activeIframe = iframeRef.current;
+                if (activeIframe) {
+                    const targetSrc = buildSoundCloudSrc(scUrl);
+                    if (activeIframe.src && activeIframe.src.includes('soundcloud.com')) {
+                        try {
+                            activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'play' }), '*');
+                        } catch {}
+                    } else {
+                        activeIframe.src = targetSrc;
+                    }
+                    preloadedVideoIdRef.current = null;
+                }
+                currentPlayingMediaRef.current = nextTrack.id || scUrl;
             } else if (nextTrack.youtubeId) {
                 // ── Track YouTube — Enchaînement propre sans rechargement destructif ──
                 if (audioRef.current && !audioRef.current.paused) {
@@ -1095,7 +1180,7 @@ function useRadioAudio() {
             setUiTimeSec(freshNowSec);
             const freshLive = getCurrentLiveRadioTrack(radioBlocksRef.current, freshNowSec);
             const liveTrack = freshLive?.item;
-            if (!liveTrack?.youtubeId && !liveTrack?.audioUrl) return;
+            if (!liveTrack?.youtubeId && !liveTrack?.audioUrl && !liveTrack?.soundcloudUrl) return;
 
             // Recaler l'offset frais en temps réel
             const freshOffset = freshLive?.offsetSeconds ?? 0;
@@ -1110,10 +1195,16 @@ function useRadioAudio() {
             setActiveTrack(liveTrack);
 
             if (liveTrack.audioUrl) {
-                // Arrêter YouTube
+                // Arrêter YouTube et SoundCloud
                 [iframeRef.current, iframeRefB.current].forEach(iframe => {
                     if (iframe && iframe.src !== 'about:blank') {
-                        try { iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*'); } catch {}
+                        try {
+                            if (iframe.src.includes('soundcloud.com')) {
+                                iframe.contentWindow?.postMessage(JSON.stringify({ method: 'pause' }), '*');
+                            } else {
+                                iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*');
+                            }
+                        } catch {}
                         iframe.src = 'about:blank';
                     }
                 });
@@ -1127,6 +1218,19 @@ function useRadioAudio() {
                     audioRef.current.play().then(() => {
                         currentPlayingMediaRef.current = liveTrack.id || liveTrack.audioUrl || null;
                     }).catch(() => {});
+                }
+            } else if (liveTrack.soundcloudUrl) {
+                if (audioRef.current && !audioRef.current.paused) {
+                    audioRef.current.pause();
+                    audioRef.current.src = '';
+                }
+
+                const scUrl = liveTrack.soundcloudUrl;
+                const activeIframe = iframeRef.current;
+                if (activeIframe) {
+                    activeIframe.src = buildSoundCloudSrc(scUrl);
+                    preloadedVideoIdRef.current = null;
+                    currentPlayingMediaRef.current = liveTrack.id || scUrl;
                 }
             } else if (liveTrack.youtubeId) {
                 if (audioRef.current && !audioRef.current.paused) {
@@ -1176,6 +1280,14 @@ function useRadioAudio() {
             // Pause propre : tout couper et réinitialiser activeTrack pour que le prochain Play reparte du DIRECT
             if (audioRef.current) audioRef.current.pause();
             sendCmd('pauseVideo', []);
+            [iframeRef.current, iframeRefB.current].forEach(iframe => {
+                if (iframe) {
+                    try {
+                        iframe.contentWindow?.postMessage(JSON.stringify({ method: 'pause' }), '*');
+                    } catch {}
+                    iframe.src = 'about:blank';
+                }
+            });
             isPlayingRef.current = false;
             setIsPlaying(false);
             setActiveTrack(null);
@@ -1497,7 +1609,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     trackTitle: currentTrackTitle,
-                    media: currentSet.youtubeId || currentSet.audioUrl,
+                    media: currentSet.youtubeId || currentSet.audioUrl || currentSet.soundcloudUrl,
                     playerType: 'radio'
                 })
             });
@@ -1869,7 +1981,7 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     trackTitle: currentTrackTitle,
-                    media: currentSet.youtubeId || currentSet.audioUrl,
+                    media: currentSet.youtubeId || currentSet.audioUrl || currentSet.soundcloudUrl,
                     playerType: 'radio'
                 })
             });

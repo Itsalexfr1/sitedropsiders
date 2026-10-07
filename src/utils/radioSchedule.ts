@@ -29,6 +29,8 @@ export interface RadioTrackItem {
     isTopHoraire?: boolean;
     isThemeJingle?: boolean;
     expiresAt?: string; // Date limite de validité (YYYY-MM-DD)
+    soundcloudUrl?: string; // URL SoundCloud (track ou playlist)
+    coverUrl?: string; // Image de pochette HD
 }
 
 export function getRadioCategoryMeta(category?: string, isTheme?: boolean, isTop?: boolean) {
@@ -220,6 +222,8 @@ export interface ComputedRadioScheduleItem {
     isTopHoraire?: boolean;
     isThemeJingle?: boolean;
     expiresAt?: string;
+    soundcloudUrl?: string;
+    coverUrl?: string;
 }
 
 /**
@@ -770,6 +774,20 @@ export function buildInterleavedPlaylist(
         t => t.category !== 'jingle' && t.category !== 'promo' && t.category !== 'pub'
     );
 
+    // Si une playlist SoundCloud est liée et qu'il n'y a plus d'anciens clips, alimenter avec la playlist SoundCloud
+    if (musicTracks.length === 0 && block.soundcloudPlaylistUrl) {
+        const blockDur = Math.max(3600, (((block.endHour ?? 24) - (block.startHour ?? 0) + 24) % 24) * 3600 || 7200);
+        musicTracks.push({
+            id: `sc_track_${block.id}`,
+            title: block.soundcloudPlaylistTitle || `Playlist SoundCloud • ${block.title}`,
+            artist: block.soundcloudPlaylistAuthor || 'SoundCloud Radio',
+            duration: blockDur,
+            category: 'set',
+            soundcloudUrl: block.soundcloudPlaylistUrl,
+            coverUrl: block.soundcloudPlaylistCover
+        });
+    }
+
     const shuffledMusic = block.randomize === false
         ? musicTracks
         : getSeededShuffle(musicTracks, `${todayStr}_${block.id}`);
@@ -1046,6 +1064,8 @@ export function computeRadioDaySchedule(
                     event: block.title,
                     youtubeId: track.youtubeId,
                     audioUrl: track.audioUrl,
+                    soundcloudUrl: track.soundcloudUrl || block.soundcloudPlaylistUrl,
+                    coverUrl: track.coverUrl || block.soundcloudPlaylistCover,
                     startTime: startTimeStr,
                     endTime: endTimeStr,
                     startSecondsFromMidnight: itemStart,

@@ -33,6 +33,7 @@ interface AdminSoundCloudPlaylistModalProps {
       title?: string;
       author?: string;
       coverUrl?: string;
+      purgeClips?: boolean;
     }
   ) => void;
   onRemoveSoundCloudPlaylist?: (blockId: string) => void;
@@ -55,6 +56,7 @@ export function AdminSoundCloudPlaylistModal({
   const [playlistCover, setPlaylistCover] = useState<string>('');
   const [isFetchingInfo, setIsFetchingInfo] = useState<boolean>(false);
   const [randomize, setRandomize] = useState<boolean>(true);
+  const [purgeClips, setPurgeClips] = useState<boolean>(true);
 
   // Sync initial selection
   useEffect(() => {
@@ -145,9 +147,10 @@ export function AdminSoundCloudPlaylistModal({
       title: playlistTitle.trim() || undefined,
       author: playlistAuthor.trim() || undefined,
       coverUrl: playlistCover.trim() || undefined,
+      purgeClips,
     });
 
-    onShowToast(`✓ Playlist SoundCloud liée à « ${currentBlock?.title || 'l’émission'} » !`, 'success');
+    onShowToast(`✓ Playlist SoundCloud liée et fusionnée à « ${currentBlock?.title || 'l’émission'} » !`, 'success');
     onClose();
   };
 
@@ -347,7 +350,29 @@ export function AdminSoundCloudPlaylistModal({
               </div>
             )}
 
-            {/* 3. Règles d'alternance et tirage aléatoire */}
+            {/* 3. Option Suppression des anciens clips & Fusion */}
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-red-950/30 via-orange-950/20 to-black/40 border border-orange-500/40 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-display font-black uppercase text-orange-300 flex items-center gap-1.5">
+                  <Trash2 className="w-3.5 h-3.5 text-orange-400" />
+                  Supprimer définitivement les anciens clips YouTube
+                </span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={purgeClips}
+                    onChange={(e) => setPurgeClips(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-500" />
+                </label>
+              </div>
+              <p className="text-[11px] text-gray-300 leading-relaxed">
+                Nettoie et retire définitivement tous les anciens clips YouTube de « {currentBlock?.title || 'cette émission'} » pour basculer à 100% sur la playlist SoundCloud. Vos jingles et promos sont automatiquement conservés pour alterner sans coupure de la radio.
+              </p>
+            </div>
+
+            {/* 4. Règles d'alternance et tirage aléatoire */}
             <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1a131f] to-[#12131a] border border-purple-500/30 space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-display font-black uppercase text-purple-300 flex items-center gap-1.5">
