@@ -33,6 +33,7 @@ export function Navbar() {
     const [takeoverSettings, setTakeoverSettings] = useState(settings.takeover);
     const [navLabels, setNavLabels] = useState((settings as any).nav_labels || {});
     const [gtaContestMenuVisible, setGtaContestMenuVisible] = useState<boolean>(() => {
+        if (typeof window !== 'undefined' && new Date() > new Date('2026-11-12T23:59:59')) return false;
         const local = localStorage.getItem('dropsiders_gta_contest_menu_visible');
         return local !== null ? local === 'true' : ((settings as any).gta_contest_menu_visible ?? true);
     });

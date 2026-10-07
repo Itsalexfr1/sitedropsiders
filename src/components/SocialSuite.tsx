@@ -69,7 +69,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'REELS' | 'CONCOURS' | 'ARTISTE FESTIVAL' | 'PROMO' | 'MAP' | 'CALENDRIER' | 'JEU' | 'JEU_FESTIVAL';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'EVENTS' | 'LIVESTREAM' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'REELS' | 'CONCOURS' | 'ARTISTE FESTIVAL' | 'PROMO' | 'MAP' | 'CALENDRIER' | 'JEU' | 'JEU_FESTIVAL';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -210,12 +210,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return 'NEWS';
     });
 
+    // Détection clôture GTA 6 après le 12 novembre 2026
+    const isGTA6Expired = typeof window !== 'undefined' && new Date() > new Date('2026-11-12T23:59:59');
+
     // CONCOURS Theme States
-    const [concoursMode, setConcoursMode] = useState<'FESTIVAL' | 'GTA6'>('GTA6');
+    const [concoursMode, setConcoursMode] = useState<'FESTIVAL' | 'GTA6'>(() => {
+        return (typeof window !== 'undefined' && new Date() > new Date('2026-11-12T23:59:59')) ? 'FESTIVAL' : 'GTA6';
+    });
     const [concoursFestivalName, setConcoursFestivalName] = useState('');
     const [concoursFestivalHandle, setConcoursFestivalHandle] = useState('');
-    const [concoursBottomColor, setConcoursBottomColor] = useState('#ff007f');
-    const [concoursLateralText, setConcoursLateralText] = useState('JEU CONCOURS GTA 6');
+    const [concoursBottomColor, setConcoursBottomColor] = useState('#008cff');
+    const [concoursLateralText, setConcoursLateralText] = useState(() => (typeof window !== 'undefined' && new Date() > new Date('2026-11-12T23:59:59')) ? 'JEUX CONCOURS' : 'JEU CONCOURS GTA 6');
     const [concoursLateralOpacity, setConcoursLateralOpacity] = useState(0.50);
     const [concoursBadgeTextColor, setConcoursBadgeTextColor] = useState('#00f0ff');
 
@@ -355,6 +360,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'FOCUS': { label: 'FOCUS', grad: '255, 170, 0', color: '#ffaa00' },
         'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
         'RECAP': { label: 'RÉCAP', grad: '192, 38, 211', color: '#c026d3' },
+        'EVENTS': { label: 'EVENTS', grad: '255, 0, 127', color: '#ff007f' },
         'LIVESTREAM': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' },
         'PLANNING': { label: 'PLANNING', grad: '255, 18, 65', color: '#ff1241' },
         'TRACKLIST': { label: 'TRACKLIST', grad: '255, 120, 0', color: '#ff7800' },
@@ -2719,16 +2725,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // ==========================================
                 // ZONE 3 : BULLES ARRONDIES
-                // NEWS - MUSIQUE - FOCUS - RECAPS - CONCOURS - INTERVIEWS - VIDEOS
+                // NEWS - MUSIQUE - FOCUS - RECAPS - CONCOURS - EVENTS - INTERVIEWS - VIDEOS
                 // ==========================================
-                const categories = ['NEWS', 'MUSIQUE', 'FOCUS', 'RECAPS', 'CONCOURS', 'INTERVIEWS', 'VIDEOS'];
+                const categories = ['NEWS', 'MUSIQUE', 'FOCUS', 'RECAPS', 'CONCOURS', 'EVENTS', 'INTERVIEWS', 'VIDEOS'];
                 const pillsY = dropsidersY + pillsOffset;
-                const pillFont = `800 ${isReel ? 16 : 15}px "Montserrat", sans-serif`;
+                const pillFont = `800 ${isReel ? 15 : 14}px "Montserrat", sans-serif`;
                 ctx.font = pillFont;
 
                 // Calculer la largeur de chaque pill
-                const pillPaddingX = 16;
-                const pillGap = 10;
+                const pillPaddingX = 14;
+                const pillGap = 8;
                 const pillWidths = categories.map((cat: string) => ctx.measureText(cat).width + pillPaddingX * 2);
                 const totalPillsWidth = pillWidths.reduce((a: number, b: number) => a + b, 0) + (categories.length - 1) * pillGap;
 
@@ -2737,7 +2743,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 categories.forEach((cat: string, idx: number) => {
                     const pw = pillWidths[idx];
                     const promoCatStr = (promoCategory || 'NEWS').toLowerCase();
-                    const isSpecificCat = ['musique', 'focus', 'recap', 'concour', 'interview', 'video'].some(c => promoCatStr.includes(c));
+                    const isSpecificCat = ['musique', 'focus', 'recap', 'concour', 'event', 'interview', 'video'].some(c => promoCatStr.includes(c));
                     const isPillActive = promoCatStr.includes(cat.toLowerCase().slice(0, 4)) || (!isSpecificCat && idx === 0);
                     ctx.save();
                     // Bulle arrondie (pill)
@@ -3761,13 +3767,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 onClick={() => handleSetTheme('CONCOURS')} 
                 className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${
                     theme === 'CONCOURS' 
-                        ? (concoursMode === 'GTA6' 
+                        ? (!isGTA6Expired && concoursMode === 'GTA6' 
                             ? 'bg-gradient-to-r from-pink-500/25 to-purple-600/25 border-pink-500 text-pink-300 shadow-[0_0_15px_rgba(255,0,127,0.4)]' 
                             : 'bg-[#008cff]/25 border-[#008cff] text-[#38bdf8] shadow-[0_0_15px_rgba(0,140,255,0.4)]') 
                         : 'bg-white/5 border-white/10 text-gray-400'
                 }`}
             >
-                🎁 {concoursMode === 'GTA6' ? 'CONCOURS GTA 6' : 'JEUX CONCOURS'}
+                🎁 {(!isGTA6Expired && concoursMode === 'GTA6') ? 'CONCOURS GTA 6' : 'JEUX CONCOURS'}
             </button>
             <button onClick={() => handleSetTheme('FOCUS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
             <button onClick={() => handleSetTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
@@ -3779,7 +3785,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => handleSetTheme('SPOTLIGHT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'SPOTLIGHT' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>SPOTLIGHT</button>
             <button onClick={() => handleSetTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
             <button onClick={() => handleSetTheme('ARTISTE FESTIVAL')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'ARTISTE FESTIVAL' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎪 ARTISTE FESTIVAL</button>
-            <button onClick={() => handleSetTheme('PROMO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PROMO' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/10 text-gray-400'}`}>📣 PROMO</button>
+            <button onClick={() => handleSetTheme('EVENTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENTS' ? 'bg-[#ff007f]/20 border-[#ff007f] text-[#ff007f] shadow-[0_0_12px_rgba(255,0,127,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎪 EVENTS</button>
             <button onClick={() => handleSetTheme('CALENDRIER')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CALENDRIER' ? 'bg-neon-orange/20 border-neon-orange text-neon-orange' : 'bg-white/5 border-white/10 text-gray-400'}`}>📅 CALENDRIER</button>
             <button
                 onClick={() => handleSetTheme('JEU')}
@@ -4101,12 +4107,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {promoCategory}
                     </span>
                 </div>
-                <div className="grid grid-cols-3 gap-1.5 pt-1">
+                <div className="grid grid-cols-4 gap-1.5 pt-1">
                     {[
                         { id: 'NEWS', label: 'NEWS', color: '#ff0033' },
                         { id: 'RECAP', label: 'RÉCAP', color: '#c026d3' },
                         { id: 'MUSIQUE', label: 'MUSIQUE', color: '#39ff14' },
                         { id: 'FOCUS', label: 'FOCUS', color: '#ffaa00' },
+                        { id: 'EVENTS', label: 'EVENTS', color: '#ff007f' },
                         { id: 'INTERVIEW', label: 'INTERVIEW', color: '#ffffff' },
                         { id: 'CONCOURS', label: 'CONCOURS', color: '#008cff' },
                     ].map(cat => {
@@ -4180,7 +4187,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     « Pour être informé de toutes les news sur la musique électronique et les festivals, abonnez-vous à DROPSIDERS »
                 </p>
                 <div className="flex flex-wrap gap-1 pt-1">
-                    {['NEWS', 'MUSIQUE', 'FOCUS', 'RECAPS', 'CONCOURS', 'INTERVIEWS', 'VIDEOS'].map((tag, i) => (
+                    {['NEWS', 'MUSIQUE', 'FOCUS', 'RECAPS', 'CONCOURS', 'EVENTS', 'INTERVIEWS', 'VIDEOS'].map((tag, i) => (
                         <span key={i} className="px-2.5 py-1 bg-white/10 border border-white/15 rounded-full text-[8px] font-black text-white/90">
                             {tag}
                         </span>
@@ -4577,48 +4584,50 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const concoursEditor = (
         <div className="space-y-4">
             {/* Mode Switcher */}
-            <div className="grid grid-cols-2 gap-2 p-1.5 bg-white/5 border border-white/10 rounded-2xl">
-                <button
-                    type="button"
-                    onClick={() => {
-                        setConcoursMode('GTA6');
-                        setConcoursBottomColor('#ff007f');
-                        setConcoursBadgeTextColor('#00f0ff');
-                        setConcoursLateralText('JEU CONCOURS GTA 6');
-                        if (!bgImage || !bgImage.includes('gta')) {
-                            setBgImage('/images/gta6_vice_city_hero.jpg');
-                            setBgVideo(null);
-                        }
-                        setTimeout(() => generateImage(), 50);
-                    }}
-                    className={`py-2.5 px-3 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-2 ${
-                        concoursMode === 'GTA6'
-                            ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-[0_0_15px_rgba(255,0,127,0.5)] border border-pink-400'
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                >
-                    🎮 Template GTA 6
-                </button>
-                <button
-                    type="button"
-                    onClick={() => {
-                        setConcoursMode('FESTIVAL');
-                        setConcoursBottomColor('#7000ff');
-                        setConcoursBadgeTextColor('#ffffff');
-                        setConcoursLateralText('JEUX CONCOURS');
-                        setTimeout(() => generateImage(), 50);
-                    }}
-                    className={`py-2.5 px-3 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-2 ${
-                        concoursMode === 'FESTIVAL'
-                            ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(112,0,255,0.5)] border border-purple-400'
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                >
-                    🎪 Mode Festival
-                </button>
-            </div>
+            {!isGTA6Expired && (
+                <div className="grid grid-cols-2 gap-2 p-1.5 bg-white/5 border border-white/10 rounded-2xl">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setConcoursMode('GTA6');
+                            setConcoursBottomColor('#ff007f');
+                            setConcoursBadgeTextColor('#00f0ff');
+                            setConcoursLateralText('JEU CONCOURS GTA 6');
+                            if (!bgImage || !bgImage.includes('gta')) {
+                                setBgImage('/images/gta6_vice_city_hero.jpg');
+                                setBgVideo(null);
+                            }
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`py-2.5 px-3 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-2 ${
+                            concoursMode === 'GTA6'
+                                ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-[0_0_15px_rgba(255,0,127,0.5)] border border-pink-400'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                    >
+                        🎮 Template GTA 6
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setConcoursMode('FESTIVAL');
+                            setConcoursBottomColor('#008cff');
+                            setConcoursBadgeTextColor('#ffffff');
+                            setConcoursLateralText('JEUX CONCOURS');
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`py-2.5 px-3 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-2 ${
+                            concoursMode === 'FESTIVAL'
+                                ? 'bg-[#008cff] text-white shadow-[0_0_15px_rgba(0,140,255,0.5)] border border-[#38bdf8]'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                    >
+                        🎪 Mode Festival
+                    </button>
+                </div>
+            )}
 
-            {concoursMode === 'GTA6' ? (
+            {!isGTA6Expired && concoursMode === 'GTA6' ? (
                 <>
                     {/* Visual Presets GTA 6 */}
                     <div className="space-y-2">
