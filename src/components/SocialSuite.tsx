@@ -1181,28 +1181,63 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 
                 // Adaptive font size so any month name fits nicely
                 let monthFontSize = isStory ? 104 : 94;
-                ctx.font = `900 ${monthFontSize}px "Montserrat", sans-serif`;
+                ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
                 ctx.letterSpacing = '6px';
                 while (ctx.measureText(monthText).width > 720 && monthFontSize > 44) {
                     monthFontSize -= 2;
-                    ctx.font = `900 ${monthFontSize}px "Montserrat", sans-serif`;
+                    ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
                 }
 
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
+                // Clean Hollow Neon Outline (Knockout Technique):
+                // Eliminates internal intersecting contours in variable font glyphs (M, A, B, R, etc.)
+                const offW = canvas.width;
+                const offH = Math.ceil(monthFontSize * 2.2);
+                const offCanvas = document.createElement('canvas');
+                offCanvas.width = offW;
+                offCanvas.height = offH;
+                const offCtx = offCanvas.getContext('2d');
 
-                // Outer neon glow stroke
-                ctx.shadowColor = '#ff3700';
-                ctx.shadowBlur = 32;
-                ctx.strokeStyle = '#ff3700';
-                ctx.lineWidth = 6;
-                ctx.strokeText(monthText, centerX, monthY);
+                if (offCtx) {
+                    const offCenterX = offW / 2;
+                    const offCenterY = offH / 2;
 
-                // Inner crisp neon stroke (hollow inside)
-                ctx.shadowBlur = 0;
-                ctx.strokeStyle = '#ff6b3d';
-                ctx.lineWidth = 3;
-                ctx.strokeText(monthText, centerX, monthY);
+                    offCtx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
+                    offCtx.letterSpacing = '6px';
+                    offCtx.textAlign = 'center';
+                    offCtx.textBaseline = 'middle';
+
+                    // 1. Neon glow & outer stroke
+                    offCtx.shadowColor = '#ff3700';
+                    offCtx.shadowBlur = 30;
+                    offCtx.strokeStyle = '#ff3700';
+                    offCtx.lineWidth = 8;
+                    offCtx.strokeText(monthText, offCenterX, offCenterY);
+
+                    // 2. Crisp bright core stroke
+                    offCtx.shadowColor = 'transparent';
+                    offCtx.shadowBlur = 0;
+                    offCtx.strokeStyle = '#ff6b3d';
+                    offCtx.lineWidth = 5;
+                    offCtx.strokeText(monthText, offCenterX, offCenterY);
+
+                    // 3. KNOCKOUT: Punch out glyph solid interiors to erase any crossing lines inside the letters
+                    offCtx.globalCompositeOperation = 'destination-out';
+                    offCtx.fillStyle = '#000000';
+                    offCtx.fillText(monthText, offCenterX, offCenterY);
+
+                    // 4. Draw clean hollow outline onto main canvas
+                    ctx.drawImage(offCanvas, 0, monthY - offCenterY);
+                } else {
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = '#ff3700';
+                    ctx.shadowBlur = 28;
+                    ctx.strokeStyle = '#ff3700';
+                    ctx.lineWidth = 5;
+                    ctx.strokeText(monthText, centerX, monthY);
+                    ctx.restore();
+                }
                 ctx.restore();
 
                 // 3. EVENTS LIST - With generous breathing room from the month title
