@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { 
@@ -24,12 +24,17 @@ import {
     RotateCcw,
     CheckCircle2,
     Eye,
-    MessageSquare
+    MessageSquare,
+    Calendar,
+    Search,
+    CheckSquare,
+    Square
 } from 'lucide-react';
 import { ExportSuccessModal } from './ExportSuccessModal';
 import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
 import { ImageUploadModal } from './ImageUploadModal';
+import { resolveImageUrl } from '../utils/image';
 import recapsData from '../data/recaps.json';
 // @ts-ignore
 import { FFmpeg } from '@ffmpeg/ffmpeg';
@@ -135,6 +140,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [visualsList, setVisualsList] = useState<string[]>([]);
     const [isDownloaderOpen, setIsDownloaderOpen] = useState(false);
     const [isRecapPickerOpen, setIsRecapPickerOpen] = useState(false);
+    const [isAgendaPickerOpen, setIsAgendaPickerOpen] = useState(false);
+    const [siteAgendaEvents, setSiteAgendaEvents] = useState<any[]>([]);
+    const [isSiteAgendaLoading, setIsSiteAgendaLoading] = useState(false);
+    const [agendaPickerSearch, setAgendaPickerSearch] = useState('');
+    const [agendaPickerMonth, setAgendaPickerMonth] = useState<string>('ALL');
+    const [selectedSiteEventIds, setSelectedSiteEventIds] = useState<number[]>([]);
+    const [autoSyncAgendaMonth, setAutoSyncAgendaMonth] = useState(true);
     // InShot-style: active bottom panel and format modal
     const [activePanel, setActivePanel] = useState<string | null>(null);
     const [showFormatModal, setShowFormatModal] = useState(true);
@@ -4253,6 +4265,166 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setTakeoverData(null);
     };
 
+    const parseAgendaDate = (dateStr: string) => {
+        if (!dateStr) return null;
+        const clean = dateStr.split('T')[0];
+        const parts = clean.split('-');
+        if (parts.length === 3) {
+            const y = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10) - 1;
+            const d = parseInt(parts[2], 10);
+            return new Date(y, m, d);
+        }
+        const parsed = new Date(dateStr);
+        return isNaN(parsed.getTime()) ? null : parsed;
+    };
+
+    const getEventMonthName = (event: any): string => {
+        if (event.month && typeof event.month === 'string' && event.month.trim()) {
+            return event.month.trim().toUpperCase();
+        }
+        const rawDate = event.startDate || event.date;
+        if (rawDate) {
+            const d = parseAgendaDate(rawDate);
+            if (d) {
+                const MONTHS_FR = ['JANVIER', 'FÉVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUILLET', 'AOÛT', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÉCEMBRE'];
+                return MONTHS_FR[d.getMonth()] || 'OCTOBRE';
+            }
+        }
+        return 'OCTOBRE';
+    };
+
+    const formatEventDayForVisual = (event: any): string => {
+        const rawDate = event.startDate || event.date;
+        if (!rawDate) return 'DATE';
+        
+        const start = parseAgendaDate(rawDate);
+        if (!start) return 'DATE';
+        
+        const DAYS_SHORT = ['DIM', 'LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM'];
+        const MONTHS_SHORT = ['JAN', 'FÉV', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUIL', 'AOÛT', 'SEPT', 'OCT', 'NOV', 'DÉC'];
+        
+        const dayName = DAYS_SHORT[start.getDay()];
+        const dayNum = start.getDate();
+        
+        if (event.endDate && event.endDate !== rawDate) {
+            const end = parseAgendaDate(event.endDate);
+            if (end && end.getDate() !== dayNum) {
+                const endDayNum = end.getDate();
+                const startMonth = MONTHS_SHORT[start.getMonth()];
+                const endMonth = MONTHS_SHORT[end.getMonth()];
+                if (start.getMonth() === end.getMonth()) {
+                    return `${dayNum}-${endDayNum} ${startMonth}`;
+                }
+                return `${dayNum} ${startMonth}-${endDayNum} ${endMonth}`;
+            }
+        }
+        
+        return `${dayName} ${dayNum}`;
+    };
+
+    const fetchSiteAgenda = async () => {
+        setIsSiteAgendaLoading(true);
+        try {
+            const res = await fetch('/api/agenda');
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    const sorted = [...data].sort((a, b) => {
+                        const dateA = new Date(a.startDate || a.date || 0).getTime();
+                        const dateB = new Date(b.startDate || b.date || 0).getTime();
+                        return dateA - dateB;
+                    });
+                    setSiteAgendaEvents(sorted);
+                }
+            } else {
+                setErrorMessage("Impossible de récupérer l'agenda du site");
+            }
+        } catch (e) {
+            console.error('Failed to load site agenda:', e);
+            setErrorMessage("Erreur réseau lors de la récupération de l'agenda");
+        } finally {
+            setIsSiteAgendaLoading(false);
+        }
+    };
+
+    const handleImportFromSiteAgenda = (eventsToImport: any[], replace: boolean = true) => {
+        if (!eventsToImport || eventsToImport.length === 0) return;
+        
+        const newItems = eventsToImport.map(ev => {
+            const formattedDay = formatEventDayForVisual(ev);
+            const titleStr = (ev.title || '').trim().toUpperCase();
+            
+            let artistsStr = '';
+            if (Array.isArray(ev.lineUp)) {
+                artistsStr = ev.lineUp.filter(Boolean).join(' / ').toUpperCase();
+            } else if (typeof ev.lineUp === 'string' && ev.lineUp.trim()) {
+                artistsStr = ev.lineUp.trim().toUpperCase();
+            } else if (ev.description) {
+                artistsStr = ev.description.trim().toUpperCase();
+            }
+            
+            const genreStr = (ev.genre || ev.type || '').trim().toUpperCase();
+            const venueStr = (ev.venue || ev.location || (ev.country ? `${ev.location || ''} (${ev.country})` : '')).trim().toUpperCase();
+            
+            return {
+                day: formattedDay,
+                time: formattedDay,
+                title: titleStr,
+                artist: titleStr,
+                artists: artistsStr,
+                genre: genreStr,
+                venue: venueStr
+            };
+        });
+        
+        if (replace) {
+            setPlanningItems(newItems);
+        } else {
+            setPlanningItems(prev => [...prev, ...newItems]);
+        }
+        
+        if (autoSyncAgendaMonth && eventsToImport.length > 0) {
+            const detectedMonth = getEventMonthName(eventsToImport[0]);
+            if (detectedMonth) {
+                setAgendaMonth(detectedMonth);
+                setPlanningDate(detectedMonth);
+            }
+        }
+        
+        setIsAgendaPickerOpen(false);
+        setSelectedSiteEventIds([]);
+    };
+
+    const availableAgendaMonths = useMemo(() => {
+        const set = new Set<string>();
+        siteAgendaEvents.forEach(e => {
+            const m = getEventMonthName(e);
+            if (m) set.add(m);
+        });
+        return Array.from(set);
+    }, [siteAgendaEvents]);
+
+    const filteredSiteAgendaList = useMemo(() => {
+        let list = siteAgendaEvents;
+        if (agendaPickerMonth !== 'ALL') {
+            list = list.filter(e => getEventMonthName(e) === agendaPickerMonth);
+        }
+        if (agendaPickerSearch.trim()) {
+            const q = agendaPickerSearch.toLowerCase().trim();
+            list = list.filter(e => {
+                const title = (e.title || '').toLowerCase();
+                const venue = (e.venue || '').toLowerCase();
+                const loc = (e.location || '').toLowerCase();
+                const genre = (e.genre || '').toLowerCase();
+                const country = (e.country || '').toLowerCase();
+                const artists = Array.isArray(e.lineUp) ? e.lineUp.join(' ').toLowerCase() : (e.lineUp || '').toLowerCase();
+                return title.includes(q) || venue.includes(q) || loc.includes(q) || genre.includes(q) || country.includes(q) || artists.includes(q);
+            });
+        }
+        return list;
+    }, [siteAgendaEvents, agendaPickerMonth, agendaPickerSearch]);
+
     const interviewEditor = (
         <div className="space-y-3">
             <textarea 
@@ -4344,6 +4516,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             </div>
 
+            {/* Importer depuis l'Agenda du Site */}
+            <div className="border border-[#ff3700]/30 bg-gradient-to-br from-[#ff3700]/15 via-black/40 to-black/20 rounded-2xl p-3.5 space-y-2 shadow-lg shadow-[#ff3700]/5">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-xl bg-[#ff3700]/20 border border-[#ff3700]/40 flex items-center justify-center text-[#ff3700] shadow-sm">
+                            <Calendar className="w-4 h-4" />
+                        </div>
+                        <div>
+                            <span className="text-[10px] font-black text-white uppercase tracking-wider block">Agenda du Site</span>
+                            <span className="text-[8px] text-gray-400 font-medium">Prendre les soirées & festivals du site</span>
+                        </div>
+                    </div>
+                    <button 
+                        type="button"
+                        onClick={() => {
+                            setIsAgendaPickerOpen(true);
+                            if (siteAgendaEvents.length === 0) {
+                                fetchSiteAgenda();
+                            }
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ff3700] hover:bg-[#ff5522] text-black font-black text-[9px] uppercase rounded-xl shadow-md shadow-[#ff3700]/20 hover:scale-105 active:scale-95 transition-all"
+                    >
+                        <Sparkles className="w-3 h-3" /> Importer
+                    </button>
+                </div>
+            </div>
+
             {/* Live Takeover Import */}
             <div className="border border-white/10 bg-black/20 rounded-xl p-3 space-y-3">
                 <div className="flex items-center justify-between">
@@ -4394,9 +4593,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
 
                 {planningItems.length === 0 ? (
-                    <div className="p-6 bg-white/[0.03] border border-dashed border-white/10 rounded-2xl text-center space-y-1.5">
+                    <div className="p-6 bg-white/[0.03] border border-dashed border-white/10 rounded-2xl text-center space-y-2.5">
                         <p className="text-[11px] font-black text-gray-400 uppercase tracking-wider">Aucun événement pour le moment</p>
-                        <p className="text-[9px] text-gray-500 font-medium">Cliquez ci-dessous pour ajouter un événement à l'Agenda.</p>
+                        <p className="text-[9px] text-gray-500 font-medium">Ajoutez un événement manuellement ou prenez ceux du site.</p>
+                        <div className="pt-1 flex flex-col sm:flex-row gap-2 justify-center">
+                            <button 
+                                type="button"
+                                onClick={() => {
+                                    setIsAgendaPickerOpen(true);
+                                    if (siteAgendaEvents.length === 0) {
+                                        fetchSiteAgenda();
+                                    }
+                                }}
+                                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-[#ff3700]/20 border border-[#ff3700]/40 text-[#ff3700] hover:bg-[#ff3700] hover:text-black rounded-xl text-[9px] font-black uppercase transition-all"
+                            >
+                                <Calendar className="w-3.5 h-3.5" /> Prendre les events du site
+                            </button>
+                        </div>
                     </div>
                 ) : (
                     planningItems.map((item, i) => (
@@ -6013,6 +6226,290 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </AnimatePresence>
     );
 
+    const agendaPickerModal = (
+        <AnimatePresence>
+            {isAgendaPickerOpen && (
+                <div className="fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-2xl">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.94, y: 20 }} 
+                        animate={{ opacity: 1, scale: 1, y: 0 }} 
+                        exit={{ opacity: 0, scale: 0.94, y: 20 }}
+                        className="bg-[#0b0c10] border border-[#ff3700]/30 rounded-[2.5rem] p-5 sm:p-8 max-w-5xl w-full shadow-[0_0_80px_rgba(255,55,0,0.2)] relative overflow-hidden h-[88vh] flex flex-col"
+                    >
+                        {/* Top neon line */}
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#ff3700] via-amber-500 to-[#00f0ff]" />
+                        
+                        {/* Header */}
+                        <div className="flex justify-between items-start mb-5 gap-3">
+                            <div>
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ff3700]/15 border border-[#ff3700]/30 text-[#ff3700] text-[9px] font-black uppercase tracking-widest mb-1.5">
+                                    <Calendar className="w-3.5 h-3.5" /> Agenda Dropsiders.fr
+                                </div>
+                                <h2 className="text-xl sm:text-3xl font-black text-white uppercase italic tracking-tighter">
+                                    Importer les événements <span className="text-[#ff3700]">du Site</span>
+                                </h2>
+                                <p className="text-[10px] text-gray-400 font-medium tracking-wide">
+                                    Sélectionnez les soirées et festivals du site à intégrer dans votre visuel Rave Agenda
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button 
+                                    onClick={fetchSiteAgenda} 
+                                    disabled={isSiteAgendaLoading}
+                                    title="Rafraîchir les données"
+                                    className="p-2.5 sm:p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all disabled:opacity-50"
+                                >
+                                    <RotateCcw className={`w-4 h-4 ${isSiteAgendaLoading ? 'animate-spin text-[#ff3700]' : ''}`} />
+                                </button>
+                                <button 
+                                    onClick={() => setIsAgendaPickerOpen(false)} 
+                                    className="p-2.5 sm:p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Search & Month Filter Bar */}
+                        <div className="space-y-2.5 mb-4">
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                {/* Search input */}
+                                <div className="relative flex-1">
+                                    <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                    <input 
+                                        type="text"
+                                        value={agendaPickerSearch}
+                                        onChange={e => setAgendaPickerSearch(e.target.value)}
+                                        placeholder="Rechercher par titre, ville, genre, salle..."
+                                        className="w-full bg-white/5 border border-white/10 focus:border-[#ff3700] rounded-xl pl-10 pr-10 py-2.5 text-xs text-white placeholder-gray-500 font-bold focus:outline-none transition-all"
+                                    />
+                                    {agendaPickerSearch && (
+                                        <button 
+                                            onClick={() => setAgendaPickerSearch('')}
+                                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Quick selection toggles */}
+                                <div className="flex gap-2">
+                                    <button 
+                                        type="button"
+                                        onClick={() => {
+                                            const filteredIds = filteredSiteAgendaList.map((e: any) => e.id);
+                                            setSelectedSiteEventIds(filteredIds);
+                                        }}
+                                        className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-300 hover:text-white transition-all whitespace-nowrap flex items-center gap-1.5"
+                                    >
+                                        <CheckSquare className="w-3.5 h-3.5 text-[#ff3700]" /> Tout cocher
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setSelectedSiteEventIds([])}
+                                        className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-white transition-all whitespace-nowrap flex items-center gap-1.5"
+                                    >
+                                        <Square className="w-3.5 h-3.5" /> Tout décocher
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Month Filter Chips */}
+                            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
+                                <button
+                                    onClick={() => setAgendaPickerMonth('ALL')}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all whitespace-nowrap border ${
+                                        agendaPickerMonth === 'ALL'
+                                            ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-md shadow-[#ff3700]/30'
+                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    Tous ({siteAgendaEvents.length})
+                                </button>
+                                {availableAgendaMonths.map((m: string) => {
+                                    const count = siteAgendaEvents.filter((ev: any) => getEventMonthName(ev) === m).length;
+                                    return (
+                                        <button
+                                            key={m}
+                                            onClick={() => setAgendaPickerMonth(m)}
+                                            className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all whitespace-nowrap border ${
+                                                agendaPickerMonth === m
+                                                    ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-md shadow-[#ff3700]/30'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                            }`}
+                                        >
+                                            {m} ({count})
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Events Grid */}
+                        <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
+                            {isSiteAgendaLoading ? (
+                                <div className="h-full flex flex-col items-center justify-center gap-3 text-gray-400 py-16">
+                                    <RotateCcw className="w-8 h-8 animate-spin text-[#ff3700]" />
+                                    <p className="text-xs font-black uppercase tracking-wider">Chargement des événements de l'Agenda...</p>
+                                </div>
+                            ) : filteredSiteAgendaList.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center gap-2 text-gray-500 py-16">
+                                    <Calendar className="w-10 h-10 stroke-[1.5] text-gray-600 mb-1" />
+                                    <p className="text-xs font-black text-gray-400 uppercase tracking-wider">Aucun événement trouvé</p>
+                                    <p className="text-[10px] text-gray-500">Essayez de modifier votre recherche ou sélectionnez un autre mois.</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pb-2">
+                                    {filteredSiteAgendaList.map((event: any) => {
+                                        const isSelected = selectedSiteEventIds.includes(event.id);
+                                        const dayStr = formatEventDayForVisual(event);
+                                        const eventMonth = getEventMonthName(event);
+                                        const imgUrl = resolveImageUrl(event.image);
+
+                                        return (
+                                            <div 
+                                                key={event.id}
+                                                onClick={() => {
+                                                    setSelectedSiteEventIds(prev => 
+                                                        prev.includes(event.id) 
+                                                            ? prev.filter(id => id !== event.id)
+                                                            : [...prev, event.id]
+                                                    );
+                                                }}
+                                                className={`group relative flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer text-left ${
+                                                    isSelected 
+                                                        ? 'bg-[#ff3700]/15 border-[#ff3700] shadow-lg shadow-[#ff3700]/10' 
+                                                        : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.07] hover:border-white/20'
+                                                }`}
+                                            >
+                                                {/* Checkbox indicator */}
+                                                <div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 transition-all ${
+                                                    isSelected 
+                                                        ? 'bg-[#ff3700] text-black font-black' 
+                                                        : 'border border-white/20 text-transparent group-hover:border-white/40'
+                                                }`}>
+                                                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                                </div>
+
+                                                {/* Flyer Thumbnail */}
+                                                <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 border border-white/10 relative bg-black/40">
+                                                    <img 
+                                                        src={imgUrl} 
+                                                        alt="" 
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                        onError={e => {
+                                                            (e.target as HTMLElement).style.display = 'none';
+                                                        }}
+                                                    />
+                                                </div>
+
+                                                {/* Info */}
+                                                <div className="flex-1 min-w-0 space-y-0.5">
+                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                        <span className="px-1.5 py-0.5 rounded-md bg-[#ff3700] text-black font-black italic text-[9px] uppercase tracking-wider">
+                                                            {dayStr}
+                                                        </span>
+                                                        {event.genre && (
+                                                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider">
+                                                                {event.genre}
+                                                            </span>
+                                                        )}
+                                                        <span className="text-[8px] font-bold text-gray-500 uppercase">
+                                                            {eventMonth}
+                                                        </span>
+                                                    </div>
+
+                                                    <h3 className="text-white font-black uppercase text-xs line-clamp-1 group-hover:text-[#ff3700] transition-colors">
+                                                        {fixEncoding(event.title)}
+                                                    </h3>
+
+                                                    <p className="text-[9px] text-gray-400 font-medium line-clamp-1">
+                                                        {event.venue ? `${event.venue} • ` : ''}{event.location || ''} {event.country ? `(${event.country})` : ''}
+                                                    </p>
+                                                </div>
+
+                                                {/* Quick Action buttons */}
+                                                <div className="flex flex-col gap-1 flex-shrink-0 opacity-80 group-hover:opacity-100" onClick={e => e.stopPropagation()}>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleImportFromSiteAgenda([event], false)}
+                                                        title="Ajouter immédiatement au visuel"
+                                                        className="px-2 py-1 bg-white/10 hover:bg-[#ff3700] hover:text-black text-white text-[8px] font-black uppercase rounded-lg transition-all"
+                                                    >
+                                                        + Ajouter
+                                                    </button>
+                                                    {event.image && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setBgImage(imgUrl);
+                                                                setBgVideo(null);
+                                                            }}
+                                                            title="Mettre l'affiche de cet événement en fond"
+                                                            className="px-2 py-1 bg-white/5 hover:bg-white/20 text-gray-400 hover:text-white text-[8px] font-bold uppercase rounded-lg transition-all"
+                                                        >
+                                                            Fond 🖼️
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer Action Bar */}
+                        <div className="pt-3.5 mt-2 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#0b0c10]">
+                            {/* Left: Status & auto month sync */}
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs font-black text-white">
+                                    <span className="text-[#ff3700]">{selectedSiteEventIds.length}</span> événement{selectedSiteEventIds.length > 1 ? 's' : ''} sélectionné{selectedSiteEventIds.length > 1 ? 's' : ''}
+                                </span>
+                                <label className="flex items-center gap-1.5 cursor-pointer text-[10px] text-gray-400 select-none">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={autoSyncAgendaMonth} 
+                                        onChange={e => setAutoSyncAgendaMonth(e.target.checked)}
+                                        className="rounded accent-[#ff3700]"
+                                    />
+                                    <span>Adapter le mois du visuel auto</span>
+                                </label>
+                            </div>
+
+                            {/* Right: Import Actions */}
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                                <button
+                                    type="button"
+                                    disabled={selectedSiteEventIds.length === 0}
+                                    onClick={() => {
+                                        const events = siteAgendaEvents.filter((e: any) => selectedSiteEventIds.includes(e.id));
+                                        handleImportFromSiteAgenda(events, false);
+                                    }}
+                                    className="flex-1 sm:flex-none px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-black text-xs uppercase rounded-xl transition-all disabled:opacity-40 disabled:pointer-events-none"
+                                >
+                                    Ajouter (+{selectedSiteEventIds.length})
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={selectedSiteEventIds.length === 0}
+                                    onClick={() => {
+                                        const events = siteAgendaEvents.filter((e: any) => selectedSiteEventIds.includes(e.id));
+                                        handleImportFromSiteAgenda(events, true);
+                                    }}
+                                    className="flex-1 sm:flex-none px-5 py-2.5 bg-[#ff3700] hover:bg-[#ff5522] text-black font-black text-xs uppercase rounded-xl transition-all shadow-lg shadow-[#ff3700]/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center gap-1.5"
+                                >
+                                    <Sparkles className="w-3.5 h-3.5" /> Remplacer l'Agenda ({selectedSiteEventIds.length})
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
+    );
+
     return createPortal(
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-3xl">
 
@@ -6644,6 +7141,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             {/* Shared downloader modal (visible on both) */}
             {downloaderModal}
             {recapPickerModal}
+            {agendaPickerModal}
 
             {/* Local Error Banner */}
             <AnimatePresence>
