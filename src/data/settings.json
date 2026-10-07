@@ -4424,33 +4424,135 @@
       ],
       "tracks": [
         {
-          "id": "rt_tv_1790256655246_6ilu",
-          "title": "Tomorrowland 2026 (Freedom Stage Weekend 2) [Full DJ Live Set]",
-          "artist": "Alesso",
-          "youtubeId": "fhiZ1Rj9o-A",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790256655246
-        },
-        {
-          "id": "sj_radio_bloc_1790256648831_kmgn_s_0",
+          "id": "sj_radio_bloc_1790256648831_kmgn_emission_start_special",
           "title": "Dropsiders Radio Jingle 1",
-          "artist": "FEEL THE VIBE JINGLE SPÉCIAL",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
           "duration": 8,
           "category": "jingle"
         },
         {
-          "id": "rt_tv_1790256655953_skfz",
-          "title": "Tomorrowland 2026",
-          "artist": "ILLENIUM",
-          "youtubeId": "E1WH0nvaxAw",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790256655953
+          "id": "sc_103973612_0",
+          "title": "Avicii - Tomorrowland 2013 - Live Set",
+          "artist": "Electro-Live",
+          "duration": 5495,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/electro-live/avicii-tomorrowland-2013-live",
+          "coverUrl": "https://i1.sndcdn.com/artworks-000054508448-jjwffl-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_0",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_2157689220_1",
+          "title": "Nicky Romero Classic Set LIVE at Tomorrowland Planaxis 2025",
+          "artist": "nickyromero",
+          "duration": 3567,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/nickyromero/nicky-romero-classic-set-live-at-tomorrowland-planaxis-2025",
+          "coverUrl": "https://i1.sndcdn.com/artworks-J4DskQ7ioLdZVZ8m-0we3IQ-large.png",
+          "addedAt": 1791406133469
         },
         {
           "id": "nj_radio_bloc_1790256648831_kmgn_n_1",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_1884458202_2",
+          "title": "Omdat Het Kan & Average Rob WE1  Tomorrowland Set 2024",
+          "artist": "Vxlt™",
+          "duration": 3539,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/alessio-740202626/omdat-het-kan-average-rob-we1",
+          "coverUrl": "https://i1.sndcdn.com/artworks-kyzEEs00Xz7s67yc-AClR6A-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sc_1785184104_3",
+          "title": "MORTEN - Tomorrowland Winter 2024 - Full Set",
+          "artist": "Jambo",
+          "duration": 3561,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/isjambo/morten-tomorrowland-winter-2024-full-set",
+          "coverUrl": "https://i1.sndcdn.com/artworks-y5tN62qJRHcoOgd8-HeFyvA-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_3",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_1900933206_4",
+          "title": "Alesso - Tomorrowland 2024 W2 - Full Set",
+          "artist": "Jambo",
+          "duration": 3379,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/isjambo/alesso-tomorrowland-2024-w2-full-set",
+          "coverUrl": "https://i1.sndcdn.com/artworks-GcvYKG4FsQyPt1LC-mJh3Ww-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_4",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_2193233587_5",
+          "title": "Axwell & Sebastian Ingrosso & Steve Angello B3B at Crystal Garden, Tomorrowland 2025 [FULL SET]",
+          "artist": "Nick Endhem",
+          "duration": 12142,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/nickendhem/axwell-sebastian-ingrosso-steve-angello-b3b-tomorrowland-crystal-garden",
+          "coverUrl": "https://i1.sndcdn.com/artworks-dxvZbqbM7dxWwhZJ-VojxMA-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sc_217015791_6",
+          "title": "Avicii Live @Tomorrowland 2015 (Full Set HD) [FREE DOWNLOAD]",
+          "artist": "Rebdo",
+          "duration": 3811,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/rebdomusic/avicii-live-tomorrowland-2015-full-set-hd-free-download",
+          "coverUrl": "https://i1.sndcdn.com/artworks-000124813392-bmkznq-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_6",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_1784442027_7",
+          "title": "Netsky B2B Andromedik - Tomorrowland Winter 2024 - Full Set",
+          "artist": "Jambo",
+          "duration": 6973,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/isjambo/netsky-b2b-andromedik-tomorrowland-winter-2024-full-set",
+          "coverUrl": "https://i1.sndcdn.com/artworks-y5tN62qJRHcoOgd8-HeFyvA-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_7",
           "title": "Dropsiders Radio Jingle 3",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
@@ -4458,50 +4560,45 @@
           "category": "jingle"
         },
         {
-          "id": "rt_tv_1790256656892_gbmn",
-          "title": "Tomorrowland 2026",
-          "artist": "Novah",
-          "youtubeId": "sFPyP_qgLGU",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790256656892
-        },
-        {
-          "id": "pr_radio_bloc_1790256648831_kmgn_p_2",
-          "title": "Promo Tomorrowland Winter",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-          "duration": 66,
-          "category": "promo"
-        },
-        {
-          "id": "rt_tv_1790256657652_u94f",
-          "title": "DROPSIDERS TV",
-          "artist": "Keinemusik at Coachella 2025",
-          "youtubeId": "5vX5XUGDEKY",
-          "duration": 210,
+          "id": "sc_1883797269_8",
+          "title": "Marlon Hoffstadt WE2 (CORE Stage) Tomorrowland 2024 set",
+          "artist": "Bent De Koning",
+          "duration": 7205,
           "category": "clip",
-          "addedAt": 1790256657652
+          "soundcloudUrl": "https://soundcloud.com/bent-de-koning/marlon-hoffstadt-we2-core",
+          "coverUrl": "https://i1.sndcdn.com/artworks-lLp5QGPXyIUw44WP-zyZJyQ-large.jpg",
+          "addedAt": 1791406133469
         },
         {
-          "id": "sj_radio_bloc_1790256648831_kmgn_s_3",
-          "title": "Dropsiders Radio Jingle 2",
-          "artist": "FEEL THE VIBE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
-          "duration": 10,
+          "id": "sc_54882303_9",
+          "title": "Fatboy Slim - Live Set Tomorrowland 2012",
+          "artist": "willian.esteves",
+          "duration": 4006,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/willian-esteves/fatboy-slim-live-set",
+          "coverUrl": "https://i1.sndcdn.com/artworks-000027727518-ekn9ko-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_9",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
-          "id": "rt_tv_1790256662679_6gjz",
-          "title": "COACHELLA 2026 -  2026.04.17",
-          "artist": "HUGEL -",
-          "youtubeId": "Xs187meJrMs",
-          "duration": 210,
+          "id": "sc_2137632006_10",
+          "title": "DIMITRI VEGAS [VINYL ONLY] — Tomorrowland Mainstage 2025 [FULL SET] (HQ AUDIO)",
+          "artist": "Le Buzz Belgium",
+          "duration": 3593,
           "category": "clip",
-          "addedAt": 1790256662679
+          "soundcloudUrl": "https://soundcloud.com/thomas-maes-7/dimitri-vegas-vinyl-only",
+          "coverUrl": "https://i1.sndcdn.com/artworks-jyzZa9U0YU9yxtFp-g1DPgQ-large.png",
+          "addedAt": 1791406133469
         },
         {
-          "id": "nj_radio_bloc_1790256648831_kmgn_n_4",
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_10",
           "title": "Dropsiders Radio Jingle 4",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
@@ -4509,51 +4606,45 @@
           "category": "jingle"
         },
         {
-          "id": "rt_tv_1790256663484_h8ux",
-          "title": "Sahara Stage",
-          "artist": "Duke Dumont @ Coachella 2026",
-          "youtubeId": "-_0BL6xXt4E",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790256663485
+          "id": "sc_2010642907_11",
+          "title": "RÜFÜS DU SOL (DJ SET) - Mayan Warrior - Burning Man 2024",
+          "artist": "Mayan Warrior",
+          "duration": 6318,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/mayanwarriorofficial/rufus-du-sol-dj-set-mayan-warrior-burning-man-2024",
+          "coverUrl": "https://i1.sndcdn.com/artworks-NNZ3BazbZUJ0mFOx-x6j7XQ-large.png",
+          "addedAt": 1791406133469
         },
         {
-          "id": "pr_radio_bloc_1790256648831_kmgn_p_5",
-          "title": "Promo Escape Psycho 2",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 40,
-          "category": "promo",
-          "expiresAt": "2026-10-31T23:59:59"
+          "id": "sc_1934680175_12",
+          "title": "OMRI. - Long Feng Sunrise Set @ Burning Man 2024",
+          "artist": "OMRI.",
+          "duration": 7778,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/its_omri_dot/omri-long-feng-sunrise-set-burning-man-2024",
+          "coverUrl": "https://i1.sndcdn.com/artworks-BDY3yldDRl3bou71-gNbCbQ-large.jpg",
+          "addedAt": 1791406133469
         },
         {
-          "id": "rt_tv_1790256664253_8rci",
-          "title": "Coachella 2026 - Sahara Stage",
-          "artist": "Mochakk",
-          "youtubeId": "3d0dq69Jp4g",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790256664253
-        },
-        {
-          "id": "sj_radio_bloc_1790256648831_kmgn_s_6",
-          "title": "Dropsiders Radio Jingle 1",
-          "artist": "FEEL THE VIBE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_12",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
           "category": "jingle"
         },
         {
-          "id": "rt_tv_1790256664979_b5fy",
-          "title": "COACHELLA MUSIC AND ARTS FESTIVAL 2026 (WEEKEND 1)",
-          "artist": "SUBTRONICS",
-          "youtubeId": "aR3Q5QJTtnU",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790256664979
+          "id": "sc_1924754387_13",
+          "title": "Mita Gami & Meir Briskman - Mayan Warrior - Burning Man 2024 / Orchestra Set",
+          "artist": "Acássia Szczygiel",
+          "duration": 4483,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/user672896173/mita-gami-meir-briskman-3",
+          "coverUrl": "https://i1.sndcdn.com/artworks-kpcNGWUDgcCeFfnq-UK6Tdw-large.jpg",
+          "addedAt": 1791406133469
         },
         {
-          "id": "nj_radio_bloc_1790256648831_kmgn_n_7",
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_13",
           "title": "Dropsiders Radio Jingle 5",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
@@ -4561,51 +4652,45 @@
           "category": "jingle"
         },
         {
-          "id": "rt_tv_1790256667226_s1lx",
-          "title": "DROPSIDERS TV",
-          "artist": "Kaskade x Coachella 2026",
-          "youtubeId": "I3ErnkE3pGM",
-          "duration": 210,
+          "id": "sc_502617564_14",
+          "title": "Carl Cox - Live @ Burning Man 2018 (Funky / Disco House Set)",
+          "artist": "Eugene Kenny 🇮🇪 (Main)",
+          "duration": 7647,
           "category": "clip",
-          "addedAt": 1790256667226
+          "soundcloudUrl": "https://soundcloud.com/user-360926802/carl-cox-live-burning-man-funky-disco-house-set",
+          "coverUrl": "https://i1.sndcdn.com/artworks-000408417783-99xr2k-large.jpg",
+          "addedAt": 1791406133469
         },
         {
-          "id": "pr_radio_bloc_1790256648831_kmgn_p_8",
-          "title": "Promo Escape Psycho 1",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-          "duration": 47,
-          "category": "promo",
-          "expiresAt": "2026-10-31T23:59:59"
-        },
-        {
-          "id": "rt_tv_1790256667964_9jjt",
-          "title": "Coachella 2026",
-          "artist": "Fatboy Slim",
-          "youtubeId": "fQqusBEnwM4",
-          "duration": 210,
+          "id": "sc_2181197223_15",
+          "title": "Francis Mercier B2B Mahmut Orhan | Burning Man 2025 (Long Feng Sunrise Set)",
+          "artist": "Long Feng",
+          "duration": 8584,
           "category": "clip",
-          "addedAt": 1790256667964
+          "soundcloudUrl": "https://soundcloud.com/longfengartcar/francis-mercier-b2b-mahmut",
+          "coverUrl": "https://i1.sndcdn.com/artworks-7tjC39jrqTTYyPsT-uQiX1w-large.png",
+          "addedAt": 1791406133469
         },
         {
-          "id": "sj_radio_bloc_1790256648831_kmgn_s_9",
-          "title": "Dropsiders Radio Jingle 2",
-          "artist": "FEEL THE VIBE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
-          "duration": 10,
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_15",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
-          "id": "rt_tv_1790256668801_h0h5",
-          "title": "Experts Only Festival, New York",
-          "artist": "Cassian B2B Kaskade",
-          "youtubeId": "riNz-JwzV24",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790256668801
+          "id": "sc_1933458695_16",
+          "title": "WhoMadeWho (Hybrid DJ SET) - Mayan Warrior - Burning Man 2024",
+          "artist": "Mayan Warrior",
+          "duration": 5252,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/mayanwarriorofficial/whomadewho-hybrid-dj-set-mayan-warrior-burning-man-2024",
+          "coverUrl": "https://i1.sndcdn.com/artworks-uwvB5vbSCOxOyKO5-Z1F3JQ-large.jpg",
+          "addedAt": 1791406133469
         },
         {
-          "id": "nj_radio_bloc_1790256648831_kmgn_n_10",
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_16",
           "title": "Dropsiders Radio Jingle 6",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
@@ -4613,338 +4698,739 @@
           "category": "jingle"
         },
         {
-          "id": "rt_tv_1790256673140_79rh",
-          "title": "EDC Las Vegas 2026",
-          "artist": "Mathame",
-          "youtubeId": "i7PGl_PyHvI",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790256673140
+          "id": "sc_1363023973_17",
+          "title": "BLONDISH & Friends LIVE From JOUJOU Burning Man Playa 2022 [4.5Hr set]",
+          "artist": "BLOND:ISH",
+          "duration": 16340,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/blondish/blondish-friends-live-from-joujou-burning-man-playa-2022",
+          "coverUrl": "https://i1.sndcdn.com/artworks-SMRyuHOSRALyiZ8T-dtESHw-large.jpg",
+          "addedAt": 1791406133469
         },
         {
-          "id": "pr_radio_bloc_1790256648831_kmgn_p_11",
-          "title": "Promo Titan Lyon",
-          "artist": "PROMO DROPSIDERS",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
-          "duration": 39,
-          "category": "promo"
+          "id": "sc_1681875312_18",
+          "title": "Sainte Vie (DJ Set) - Maxa - Burning Man 2023",
+          "artist": "MAXA",
+          "duration": 7924,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/maxaxaman/sainte-vie-dj-set-maxa-burning-man-2023-final-mastered-03122023",
+          "coverUrl": "https://i1.sndcdn.com/artworks-529dkdFzIRoW4iRI-NNf4hw-large.jpg",
+          "addedAt": 1791406133469
         },
         {
-          "id": "rt_tv_1790256674020_2ldz",
-          "title": "Tomorrowland Brasil 2025",
-          "artist": "Kölsch",
-          "youtubeId": "mSVIWbJdewM",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790256674020
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_18",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
+          "category": "jingle"
         },
         {
-          "id": "sj_radio_bloc_1790256648831_kmgn_s_12",
+          "id": "sc_2184214991_19",
+          "title": "JOHN SUMMIT @ Burning Man 2025 (Mayan Warrior Sunrise)",
+          "artist": "Marcc",
+          "duration": 6177,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/madebymarcc/john-summit-burning-man-2025-mayan-warrior-sunrise",
+          "coverUrl": "https://i1.sndcdn.com/artworks-ziNUkyyyPfTOyOWD-ZfqtSA-large.png",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_19",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS RADIO",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 22,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_2312360927_20",
+          "title": "HUGEL live @ Zenyara (Coachella After Party)",
+          "artist": "HUGEL",
+          "duration": 5586,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/hugelmusic/hugel-live-zenyara-coachella",
+          "coverUrl": "https://i1.sndcdn.com/artworks-xNzwKTqnmYA6HvPF-xwJiZw-large.png",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sc_2355667655_21",
+          "title": "Marlon Hoffstadt Live @ Coachella 2026",
+          "artist": "Marlon Hoffstadt",
+          "duration": 3580,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/marlonhoffstadt/coachella",
+          "coverUrl": "https://i1.sndcdn.com/artworks-ubql0WJTA1l059hJ-moEkGQ-large.png",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_21",
           "title": "Dropsiders Radio Jingle 1",
-          "artist": "FEEL THE VIBE JINGLE SPÉCIAL",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
           "duration": 8,
           "category": "jingle"
         },
         {
-          "id": "rt_tv_1790256675205_7gi8",
-          "title": "Ultra Music Festival (Miami 2026)",
-          "artist": "Swedish House Mafia",
-          "youtubeId": "byHTUyYS7bA",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790256675205
+          "id": "sc_2353389320_22",
+          "title": "Keinemusik at Coachella (2025)",
+          "artist": "Atlantic-Affairs",
+          "duration": 5416,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/atlantic-affairs/keinemusik-at-coachella-2025",
+          "coverUrl": "https://i1.sndcdn.com/artworks-ev8FwqQ0x75YV2rO-FAhUrQ-large.jpg",
+          "addedAt": 1791406133469
         },
         {
-          "id": "nj_radio_bloc_1790256648831_kmgn_n_13",
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_22",
           "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "DROPSIDERS JINGLE",
+          "artist": "DROPSIDERS RADIO",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 33,
           "category": "jingle"
         },
         {
-          "id": "rt_tv_1790256676052_kio7",
-          "title": "COACHELLA 2026 DO LAB",
-          "artist": "JOHN SUMMIT",
-          "youtubeId": "Cx5FXDTQ__M",
-          "duration": 210,
+          "id": "sc_2306311007_23",
+          "title": "Franky Rizardo Coachella '26",
+          "artist": "Minister of Sound",
+          "duration": 7210,
           "category": "clip",
-          "addedAt": 1790256676052
+          "soundcloudUrl": "https://soundcloud.com/jon-hansen-148658987/franky-rizardo",
+          "coverUrl": null,
+          "addedAt": 1791406133469
         },
         {
-          "id": "rt_tv_1790256676605_rtyx",
-          "title": "Awakenings Festival 2026",
-          "artist": "Mau P",
-          "youtubeId": "CNGB66x4ygk",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790256676610
+          "id": "sc_2403763833_24",
+          "title": "JOHN SUMMIT LIVE @ COACHELLA 2026 DO LAB",
+          "artist": "Connor Pacyna",
+          "duration": 3777,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/connor-pacyna/john-summit-live-coachella",
+          "coverUrl": "https://i1.sndcdn.com/artworks-mPmoyzN4kNCKXGtw-EXO6gg-large.jpg",
+          "addedAt": 1791406133469
         },
         {
-          "id": "sj_radio_bloc_1790256648831_kmgn_s_15",
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_24",
           "title": "Dropsiders Radio Jingle 2",
-          "artist": "FEEL THE VIBE JINGLE SPÉCIAL",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
           "duration": 10,
           "category": "jingle"
         },
         {
-          "id": "rt_tv_1790256690027_mrmu",
-          "title": "DROPSIDERS TV",
-          "artist": "BUNT. at COACHELLA 2026",
-          "youtubeId": "2BKazr739po",
-          "duration": 210,
+          "id": "sc_1169395609_25",
+          "title": "FISHER - Losing It - Live at Coachella 2019 Friday April 12, 2019",
+          "artist": "LE FORESTIER THOMAS",
+          "duration": 396,
           "category": "clip",
-          "addedAt": 1790256690027
+          "soundcloudUrl": "https://soundcloud.com/le-forestier-thomas/fisher-losing-it-live-at-coachella-2019-friday-april-12-2019",
+          "coverUrl": "https://i1.sndcdn.com/artworks-CLizTXdzionlnHMJ-N4ygsA-large.png",
+          "addedAt": 1791406133469
         },
         {
-          "id": "nj_radio_bloc_1790256648831_kmgn_n_16",
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_25",
           "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-          "artist": "DROPSIDERS JINGLE",
+          "artist": "DROPSIDERS RADIO",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 46,
           "category": "jingle"
         },
         {
-          "id": "rt_tv_1790256690808_nukq",
-          "title": "Sahara Stage",
-          "artist": "ADRIATIQUE LIVE @ COACHELLA 2026",
-          "youtubeId": "1UHSnpfO4J8",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790256690808
-        },
-        {
-          "id": "rt_tv_1790256692685_zxpr",
-          "title": "Yuma Tent",
-          "artist": "Max Dean B2B Luke Dean at Coachella 2026",
-          "youtubeId": "WoR8pdr07V0",
-          "duration": 210,
+          "id": "sc_1796220013_26",
+          "title": "Four Tet x Fred again.. x Skrillex - Coachella 2023",
+          "artist": "işilay.mp3",
+          "duration": 5433,
           "category": "clip",
-          "addedAt": 1790256692685
+          "soundcloudUrl": "https://soundcloud.com/user-44486923/four-tet-x-fred-again-x-skrillex-coachella-2023",
+          "coverUrl": "https://i1.sndcdn.com/artworks-REbr4ATZizsQxlZ0-aj1ASA-large.jpg",
+          "addedAt": 1791406133469
         },
         {
-          "id": "sj_radio_bloc_1790256648831_kmgn_s_18",
-          "title": "Dropsiders Radio Jingle 1",
-          "artist": "FEEL THE VIBE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
-          "category": "jingle"
-        },
-        {
-          "id": "rt_tv_1790256694653_89ig",
-          "title": "Coachella Day 0 2026",
-          "artist": "Disco Lines",
-          "youtubeId": "pbu_4KBVQW4",
-          "duration": 210,
+          "id": "sc_2390789985_27",
+          "title": "Mau P - Live From Coachella 2025",
+          "artist": "Angelo Gabriel",
+          "duration": 3595,
           "category": "clip",
-          "addedAt": 1790256694653
-        },
-        {
-          "id": "nj_radio_bloc_1790256648831_kmgn_n_19",
-          "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 22,
-          "category": "jingle"
-        },
-        {
-          "id": "rt_tv_1790256703698_zobb",
-          "title": "Yuma · Coachella 2026",
-          "artist": "Josh Baker b2b Carlita",
-          "youtubeId": "7EtYEtkS_bs",
-          "duration": 210,
-          "category": "clip",
-          "addedAt": 1790256703698
-        },
-        {
-          "id": "rt_tv_1790256704737_tprl",
-          "title": "Coachella 2026 - Yuma Tent",
-          "artist": "Prospa",
-          "youtubeId": "bWIth_h1s-E",
-          "duration": 210,
-          "category": "clip",
-          "addedAt": 1790256704737
-        },
-        {
-          "id": "sj_radio_bloc_1790256648831_kmgn_s_21",
-          "title": "Dropsiders Radio Jingle 2",
-          "artist": "FEEL THE VIBE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
-          "duration": 10,
-          "category": "jingle"
-        },
-        {
-          "id": "rt_tv_1790256710831_6dyt",
-          "title": "Live Set at Experience Festival 2026",
-          "artist": "Stephan Bodzin",
-          "youtubeId": "57S5jbA-giY",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790256710831
-        },
-        {
-          "id": "nj_radio_bloc_1790256648831_kmgn_n_22",
-          "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 22,
-          "category": "jingle"
-        },
-        {
-          "id": "rt_tv_1790256711796_z284",
-          "title": "TOMORROWLAND 2026 (W2)",
-          "artist": "MARTIN GARRIX",
-          "youtubeId": "sqxFW3RXGdo",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790256711796
-        },
-        {
-          "id": "rt_tv_1790256712763_8g7o",
-          "title": "ULTRA 2026 · FULL SET",
-          "artist": "AMELIE LENS B2B SARA LANDRY",
-          "youtubeId": "PmYE3d0GeLQ",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790256712763
-        },
-        {
-          "id": "sj_radio_bloc_1790256648831_kmgn_s_24",
-          "title": "Dropsiders Radio Jingle 1",
-          "artist": "FEEL THE VIBE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
-          "category": "jingle"
-        },
-        {
-          "id": "rt_tv_1790256713755_yj94",
-          "title": "DROPSIDERS TV",
-          "artist": "Format:B live from Berlin at Ritter Butzke",
-          "youtubeId": "mny8WwKtjds",
-          "duration": 210,
-          "category": "clip",
-          "addedAt": 1790256713755
-        },
-        {
-          "id": "nj_radio_bloc_1790256648831_kmgn_n_25",
-          "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 22,
-          "category": "jingle"
-        },
-        {
-          "id": "rt_tv_1790256725148_fn55",
-          "title": "Epic 2-Hour DJ Set from Marquee Skydeck (Heights Warning!)[4K]",
-          "artist": "Oliver Heldens Live at The Edge NYC",
-          "youtubeId": "98u3AJVEL8Q",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790256725148
-        },
-        {
-          "id": "rt_tv_1790256726020_y8hc",
-          "title": "DROPSIDERS TV",
-          "artist": "David Guetta Presents Galactic Circus Live From [UNVRS] Ibiza",
-          "youtubeId": "lSk-DWAJPbA",
-          "duration": 210,
-          "category": "clip",
-          "addedAt": 1790256726020
+          "soundcloudUrl": "https://soundcloud.com/angelo-gabriel-928080351/mau-p-live-from-coachella-1",
+          "coverUrl": "https://i1.sndcdn.com/artworks-WRcMaTytyrOeYGy1-yLvFTg-large.jpg",
+          "addedAt": 1791406133469
         },
         {
           "id": "sj_radio_bloc_1790256648831_kmgn_s_27",
-          "title": "Dropsiders Radio Jingle 2",
-          "artist": "FEEL THE VIBE JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
-          "duration": 10,
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
-          "id": "rt_tv_1790256729924_i2c1",
-          "title": "DROPSIDERS TV",
-          "artist": "FISHER PRESENTS OUT 2 LUNCH FESTIVAL [DAY 2- FULL LIVE SET]",
-          "youtubeId": "3YctdJP8_eo",
-          "duration": 210,
+          "id": "sc_2085894069_28",
+          "title": "Dixon x Jimi Jules - Live from Coachella 2025",
+          "artist": "KU FA",
+          "duration": 5296,
           "category": "clip",
-          "addedAt": 1790256729924
+          "soundcloudUrl": "https://soundcloud.com/ku-fa-1/dixon-x-jimi-jules-live-from",
+          "coverUrl": "https://i1.sndcdn.com/artworks-TkLkpEtuxJthNayg-l8pVaA-large.png",
+          "addedAt": 1791406133469
         },
         {
           "id": "nj_radio_bloc_1790256648831_kmgn_n_28",
           "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "DROPSIDERS JINGLE",
+          "artist": "DROPSIDERS RADIO",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 22,
           "category": "jingle"
         },
         {
-          "id": "rt_tv_1790256730781_q1ms",
-          "title": "BONNAROO 2026",
-          "artist": "SIDEPIECE",
-          "youtubeId": "KLpgzqS1o28",
-          "duration": 210,
+          "id": "sc_1842255927_29",
+          "title": "RÜFÜS - Coachella Set 2024",
+          "artist": "Adroushan",
+          "duration": 5378,
           "category": "clip",
-          "addedAt": 1790256730781
+          "soundcloudUrl": "https://soundcloud.com/user-192806084/rufus-coachella-2024",
+          "coverUrl": "https://i1.sndcdn.com/artworks-F3AVQmnzraU4laAX-JKo48A-large.jpg",
+          "addedAt": 1791406133469
         },
         {
-          "id": "rt_tv_1790259701635_c6go",
-          "title": "EDC Las Vegas 2026",
-          "artist": "Solomun",
-          "youtubeId": "g1vH9C_o-vo",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790259701635
+          "id": "sc_2330386319_30",
+          "title": "DJ Snake x RL Grime x Flosstradamus - Live @ Coachella 2026 (Week 2)",
+          "artist": "tlmmy!",
+          "duration": 5127,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/tlmmy/dj-snake-x-rl-grime-x",
+          "coverUrl": "https://i1.sndcdn.com/artworks-VaNeDdzskTXomXgf-LyYbBQ-large.jpg",
+          "addedAt": 1791406133469
         },
         {
           "id": "sj_radio_bloc_1790256648831_kmgn_s_30",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_2104407255_31",
+          "title": "Justice - Live at Coachella 2024",
+          "artist": "Ryan Grey",
+          "duration": 3967,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/ryan-grey-649840261/justice-live-at-coachella-2024",
+          "coverUrl": "https://i1.sndcdn.com/artworks-z27IqdytESLNm4zl-MgJZag-large.png",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_31",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+          "artist": "DROPSIDERS RADIO",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 33,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_1494105622_32",
+          "title": "Vintage Culture b2b Mochakk - Coachella (Dolab Stage) Indio, California 2023",
+          "artist": "Vintage Culture",
+          "duration": 6872,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/vintageculturemusic/vintage-culture-b2b-mochakk-coachella-dolab-stage-2023",
+          "coverUrl": "https://i1.sndcdn.com/artworks-cV1kL5z8Tc2LzJbt-Oo1YwA-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sc_2395746600_33",
+          "title": "KETTAMA @ Coachella 2026 - Yuma Stage",
+          "artist": "JSON",
+          "duration": 4412,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/helpjson/kettama-coachella-2026-yuma",
+          "coverUrl": "https://i1.sndcdn.com/artworks-OFDo5YmnUjRd3uvN-fwLaTw-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_33",
           "title": "Dropsiders Radio Jingle 1",
-          "artist": "FEEL THE VIBE JINGLE SPÉCIAL",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
           "duration": 8,
           "category": "jingle"
         },
         {
-          "id": "rt_tv_1790259728945_a94x",
-          "title": "Awakenings Festival 2026",
-          "artist": "Josh Baker",
-          "youtubeId": "wY6CC4I49lM",
-          "duration": 3600,
-          "category": "liveset",
-          "addedAt": 1790259728945
+          "id": "sc_1500895207_34",
+          "title": "Devault Live @ Do Lab Coachella Weekend 2",
+          "artist": "DEVAULT",
+          "duration": 3858,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/devaultmusic/devault-live-do-lab-coachella-weekend-2",
+          "coverUrl": "https://i1.sndcdn.com/artworks-dblA5Rt72pExGw7M-TAtITg-large.jpg",
+          "addedAt": 1791406133469
         },
         {
-          "id": "nj_radio_bloc_1790256648831_kmgn_n_31",
-          "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 22,
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_34",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+          "artist": "DROPSIDERS RADIO",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 46,
           "category": "jingle"
         },
         {
-          "id": "rt_tv_1790259733065_p6uv",
-          "title": "Upclose 2026",
-          "artist": "Joris Voorn Vinyl Only Techno Set",
-          "youtubeId": "4JkIGKt1AHw",
-          "duration": 210,
+          "id": "sc_2337958730_35",
+          "title": "Worship- Coachella Weekend 2",
+          "artist": "Jas",
+          "duration": 3614,
           "category": "clip",
-          "addedAt": 1790259733065
+          "soundcloudUrl": "https://soundcloud.com/user-525742863/worship-coachella-weekend-2",
+          "coverUrl": "https://i1.sndcdn.com/artworks-ynTrnOj65xTOSViy-1JPVig-large.jpg",
+          "addedAt": 1791406133469
         },
         {
-          "id": "rt_tv_1790259791462_jlr5",
-          "title": "DROPSIDERS TV",
-          "artist": "BUNT. at PACHA New York 2026",
-          "youtubeId": "1MX4Vtc5aUU",
-          "duration": 210,
+          "id": "sc_147443768_36",
+          "title": "Kaskade Live @ Coachella 2012",
+          "artist": "Ali Baig 5",
+          "duration": 4800,
           "category": "clip",
-          "addedAt": 1790259791462
+          "soundcloudUrl": "https://soundcloud.com/ali-baig-6/kaskade-coachella-2012",
+          "coverUrl": "https://i1.sndcdn.com/artworks-000078170393-dgul2k-large.jpg",
+          "addedAt": 1791406133469
         },
         {
-          "id": "sj_radio_bloc_1790256648831_kmgn_s_33",
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_36",
           "title": "Dropsiders Radio Jingle 2",
-          "artist": "FEEL THE VIBE JINGLE SPÉCIAL",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
           "duration": 10,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_1277489413_37",
+          "title": "Kaskade Redux - EDC Las Vegas 2022",
+          "artist": "Juul H",
+          "duration": 5393,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/juul_pop/kaskade-redux-edc-las-vegas-2022",
+          "coverUrl": "https://i1.sndcdn.com/artworks-loQwOGyPsKf8Q0yX-X4qJlg-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_37",
+          "title": "Dropsiders Radio Promo Insta & Tiktok  4",
+          "artist": "DROPSIDERS RADIO",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 44,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_2351956655_38",
+          "title": "Prospa - Live from Circoloco DC-10 Ibiza (27.04.2026 Terrace set)",
+          "artist": "FCaddy",
+          "duration": 7147,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/user-884577244/prospa-live-from-circoloco-dc",
+          "coverUrl": "https://i1.sndcdn.com/artworks-WhIB02VGwMdhxFpi-5UqYAw-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sc_2359425293_39",
+          "title": "Martin Garrix - Ultra Europe 2026 (Full Set)",
+          "artist": "Johnnykham",
+          "duration": 5256,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/johnnykham-745185291/martin-garrix-ultra-europe",
+          "coverUrl": "https://i1.sndcdn.com/artworks-pcRY4KkhGIMpOY1e-XyCAiw-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_39",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_2403938235_40",
+          "title": "ILLENIUM - Lost Lands 2026 (Full Set)",
+          "artist": "Johnnykham",
+          "duration": 3779,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/johnnykham-745185291/illenium-lost-lands-2026",
+          "coverUrl": "https://i1.sndcdn.com/artworks-SGiyx8Cl2jfImsfp-kTdQLA-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_40",
+          "title": "Dropsiders Radio Promo Insta & Tiktok  5",
+          "artist": "DROPSIDERS RADIO",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 28,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_2407300797_41",
+          "title": "ANOTR @ Alexandra Palace, London  September 2026 FULL SET",
+          "artist": "Owen Campbell",
+          "duration": 8976,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/owen-campbell-261251270/anotr-alexandra-palace-london",
+          "coverUrl": "https://i1.sndcdn.com/artworks-LgVVpD0T9z3Qjciw-uv9NHA-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sc_2408029638_42",
+          "title": "The Chainsmokers - Lost Lands 2026 (Full Set)",
+          "artist": "Johnnykham",
+          "duration": 3265,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/johnnykham-745185291/the-chainsmokers-lost-lands",
+          "coverUrl": "https://i1.sndcdn.com/artworks-s5ew1Wuy5B8rvtyZ-7rjsEQ-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_42",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_2282136302_43",
+          "title": "Chris Lake San Francisco 2025 | Full Set",
+          "artist": "connor",
+          "duration": 7185,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/connor-k-942387545/chris-lake-san-francisco-2025",
+          "coverUrl": "https://i1.sndcdn.com/artworks-bUFFbezStKCJKaJQ-lztvRg-large.png",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_43",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 6",
+          "artist": "DROPSIDERS RADIO",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 26,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_2322330272_44",
+          "title": "Kaskade - EDC Las Vegas 2026 (Full Set)",
+          "artist": "Johnnykham",
+          "duration": 4106,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/johnnykham-745185291/kaskade-edc-las-vegas-2026",
+          "coverUrl": "https://i1.sndcdn.com/artworks-gj7cbaehvOIPH8hP-o4zNVw-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sc_254734923_45",
+          "title": "deadmau5 - Live @ Ultra 2016 (ASOT Stage) [Full Set] [Free Download]",
+          "artist": "umftv2016",
+          "duration": 3985,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/umftv2016/deadmau5-live-ultra-2016-asot-stage-full-set-free-download",
+          "coverUrl": "https://i1.sndcdn.com/artworks-000153717656-2owv02-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_45",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_1370533960_46",
+          "title": "Paul Kalkbrenner [Live @ The Midway, SF] 10.15.22",
+          "artist": "PaulKalkbrenner",
+          "duration": 7471,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/paulkalkbrenner/paul-kalkbrenner-live-the-midway-sf-101522",
+          "coverUrl": "https://i1.sndcdn.com/artworks-LSXOLivgCsH2LFAp-xviarg-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_46",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 7",
+          "artist": "DROPSIDERS RADIO",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_1378289191_47",
+          "title": "PAWSA LIVE @ WAREHOUSE PROJECT SOLID GROOVES 2022",
+          "artist": "PAWSA",
+          "duration": 5261,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/pawsa/pawsa-live-warehouse-project-solid-grooves-2022",
+          "coverUrl": "https://i1.sndcdn.com/artworks-vMkQucyPL2CA9hQg-Vguzqw-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sc_1249788400_48",
+          "title": "Michael Bibi B3B PAWSA B3B Dennis Cruz - Live @ Space Miami - SolidGrooves. {25.03.22}",
+          "artist": "MichaelBibi",
+          "duration": 17781,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/bibi-87/michael-bibi-b3b-pawsa-b3b-dennis-cruz-live-space-miami-solidgrooves-250322",
+          "coverUrl": "https://i1.sndcdn.com/artworks-hyHx1W4By3knCS5J-8p9EKQ-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_48",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_1338907993_49",
+          "title": "Michael Bibi - Recorded live from Creamfields 2022",
+          "artist": "MichaelBibi",
+          "duration": 5047,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/bibi-87/michael-bibi-recorded-live-from-creamfields-2022",
+          "coverUrl": "https://i1.sndcdn.com/artworks-x5LePAfdIwMefIDE-mZHTbA-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_49",
+          "title": "Dropsiders Radio Promo Insta & Tiktok  8",
+          "artist": "DROPSIDERS RADIO",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_1927578224_50",
+          "title": "WADE live @ ANTS at USHUAÏA IBIZA (28-09-2024)",
+          "artist": "WADE",
+          "duration": 4844,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/wade-dj/wade-live-ants-at-ushuaia-ibiza-28-09-2024",
+          "coverUrl": "https://i1.sndcdn.com/artworks-FgySIzu34lVjvm7c-SiOS4w-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sc_1881446166_51",
+          "title": "Franky Rizardo - Recorded Live at ANTS Ushuaïa Ibiza 2024",
+          "artist": "UNITEDANTS",
+          "duration": 4533,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/united-ants/franky-rizardo-recorded-live-at-ants-ushuaia-ibiza-2024",
+          "coverUrl": "https://i1.sndcdn.com/artworks-HJgycilBKnlzxwRV-2vDlKw-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_51",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_1957984595_52",
+          "title": "Ilario Alicante - Recorded Live at ANTS Ushuaïa Ibiza 2024",
+          "artist": "UNITEDANTS",
+          "duration": 5011,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/united-ants/ilario-alicante-recorded-live-at-ants-ushuaia-ibiza-2024",
+          "coverUrl": "https://i1.sndcdn.com/artworks-iXjDyDx25fO9w6zz-NuKL0w-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_52",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_2149191072_53",
+          "title": "Max Styler Live @ ANTS Ushuaïa Ibiza 2025",
+          "artist": "Max Styler",
+          "duration": 4522,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/maxstyler/max-styler-live-ants-ushuaia-ibiza-2025",
+          "coverUrl": "https://i1.sndcdn.com/artworks-ek5HjyAVzMurSf86-WzifXA-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sc_2167276992_54",
+          "title": "Cassian Live @ Tomorrowland 2025 - (Freedom Stage)",
+          "artist": "Cassian",
+          "duration": 5412,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/cassian88/cassian-live-tomorrowland-2025-freedom-stage",
+          "coverUrl": "https://i1.sndcdn.com/artworks-KP3f7vQHActPo6aa-xbDt5g-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_54",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_2014623163_55",
+          "title": "Eric Prydz - Live from History Toronto 2025 (FULL SET)",
+          "artist": "Eric Prydz",
+          "duration": 7468,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/eric-prydz/eric-prydz-live-from-history-toronto-2025",
+          "coverUrl": "https://i1.sndcdn.com/artworks-xfusFeCezq2zyAzt-l42Tmw-large.png",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_55",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_2293494386_56",
+          "title": "Afrojack - Live @ Ultra Music Festival 2026 (Miami) #Day3",
+          "artist": "EDM FAMILY Live Sets",
+          "duration": 3623,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/edmfamilylivesets2025/afrojack-live-ultra-music",
+          "coverUrl": "https://i1.sndcdn.com/artworks-EsiDijzG1KaAdGn9-sqpZ1w-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sc_59334415_57",
+          "title": "Kölsch - Live @ Panorama Bar, Berlin - 27072012",
+          "artist": "Kölsch",
+          "duration": 4024,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/kolsch/k-lsch-live-panorama-bar",
+          "coverUrl": "https://i1.sndcdn.com/artworks-000030044295-i3cbtu-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_57",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_2368202045_58",
+          "title": "Kolsch- Live at TML 2026 (Boom, Belgium - 24-07-2026)",
+          "artist": "Victor Meneses",
+          "duration": 3517,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/victor-meneses-566310216/kolsch-live-at-tml-2026-boom",
+          "coverUrl": "https://i1.sndcdn.com/artworks-fpBKZfB2yqD631mY-v7uzEg-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_58",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_2193052359_59",
+          "title": "Artbat B2B Kölsch - Live at T0m0rr0wland 2025 (W1 Day 1 - Mainstage)",
+          "artist": "Wijhers",
+          "duration": 3797,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/user-430907300/artbat-b2b-koelsch-live-at",
+          "coverUrl": "https://i1.sndcdn.com/artworks-csrzY7iHvyV9ABMc-aTuSzQ-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sc_1783166934_60",
+          "title": "Joris Voorn B2B Kölsch - Live @ Ultra - Miami 23.03.2024",
+          "artist": "Rubis Brut",
+          "duration": 5522,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/rubis-brut/joris-voorn-b2b-kolsch-live-ultra-miami-23032024",
+          "coverUrl": "https://i1.sndcdn.com/artworks-6QxmBilHRzy56Ikt-sQQbrQ-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_60",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_2294841521_61",
+          "title": "Joris Voorn B2B Korolova - Live @ Ultra Music Festival 2026 (Miami) #Day1",
+          "artist": "EDM FAMILY Live Sets",
+          "duration": 7167,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/edmfamilylivesets2025/joris-voorn-b2b-korolova-live",
+          "coverUrl": "https://i1.sndcdn.com/artworks-P3jY3FltNCZrRhoL-EnQmYw-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_61",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_1945476375_62",
+          "title": "Stephan Bodzin (live) - Awakenings Sunday Closing ADE 2024",
+          "artist": "Awakenings",
+          "duration": 5346,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/awakenings/stephan-bodzin-live-awakenings-sunday-closing-ade-2024",
+          "coverUrl": "https://i1.sndcdn.com/artworks-crzFLz6h8gHbaEaa-Gj1mbQ-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sc_1657727307_63",
+          "title": "Adam Beyer B2B Layton Giordani - Live @ Awakenings ADE 2023",
+          "artist": "AvidMuzikFan",
+          "duration": 7222,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/avidmuzikfan-725076808/adam-beyer-b2b-layton-giordani-live-awakenings-ade-2023",
+          "coverUrl": "https://i1.sndcdn.com/artworks-2f78QTiJZqajFAIC-KWiMIQ-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "sj_radio_bloc_1790256648831_kmgn_s_63",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "FEEL THE DROP JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
+          "category": "jingle"
+        },
+        {
+          "id": "sc_2337766697_64",
+          "title": "Vintage Culture live @ Só Track Boa Festival (stb 2026)",
+          "artist": "skizi",
+          "duration": 5106,
+          "category": "clip",
+          "soundcloudUrl": "https://soundcloud.com/lucasizi/vintage-culture-live-so-track",
+          "coverUrl": "https://i1.sndcdn.com/artworks-bukyX39gT62zBqdz-bFKzrQ-large.jpg",
+          "addedAt": 1791406133469
+        },
+        {
+          "id": "nj_radio_bloc_1790256648831_kmgn_n_64",
+          "title": "Dropsiders Radio Jingle 5",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+          "duration": 14,
           "category": "jingle"
         }
       ],
@@ -4967,7 +5453,11 @@
         }
       ],
       "jingleFrequency": 2,
-      "rotationRule": "son_special_son_jingle_promo"
+      "rotationRule": "son_special_son_jingle_promo",
+      "soundcloudPlaylistUrl": "https://soundcloud.com/alexflex1/sets/dropsiders-radio-feel-the-drop",
+      "soundcloudPlaylistTitle": "Dropsiders Radio : Feel The Drop",
+      "soundcloudPlaylistAuthor": "Alex Dropsiders",
+      "soundcloudPlaylistCover": "https://soundcloud.com/images/fb_placeholder.png"
     },
     {
       "id": "bloc_1791197234957",
