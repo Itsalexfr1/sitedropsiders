@@ -9410,6 +9410,13 @@ ${urls.map(u => `  <url>
             return new Response(entriesRaw, { status: 200, headers });
         }
 
+        if (path === '/api/gta-contest/participants' && request.method === 'POST') {
+            const body = await request.json().catch(() => ({}));
+            const entries = Array.isArray(body?.entries) ? body.entries : [];
+            await env.CHAT_KV.put('gta6_contest_entries', JSON.stringify(entries));
+            return new Response(JSON.stringify({ success: true, count: entries.length }), { status: 200, headers });
+        }
+
         if (path === '/api/gta-contest/verify-optin' && request.method === 'POST') {
             const { token } = await request.json();
             const entriesRaw = await env.CHAT_KV.get('gta6_contest_entries') || "[]";

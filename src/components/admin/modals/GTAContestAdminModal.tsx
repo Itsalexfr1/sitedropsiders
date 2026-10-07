@@ -146,10 +146,30 @@ contact@dropsiders.fr`
         }
     };
 
-    // Load participants
-    const refreshEntries = () => {
+    // Load participants (Server Cloudflare KV + Auto-polling + Local fallback)
+    const [isLoadingEntries, setIsLoadingEntries] = useState(false);
+
+    const refreshEntries = async (silent = false) => {
+        if (!silent) setIsLoadingEntries(true);
+        try {
+            const res = await fetch('/api/gta-contest/participants');
+            if (res.ok) {
+                const serverEntries = await res.json();
+                if (Array.isArray(serverEntries)) {
+                    const clean = serverEntries.filter((e: any) => !e.id?.startsWith('gta-10'));
+                    setEntries(clean);
+                    saveAllContestEntries(clean);
+                    return;
+                }
+            }
+        } catch (err) {
+            console.error("Erreur chargement participants serveur:", err);
+        } finally {
+            if (!silent) setIsLoadingEntries(false);
+        }
+
+        // Fallback local
         const data = getAllContestEntries();
-        // Filtrer automatiquement les anciens faux participants de test
         const clean = data.filter(e => !e.id?.startsWith('gta-10'));
         setEntries([...clean]);
     };
@@ -169,6 +189,12 @@ contact@dropsiders.fr`
             }
 
             refreshEntries();
+
+            // Polling automatique toutes les 8s pour actualiser dès qu'un nouvel internaute participe
+            const pollInterval = setInterval(() => {
+                refreshEntries(true);
+            }, 8000);
+
             // Fetch latest settings from server
             fetch('/api/settings')
                 .then(r => r.json())
@@ -189,14 +215,23 @@ contact@dropsiders.fr`
                     }
                 })
                 .catch(() => {});
+
+            return () => clearInterval(pollInterval);
         }
     }, [isOpen]);
 
-    const handleClearAllEntries = () => {
+    const handleClearAllEntries = async () => {
         if (window.confirm("Es-tu sûr de vouloir effacer tous les participants enregistrés ?")) {
             saveAllContestEntries([]);
             localStorage.removeItem('ds_gta6_contest_all_entries_v2');
-            refreshEntries();
+            setEntries([]);
+            try {
+                await fetch('/api/gta-contest/participants', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ entries: [] })
+                });
+            } catch {}
         }
     };
 
@@ -278,17 +313,31 @@ contact@dropsiders.fr`
     const totalWeightedTickets = validatedParticipants.reduce((acc, curr) => acc + (curr.totalTickets || 1), 0);
 
     // Action: Validate opt-in manually
-    const handleManualValidateOptIn = (entry: GTAContestEntry) => {
+    const handleManualValidateOptIn = async (entry: GTAContestEntry) => {
         const all = getAllContestEntries();
-        const found = all.find(e => e.id === entry.id);
-        if (found) {
-            found.status = 'VALIDATED';
-            found.isOptedIn = true;
-            found.optedInAt = new Date().toISOString();
-            found.totalTickets = 1 + (found.hasAccountBonus ? 1 : 0) + (found.referralCount || 0);
-            saveAllContestEntries(all);
-            refreshEntries();
-        }
+        const updated = (all.length > 0 ? all : entries).map(e => {
+            if (e.id === entry.id) {
+                return {
+                    ...e,
+                    status: 'VALIDATED' as const,
+                    isOptedIn: true,
+                    optedInAt: new Date().toISOString(),
+                    totalTickets: 1 + (e.hasAccountBonus ? 1 : 0) + (e.referralCount || 0)
+                };
+            }
+            return e;
+        });
+
+        saveAllContestEntries(updated);
+        setEntries(updated);
+
+        try {
+            await fetch('/api/gta-contest/participants', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ entries: updated })
+            });
+        } catch {}
     };
 
     // Action: Weighted Lottery Draw
@@ -415,11 +464,12 @@ contact@dropsiders.fr`
 
                             {/* REFRESH */}
                             <button
-                                onClick={refreshEntries}
-                                className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-300 hover:text-white transition-all"
-                                title="Actualiser la liste"
+                                onClick={() => refreshEntries(false)}
+                                disabled={isLoadingEntries}
+                                className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-300 hover:text-white transition-all disabled:opacity-50"
+                                title="Actualiser la liste depuis le serveur"
                             >
-                                <RefreshCw className="w-5 h-5" />
+                                <RefreshCw className={`w-5 h-5 ${isLoadingEntries ? 'animate-spin text-[#00f0ff]' : ''}`} />
                             </button>
 
                             {/* VIDER LES PARTICIPANTS */}
