@@ -667,5 +667,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1134,
+    "title": "Dream Nation 2026",
+    "date": "2026-10-30",
+    "startDate": "2026-10-30",
+    "endDate": "2026-10-31",
+    "venue": "Parc Des Expositions",
+    "location": "PARIS",
+    "country": "FRANCE",
+    "type": "Festival",
+    "image": "/uploads/uploads/42dfa316700c5fdb-dn26_annonce_1920x1080_full_lu.jpg",
+    "url": "https://shotgun.live/fr/festivals/dream-nation-festival-2026",
+    "genre": "Multi Styles",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
