@@ -205,6 +205,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [conseilsTitle, setConseilsTitle] = useState('LE TITRE ICI');
     const [conseilsSubtext, setConseilsSubtext] = useState('');
     const [isConseilsLargeTitle, setIsConseilsLargeTitle] = useState(false);
+    const [promoCategory, setPromoCategory] = useState<string>(() => {
+        if (initialTheme && initialTheme !== 'PROMO') return initialTheme;
+        return 'NEWS';
+    });
 
     // CONCOURS Theme States
     const [concoursMode, setConcoursMode] = useState<'FESTIVAL' | 'GTA6'>('GTA6');
@@ -381,6 +385,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         setThemeColor(null);
     }, [activeTab]);
+
+    useEffect(() => {
+        if (theme !== 'PROMO' && baseThemeData[theme]) {
+            setPromoCategory(theme);
+        }
+    }, [theme]);
 
     const handleArtistLogoChange = (e: any) => {
         const file = e.target?.files?.[0];
@@ -583,7 +593,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         try {
             await (async (theme: ThemeType) => {
-                const activeColor = themeColor || baseThemeData[theme];
+                const isPromoTheme = theme === 'PROMO';
+                const promoCategoryKey = (promoCategory as ThemeType) || 'NEWS';
+                const promoThemeData = baseThemeData[promoCategoryKey] || baseThemeData['NEWS'];
+                const activeColor = isPromoTheme 
+                    ? (themeColor || promoThemeData) 
+                    : (themeColor || baseThemeData[theme]);
                 let img: HTMLImageElement | null = null;
             if (bgImage) {
                 if (imageCacheRef.current[bgImage]) {
@@ -2721,7 +2736,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 categories.forEach((cat: string, idx: number) => {
                     const pw = pillWidths[idx];
-                    const isPillActive = theme.toLowerCase().includes(cat.toLowerCase().slice(0, 4)) || (idx === 0 && (theme === 'PROMO' || theme === 'NEWS'));
+                    const promoCatStr = (promoCategory || 'NEWS').toLowerCase();
+                    const isPillActive = promoCatStr.includes(cat.toLowerCase().slice(0, 4)) || (idx === 0 && (promoCatStr === 'news' || promoCatStr === 'promo'));
                     ctx.save();
                     // Bulle arrondie (pill)
                     ctx.beginPath();
@@ -4067,6 +4083,56 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const promoEditor = (
         <div className="space-y-4">
+            {/* 1. Sélecteur de catégorie & couleur pour la page Promo */}
+            <div className="space-y-2 bg-white/5 border border-white/10 rounded-2xl p-3.5">
+                <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                        🎨 Thème & Couleur Promo
+                    </label>
+                    <span 
+                        className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full"
+                        style={{ 
+                            backgroundColor: `${(baseThemeData[promoCategory as ThemeType] || baseThemeData['NEWS']).color}20`, 
+                            color: (baseThemeData[promoCategory as ThemeType] || baseThemeData['NEWS']).color,
+                            border: `1px solid ${(baseThemeData[promoCategory as ThemeType] || baseThemeData['NEWS']).color}60` 
+                        }}
+                    >
+                        {promoCategory}
+                    </span>
+                </div>
+                <div className="grid grid-cols-3 gap-1.5 pt-1">
+                    {[
+                        { id: 'NEWS', label: 'NEWS', color: '#ff0033' },
+                        { id: 'RECAP', label: 'RÉCAP', color: '#c026d3' },
+                        { id: 'MUSIQUE', label: 'MUSIQUE', color: '#39ff14' },
+                        { id: 'FOCUS', label: 'FOCUS', color: '#ffaa00' },
+                        { id: 'INTERVIEW', label: 'INTERVIEW', color: '#ffffff' },
+                        { id: 'CONCOURS', label: 'CONCOURS', color: '#7000ff' },
+                    ].map(cat => {
+                        const isSelected = (promoCategory || 'NEWS') === cat.id;
+                        return (
+                            <button
+                                key={cat.id}
+                                type="button"
+                                onClick={() => {
+                                    setPromoCategory(cat.id);
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                className={`py-2 px-2.5 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 border transition-all ${
+                                    isSelected 
+                                        ? 'bg-white/15 text-white shadow-md' 
+                                        : 'bg-black/30 border-white/5 text-gray-400 hover:text-white hover:bg-white/5'
+                                }`}
+                                style={isSelected ? { borderColor: cat.color, color: cat.color, boxShadow: `0 0 12px ${cat.color}40` } : {}}
+                            >
+                                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
+                                <span className="truncate">{cat.label}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
             <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
