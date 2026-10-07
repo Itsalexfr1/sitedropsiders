@@ -1153,15 +1153,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const monthY = isStory ? 430 : 310;
                 const monthText = (agendaMonth || 'OCTOBRE').toUpperCase().trim();
 
-                // Subtle ambient spotlight glow behind the Month
-                ctx.save();
-                const bgSpot = ctx.createRadialGradient(centerX, monthY, 30, centerX, monthY, 380);
-                bgSpot.addColorStop(0, 'rgba(255, 55, 0, 0.14)');
-                bgSpot.addColorStop(0.5, 'rgba(255, 55, 0, 0.04)');
-                bgSpot.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                ctx.fillStyle = bgSpot;
-                ctx.fillRect(centerX - 400, monthY - 180, 800, 360);
-                
                 // Adaptive font size so any month name fits nicely
                 let monthFontSize = isStory ? 104 : 94;
                 ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
@@ -1171,7 +1162,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
                 }
 
-                // Clean Hollow Neon Outline (Knockout Technique):
+                // Clean Hollow Outline (Knockout Technique):
                 // Eliminates internal intersecting contours in variable font glyphs (M, A, B, R, etc.)
                 const offW = canvas.width;
                 const offH = Math.ceil(monthFontSize * 2.2);
@@ -1189,39 +1180,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     offCtx.textAlign = 'center';
                     offCtx.textBaseline = 'middle';
 
-                    // 1. Neon glow & outer stroke
-                    offCtx.shadowColor = '#ff3700';
-                    offCtx.shadowBlur = 30;
+                    // Sharp, vibrant orange stroke (no blurry glow)
                     offCtx.strokeStyle = '#ff3700';
-                    offCtx.lineWidth = 8;
+                    offCtx.lineWidth = 6;
                     offCtx.strokeText(monthText, offCenterX, offCenterY);
 
-                    // 2. Crisp bright core stroke
-                    offCtx.shadowColor = 'transparent';
-                    offCtx.shadowBlur = 0;
-                    offCtx.strokeStyle = '#ff6b3d';
-                    offCtx.lineWidth = 5;
-                    offCtx.strokeText(monthText, offCenterX, offCenterY);
-
-                    // 3. KNOCKOUT: Punch out glyph solid interiors to erase any crossing lines inside the letters
+                    // KNOCKOUT: Punch out glyph solid interiors to erase any crossing lines inside the letters
                     offCtx.globalCompositeOperation = 'destination-out';
                     offCtx.fillStyle = '#000000';
                     offCtx.fillText(monthText, offCenterX, offCenterY);
 
-                    // 4. Draw clean hollow outline onto main canvas
+                    // Draw clean hollow outline onto main canvas with a crisp subtle shadow for contrast
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                    ctx.shadowBlur = 6;
+                    ctx.shadowOffsetY = 2;
                     ctx.drawImage(offCanvas, 0, monthY - offCenterY);
+                    ctx.restore();
                 } else {
                     ctx.save();
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.shadowColor = '#ff3700';
-                    ctx.shadowBlur = 28;
                     ctx.strokeStyle = '#ff3700';
-                    ctx.lineWidth = 5;
+                    ctx.lineWidth = 6;
                     ctx.strokeText(monthText, centerX, monthY);
                     ctx.restore();
                 }
-                ctx.restore();
 
                 // 3. EVENTS LIST - With generous breathing room from the month title
                 const itemsToDraw = planningItems.slice(0, isStory ? 8 : 7);
