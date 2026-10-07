@@ -68,6 +68,39 @@ export function AdminSoundCloudPlaylistModal({
 
   const extractorIframeRef = useRef<HTMLIFrameElement | null>(null);
 
+  // Extraction 100% automatique de tous les morceaux avec leurs vrais titres et artistes
+  const resolveTracksAuto = async (urlToExtract: string) => {
+    const trimmed = urlToExtract.trim();
+    if (!trimmed.includes('soundcloud.com')) return;
+    setIsExtractingTracks(true);
+
+    try {
+      let res = await fetch(`/api/soundcloud/resolve-playlist?url=${encodeURIComponent(trimmed)}`);
+      if (!res.ok) {
+        // Fallback production si en environnement dev local
+        res = await fetch(`https://dropsiders.fr/api/soundcloud/resolve-playlist?url=${encodeURIComponent(trimmed)}`);
+      }
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.tracks) && data.tracks.length > 0) {
+          if (data.title) setPlaylistTitle(data.title);
+          if (data.author) setPlaylistAuthor(data.author);
+          if (data.coverUrl) setPlaylistCover(data.coverUrl);
+          setExtractedTracks(data.tracks);
+          setIsExtractingTracks(false);
+          onShowToast(`✓ ${data.tracks.length} morceaux identifiés avec leurs vrais titres et artistes !`, 'success');
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Auto resolve failed, falling back to widget:', e);
+    }
+
+    // Fallback widget si le resolver distant n'est pas joignable
+    extractTracksFromWidget(trimmed);
+  };
+
   // Extraire les morceaux de la playlist via le widget HTML5 SoundCloud officiel
   const extractTracksFromWidget = (urlToExtract: string) => {
     const trimmed = urlToExtract.trim();
@@ -141,10 +174,11 @@ export function AdminSoundCloudPlaylistModal({
         setPlaylistCover(targetBlock.soundcloudPlaylistCover || '');
         // Si le bloc a déjà des morceaux individuels soundcloudUrl
         const existingClips = (targetBlock.tracks || []).filter(t => t.category === 'clip' && t.soundcloudUrl);
-        if (existingClips.length > 0) {
+        const hasGenericPlaceholders = existingClips.some(t => /^Morceau \d+$/i.test(t.title));
+        if (existingClips.length > 0 && !hasGenericPlaceholders) {
           setExtractedTracks(existingClips);
         } else {
-          extractTracksFromWidget(targetBlock.soundcloudPlaylistUrl);
+          resolveTracksAuto(targetBlock.soundcloudPlaylistUrl);
         }
       } else {
         setPlaylistUrl('');
@@ -166,10 +200,11 @@ export function AdminSoundCloudPlaylistModal({
       setPlaylistAuthor(targetBlock.soundcloudPlaylistAuthor || '');
       setPlaylistCover(targetBlock.soundcloudPlaylistCover || '');
       const existingClips = (targetBlock.tracks || []).filter(t => t.category === 'clip' && t.soundcloudUrl);
-      if (existingClips.length > 0) {
+      const hasGenericPlaceholders = existingClips.some(t => /^Morceau \d+$/i.test(t.title));
+      if (existingClips.length > 0 && !hasGenericPlaceholders) {
         setExtractedTracks(existingClips);
       } else {
-        extractTracksFromWidget(targetBlock.soundcloudPlaylistUrl);
+        resolveTracksAuto(targetBlock.soundcloudPlaylistUrl);
       }
     } else {
       setPlaylistUrl('');
@@ -186,7 +221,8 @@ export function AdminSoundCloudPlaylistModal({
     if (!trimmed.includes('soundcloud.com')) return;
 
     setIsFetchingInfo(true);
-    extractTracksFromWidget(trimmed);
+    // Lance immédiatement l'analyse 100% automatique
+    resolveTracksAuto(trimmed);
 
     try {
       const endpoint = `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(trimmed)}`;
@@ -425,15 +461,23 @@ export function AdminSoundCloudPlaylistModal({
                 />
                 <button
                   type="button"
-                  onClick={() => handleFetchOEmbed(playlistUrl)}
-                  disabled={!playlistUrl.trim() || isFetchingInfo}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-xl bg-[#ff5500]/20 hover:bg-[#ff5500] text-[#ff7722] hover:text-black border border-[#ff5500]/40 text-[10px] font-black uppercase italic tracking-wider transition-all cursor-pointer disabled:opacity-40"
+                  onClick={() => resolveTracksAuto(playlistUrl)}
+                  disabled={!playlistUrl.trim() || isFetchingInfo || isExtractingTracks}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#ff5500] to-[#ff3300] hover:from-[#ff7722] hover:to-[#ff5500] text-white font-black text-[10px] uppercase italic tracking-wider transition-all cursor-pointer shadow-lg shadow-[#ff5500]/30 disabled:opacity-40 flex items-center gap-1.5"
                 >
-                  Analyser
+                  {isExtractingTracks ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" /> Analyse...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3 h-3" /> Extraire tout
+                    </>
+                  )}
                 </button>
               </div>
               <p className="text-[11px] text-gray-400">
-                Collez simplement l&apos;URL de n&apos;importe quelle playlist SoundCloud (publique ou non répertoriée).
+                Collez simplement l&apos;URL de n&apos;importe quelle playlist SoundCloud. Tous les vrais titres et artistes seront détectés automatiquement !
               </p>
             </div>
 
@@ -513,10 +557,12 @@ export function AdminSoundCloudPlaylistModal({
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => extractTracksFromWidget(playlistUrl)}
-                      className="text-[10px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20 cursor-pointer"
+                      onClick={() => resolveTracksAuto(playlistUrl)}
+                      disabled={isExtractingTracks}
+                      className="text-[10px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 bg-emerald-500/10 hover:bg-emerald-500/20 px-2 py-0.5 rounded-lg border border-emerald-500/20 cursor-pointer disabled:opacity-50"
                     >
-                      <RefreshCw className="w-3 h-3" /> Ré-extraire
+                      {isExtractingTracks ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                      Actualiser les titres
                     </button>
                     <button
                       type="button"

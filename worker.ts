@@ -435,6 +435,132 @@ export default {
             }
         }
 
+        // ─── SoundCloud Playlist Auto-Resolver (100% Automatique sans copier-coller) ───
+        if (path === '/api/soundcloud/resolve-playlist') {
+            let targetUrl = url.searchParams.get('url');
+            if (!targetUrl && request.method === 'POST') {
+                try {
+                    const b: any = await request.json();
+                    targetUrl = b?.url;
+                } catch {}
+            }
+
+            if (!targetUrl || !targetUrl.includes('soundcloud.com')) {
+                return new Response(JSON.stringify({ error: 'URL SoundCloud invalide' }), {
+                    status: 400,
+                    headers: { ...headers, 'Content-Type': 'application/json' }
+                });
+            }
+
+            try {
+                const scPageRes = await fetch(targetUrl, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                    }
+                });
+                if (!scPageRes.ok) {
+                    return new Response(JSON.stringify({ error: 'Page playlist introuvable sur SoundCloud' }), {
+                        status: 404,
+                        headers: { ...headers, 'Content-Type': 'application/json' }
+                    });
+                }
+                const html = await scPageRes.text();
+
+                const idx = html.indexOf('window.__sc_hydration = [');
+                if (idx === -1) {
+                    return new Response(JSON.stringify({ error: 'Données SoundCloud introuvables' }), {
+                        status: 500,
+                        headers: { ...headers, 'Content-Type': 'application/json' }
+                    });
+                }
+                const endIdx = html.indexOf('];', idx);
+                const hydration = JSON.parse(html.substring(idx + 'window.__sc_hydration = '.length, endIdx + 1));
+
+                const plItem = hydration.find((h: any) => h.hydratable === 'playlist' || (h.data && h.data.tracks));
+                if (!plItem || !plItem.data || !Array.isArray(plItem.data.tracks)) {
+                    return new Response(JSON.stringify({ error: 'Aucune piste trouvée dans la playlist' }), {
+                        status: 404,
+                        headers: { ...headers, 'Content-Type': 'application/json' }
+                    });
+                }
+
+                const rawTracks = plItem.data.tracks;
+                const plTitle = plItem.data.title || 'Playlist SoundCloud';
+                const plAuthor = plItem.data.user?.username || 'Artiste SoundCloud';
+                const plArtwork = plItem.data.artwork_url;
+
+                const missingIds = rawTracks.filter((t: any) => !t.title && t.id).map((t: any) => t.id);
+                const fullTrackMap = new Map<number, any>();
+
+                if (missingIds.length > 0) {
+                    let clientId = 'tHzjkKIyQ5PCLhppl7qomsm6HKpf16tW';
+                    try {
+                        const scriptUrls = [...html.matchAll(/<script[^>]+src="([^">]+\.js)"/g)].map(m => m[1]);
+                        for (const sUrl of scriptUrls) {
+                            const sRes = await fetch(sUrl);
+                            const sText = await sRes.text();
+                            const m = sText.match(/client_id[:=]["']([a-zA-Z0-9]{32})["']/);
+                            if (m) {
+                                clientId = m[1];
+                                break;
+                            }
+                        }
+                    } catch {}
+
+                    const chunkSize = 50;
+                    for (let i = 0; i < missingIds.length; i += chunkSize) {
+                        const chunk = missingIds.slice(i, i + chunkSize);
+                        try {
+                            const apiRes = await fetch(`https://api-v2.soundcloud.com/tracks?ids=${chunk.join(',')}&client_id=${clientId}`);
+                            if (apiRes.ok) {
+                                const apiTracks: any = await apiRes.json();
+                                if (Array.isArray(apiTracks)) {
+                                    apiTracks.forEach((t: any) => fullTrackMap.set(t.id, t));
+                                }
+                            }
+                        } catch {}
+                    }
+                }
+
+                const parsedTracks = rawTracks.map((t: any, index: number) => {
+                    const full = fullTrackMap.get(t.id) || t;
+                    const title = full.title || `Morceau ${index + 1}`;
+                    const artist = full.user?.username || full.publisher_metadata?.artist || plAuthor;
+                    const duration = Math.max(30, Math.round((full.duration || 180000) / 1000));
+                    const coverUrl = full.artwork_url || plArtwork;
+                    const soundcloudUrl = full.permalink_url || `${targetUrl}#${index}`;
+
+                    return {
+                        id: `sc_${full.id || Date.now()}_${index}`,
+                        title,
+                        artist,
+                        duration,
+                        category: 'clip',
+                        soundcloudUrl,
+                        coverUrl,
+                        addedAt: Date.now()
+                    };
+                });
+
+                return new Response(JSON.stringify({
+                    success: true,
+                    title: plTitle,
+                    author: plAuthor,
+                    coverUrl: plArtwork,
+                    trackCount: parsedTracks.length,
+                    tracks: parsedTracks
+                }), {
+                    headers: { ...headers, 'Content-Type': 'application/json' }
+                });
+            } catch (err: any) {
+                return new Response(JSON.stringify({ error: err.message || 'Erreur SoundCloud' }), {
+                    status: 500,
+                    headers: { ...headers, 'Content-Type': 'application/json' }
+                });
+            }
+        }
+
+
 
         // ─── Radio Presence API (comptage auditeurs multi-appareils + mobile) ──────
         // GET  /api/radio/presence → retourne { count: number } (total auditeurs actifs)
