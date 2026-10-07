@@ -5149,7 +5149,7 @@
         },
         {
           "id": "nj_bloc_1791197234957_n_19",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 6",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 26,
@@ -5181,7 +5181,7 @@
         },
         {
           "id": "nj_bloc_1791197234957_s_21",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 7",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
@@ -5565,7 +5565,7 @@
         },
         {
           "id": "nj_bloc_1791197234957_s_45",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 6",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 26,
@@ -5581,7 +5581,7 @@
         },
         {
           "id": "nj_bloc_1791197234957_n_46",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 7",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
@@ -5965,7 +5965,7 @@
         },
         {
           "id": "nj_bloc_1791197234957_n_70",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 6",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 26,
@@ -11265,7 +11265,7 @@
         },
         {
           "id": "nj_radio_bloc_1790257291397_4y1e_n_43",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 6",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 26,
@@ -11316,7 +11316,7 @@
         },
         {
           "id": "nj_radio_bloc_1790257291397_4y1e_n_46",
-          "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 7",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 7",
           "artist": "DROPSIDERS JINGLE",
           "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
           "duration": 32,
@@ -20009,19 +20009,21 @@
     },
     {
       "id": "promo_insta_tiktok_tb5",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 5",
+      "title": "Dropsiders Radio Promo Insta & Tiktok  5",
       "artist": "DROPSIDERS RADIO",
       "category": "jingle",
       "duration": 28,
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav"
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+      "type": "jingle"
     },
     {
       "id": "promo_insta_tiktok_tb6",
-      "title": "Dropsiders Radio Promo Insta & Tiktok TRES TRES BON 6",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 6",
       "artist": "DROPSIDERS RADIO",
       "category": "jingle",
       "duration": 26,
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav"
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
+      "type": "jingle"
     },
     {
       "id": "promo_insta_tiktok_tb7",
