@@ -1,7 +1,7 @@
 {
   "master_session_id": "initial-session-id",
   "shop_enabled": true,
-  "gta_contest_menu_visible": false,
+  "gta_contest_menu_visible": true,
   "gta_contest_insta_url": "https://www.instagram.com/dropsiders.fr",
   "gta_contest_tiktok_url": "https://www.tiktok.com/@dropsiders.fr",
   "blocked_senders": [
