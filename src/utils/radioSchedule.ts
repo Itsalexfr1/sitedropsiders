@@ -231,28 +231,100 @@ export interface ComputedRadioScheduleItem {
  */
 const DEFAULT_SYSTEM_JINGLES: RadioTrackItem[] = [
     {
-        id: 'def_jingle_1',
-        title: 'Dropsiders Radio • Official Festival ID Jingle',
+        id: 'rad_jing_1',
+        title: 'Dropsiders Radio Jingle 1',
         artist: 'DROPSIDERS JINGLE',
-        youtubeId: 'k5yQBhDnrvM',
-        duration: 15,
-        category: 'jingle'
+        category: 'jingle',
+        duration: 8,
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav'
     },
     {
-        id: 'def_jingle_2',
-        title: 'Dropsiders • Drop Alert & Sweeper Sound FX',
+        id: 'rad_jing_2',
+        title: 'Dropsiders Radio Jingle 2',
         artist: 'DROPSIDERS JINGLE',
-        youtubeId: 'CsRTKXYEhOM',
+        category: 'jingle',
         duration: 10,
-        category: 'jingle'
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav'
     },
     {
-        id: 'def_jingle_3',
-        title: 'Dropsiders Radio • Non-Stop Club & Festival Energy',
+        id: 'rad_jing_3',
+        title: 'Dropsiders Radio Jingle 3',
         artist: 'DROPSIDERS JINGLE',
-        youtubeId: '8YbWq5urfww',
+        category: 'jingle',
         duration: 12,
-        category: 'jingle'
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav'
+    },
+    {
+        id: 'rad_jing_4',
+        title: 'Dropsiders Radio Jingle 4',
+        artist: 'DROPSIDERS JINGLE',
+        category: 'jingle',
+        duration: 8,
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav'
+    },
+    {
+        id: 'rad_jing_5',
+        title: 'Dropsiders Radio Jingle 5',
+        artist: 'DROPSIDERS JINGLE',
+        category: 'jingle',
+        duration: 14,
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav'
+    },
+    {
+        id: 'rad_jing_6',
+        title: 'Dropsiders Radio Jingle 6',
+        artist: 'DROPSIDERS JINGLE',
+        category: 'jingle',
+        duration: 9,
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav'
+    },
+    {
+        id: 'jingle_insta_tiktok_1',
+        title: 'Dropsiders Radio Promo Insta & Tiktok',
+        artist: 'DROPSIDERS RADIO',
+        duration: 15,
+        category: 'jingle',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/f82c7ae2fe21bbb9-Dropsiders_Radio_Promo_Insta__.wav'
+    },
+    {
+        id: 'jingle_insta_tiktok_2',
+        title: 'Dropsiders Radio Promo Insta & Tiktok 2',
+        artist: 'DROPSIDERS RADIO',
+        duration: 30,
+        category: 'jingle',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/e605951242685f4a-Dropsiders_Radio_Promo_Insta__.wav'
+    },
+    {
+        id: 'jingle_insta_tiktok_3',
+        title: 'Dropsiders Radio Promo Insta & Tiktok 3',
+        artist: 'DROPSIDERS RADIO',
+        duration: 28,
+        category: 'jingle',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/e8dc24ae6b842cc2-Dropsiders_Radio_Promo_Insta__.wav'
+    },
+    {
+        id: 'jingle_insta_tiktok_4',
+        title: 'Dropsiders Radio Promo Insta & Tiktok 4',
+        artist: 'DROPSIDERS RADIO',
+        duration: 22,
+        category: 'jingle',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav'
+    },
+    {
+        id: 'jingle_insta_tiktok_5',
+        title: 'Dropsiders Radio Promo Insta & Tiktok 5',
+        artist: 'DROPSIDERS RADIO',
+        duration: 33,
+        category: 'jingle',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav'
+    },
+    {
+        id: 'jingle_insta_tiktok_6',
+        title: 'Dropsiders Radio Promo Insta & Tiktok 6',
+        artist: 'DROPSIDERS RADIO',
+        duration: 46,
+        category: 'jingle',
+        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav'
     }
 ];
 
@@ -477,6 +549,8 @@ export function isRadioBlockActiveNow(b: RadioScheduleBlock, nowHour?: number, n
  * Retourne la palette des jingles normaux (généraux / station ID)
  */
 export function getGeneralJinglesList(): RadioTrackItem[] {
+    const cleanTitle = (raw: string) => (raw || '').replace(/\s*TRES\s+TRES\s+BON\s*/gi, ' ').replace(/\s+/g, ' ').trim();
+
     try {
         if (typeof window !== 'undefined') {
             const saved = localStorage.getItem('dropsiders_radionomy_palette');
@@ -486,7 +560,7 @@ export function getGeneralJinglesList(): RadioTrackItem[] {
                     const jingles = parsed.filter((j: any) => j.category === 'jingle' || j.type === 'jingle');
                     if (jingles.length > 0) return jingles.map((j: any) => ({
                         id: j.id || `gj_${j.title?.slice(0, 8)}`,
-                        title: j.title,
+                        title: cleanTitle(j.title),
                         artist: j.artist || 'DROPSIDERS JINGLE',
                         audioUrl: j.audioUrl,
                         youtubeId: j.youtubeId,
@@ -501,7 +575,7 @@ export function getGeneralJinglesList(): RadioTrackItem[] {
         .filter((j: any) => j.category === 'jingle' || j.type === 'jingle');
     if (fromSettings.length > 0) return fromSettings.map((j: any) => ({
         id: j.id || `gj_${j.title?.slice(0, 8)}`,
-        title: j.title,
+        title: cleanTitle(j.title),
         artist: j.artist || 'DROPSIDERS JINGLE',
         audioUrl: j.audioUrl,
         youtubeId: j.youtubeId,
@@ -527,7 +601,8 @@ export function isItemExpired(item?: { expiresAt?: string } | null): boolean {
 }
 
 /**
- * Promos officielles du système Dropsiders (par défaut pour assurer la rotation des promos)
+ * Promos officielles du système Dropsiders (événements, festivals, partenaires)
+ * NOTE: Les promos Insta & TikTok sont classées dans les JINGLES d'antenne (non commerciales).
  */
 export const DEFAULT_SYSTEM_PROMOS: RadioTrackItem[] = [
     {
@@ -561,47 +636,33 @@ export const DEFAULT_SYSTEM_PROMOS: RadioTrackItem[] = [
         audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav',
         duration: 40,
         category: 'promo'
-    },
-    {
-        id: 'promo_sys_insta_tiktok_1',
-        title: 'Dropsiders Radio Promo Insta & Tiktok',
-        artist: 'DROPSIDERS RADIO',
-        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav',
-        duration: 22,
-        category: 'promo'
-    },
-    {
-        id: 'promo_sys_insta_tiktok_2',
-        title: 'Dropsiders Radio Promo Insta & Tiktok 2',
-        artist: 'DROPSIDERS RADIO',
-        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav',
-        duration: 33,
-        category: 'promo'
-    },
-    {
-        id: 'promo_sys_insta_tiktok_3',
-        title: 'Dropsiders Radio Promo Insta & Tiktok 3',
-        artist: 'DROPSIDERS RADIO',
-        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav',
-        duration: 46,
-        category: 'promo'
     }
 ];
 
 /**
- * Retourne la liste des promos et publicités générales
+ * Retourne la liste des promos et publicités générales (exclut les jingles Insta & TikTok)
  */
 export function getGeneralPromosList(): RadioTrackItem[] {
+    const isInstaOrTiktok = (title: string) => {
+        const t = (title || '').toLowerCase();
+        return t.includes('insta') || t.includes('tiktok');
+    };
+    const cleanTitle = (raw: string) => (raw || '').replace(/\s*TRES\s+TRES\s+BON\s*/gi, ' ').replace(/\s+/g, ' ').trim();
+
     try {
         if (typeof window !== 'undefined') {
             const saved = localStorage.getItem('dropsiders_radionomy_palette');
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed) && parsed.length > 0) {
-                    const promos = parsed.filter((j: any) => (j.category === 'promo' || j.category === 'pub' || (j.type === 'promo' || j.type === 'pub') || (typeof j.title === 'string' && j.title.toLowerCase().includes('promo'))) && !isItemExpired(j));
+                    const promos = parsed.filter((j: any) => 
+                        (j.category === 'promo' || j.category === 'pub' || j.type === 'promo' || j.type === 'pub') && 
+                        !isInstaOrTiktok(j.title) && 
+                        !isItemExpired(j)
+                    );
                     if (promos.length > 0) return promos.map((p: any) => ({
                         id: p.id || `gp_${p.title?.slice(0, 8)}`,
-                        title: p.title,
+                        title: cleanTitle(p.title),
                         artist: p.artist || (p.category === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS'),
                         audioUrl: p.audioUrl,
                         youtubeId: p.youtubeId,
@@ -613,12 +674,16 @@ export function getGeneralPromosList(): RadioTrackItem[] {
             }
         }
     } catch {}
-    // Promos depuis les settings JSON (si configurées)
+    // Promos depuis les settings JSON (si configurées, en excluant Insta & TikTok)
     const fromSettings = ((settings as any)?.radio_general_jingles || [])
-        .filter((j: any) => (j.category === 'promo' || j.category === 'pub' || j.type === 'promo' || j.type === 'pub' || (typeof j.title === 'string' && j.title.toLowerCase().includes('promo'))) && !isItemExpired(j));
+        .filter((j: any) => 
+            (j.category === 'promo' || j.category === 'pub' || j.type === 'promo' || j.type === 'pub') && 
+            !isInstaOrTiktok(j.title) && 
+            !isItemExpired(j)
+        );
     if (fromSettings.length > 0) return fromSettings.map((p: any) => ({
         id: p.id || `gp_${p.title?.slice(0, 8)}`,
-        title: p.title,
+        title: cleanTitle(p.title),
         artist: p.artist || (p.category === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS'),
         audioUrl: p.audioUrl,
         youtubeId: p.youtubeId,
