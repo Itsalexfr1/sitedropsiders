@@ -433,72 +433,215 @@ export function NewsCreate() {
 
             if (isPromo) {
                 const centerX = canvas.width / 2;
-                const centerY = canvas.height / 2;
 
-                // 1. Dark overlay — 70% opaque black
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.70)';
+                // 1. Dark overlay — 75% opaque black
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Scan lines
-                ctx.fillStyle = 'rgba(0,0,0,0.08)';
+                // Scan lines subtle texture
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
                 for (let i = 0; i < canvas.height; i += 6) {
                     ctx.fillRect(0, i, canvas.width, 2);
                 }
 
-                // 2. Thin accent line across the center
-                ctx.save();
-                ctx.fillStyle = themeData.color;
-                ctx.fillRect(centerX - 60, centerY - 260, 120, 6);
-                ctx.restore();
+                // ==========================================
+                // ZONE 1 : QUESTION DE L'ARTICLE
+                // ==========================================
+                // Question texte (auto-wrap multi-lignes depuis le titre de l'article)
+                const rawQuestion = (finalTitle && finalTitle.trim()) 
+                    ? finalTitle.trim().replace(/^["']|["']$/g, '') 
+                    : "ET TOI, QU'EN PENSES-TU ?";
+                
+                const cleanQuestion = rawQuestion.toUpperCase();
 
-                // 3. Main promo text — multi-line, centered
-                const promoLines = [
-                    'POUR NE RIEN LOUPER',
-                    'DES NEWS SUR LA MUSIQUE',
-                    'ÉLECTRONIQUE ET LES FESTIVALS',
-                ];
+                // Helper pour découper en lignes (max ~920px)
+                const qLines: string[] = [];
+                const words = cleanQuestion.split(' ');
+                let currentLine = '';
+                let questionFontSize = isStory ? 62 : 54;
+                ctx.font = `900 italic ${questionFontSize}px "Montserrat", sans-serif`;
+
+                words.forEach((w: string) => {
+                    const test = currentLine ? `${currentLine} ${w}` : w;
+                    if (ctx.measureText(test).width > 920) {
+                        if (currentLine) qLines.push(currentLine);
+                        currentLine = w;
+                    } else {
+                        currentLine = test;
+                    }
+                });
+                if (currentLine) qLines.push(currentLine);
+
+                // Si trop de lignes (> 3), réduire la police
+                if (qLines.length > 3) {
+                    questionFontSize = isStory ? 48 : 40;
+                    ctx.font = `900 italic ${questionFontSize}px "Montserrat", sans-serif`;
+                }
+
+                const qLineHeight = questionFontSize * 1.25;
+
+                // Offsets précis pour centrage vertical parfait
+                const ctaCommentOffset = isStory ? 70 : 60;
+                const sepOffset = isStory ? 65 : 55;
+                const outroOffset = isStory ? 75 : 65;
+                const outroSpacing = isStory ? 42 : 38;
+                const abonneOffset = outroSpacing + (isStory ? 30 : 28);
+                const dropsidersOffset = isStory ? 90 : 80;
+                const pillsOffset = isStory ? 65 : 55;
+                const pillH = isStory ? 44 : 40;
+
+                const blockSpanFromFirstBaseline = (qLines.length - 1) * qLineHeight 
+                    + ctaCommentOffset 
+                    + sepOffset 
+                    + outroOffset 
+                    + outroSpacing 
+                    + abonneOffset 
+                    + dropsidersOffset 
+                    + pillsOffset 
+                    + pillH;
+                
+                const questionAscender = questionFontSize * 0.8;
+                const totalBlockHeight = questionAscender + blockSpanFromFirstBaseline;
+
+                // Centrage vertical : centre optique sur le canvas (1350 ou 1920)
+                const targetCenterY = isStory ? 950 : 675;
+                const qStartY = Math.round(targetCenterY - (totalBlockHeight / 2) + questionAscender);
+
+                // Accent glow centre derriere le bloc de texte
+                const bgGlow = ctx.createRadialGradient(centerX, targetCenterY, 60, centerX, targetCenterY, isStory ? 520 : 480);
+                bgGlow.addColorStop(0, `rgba(${themeData.grad}, 0.20)`);
+                bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                ctx.fillStyle = bgGlow;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
                 ctx.save();
                 ctx.textAlign = 'center';
-                ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                ctx.shadowBlur = 20;
+                ctx.textBaseline = 'alphabetic';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                ctx.shadowBlur = 24;
 
-                const lineSpacing = 110;
-                const blockStartY = centerY - 170;
-
-                promoLines.forEach((line, i) => {
-                    let fs = 72;
+                qLines.forEach((line: string, idx: number) => {
+                    let fs = questionFontSize;
                     ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
-                    // Auto-scale if too wide
-                    while (ctx.measureText(line).width > 966 && fs > 28) {
+                    while (ctx.measureText(line).width > 940 && fs > 24) {
                         fs--;
                         ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
                     }
                     ctx.fillStyle = '#ffffff';
-                    ctx.fillText(line, centerX, blockStartY + i * lineSpacing);
+                    ctx.fillText(line, centerX, qStartY + idx * qLineHeight);
                 });
-
-                // 4. "ABONNEZ-VOUS À" line
-                ctx.font = '600 36px "Montserrat", sans-serif';
-                ctx.fillStyle = 'rgba(255,255,255,0.7)';
-                ctx.letterSpacing = '6px';
-                ctx.fillText('ABONNEZ-VOUS À', centerX, blockStartY + promoLines.length * lineSpacing + 30);
-
-                // 5. "DROPSIDERS" in accent color, big
-                ctx.font = '900 italic 110px "Orbitron", sans-serif';
-                ctx.letterSpacing = '-2px';
-                ctx.fillStyle = themeData.color;
-                ctx.shadowColor = `rgba(${themeData.grad}, 0.6)`;
-                ctx.shadowBlur = 40;
-                ctx.fillText('DROPSIDERS', centerX, blockStartY + promoLines.length * lineSpacing + 160);
                 ctx.restore();
 
-                // 6. Dropsiders logo — bottom center
-                const logoW = 320;
+                // Call-to-action d'engagement : "DONNE TON AVIS EN COMMENTAIRE 👇"
+                const lastQLineY = qStartY + (qLines.length - 1) * qLineHeight;
+                const ctaCommentY = lastQLineY + ctaCommentOffset;
+
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.font = `800 ${isStory ? 26 : 24}px "Montserrat", sans-serif`;
+                ctx.fillStyle = themeData.color;
+                ctx.shadowColor = `rgba(${themeData.grad}, 0.6)`;
+                ctx.shadowBlur = 18;
+                ctx.fillText('DONNE TON AVIS EN COMMENTAIRE 👇', centerX, ctaCommentY);
+                ctx.restore();
+
+                // Ligne de séparation fine néon
+                const sepY = ctaCommentY + sepOffset;
+                const sepGrad = ctx.createLinearGradient(centerX - 200, 0, centerX + 200, 0);
+                sepGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                sepGrad.addColorStop(0.5, themeData.color);
+                sepGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = sepGrad;
+                ctx.fillRect(centerX - 200, sepY, 400, 2);
+
+                // ==========================================
+                // ZONE 2 : PHRASE OFFICIELLE
+                // "Pour être informé de toutes les news sur la musique électronique et les festivals, abonnez-vous à DROPSIDERS"
+                // ==========================================
+                const outroStartY = sepY + outroOffset;
+
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                ctx.shadowBlur = 16;
+
+                const outroLines = [
+                    'POUR ÊTRE INFORMÉ DE TOUTES LES NEWS',
+                    'SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,'
+                ];
+                ctx.font = `700 ${isStory ? 28 : 25}px "Montserrat", sans-serif`;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+
+                outroLines.forEach((line: string, i: number) => {
+                    ctx.fillText(line, centerX, outroStartY + i * outroSpacing);
+                });
+
+                // "ABONNEZ-VOUS À"
+                const abonneY = outroStartY + outroLines.length * outroSpacing + (isStory ? 30 : 28);
+                ctx.font = `700 ${isStory ? 26 : 24}px "Montserrat", sans-serif`;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.fillText('ABONNEZ-VOUS À', centerX, abonneY);
+
+                // "DROPSIDERS" en grand Orbitron néon
+                const dropsidersY = abonneY + dropsidersOffset;
+                ctx.font = `900 italic ${isStory ? 92 : 86}px "Orbitron", sans-serif`;
+                ctx.letterSpacing = '-2px';
+                ctx.fillStyle = themeData.color;
+                ctx.shadowColor = `rgba(${themeData.grad}, 0.7)`;
+                ctx.shadowBlur = 36;
+                ctx.fillText('DROPSIDERS', centerX, dropsidersY);
+                ctx.restore();
+
+                // ==========================================
+                // ZONE 3 : BULLES ARRONDIES
+                // NEWS - RECAPS - CONCOURS - INTERVIEWS - VIDEOS
+                // ==========================================
+                const categories = ['NEWS', 'RECAPS', 'CONCOURS', 'INTERVIEWS', 'VIDEOS'];
+                const pillsY = dropsidersY + pillsOffset;
+                const pillFont = `800 ${isStory ? 18 : 17}px "Montserrat", sans-serif`;
+                ctx.font = pillFont;
+
+                const pillPaddingX = 20;
+                const pillGap = 12;
+                const pillWidths = categories.map((cat: string) => ctx.measureText(cat).width + pillPaddingX * 2);
+                const totalPillsWidth = pillWidths.reduce((a: number, b: number) => a + b, 0) + (categories.length - 1) * pillGap;
+
+                let currentPillX = centerX - totalPillsWidth / 2;
+
+                categories.forEach((cat: string, idx: number) => {
+                    const pw = pillWidths[idx];
+                    const isPillActive = catNormalized.includes(cat.toLowerCase().slice(0, 4)) || (idx === 0 && (catNormalized === 'news' || isPromo));
+                    ctx.save();
+                    // Bulle arrondie (pill)
+                    ctx.beginPath();
+                    ctx.roundRect(currentPillX, pillsY, pw, pillH, pillH / 2);
+                    ctx.fillStyle = isPillActive ? `rgba(${themeData.grad}, 0.12)` : 'rgba(255, 255, 255, 0.08)';
+                    ctx.fill();
+                    ctx.strokeStyle = isPillActive ? themeData.color : 'rgba(255, 255, 255, 0.22)';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+
+                    // Texte
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = isPillActive ? themeData.color : '#ffffff';
+                    ctx.font = pillFont;
+                    ctx.fillText(cat, currentPillX + pw / 2, pillsY + pillH / 2);
+                    ctx.restore();
+
+                    currentPillX += pw + pillGap;
+                });
+
+                // ==========================================
+                // ZONE 4 : LOGO DROPSIDERS TOUT EN BAS
+                // ==========================================
+                const logoW = isStory ? 240 : 220;
                 const logoH = (logoImg.height / logoImg.width) * logoW;
+                const logoY = canvas.height - logoH - (isStory ? 65 : 50);
                 ctx.save();
                 ctx.filter = 'brightness(0) invert(1)';
-                ctx.globalAlpha = 0.9;
-                ctx.drawImage(logoImg, centerX - logoW / 2, canvas.height - logoH - 60, logoW, logoH);
+                ctx.globalAlpha = 0.85;
+                ctx.drawImage(logoImg, centerX - logoW / 2, logoY, logoW, logoH);
                 ctx.restore();
 
             } else {
