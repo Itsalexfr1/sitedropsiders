@@ -165,15 +165,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
         } catch {}
-        return [
-            { day: 'VENDREDI', title: 'GODDESS RAVE', artists: 'URUMI / A5KM / ESILISE ...', genre: 'Hard-Techno', venue: 'MKILOMÈTRE25' },
-            { day: 'VENDREDI', title: 'ATARASHI WEEKEND', artists: 'SETH TROXLER B2B DENNIS CRUZ ...', genre: 'Techno', venue: 'T7' },
-            { day: 'VENDREDI', title: 'SPIN-OFF & EXIT 0.1', artists: 'MOSMOZ / 2VINE / KAVALEUR ...', genre: 'Hard-Techno', venue: 'TERMINUS' },
-            { day: 'VENDREDI', title: 'CENTRAL x FINAL CUL', artists: 'OLYMPE4000 / PATRICK MASON / SKIN ON SKIN ...', genre: 'Techno', venue: 'CITÉ DU CINÉMA' },
-            { day: 'SAMEDI', title: 'ATARASHI WEEKEND', artists: 'MARCO CAROLA ...', genre: 'Techno', venue: 'YOYO' },
-            { day: 'SAMEDI', title: '23:59', artists: 'EARGASM GOD / PARALICH / AREA ØNE ...', genre: 'Hard-Techno', venue: 'MKILOMÈTRE25' },
-            { day: 'SAMEDI', title: 'ORIGINS', artists: 'JAZZY / TOXIC MACHINERY / ANGEL KAREL ...', genre: 'Hard-Techno & Indus', venue: 'T7' }
-        ];
+        return [];
     });
     const [agendaMonth, setAgendaMonth] = useState<string>(() => {
         const MONTHS_FR = ['JANVIER', 'FÉVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUILLET', 'AOÛT', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÉCEMBRE'];
@@ -823,7 +815,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillRect(0, 0, canvas.width, 160);
             }
 
-            if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'AFFICHE') {
+            if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'AFFICHE' && theme !== 'PLANNING') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
                     : (theme === 'CONCOURS' ? canvas.height * 0.35 : canvas.height * 0.4);
@@ -1128,70 +1120,64 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const centerX = canvas.width / 2;
                 const isStory = effectiveTab === 'REEL';
 
-                // 1. TOP-LEFT BADGE ("AGENDA" + "WEEK-END")
+                // 1. TOP-LEFT BADGE ("AGENDA" - Clean cyber capsule)
                 ctx.save();
                 const badgeX = 65;
-                const badgeY = isStory ? 95 : 70;
+                const badgeY = isStory ? 90 : 65;
                 
-                // Tilt the badge ~ -3.5 degrees like in the reference image
-                ctx.translate(badgeX + 90, badgeY + 35);
-                ctx.rotate(-0.06);
-                ctx.translate(-(badgeX + 90), -(badgeY + 35));
+                // Tilt the badge ~ -3.5 degrees
+                ctx.translate(badgeX + 100, badgeY + 24);
+                ctx.rotate(-0.05);
+                ctx.translate(-(badgeX + 100), -(badgeY + 24));
 
-                // Top Tag: "AGENDA"
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'top';
-                ctx.fillStyle = '#00f0ff';
-                ctx.font = '900 italic 19px "Orbitron", sans-serif';
-                ctx.letterSpacing = '3px';
-                ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
-                ctx.shadowBlur = 12;
-                ctx.fillText('AGENDA', badgeX + 26, badgeY);
-
-                // Small decorative cyan lines next to "AGENDA"
-                ctx.strokeStyle = '#00f0ff';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(badgeX, badgeY + 9);
-                ctx.lineTo(badgeX + 20, badgeY + 9);
-                const agendaTextW = ctx.measureText('AGENDA').width;
-                ctx.moveTo(badgeX + 30 + agendaTextW, badgeY + 9);
-                ctx.lineTo(badgeX + 44 + agendaTextW, badgeY + 9);
-                ctx.stroke();
-
-                // Pill Badge below ("WEEK-END" or custom subtitle)
-                const pillText = (agendaBadgeSubtitle || 'WEEK-END').toUpperCase();
-                ctx.font = '900 italic 30px "Montserrat", sans-serif';
-                ctx.letterSpacing = '1px';
-                const pillTextW = ctx.measureText(pillText).width;
-                const pillW = Math.max(195, pillTextW + 36);
+                const pillW = 205;
                 const pillH = 46;
-                const pillY = badgeY + 28;
 
-                // Box Glow & Fill
-                ctx.shadowColor = 'rgba(0, 240, 255, 0.7)';
-                ctx.shadowBlur = 16;
-                ctx.fillStyle = 'rgba(6, 12, 22, 0.88)';
+                // Cyber Box Glow & Fill
+                ctx.shadowColor = 'rgba(0, 240, 255, 0.75)';
+                ctx.shadowBlur = 18;
+                ctx.fillStyle = 'rgba(6, 12, 22, 0.90)';
                 ctx.strokeStyle = '#00f0ff';
                 ctx.lineWidth = 2.5;
 
                 ctx.beginPath();
-                ctx.roundRect(badgeX, pillY, pillW, pillH, 8);
+                ctx.roundRect(badgeX, badgeY, pillW, pillH, 10);
                 ctx.fill();
                 ctx.stroke();
 
-                // Inner text
-                ctx.shadowColor = 'transparent';
+                // Small decorative cyber notches / lines flanking the box
+                ctx.strokeStyle = '#00f0ff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(badgeX - 14, badgeY + pillH / 2);
+                ctx.lineTo(badgeX - 4, badgeY + pillH / 2);
+                ctx.moveTo(badgeX + pillW + 4, badgeY + pillH / 2);
+                ctx.lineTo(badgeX + pillW + 14, badgeY + pillH / 2);
+                ctx.stroke();
+
+                // Inner text: "AGENDA"
+                ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
+                ctx.shadowBlur = 12;
                 ctx.fillStyle = '#ffffff';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(pillText, badgeX + pillW / 2, pillY + pillH / 2 + 1);
+                ctx.font = '900 italic 25px "Orbitron", sans-serif';
+                ctx.letterSpacing = '5px';
+                ctx.fillText('AGENDA', badgeX + pillW / 2 + 2, badgeY + pillH / 2 + 1);
                 ctx.restore();
 
-                // 2. BIG HOLLOW MONTH TITLE (Replaces the city "PARIS")
-                ctx.save();
-                const monthY = isStory ? 315 : 230;
+                // 2. BIG HOLLOW MONTH TITLE
+                const monthY = isStory ? 310 : 220;
                 const monthText = (agendaMonth || 'OCTOBRE').toUpperCase().trim();
+
+                // Subtle ambient spotlight glow behind the Month
+                ctx.save();
+                const bgSpot = ctx.createRadialGradient(centerX, monthY, 30, centerX, monthY, 380);
+                bgSpot.addColorStop(0, 'rgba(255, 55, 0, 0.14)');
+                bgSpot.addColorStop(0.5, 'rgba(255, 55, 0, 0.04)');
+                bgSpot.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                ctx.fillStyle = bgSpot;
+                ctx.fillRect(centerX - 400, monthY - 180, 800, 360);
                 
                 // Adaptive font size so any month name fits nicely
                 let monthFontSize = isStory ? 104 : 94;
@@ -1219,31 +1205,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.strokeText(monthText, centerX, monthY);
                 ctx.restore();
 
-                // 3. EVENTS LIST
+                // 3. EVENTS LIST - With generous breathing room from the month title
                 const itemsToDraw = planningItems.slice(0, isStory ? 8 : 7);
-                const listStartY = isStory ? 450 : 335;
-                const bottomMargin = isStory ? 150 : 70;
+                const listStartY = isStory ? 530 : 385;
+                const bottomMargin = isStory ? 140 : 80;
                 const availableHeight = canvas.height - listStartY - bottomMargin;
-                const rowSpacing = Math.min(
-                    isStory ? 175 : 138,
+                let rowSpacing = Math.min(
+                    isStory ? 180 : 140,
                     Math.floor(availableHeight / Math.max(1, itemsToDraw.length))
                 );
+                if (itemsToDraw.length <= 4 && itemsToDraw.length > 0) {
+                    rowSpacing = isStory ? 170 : 138;
+                }
 
                 itemsToDraw.forEach((item, i) => {
                     const rowY = listStartY + (i * rowSpacing);
                     if (rowY > canvas.height - 60) return;
 
-                    const dayText = (item.day || item.time || 'VENDREDI').toUpperCase();
-                    const titleText = (item.title || item.artist || 'ÉVÉNEMENT').toUpperCase();
-                    const artistsText = item.artists || '';
-                    const genreText = item.genre || '';
-                    const venueText = (item.venue || '').toUpperCase();
+                    const dayText = (item.day || item.time || 'VENDREDI').toUpperCase().trim();
+                    const titleText = (item.title || item.artist || 'ÉVÉNEMENT').toUpperCase().trim();
+                    const artistsText = (item.artists || '').trim();
+                    const genreText = (item.genre || '').trim();
+                    const venueText = (item.venue || '').toUpperCase().trim();
 
                     // A) Left sticker badge for Day
                     ctx.save();
-                    const badgeW = 162;
-                    const badgeH = 40;
-                    const badgeXCenter = 165;
+                    ctx.font = '900 italic 20px "Montserrat", sans-serif';
+                    const dayMeasureW = ctx.measureText(dayText).width;
+                    const badgeW = Math.max(125, Math.min(185, dayMeasureW + 36));
+                    const badgeH = 42;
+                    const badgeXCenter = 75 + badgeW / 2;
                     
                     // Sticker angle: subtle tilt like real stickers/tape
                     const stickerAngle = (i % 2 === 0 ? -0.04 : -0.025);
@@ -1251,15 +1242,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.rotate(stickerAngle);
 
                     // Sticker drop shadow
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-                    ctx.shadowBlur = 12;
-                    ctx.shadowOffsetX = 2;
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                    ctx.shadowBlur = 14;
+                    ctx.shadowOffsetX = 3;
                     ctx.shadowOffsetY = 4;
 
                     // Sticker background: vibrant Rave red-orange #ff3700
                     ctx.fillStyle = '#ff3700';
                     ctx.beginPath();
-                    ctx.roundRect(-badgeW / 2, -badgeH / 2, badgeW, badgeH, 5);
+                    ctx.roundRect(-badgeW / 2, -badgeH / 2, badgeW, badgeH, 6);
                     ctx.fill();
 
                     // Sticker text: ultra-bold black
@@ -1268,31 +1259,49 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.font = '900 italic 20px "Montserrat", sans-serif';
-                    ctx.letterSpacing = '1.5px';
+                    ctx.letterSpacing = '1.2px';
                     ctx.fillText(dayText, 0, 1);
                     ctx.restore();
 
                     // B) Right content block
                     ctx.save();
-                    const contentX = 275;
+                    const contentX = badgeXCenter + badgeW / 2 + 28;
                     const maxContentW = canvas.width - contentX - 55;
                     ctx.textAlign = 'left';
                     ctx.textBaseline = 'middle';
 
-                    // Row vertical positions
-                    const titleY = rowY - (rowSpacing > 130 ? 23 : 19);
-                    const artistsY = rowY + (rowSpacing > 130 ? 5 : 3);
-                    const subY = rowY + (rowSpacing > 130 ? 30 : 24);
+                    const hasArtists = Boolean(artistsText);
+                    const hasDetails = Boolean(genreText || venueText);
+
+                    // Dynamic row vertical positions:
+                    // If only 1 line exists, vertically center it with the sticker!
+                    let titleY = rowY;
+                    let artistsY = rowY;
+                    let subY = rowY;
+
+                    if (hasArtists && hasDetails) {
+                        titleY = rowY - (rowSpacing > 130 ? 24 : 20);
+                        artistsY = rowY + (rowSpacing > 130 ? 4 : 2);
+                        subY = rowY + (rowSpacing > 130 ? 29 : 23);
+                    } else if (hasArtists || hasDetails) {
+                        titleY = rowY - 14;
+                        artistsY = rowY + 16;
+                        subY = rowY + 16;
+                    } else {
+                        titleY = rowY;
+                    }
 
                     // 1. Title / Event Name (White Bold)
                     ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 27px "Montserrat", sans-serif';
+                    const baseTitleSize = (hasArtists || hasDetails) ? 27 : 29;
+                    ctx.font = `900 ${baseTitleSize}px "Montserrat", sans-serif`;
                     ctx.letterSpacing = '0.5px';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                     ctx.shadowBlur = 12;
+
                     let displayTitle = titleText;
                     if (ctx.measureText(displayTitle).width > maxContentW) {
-                        let fs = 27;
+                        let fs = baseTitleSize;
                         while (ctx.measureText(displayTitle).width > maxContentW && fs > 18) {
                             fs--;
                             ctx.font = `900 ${fs}px "Montserrat", sans-serif`;
@@ -1301,11 +1310,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(displayTitle, contentX, titleY);
 
                     // 2. Artists / Lineup (Light Silver)
-                    if (artistsText) {
+                    if (hasArtists) {
                         ctx.font = '700 18px "Montserrat", sans-serif';
                         ctx.letterSpacing = '0px';
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
                         ctx.shadowBlur = 8;
                         
                         let displayArtists = artistsText;
@@ -1319,22 +1328,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     // 3. Genre | Venue
-                    if (genreText || venueText) {
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                    if (hasDetails) {
+                        const targetLineY = hasArtists ? subY : artistsY;
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
                         ctx.shadowBlur = 8;
                         let curLineX = contentX;
 
                         if (genreText) {
                             ctx.font = '600 16px "Montserrat", sans-serif';
                             ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-                            ctx.fillText(genreText, curLineX, subY);
+                            ctx.fillText(genreText, curLineX, targetLineY);
                             curLineX += ctx.measureText(genreText).width;
                         }
 
                         if (genreText && venueText) {
                             ctx.font = '600 16px "Montserrat", sans-serif';
                             ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-                            ctx.fillText(' | ', curLineX, subY);
+                            ctx.fillText(' | ', curLineX, targetLineY);
                             curLineX += ctx.measureText(' | ').width;
                         }
 
@@ -1343,7 +1353,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.fillStyle = '#ff3700';
                             ctx.shadowColor = 'rgba(255, 55, 0, 0.6)';
                             ctx.shadowBlur = 10;
-                            ctx.fillText(venueText, curLineX, subY);
+                            ctx.fillText(venueText, curLineX, targetLineY);
                         }
                     }
 
@@ -4305,10 +4315,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ))}
                 </div>
 
-                {/* Champ personnalisé pour le mois (ex: OCTOBRE 2026) */}
-                <div className="grid grid-cols-2 gap-2">
-                    <div>
-                        <label className="block text-[8px] font-bold text-gray-400 uppercase mb-1">Mois affiché (Titre)</label>
+                {/* Champ personnalisé pour le mois + Action vider */}
+                <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                        <label className="block text-[8px] font-bold text-gray-400 uppercase mb-1">Mois affiché (Titre central)</label>
                         <input
                             value={agendaMonth}
                             onChange={e => {
@@ -4319,15 +4329,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black uppercase text-xs focus:border-[#ff3700] focus:outline-none"
                         />
                     </div>
-                    <div>
-                        <label className="block text-[8px] font-bold text-gray-400 uppercase mb-1">Badge (Haut Gauche)</label>
-                        <input
-                            value={agendaBadgeSubtitle}
-                            onChange={e => setAgendaBadgeSubtitle(e.target.value)}
-                            placeholder="ex: WEEK-END"
-                            className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-neon-cyan font-black italic uppercase text-xs focus:border-neon-cyan focus:outline-none"
-                        />
-                    </div>
+                    {planningItems.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={() => setPlanningItems([])}
+                            className="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 h-[34px]"
+                            title="Effacer tous les événements"
+                        >
+                            <Eraser className="w-3.5 h-3.5" /> Tout effacer
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -4380,89 +4391,96 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <span className="text-[8px] text-[#ff3700] font-bold">Style Rave Feed</span>
                 </div>
 
-                {planningItems.map((item, i) => (
-                    <div key={i} className="p-3 bg-white/5 hover:bg-white/[0.07] border border-white/10 rounded-xl space-y-2 transition-all">
-                        {/* Ligne 1 : Jour & Titre */}
-                        <div className="flex gap-2 items-center">
-                            <input 
-                                value={item.day || item.time || ''} 
-                                onChange={e => { 
-                                    const n = [...planningItems]; 
-                                    n[i].day = e.target.value.toUpperCase(); 
-                                    n[i].time = e.target.value.toUpperCase(); 
-                                    setPlanningItems(n); 
-                                }} 
-                                placeholder="JOUR (ex: VENDREDI)" 
-                                spellCheck="false"
-                                className="w-28 bg-[#ff3700]/15 border border-[#ff3700]/30 rounded-lg p-2 text-[10px] text-[#ff3700] font-black uppercase text-center" 
-                            />
-                            <input 
-                                value={item.title || item.artist || ''} 
-                                onChange={e => { 
-                                    const n = [...planningItems]; 
-                                    n[i].title = e.target.value.toUpperCase(); 
-                                    n[i].artist = e.target.value.toUpperCase(); 
-                                    setPlanningItems(n); 
-                                }} 
-                                placeholder="TITRE ÉVÉNEMENT (ex: GODDESS RAVE)" 
-                                spellCheck="false"
-                                className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-white font-black uppercase" 
-                            />
-                            <button 
-                                onClick={() => setPlanningItems(planningItems.filter((_, idx) => idx !== i))} 
-                                className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                                title="Supprimer"
-                            >
-                                <X className="w-3.5 h-3.5" />
-                            </button>
-                        </div>
-
-                        {/* Ligne 2 : Artistes / Lineup */}
-                        <input 
-                            value={item.artists || ''} 
-                            onChange={e => { 
-                                const n = [...planningItems]; 
-                                n[i].artists = e.target.value; 
-                                setPlanningItems(n); 
-                            }} 
-                            placeholder="LINEUP (ex: URUMI / A5KM / ESILISE ...)" 
-                            spellCheck="false"
-                            className="w-full bg-white/5 border border-white/10 rounded-lg p-1.5 text-[10px] text-gray-200 font-semibold" 
-                        />
-
-                        {/* Ligne 3 : Genre & Lieu */}
-                        <div className="flex gap-2">
-                            <input 
-                                value={item.genre || ''} 
-                                onChange={e => { 
-                                    const n = [...planningItems]; 
-                                    n[i].genre = e.target.value; 
-                                    setPlanningItems(n); 
-                                }} 
-                                placeholder="GENRE (ex: Hard-Techno)" 
-                                spellCheck="false"
-                                className="w-1/2 bg-white/5 border border-white/10 rounded-lg p-1.5 text-[9px] text-gray-400 font-bold" 
-                            />
-                            <input 
-                                value={item.venue || ''} 
-                                onChange={e => { 
-                                    const n = [...planningItems]; 
-                                    n[i].venue = e.target.value.toUpperCase(); 
-                                    setPlanningItems(n); 
-                                }} 
-                                placeholder="LIEU (ex: MKILOMÈTRE25)" 
-                                spellCheck="false"
-                                className="w-1/2 bg-[#ff3700]/10 border border-[#ff3700]/20 rounded-lg p-1.5 text-[9px] text-[#ff3700] font-black uppercase" 
-                            />
-                        </div>
+                {planningItems.length === 0 ? (
+                    <div className="p-6 bg-white/[0.03] border border-dashed border-white/10 rounded-2xl text-center space-y-1.5">
+                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-wider">Aucun événement pour le moment</p>
+                        <p className="text-[9px] text-gray-500 font-medium">Cliquez ci-dessous pour ajouter un événement à l'Agenda.</p>
                     </div>
-                ))}
+                ) : (
+                    planningItems.map((item, i) => (
+                        <div key={i} className="p-3 bg-white/5 hover:bg-white/[0.07] border border-white/10 rounded-xl space-y-2 transition-all">
+                            {/* Ligne 1 : Jour & Titre */}
+                            <div className="flex gap-2 items-center">
+                                <input 
+                                    value={item.day || item.time || ''} 
+                                    onChange={e => { 
+                                        const n = [...planningItems]; 
+                                        n[i].day = e.target.value.toUpperCase(); 
+                                        n[i].time = e.target.value.toUpperCase(); 
+                                        setPlanningItems(n); 
+                                    }} 
+                                    placeholder="JOUR (ex: VENDREDI)" 
+                                    spellCheck="false"
+                                    className="w-28 bg-[#ff3700]/15 border border-[#ff3700]/30 rounded-lg p-2 text-[10px] text-[#ff3700] font-black uppercase text-center" 
+                                />
+                                <input 
+                                    value={item.title || item.artist || ''} 
+                                    onChange={e => { 
+                                        const n = [...planningItems]; 
+                                        n[i].title = e.target.value.toUpperCase(); 
+                                        n[i].artist = e.target.value.toUpperCase(); 
+                                        setPlanningItems(n); 
+                                    }} 
+                                    placeholder="TITRE ÉVÉNEMENT (ex: GODDESS RAVE)" 
+                                    spellCheck="false"
+                                    className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-white font-black uppercase" 
+                                />
+                                <button 
+                                    onClick={() => setPlanningItems(planningItems.filter((_, idx) => idx !== i))} 
+                                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                    title="Supprimer"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+
+                            {/* Ligne 2 : Artistes / Lineup */}
+                            <input 
+                                value={item.artists || ''} 
+                                onChange={e => { 
+                                    const n = [...planningItems]; 
+                                    n[i].artists = e.target.value; 
+                                    setPlanningItems(n); 
+                                }} 
+                                placeholder="LINEUP (ex: URUMI / A5KM / ESILISE ...)" 
+                                spellCheck="false"
+                                className="w-full bg-white/5 border border-white/10 rounded-lg p-1.5 text-[10px] text-gray-200 font-semibold" 
+                            />
+
+                            {/* Ligne 3 : Genre & Lieu */}
+                            <div className="flex gap-2">
+                                <input 
+                                    value={item.genre || ''} 
+                                    onChange={e => { 
+                                        const n = [...planningItems]; 
+                                        n[i].genre = e.target.value; 
+                                        setPlanningItems(n); 
+                                    }} 
+                                    placeholder="GENRE (ex: Hard-Techno)" 
+                                    spellCheck="false"
+                                    className="w-1/2 bg-white/5 border border-white/10 rounded-lg p-1.5 text-[9px] text-gray-400 font-bold" 
+                                />
+                                <input 
+                                    value={item.venue || ''} 
+                                    onChange={e => { 
+                                        const n = [...planningItems]; 
+                                        n[i].venue = e.target.value.toUpperCase(); 
+                                        setPlanningItems(n); 
+                                    }} 
+                                    placeholder="LIEU (ex: MKILOMÈTRE25)" 
+                                    spellCheck="false"
+                                    className="w-1/2 bg-[#ff3700]/10 border border-[#ff3700]/20 rounded-lg p-1.5 text-[9px] text-[#ff3700] font-black uppercase" 
+                                />
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
 
             <button 
                 onClick={() => setPlanningItems([
                     ...planningItems, 
-                    { day: 'SAMEDI', title: 'NOUVEL EVENT', artists: 'ARTISTE 1 / ARTISTE 2 ...', genre: 'Techno', venue: 'CLUB' }
+                    { day: 'VENDREDI', title: '', artists: '', genre: '', venue: '' }
                 ])} 
                 className="w-full py-3 bg-[#ff3700]/10 border border-dashed border-[#ff3700]/30 hover:border-[#ff3700] rounded-xl text-[9px] font-black uppercase text-[#ff3700] hover:bg-[#ff3700]/20 transition-all flex items-center justify-center gap-2"
             >
