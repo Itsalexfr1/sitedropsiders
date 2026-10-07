@@ -2772,6 +2772,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_0",
+          "title": "Morning Dropsiders 2",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2384603196_1",
           "title": "Kavinsky - Nightcall  (Valmer Tribute) [HZRX]",
           "artist": "HOUZ",
@@ -2782,11 +2790,11 @@
           "addedAt": 1791404993832
         },
         {
-          "id": "sj_radio_bloc_1790255595165_5mni_s_1",
-          "title": "Morning Dropsiders 2",
-          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
-          "duration": 10,
+          "id": "nj_radio_bloc_1790255595165_5mni_n_1",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -2798,6 +2806,14 @@
           "soundcloudUrl": "https://soundcloud.com/houzmusicblog/daft-punk-one-more-time-valmer-edit-hzrx",
           "coverUrl": "https://i1.sndcdn.com/artworks-ls0oyesxJnnERp1r-TRNE3A-large.jpg",
           "addedAt": 1791404993832
+        },
+        {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_2",
+          "title": "Morning Dropsiders 3",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
+          "category": "jingle"
         },
         {
           "id": "sc_2252570951_3",
@@ -2820,6 +2836,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_4",
+          "title": "Morning Dropsiders 4",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2086808514_5",
           "title": "Like I Like It",
           "artist": "Mau P",
@@ -2831,10 +2855,10 @@
         },
         {
           "id": "nj_radio_bloc_1790255595165_5mni_n_5",
-          "title": "Dropsiders Radio Jingle 1",
+          "title": "Dropsiders Radio Jingle 2",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
-          "duration": 8,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+          "duration": 10,
           "category": "jingle"
         },
         {
@@ -2848,6 +2872,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_6",
+          "title": "Morning Dropsiders 1",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_1937067440_7",
           "title": "Mau P - MERTHER",
           "artist": "Mau P",
@@ -2856,14 +2888,6 @@
           "soundcloudUrl": "https://soundcloud.com/realmaup/mau-p-merther",
           "coverUrl": "https://i1.sndcdn.com/artworks-pf2WMOobX0UDlcgy-W6lw3w-large.jpg",
           "addedAt": 1791404993832
-        },
-        {
-          "id": "sj_radio_bloc_1790255595165_5mni_s_7",
-          "title": "Morning Dropsiders 3",
-          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
-          "duration": 11,
-          "category": "jingle"
         },
         {
           "id": "sc_1905572510_8",
@@ -2876,6 +2900,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_8",
+          "title": "Morning Dropsiders 2",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_1916191208_9",
           "title": "BEATS FOR THE UNDERGROUND",
           "artist": "Mau P",
@@ -2884,6 +2916,14 @@
           "soundcloudUrl": "https://soundcloud.com/realmaup/beats-for-the-underground-1",
           "coverUrl": "https://i1.sndcdn.com/artworks-tmSldxgScghv-0-large.jpg",
           "addedAt": 1791404993832
+        },
+        {
+          "id": "nj_radio_bloc_1790255595165_5mni_n_9",
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
+          "category": "jingle"
         },
         {
           "id": "sc_1628170368_10",
@@ -2896,6 +2936,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_10",
+          "title": "Morning Dropsiders 3",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
+          "category": "jingle"
+        },
+        {
           "id": "sc_1576590122_11",
           "title": "Armand Van Helden - I Want Your Soul (Mau P Remix)",
           "artist": "Mau P",
@@ -2904,14 +2952,6 @@
           "soundcloudUrl": "https://soundcloud.com/realmaup/armand-van-helden-i-want-your-soul-mau-p-remix",
           "coverUrl": "https://i1.sndcdn.com/artworks-3WyYFp3XKKimpEFJ-9MWzSg-large.jpg",
           "addedAt": 1791404993832
-        },
-        {
-          "id": "nj_radio_bloc_1790255595165_5mni_n_11",
-          "title": "Dropsiders Radio Jingle 2",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
-          "duration": 10,
-          "category": "jingle"
         },
         {
           "id": "sc_1454664049_12",
@@ -2924,6 +2964,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_12",
+          "title": "Morning Dropsiders 4",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_1428326731_13",
           "title": "Gimme That Bounce",
           "artist": "Mau P",
@@ -2934,11 +2982,11 @@
           "addedAt": 1791404993832
         },
         {
-          "id": "sj_radio_bloc_1790255595165_5mni_s_13",
-          "title": "Morning Dropsiders 4",
-          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
-          "duration": 10,
+          "id": "nj_radio_bloc_1790255595165_5mni_n_13",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
           "category": "jingle"
         },
         {
@@ -2950,6 +2998,14 @@
           "soundcloudUrl": "https://soundcloud.com/realmaup/drugs-from-amsterdam",
           "coverUrl": "https://i1.sndcdn.com/artworks-iYED78ZaMnfN-0-large.jpg",
           "addedAt": 1791404993832
+        },
+        {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_14",
+          "title": "Morning Dropsiders 1",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+          "duration": 10,
+          "category": "jingle"
         },
         {
           "id": "sc_2402698752_15",
@@ -2972,6 +3028,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_16",
+          "title": "Morning Dropsiders 2",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2398279290_17",
           "title": "ALL THE TIME (GorillaT Remix)",
           "artist": "John Summit",
@@ -2983,10 +3047,10 @@
         },
         {
           "id": "nj_radio_bloc_1790255595165_5mni_n_17",
-          "title": "Dropsiders Radio Jingle 3",
+          "title": "Dropsiders Radio Jingle 5",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-          "duration": 12,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+          "duration": 14,
           "category": "jingle"
         },
         {
@@ -3000,6 +3064,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_18",
+          "title": "Morning Dropsiders 3",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2302184789_19",
           "title": "John Summit, Absolutely - DON'T BELIEVE IT",
           "artist": "John Summit",
@@ -3008,14 +3080,6 @@
           "soundcloudUrl": "https://soundcloud.com/johnsummit/john-summit-absolutely-dont-believe-it-3",
           "coverUrl": "https://i1.sndcdn.com/artworks-8XKJu4wbzLYlvjpr-26TUzA-large.png",
           "addedAt": 1791404993832
-        },
-        {
-          "id": "sj_radio_bloc_1790255595165_5mni_s_19",
-          "title": "Morning Dropsiders 1",
-          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
-          "duration": 10,
-          "category": "jingle"
         },
         {
           "id": "sc_2299785221_20",
@@ -3028,6 +3092,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_20",
+          "title": "Morning Dropsiders 4",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2192214763_21",
           "title": "Britney Spears - I Wanna Go (John Summit Remix)",
           "artist": "John Summit",
@@ -3036,6 +3108,14 @@
           "soundcloudUrl": "https://soundcloud.com/johnsummit/britney-spears-i-wanna-go-john-summit-remix",
           "coverUrl": "https://i1.sndcdn.com/artworks-rT64YzfxEOWJmPru-E1w2UQ-large.png",
           "addedAt": 1791404993832
+        },
+        {
+          "id": "nj_radio_bloc_1790255595165_5mni_n_21",
+          "title": "Dropsiders Radio Jingle 6",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+          "duration": 9,
+          "category": "jingle"
         },
         {
           "id": "sc_2186324243_22",
@@ -3048,6 +3128,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_22",
+          "title": "Morning Dropsiders 1",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2168344059_23",
           "title": "John Summit - crystallized (ft. Inéz)",
           "artist": "John Summit",
@@ -3056,14 +3144,6 @@
           "soundcloudUrl": "https://soundcloud.com/johnsummit/john-summit-crystallized-ft-inez",
           "coverUrl": "https://i1.sndcdn.com/artworks-5Xzfsgmp7iOqFh7s-Ts6NVg-large.png",
           "addedAt": 1791404993832
-        },
-        {
-          "id": "nj_radio_bloc_1790255595165_5mni_n_23",
-          "title": "Dropsiders Radio Jingle 4",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-          "duration": 8,
-          "category": "jingle"
         },
         {
           "id": "sc_2402456766_24",
@@ -3076,6 +3156,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_24",
+          "title": "Morning Dropsiders 2",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2345254334_25",
           "title": "Intoxicated",
           "artist": "HUGEL",
@@ -3086,11 +3174,11 @@
           "addedAt": 1791404993832
         },
         {
-          "id": "sj_radio_bloc_1790255595165_5mni_s_25",
-          "title": "Morning Dropsiders 2",
-          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
-          "duration": 10,
+          "id": "nj_radio_bloc_1790255595165_5mni_n_25",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 22,
           "category": "jingle"
         },
         {
@@ -3102,6 +3190,14 @@
           "soundcloudUrl": "https://soundcloud.com/hugelmusic/make-me-go",
           "coverUrl": "https://i1.sndcdn.com/artworks-ddc6tiwDiqto-0-large.jpg",
           "addedAt": 1791404993832
+        },
+        {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_26",
+          "title": "Morning Dropsiders 3",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
+          "category": "jingle"
         },
         {
           "id": "sc_2355812795_27",
@@ -3124,6 +3220,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_28",
+          "title": "Morning Dropsiders 4",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2345253536_29",
           "title": "Jamaican (Bam Bam)",
           "artist": "HUGEL",
@@ -3135,10 +3239,10 @@
         },
         {
           "id": "nj_radio_bloc_1790255595165_5mni_n_29",
-          "title": "Dropsiders Radio Jingle 5",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
           "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
-          "duration": 14,
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 33,
           "category": "jingle"
         },
         {
@@ -3152,6 +3256,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_30",
+          "title": "Morning Dropsiders 1",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2344782443_31",
           "title": "Shine",
           "artist": "HUGEL",
@@ -3160,14 +3272,6 @@
           "soundcloudUrl": "https://soundcloud.com/hugelmusic/shine",
           "coverUrl": "https://i1.sndcdn.com/artworks-Zns5owFpCKkv-0-large.jpg",
           "addedAt": 1791404993832
-        },
-        {
-          "id": "sj_radio_bloc_1790255595165_5mni_s_31",
-          "title": "Morning Dropsiders 3",
-          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
-          "duration": 11,
-          "category": "jingle"
         },
         {
           "id": "sc_2324353523_32",
@@ -3180,6 +3284,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_32",
+          "title": "Morning Dropsiders 2",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2381314437_33",
           "title": "Walker & Royce, FENIK - Utopia [Extended Mix]",
           "artist": "Experts Only",
@@ -3188,6 +3300,14 @@
           "soundcloudUrl": "https://soundcloud.com/expertsonly/walker-royce-fenik-utopia",
           "coverUrl": "https://i1.sndcdn.com/artworks-4YyNGrCCR5sPBJzf-pY9ndw-large.jpg",
           "addedAt": 1791404993832
+        },
+        {
+          "id": "nj_radio_bloc_1790255595165_5mni_n_33",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 46,
+          "category": "jingle"
         },
         {
           "id": "sc_2362330268_34",
@@ -3200,6 +3320,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_34",
+          "title": "Morning Dropsiders 3",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2356501631_35",
           "title": "BYOR & Mentum - I Can Dance [Extended Mix]",
           "artist": "Experts Only",
@@ -3208,14 +3336,6 @@
           "soundcloudUrl": "https://soundcloud.com/expertsonly/byor-mentum-i-can-dance",
           "coverUrl": "https://i1.sndcdn.com/artworks-yqQwLrwh4TdGsFym-yC3qtg-large.png",
           "addedAt": 1791404993832
-        },
-        {
-          "id": "nj_radio_bloc_1790255595165_5mni_n_35",
-          "title": "Dropsiders Radio Jingle 6",
-          "artist": "DROPSIDERS JINGLE",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
-          "duration": 9,
-          "category": "jingle"
         },
         {
           "id": "sc_2346778457_36",
@@ -3228,6 +3348,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_36",
+          "title": "Morning Dropsiders 4",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2409074928_37",
           "title": "Looking For You [OUT OCT 09]",
           "artist": "Maccabi House",
@@ -3238,11 +3366,11 @@
           "addedAt": 1791404993832
         },
         {
-          "id": "sj_radio_bloc_1790255595165_5mni_s_37",
-          "title": "Morning Dropsiders 4",
-          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
-          "duration": 10,
+          "id": "nj_radio_bloc_1790255595165_5mni_n_37",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 22,
           "category": "jingle"
         },
         {
@@ -3254,6 +3382,14 @@
           "soundcloudUrl": "https://soundcloud.com/maccabihouse/don-quichotte-edit",
           "coverUrl": "https://i1.sndcdn.com/artworks-ZjfGVknMdyLuIOcn-9f9FTw-large.jpg",
           "addedAt": 1791404993832
+        },
+        {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_38",
+          "title": "Morning Dropsiders 1",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+          "duration": 10,
+          "category": "jingle"
         },
         {
           "id": "sc_2396211630_39",
@@ -3276,6 +3412,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_40",
+          "title": "Morning Dropsiders 2",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2383636161_41",
           "title": "Voodoo Time",
           "artist": "Maccabi House",
@@ -3287,10 +3431,10 @@
         },
         {
           "id": "nj_radio_bloc_1790255595165_5mni_n_41",
-          "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "DROPSIDERS RADIO",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 22,
+          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 33,
           "category": "jingle"
         },
         {
@@ -3304,6 +3448,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_42",
+          "title": "Morning Dropsiders 3",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2383636164_43",
           "title": "Back To You (Feat. Chiara Gamo)",
           "artist": "Maccabi House",
@@ -3312,14 +3464,6 @@
           "soundcloudUrl": "https://soundcloud.com/maccabihouse/back-to-you-feat-chiara-gamo",
           "coverUrl": "https://i1.sndcdn.com/artworks-Wi6Fzn1uGlVmtdLM-GbtUvA-large.jpg",
           "addedAt": 1791404993832
-        },
-        {
-          "id": "sj_radio_bloc_1790255595165_5mni_s_43",
-          "title": "Morning Dropsiders 1",
-          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
-          "duration": 10,
-          "category": "jingle"
         },
         {
           "id": "sc_2374829129_44",
@@ -3332,6 +3476,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_44",
+          "title": "Morning Dropsiders 4",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2334007955_45",
           "title": "Adam Ten – I Never Knew",
           "artist": "Defected Records",
@@ -3340,6 +3492,14 @@
           "soundcloudUrl": "https://soundcloud.com/defectedrecords/adam-ten-i-never-knew",
           "coverUrl": "https://i1.sndcdn.com/artworks-fz4k9PQUdqe9Mzuu-0XcfTQ-large.jpg",
           "addedAt": 1791404993832
+        },
+        {
+          "id": "nj_radio_bloc_1790255595165_5mni_n_45",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 46,
+          "category": "jingle"
         },
         {
           "id": "sc_2347353338_46",
@@ -3352,6 +3512,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_46",
+          "title": "Morning Dropsiders 1",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_1603002549_47",
           "title": "Spring Girl (Extended)",
           "artist": "Adam Ten",
@@ -3360,14 +3528,6 @@
           "soundcloudUrl": "https://soundcloud.com/adamten/adam-ten-maori-spring-girl-1",
           "coverUrl": "https://i1.sndcdn.com/artworks-511T31030cfA-0-large.jpg",
           "addedAt": 1791404993832
-        },
-        {
-          "id": "nj_radio_bloc_1790255595165_5mni_n_47",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "DROPSIDERS RADIO",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 33,
-          "category": "jingle"
         },
         {
           "id": "sc_1897698951_48",
@@ -3380,6 +3540,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_48",
+          "title": "Morning Dropsiders 2",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2401430307_49",
           "title": "Adam Ten, Yamagucci - Keep Workin' - Rekids",
           "artist": "REKIDS",
@@ -3390,11 +3558,11 @@
           "addedAt": 1791404993832
         },
         {
-          "id": "sj_radio_bloc_1790255595165_5mni_s_49",
-          "title": "Morning Dropsiders 2",
-          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
-          "duration": 10,
+          "id": "nj_radio_bloc_1790255595165_5mni_n_49",
+          "title": "Dropsiders Radio Promo Insta & Tiktok  4",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 44,
           "category": "jingle"
         },
         {
@@ -3406,6 +3574,14 @@
           "soundcloudUrl": "https://soundcloud.com/circolocorecords/anotr-silver-lines-feat-emily",
           "coverUrl": "https://i1.sndcdn.com/artworks-OAlyU4CMtd5onfV7-WhxHsQ-large.jpg",
           "addedAt": 1791404993832
+        },
+        {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_50",
+          "title": "Morning Dropsiders 3",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
+          "category": "jingle"
         },
         {
           "id": "sc_2337947915_51",
@@ -3428,6 +3604,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_52",
+          "title": "Morning Dropsiders 4",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2337947948_53",
           "title": "8. ANOTR ft. 3DDY - It's So Nice [No Art]",
           "artist": "ANOTR",
@@ -3439,10 +3623,10 @@
         },
         {
           "id": "nj_radio_bloc_1790255595165_5mni_n_53",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-          "artist": "DROPSIDERS RADIO",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 46,
+          "title": "Dropsiders Radio Promo Insta & Tiktok  5",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 28,
           "category": "jingle"
         },
         {
@@ -3456,6 +3640,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_54",
+          "title": "Morning Dropsiders 1",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2291593025_55",
           "title": "Prospa, Cloonee & Sybil - Free Your Mind",
           "artist": "CircoLoco Records",
@@ -3464,14 +3656,6 @@
           "soundcloudUrl": "https://soundcloud.com/circolocorecords/prospa-cloonee-free-your-mind",
           "coverUrl": "https://i1.sndcdn.com/artworks-g9ug4CtAUr6uzOxk-M5R28w-large.png",
           "addedAt": 1791404993832
-        },
-        {
-          "id": "sj_radio_bloc_1790255595165_5mni_s_55",
-          "title": "Morning Dropsiders 3",
-          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
-          "duration": 11,
-          "category": "jingle"
         },
         {
           "id": "sc_2379818727_56",
@@ -3484,6 +3668,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_56",
+          "title": "Morning Dropsiders 2",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2177089944_57",
           "title": "DJ DLG - Paramount (MERCER Remix)",
           "artist": "MERCER",
@@ -3492,6 +3684,14 @@
           "soundcloudUrl": "https://soundcloud.com/mercer/dj-dlg-paramount-mercer-remix",
           "coverUrl": "https://i1.sndcdn.com/artworks-Tt7UkGCdlJEn6fPJ-Mz4Fdw-large.png",
           "addedAt": 1791404993832
+        },
+        {
+          "id": "nj_radio_bloc_1790255595165_5mni_n_57",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 6",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 26,
+          "category": "jingle"
         },
         {
           "id": "sc_2171905449_58",
@@ -3504,6 +3704,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_58",
+          "title": "Morning Dropsiders 3",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2408885247_59",
           "title": "Dom Dolla, Solomun, Skepta - DANGER DANGER",
           "artist": "⠶ Dom Dolla ⠶",
@@ -3512,14 +3720,6 @@
           "soundcloudUrl": "https://soundcloud.com/domdolla/dangerdanger",
           "coverUrl": "https://i1.sndcdn.com/artworks-zzbCyHg8BdgtkPbi-DBys8w-large.jpg",
           "addedAt": 1791404993832
-        },
-        {
-          "id": "nj_radio_bloc_1790255595165_5mni_n_59",
-          "title": "Dropsiders Radio Promo Insta & Tiktok",
-          "artist": "DROPSIDERS RADIO",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 22,
-          "category": "jingle"
         },
         {
           "id": "sc_2328324647_60",
@@ -3532,6 +3732,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_60",
+          "title": "Morning Dropsiders 4",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2129927502_61",
           "title": "Jain, Solomun - Tout le monde est fou (Roeld Remix) [Afro House] (Unmastered)",
           "artist": "roeld",
@@ -3542,11 +3750,11 @@
           "addedAt": 1791404993832
         },
         {
-          "id": "sj_radio_bloc_1790255595165_5mni_s_61",
-          "title": "Morning Dropsiders 4",
-          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
-          "duration": 10,
+          "id": "nj_radio_bloc_1790255595165_5mni_n_61",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 7",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -3558,6 +3766,14 @@
           "soundcloudUrl": "https://soundcloud.com/martingarrix/martin-garrix-feat-bonn-high-on-life",
           "coverUrl": "https://i1.sndcdn.com/artworks-000381134499-s1ebb1-large.jpg",
           "addedAt": 1791404993832
+        },
+        {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_62",
+          "title": "Morning Dropsiders 1",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+          "duration": 10,
+          "category": "jingle"
         },
         {
           "id": "sc_2320987250_63",
@@ -3580,6 +3796,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_64",
+          "title": "Morning Dropsiders 2",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2173081746_65",
           "title": "Voodoo",
           "artist": "Martin Garrix",
@@ -3591,10 +3815,10 @@
         },
         {
           "id": "nj_radio_bloc_1790255595165_5mni_n_65",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
-          "artist": "DROPSIDERS RADIO",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 33,
+          "title": "Dropsiders Radio Promo Insta & Tiktok  8",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 32,
           "category": "jingle"
         },
         {
@@ -3608,6 +3832,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_66",
+          "title": "Morning Dropsiders 3",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
+          "category": "jingle"
+        },
+        {
           "id": "sc_266137755_67",
           "title": "Martin Garrix & Third Party - Lions In The Wild",
           "artist": "Martin Garrix",
@@ -3616,14 +3848,6 @@
           "soundcloudUrl": "https://soundcloud.com/martingarrix/lions-in-the-wild",
           "coverUrl": "https://i1.sndcdn.com/artworks-000164668800-slcj11-large.jpg",
           "addedAt": 1791404993832
-        },
-        {
-          "id": "sj_radio_bloc_1790255595165_5mni_s_67",
-          "title": "Morning Dropsiders 1",
-          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
-          "duration": 10,
-          "category": "jingle"
         },
         {
           "id": "sc_1990218275_68",
@@ -3636,6 +3860,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_68",
+          "title": "Morning Dropsiders 4",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_50171532_69",
           "title": "Solomun - Kackvogel",
           "artist": "Watergate Records",
@@ -3644,6 +3876,14 @@
           "soundcloudUrl": "https://soundcloud.com/watergaterecords/solomun-kackvogel",
           "coverUrl": "https://i1.sndcdn.com/artworks-000025291659-hp341d-large.jpg",
           "addedAt": 1791404993832
+        },
+        {
+          "id": "nj_radio_bloc_1790255595165_5mni_n_69",
+          "title": "Dropsiders Radio Jingle 1",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+          "duration": 8,
+          "category": "jingle"
         },
         {
           "id": "sc_2374835657_70",
@@ -3656,6 +3896,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_70",
+          "title": "Morning Dropsiders 1",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2179246235_71",
           "title": "Desireless - Voyage Voyage (Bob Sinclar Rework)",
           "artist": "Bob Sinclar",
@@ -3664,14 +3912,6 @@
           "soundcloudUrl": "https://soundcloud.com/bobsinclar/voyagevoyage",
           "coverUrl": "https://i1.sndcdn.com/artworks-V07lhk7Kj3eL4HUE-HcUyyw-large.png",
           "addedAt": 1791404993832
-        },
-        {
-          "id": "nj_radio_bloc_1790255595165_5mni_n_71",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 3",
-          "artist": "DROPSIDERS RADIO",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 46,
-          "category": "jingle"
         },
         {
           "id": "sc_2409992262_72",
@@ -3684,6 +3924,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_72",
+          "title": "Morning Dropsiders 2",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2344376237_73",
           "title": "Bob Sinclar - Love Generation (DJIBRIL CISSE - TCHEBA x 5HOURS Remix)",
           "artist": "5HOURS",
@@ -3694,10 +3942,10 @@
           "addedAt": 1791404993832
         },
         {
-          "id": "sj_radio_bloc_1790255595165_5mni_s_73",
-          "title": "Morning Dropsiders 2",
-          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+          "id": "nj_radio_bloc_1790255595165_5mni_n_73",
+          "title": "Dropsiders Radio Jingle 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
           "duration": 10,
           "category": "jingle"
         },
@@ -3710,6 +3958,14 @@
           "soundcloudUrl": "https://soundcloud.com/bobsinclar/i-feel-for-you-original-edit",
           "coverUrl": "https://i1.sndcdn.com/artworks-gbwGmJrty2Ka-0-large.jpg",
           "addedAt": 1791404993832
+        },
+        {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_74",
+          "title": "Morning Dropsiders 3",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
+          "category": "jingle"
         },
         {
           "id": "sc_851043142_75",
@@ -3732,6 +3988,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_76",
+          "title": "Morning Dropsiders 4",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2346437756_77",
           "title": "FISHER - What A Life (feat. Florence Arman)",
           "artist": "FISHER",
@@ -3743,10 +4007,10 @@
         },
         {
           "id": "nj_radio_bloc_1790255595165_5mni_n_77",
-          "title": "Dropsiders Radio Promo Insta & Tiktok  4",
-          "artist": "DROPSIDERS RADIO",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 44,
+          "title": "Dropsiders Radio Jingle 3",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+          "duration": 12,
           "category": "jingle"
         },
         {
@@ -3760,6 +4024,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_78",
+          "title": "Morning Dropsiders 1",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2294771549_79",
           "title": "FISHER x Tones And I - Favour",
           "artist": "FISHER",
@@ -3768,14 +4040,6 @@
           "soundcloudUrl": "https://soundcloud.com/fish-tales/fisher-x-tones-i-favour",
           "coverUrl": "https://i1.sndcdn.com/artworks-zNbbwRjDj06hx2Uf-25uzeA-large.png",
           "addedAt": 1791404993832
-        },
-        {
-          "id": "sj_radio_bloc_1790255595165_5mni_s_79",
-          "title": "Morning Dropsiders 3",
-          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
-          "duration": 11,
-          "category": "jingle"
         },
         {
           "id": "sc_2021223277_80",
@@ -3788,6 +4052,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_80",
+          "title": "Morning Dropsiders 2",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_1925426813_81",
           "title": "Its That Time (FISHER Remix)-1.mp3",
           "artist": "tekk in die fresse",
@@ -3796,6 +4068,14 @@
           "soundcloudUrl": "https://soundcloud.com/dustin-fischer-136148656/its-that-time-fisher-remix-1",
           "coverUrl": "https://i1.sndcdn.com/artworks-4kYBnPlVGlP0c3Ij-sW0bWQ-large.jpg",
           "addedAt": 1791404993832
+        },
+        {
+          "id": "nj_radio_bloc_1790255595165_5mni_n_81",
+          "title": "Dropsiders Radio Jingle 4",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+          "duration": 8,
+          "category": "jingle"
         },
         {
           "id": "sc_2294941325_82",
@@ -3808,6 +4088,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_82",
+          "title": "Morning Dropsiders 3",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2346279038_83",
           "title": "Anyma & Volkoder - Other Dimension [OUT NOW]",
           "artist": "JOYOUS",
@@ -3816,14 +4104,6 @@
           "soundcloudUrl": "https://soundcloud.com/user-176002091/the-prodigy-out-of-space-anyma",
           "coverUrl": "https://i1.sndcdn.com/artworks-wjBrR4xUAQ797Ash-aTcWLg-large.jpg",
           "addedAt": 1791404993832
-        },
-        {
-          "id": "nj_radio_bloc_1790255595165_5mni_n_83",
-          "title": "Dropsiders Radio Promo Insta & Tiktok  5",
-          "artist": "DROPSIDERS RADIO",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 28,
-          "category": "jingle"
         },
         {
           "id": "sc_2025669936_84",
@@ -3836,6 +4116,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_84",
+          "title": "Morning Dropsiders 4",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2299013459_85",
           "title": "Bad Angel",
           "artist": "Anyma",
@@ -3846,11 +4134,11 @@
           "addedAt": 1791404993832
         },
         {
-          "id": "sj_radio_bloc_1790255595165_5mni_s_85",
-          "title": "Morning Dropsiders 4",
-          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
-          "duration": 10,
+          "id": "nj_radio_bloc_1790255595165_5mni_n_85",
+          "title": "Dropsiders Radio Jingle 5",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+          "duration": 14,
           "category": "jingle"
         },
         {
@@ -3862,6 +4150,14 @@
           "soundcloudUrl": "https://soundcloud.com/anyma57269/other-dimension",
           "coverUrl": "https://i1.sndcdn.com/artworks-eqrdNWLK3qgy-0-large.jpg",
           "addedAt": 1791404993832
+        },
+        {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_86",
+          "title": "Morning Dropsiders 1",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+          "duration": 10,
+          "category": "jingle"
         },
         {
           "id": "sc_2100682968_87",
@@ -3884,6 +4180,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_88",
+          "title": "Morning Dropsiders 2",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_1741759266_89",
           "title": "Pictures Of You",
           "artist": "Anyma",
@@ -3895,10 +4199,10 @@
         },
         {
           "id": "nj_radio_bloc_1790255595165_5mni_n_89",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 6",
-          "artist": "DROPSIDERS RADIO",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 26,
+          "title": "Dropsiders Radio Jingle 6",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+          "duration": 9,
           "category": "jingle"
         },
         {
@@ -3912,6 +4216,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_90",
+          "title": "Morning Dropsiders 3",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
+          "category": "jingle"
+        },
+        {
           "id": "sc_233770380_91",
           "title": "Innerbloom",
           "artist": "RÜFÜS DU SOL",
@@ -3920,14 +4232,6 @@
           "soundcloudUrl": "https://soundcloud.com/rufusdusol/innerbloom",
           "coverUrl": "https://i1.sndcdn.com/artworks-000136660669-0chphs-large.jpg",
           "addedAt": 1791404993832
-        },
-        {
-          "id": "sj_radio_bloc_1790255595165_5mni_s_91",
-          "title": "Morning Dropsiders 1",
-          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
-          "duration": 10,
-          "category": "jingle"
         },
         {
           "id": "sc_2321059217_92",
@@ -3940,6 +4244,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_92",
+          "title": "Morning Dropsiders 4",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_1122713092_93",
           "title": "On My Knees",
           "artist": "RÜFÜS DU SOL",
@@ -3948,6 +4260,14 @@
           "soundcloudUrl": "https://soundcloud.com/rufusdusol/on-my-knees",
           "coverUrl": "https://i1.sndcdn.com/artworks-bhJ8GtbQYp63-0-large.jpg",
           "addedAt": 1791404993832
+        },
+        {
+          "id": "nj_radio_bloc_1790255595165_5mni_n_93",
+          "title": "Dropsiders Radio Promo Insta & Tiktok",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 22,
+          "category": "jingle"
         },
         {
           "id": "sc_2270488130_94",
@@ -3960,6 +4280,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_94",
+          "title": "Morning Dropsiders 1",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_830375860_95",
           "title": "Adriatique & Marino Canal - Home (feat. Delhia De France) OUT NOW!",
           "artist": "Adriatique",
@@ -3968,14 +4296,6 @@
           "soundcloudUrl": "https://soundcloud.com/adriatique/adriatique-marino-canal-home-feat-delhia-de-france-out-now",
           "coverUrl": "https://i1.sndcdn.com/artworks-hF8uCPFU8BupLVzD-KMGceA-large.jpg",
           "addedAt": 1791404993832
-        },
-        {
-          "id": "nj_radio_bloc_1790255595165_5mni_n_95",
-          "title": "Dropsiders Radio Promo Insta & Tiktok 7",
-          "artist": "DROPSIDERS RADIO",
-          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
-          "duration": 32,
-          "category": "jingle"
         },
         {
           "id": "sc_1589550039_96",
@@ -3988,6 +4308,14 @@
           "addedAt": 1791404993832
         },
         {
+          "id": "sj_radio_bloc_1790255595165_5mni_s_96",
+          "title": "Morning Dropsiders 2",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+          "duration": 10,
+          "category": "jingle"
+        },
+        {
           "id": "sc_2065786848_97",
           "title": "In the Moment (Adriatique Remix)",
           "artist": "RÜFÜS DU SOL",
@@ -3998,11 +4326,11 @@
           "addedAt": 1791404993832
         },
         {
-          "id": "sj_radio_bloc_1790255595165_5mni_s_97",
-          "title": "Morning Dropsiders 2",
-          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
-          "duration": 10,
+          "id": "nj_radio_bloc_1790255595165_5mni_n_97",
+          "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+          "artist": "DROPSIDERS JINGLE",
+          "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+          "duration": 33,
           "category": "jingle"
         },
         {
@@ -4014,6 +4342,14 @@
           "soundcloudUrl": "https://soundcloud.com/gabssmusicc/frank-ocean-lost-gabss-e-vintage-culture",
           "coverUrl": "https://i1.sndcdn.com/artworks-8JdCol0N06azinb3-gyIrRA-large.jpg",
           "addedAt": 1791404993832
+        },
+        {
+          "id": "sj_radio_bloc_1790255595165_5mni_s2_98",
+          "title": "Morning Dropsiders 3",
+          "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+          "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+          "duration": 11,
+          "category": "jingle"
         },
         {
           "id": "sc_2391644922_99",
@@ -4060,7 +4396,7 @@
           "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav"
         }
       ],
-      "rotationRule": "every_2_tracks",
+      "rotationRule": "jingle_son_special_promo",
       "jingleFrequency": 2,
       "soundcloudPlaylistUrl": "https://soundcloud.com/alexflex1/sets/dropsiders-radio-morning-1",
       "soundcloudPlaylistTitle": "Dropsiders Radio : Morning",
@@ -11027,25 +11363,17 @@
       "category": "jingle"
     },
     {
-      "id": "rt_tv_1790255600257_jbmf",
-      "title": "JUST A LITTLE BIT MORE",
+      "id": "sc_2390080449_0",
+      "title": "Just A Little Bit More",
       "artist": "Mau P",
-      "youtubeId": "ke6hDTz3OoY",
-      "duration": 210,
+      "duration": 214,
       "category": "clip",
-      "addedAt": 1790255600257
+      "soundcloudUrl": "https://soundcloud.com/realmaup/just-a-little-bit-more",
+      "coverUrl": "https://i1.sndcdn.com/artworks-29siA4dY62IN-0-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_tv_1790255611613_hych",
-      "title": "Movin’ To The Sun (Performance Clip)",
-      "artist": "ULTRA NATÉ",
-      "youtubeId": "bJ7yyX4Qic4",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790255611613
-    },
-    {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_1",
+      "id": "sj_radio_bloc_1790255595165_5mni_s_0",
       "title": "Morning Dropsiders 2",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
@@ -11053,77 +11381,35 @@
       "category": "jingle"
     },
     {
-      "id": "rt_tv_1790255617206_jnj3",
-      "title": "WHAT A LIFE (ft. Florence Arman)",
-      "artist": "FISHER",
-      "youtubeId": "CsRTKXYEhOM",
-      "duration": 210,
+      "id": "sc_2384603196_1",
+      "title": "Kavinsky - Nightcall  (Valmer Tribute) [HZRX]",
+      "artist": "HOUZ",
+      "duration": 274,
       "category": "clip",
-      "addedAt": 1790255617206
+      "soundcloudUrl": "https://soundcloud.com/houzmusicblog/kavinsky-nightcall-valmer",
+      "coverUrl": "https://i1.sndcdn.com/artworks-XzCrRZ7e1RTrtd9D-SNC20g-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_1790255659500",
-      "title": "What A Life ft. Stevie Appleton",
-      "artist": "John Summit, Guz",
-      "youtubeId": "a6nw8XxdDu4",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790255659500
-    },
-    {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_3",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
-    },
-    {
-      "id": "rt_tv_1790255666383_erfo",
-      "title": "Kackvogel (music video)",
-      "artist": "Solomun",
-      "youtubeId": "9tBOtSPrNik",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790255666383
-    },
-    {
-      "id": "rt_tv_1790255667651_2ov0",
-      "title": "High On Life",
-      "artist": "Martin Garrix feat. Bonn",
-      "youtubeId": "Lpjcm1F8tY8",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790255667651
-    },
-    {
-      "id": "nj_radio_bloc_1790255595165_5mni_n_5",
-      "title": "Dropsiders Radio Jingle 3",
+      "id": "nj_radio_bloc_1790255595165_5mni_n_1",
+      "title": "Dropsiders Radio Jingle 1",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
+      "duration": 8,
       "category": "jingle"
     },
     {
-      "id": "rt_tv_1790255668796_f75q",
-      "title": "Happiness Is So Sad (Official Audio)",
-      "artist": "Swedish House Mafia, Lykke Li",
-      "youtubeId": "5N5RfaCyD-Y",
-      "duration": 210,
+      "id": "sc_2158904142_2",
+      "title": "Daft Punk - One More Time (Valmer Edit) [HZRX]",
+      "artist": "HOUZ",
+      "duration": 314,
       "category": "clip",
-      "addedAt": 1790255668796
+      "soundcloudUrl": "https://soundcloud.com/houzmusicblog/daft-punk-one-more-time-valmer-edit-hzrx",
+      "coverUrl": "https://i1.sndcdn.com/artworks-ls0oyesxJnnERp1r-TRNE3A-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_tv_1790255671397_4tjs",
-      "title": "Deep In The Bottom (of Africa)",
-      "artist": "Monique Bingham, Black Coffee",
-      "youtubeId": "BEKiRcCC1XY",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790255671397
-    },
-    {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_7",
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_2",
       "title": "Morning Dropsiders 3",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
@@ -11131,78 +11417,27 @@
       "category": "jingle"
     },
     {
-      "id": "rt_tv_1790255672563_uqru",
-      "title": "QUE CE SOIT CLAIR",
-      "artist": "Paul Kalkbrenner x Stromae",
-      "youtubeId": "YQM7DKi11ho",
-      "duration": 210,
+      "id": "sc_2252570951_3",
+      "title": "neck",
+      "artist": "Mau P",
+      "duration": 221,
       "category": "clip",
-      "addedAt": 1790255672563
+      "soundcloudUrl": "https://soundcloud.com/realmaup/neck",
+      "coverUrl": "https://i1.sndcdn.com/artworks-uP5wJrLMLDkr-0-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_tv_1790255675199_zvfq",
-      "title": "Rumpta (Official Audio)",
-      "artist": "Solomun, Skrillex",
-      "youtubeId": "aFUqsPHEXhA",
-      "duration": 210,
+      "id": "sc_2086810290_4",
+      "title": "People Talk People Sing",
+      "artist": "Mau P",
+      "duration": 217,
       "category": "clip",
-      "addedAt": 1790255675199
+      "soundcloudUrl": "https://soundcloud.com/realmaup/people-talk-people-sing",
+      "coverUrl": "https://i1.sndcdn.com/artworks-SKbJM64TB5Tf-0-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_9",
-      "title": "Promo Escape Psycho 2",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "promo",
-      "expiresAt": "2026-10-31T23:59:59"
-    },
-    {
-      "id": "rt_tv_1790255680923_1axj",
-      "title": "Bangarang feat. Sirah [Official Music Video]",
-      "artist": "SKRILLEX",
-      "youtubeId": "YJVmu6yttiw",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790255680923
-    },
-    {
-      "id": "rt_tv_1790255682374_m8xf",
-      "title": "We Could Be Dancing ft. Molly Hammar",
-      "artist": "Bob Sinclar",
-      "youtubeId": "kauqBzcqPFM",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790255682374
-    },
-    {
-      "id": "nj_radio_bloc_1790255595165_5mni_n_11",
-      "title": "Dropsiders Radio Jingle 4",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
-      "duration": 8,
-      "category": "jingle"
-    },
-    {
-      "id": "rt_tv_1790255683756_1bw0",
-      "title": "Beautiful (Official Music Video)",
-      "artist": "Anyma, Joji",
-      "youtubeId": "DnTC2P9kxO8",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790255683756
-    },
-    {
-      "id": "rt_tv_1790255685077_tzod",
-      "title": "Born Like That",
-      "artist": "Kevin de Vries & Jast",
-      "youtubeId": "BG0PN9Xcho8",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790255685077
-    },
-    {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_13",
+      "id": "sj_radio_bloc_1790255595165_5mni_s_4",
       "title": "Morning Dropsiders 4",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
@@ -11210,49 +11445,206 @@
       "category": "jingle"
     },
     {
-      "id": "rt_1790255712927",
-      "title": "Feel The Vibe (Original)",
-      "artist": "Axwell",
-      "youtubeId": "889H0Am7vFo",
-      "duration": 210,
+      "id": "sc_2086808514_5",
+      "title": "Like I Like It",
+      "artist": "Mau P",
+      "duration": 224,
       "category": "clip",
-      "addedAt": 1790255712927
+      "soundcloudUrl": "https://soundcloud.com/realmaup/like-i-like-it",
+      "coverUrl": "https://i1.sndcdn.com/artworks-I8k2h2wbOdqA-0-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_1790255779415",
-      "title": "Beat Goes On",
-      "artist": "Adam Ten",
-      "youtubeId": "2I0jW--BOzE",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790255779415
+      "id": "nj_radio_bloc_1790255595165_5mni_n_5",
+      "title": "Dropsiders Radio Jingle 2",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+      "duration": 10,
+      "category": "jingle"
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_15",
-      "title": "Promo Escape Psycho 1",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "promo",
-      "expiresAt": "2026-10-31T23:59:59"
+      "id": "sc_2021710281_6",
+      "title": "The Less I Know The Better",
+      "artist": "Mau P",
+      "duration": 176,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/realmaup/the-less-i-know-the-better",
+      "coverUrl": "https://i1.sndcdn.com/artworks-VrAqpUTJVUcm-0-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_1790255829690",
-      "title": "Nothing Wrong (Love Mix)",
-      "artist": "Omri",
-      "youtubeId": "QuHJZCbrI38",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790255829690
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_6",
+      "title": "Morning Dropsiders 1",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+      "duration": 10,
+      "category": "jingle"
     },
     {
-      "id": "rt_1790255881886",
-      "title": "The Present (Extended Mix)",
-      "artist": "Goodboys, Korolova",
-      "youtubeId": "BLQaxpCAOKE",
-      "duration": 210,
+      "id": "sc_1937067440_7",
+      "title": "Mau P - MERTHER",
+      "artist": "Mau P",
+      "duration": 190,
       "category": "clip",
-      "addedAt": 1790255881886
+      "soundcloudUrl": "https://soundcloud.com/realmaup/mau-p-merther",
+      "coverUrl": "https://i1.sndcdn.com/artworks-pf2WMOobX0UDlcgy-W6lw3w-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sc_1905572510_8",
+      "title": "Receipts (feat. Gunna) [Extended Mix]",
+      "artist": "Mau P",
+      "duration": 327,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/realmaup/receiptsextended",
+      "coverUrl": "https://i1.sndcdn.com/artworks-L4cSojWRNAuzZrn2-pTW81Q-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_8",
+      "title": "Morning Dropsiders 2",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_1916191208_9",
+      "title": "BEATS FOR THE UNDERGROUND",
+      "artist": "Mau P",
+      "duration": 215,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/realmaup/beats-for-the-underground-1",
+      "coverUrl": "https://i1.sndcdn.com/artworks-tmSldxgScghv-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "nj_radio_bloc_1790255595165_5mni_n_9",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_1628170368_10",
+      "title": "Dress Code",
+      "artist": "Mau P",
+      "duration": 203,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/realmaup/dress-code",
+      "coverUrl": "https://i1.sndcdn.com/artworks-6wmRTek1aIcW-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_10",
+      "title": "Morning Dropsiders 3",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+      "duration": 11,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_1576590122_11",
+      "title": "Armand Van Helden - I Want Your Soul (Mau P Remix)",
+      "artist": "Mau P",
+      "duration": 211,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/realmaup/armand-van-helden-i-want-your-soul-mau-p-remix",
+      "coverUrl": "https://i1.sndcdn.com/artworks-3WyYFp3XKKimpEFJ-9MWzSg-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sc_1454664049_12",
+      "title": "Drugs From Amsterdam (Armand Van Helden Remix)",
+      "artist": "Mau P",
+      "duration": 157,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/realmaup/drugs-from-amsterdam-armand",
+      "coverUrl": "https://i1.sndcdn.com/artworks-TrWUoVurfhXh-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_12",
+      "title": "Morning Dropsiders 4",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_1428326731_13",
+      "title": "Gimme That Bounce",
+      "artist": "Mau P",
+      "duration": 217,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/realmaup/gimme-that-bounce",
+      "coverUrl": "https://i1.sndcdn.com/artworks-7SJoDqJCOHCA-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "nj_radio_bloc_1790255595165_5mni_n_13",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_1349048875_14",
+      "title": "Drugs From Amsterdam",
+      "artist": "Mau P",
+      "duration": 236,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/realmaup/drugs-from-amsterdam",
+      "coverUrl": "https://i1.sndcdn.com/artworks-iYED78ZaMnfN-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_14",
+      "title": "Morning Dropsiders 1",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2402698752_15",
+      "title": "Mesto, Ink - Freak [Extended Mix]",
+      "artist": "Experts Only",
+      "duration": 180,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/expertsonly/mesto-ink-freak-extended-mix",
+      "coverUrl": "https://i1.sndcdn.com/artworks-PGmZLjatDxSttJGU-b9zKUA-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sc_2411692494_16",
+      "title": "DON'T BELIEVE IT (GRiZ Remix)",
+      "artist": "John Summit",
+      "duration": 213,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/johnsummit/dont-believe-it-griz-remix",
+      "coverUrl": "https://i1.sndcdn.com/artworks-vD9IEl6Fy16KLfgY-d0N8EA-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_16",
+      "title": "Morning Dropsiders 2",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2398279290_17",
+      "title": "ALL THE TIME (GorillaT Remix)",
+      "artist": "John Summit",
+      "duration": 182,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/johnsummit/all-the-time-gorillat-remix",
+      "coverUrl": "https://i1.sndcdn.com/artworks-DIzQLALr5oZH2udi-ihrjbQ-large.jpg",
+      "addedAt": 1791404993832
     },
     {
       "id": "nj_radio_bloc_1790255595165_5mni_n_17",
@@ -11263,77 +11655,63 @@
       "category": "jingle"
     },
     {
-      "id": "rt_1790255910132",
-      "title": "BOUNCE MUSIC (Official Music Video)",
-      "artist": "INNELLEA",
-      "youtubeId": "vgHasjtd0NQ",
-      "duration": 210,
+      "id": "sc_2302184801_18",
+      "title": "John Summit, KILIMANJARO - TIME WITH YOU",
+      "artist": "John Summit",
+      "duration": 238,
       "category": "clip",
-      "addedAt": 1790255910133
+      "soundcloudUrl": "https://soundcloud.com/johnsummit/john-summit-kilimanjaro-time-with-you-4",
+      "coverUrl": "https://i1.sndcdn.com/artworks-8XKJu4wbzLYlvjpr-26TUzA-large.png",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_1790255974618",
-      "title": "Swagon",
-      "artist": "Detlef",
-      "youtubeId": "1p6JePMTJVE",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790255974618
-    },
-    {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_19",
-      "title": "Morning Dropsiders 1",
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_18",
+      "title": "Morning Dropsiders 3",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+      "duration": 11,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2302184789_19",
+      "title": "John Summit, Absolutely - DON'T BELIEVE IT",
+      "artist": "John Summit",
+      "duration": 188,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/johnsummit/john-summit-absolutely-dont-believe-it-3",
+      "coverUrl": "https://i1.sndcdn.com/artworks-8XKJu4wbzLYlvjpr-26TUzA-large.png",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sc_2299785221_20",
+      "title": "John Summit - SHADES OF BLUE",
+      "artist": "John Summit",
+      "duration": 203,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/johnsummit/john-summit-shades-of-blue-1",
+      "coverUrl": "https://i1.sndcdn.com/artworks-PttHo6JyL3QLLlgw-mrvU2w-large.png",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_20",
+      "title": "Morning Dropsiders 4",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
       "duration": 10,
       "category": "jingle"
     },
     {
-      "id": "rt_1790256008619",
-      "title": "Innerbloom",
-      "artist": "RÜFÜS DU SOL",
-      "youtubeId": "Tx9zMFodNtA",
-      "duration": 210,
+      "id": "sc_2192214763_21",
+      "title": "Britney Spears - I Wanna Go (John Summit Remix)",
+      "artist": "John Summit",
+      "duration": 164,
       "category": "clip",
-      "addedAt": 1790256008619
+      "soundcloudUrl": "https://soundcloud.com/johnsummit/britney-spears-i-wanna-go-john-summit-remix",
+      "coverUrl": "https://i1.sndcdn.com/artworks-rT64YzfxEOWJmPru-E1w2UQ-large.png",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_1790256040583",
-      "title": "In the Moment (Adriatique Remix)",
-      "artist": "RÜFÜS DU SOL",
-      "youtubeId": "qP6xBFfTGeI",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256040583
-    },
-    {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_21",
-      "title": "Promo Titan Lyon",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
-      "duration": 39,
-      "category": "promo"
-    },
-    {
-      "id": "rt_1790256092462",
-      "title": "Polka",
-      "artist": "OMMA",
-      "youtubeId": "D8uZsgs6Woo",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256092462
-    },
-    {
-      "id": "rt_1790256131260",
-      "title": "Out Of Touch",
-      "artist": "Daryl Hall & John Oates",
-      "youtubeId": "D00M2KZH1J0",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256131260
-    },
-    {
-      "id": "nj_radio_bloc_1790255595165_5mni_n_23",
+      "id": "nj_radio_bloc_1790255595165_5mni_n_21",
       "title": "Dropsiders Radio Jingle 6",
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
@@ -11341,25 +11719,45 @@
       "category": "jingle"
     },
     {
-      "id": "rt_1790256149615",
-      "title": "4Get The Girl (Samm Remix)",
-      "artist": "Route 94",
-      "youtubeId": "R4aJA0XA-Bk",
-      "duration": 210,
+      "id": "sc_2186324243_22",
+      "title": "crystallized (feat. Inéz) (John Summit Playa Dub)",
+      "artist": "John Summit",
+      "duration": 244,
       "category": "clip",
-      "addedAt": 1790256149615
+      "soundcloudUrl": "https://soundcloud.com/johnsummit/crystallized-feat-inez-john-summit-playa-dub",
+      "coverUrl": "https://i1.sndcdn.com/artworks-Y1oURxzMDJjcehwN-kZDYuA-large.png",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_1790256167935",
-      "title": "You Make Me Fall In Love",
-      "artist": "Ajna feat. abrahamblue",
-      "youtubeId": "YCqCBviJoGg",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256167935
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_22",
+      "title": "Morning Dropsiders 1",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+      "duration": 10,
+      "category": "jingle"
     },
     {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_25",
+      "id": "sc_2168344059_23",
+      "title": "John Summit - crystallized (ft. Inéz)",
+      "artist": "John Summit",
+      "duration": 218,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/johnsummit/john-summit-crystallized-ft-inez",
+      "coverUrl": "https://i1.sndcdn.com/artworks-5Xzfsgmp7iOqFh7s-Ts6NVg-large.png",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sc_2402456766_24",
+      "title": "Mami",
+      "artist": "HUGEL",
+      "duration": 145,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/hugelmusic/mami",
+      "coverUrl": "https://i1.sndcdn.com/artworks-gPDnZmOaVydb-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_24",
       "title": "Morning Dropsiders 2",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
@@ -11367,48 +11765,78 @@
       "category": "jingle"
     },
     {
-      "id": "rt_1790256193204",
-      "title": "Baby Do You Wanna Bump [AFFAIRS 017]",
-      "artist": "JØRD",
-      "youtubeId": "cQEnrHD91R8",
-      "duration": 210,
+      "id": "sc_2345254334_25",
+      "title": "Intoxicated",
+      "artist": "HUGEL",
+      "duration": 146,
       "category": "clip",
-      "addedAt": 1790256193204
+      "soundcloudUrl": "https://soundcloud.com/hugelmusic/intoxicated",
+      "coverUrl": "https://i1.sndcdn.com/artworks-lbTATOFLFvBs-0-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_1790256215019",
-      "title": "Lost [AFFAIRS 006]",
-      "artist": "Vintage Culture, Gabss",
-      "youtubeId": "wNoZnhsB2XA",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256215019
+      "id": "nj_radio_bloc_1790255595165_5mni_n_25",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 22,
+      "category": "jingle"
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_27",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
+      "id": "sc_2345254352_26",
+      "title": "Make Me Go",
+      "artist": "HUGEL",
+      "duration": 147,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/hugelmusic/make-me-go",
+      "coverUrl": "https://i1.sndcdn.com/artworks-ddc6tiwDiqto-0-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_1790256226318",
-      "title": "Analog Ascent",
-      "artist": "Vintage Culture, Roddy Lima",
-      "youtubeId": "uJM4b-BRTWI",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256226318
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_26",
+      "title": "Morning Dropsiders 3",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+      "duration": 11,
+      "category": "jingle"
     },
     {
-      "id": "rt_1790256245692",
-      "title": "Turn The Tide (ft. Sylver)",
-      "artist": "Dimitri Vegas, Sylver & Pat B",
-      "youtubeId": "hFG5ZPtnxsw",
-      "duration": 210,
+      "id": "sc_2355812795_27",
+      "title": "Where She Come From",
+      "artist": "HUGEL",
+      "duration": 150,
       "category": "clip",
-      "addedAt": 1790256245692
+      "soundcloudUrl": "https://soundcloud.com/hugelmusic/where-she-come-from",
+      "coverUrl": "https://i1.sndcdn.com/artworks-44J97hvImhbF-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sc_2345253659_28",
+      "title": "Next To Me",
+      "artist": "HUGEL",
+      "duration": 192,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/hugelmusic/next-to-me",
+      "coverUrl": "https://i1.sndcdn.com/artworks-4vewyKCizsKn-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_28",
+      "title": "Morning Dropsiders 4",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2345253536_29",
+      "title": "Jamaican (Bam Bam)",
+      "artist": "HUGEL",
+      "duration": 156,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/hugelmusic/jamaican-bam-bam",
+      "coverUrl": "https://i1.sndcdn.com/artworks-jkGfDe5zbSkH-0-large.jpg",
+      "addedAt": 1791404993832
     },
     {
       "id": "nj_radio_bloc_1790255595165_5mni_n_29",
@@ -11419,78 +11847,63 @@
       "category": "jingle"
     },
     {
-      "id": "rt_1790256261370",
-      "title": "Makina Time",
-      "artist": "Dimitri Vegas & Like Mike x Marlon Hoffstadt x DJ Konik",
-      "youtubeId": "jEIMDLAbOD0",
-      "duration": 210,
+      "id": "sc_2345253305_30",
+      "title": "Stay Sexy",
+      "artist": "HUGEL",
+      "duration": 126,
       "category": "clip",
-      "addedAt": 1790256261370
+      "soundcloudUrl": "https://soundcloud.com/hugelmusic/stay-sexy",
+      "coverUrl": "https://i1.sndcdn.com/artworks-vxSeh7J9qHbW-0-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_1790256278044",
-      "title": "It's That Time (FISHER Remix)",
-      "artist": "Marlon Hoffstadt",
-      "youtubeId": "GDWdul0nrYw",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256278044
-    },
-    {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_31",
-      "title": "Morning Dropsiders 3",
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_30",
+      "title": "Morning Dropsiders 1",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
-      "duration": 11,
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+      "duration": 10,
       "category": "jingle"
     },
     {
-      "id": "rt_1790256302438",
-      "title": "Hello",
-      "artist": "Martin Solveig & Dragonette",
-      "youtubeId": "kK42LZqO0wA",
-      "duration": 210,
+      "id": "sc_2344782443_31",
+      "title": "Shine",
+      "artist": "HUGEL",
+      "duration": 147,
       "category": "clip",
-      "addedAt": 1790256302438
+      "soundcloudUrl": "https://soundcloud.com/hugelmusic/shine",
+      "coverUrl": "https://i1.sndcdn.com/artworks-Zns5owFpCKkv-0-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_1790256323478",
-      "title": "Titanium ft. Sia",
-      "artist": "David Guetta",
-      "youtubeId": "JRfuAukYTKg",
-      "duration": 210,
+      "id": "sc_2324353523_32",
+      "title": "Movin' To The Sun",
+      "artist": "HUGEL",
+      "duration": 142,
       "category": "clip",
-      "addedAt": 1790256323478
+      "soundcloudUrl": "https://soundcloud.com/hugelmusic/movin-to-the-sun",
+      "coverUrl": "https://i1.sndcdn.com/artworks-1QozyFcW7PwE-0-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_33",
-      "title": "Promo Escape Psycho 2",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "promo",
-      "expiresAt": "2026-10-31T23:59:59"
+      "id": "sj_radio_bloc_1790255595165_5mni_s_32",
+      "title": "Morning Dropsiders 2",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+      "duration": 10,
+      "category": "jingle"
     },
     {
-      "id": "rt_tv_1790256329104_fza5",
-      "title": "Carry You (feat. Oaks & Declan J Donovan) [",
-      "artist": "Martin Garrix & Third ≡ Party",
-      "youtubeId": "xVGoGYb55NI",
-      "duration": 210,
+      "id": "sc_2381314437_33",
+      "title": "Walker & Royce, FENIK - Utopia [Extended Mix]",
+      "artist": "Experts Only",
+      "duration": 289,
       "category": "clip",
-      "addedAt": 1790256329104
+      "soundcloudUrl": "https://soundcloud.com/expertsonly/walker-royce-fenik-utopia",
+      "coverUrl": "https://i1.sndcdn.com/artworks-4YyNGrCCR5sPBJzf-pY9ndw-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_tv_1790256330392_7qxb",
-      "title": "Medellin, Colombia (",
-      "artist": "DJ Snake - Club Soda",
-      "youtubeId": "csd9gajWjxE",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256330392
-    },
-    {
-      "id": "nj_radio_bloc_1790255595165_5mni_n_35",
+      "id": "nj_radio_bloc_1790255595165_5mni_n_33",
       "title": "Dropsiders Radio Promo Insta & Tiktok 3",
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
@@ -11498,25 +11911,45 @@
       "category": "jingle"
     },
     {
-      "id": "rt_tv_1790256332123_2ai2",
-      "title": "Places ft. Ina Wroldsen",
-      "artist": "Martin Solveig",
-      "youtubeId": "NJlOmDWyoA8",
-      "duration": 210,
+      "id": "sc_2362330268_34",
+      "title": "HILLS - Lift Me Up [Extended Mix]",
+      "artist": "Experts Only",
+      "duration": 251,
       "category": "clip",
-      "addedAt": 1790256332123
+      "soundcloudUrl": "https://soundcloud.com/expertsonly/hills-lift-me-up",
+      "coverUrl": "https://i1.sndcdn.com/artworks-yJMeoSq3RwYrtFH0-uTQ0HA-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_tv_1790256333666_lum0",
-      "title": "SHADOWS (feat. LAVINIA)",
-      "artist": "John Summit",
-      "youtubeId": "TSZo2eZzD6s",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256333666
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_34",
+      "title": "Morning Dropsiders 3",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+      "duration": 11,
+      "category": "jingle"
     },
     {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_37",
+      "id": "sc_2356501631_35",
+      "title": "BYOR & Mentum - I Can Dance [Extended Mix]",
+      "artist": "Experts Only",
+      "duration": 238,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/expertsonly/byor-mentum-i-can-dance",
+      "coverUrl": "https://i1.sndcdn.com/artworks-yqQwLrwh4TdGsFym-yC3qtg-large.png",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sc_2346778457_36",
+      "title": "EdiP, Dinu - Nocturno  [Extended Mix]",
+      "artist": "Experts Only",
+      "duration": 342,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/expertsonly/edip-dinu-nocturno-extended",
+      "coverUrl": "https://i1.sndcdn.com/artworks-gn8VT7L5HZuQoblV-krc9vQ-large.png",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_36",
       "title": "Morning Dropsiders 4",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
@@ -11524,78 +11957,163 @@
       "category": "jingle"
     },
     {
-      "id": "rt_tv_1790256342181_7vz8",
-      "title": "Pull Up (feat. Scrufizzer)",
-      "artist": "Matisse & Sadko, Vion Konger",
-      "youtubeId": "0ibQSd4pFBI",
-      "duration": 210,
+      "id": "sc_2409074928_37",
+      "title": "Looking For You [OUT OCT 09]",
+      "artist": "Maccabi House",
+      "duration": 96,
       "category": "clip",
-      "addedAt": 1790256342181
+      "soundcloudUrl": "https://soundcloud.com/maccabihouse/looking-for-you",
+      "coverUrl": "https://i1.sndcdn.com/artworks-WC8HMPlyJmCAKJ19-fy5aVQ-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_tv_1790256343654_ze2a",
-      "title": "Rotation",
-      "artist": "MORTEN",
-      "youtubeId": "B8ogM1VKlH8",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256343654
+      "id": "nj_radio_bloc_1790255595165_5mni_n_37",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 22,
+      "category": "jingle"
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_39",
-      "title": "Promo Escape Psycho 1",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "promo",
-      "expiresAt": "2026-10-31T23:59:59"
+      "id": "sc_2397215025_38",
+      "title": "Magazine 60 - Don Quichotte (Late London & Andy Martinez Maccabi Edit)",
+      "artist": "Maccabi House",
+      "duration": 257,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/maccabihouse/don-quichotte-edit",
+      "coverUrl": "https://i1.sndcdn.com/artworks-ZjfGVknMdyLuIOcn-9f9FTw-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_tv_1790256344591_qpb3",
-      "title": "“Without You”",
-      "artist": "Kygo, HAYLA",
-      "youtubeId": "w304OXHrDmg",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256344591
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_38",
+      "title": "Morning Dropsiders 1",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+      "duration": 10,
+      "category": "jingle"
     },
     {
-      "id": "rt_tv_1790256345565_xsri",
-      "title": "All That Matters (ARTBAT remix)",
-      "artist": "Kolsch",
-      "youtubeId": "iosaSwiYp4E",
-      "duration": 210,
+      "id": "sc_2396211630_39",
+      "title": "Funky Pills",
+      "artist": "Maccabi House",
+      "duration": 294,
       "category": "clip",
-      "addedAt": 1790256345565
+      "soundcloudUrl": "https://soundcloud.com/maccabihouse/funky-pills",
+      "coverUrl": "https://i1.sndcdn.com/artworks-GOWH1MOH4ktVlgTp-gUq0zQ-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sc_2383636158_40",
+      "title": "Just A Feeling",
+      "artist": "Maccabi House",
+      "duration": 285,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/maccabihouse/just-a-feeling-out",
+      "coverUrl": "https://i1.sndcdn.com/artworks-Wi6Fzn1uGlVmtdLM-GbtUvA-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_40",
+      "title": "Morning Dropsiders 2",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2383636161_41",
+      "title": "Voodoo Time",
+      "artist": "Maccabi House",
+      "duration": 306,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/maccabihouse/voodoo-time",
+      "coverUrl": "https://i1.sndcdn.com/artworks-Wi6Fzn1uGlVmtdLM-GbtUvA-large.jpg",
+      "addedAt": 1791404993832
     },
     {
       "id": "nj_radio_bloc_1790255595165_5mni_n_41",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 22,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 33,
       "category": "jingle"
     },
     {
-      "id": "rt_tv_1790256347744_uz2a",
-      "title": "March (Visualizer)",
-      "artist": "Goom Gum",
-      "youtubeId": "NtMZ1IsxOxQ",
-      "duration": 210,
+      "id": "sc_2383636167_42",
+      "title": "Loco Luck",
+      "artist": "Maccabi House",
+      "duration": 339,
       "category": "clip",
-      "addedAt": 1790256347744
+      "soundcloudUrl": "https://soundcloud.com/maccabihouse/loco-luck",
+      "coverUrl": "https://i1.sndcdn.com/artworks-Wi6Fzn1uGlVmtdLM-GbtUvA-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_tv_1790256349445_74pd",
-      "title": "DROPSIDERS TV",
-      "artist": "Stylo, Q.U.A.K.E, Eli & Dani – On The Ground [Live from ÆDEN Mexico City]",
-      "youtubeId": "pKcV-69i-gY",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256349445
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_42",
+      "title": "Morning Dropsiders 3",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+      "duration": 11,
+      "category": "jingle"
     },
     {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_43",
+      "id": "sc_2383636164_43",
+      "title": "Back To You (Feat. Chiara Gamo)",
+      "artist": "Maccabi House",
+      "duration": 323,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/maccabihouse/back-to-you-feat-chiara-gamo",
+      "coverUrl": "https://i1.sndcdn.com/artworks-Wi6Fzn1uGlVmtdLM-GbtUvA-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sc_2374829129_44",
+      "title": "Bill Withers - The Same Love (Mita Gami Maccabi Edit)",
+      "artist": "Maccabi House",
+      "duration": 361,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/maccabihouse/bill-withers-mita-gami-edit",
+      "coverUrl": "https://i1.sndcdn.com/artworks-MvpzvGIcvfefGvJY-0KuJ4w-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_44",
+      "title": "Morning Dropsiders 4",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2334007955_45",
+      "title": "Adam Ten – I Never Knew",
+      "artist": "Defected Records",
+      "duration": 300,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/defectedrecords/adam-ten-i-never-knew",
+      "coverUrl": "https://i1.sndcdn.com/artworks-fz4k9PQUdqe9Mzuu-0XcfTQ-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "nj_radio_bloc_1790255595165_5mni_n_45",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0a0f7de3fd0adef4-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 46,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2347353338_46",
+      "title": "Beat Goes On (Extended Mix)",
+      "artist": "Adam Ten",
+      "duration": 310,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/adamten/beat-goes-on-extended-mix",
+      "coverUrl": "https://i1.sndcdn.com/artworks-JVXcrm9rOchs-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_46",
       "title": "Morning Dropsiders 1",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
@@ -11603,77 +12121,27 @@
       "category": "jingle"
     },
     {
-      "id": "rt_tv_1790256351317_yfz4",
-      "title": "DROPSIDERS TV",
-      "artist": "Kevin de Vries & Platero – Man Like Me (Visualizer)",
-      "youtubeId": "mRZROQT4KSY",
-      "duration": 210,
+      "id": "sc_1603002549_47",
+      "title": "Spring Girl (Extended)",
+      "artist": "Adam Ten",
+      "duration": 346,
       "category": "clip",
-      "addedAt": 1790256351317
+      "soundcloudUrl": "https://soundcloud.com/adamten/adam-ten-maori-spring-girl-1",
+      "coverUrl": "https://i1.sndcdn.com/artworks-511T31030cfA-0-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_tv_1790256352324_d5nt",
-      "title": "DROPSIDERS TV",
-      "artist": "Argy & 7 SKIES – Murda (Visualizer)",
-      "youtubeId": "hUyIHwHNpWQ",
-      "duration": 210,
+      "id": "sc_1897698951_48",
+      "title": "3 Days Later (Extended)",
+      "artist": "Adam Ten",
+      "duration": 408,
       "category": "clip",
-      "addedAt": 1790256352324
+      "soundcloudUrl": "https://soundcloud.com/adamten/3-days-later-extended",
+      "coverUrl": "https://i1.sndcdn.com/artworks-qecuuilul8nz-0-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_45",
-      "title": "Promo Titan Lyon",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
-      "duration": 39,
-      "category": "promo"
-    },
-    {
-      "id": "rt_tv_1790256354754_ob1y",
-      "title": "DROPSIDERS TV",
-      "artist": "SLVR – Say Less (Visualizer)",
-      "youtubeId": "VhXPrapMuPU",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256354754
-    },
-    {
-      "id": "rt_tv_1790256355604_df0t",
-      "title": "DROPSIDERS TV",
-      "artist": "Jast – Dancin (Visualizer)",
-      "youtubeId": "2InKUbzf0aw",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256355604
-    },
-    {
-      "id": "nj_radio_bloc_1790255595165_5mni_n_47",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 22,
-      "category": "jingle"
-    },
-    {
-      "id": "rt_tv_1790256356223_3bu0",
-      "title": "DROPSIDERS TV",
-      "artist": "Massano & Humans Musik – Underground (Visualizer)",
-      "youtubeId": "7HisqZ0QFtU",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256356223
-    },
-    {
-      "id": "rt_tv_1790256357137_mts2",
-      "title": "DROPSIDERS TV",
-      "artist": "Colyn – When The Fire Starts To Burn (Visualizer)",
-      "youtubeId": "3CgZrNlFsTQ",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256357137
-    },
-    {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_49",
+      "id": "sj_radio_bloc_1790255595165_5mni_s_48",
       "title": "Morning Dropsiders 2",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
@@ -11681,77 +12149,163 @@
       "category": "jingle"
     },
     {
-      "id": "rt_tv_1790256357818_owne",
-      "title": "DROPSIDERS TV",
-      "artist": "Skuro & Final Request – F*ck The Club (Visualizer)",
-      "youtubeId": "R6gptKelYK0",
-      "duration": 210,
+      "id": "sc_2401430307_49",
+      "title": "Adam Ten, Yamagucci - Keep Workin' - Rekids",
+      "artist": "REKIDS",
+      "duration": 316,
       "category": "clip",
-      "addedAt": 1790256357818
+      "soundcloudUrl": "https://soundcloud.com/rekids/adam-ten-yamagucci-keep-workin-rekids-1",
+      "coverUrl": "https://i1.sndcdn.com/artworks-7t07zby3rN6lRh6t-ytt9DA-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_tv_1790256360443_f866",
-      "title": "Eternity (Massano Remix) [Live from Afterlife Chile]",
-      "artist": "Anyma & Chris Avantgarde",
-      "youtubeId": "_V_5YoOoV28",
-      "duration": 3600,
-      "category": "liveset",
-      "addedAt": 1790256360443
+      "id": "nj_radio_bloc_1790255595165_5mni_n_49",
+      "title": "Dropsiders Radio Promo Insta & Tiktok  4",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/893faf55d9ffd42d-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 44,
+      "category": "jingle"
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_51",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
+      "id": "sc_2356859135_50",
+      "title": "ANOTR - Silver Lines (feat. Emily Warren)",
+      "artist": "CircoLoco Records",
+      "duration": 201,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/circolocorecords/anotr-silver-lines-feat-emily",
+      "coverUrl": "https://i1.sndcdn.com/artworks-OAlyU4CMtd5onfV7-WhxHsQ-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_tv_1790256361116_dxw5",
-      "title": "Entropy (feat. fknsyd) [Live at Sphere Las Vegas]",
-      "artist": "Anyma, Rezz",
-      "youtubeId": "8Yq3cnS6W-U",
-      "duration": 3600,
-      "category": "liveset",
-      "addedAt": 1790256361116
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_50",
+      "title": "Morning Dropsiders 3",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+      "duration": 11,
+      "category": "jingle"
     },
     {
-      "id": "rt_tv_1790256361700_9fml",
-      "title": "EDC Las Vegas 2026",
-      "artist": "Kaskade & Natalie Jane Perform “Meet Again”",
-      "youtubeId": "J1yT2WhrrrA",
-      "duration": 3600,
-      "category": "liveset",
-      "addedAt": 1790256361700
+      "id": "sc_2337947915_51",
+      "title": "7. ANOTR ft. 54 Ultra - Talk To You [No Art]",
+      "artist": "ANOTR",
+      "duration": 191,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/anotr/7-anotr-ft-54-ultra-talk-to-you-no-art-7",
+      "coverUrl": "https://i1.sndcdn.com/artworks-QOr6jljAXjUQEZnw-uFHrvQ-large.png",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sc_2337947927_52",
+      "title": "6. ANOTR ft. 3DDY & PAMÉ - Crazy [No Art]",
+      "artist": "ANOTR",
+      "duration": 251,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/anotr/6-anotr-ft-3ddy-pame-crazy-no-art-6",
+      "coverUrl": "https://i1.sndcdn.com/artworks-QOr6jljAXjUQEZnw-uFHrvQ-large.png",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_52",
+      "title": "Morning Dropsiders 4",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2337947948_53",
+      "title": "8. ANOTR ft. 3DDY - It's So Nice [No Art]",
+      "artist": "ANOTR",
+      "duration": 199,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/anotr/8-anotr-ft-3ddy-its-so-nice-no-art-8",
+      "coverUrl": "https://i1.sndcdn.com/artworks-QOr6jljAXjUQEZnw-uFHrvQ-large.png",
+      "addedAt": 1791404993832
     },
     {
       "id": "nj_radio_bloc_1790255595165_5mni_n_53",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "title": "Dropsiders Radio Promo Insta & Tiktok  5",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 22,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/741653185baf2ae2-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 28,
       "category": "jingle"
     },
     {
-      "id": "rt_tv_1790256362357_b4yy",
-      "title": "Mockingbird (LIVE Tomorrowland Winter 2024)",
-      "artist": "Tiësto & Dimitri Vegas & Like Mike & Gabry Ponte",
-      "youtubeId": "dI94MEJUuHc",
-      "duration": 3600,
-      "category": "liveset",
-      "addedAt": 1790256362357
-    },
-    {
-      "id": "rt_tv_1790256362966_anlf",
-      "title": "Fireworks (Ft. Moss Kena & The Knocks) · Official Video",
-      "artist": "Purple Disco Machine",
-      "youtubeId": "8tcYQEk1EVQ",
-      "duration": 210,
+      "id": "sc_2181479259_54",
+      "title": "Prospa - Love Songs (feat. Kosmo Kint)",
+      "artist": "CircoLoco Records",
+      "duration": 198,
       "category": "clip",
-      "addedAt": 1790256362966
+      "soundcloudUrl": "https://soundcloud.com/circolocorecords/prospa-love-songs-feat-kosmo-kint",
+      "coverUrl": "https://i1.sndcdn.com/artworks-NjTZ1gs8eSG5Y2Or-UrLotw-large.png",
+      "addedAt": 1791404993832
     },
     {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_55",
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_54",
+      "title": "Morning Dropsiders 1",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2291593025_55",
+      "title": "Prospa, Cloonee & Sybil - Free Your Mind",
+      "artist": "CircoLoco Records",
+      "duration": 202,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/circolocorecords/prospa-cloonee-free-your-mind",
+      "coverUrl": "https://i1.sndcdn.com/artworks-g9ug4CtAUr6uzOxk-M5R28w-large.png",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sc_2379818727_56",
+      "title": "PROSPA & CLOONEE x DAFT PUNK (MERCER Edit)",
+      "artist": "MERCER",
+      "duration": 450,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/mercer/prospa-cloonee-x-daft-punk",
+      "coverUrl": "https://i1.sndcdn.com/artworks-pmobbpUYEYsGpOJj-LrygzQ-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_56",
+      "title": "Morning Dropsiders 2",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2177089944_57",
+      "title": "DJ DLG - Paramount (MERCER Remix)",
+      "artist": "MERCER",
+      "duration": 199,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/mercer/dj-dlg-paramount-mercer-remix",
+      "coverUrl": "https://i1.sndcdn.com/artworks-Tt7UkGCdlJEn6fPJ-Mz4Fdw-large.png",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "nj_radio_bloc_1790255595165_5mni_n_57",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 6",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/032f69553727ee99-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 26,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2171905449_58",
+      "title": "DAFT PUNK - AROUND THE WORLD (WESTEND EDIT) (FREE DOWNLOAD)",
+      "artist": "Westend",
+      "duration": 300,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/itsthewestend/daft-punk-around-the-world-westend-edit",
+      "coverUrl": "https://i1.sndcdn.com/artworks-lJUDjdT3mZwiczhw-Efq6zw-large.png",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_58",
       "title": "Morning Dropsiders 3",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
@@ -11759,78 +12313,27 @@
       "category": "jingle"
     },
     {
-      "id": "rt_tv_1790256363593_0qfa",
-      "title": "Stade de France 2026)",
-      "artist": "ARTBAT, David Guetta, Gotye - Somebody That I Used To Know (",
-      "youtubeId": "R2ZeYn8x2fg",
-      "duration": 210,
+      "id": "sc_2408885247_59",
+      "title": "Dom Dolla, Solomun, Skepta - DANGER DANGER",
+      "artist": "⠶ Dom Dolla ⠶",
+      "duration": 180,
       "category": "clip",
-      "addedAt": 1790256363593
+      "soundcloudUrl": "https://soundcloud.com/domdolla/dangerdanger",
+      "coverUrl": "https://i1.sndcdn.com/artworks-zzbCyHg8BdgtkPbi-DBys8w-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_tv_1790256366356_npiu",
-      "title": "Other Dimension [Live from ÆDEN Brussels]",
-      "artist": "Anyma, Volkoder",
-      "youtubeId": "Mz7QKZgk7j0",
-      "duration": 3600,
-      "category": "liveset",
-      "addedAt": 1790256366356
-    },
-    {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_57",
-      "title": "Promo Escape Psycho 2",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "promo",
-      "expiresAt": "2026-10-31T23:59:59"
-    },
-    {
-      "id": "rt_tv_1790256366901_zy67",
-      "title": "Silence (ft. Sarah McLachlan) [John Summit Remix]",
-      "artist": "Delerium",
-      "youtubeId": "XSKweg0app8",
-      "duration": 210,
+      "id": "sc_2328324647_60",
+      "title": "Something We All Adore (Luch \"Solomun Tribute\" Mix)",
+      "artist": "Luch",
+      "duration": 375,
       "category": "clip",
-      "addedAt": 1790256366901
+      "soundcloudUrl": "https://soundcloud.com/luchmusicc/something-we-all-adore-luch",
+      "coverUrl": "https://i1.sndcdn.com/artworks-T3PM8VrwAuRxHFNz-6kACuA-large.png",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_tv_1790256367494_en08",
-      "title": "I Need Your Lovin'",
-      "artist": "Matroda",
-      "youtubeId": "U6OBHb0iJDA",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256367494
-    },
-    {
-      "id": "nj_radio_bloc_1790255595165_5mni_n_59",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 22,
-      "category": "jingle"
-    },
-    {
-      "id": "rt_tv_1790256368196_5liu",
-      "title": "Blind feat. Emmi",
-      "artist": "Feder",
-      "youtubeId": "RONI_t9AU3k",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256368196
-    },
-    {
-      "id": "rt_tv_1790256368853_ztkv",
-      "title": "Love (Live at Pillars of Creation)",
-      "artist": "Armin van Buuren & Omnia",
-      "youtubeId": "M5YiOqIIjxc",
-      "duration": 3600,
-      "category": "liveset",
-      "addedAt": 1790256368853
-    },
-    {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_61",
+      "id": "sj_radio_bloc_1790255595165_5mni_s_60",
       "title": "Morning Dropsiders 4",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
@@ -11838,234 +12341,99 @@
       "category": "jingle"
     },
     {
-      "id": "rt_1790256384500",
-      "title": "This Is What You Came For",
-      "artist": "Calvin Harris, Rihanna",
-      "youtubeId": "kOkQ4T5WO9E",
-      "duration": 210,
+      "id": "sc_2129927502_61",
+      "title": "Jain, Solomun - Tout le monde est fou (Roeld Remix) [Afro House] (Unmastered)",
+      "artist": "roeld",
+      "duration": 290,
       "category": "clip",
-      "addedAt": 1790256384500
+      "soundcloudUrl": "https://soundcloud.com/roy-music-821367172/jain-solomun-tout-le-monde-est-fou-roy-remix-afro-house",
+      "coverUrl": "https://i1.sndcdn.com/artworks-rlZsKlKRZK2B2Ikn-Ii7zYg-large.png",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_1790256402933",
-      "title": "The World is Mine",
-      "artist": "David Guetta",
-      "youtubeId": "13EsiCjsssY",
-      "duration": 210,
+      "id": "nj_radio_bloc_1790255595165_5mni_n_61",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 7",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/48b2897e5ea50d51-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_478430433_62",
+      "title": "Martin Garrix feat. Bonn - High On Life",
+      "artist": "Martin Garrix",
+      "duration": 231,
       "category": "clip",
-      "addedAt": 1790256402933
+      "soundcloudUrl": "https://soundcloud.com/martingarrix/martin-garrix-feat-bonn-high-on-life",
+      "coverUrl": "https://i1.sndcdn.com/artworks-000381134499-s1ebb1-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_63",
-      "title": "Promo Escape Psycho 1",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "promo",
-      "expiresAt": "2026-10-31T23:59:59"
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_62",
+      "title": "Morning Dropsiders 1",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+      "duration": 10,
+      "category": "jingle"
     },
     {
-      "id": "rt_1790256416815",
-      "title": "Music Sounds Better With You (Official Music Video)",
-      "artist": "Stardust",
-      "youtubeId": "FQlAEiCb8m0",
-      "duration": 210,
+      "id": "sc_2320987250_63",
+      "title": "Repeat It",
+      "artist": "Martin Garrix",
+      "duration": 192,
       "category": "clip",
-      "addedAt": 1790256416815
+      "soundcloudUrl": "https://soundcloud.com/martingarrix/repeat-it",
+      "coverUrl": "https://i1.sndcdn.com/artworks-TFFTMZpJcjwapVMJ-i7JPCg-large.png",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_tv_1790256423885_i2v6",
-      "title": "Neverland (From Japan) [Live at Sphere Vegas]",
-      "artist": "Anyma, Baset",
-      "youtubeId": "2ydtr7J0n6A",
-      "duration": 3600,
-      "category": "liveset",
-      "addedAt": 1790256423885
+      "id": "sc_1754695152_64",
+      "title": "Carry You",
+      "artist": "Martin Garrix",
+      "duration": 216,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/martingarrix/martin-garrix-third-party-feat-oaks-declan-j-donovan-carry-you",
+      "coverUrl": "https://i1.sndcdn.com/artworks-bg5xIy30jz82XiCU-iwTXIQ-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_64",
+      "title": "Morning Dropsiders 2",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2173081746_65",
+      "title": "Voodoo",
+      "artist": "Martin Garrix",
+      "duration": 169,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/martingarrix/martin-garrix-r3hab-skytech",
+      "coverUrl": "https://i1.sndcdn.com/artworks-eQw4fzTTEniMC6Wa-DKpvPg-large.png",
+      "addedAt": 1791404993832
     },
     {
       "id": "nj_radio_bloc_1790255595165_5mni_n_65",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "title": "Dropsiders Radio Promo Insta & Tiktok  8",
       "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 22,
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 32,
       "category": "jingle"
     },
     {
-      "id": "rt_tv_1790256426835_zip0",
-      "title": "Bad Angel (Live from Coachella)",
-      "artist": "Anyma, LISA",
-      "youtubeId": "LHDaa04ue6Q",
-      "duration": 3600,
-      "category": "liveset",
-      "addedAt": 1790256426835
-    },
-    {
-      "id": "rt_tv_1790256427473_9bb6",
-      "title": "Quantum [Live from [UNVRS] Ibiza]",
-      "artist": "Anyma, Chris Avantgarde",
-      "youtubeId": "vjbO4bOoQ8E",
-      "duration": 3600,
-      "category": "liveset",
-      "addedAt": 1790256427473
-    },
-    {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_67",
-      "title": "Morning Dropsiders 1",
-      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
-      "duration": 10,
-      "category": "jingle"
-    },
-    {
-      "id": "rt_tv_1790256428125_ncyh",
-      "title": "In My Mind [Live at Sphere Las Vegas]",
-      "artist": "Anyma, SCRIPT",
-      "youtubeId": "15NDQ9kWW-s",
-      "duration": 3600,
-      "category": "liveset",
-      "addedAt": 1790256428125
-    },
-    {
-      "id": "rt_tv_1790256428805_hfr3",
-      "title": "The End Of Genesys (New Year's Eve Intro) [Live at Sphere Las Vegas]",
-      "artist": "Anyma, Y do I",
-      "youtubeId": "tIkEPMzrq38",
-      "duration": 3600,
-      "category": "liveset",
-      "addedAt": 1790256428805
-    },
-    {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_69",
-      "title": "Promo Titan Lyon",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
-      "duration": 39,
-      "category": "promo"
-    },
-    {
-      "id": "rt_tv_1790256429479_cdij",
-      "title": "Human Now (feat. Luke Steele) [Live at Sphere Las Vegas]",
-      "artist": "Anyma",
-      "youtubeId": "_FeDZOKGTOg",
-      "duration": 3600,
-      "category": "liveset",
-      "addedAt": 1790256429479
-    },
-    {
-      "id": "rt_tv_1790256445718_96dx",
-      "title": "Go Back (feat. Julia Church) [Live at Sphere Las Vegas]",
-      "artist": "John Summit & Sub Focus",
-      "youtubeId": "9TLNDJH9E98",
-      "duration": 3600,
-      "category": "liveset",
-      "addedAt": 1790256445718
-    },
-    {
-      "id": "nj_radio_bloc_1790255595165_5mni_n_71",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 22,
-      "category": "jingle"
-    },
-    {
-      "id": "rt_1790256500279",
-      "title": "E Samba",
-      "artist": "Junior Jack",
-      "youtubeId": "8vNN6PXm5q8",
-      "duration": 210,
+      "id": "sc_196259216_66",
+      "title": "Martin Garrix - 'Don't Look Down (feat. Usher)'",
+      "artist": "Martin Garrix",
+      "duration": 223,
       "category": "clip",
-      "addedAt": 1790256500279
+      "soundcloudUrl": "https://soundcloud.com/martingarrix/martin-garrix-dont-look-down-feat-usher",
+      "coverUrl": "https://i1.sndcdn.com/artworks-000110285449-17viu6-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_1790256510461",
-      "title": "Thrill Me",
-      "artist": "Junior Jack",
-      "youtubeId": "C-NJ-B8ex0c",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256510461
-    },
-    {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_73",
-      "title": "Morning Dropsiders 2",
-      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
-      "duration": 10,
-      "category": "jingle"
-    },
-    {
-      "id": "rt_1790256525142",
-      "title": "Dare Me (Stupidisco)",
-      "artist": "Junior Jack",
-      "youtubeId": "oDIJJHm0rqM",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256525142
-    },
-    {
-      "id": "rt_1790256537909",
-      "title": "Da Hype",
-      "artist": "Junior Jack feat Robert Smith",
-      "youtubeId": "eNK6GWOVpQ4",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256537909
-    },
-    {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_75",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
-    },
-    {
-      "id": "rt_1790256557829",
-      "title": "Take Our Time (Extended Mix)",
-      "artist": "Oden & Fatzo x ASTELS",
-      "youtubeId": "Bc3dI-xLYLM",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256557829
-    },
-    {
-      "id": "rt_1790256581300",
-      "title": "Push The Tempo (Extended Mix)",
-      "artist": "Denis Sulta & Capri",
-      "youtubeId": "FjF0tMr0B18",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256581300
-    },
-    {
-      "id": "nj_radio_bloc_1790255595165_5mni_n_77",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 22,
-      "category": "jingle"
-    },
-    {
-      "id": "rt_1790256593118",
-      "title": "The Cure & The Cause",
-      "artist": "Fish Go Deep & Tracey K X Shy FX",
-      "youtubeId": "DKf6g9OjDwI",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256593118
-    },
-    {
-      "id": "rt_1790256614566",
-      "title": "Stamina (Extended Mix)",
-      "artist": "LEYO & Thierry Ganz",
-      "youtubeId": "a5A6fDVOojk",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790256614566
-    },
-    {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_79",
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_66",
       "title": "Morning Dropsiders 3",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
@@ -12073,78 +12441,27 @@
       "category": "jingle"
     },
     {
-      "id": "rt_tv_1790259637754_vl85",
-      "title": "Mayan Warrior · Burning Man 2025",
-      "artist": "JOHN SUMMIT",
-      "youtubeId": "d8zUK6nAbr8",
-      "duration": 210,
+      "id": "sc_266137755_67",
+      "title": "Martin Garrix & Third Party - Lions In The Wild",
+      "artist": "Martin Garrix",
+      "duration": 212,
       "category": "clip",
-      "addedAt": 1790259637754
+      "soundcloudUrl": "https://soundcloud.com/martingarrix/lions-in-the-wild",
+      "coverUrl": "https://i1.sndcdn.com/artworks-000164668800-slcj11-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_tv_1790259659370_k0dr",
-      "title": "DROPSIDERS TV",
-      "artist": "RÜFÜS DU SOL Backstage at The Gorge, May 2026",
-      "youtubeId": "A8Mz713rkE4",
-      "duration": 210,
+      "id": "sc_1990218275_68",
+      "title": "M83 - Outro (Nik Taylor Afro House Remix)",
+      "artist": "Nik Taylor",
+      "duration": 221,
       "category": "clip",
-      "addedAt": 1790259659370
+      "soundcloudUrl": "https://soundcloud.com/niktaylormusic/outroremix",
+      "coverUrl": "https://i1.sndcdn.com/artworks-334I7OE2genvHmgy-ohACNw-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_81",
-      "title": "Promo Escape Psycho 2",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "promo",
-      "expiresAt": "2026-10-31T23:59:59"
-    },
-    {
-      "id": "rt_tv_1790259664067_j1ku",
-      "title": "Techno Live Set · SECTION. · May 2026",
-      "artist": "Chris Liebing",
-      "youtubeId": "CdNiTlph0Ak",
-      "duration": 3600,
-      "category": "liveset",
-      "addedAt": 1790259664067
-    },
-    {
-      "id": "rt_tv_1790259669531_id6q",
-      "title": "Mayan Warrior · Burning Man 2022",
-      "artist": "Keinemusik (&ME, Rampa, Adam Port)",
-      "youtubeId": "2ECWX8GdDvA",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790259669531
-    },
-    {
-      "id": "nj_radio_bloc_1790255595165_5mni_n_83",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 22,
-      "category": "jingle"
-    },
-    {
-      "id": "rt_tv_1790259670492_96l7",
-      "title": "Mayan Warrior x Robot Heart · Burning Man 2019",
-      "artist": "Sainte Vie (Live)",
-      "youtubeId": "q5cIAIeFN4E",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790259670492
-    },
-    {
-      "id": "rt_tv_1790259672074_s3gt",
-      "title": "Mayan Warrior · Burning Man 2018",
-      "artist": "Monolink (live)",
-      "youtubeId": "IvwS6BYjHG0",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790259672074
-    },
-    {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_85",
+      "id": "sj_radio_bloc_1790255595165_5mni_s_68",
       "title": "Morning Dropsiders 4",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
@@ -12152,202 +12469,17 @@
       "category": "jingle"
     },
     {
-      "id": "rt_tv_1790259674483_owok",
-      "title": "Burning Man 2025",
-      "artist": "Monolink x Playground",
-      "youtubeId": "XMkWwNK_7RU",
-      "duration": 210,
+      "id": "sc_50171532_69",
+      "title": "Solomun - Kackvogel",
+      "artist": "Watergate Records",
+      "duration": 448,
       "category": "clip",
-      "addedAt": 1790259674483
+      "soundcloudUrl": "https://soundcloud.com/watergaterecords/solomun-kackvogel",
+      "coverUrl": "https://i1.sndcdn.com/artworks-000025291659-hp341d-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "rt_tv_1790259675295_4fad",
-      "title": "Mayan Warrior · Burning Man 2025",
-      "artist": "BLACK COFFEE",
-      "youtubeId": "FH7lIOv1s3Q",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790259675295
-    },
-    {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_87",
-      "title": "Promo Escape Psycho 1",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "promo",
-      "expiresAt": "2026-10-31T23:59:59"
-    },
-    {
-      "id": "rt_tv_1790259677531_gsv9",
-      "title": "Playground - Burning Man 2025  )'(",
-      "artist": "Rodriguez Jr. Hybrid",
-      "youtubeId": "xaXb6VQ7_eo",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790259677531
-    },
-    {
-      "id": "rt_tv_1790259678426_7wa5",
-      "title": "Mayan Warrior · Burning Man 2025",
-      "artist": "ANOTR",
-      "youtubeId": "yZZnY_mWRrY",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790259678426
-    },
-    {
-      "id": "nj_radio_bloc_1790255595165_5mni_n_89",
-      "title": "Dropsiders Radio Promo Insta & Tiktok",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
-      "duration": 22,
-      "category": "jingle"
-    },
-    {
-      "id": "rt_tv_1790259679085_cgmq",
-      "title": "Mayan Warrior · Burning Man 2024",
-      "artist": "Carl Cox",
-      "youtubeId": "BtEka3j8lKM",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790259679085
-    },
-    {
-      "id": "rt_tv_1790259680293_g8yz",
-      "title": "Maxa x Mayan Warrior Link up · Burning Man 2025",
-      "artist": "Colyn b2b Sainte Vie",
-      "youtubeId": "ryMbV0Tj7C4",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790259680293
-    },
-    {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_91",
-      "title": "Morning Dropsiders 1",
-      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
-      "duration": 10,
-      "category": "jingle"
-    },
-    {
-      "id": "rt_tv_1790259682190_9b6k",
-      "title": "IBIZA 2026",
-      "artist": "FRANKY RIZARDO at MUSIC ON DESTINO",
-      "youtubeId": "l_JUBJ673mU",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790259682190
-    },
-    {
-      "id": "rt_tv_1790259688732_38rp",
-      "title": "Secret Show l Tomorrowland Winter 2022",
-      "artist": "Kölsch",
-      "youtubeId": "LJaEtzb64bg",
-      "duration": 3600,
-      "category": "liveset",
-      "addedAt": 1790259688732
-    },
-    {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_93",
-      "title": "Promo Titan Lyon",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav",
-      "duration": 39,
-      "category": "promo"
-    },
-    {
-      "id": "rt_tv_1790259741570_kae4",
-      "title": "Mayan Warrior · Burning Man 2025",
-      "artist": "YAMAGUCCI",
-      "youtubeId": "MNkApftw_iM",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790259741570
-    },
-    {
-      "id": "rt_tv_1790259742351_1qc0",
-      "title": "Mayan Warrior, Burning Man, 2019",
-      "artist": "WhoMadeWho",
-      "youtubeId": "9lboizp9Kzc",
-      "duration": 210,
-      "category": "clip",
-      "addedAt": 1790259742351
-    },
-    {
-      "id": "nj_radio_bloc_1790255595165_5mni_n_95",
-      "title": "Dropsiders Radio Jingle 2",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
-      "duration": 10,
-      "category": "jingle"
-    },
-    {
-      "id": "track_1790880542125_gj4k",
-      "title": "Funky Pills",
-      "artist": "SAGMO",
-      "youtubeId": "7KfFG_Pa64Q",
-      "duration": 210,
-      "category": "clip"
-    },
-    {
-      "id": "track_1790880569253_ttyh",
-      "title": "Mix Master",
-      "artist": "Krysh Sood",
-      "youtubeId": "Atl2s03-aBU",
-      "duration": 210,
-      "category": "clip"
-    },
-    {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_97",
-      "title": "Morning Dropsiders 2",
-      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
-      "duration": 10,
-      "category": "jingle"
-    },
-    {
-      "id": "track_1790880584197_i3j5",
-      "title": "Dubplate",
-      "artist": "Arundel",
-      "youtubeId": "d0W76wstbpw",
-      "duration": 210,
-      "category": "clip"
-    },
-    {
-      "id": "track_1790880602951_jih8",
-      "title": "I Get On",
-      "artist": "xSoraa",
-      "youtubeId": "8pO4piTzrAc",
-      "duration": 210,
-      "category": "clip"
-    },
-    {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_99",
-      "title": "Promo Tomorrowland Winter",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav",
-      "duration": 66,
-      "category": "promo"
-    },
-    {
-      "id": "track_1790880619320_fcfl",
-      "title": "Just A Feeling",
-      "artist": "Peace Control, Eric Reyes, Nick Tew",
-      "youtubeId": "OHMDPqECopc",
-      "duration": 210,
-      "category": "clip"
-    },
-    {
-      "id": "track_1790880636990_pvud",
-      "title": "Voodoo Time",
-      "artist": "Kadi, Yonadav",
-      "youtubeId": "Zpe38hN3Els",
-      "duration": 210,
-      "category": "clip"
-    },
-    {
-      "id": "nj_radio_bloc_1790255595165_5mni_n_101",
+      "id": "nj_radio_bloc_1790255595165_5mni_n_69",
       "title": "Dropsiders Radio Jingle 1",
       "artist": "DROPSIDERS JINGLE",
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a0248d1e2762599b-Dropsiders_Radio_Jingle_1.wav",
@@ -12355,23 +12487,81 @@
       "category": "jingle"
     },
     {
-      "id": "track_1790880653725_y48c",
-      "title": "Loco Luck",
-      "artist": "REBRN, Ben Lipshitz",
-      "youtubeId": "hq54_KM_7UM",
-      "duration": 210,
-      "category": "clip"
+      "id": "sc_2374835657_70",
+      "title": "Tequila & Ibiza",
+      "artist": "Bob Sinclar",
+      "duration": 176,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/bobsinclar/tequila-ibiza",
+      "coverUrl": "https://i1.sndcdn.com/artworks-gIUBMFbetvbK-0-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "track_1790880673628_d6wg",
-      "title": "Back To You (Feat. Chiara Gamo)",
-      "artist": "Words Of Niō",
-      "youtubeId": "O6hQfaVPLb8",
-      "duration": 210,
-      "category": "clip"
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_70",
+      "title": "Morning Dropsiders 1",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+      "duration": 10,
+      "category": "jingle"
     },
     {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_103",
+      "id": "sc_2179246235_71",
+      "title": "Desireless - Voyage Voyage (Bob Sinclar Rework)",
+      "artist": "Bob Sinclar",
+      "duration": 310,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/bobsinclar/voyagevoyage",
+      "coverUrl": "https://i1.sndcdn.com/artworks-V07lhk7Kj3eL4HUE-HcUyyw-large.png",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sc_2409992262_72",
+      "title": "Bob Sinclar - World, Hold On (SMOKES Remix)",
+      "artist": "SMOKES",
+      "duration": 202,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/dj-smokes-252837622/bob-sinclar-world-hold-on",
+      "coverUrl": "https://i1.sndcdn.com/artworks-8RGKiWYL3wfVPMbx-62xXmQ-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_72",
+      "title": "Morning Dropsiders 2",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2344376237_73",
+      "title": "Bob Sinclar - Love Generation (DJIBRIL CISSE - TCHEBA x 5HOURS Remix)",
+      "artist": "5HOURS",
+      "duration": 672,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/5hoursmusic2/bob-sinclar-love-generation",
+      "coverUrl": "https://i1.sndcdn.com/artworks-SSTXu96vQ303GCRq-pB6zvQ-large.png",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "nj_radio_bloc_1790255595165_5mni_n_73",
+      "title": "Dropsiders Radio Jingle 2",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/0e6e02a4ecb4c116-Dropsiders_Radio_Jingle_2.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2190960655_74",
+      "title": "I Feel for You (Original Edit)",
+      "artist": "Bob Sinclar",
+      "duration": 195,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/bobsinclar/i-feel-for-you-original-edit",
+      "coverUrl": "https://i1.sndcdn.com/artworks-gbwGmJrty2Ka-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_74",
       "title": "Morning Dropsiders 3",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
@@ -12379,72 +12569,27 @@
       "category": "jingle"
     },
     {
-      "id": "track_1790880686069_4c2q",
-      "title": "Get Messy",
-      "artist": "Mishell, Toni B",
-      "youtubeId": "w3eLVBw9G58",
-      "duration": 210,
-      "category": "clip"
+      "id": "sc_851043142_75",
+      "title": "Rock This Party (Everybody Dance Now)",
+      "artist": "Bob Sinclar",
+      "duration": 245,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/bobsinclar/rock-this-party-everybody",
+      "coverUrl": "https://i1.sndcdn.com/artworks-L1o1SxmeqDQl-0-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "track_1790880702061_j0gu",
-      "title": "Sexy M.F.",
-      "artist": "Jackie, Aviv Sab",
-      "youtubeId": "ryhuhP-JUjk",
-      "duration": 210,
-      "category": "clip"
+      "id": "sc_2058334660_76",
+      "title": "Cruel Summer (Again)",
+      "artist": "Bob Sinclar",
+      "duration": 169,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/bobsinclar/cruel-summer",
+      "coverUrl": "https://i1.sndcdn.com/artworks-wODbihLi2dGc-0-large.jpg",
+      "addedAt": 1791404993832
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_105",
-      "title": "Promo Escape Psycho 2",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 40,
-      "category": "promo",
-      "expiresAt": "2026-10-31T23:59:59"
-    },
-    {
-      "id": "track_1790880712327_6h1n",
-      "title": "Feel Alive",
-      "artist": "Fancy Inc, Zaro",
-      "youtubeId": "GrZA0ZIPh6o",
-      "duration": 210,
-      "category": "clip"
-    },
-    {
-      "id": "track_1790880750037_q74r",
-      "title": "Flowin'",
-      "artist": "Elliot Simpson",
-      "youtubeId": "SNXcyirlgzI",
-      "duration": 210,
-      "category": "clip"
-    },
-    {
-      "id": "nj_radio_bloc_1790255595165_5mni_n_107",
-      "title": "Dropsiders Radio Jingle 3",
-      "artist": "DROPSIDERS JINGLE",
-      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
-      "duration": 12,
-      "category": "jingle"
-    },
-    {
-      "id": "track_1790880770487_y5zz",
-      "title": "French Fries",
-      "artist": "Alya, Simon Erar & TEUS",
-      "youtubeId": "rtN2OB2Ruxw",
-      "duration": 210,
-      "category": "clip"
-    },
-    {
-      "id": "track_1790880786198_ijmx",
-      "title": "Saying Hey",
-      "artist": "Darco, DvirNuns",
-      "youtubeId": "rxqNXlXFKVI",
-      "duration": 210,
-      "category": "clip"
-    },
-    {
-      "id": "sj_radio_bloc_1790255595165_5mni_s_109",
+      "id": "sj_radio_bloc_1790255595165_5mni_s_76",
       "title": "Morning Dropsiders 4",
       "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
       "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
@@ -12452,29 +12597,370 @@
       "category": "jingle"
     },
     {
-      "id": "track_1790880799159_fu3o",
-      "title": "That's Just Jazz",
-      "artist": "Enamour",
-      "youtubeId": "M6y7OVsBbYU",
-      "duration": 210,
-      "category": "clip"
+      "id": "sc_2346437756_77",
+      "title": "FISHER - What A Life (feat. Florence Arman)",
+      "artist": "FISHER",
+      "duration": 189,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/fish-tales/fisher-what-a-life-feat",
+      "coverUrl": "https://i1.sndcdn.com/artworks-oDrPqnCEtm94QV0h-QtxydQ-large.png",
+      "addedAt": 1791404993832
     },
     {
-      "id": "track_1790880813613_nro2",
-      "title": "No More Games",
-      "artist": "Swarellie ,Toni B",
-      "youtubeId": "e3EivSahXMM",
-      "duration": 210,
-      "category": "clip"
+      "id": "nj_radio_bloc_1790255595165_5mni_n_77",
+      "title": "Dropsiders Radio Jingle 3",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/5d1dc6fddb12e95a-Dropsiders_Radio_Jingle_3.wav",
+      "duration": 12,
+      "category": "jingle"
     },
     {
-      "id": "pr_radio_bloc_1790255595165_5mni_p_111",
-      "title": "Promo Escape Psycho 1",
-      "artist": "PROMO DROPSIDERS",
-      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav",
-      "duration": 47,
-      "category": "promo",
-      "expiresAt": "2026-10-31T23:59:59"
+      "id": "sc_471251166_78",
+      "title": "FISHER - Losing It",
+      "artist": "FISHER",
+      "duration": 248,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/fish-tales/fisher-losing-it",
+      "coverUrl": "https://i1.sndcdn.com/artworks-000373455918-gmn9w4-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_78",
+      "title": "Morning Dropsiders 1",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2294771549_79",
+      "title": "FISHER x Tones And I - Favour",
+      "artist": "FISHER",
+      "duration": 195,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/fish-tales/fisher-x-tones-i-favour",
+      "coverUrl": "https://i1.sndcdn.com/artworks-zNbbwRjDj06hx2Uf-25uzeA-large.png",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sc_2021223277_80",
+      "title": "FISHER - Ocean",
+      "artist": "FISHER",
+      "duration": 197,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/fish-tales/fisher-ocean-original-mix",
+      "coverUrl": "https://i1.sndcdn.com/artworks-VsTCVkS6JqjLGzoU-HEiNkQ-large.png",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_80",
+      "title": "Morning Dropsiders 2",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_1925426813_81",
+      "title": "Its That Time (FISHER Remix)-1.mp3",
+      "artist": "tekk in die fresse",
+      "duration": 172,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/dustin-fischer-136148656/its-that-time-fisher-remix-1",
+      "coverUrl": "https://i1.sndcdn.com/artworks-4kYBnPlVGlP0c3Ij-sW0bWQ-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "nj_radio_bloc_1790255595165_5mni_n_81",
+      "title": "Dropsiders Radio Jingle 4",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/23486b8258010f84-Dropsiders_Radio_Jingle_4.wav",
+      "duration": 8,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2294941325_82",
+      "title": "Beautiful",
+      "artist": "Anyma",
+      "duration": 215,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/anyma_ofc/beautiful",
+      "coverUrl": "https://i1.sndcdn.com/artworks-fBlNTjhspSrn-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_82",
+      "title": "Morning Dropsiders 3",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+      "duration": 11,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2346279038_83",
+      "title": "Anyma & Volkoder - Other Dimension [OUT NOW]",
+      "artist": "JOYOUS",
+      "duration": 272,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/user-176002091/the-prodigy-out-of-space-anyma",
+      "coverUrl": "https://i1.sndcdn.com/artworks-wjBrR4xUAQ797Ash-aTcWLg-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sc_2025669936_84",
+      "title": "Voices In My Head",
+      "artist": "Anyma",
+      "duration": 146,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/anyma_ofc/voices-in-my-head",
+      "coverUrl": "https://i1.sndcdn.com/artworks-S1gqGjAkvYsH-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_84",
+      "title": "Morning Dropsiders 4",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2299013459_85",
+      "title": "Bad Angel",
+      "artist": "Anyma",
+      "duration": 153,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/anyma_ofc/bad-angel",
+      "coverUrl": "https://i1.sndcdn.com/artworks-k3jp0F3ieN9k-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "nj_radio_bloc_1790255595165_5mni_n_85",
+      "title": "Dropsiders Radio Jingle 5",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/36e8b253e5fe15eb-Dropsiders_Radio_Jingle_5.wav",
+      "duration": 14,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2369433593_86",
+      "title": "Other Dimension",
+      "artist": "Anyma",
+      "duration": 205,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/anyma57269/other-dimension",
+      "coverUrl": "https://i1.sndcdn.com/artworks-eqrdNWLK3qgy-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_86",
+      "title": "Morning Dropsiders 1",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2100682968_87",
+      "title": "Taratata",
+      "artist": "Anyma",
+      "duration": 202,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/anyma_ofc/taratata",
+      "coverUrl": "https://i1.sndcdn.com/artworks-vz8YsKYcViMJ-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sc_2003123987_88",
+      "title": "Hypnotized",
+      "artist": "Anyma",
+      "duration": 181,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/anyma_ofc/hypnotized",
+      "coverUrl": "https://i1.sndcdn.com/artworks-UMnjwGOfZ8tB-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_88",
+      "title": "Morning Dropsiders 2",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_1741759266_89",
+      "title": "Pictures Of You",
+      "artist": "Anyma",
+      "duration": 175,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/anyma_ofc/anyma-pictures-of-you",
+      "coverUrl": "https://i1.sndcdn.com/artworks-LtLVJr8oYaBL-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "nj_radio_bloc_1790255595165_5mni_n_89",
+      "title": "Dropsiders Radio Jingle 6",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/65e81d013a4e8ad2-Dropsiders_Radio_Jingle_6.wav",
+      "duration": 9,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2104492788_90",
+      "title": "Human Now",
+      "artist": "Anyma",
+      "duration": 191,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/anyma_ofc/human-now",
+      "coverUrl": "https://i1.sndcdn.com/artworks-q9LGlm7nych7-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_90",
+      "title": "Morning Dropsiders 3",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+      "duration": 11,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_233770380_91",
+      "title": "Innerbloom",
+      "artist": "RÜFÜS DU SOL",
+      "duration": 578,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/rufusdusol/innerbloom",
+      "coverUrl": "https://i1.sndcdn.com/artworks-000136660669-0chphs-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sc_2321059217_92",
+      "title": "Innerbloom (PACS Remix) RÜFÜS DU SOL",
+      "artist": "Emilien Gn",
+      "duration": 489,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/emilien-gu-n/innerbloom-pacs-remix-ruefues",
+      "coverUrl": "https://i1.sndcdn.com/artworks-mc6cZLCQ3O0T8yAp-enOGlA-large.png",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_92",
+      "title": "Morning Dropsiders 4",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/2c653882ba647163-Morning_Dropsiders_4.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_1122713092_93",
+      "title": "On My Knees",
+      "artist": "RÜFÜS DU SOL",
+      "duration": 261,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/rufusdusol/on-my-knees",
+      "coverUrl": "https://i1.sndcdn.com/artworks-bhJ8GtbQYp63-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "nj_radio_bloc_1790255595165_5mni_n_93",
+      "title": "Dropsiders Radio Promo Insta & Tiktok",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/eaf2622d5fcc9ade-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 22,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2270488130_94",
+      "title": "Lost In The Woods",
+      "artist": "Adriatique",
+      "duration": 184,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/adriatique/lost-in-the-woods-1",
+      "coverUrl": "https://i1.sndcdn.com/artworks-IecHD13tZV4p-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_94",
+      "title": "Morning Dropsiders 1",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/7a575ec5b7147d07-Morning_Dropsiders_1_.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_830375860_95",
+      "title": "Adriatique & Marino Canal - Home (feat. Delhia De France) OUT NOW!",
+      "artist": "Adriatique",
+      "duration": 180,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/adriatique/adriatique-marino-canal-home-feat-delhia-de-france-out-now",
+      "coverUrl": "https://i1.sndcdn.com/artworks-hF8uCPFU8BupLVzD-KMGceA-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sc_1589550039_96",
+      "title": "Miracle",
+      "artist": "Adriatique",
+      "duration": 303,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/adriatique/miracle",
+      "coverUrl": "https://i1.sndcdn.com/artworks-lJZgMAUfynoH-0-large.png",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s_96",
+      "title": "Morning Dropsiders 2",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/a82db60fcb781d35-Morning_Dropsiders_2.wav",
+      "duration": 10,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2065786848_97",
+      "title": "In the Moment (Adriatique Remix)",
+      "artist": "RÜFÜS DU SOL",
+      "duration": 251,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/rufusdusol/in-the-moment-adriatique-remix",
+      "coverUrl": "https://i1.sndcdn.com/artworks-xKGdYlslxk6O-0-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "nj_radio_bloc_1790255595165_5mni_n_97",
+      "title": "Dropsiders Radio Promo Insta & Tiktok 2",
+      "artist": "DROPSIDERS JINGLE",
+      "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/a3745c4e00b8e56d-Dropsiders_Radio_Promo_Insta__.wav",
+      "duration": 33,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2046751176_98",
+      "title": "Frank Ocean - Lost (Gabss e Vintage Culture Edit)",
+      "artist": "G A B S S",
+      "duration": 405,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/gabssmusicc/frank-ocean-lost-gabss-e-vintage-culture",
+      "coverUrl": "https://i1.sndcdn.com/artworks-8JdCol0N06azinb3-gyIrRA-large.jpg",
+      "addedAt": 1791404993832
+    },
+    {
+      "id": "sj_radio_bloc_1790255595165_5mni_s2_98",
+      "title": "Morning Dropsiders 3",
+      "artist": "LE MORNING DROPSIDERS JINGLE SPÉCIAL",
+      "audioUrl": "https://dropsiders.fr/uploads/radio_jingles/19cfb2bf64595639-Morning_Dropsiders_3.wav",
+      "duration": 11,
+      "category": "jingle"
+    },
+    {
+      "id": "sc_2391644922_99",
+      "title": "Vintage Culture & Kevin Brauer - Yoga (Extended Mix) [Affair]",
+      "artist": "Raven Musik",
+      "duration": 335,
+      "category": "clip",
+      "soundcloudUrl": "https://soundcloud.com/ravvenmusik/vintage-culture-kevin-brauer",
+      "coverUrl": "https://i1.sndcdn.com/artworks-UQJWD0HO1EHXaom7-Hh1aRw-large.jpg",
+      "addedAt": 1791404993832
     },
     {
       "id": "rt_tv_1790256655246_6ilu",
