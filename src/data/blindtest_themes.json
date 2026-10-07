@@ -1,16 +1,5 @@
 [
   {
-    "id": "festival-bangers",
-    "title": "Mainstage & Festival Bangers",
-    "description": "Tomorrowland, Ultra Music Festival, Hardwell, Dimitri Vegas & Like Mike, Timmy Trumpet...",
-    "deezerPlaylistId": "11118315824",
-    "deezerPlaylistUrl": "https://www.deezer.com/fr/playlist/11118315824",
-    "color": "#ff007f",
-    "badge": "FESTIVAL",
-    "coverUrl": "https://cdn-images.dzcdn.net/images/cover/c65b3bd84e81056e060be144381c06c8/500x500-000000-80-0-0.jpg",
-    "enabled": true
-  },
-  {
     "id": "french-touch",
     "title": "French Touch & Electro Français",
     "description": "Daft Punk, Justice, DJ Snake, Madeon, Kungs, Bob Sinclar, Gesaffelstein...",
