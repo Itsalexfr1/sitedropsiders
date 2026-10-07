@@ -263,7 +263,56 @@ function useRadioAudio() {
         } catch {}
     }, []);
 
-    // Re-forcer le volume utilisateur sur le lecteur actif
+    // Contrôle du volume pour le widget SoundCloud officiel et postMessage
+    const applySoundCloudVolume = useCallback((vol: number) => {
+        if (IS_MOBILE) return;
+        const targetVol = isMutedRef.current ? 0 : Math.max(0, Math.min(100, Math.round(vol)));
+        [iframeRef.current, iframeRefB.current].forEach(iframe => {
+            if (iframe && iframe.src && iframe.src.includes('soundcloud.com')) {
+                try {
+                    iframe.contentWindow?.postMessage(JSON.stringify({ method: 'setVolume', value: targetVol }), '*');
+                } catch {}
+                try {
+                    const SC = (window as any).SC;
+                    if (SC?.Widget) {
+                        const widget = SC.Widget(iframe);
+                        widget.setVolume(targetVol);
+                    }
+                } catch {}
+            }
+        });
+    }, []);
+
+    // Attacher les écouteurs du widget SoundCloud pour enchaînement direct et sans blanc
+    const attachSoundCloudListeners = useCallback((iframe: HTMLIFrameElement) => {
+        if (!iframe) return;
+        const bindWidget = () => {
+            try {
+                const SC = (window as any).SC;
+                if (SC?.Widget) {
+                    const widget = SC.Widget(iframe);
+                    const targetVol = isMutedRef.current ? 0 : effectiveVolumeRef.current;
+                    widget.bind(SC.Widget.Events.READY, () => {
+                        widget.setVolume(targetVol);
+                        if (isPlayingRef.current) widget.play();
+                    });
+                    widget.bind(SC.Widget.Events.PLAY, () => {
+                        widget.setVolume(targetVol);
+                    });
+                    widget.bind(SC.Widget.Events.FINISH, () => {
+                        if (isPlayingRef.current) advanceToNextTrack();
+                    });
+                    widget.bind(SC.Widget.Events.ERROR, () => {
+                        if (isPlayingRef.current) advanceToNextTrack();
+                    });
+                }
+            } catch {}
+        };
+        bindWidget();
+        [300, 800, 1500].forEach(delay => setTimeout(bindWidget, delay));
+    }, [advanceToNextTrack]);
+
+    // Re-forcer le volume utilisateur sur le lecteur actif (Audio, YouTube et SoundCloud)
     const applyVolumeToActiveMedia = useCallback(() => {
         if (IS_MOBILE) return;
         const vol = isMutedRef.current ? 0 : effectiveVolumeRef.current;
@@ -276,7 +325,8 @@ function useRadioAudio() {
             sendCmd('unMute');
         }
         sendCmd('setVolume', [vol]);
-    }, [sendCmd]);
+        applySoundCloudVolume(vol);
+    }, [sendCmd, applySoundCloudVolume]);
 
     // Répéter l'application du volume aux moments clés de chargement d'un nouveau son
     const scheduleVolumeEnforcement = useCallback(() => {
@@ -560,12 +610,18 @@ function useRadioAudio() {
                     try {
                         activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'play' }), '*');
                     } catch {}
+                    try {
+                        const SC = (window as any).SC;
+                        if (SC?.Widget) SC.Widget(activeIframe).play();
+                    } catch {}
                 } else {
                     activeIframe.src = targetSrc;
                 }
+                attachSoundCloudListeners(activeIframe);
                 preloadedVideoIdRef.current = null;
             }
             currentPlayingMediaRef.current = scUrl;
+            scheduleVolumeEnforcement();
         } else if (currentSet.youtubeId) {
             const currentYt = currentSet.youtubeId;
             const isSameYt = currentPlayingMediaRef.current === currentYt;
@@ -738,25 +794,31 @@ function useRadioAudio() {
                     }).catch(() => {});
                 }
             } else if (nextTrack.soundcloudUrl) {
-                // ── Track SoundCloud — Enchaînement et reprise directe ──
+                // ── Track SoundCloud — Enchaînement et reprise directe sans blanc ──
                 if (audioRef.current && !audioRef.current.paused) {
                     audioRef.current.pause();
                     audioRef.current.src = '';
                 }
                 const scUrl = nextTrack.soundcloudUrl;
-                const activeIframe = iframeRef.current;
+                const activeIframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
                 if (activeIframe) {
                     const targetSrc = buildSoundCloudSrc(scUrl);
                     if (activeIframe.src === targetSrc) {
                         try {
                             activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'play' }), '*');
                         } catch {}
+                        try {
+                            const SC = (window as any).SC;
+                            if (SC?.Widget) SC.Widget(activeIframe).play();
+                        } catch {}
                     } else {
                         activeIframe.src = targetSrc;
                     }
+                    attachSoundCloudListeners(activeIframe);
                     preloadedVideoIdRef.current = null;
                 }
                 currentPlayingMediaRef.current = nextTrack.id || scUrl;
+                scheduleVolumeEnforcement();
             } else if (nextTrack.youtubeId) {
                 // ── Track YouTube — Enchaînement propre sans rechargement destructif ──
                 if (audioRef.current && !audioRef.current.paused) {
@@ -942,9 +1004,29 @@ function useRadioAudio() {
             try {
                 if (typeof event.origin === 'string' && event.origin.includes('soundcloud.com')) {
                     const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-                    if (data?.method === 'finish' || data?.method === 'finishRecord') {
-                        if (isPlayingRef.current) {
-                            advanceToNextTrack();
+                    if (!data) return;
+
+                    const isFinish =
+                        data?.event === 'finish' ||
+                        data?.event === 'onFinish' ||
+                        data?.event === 'finishRecord' ||
+                        data?.method === 'finish' ||
+                        data?.method === 'onFinish' ||
+                        data?.method === 'finishRecord';
+
+                    if (isFinish && isPlayingRef.current) {
+                        advanceToNextTrack();
+                        return;
+                    }
+
+                    // Détection de progression SoundCloud pour anticiper et éviter tout blanc
+                    if (data?.event === 'playProgress' || data?.method === 'playProgress') {
+                        const curPosMs = data?.data?.currentPosition ?? data?.currentPosition;
+                        const totalDurMs = data?.data?.relativePosition ?? data?.duration;
+                        if (typeof curPosMs === 'number' && typeof totalDurMs === 'number' && totalDurMs > 5000) {
+                            if (curPosMs >= totalDurMs - 600 && isPlayingRef.current) {
+                                advanceToNextTrack();
+                            }
                         }
                     }
                 }
@@ -1047,13 +1129,14 @@ function useRadioAudio() {
         const watchdogInterval = setInterval(() => {
             if (!isPlayingRef.current) return;
 
-            // Watchdog SoundCloud : fin de morceau individuel si durée écoulée
+            // Watchdog SoundCloud : fin de morceau individuel sans blanc
             if (currentSetRef.current?.soundcloudUrl && !currentSetRef.current?.audioUrl && !currentSetRef.current?.youtubeId) {
                 const now = Date.now();
                 const elapsedSinceStart = (now - trackStartedAtRef.current) / 1000;
                 const targetDur = currentSetRef.current?.durationSeconds || 0;
-                if (targetDur > 10 && elapsedSinceStart > targetDur + 3) {
-                    console.warn(`[Radio watchdog SC] Morceau SoundCloud terminé (${Math.round(elapsedSinceStart)}s / ${targetDur}s) → enchaînement`);
+                // Enchaînement dès la fin du morceau (0.4s d'anticipation pour zéro blanc)
+                if (targetDur > 10 && elapsedSinceStart >= targetDur - 0.4) {
+                    console.log(`[Radio watchdog SC] Fin naturelle SoundCloud (${Math.round(elapsedSinceStart)}s / ${targetDur}s) → enchaînement direct`);
                     advanceToNextTrack();
                     return;
                 }
@@ -1261,8 +1344,10 @@ function useRadioAudio() {
                 const activeIframe = iframeRef.current;
                 if (activeIframe) {
                     activeIframe.src = buildSoundCloudSrc(scUrl);
+                    attachSoundCloudListeners(activeIframe);
                     preloadedVideoIdRef.current = null;
                     currentPlayingMediaRef.current = liveTrack.id || scUrl;
+                    scheduleVolumeEnforcement();
                 }
             } else if (liveTrack.youtubeId) {
                 if (audioRef.current && !audioRef.current.paused) {
@@ -1381,10 +1466,11 @@ function useRadioAudio() {
                 if (next) sendCmd('mute');
                 // FIX MOBILE SOUND: iOS ignore setVolume, on force 100 et laisse le volume physique
                 else { sendCmd('unMute'); sendCmd('setVolume', [IS_MOBILE ? 100 : effectiveVolumeRef.current]); }
+                applySoundCloudVolume(next ? 0 : effectiveVolumeRef.current);
             }
             return next;
         });
-    }, [sendCmd]);
+    }, [sendCmd, applySoundCloudVolume]);
 
     // ─── Volume & Ducking sync ───────────────────────────────────────────────
     useEffect(() => {
@@ -1395,7 +1481,8 @@ function useRadioAudio() {
         if (!isPlaying) return;
         // FIX MOBILE SOUND: ne pas appeler setVolume sur iOS (ignoré)
         if (!isMuted && !IS_MOBILE) sendCmd('setVolume', [effectiveVolume]);
-    }, [volume, effectiveVolume, isPlaying, isMuted, sendCmd]);
+        applySoundCloudVolume(isMuted ? 0 : effectiveVolume);
+    }, [volume, effectiveVolume, isPlaying, isMuted, sendCmd, applySoundCloudVolume]);
 
     // ─── Broadcast vers autres composants ────────────────────────────────────
     const stateRef = useRef({ isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking });
