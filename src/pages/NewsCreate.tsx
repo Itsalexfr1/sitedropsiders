@@ -420,6 +420,7 @@ export function NewsCreate() {
                 'musique': { color: '#39ff14', grad: '57, 255, 20' },
                 'recap': { color: '#c026d3', grad: '192, 38, 211' },
                 'interview': { color: '#ffffff', grad: '255, 255, 255' },
+                'concours': { color: '#008cff', grad: '0, 140, 255' },
             };
 
             const catNormalized = (finalCategory || 'news').toLowerCase();
@@ -427,6 +428,7 @@ export function NewsCreate() {
             if (catNormalized.includes('musique')) themeData = categoryColors['musique'];
             else if (catNormalized.includes('interview')) themeData = categoryColors['interview'];
             else if (catNormalized.includes('focus')) themeData = categoryColors['focus'];
+            else if (catNormalized.includes('concour')) themeData = categoryColors['concours'];
             else if (catNormalized.includes('recap') || catNormalized.includes('review') || catNormalized.includes('sets-mixes') || catNormalized.includes('top-festival')) themeData = categoryColors['recap'];
 
             const labelText = finalCategory ? finalCategory.toUpperCase() : 'NEWS';
@@ -594,15 +596,15 @@ export function NewsCreate() {
 
                 // ==========================================
                 // ZONE 3 : BULLES ARRONDIES
-                // NEWS - RECAPS - CONCOURS - INTERVIEWS - VIDEOS
+                // NEWS - MUSIQUE - FOCUS - RECAPS - CONCOURS - INTERVIEWS - VIDEOS
                 // ==========================================
-                const categories = ['NEWS', 'RECAPS', 'CONCOURS', 'INTERVIEWS', 'VIDEOS'];
+                const categories = ['NEWS', 'MUSIQUE', 'FOCUS', 'RECAPS', 'CONCOURS', 'INTERVIEWS', 'VIDEOS'];
                 const pillsY = dropsidersY + pillsOffset;
-                const pillFont = `800 ${isStory ? 18 : 17}px "Montserrat", sans-serif`;
+                const pillFont = `800 ${isStory ? 16 : 15}px "Montserrat", sans-serif`;
                 ctx.font = pillFont;
 
-                const pillPaddingX = 20;
-                const pillGap = 12;
+                const pillPaddingX = 16;
+                const pillGap = 10;
                 const pillWidths = categories.map((cat: string) => ctx.measureText(cat).width + pillPaddingX * 2);
                 const totalPillsWidth = pillWidths.reduce((a: number, b: number) => a + b, 0) + (categories.length - 1) * pillGap;
 
@@ -610,12 +612,13 @@ export function NewsCreate() {
 
                 categories.forEach((cat: string, idx: number) => {
                     const pw = pillWidths[idx];
-                    const isPillActive = catNormalized.includes(cat.toLowerCase().slice(0, 4)) || (idx === 0 && (catNormalized === 'news' || isPromo));
+                    const isSpecificCat = ['musique', 'focus', 'recap', 'concour', 'interview', 'video'].some(c => catNormalized.includes(c));
+                    const isPillActive = catNormalized.includes(cat.toLowerCase().slice(0, 4)) || (!isSpecificCat && idx === 0);
                     ctx.save();
                     // Bulle arrondie (pill)
                     ctx.beginPath();
                     ctx.roundRect(currentPillX, pillsY, pw, pillH, pillH / 2);
-                    ctx.fillStyle = isPillActive ? `rgba(${themeData.grad}, 0.12)` : 'rgba(255, 255, 255, 0.08)';
+                    ctx.fillStyle = isPillActive ? `rgba(${themeData.grad}, 0.15)` : 'rgba(255, 255, 255, 0.08)';
                     ctx.fill();
                     ctx.strokeStyle = isPillActive ? themeData.color : 'rgba(255, 255, 255, 0.22)';
                     ctx.lineWidth = 1.5;

@@ -363,7 +363,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'CITATION': { label: 'CITATION', grad: '255, 255, 255', color: '#ffffff' },
         'CONSEILS': { label: 'REELS', grad: '255, 0, 51', color: '#ff0033' },
         'REELS': { label: 'REELS', grad: '255, 0, 51', color: '#ff0033' },
-        'CONCOURS': { label: 'JEUX CONCOURS', grad: '112, 0, 255', color: '#7000ff' },
+        'CONCOURS': { label: 'JEUX CONCOURS', grad: '0, 140, 255', color: '#008cff' },
         'ARTISTE FESTIVAL': { label: 'LES 10 ARTISTES À NE PAS LOUPER', grad: '0, 0, 0', color: '#000000' },
         'PROMO': { label: 'PROMO', grad: '255, 0, 51', color: '#ff0033' },
         'MAP': { label: 'MAP', grad: '255, 0, 51', color: '#ff0033' },
@@ -2719,16 +2719,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // ==========================================
                 // ZONE 3 : BULLES ARRONDIES
-                // NEWS - RECAPS - CONCOURS - INTERVIEWS - VIDEOS
+                // NEWS - MUSIQUE - FOCUS - RECAPS - CONCOURS - INTERVIEWS - VIDEOS
                 // ==========================================
-                const categories = ['NEWS', 'RECAPS', 'CONCOURS', 'INTERVIEWS', 'VIDEOS'];
+                const categories = ['NEWS', 'MUSIQUE', 'FOCUS', 'RECAPS', 'CONCOURS', 'INTERVIEWS', 'VIDEOS'];
                 const pillsY = dropsidersY + pillsOffset;
-                const pillFont = `800 ${isReel ? 18 : 17}px "Montserrat", sans-serif`;
+                const pillFont = `800 ${isReel ? 16 : 15}px "Montserrat", sans-serif`;
                 ctx.font = pillFont;
 
                 // Calculer la largeur de chaque pill
-                const pillPaddingX = 20;
-                const pillGap = 12;
+                const pillPaddingX = 16;
+                const pillGap = 10;
                 const pillWidths = categories.map((cat: string) => ctx.measureText(cat).width + pillPaddingX * 2);
                 const totalPillsWidth = pillWidths.reduce((a: number, b: number) => a + b, 0) + (categories.length - 1) * pillGap;
 
@@ -2737,12 +2737,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 categories.forEach((cat: string, idx: number) => {
                     const pw = pillWidths[idx];
                     const promoCatStr = (promoCategory || 'NEWS').toLowerCase();
-                    const isPillActive = promoCatStr.includes(cat.toLowerCase().slice(0, 4)) || (idx === 0 && (promoCatStr === 'news' || promoCatStr === 'promo'));
+                    const isSpecificCat = ['musique', 'focus', 'recap', 'concour', 'interview', 'video'].some(c => promoCatStr.includes(c));
+                    const isPillActive = promoCatStr.includes(cat.toLowerCase().slice(0, 4)) || (!isSpecificCat && idx === 0);
                     ctx.save();
                     // Bulle arrondie (pill)
                     ctx.beginPath();
                     ctx.roundRect(currentPillX, pillsY, pw, pillH, pillH / 2);
-                    ctx.fillStyle = isPillActive ? `rgba(${activeColor.grad}, 0.12)` : 'rgba(255, 255, 255, 0.08)';
+                    ctx.fillStyle = isPillActive ? `rgba(${activeColor.grad}, 0.15)` : 'rgba(255, 255, 255, 0.08)';
                     ctx.fill();
                     ctx.strokeStyle = isPillActive ? activeColor.color : 'rgba(255, 255, 255, 0.22)';
                     ctx.lineWidth = 1.5;
@@ -3762,7 +3763,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     theme === 'CONCOURS' 
                         ? (concoursMode === 'GTA6' 
                             ? 'bg-gradient-to-r from-pink-500/25 to-purple-600/25 border-pink-500 text-pink-300 shadow-[0_0_15px_rgba(255,0,127,0.4)]' 
-                            : 'bg-[#7000ff]/25 border-[#7000ff] text-[#c084fc] shadow-[0_0_15px_rgba(112,0,255,0.4)]') 
+                            : 'bg-[#008cff]/25 border-[#008cff] text-[#38bdf8] shadow-[0_0_15px_rgba(0,140,255,0.4)]') 
                         : 'bg-white/5 border-white/10 text-gray-400'
                 }`}
             >
@@ -4107,7 +4108,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         { id: 'MUSIQUE', label: 'MUSIQUE', color: '#39ff14' },
                         { id: 'FOCUS', label: 'FOCUS', color: '#ffaa00' },
                         { id: 'INTERVIEW', label: 'INTERVIEW', color: '#ffffff' },
-                        { id: 'CONCOURS', label: 'CONCOURS', color: '#7000ff' },
+                        { id: 'CONCOURS', label: 'CONCOURS', color: '#008cff' },
                     ].map(cat => {
                         const isSelected = (promoCategory || 'NEWS') === cat.id;
                         return (
@@ -4179,7 +4180,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     « Pour être informé de toutes les news sur la musique électronique et les festivals, abonnez-vous à DROPSIDERS »
                 </p>
                 <div className="flex flex-wrap gap-1 pt-1">
-                    {['NEWS', 'RECAPS', 'CONCOURS', 'INTERVIEWS', 'VIDEOS'].map((tag, i) => (
+                    {['NEWS', 'MUSIQUE', 'FOCUS', 'RECAPS', 'CONCOURS', 'INTERVIEWS', 'VIDEOS'].map((tag, i) => (
                         <span key={i} className="px-2.5 py-1 bg-white/10 border border-white/15 rounded-full text-[8px] font-black text-white/90">
                             {tag}
                         </span>
