@@ -538,7 +538,7 @@ export function AdminSoundCloudPlaylistModal({
                         <span className="text-orange-400 mr-1.5">{t.artist}</span> - {t.title}
                       </span>
                       <span className="text-gray-400 font-mono text-[10px] shrink-0 ml-2">
-                        {Math.floor(t.duration / 60)}:{String(t.duration % 60).padStart(2, '0')}
+                        {Math.floor((t.duration || 180) / 60)}:{String((t.duration || 180) % 60).padStart(2, '0')}
                       </span>
                     </div>
                   ))}
