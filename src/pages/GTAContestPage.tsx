@@ -60,6 +60,7 @@ export function GTAContestPage() {
     const [activeEntry, setActiveEntry] = useState<GTAContestEntry | null>(null);
     const [isGeneratingStory, setIsGeneratingStory] = useState(false);
     const [copiedReferral, setCopiedReferral] = useState(false);
+    const [copiedCode, setCopiedCode] = useState(false);
 
     // Social post URLs for Contest like buttons
     const [instaPostUrl, setInstaPostUrl] = useState<string>(() => {
@@ -394,6 +395,14 @@ export function GTAContestPage() {
         showNotification?.("🔗 Lien de parrainage copié dans le presse-papiers !", "success");
     };
 
+    const handleCopyCode = (code: string) => {
+        if (!code) return;
+        navigator.clipboard.writeText(code);
+        setCopiedCode(true);
+        setTimeout(() => setCopiedCode(false), 2000);
+        showNotification?.("📋 Code de parrainage copié !", "success");
+    };
+
     return (
         <div className="min-h-screen bg-[#0d0221] text-white relative overflow-hidden font-sans selection:bg-[#ff007f] selection:text-white">
             <SEO 
@@ -568,9 +577,22 @@ export function GTAContestPage() {
                                 <span className="text-gray-400 font-bold uppercase">Instagram :</span>
                                 <span className="text-white font-black">{existingEntry.instagram}</span>
                             </div>
-                            <div className="flex justify-between text-xs">
+                            <div className="flex justify-between items-center text-xs">
                                 <span className="text-gray-400 font-bold uppercase">Numéro de Parrainage :</span>
-                                <span className="text-[#00f0ff] font-mono font-black">{existingEntry.referralCode || 'DS-N/A'}</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[#00f0ff] font-mono font-black">{existingEntry.referralCode || 'DS-N/A'}</span>
+                                    {existingEntry.referralCode && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleCopyCode(existingEntry.referralCode)}
+                                            className="px-2 py-0.5 bg-[#00f0ff]/10 hover:bg-[#00f0ff]/25 border border-[#00f0ff]/30 text-[#00f0ff] rounded-md text-[10px] font-bold uppercase transition-all flex items-center gap-1 active:scale-95 cursor-pointer"
+                                            title="Copier le code de parrainage"
+                                        >
+                                            {copiedCode ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                                            <span>{copiedCode ? 'Copié !' : 'Copier'}</span>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                             <div className="flex justify-between text-xs">
                                 <span className="text-gray-400 font-bold uppercase">Statut :</span>
