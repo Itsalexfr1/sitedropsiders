@@ -606,18 +606,29 @@ function useRadioAudio() {
             const activeIframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
             if (activeIframe) {
                 const targetSrc = buildSoundCloudSrc(scUrl);
-                if (activeIframe.src === targetSrc) {
-                    try {
-                        activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'play' }), '*');
-                    } catch {}
+                const isAlreadySC = Boolean(activeIframe.src && activeIframe.src.includes('soundcloud.com'));
+                if (isAlreadySC) {
                     try {
                         const SC = (window as any).SC;
-                        if (SC?.Widget) SC.Widget(activeIframe).play();
+                        if (SC?.Widget) {
+                            const widget = SC.Widget(activeIframe);
+                            widget.load(scUrl, {
+                                auto_play: true,
+                                callback: () => {
+                                    widget.setVolume(isMutedRef.current ? 0 : effectiveVolumeRef.current);
+                                    widget.play();
+                                }
+                            });
+                        }
+                    } catch {}
+                    try {
+                        activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'load', value: scUrl, options: { auto_play: true } }), '*');
+                        activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'play' }), '*');
                     } catch {}
                 } else {
                     activeIframe.src = targetSrc;
+                    attachSoundCloudListeners(activeIframe);
                 }
-                attachSoundCloudListeners(activeIframe);
                 preloadedVideoIdRef.current = null;
             }
             currentPlayingMediaRef.current = scUrl;
@@ -803,18 +814,56 @@ function useRadioAudio() {
                 const activeIframe = activeSlotRef.current === 'A' ? iframeRef.current : iframeRefB.current;
                 if (activeIframe) {
                     const targetSrc = buildSoundCloudSrc(scUrl);
-                    if (activeIframe.src === targetSrc) {
-                        try {
-                            activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'play' }), '*');
-                        } catch {}
+                    const isAlreadySC = Boolean(activeIframe.src && activeIframe.src.includes('soundcloud.com'));
+
+                    if (isAlreadySC) {
+                        // Crucial : NE JAMAIS réassigner activeIframe.src !
+                        // Cela préserve le contexte de lecture continue du navigateur sans blocage autoplay.
                         try {
                             const SC = (window as any).SC;
-                            if (SC?.Widget) SC.Widget(activeIframe).play();
+                            if (SC?.Widget) {
+                                const widget = SC.Widget(activeIframe);
+                                widget.load(scUrl, {
+                                    auto_play: true,
+                                    callback: () => {
+                                        const targetVol = isMutedRef.current ? 0 : effectiveVolumeRef.current;
+                                        widget.setVolume(targetVol);
+                                        widget.play();
+                                    }
+                                });
+                            }
                         } catch {}
+
+                        try {
+                            activeIframe.contentWindow?.postMessage(JSON.stringify({
+                                method: 'load',
+                                value: scUrl,
+                                options: { auto_play: true }
+                            }), '*');
+                            activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'play' }), '*');
+                        } catch {}
+
+                        // Relances de sécurité pour s'assurer que le son part sans intervention
+                        [250, 700, 1400, 2200].forEach(delay => {
+                            setTimeout(() => {
+                                if (!isPlayingRef.current) return;
+                                try {
+                                    const SC = (window as any).SC;
+                                    if (SC?.Widget) {
+                                        const widget = SC.Widget(activeIframe);
+                                        widget.play();
+                                        widget.setVolume(isMutedRef.current ? 0 : effectiveVolumeRef.current);
+                                    }
+                                } catch {}
+                                try {
+                                    activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'play' }), '*');
+                                } catch {}
+                            }, delay);
+                        });
                     } else {
                         activeIframe.src = targetSrc;
+                        attachSoundCloudListeners(activeIframe);
                     }
-                    attachSoundCloudListeners(activeIframe);
                     preloadedVideoIdRef.current = null;
                 }
                 currentPlayingMediaRef.current = nextTrack.id || scUrl;
@@ -1343,8 +1392,29 @@ function useRadioAudio() {
                 const scUrl = liveTrack.soundcloudUrl;
                 const activeIframe = iframeRef.current;
                 if (activeIframe) {
-                    activeIframe.src = buildSoundCloudSrc(scUrl);
-                    attachSoundCloudListeners(activeIframe);
+                    const isAlreadySC = Boolean(activeIframe.src && activeIframe.src.includes('soundcloud.com'));
+                    if (isAlreadySC) {
+                        try {
+                            const SC = (window as any).SC;
+                            if (SC?.Widget) {
+                                const widget = SC.Widget(activeIframe);
+                                widget.load(scUrl, {
+                                    auto_play: true,
+                                    callback: () => {
+                                        widget.setVolume(isMutedRef.current ? 0 : effectiveVolumeRef.current);
+                                        widget.play();
+                                    }
+                                });
+                            }
+                        } catch {}
+                        try {
+                            activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'load', value: scUrl, options: { auto_play: true } }), '*');
+                            activeIframe.contentWindow?.postMessage(JSON.stringify({ method: 'play' }), '*');
+                        } catch {}
+                    } else {
+                        activeIframe.src = buildSoundCloudSrc(scUrl);
+                        attachSoundCloudListeners(activeIframe);
+                    }
                     preloadedVideoIdRef.current = null;
                     currentPlayingMediaRef.current = liveTrack.id || scUrl;
                     scheduleVolumeEnforcement();
