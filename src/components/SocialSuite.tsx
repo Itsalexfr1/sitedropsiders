@@ -120,9 +120,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'PUBLICATION');
     const [theme, setTheme] = useState<ThemeType>(() => {
         if (initialTheme) return initialTheme;
-        try {
-            if (localStorage.getItem('dropsiders_custom_planning_import')) return 'PLANNING';
-        } catch {}
         return 'NEWS';
     });
     const [showSwipe, setShowSwipe] = useState(false);
@@ -155,33 +152,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         venue?: string; 
         time?: string; 
         artist?: string; 
-    }[]>(() => {
-        try {
-            const imported = localStorage.getItem('dropsiders_custom_planning_import');
-            if (imported) {
-                const parsed = JSON.parse(imported);
-                if (Array.isArray(parsed.items) && parsed.items.length > 0) {
-                    return parsed.items;
-                }
-            }
-        } catch {}
-        return [];
-    });
+    }[]>([]);
     const [agendaMonth, setAgendaMonth] = useState<string>(() => {
         const MONTHS_FR = ['JANVIER', 'FÉVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUILLET', 'AOÛT', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÉCEMBRE'];
         return MONTHS_FR[new Date().getMonth()] || 'OCTOBRE';
     });
     const [agendaBadgeSubtitle, setAgendaBadgeSubtitle] = useState<string>('WEEK-END');
-    const [planningDate, setPlanningDate] = useState(() => {
-        try {
-            const imported = localStorage.getItem('dropsiders_custom_planning_import');
-            if (imported) {
-                const parsed = JSON.parse(imported);
-                if (parsed.date) return parsed.date;
-            }
-        } catch {}
-        return 'OCTOBRE';
-    });
+    const [planningDate, setPlanningDate] = useState('OCTOBRE');
     const [calendarMonth, setCalendarMonth] = useState('MARS 2025');
     const [calendarEvents, setCalendarEvents] = useState<{ date: string; label: string }[]>([
         { date: '1', label: 'FESTIVAL 1' },
@@ -408,6 +385,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'JEU': { label: 'JEU', grad: '0, 240, 255', color: '#00f0ff' },
         'JEU_FESTIVAL': { label: 'JEU_FESTIVAL', grad: '255, 170, 0', color: '#ffaa00' },
     };
+
+    useEffect(() => {
+        try {
+            localStorage.removeItem('dropsiders_custom_planning_import');
+        } catch {}
+    }, []);
 
     useEffect(() => {
         if (activeTab === 'REEL') {
@@ -1167,7 +1150,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
                 // 2. BIG HOLLOW MONTH TITLE
-                const monthY = isStory ? 310 : 220;
+                const monthY = isStory ? 430 : 310;
                 const monthText = (agendaMonth || 'OCTOBRE').toUpperCase().trim();
 
                 // Subtle ambient spotlight glow behind the Month
@@ -1242,7 +1225,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // 3. EVENTS LIST - With generous breathing room from the month title
                 const itemsToDraw = planningItems.slice(0, isStory ? 8 : 7);
-                const listStartY = isStory ? 530 : 385;
+                const listStartY = isStory ? 630 : 470;
                 const bottomMargin = isStory ? 140 : 80;
                 const availableHeight = canvas.height - listStartY - bottomMargin;
                 let rowSpacing = Math.min(
