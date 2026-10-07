@@ -3,8 +3,8 @@
   "shop_enabled": true,
   "radio_messages_enabled": false,
   "gta_contest_menu_visible": true,
-  "gta_contest_insta_url": "https://www.instagram.com/dropsiders.fr",
-  "gta_contest_tiktok_url": "https://www.tiktok.com/@dropsiders.fr",
+  "gta_contest_insta_url": "https://www.instagram.com/p/DeKtf3CoUgs/",
+  "gta_contest_tiktok_url": "https://www.tiktok.com/@dropsiders.fr/photo/7693922630679678241",
   "blocked_senders": [
     "k65192373@gmail.com"
   ],
@@ -20018,6 +20018,5 @@
       "audioUrl": "https://dropsiders.fr/uploads/radio/jingles/d0db2807d7beaede-Dropsiders_Radio_Promo_Insta__.wav",
       "type": "jingle"
     }
-  ],
-  "radio_messages_enabled": false
+  ]
 }
