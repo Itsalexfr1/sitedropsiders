@@ -178,6 +178,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [agendaCoverCta, setAgendaCoverCta] = useState<string>('Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️');
     const [artisteFestivalSlide, setArtisteFestivalSlide] = useState<1 | 2>(1);
     const [eventsSlide, setEventsSlide] = useState<1 | 2>(1);
+    const [editorialSlide, setEditorialSlide] = useState<1 | 2>(1);
     const [planningDate, setPlanningDate] = useState('OCTOBRE');
     const [calendarMonth, setCalendarMonth] = useState('MARS 2025');
     const [calendarEvents, setCalendarEvents] = useState<{ date: string; label: string }[]>([
@@ -3258,19 +3259,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
                 // 4. MAIN TITLE IN WHITE (BOLD) & SUBTEXT UNDERNEATH (ITALIC)
+                const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS'].includes(theme);
+
                 const mainTitleText = (conseilsTitle && conseilsTitle !== 'LE TITRE ICI') 
                     ? conseilsTitle 
                     : (customText || (theme === 'ARTISTE FESTIVAL' ? 'LES 10 ARTISTES À NE PAS LOUPER' : ''));
-                const bodyText = conseilsSubtext || '';
+                
+                // Sur la slide 1 des thèmes éditoriaux (News, Récap, etc.), on retire le texte en dessous pour ne laisser que le titre principal
+                const bodyText = (editorialSlide === 1 && isEditorialCarouselTheme) 
+                    ? '' 
+                    : (conseilsSubtext || '');
 
                 const lineWidth = canvas.width - (lineMarginX * 2);
                 const isTitleOnly = mainTitleText && !bodyText;
-                let curY = dividerY + 66;
+                
+                // Décalage du texte par rapport à la barre horizontale (donne de l'air pour que le texte ne soit pas trop proche de la ligne)
+                let curY = dividerY + (isReel ? 104 : 96);
 
                 // --- A) MAIN TITLE IN WHITE (WITH THEME COLOR HIGHLIGHTS) ---
                 if (mainTitleText) {
                     ctx.save();
-                    let titleFontSize = isConseilsLargeTitle ? 66 : (isTitleOnly ? 58 : 44);
+                    // Sur la slide 1 (titre seul) ou en mode titre large, le titre est agrandi pour un maximum d'impact
+                    let titleFontSize = isConseilsLargeTitle ? 72 : (isTitleOnly ? 64 : (isEditorialCarouselTheme ? 50 : 44));
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
 
                     const formatTitleLines = (fSize: number) => {
@@ -3312,13 +3322,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         curY += titleLineHeight;
                     });
                     ctx.restore();
-                    curY += 22; // Clean spacing
+                    curY += 26; // Clean spacing
                 }
 
                 // --- B) SUBTEXT UNDERNEATH (ITALIC, WITH THEME COLOR HIGHLIGHTS) ---
                 if (bodyText) {
                     ctx.save();
-                    let subFontSize = 26;
+                    // Sur la slide 2, le texte en dessous est agrandi (32px au lieu de 26px) pour une excellente lisibilité
+                    let subFontSize = isEditorialCarouselTheme ? 32 : 26;
                     ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
 
                     const formatSubLines = (fSize: number) => {
@@ -3343,12 +3354,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
 
                     let subLines = formatSubLines(subFontSize);
-                    while (subFontSize > 16 && subLines.some(l => ctx.measureText(stripTags(l)).width > lineWidth)) {
+                    while (subFontSize > 18 && subLines.some(l => ctx.measureText(stripTags(l)).width > lineWidth)) {
                         subFontSize -= 1;
                         subLines = formatSubLines(subFontSize);
                     }
 
-                    const subLineHeight = Math.round(subFontSize * 1.36);
+                    const subLineHeight = Math.round(subFontSize * 1.38);
                     ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = 'rgba(255,255,255,0.92)';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
@@ -3617,7 +3628,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY]);
 
     // Pre-charger l'affiche de l'événement dès que son URL change
     useEffect(() => {
@@ -4251,6 +4262,75 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } finally {
             setTimeout(() => {
                 setEventsSlide(prevSlide);
+                setIsDownloading(false);
+                generateImage();
+            }, 500);
+        }
+    };
+
+    const downloadEditorialSlide = async (slideNumber: 1 | 2, format: TabType = (activeTab || 'PUBLICATION')) => {
+        if (!canvasRef.current) return;
+        setIsDownloading(true);
+        const prevSlide = editorialSlide;
+        try {
+            setEditorialSlide(slideNumber);
+            await new Promise(r => setTimeout(r, 60));
+            await generateImage(format, true);
+            const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide${slideNumber}-${slideNumber === 1 ? 'cover' : 'detail'}.png`;
+            const dataUrl = canvasRef.current.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } catch (e) {
+            console.error(e);
+            setErrorMessage(`Erreur lors du téléchargement de la slide ${slideNumber}.`);
+        } finally {
+            setTimeout(() => {
+                setEditorialSlide(prevSlide);
+                setIsDownloading(false);
+                generateImage();
+            }, 400);
+        }
+    };
+
+    const downloadEditorialCarousel = async (format: TabType = (activeTab || 'PUBLICATION')) => {
+        if (!canvasRef.current) return;
+        setIsDownloading(true);
+        const prevSlide = editorialSlide;
+        try {
+            // 1. Slide 1 (Cover)
+            setEditorialSlide(1);
+            await new Promise(r => setTimeout(r, 60));
+            await generateImage(format, true);
+            const dataUrl1 = canvasRef.current.toDataURL('image/png');
+            const a1 = document.createElement('a');
+            a1.href = dataUrl1;
+            a1.download = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide1-cover.png`;
+            document.body.appendChild(a1);
+            a1.click();
+            document.body.removeChild(a1);
+
+            // 2. Slide 2 (Detail)
+            await new Promise(r => setTimeout(r, 350));
+            setEditorialSlide(2);
+            await new Promise(r => setTimeout(r, 60));
+            await generateImage(format, true);
+            const dataUrl2 = canvasRef.current.toDataURL('image/png');
+            const a2 = document.createElement('a');
+            a2.href = dataUrl2;
+            a2.download = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide2-detail.png`;
+            document.body.appendChild(a2);
+            a2.click();
+            document.body.removeChild(a2);
+        } catch (e) {
+            console.error(e);
+            setErrorMessage("Erreur lors de l'exportation du carrousel.");
+        } finally {
+            setTimeout(() => {
+                setEditorialSlide(prevSlide);
                 setIsDownloading(false);
                 generateImage();
             }, 500);
@@ -5920,6 +6000,69 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const conseilsEditor = (
         <div className="space-y-4">
+            {/* CARROUSEL SLIDE SWITCHER (POUR NEWS, RÉCAP, FOCUS, ETC.) */}
+            {['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS'].includes(theme) && (
+                <>
+                    <div className="p-1.5 bg-black/60 border border-white/10 rounded-2xl flex gap-1 shadow-xl">
+                        <button
+                            type="button"
+                            onClick={() => setEditorialSlide(1)}
+                            className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
+                                editorialSlide === 1
+                                    ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-[1.02]'
+                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            }`}
+                        >
+                            <span className="text-xs">📌</span> Slide 1 : Titre Seul (Cover)
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setEditorialSlide(2)}
+                            className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
+                                editorialSlide === 2
+                                    ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-[1.02]'
+                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            }`}
+                        >
+                            <span className="text-xs">📖</span> Slide 2 : Titre + Sous-titre
+                        </button>
+                    </div>
+
+                    {/* Quick Carousel Download Bar */}
+                    <div className="p-2.5 bg-white/5 border border-white/10 rounded-xl space-y-2">
+                        <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
+                            <span>Export Carrousel Rapide</span>
+                            <span className="text-white font-mono">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <button
+                                type="button"
+                                onClick={() => downloadEditorialSlide(1)}
+                                disabled={isDownloading}
+                                className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                            >
+                                <Download className="w-3.5 h-3.5 text-neon-cyan" /> Slide 1 (PNG)
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => downloadEditorialSlide(2)}
+                                disabled={isDownloading}
+                                className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                            >
+                                <Download className="w-3.5 h-3.5 text-neon-cyan" /> Slide 2 (PNG)
+                            </button>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => downloadEditorialCarousel()}
+                            disabled={isDownloading}
+                            className="w-full py-2.5 bg-gradient-to-r from-neon-cyan via-blue-500 to-indigo-600 hover:opacity-90 text-black font-black text-[10px] uppercase rounded-lg shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95"
+                        >
+                            <Download className="w-4 h-4 text-black" /> Télécharger Carrousel (Slide 1 + 2)
+                        </button>
+                    </div>
+                </>
+            )}
             <div 
                 className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-2xl cursor-pointer group hover:border-white/20 transition-all" 
                 onClick={() => setIsConseilsLargeTitle(!isConseilsLargeTitle)}
@@ -6065,7 +6208,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             <div className="space-y-2">
                 <div className="flex items-center justify-between pl-1">
-                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Texte en dessous du titre (italique)</label>
+                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+                        <span>Texte en dessous (italique)</span>
+                        <span className="text-[8px] font-bold text-neon-cyan px-1.5 py-0.5 rounded bg-neon-cyan/10 border border-neon-cyan/20">Slide 2</span>
+                    </label>
                     <span className="text-[8px] font-bold text-gray-500">Astuce: *mot*</span>
                 </div>
                 <textarea 
@@ -7852,6 +7998,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </button>
                             </div>
                         )}
+                        {['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS'].includes(theme) && (
+                            <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20">
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setEditorialSlide(1)}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                        editorialSlide === 1
+                                            ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
+                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    📌 Slide 1 (Titre)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setEditorialSlide(2)}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                        editorialSlide === 2
+                                            ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
+                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    📖 Slide 2 (Détail)
+                                </button>
+                            </div>
+                        )}
                         <div className={`relative ${activeTab === 'REEL' ? 'w-full max-w-[280px]' : 'w-full max-w-[450px]'} transition-all duration-300`} style={{ aspectRatio: activeTab === 'REEL' ? '9/16' : '4/5' }}>
                             <div className="w-full h-full bg-[#111] rounded-[30px] overflow-hidden border border-white/10 shadow-2xl relative">
                                 <canvas 
@@ -8025,6 +8198,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     }`}
                                 >
                                     Slide 2 (Affiche)
+                                </button>
+                            </div>
+                        )}
+                        {['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS'].includes(theme) && (
+                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl">
+                                <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); setEditorialSlide(1); }}
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all ${
+                                        editorialSlide === 1 ? 'bg-white text-black shadow-md' : 'text-gray-400'
+                                    }`}
+                                >
+                                    Slide 1 (Titre)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); setEditorialSlide(2); }}
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all ${
+                                        editorialSlide === 2 ? 'bg-white text-black shadow-md' : 'text-gray-400'
+                                    }`}
+                                >
+                                    Slide 2 (Détail)
                                 </button>
                             </div>
                         )}
