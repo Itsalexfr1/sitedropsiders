@@ -177,6 +177,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [agendaCoverGenres, setAgendaCoverGenres] = useState<string>('HARD TECHNO • RAWSTYLE • MULTI-GENRES');
     const [agendaCoverCta, setAgendaCoverCta] = useState<string>('Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️');
     const [artisteFestivalSlide, setArtisteFestivalSlide] = useState<1 | 2>(1);
+    const [eventsSlide, setEventsSlide] = useState<1 | 2>(1);
     const [planningDate, setPlanningDate] = useState('OCTOBRE');
     const [calendarMonth, setCalendarMonth] = useState('MARS 2025');
     const [calendarEvents, setCalendarEvents] = useState<{ date: string; label: string }[]>([
@@ -810,7 +811,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             const isModernEditorialTheme = (
-                ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'EVENTS', 'INTERVIEW', 'LIVESTREAM'].includes(theme) ||
+                ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM'].includes(theme) ||
+                (theme === 'EVENTS' && eventsSlide === 1) ||
                 (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1)
             );
 
@@ -853,7 +855,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, 0, canvas.width, 160);
                 }
 
-                if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'AFFICHE' && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
+                if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && eventsSlide === 2) && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
                     const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                         ? canvas.height * 0.8
                         : (theme === 'CONCOURS' ? canvas.height * 0.35 : canvas.height * 0.4);
@@ -2901,7 +2903,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-            } else if (theme === 'AFFICHE') {
+            } else if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2)) {
                 const isStory = canvas.height > 1500;
 
                 // 1. Dark Vignette overlay (Atmosphère sombre et immersive Dropsiders)
@@ -3220,8 +3222,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-                // 3. HORIZONTAL DIVIDER LINE & SWIPE (Positioned at ~63-64% height)
-                const dividerY = Math.floor(canvas.height * (isReel ? 0.62 : 0.64));
+                // 3. HORIZONTAL DIVIDER LINE & SWIPE (Positioned at ~65-67% height)
+                const dividerY = Math.floor(canvas.height * (isReel ? 0.65 : 0.67));
                 const lineMarginX = isReel ? 80 : 60;
                 let swipeSpaceRight = 0;
 
@@ -3263,7 +3265,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const lineWidth = canvas.width - (lineMarginX * 2);
                 const isTitleOnly = mainTitleText && !bodyText;
-                let curY = dividerY + 62;
+                let curY = dividerY + 66;
 
                 // --- A) MAIN TITLE IN WHITE (WITH THEME COLOR HIGHLIGHTS) ---
                 if (mainTitleText) {
@@ -3615,7 +3617,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY]);
 
     // Pre-charger l'affiche de l'événement dès que son URL change
     useEffect(() => {
@@ -4186,6 +4188,75 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
+    const downloadEventsSlide = async (slideNumber: 1 | 2, format: TabType = (activeTab || 'PUBLICATION')) => {
+        if (!canvasRef.current) return;
+        setIsDownloading(true);
+        const prevSlide = eventsSlide;
+        try {
+            setEventsSlide(slideNumber);
+            await new Promise(r => setTimeout(r, 60));
+            await generateImage(format, true);
+            const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide${slideNumber}-${slideNumber === 1 ? 'post' : 'affiche'}.png`;
+            const dataUrl = canvasRef.current.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } catch (e) {
+            console.error(e);
+            setErrorMessage(`Erreur lors du téléchargement de la slide ${slideNumber}.`);
+        } finally {
+            setTimeout(() => {
+                setEventsSlide(prevSlide);
+                setIsDownloading(false);
+                generateImage();
+            }, 400);
+        }
+    };
+
+    const downloadEventsCarousel = async (format: TabType = (activeTab || 'PUBLICATION')) => {
+        if (!canvasRef.current) return;
+        setIsDownloading(true);
+        const prevSlide = eventsSlide;
+        try {
+            // 1. Slide 1 (Post)
+            setEventsSlide(1);
+            await new Promise(r => setTimeout(r, 60));
+            await generateImage(format, true);
+            const dataUrl1 = canvasRef.current.toDataURL('image/png');
+            const a1 = document.createElement('a');
+            a1.href = dataUrl1;
+            a1.download = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide1-post.png`;
+            document.body.appendChild(a1);
+            a1.click();
+            document.body.removeChild(a1);
+
+            // 2. Slide 2 (Affiche)
+            await new Promise(r => setTimeout(r, 350));
+            setEventsSlide(2);
+            await new Promise(r => setTimeout(r, 60));
+            await generateImage(format, true);
+            const dataUrl2 = canvasRef.current.toDataURL('image/png');
+            const a2 = document.createElement('a');
+            a2.href = dataUrl2;
+            a2.download = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide2-affiche.png`;
+            document.body.appendChild(a2);
+            a2.click();
+            document.body.removeChild(a2);
+        } catch (e) {
+            console.error(e);
+            setErrorMessage("Erreur lors de l'exportation du carrousel.");
+        } finally {
+            setTimeout(() => {
+                setEventsSlide(prevSlide);
+                setIsDownloading(false);
+                generateImage();
+            }, 500);
+        }
+    };
+
     const downloadPromoFormat = async (format: TabType) => {
         if (!canvasRef.current) return;
         setIsDownloading(true);
@@ -4395,8 +4466,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => handleSetTheme('FOCUS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
             <button onClick={() => handleSetTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
             <button onClick={() => handleSetTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3]' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
-            <button onClick={() => handleSetTheme('AFFICHE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'AFFICHE' ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>AFFICHE</button>
-            <button onClick={() => handleSetTheme('EVENTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENTS' ? 'bg-[#ff007f]/20 border-[#ff007f] text-[#ff007f] shadow-[0_0_12px_rgba(255,0,127,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENTS</button>
+            <button onClick={() => { handleSetTheme('EVENTS'); setEventsSlide(1); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENTS' || theme === 'AFFICHE' ? 'bg-[#ff007f]/20 border-[#ff007f] text-[#ff007f] shadow-[0_0_12px_rgba(255,0,127,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENTS</button>
             <button onClick={() => handleSetTheme('REELS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'REELS' || theme === 'CONSEILS' ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>REELS</button>
             <button onClick={() => handleSetTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
             <button onClick={() => handleSetTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-[#ff3700]/20 border-[#ff3700] text-[#ff3700] shadow-[0_0_12px_rgba(255,55,0,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>AGENDA</button>
@@ -7032,6 +7102,92 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
+    const eventsEditor = (
+        <div className="space-y-4">
+            {/* CARROUSEL SLIDE SWITCHER */}
+            <div className="p-1.5 bg-black/60 border border-[#ff007f]/30 rounded-2xl flex gap-1 shadow-xl">
+                <button
+                    type="button"
+                    onClick={() => setEventsSlide(1)}
+                    className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
+                        eventsSlide === 1
+                            ? 'bg-[#ff007f] text-white shadow-[0_0_15px_rgba(255,0,127,0.5)] scale-[1.02]'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                >
+                    <span className="text-xs">📢</span> Slide 1 : Post Event
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setEventsSlide(2)}
+                    className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
+                        eventsSlide === 2
+                            ? 'bg-[#ff007f] text-white shadow-[0_0_15px_rgba(255,0,127,0.5)] scale-[1.02]'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                >
+                    <span className="text-xs">🎨</span> Slide 2 : Affiche
+                </button>
+            </div>
+
+            {/* Quick Carousel Download Bar */}
+            <div className="p-2.5 bg-white/5 border border-white/10 rounded-xl space-y-2">
+                <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
+                    <span>Export Carrousel Rapide</span>
+                    <span className="text-[#ff007f]">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                    <button
+                        type="button"
+                        onClick={() => downloadEventsSlide(1)}
+                        disabled={isDownloading}
+                        className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                    >
+                        <Download className="w-3.5 h-3.5 text-[#ff007f]" /> Slide 1 (PNG)
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => downloadEventsSlide(2)}
+                        disabled={isDownloading}
+                        className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                    >
+                        <Download className="w-3.5 h-3.5 text-[#ff007f]" /> Slide 2 (PNG)
+                    </button>
+                </div>
+                <button
+                    type="button"
+                    onClick={() => downloadEventsCarousel()}
+                    disabled={isDownloading}
+                    className="w-full py-2.5 bg-gradient-to-r from-[#ff007f] to-[#ff4400] hover:from-[#ff1a8c] hover:to-[#ff551a] text-white font-black text-[10px] uppercase rounded-lg shadow-lg shadow-pink-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95"
+                >
+                    <Download className="w-4 h-4" /> Télécharger Carrousel (1 + 2)
+                </button>
+            </div>
+
+            {/* Slide 1 Content */}
+            {eventsSlide === 1 && (
+                <div className="space-y-3 pt-2">
+                    <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
+                        <span>Édition Post Événement</span>
+                        <span className="text-[#ff007f]">Slide 1</span>
+                    </div>
+                    {conseilsEditor}
+                </div>
+            )}
+
+            {/* Slide 2 Content (Affiche) */}
+            {eventsSlide === 2 && (
+                <div className="space-y-3 pt-2">
+                    <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
+                        <span>Édition Affiche de l'Événement</span>
+                        <span className="text-[#ff007f]">Slide 2</span>
+                    </div>
+                    {afficheEditor}
+                </div>
+            )}
+        </div>
+    );
+
     // Shared downloader modal
     const downloaderModal = (
         <AnimatePresence>
@@ -7540,14 +7696,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Infos Spotlight & Logos</span>{spotlightEditor}</>
                             ) : theme === 'ARTISTE FESTIVAL' ? (
                                 <><span className="text-[10px] font-black text-neon-red uppercase">Artiste Festival (Carrousel)</span>{artisteFestivalEditor}</>
-                            ) : ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'EVENTS', 'INTERVIEW', 'REELS', 'CONSEILS'].includes(theme) ? (
+                            ) : (theme === 'EVENTS' || theme === 'AFFICHE') ? (
+                                <><span className="text-[10px] font-black text-[#ff007f] uppercase">Événements & Affiche (Carrousel)</span>{eventsEditor}</>
+                            ) : ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS'].includes(theme) ? (
                                 <><span className="text-[10px] font-black text-neon-red uppercase">Contenu Titre & Sous-titre ({theme})</span>{conseilsEditor}</>
                             ) : theme === 'CONCOURS' ? (
                                 <><span className="text-[10px] font-black text-[#c084fc] uppercase">Paramètres Jeu Concours</span>{concoursEditor}</>
                             ) : theme === 'CITATION' ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Citation & Auteur</span>{citationEditor}</>
-                            ) : theme === 'AFFICHE' ? (
-                                <><span className="text-[10px] font-black text-neon-red uppercase">Affiche Événement</span>{afficheEditor}</>
                             ) : theme === 'PROMO' ? (
                                 <><span className="text-[10px] font-black text-neon-red uppercase">Question & Outro Réseaux</span>{promoEditor}</>
                             ) : (
@@ -7666,6 +7822,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     }`}
                                 >
                                     ⭐ Slide 2 (Spotlight)
+                                </button>
+                            </div>
+                        )}
+                        {(theme === 'EVENTS' || theme === 'AFFICHE') && (
+                            <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20">
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
+                                <button
+                                    type="button"
+                                    onClick={() => { setEventsSlide(1); if (theme === 'AFFICHE') handleSetTheme('EVENTS'); }}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                        eventsSlide === 1 && theme !== 'AFFICHE'
+                                            ? 'bg-[#ff007f] text-white shadow-[0_0_12px_rgba(255,0,127,0.5)]'
+                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    📢 Slide 1 (Post)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setEventsSlide(2)}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                        eventsSlide === 2 || theme === 'AFFICHE'
+                                            ? 'bg-[#ff007f] text-white shadow-[0_0_12px_rgba(255,0,127,0.5)]'
+                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    🎨 Slide 2 (Affiche)
                                 </button>
                             </div>
                         )}
@@ -7823,6 +8006,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </button>
                             </div>
                         )}
+                        {(theme === 'EVENTS' || theme === 'AFFICHE') && (
+                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl">
+                                <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); setEventsSlide(1); if (theme === 'AFFICHE') handleSetTheme('EVENTS'); }}
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all ${
+                                        eventsSlide === 1 && theme !== 'AFFICHE' ? 'bg-[#ff007f] text-white shadow-md' : 'text-gray-400'
+                                    }`}
+                                >
+                                    Slide 1 (Post)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); setEventsSlide(2); }}
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all ${
+                                        eventsSlide === 2 || theme === 'AFFICHE' ? 'bg-[#ff007f] text-white shadow-md' : 'text-gray-400'
+                                    }`}
+                                >
+                                    Slide 2 (Affiche)
+                                </button>
+                            </div>
+                        )}
                         <canvas 
                             ref={canvasRef} 
                             className={`w-full h-full object-contain ${isRetouchMode ? 'cursor-crosshair' : 'cursor-default'}`} 
@@ -7975,7 +8180,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 ))}
                                                 <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter</button>
                                             </div>
-                                        ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'ARTISTE FESTIVAL' ? artisteFestivalEditor : ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'EVENTS', 'INTERVIEW', 'REELS', 'CONSEILS'].includes(theme) ? conseilsEditor : theme === 'CONCOURS' ? concoursEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'AFFICHE' ? afficheEditor : theme === 'PROMO' ? promoEditor : textEditor}
+                                        ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'ARTISTE FESTIVAL' ? artisteFestivalEditor : (theme === 'EVENTS' || theme === 'AFFICHE') ? eventsEditor : ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS'].includes(theme) ? conseilsEditor : theme === 'CONCOURS' ? concoursEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'PROMO' ? promoEditor : textEditor}
                                     </div>
                                 )}
 
