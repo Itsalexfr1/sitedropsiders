@@ -3216,7 +3216,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
                 // 1.B AUTOMATIC DATE UNDERNEATH THE CAPSULE BADGE
-                const showEditorialDate = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM'].includes(theme);
+                const showEditorialDate = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL'].includes(theme);
                 if (showEditorialDate) {
                     ctx.save();
                     const now = new Date();
