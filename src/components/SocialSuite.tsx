@@ -339,6 +339,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return 'SLIDE';
     });
     const isTransitioningRef = useRef<boolean>(false);
+    const [isCarouselPromoActive, setIsCarouselPromoActive] = useState<boolean>(false);
+    const [promoCustomPhrase, setPromoCustomPhrase] = useState<string>('');
+    const [promoCustomSubphrase, setPromoCustomSubphrase] = useState<string>('');
 
     const getTransitionDuration = (t: SlideTransitionType) => {
         switch (t) {
@@ -739,14 +742,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         const effectiveTab = targetTab || activeTab;
         const forceTheme = typeof exportMode === 'string' ? (exportMode as ThemeType) : forceThemeParam;
-        const effectiveTheme = promoOutroOverrideRef.current ? 'PROMO' : (forceTheme || theme);
+        const isPromoRequested = promoOutroOverrideRef.current || (isCarouselPromoActive && isMultiSlideTheme);
+        const effectiveTheme = isPromoRequested ? 'PROMO' : (forceTheme || theme);
 
         try {
             await (async (theme: ThemeType) => {
                 const isPromoTheme = theme === 'PROMO';
                 const isAgendaSource = theme === 'PLANNING' || promoCategory === 'PLANNING';
-                const sourceThemeKey = (promoOutroOverrideRef.current 
-                    ? (isAgendaSource ? 'PLANNING' : (promoCategory as ThemeType || 'NEWS'))
+                const sourceThemeKey = (isPromoRequested
+                    ? (isAgendaSource ? 'PLANNING' : (promoCategory as ThemeType || theme || 'NEWS'))
                     : (theme === 'PROMO' ? (promoCategory as ThemeType || 'NEWS') : theme)) as ThemeType;
                 const effectiveBaseThemeData = baseThemeData[sourceThemeKey] || baseThemeData['NEWS'];
                 const promoThemeData = themeColor || effectiveBaseThemeData;
@@ -2926,28 +2930,43 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? 'EVENTS' 
                     : getTargetPromoCategory(promoCategory || theme);
 
-                let outroHeadline = 'POUR ÊTRE INFORMÉ DE TOUTES LES NEWS';
-                if (activeTargetCategory === 'EVENTS') {
-                    outroHeadline = 'POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS';
-                } else if (activeTargetCategory === 'MUSIQUE') {
-                    outroHeadline = 'POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES';
-                } else if (activeTargetCategory === 'FOCUS') {
-                    outroHeadline = 'POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS';
-                } else if (activeTargetCategory === 'RECAPS') {
-                    outroHeadline = 'POUR REVIVRE TOUS LES MEILLEURS FESTIVALS';
-                } else if (activeTargetCategory === 'CONCOURS') {
-                    outroHeadline = 'POUR NE RATER AUCUN CONCOURS & PASS FESTIVALS';
-                } else if (activeTargetCategory === 'INTERVIEWS') {
-                    outroHeadline = 'POUR NE RIEN MANQUER DE NOS INTERVIEWS EXCLUSIVES';
-                } else if (activeTargetCategory === 'VIDEOS') {
-                    outroHeadline = 'POUR NE RIEN MANQUER DE NOS VIDÉOS & REELS';
-                }
+                const defaultHeadline = (activeTargetCategory === 'EVENTS')
+                    ? 'POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS'
+                    : (activeTargetCategory === 'MUSIQUE')
+                    ? 'POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES'
+                    : (activeTargetCategory === 'FOCUS')
+                    ? 'POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS'
+                    : (activeTargetCategory === 'RECAPS')
+                    ? 'POUR REVIVRE TOUS LES MEILLEURS FESTIVALS'
+                    : (activeTargetCategory === 'CONCOURS')
+                    ? 'POUR NE RATER AUCUN CONCOURS & PASS FESTIVALS'
+                    : (activeTargetCategory === 'INTERVIEWS')
+                    ? 'POUR NE RIEN MANQUER DE NOS INTERVIEWS EXCLUSIVES'
+                    : (activeTargetCategory === 'VIDEOS')
+                    ? 'POUR NE RIEN MANQUER DE NOS VIDÉOS & REELS'
+                    : 'POUR ÊTRE INFORMÉ DE TOUTES LES NEWS';
 
+                const effectiveHeadline = promoCustomPhrase.trim() 
+                    ? promoCustomPhrase.trim().toUpperCase() 
+                    : defaultHeadline;
+
+                const effectiveSubphrase = promoCustomSubphrase.trim()
+                    ? promoCustomSubphrase.trim().toUpperCase()
+                    : 'SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,';
+
+                const headlineParts = effectiveHeadline.split('\n').filter(Boolean);
                 const outroLines = [
-                    outroHeadline,
-                    'SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,'
+                    ...headlineParts,
+                    ...(effectiveSubphrase ? [effectiveSubphrase] : [])
                 ];
-                ctx.font = `700 ${isReel ? (isAgendaPromo ? 30 : 28) : 25}px "Montserrat", sans-serif`;
+                let outroFontSize = isReel ? (isAgendaPromo ? 30 : 28) : 25;
+                ctx.font = `700 ${outroFontSize}px "Montserrat", sans-serif`;
+                outroLines.forEach(line => {
+                    while (ctx.measureText(line).width > 940 && outroFontSize > 18) {
+                        outroFontSize--;
+                        ctx.font = `700 ${outroFontSize}px "Montserrat", sans-serif`;
+                    }
+                });
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
 
                 outroLines.forEach((line: string, i: number) => {
@@ -3885,7 +3904,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, showTitleOnSlide2, extraEditorialSlides, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, showTitleOnSlide2, extraEditorialSlides, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoCategory]);
 
     // Pre-charger l'affiche de l'événement dès que son URL change
     useEffect(() => {
@@ -4847,6 +4866,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const LIGHT_TEXT_THEMES: ThemeType[] = ['TOP 5 ARTISTE', 'TOP 5 STYLES'];
 
     const handleSetTheme = (newTheme: ThemeType) => {
+        setIsCarouselPromoActive(false);
         if (newTheme === 'MAP') {
             setActiveTab('REEL');
         }
@@ -6042,6 +6062,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const promoEditor = (
         <div className="space-y-4">
+            {isCarouselPromoActive && (
+                <div className="p-3 bg-neon-red/10 border border-neon-red/30 rounded-2xl flex items-center justify-between shadow-lg">
+                    <div className="flex items-center gap-2">
+                        <span className="text-base">🔥</span>
+                        <div>
+                            <p className="text-[10px] font-black uppercase text-neon-red tracking-wider">Slide Outro PROMO active</p>
+                            <p className="text-[8px] text-gray-400">Modifiez ici la phrase et la question de fin de carrousel</p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setIsCarouselPromoActive(false);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[8.5px] font-black uppercase transition-all flex items-center gap-1 active:scale-95"
+                    >
+                        ❮ Revenir aux slides
+                    </button>
+                </div>
+            )}
+
             {/* 1. Sélecteur de catégorie & couleur pour la page Promo */}
             <div className="space-y-2 bg-white/5 border border-white/10 rounded-2xl p-3.5">
                 <div className="flex items-center justify-between">
@@ -6093,6 +6135,85 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             </div>
 
+            {/* 2. Phrase officielle d'accroche Promo personnalisable */}
+            <div className="space-y-2.5 bg-white/5 border border-white/10 rounded-2xl p-3.5">
+                <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest flex items-center gap-1.5">
+                        📢 Phrase d'accroche Promo (Ligne 1)
+                    </label>
+                    {promoCustomPhrase && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setPromoCustomPhrase('');
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="text-[8.5px] text-gray-400 hover:text-white uppercase font-bold"
+                        >
+                            ↺ Par défaut
+                        </button>
+                    )}
+                </div>
+                <input
+                    value={promoCustomPhrase}
+                    onChange={e => {
+                        setPromoCustomPhrase(e.target.value);
+                        setTimeout(() => generateImage(), 50);
+                    }}
+                    placeholder={
+                        promoCategory === 'EVENTS' || promoCategory === 'PLANNING'
+                            ? "POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS"
+                            : promoCategory === 'MUSIQUE'
+                            ? "POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES"
+                            : promoCategory === 'FOCUS'
+                            ? "POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS"
+                            : "POUR ÊTRE INFORMÉ DE TOUTES LES NEWS"
+                    }
+                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-neon-cyan outline-none transition-all placeholder:text-gray-600"
+                />
+
+                <div className="pt-1 space-y-1">
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                        Ligne 2 (Sous-phrase)
+                    </label>
+                    <input
+                        value={promoCustomSubphrase}
+                        onChange={e => {
+                            setPromoCustomSubphrase(e.target.value);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        placeholder="SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,"
+                        className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-neon-cyan outline-none transition-all placeholder:text-gray-600"
+                    />
+                </div>
+
+                <div className="pt-2">
+                    <p className="text-[8.5px] font-bold text-gray-500 uppercase mb-1.5">Phrases suggérées en 1 clic :</p>
+                    <div className="flex flex-wrap gap-1.5">
+                        {[
+                            "POUR ÊTRE INFORMÉ DE TOUTES LES NEWS",
+                            "POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS",
+                            "POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES",
+                            "POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS",
+                            "POUR REVIVRE TOUS LES MEILLEURS FESTIVALS",
+                        ].map((phrase, idx) => (
+                            <button
+                                key={idx}
+                                type="button"
+                                onClick={() => {
+                                    setPromoCustomPhrase(phrase);
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                className="px-2.5 py-1 bg-white/5 hover:bg-neon-cyan/20 border border-white/10 hover:border-neon-cyan text-gray-300 hover:text-white rounded-lg text-[8.5px] font-bold transition-all text-left"
+                            >
+                                {phrase}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* 3. Question / Débat de l'article (Optionnelle / Hors agenda) */}
             <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
@@ -6111,7 +6232,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             </div>
 
             <div>
-                <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">Suggestions rapides en 1 clic :</p>
+                <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">Suggestions rapides pour la question :</p>
                 <div className="flex flex-wrap gap-1.5">
                     {[
                         "Et toi, qu'en penses-tu ?",
@@ -6134,13 +6255,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             </div>
 
             <div className="p-3 bg-white/5 border border-white/10 rounded-xl space-y-2">
-                <p className="text-[9px] font-black text-neon-cyan uppercase tracking-widest">Aperçu Outro & Bulles (Automatique) :</p>
+                <p className="text-[9px] font-black text-neon-cyan uppercase tracking-widest">Aperçu Outro & Bulles :</p>
                 <p className="text-[10px] text-gray-300 font-bold leading-relaxed">
-                    « Pour être informé de toutes les news sur la musique électronique et les festivals, abonnez-vous à DROPSIDERS »
+                    « {promoCustomPhrase || (promoCategory === 'EVENTS' || promoCategory === 'PLANNING' ? "Pour être informé de tous les événements" : "Pour être informé de toutes les news")} {promoCustomSubphrase || "sur la musique électronique et les festivals"}, abonnez-vous à DROPSIDERS »
                 </p>
                 <div className="flex flex-wrap gap-1 pt-1">
                     {['NEWS', 'MUSIQUE', 'FOCUS', 'RECAPS', 'CONCOURS', 'EVENTS', 'INTERVIEWS', 'VIDEOS'].map((tag, i) => (
-                        <span key={i} className="px-2.5 py-1 bg-white/10 border border-white/15 rounded-full text-[8px] font-black text-white/90">
+                        <span key={i} className={`px-2.5 py-1 border rounded-full text-[8px] font-black transition-all ${
+                            (promoCategory === tag || (promoCategory === 'PLANNING' && tag === 'EVENTS'))
+                                ? 'bg-neon-red/20 border-neon-red text-neon-red'
+                                : 'bg-white/10 border-white/15 text-white/90'
+                        }`}>
                             {tag}
                         </span>
                     ))}
@@ -6732,9 +6857,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="flex flex-wrap gap-1.5">
                             <button
                                 type="button"
-                                onClick={() => setEditorialSlide(1)}
+                                onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(1); }}
                                 className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
-                                    editorialSlide === 1
+                                    !isCarouselPromoActive && editorialSlide === 1
                                         ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-[1.02]'
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
@@ -6743,9 +6868,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setEditorialSlide(2)}
+                                onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(2); }}
                                 className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
-                                    editorialSlide === 2
+                                    !isCarouselPromoActive && editorialSlide === 2
                                         ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-[1.02]'
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
@@ -6758,9 +6883,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <button
                                         key={sNum}
                                         type="button"
-                                        onClick={() => setEditorialSlide(sNum)}
+                                        onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(sNum); }}
                                         className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
-                                            editorialSlide === sNum
+                                            !isCarouselPromoActive && editorialSlide === sNum
                                                 ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-[1.02]'
                                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
@@ -6769,6 +6894,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     </button>
                                 );
                             })}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsCarouselPromoActive(true);
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                                    isCarouselPromoActive
+                                        ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
+                                        : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'
+                                }`}
+                                title="Prévisualiser et modifier la slide Promo Outro du carrousel"
+                            >
+                                <span className="text-xs">🔥</span> Slide PROMO
+                            </button>
                         </div>
 
                         {/* Calcul automatique de la durée des Reels (≤ 30s max, ≥ 3s min par slide + outro promo) */}
@@ -8142,7 +8282,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     >
                         <Download className="w-3.5 h-3.5 text-neon-cyan" /> Exporter le Fond Visuel (PNG)
                     </button>
-                    {bgAnimationControl}
+                    {theme !== 'MAP' && bgAnimationControl}
                 </div>
 
                 {/* 3. SWIPE DROPSIDERS >> */}
@@ -8805,17 +8945,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <Download className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
                                     Exporter le fond visuel (PNG)
                                 </button>
-                                {bgAnimationControl}
+                                {theme !== 'MAP' && bgAnimationControl}
                             </div>
                         </div>
 
-                        {/* Animation universelle du texte & éléments (tous les thèmes) */}
-                        {textAnimationControl}
-                        {isMultiSlideTheme && slideTransitionControl}
+                        {/* Animation universelle du texte & éléments (tous les thèmes sauf MAP) */}
+                        {theme !== 'MAP' && textAnimationControl}
+                        {theme !== 'MAP' && isMultiSlideTheme && slideTransitionControl}
 
                         {/* Content editor */}
                         <div className="space-y-4">
-                            {theme === 'CALENDRIER' ? (
+                            {(isCarouselPromoActive && isMultiSlideTheme) ? (
+                                <><span className="text-[10px] font-black text-neon-red uppercase">🔥 Outro Carrousel : Question & Phrase Promo</span>{promoEditor}</>
+                            ) : theme === 'MAP' ? (
+                                <><span className="text-[10px] font-black text-neon-cyan uppercase">Carte & Localisation</span>{mapEditor}</>
+                            ) : theme === 'CALENDRIER' ? (
                                 <>
                                     <span className="text-[10px] font-black text-gray-500 uppercase">Calendrier des événements</span>
                                     <div className="space-y-3">
@@ -8938,9 +9082,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
                                 <button
                                     type="button"
-                                    onClick={() => setAgendaSlide(1)}
+                                    onClick={() => { setIsCarouselPromoActive(false); setAgendaSlide(1); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        agendaSlide === 1
+                                        !isCarouselPromoActive && agendaSlide === 1
                                             ? 'bg-[#ff3700] text-black shadow-[0_0_12px_rgba(255,55,0,0.5)]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
@@ -8949,14 +9093,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setAgendaSlide(2)}
+                                    onClick={() => { setIsCarouselPromoActive(false); setAgendaSlide(2); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        agendaSlide === 2
+                                        !isCarouselPromoActive && agendaSlide === 2
                                             ? 'bg-[#ff3700] text-black shadow-[0_0_12px_rgba(255,55,0,0.5)]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
                                 >
                                     📋 Slide 2 (Événements)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsCarouselPromoActive(true);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                        isCarouselPromoActive
+                                            ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
+                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    🔥 Slide PROMO
                                 </button>
                                 <button
                                     type="button"
@@ -8975,9 +9133,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
                                 <button
                                     type="button"
-                                    onClick={() => setArtisteFestivalSlide(1)}
+                                    onClick={() => { setIsCarouselPromoActive(false); setArtisteFestivalSlide(1); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        artisteFestivalSlide === 1
+                                        !isCarouselPromoActive && artisteFestivalSlide === 1
                                             ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
@@ -8986,14 +9144,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setArtisteFestivalSlide(2)}
+                                    onClick={() => { setIsCarouselPromoActive(false); setArtisteFestivalSlide(2); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        artisteFestivalSlide === 2
+                                        !isCarouselPromoActive && artisteFestivalSlide === 2
                                             ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
                                 >
                                     ⭐ Slide 2 (Spotlight)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsCarouselPromoActive(true);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                        isCarouselPromoActive
+                                            ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
+                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    🔥 Slide PROMO
                                 </button>
                                 {slideTransitionQuickBar}
                             </div>
@@ -9003,9 +9175,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
                                 <button
                                     type="button"
-                                    onClick={() => { setEventsSlide(1); if (theme === 'AFFICHE') handleSetTheme('EVENTS'); }}
+                                    onClick={() => { setIsCarouselPromoActive(false); setEventsSlide(1); if (theme === 'AFFICHE') handleSetTheme('EVENTS'); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        eventsSlide === 1 && theme !== 'AFFICHE'
+                                        !isCarouselPromoActive && eventsSlide === 1 && theme !== 'AFFICHE'
                                             ? 'bg-[#ff007f] text-white shadow-[0_0_12px_rgba(255,0,127,0.5)]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
@@ -9014,14 +9186,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setEventsSlide(2)}
+                                    onClick={() => { setIsCarouselPromoActive(false); setEventsSlide(2); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        eventsSlide === 2 || theme === 'AFFICHE'
+                                        !isCarouselPromoActive && (eventsSlide === 2 || theme === 'AFFICHE')
                                             ? 'bg-[#ff007f] text-white shadow-[0_0_12px_rgba(255,0,127,0.5)]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
                                 >
                                     🎨 Slide 2 (Affiche)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsCarouselPromoActive(true);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                        isCarouselPromoActive
+                                            ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
+                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    🔥 Slide PROMO
                                 </button>
                                 {slideTransitionQuickBar}
                             </div>
@@ -9031,9 +9217,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Musique :</span>
                                 <button
                                     type="button"
-                                    onClick={() => setEditorialSlide(1)}
+                                    onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(1); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        editorialSlide === 1
+                                        !isCarouselPromoActive && editorialSlide === 1
                                             ? 'bg-[#00ff66] text-black shadow-[0_0_12px_rgba(0,255,102,0.6)]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
@@ -9042,14 +9228,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setEditorialSlide(2)}
+                                    onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(2); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        editorialSlide === 2
+                                        !isCarouselPromoActive && editorialSlide === 2
                                             ? 'bg-[#00ff66] text-black shadow-[0_0_12px_rgba(0,255,102,0.6)]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
                                 >
                                     💿 Slide 2 (Cover Track)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsCarouselPromoActive(true);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                        isCarouselPromoActive
+                                            ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
+                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    🔥 Slide PROMO
                                 </button>
                                 {activeTab === 'REEL' && (
                                     <button
@@ -9070,9 +9270,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
                                 <button
                                     type="button"
-                                    onClick={() => setEditorialSlide(1)}
+                                    onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(1); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        editorialSlide === 1
+                                        !isCarouselPromoActive && editorialSlide === 1
                                             ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
@@ -9081,9 +9281,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setEditorialSlide(2)}
+                                    onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(2); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        editorialSlide === 2
+                                        !isCarouselPromoActive && editorialSlide === 2
                                             ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
@@ -9096,9 +9296,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <button
                                             key={sNum}
                                             type="button"
-                                            onClick={() => setEditorialSlide(sNum)}
+                                            onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(sNum); }}
                                             className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                                editorialSlide === sNum
+                                                !isCarouselPromoActive && editorialSlide === sNum
                                                     ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
                                                     : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                             }`}
@@ -9107,6 +9307,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         </button>
                                     );
                                 })}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsCarouselPromoActive(true);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                        isCarouselPromoActive
+                                            ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
+                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    🔥 Slide PROMO
+                                </button>
                                 {activeTab === 'REEL' && (
                                     <button
                                         type="button"
@@ -9235,21 +9449,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setAgendaSlide(1); }}
+                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setAgendaSlide(1); }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        agendaSlide === 1 ? 'bg-[#ff3700] text-black shadow-md' : 'text-gray-400'
+                                        !isCarouselPromoActive && agendaSlide === 1 ? 'bg-[#ff3700] text-black shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 1 (Cover)
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setAgendaSlide(2); }}
+                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setAgendaSlide(2); }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        agendaSlide === 2 ? 'bg-[#ff3700] text-black shadow-md' : 'text-gray-400'
+                                        !isCarouselPromoActive && agendaSlide === 2 ? 'bg-[#ff3700] text-black shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 2 (Events)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsCarouselPromoActive(true);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
+                                        isCarouselPromoActive
+                                            ? 'bg-neon-red text-white shadow-md'
+                                            : 'text-gray-400'
+                                    }`}
+                                >
+                                    🔥 PROMO
                                 </button>
                                 {slideTransitionQuickBar}
                             </div>
@@ -9258,21 +9487,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setArtisteFestivalSlide(1); }}
+                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setArtisteFestivalSlide(1); }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        artisteFestivalSlide === 1 ? 'bg-neon-red text-white shadow-md' : 'text-gray-400'
+                                        !isCarouselPromoActive && artisteFestivalSlide === 1 ? 'bg-neon-red text-white shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 1 (Cover)
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setArtisteFestivalSlide(2); }}
+                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setArtisteFestivalSlide(2); }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        artisteFestivalSlide === 2 ? 'bg-neon-red text-white shadow-md' : 'text-gray-400'
+                                        !isCarouselPromoActive && artisteFestivalSlide === 2 ? 'bg-neon-red text-white shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 2 (Spotlight)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsCarouselPromoActive(true);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
+                                        isCarouselPromoActive
+                                            ? 'bg-neon-red text-white shadow-md'
+                                            : 'text-gray-400'
+                                    }`}
+                                >
+                                    🔥 PROMO
                                 </button>
                                 {slideTransitionQuickBar}
                             </div>
@@ -9281,21 +9525,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setEventsSlide(1); if (theme === 'AFFICHE') handleSetTheme('EVENTS'); }}
+                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEventsSlide(1); if (theme === 'AFFICHE') handleSetTheme('EVENTS'); }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        eventsSlide === 1 && theme !== 'AFFICHE' ? 'bg-[#ff007f] text-white shadow-md' : 'text-gray-400'
+                                        !isCarouselPromoActive && eventsSlide === 1 && theme !== 'AFFICHE' ? 'bg-[#ff007f] text-white shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 1 (Post)
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setEventsSlide(2); }}
+                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEventsSlide(2); }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        eventsSlide === 2 || theme === 'AFFICHE' ? 'bg-[#ff007f] text-white shadow-md' : 'text-gray-400'
+                                        !isCarouselPromoActive && (eventsSlide === 2 || theme === 'AFFICHE') ? 'bg-[#ff007f] text-white shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 2 (Affiche)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsCarouselPromoActive(true);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
+                                        isCarouselPromoActive
+                                            ? 'bg-neon-red text-white shadow-md'
+                                            : 'text-gray-400'
+                                    }`}
+                                >
+                                    🔥 PROMO
                                 </button>
                                 {slideTransitionQuickBar}
                             </div>
@@ -9304,21 +9563,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-[#00ff66]/30 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setEditorialSlide(1); }}
+                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEditorialSlide(1); }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        editorialSlide === 1 ? 'bg-[#00ff66] text-black shadow-md' : 'text-gray-400'
+                                        !isCarouselPromoActive && editorialSlide === 1 ? 'bg-[#00ff66] text-black shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 1 (Annonce)
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setEditorialSlide(2); }}
+                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEditorialSlide(2); }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        editorialSlide === 2 ? 'bg-[#00ff66] text-black shadow-md' : 'text-gray-400'
+                                        !isCarouselPromoActive && editorialSlide === 2 ? 'bg-[#00ff66] text-black shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 2 (Cover Track)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsCarouselPromoActive(true);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
+                                        isCarouselPromoActive
+                                            ? 'bg-[#00ff66] text-black shadow-md'
+                                            : 'text-gray-400'
+                                    }`}
+                                >
+                                    🔥 PROMO
                                 </button>
                                 {slideTransitionQuickBar}
                             </div>
@@ -9327,21 +9601,51 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setEditorialSlide(1); }}
+                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEditorialSlide(1); }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        editorialSlide === 1 ? 'bg-white text-black shadow-md' : 'text-gray-400'
+                                        !isCarouselPromoActive && editorialSlide === 1 ? 'bg-white text-black shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 1 (Titre)
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setEditorialSlide(2); }}
+                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEditorialSlide(2); }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        editorialSlide === 2 ? 'bg-white text-black shadow-md' : 'text-gray-400'
+                                        !isCarouselPromoActive && editorialSlide === 2 ? 'bg-white text-black shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 2 (Détail)
+                                </button>
+                                {extraEditorialSlides.map((_, idx) => {
+                                    const sNum = idx + 3;
+                                    return (
+                                        <button
+                                            key={sNum}
+                                            type="button"
+                                            onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEditorialSlide(sNum); }}
+                                            className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
+                                                !isCarouselPromoActive && editorialSlide === sNum ? 'bg-white text-black shadow-md' : 'text-gray-400'
+                                            }`}
+                                        >
+                                            Slide {sNum}
+                                        </button>
+                                    );
+                                })}
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsCarouselPromoActive(true);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
+                                        isCarouselPromoActive
+                                            ? 'bg-neon-red text-white shadow-md'
+                                            : 'text-gray-400'
+                                    }`}
+                                >
+                                    🔥 PROMO
                                 </button>
                                 {slideTransitionQuickBar}
                             </div>
@@ -9485,10 +9789,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                                 {activePanel === 'texte' && (
                                     <div className="px-6 pb-8 space-y-4">
-                                        {textAnimationControl}
-                                        {isMultiSlideTheme && slideTransitionControl}
+                                        {theme !== 'MAP' && textAnimationControl}
+                                        {theme !== 'MAP' && isMultiSlideTheme && slideTransitionControl}
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Contenu</p>
-                                        {theme === 'CALENDRIER' ? (
+                                        {(isCarouselPromoActive && isMultiSlideTheme) ? promoEditor : theme === 'CALENDRIER' ? (
                                             <div className="space-y-3">
                                                 <input value={calendarMonth} onChange={e => setCalendarMonth(e.target.value)} placeholder="MARS 2025" className="w-full bg-white/10 border border-neon-orange/40 rounded-xl p-3 text-white font-black italic uppercase text-xs" />
                                                 {calendarEvents.map((evt, i) => (
@@ -9545,7 +9849,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             >
                                                 <Download className="w-4 h-4 text-neon-cyan" /> Exporter le fond visuel (PNG)
                                             </button>
-                                            {bgAnimationControl}
+                                            {theme !== 'MAP' && bgAnimationControl}
                                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                         </div>
                                     </div>
