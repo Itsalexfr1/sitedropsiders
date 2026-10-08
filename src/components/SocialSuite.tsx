@@ -3131,7 +3131,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // 1. TOP-LEFT STYLIZED CAPSULE BADGE (French Crowd / Modern Editorial)
                 const isReel = effectiveTab === 'REEL';
                 const badgeX = isReel ? 80 : 60;
-                const badgeY = isReel ? 70 : 45;
+                // Alignement au pixel près avec le haut de la boîte du logo Dropsiders (compense le padding transparent haut du fichier Logo.png)
+                const badgeY = isReel ? 78 : 54;
                 const themeDotColor = (theme === 'INTERVIEW') ? '#ffffff' : activeData.color;
                 const badgeLabelText = (theme === 'ARTISTE FESTIVAL') 
                     ? (festivalNameText ? festivalNameText.toUpperCase() : 'FESTIVAL')
