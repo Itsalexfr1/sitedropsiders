@@ -875,28 +875,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             if (!showText) return; 
 
-            // Gradient overlays for CONSEILS / REELS (Smooth continuous gradient without harsh cuts)
-            if (theme === 'CONSEILS' || theme === 'REELS') {
-                // Top subtle header shadow
-                const topGrad = ctx.createLinearGradient(0, 0, 0, 220);
-                topGrad.addColorStop(0, 'rgba(0,0,0,0.60)');
-                topGrad.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = topGrad;
-                ctx.fillRect(0, 0, canvas.width, 220);
-
-                // Continuous smooth bottom gradient that goes all the way down to the bottom
-                const bottomGrad = ctx.createLinearGradient(0, canvas.height * 0.48, 0, canvas.height);
-                bottomGrad.addColorStop(0, 'rgba(0,0,0,0)');
-                bottomGrad.addColorStop(0.35, 'rgba(0,0,0,0.45)');
-                bottomGrad.addColorStop(0.65, 'rgba(0,0,0,0.80)');
-                bottomGrad.addColorStop(0.9, 'rgba(0,0,0,0.96)');
-                bottomGrad.addColorStop(1, 'rgba(0,0,0,1)');
-                ctx.fillStyle = bottomGrad;
-                ctx.fillRect(0, canvas.height * 0.48, canvas.width, canvas.height * 0.52);
-            }
-
             const isModernEditorialTheme = (
-                ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST'].includes(theme) ||
+                ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS'].includes(theme) ||
                 (theme === 'MUSIQUE' && editorialSlide === 1) ||
                 (theme === 'EVENTS' && eventsSlide === 1) ||
                 (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1)
