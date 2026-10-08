@@ -848,54 +848,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, canvas.height * 0.82, canvas.width, canvas.height * 0.18);
                 }
             } else {
-                // Top subtle header shadow for CONCOURS
-                if (theme === 'CONCOURS') {
-                    const topGrad = ctx.createLinearGradient(0, 0, 0, 160);
-                    topGrad.addColorStop(0, 'rgba(0,0,0,0.50)');
-                    topGrad.addColorStop(1, 'rgba(0,0,0,0)');
-                    ctx.fillStyle = topGrad;
-                    ctx.fillRect(0, 0, canvas.width, 160);
-                }
-
-                if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && eventsSlide === 2) && !(theme === 'MUSIQUE' && editorialSlide === 2) && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
+                if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && eventsSlide === 2) && !(theme === 'MUSIQUE' && editorialSlide === 2) && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
                     const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                         ? canvas.height * 0.8
-                        : (theme === 'CONCOURS' ? canvas.height * 0.35 : canvas.height * 0.4);
+                        : canvas.height * 0.4;
 
                     const grad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
                     grad.addColorStop(0, 'rgba(0,0,0,0)');
-                    if (theme === 'CONCOURS') {
-                        // Fond noir profond cinématographique pour garantir une lisibilité absolue des textes
-                        grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-                        grad.addColorStop(0.18, 'rgba(3, 4, 10, 0.65)');
-                        grad.addColorStop(0.40, 'rgba(5, 6, 14, 0.92)');
-                        grad.addColorStop(0.70, 'rgba(6, 7, 16, 0.98)');
-                        grad.addColorStop(1, 'rgba(4, 4, 10, 1)');
-                        ctx.fillStyle = grad;
-                        ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
-
-                        // Ambiance néon délicate tout en bas (sans saturer ni masquer le texte)
-                        if (concoursBottomColor) {
-                            const rgb = hexToRgb(concoursBottomColor);
-                            const neonAtmosphere = ctx.createLinearGradient(0, canvas.height * 0.72, 0, canvas.height);
-                            neonAtmosphere.addColorStop(0, `rgba(${rgb}, 0)`);
-                            neonAtmosphere.addColorStop(1, `rgba(${rgb}, 0.22)`);
-                            ctx.fillStyle = neonAtmosphere;
-                            ctx.fillRect(0, canvas.height * 0.72, canvas.width, canvas.height * 0.28);
-                        }
-                    } else {
-                        const rgbGrad = activeData.grad;
-                        grad.addColorStop(0.3, 'rgba(0,0,0,0.2)');
-                        grad.addColorStop(0.8, `rgba(${rgbGrad}, 0.7)`);
-                        grad.addColorStop(1, `rgba(${rgbGrad}, 1)`);
-                        ctx.fillStyle = grad;
-                        ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
-                    }
+                    const rgbGrad = activeData.grad;
+                    grad.addColorStop(0.3, 'rgba(0,0,0,0.2)');
+                    grad.addColorStop(0.8, `rgba(${rgbGrad}, 0.7)`);
+                    grad.addColorStop(1, `rgba(${rgbGrad}, 1)`);
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
                 }
 
                 // Lignes de scan rétro (uniquement sur les thèmes non modernisés)
-                if (theme !== 'PLANNING' && theme !== 'CONSEILS' && theme !== 'REELS') {
-                    const scanlineLimitY = theme === 'CONCOURS' ? canvas.height * 0.42 : canvas.height;
+                if (theme !== 'PLANNING' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS') {
+                    const scanlineLimitY = canvas.height;
                     ctx.fillStyle = 'rgba(0,0,0,0.1)';
                     for (let i = 0; i < scanlineLimitY; i += 6) ctx.fillRect(0, i, canvas.width, 2);
                 }
@@ -2105,343 +2075,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
 
-            } else if (theme === 'CONCOURS') {
-                ctx.save();
-
-                const isGTA = concoursMode === 'GTA6';
-
-                // 1. BANDEAU HAUT GAUCHE (Attaché au bord gauche x=0, ajusté finement au texte avec ~5-8% de marge, centré sur le logo à droite)
-                const wLogo = 320;
-                const logoH = logoRef.current ? (logoRef.current.height * wLogo) / logoRef.current.width : 65.5;
-                const yOffset = bgVideo ? 70 : 20;
-                const logoCenterY = yOffset + (logoH / 2);
-
-                const lateralLabel = (concoursLateralText || (isGTA ? 'JEU CONCOURS GTA 6' : 'JEUX CONCOURS')).toUpperCase();
-                const textFontSize = 32;
-                ctx.font = `900 italic ${textFontSize}px "Montserrat", sans-serif`;
-                const textMetrics = ctx.measureText(lateralLabel);
-
-                const bandeauH = 48;
-                const bandeauY = Math.round(logoCenterY - (bandeauH / 2));
-                const bandeauCenterY = logoCenterY;
-                const bandeauW = Math.max(340, Math.round(textMetrics.width + 60));
-
-                const opacity = concoursLateralOpacity !== undefined ? concoursLateralOpacity : (isGTA ? 0.50 : 0.40);
-                // Fond bandeau néon
-                ctx.fillStyle = isGTA ? `rgba(255, 0, 127, ${opacity})` : `rgba(112, 0, 255, ${opacity})`;
-                ctx.beginPath();
-                ctx.roundRect(0, bandeauY, bandeauW, bandeauH, [0, 12, 12, 0]);
-                ctx.fill();
-
-                // Cadre / liseré néon autour du bandeau
-                ctx.strokeStyle = isGTA ? 'rgba(0, 240, 255, 0.95)' : 'rgba(168, 85, 247, 0.85)';
-                ctx.lineWidth = 2.5;
-                ctx.stroke();
-
-                // Texte centré optiquement
-                ctx.fillStyle = concoursBadgeTextColor || (isGTA ? '#00f0ff' : '#ffffff');
-                ctx.shadowColor = isGTA ? 'rgba(0, 240, 255, 0.6)' : 'rgba(0, 0, 0, 0.95)';
-                ctx.shadowBlur = isGTA ? 12 : 10;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(lateralLabel, bandeauW / 2, bandeauCenterY + 2);
-
-                if (isGTA) {
-                    // ==========================================
-                    // 2. TEMPLATE GTA 6 (Style Vice City Ultra Lisible)
-                    // ==========================================
-                    const headline = (concoursGTAHeadline || 'DROPSIDERS TE FAIT GAGNER').toUpperCase();
-                    const gtaTitle = (concoursGTATitle || 'GTA 6').toUpperCase();
-                    const platform = (concoursGTAPlatformText || 'SUR LA PLATEFORME DE TON CHOIX').toUpperCase();
-                    const subtitle = "POUR PARTICIPER :";
-
-                    const isPub = effectiveTab === 'PUBLICATION';
-                    let curY = isPub ? 730 : 1130;
-
-                    // A) HEADLINE : DROPSIDERS TE FAIT GAGNER
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'alphabetic';
-                    ctx.font = isPub ? '900 italic 38px "Montserrat", sans-serif' : '900 italic 44px "Montserrat", sans-serif';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 1)';
-                    ctx.shadowBlur = 18;
-                    ctx.fillText(headline, canvas.width / 2, curY);
-
-                    // B) GRAND TITRE DU LOT : GTA 6 (Énorme néon avec contour sombre et éclat)
-                    curY += isPub ? 86 : 105;
-                    const titleFontSize = isPub ? 96 : 115;
-                    ctx.font = `900 italic ${titleFontSize}px "Montserrat", sans-serif`;
-                    ctx.lineWidth = 8;
-                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)';
-                    ctx.strokeText(gtaTitle, canvas.width / 2, curY);
-                    ctx.fillStyle = '#ff007f';
-                    ctx.shadowColor = 'rgba(255, 0, 127, 0.95)';
-                    ctx.shadowBlur = 30;
-                    ctx.fillText(gtaTitle, canvas.width / 2, curY);
-
-                    // C) PLATEFORME : Pilule élégante jaune néon / or
-                    curY += isPub ? 48 : 58;
-                    ctx.font = isPub ? '900 italic 21px "Montserrat", sans-serif' : '900 italic 25px "Montserrat", sans-serif';
-                    const platLabel = `🎮  ${platform}`;
-                    const platTextW = ctx.measureText(platLabel).width;
-                    const platPillW = platTextW + 48;
-                    const platPillH = isPub ? 38 : 44;
-                    const platPillX = (canvas.width - platPillW) / 2;
-                    const platPillY = curY - (platPillH * 0.75);
-
-                    ctx.fillStyle = 'rgba(255, 230, 0, 0.16)';
-                    ctx.beginPath();
-                    ctx.roundRect(platPillX, platPillY, platPillW, platPillH, platPillH / 2);
-                    ctx.fill();
-
-                    ctx.strokeStyle = '#ffe600';
-                    ctx.lineWidth = 2;
-                    ctx.shadowColor = 'rgba(255, 230, 0, 0.6)';
-                    ctx.shadowBlur = 12;
-                    ctx.stroke();
-
-                    ctx.fillStyle = '#ffe600';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                    ctx.shadowBlur = 8;
-                    ctx.fillText(platLabel, canvas.width / 2, curY);
-
-                    // D) SOUS-TITRE : POUR PARTICIPER :
-                    curY += isPub ? 50 : 60;
-                    ctx.font = isPub ? '900 italic 25px "Montserrat", sans-serif' : '900 italic 29px "Montserrat", sans-serif';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 1)';
-                    ctx.shadowBlur = 12;
-                    ctx.fillText(subtitle, canvas.width / 2, curY);
-
-                    // E) CARTE ULTRA-LISIBLE POUR LES 4 CONDITIONS
-                    curY += isPub ? 25 : 30;
-                    const cardMargin = 50;
-                    const cardW = canvas.width - (cardMargin * 2);
-                    const cardH = isPub ? 355 : 430;
-                    const cardX = cardMargin;
-                    const cardY = curY;
-
-                    // Fond de carte sombre et opaque (assure une lisibilité parfaite à 100%)
-                    ctx.save();
-                    ctx.fillStyle = 'rgba(8, 12, 24, 0.94)';
-                    ctx.beginPath();
-                    ctx.roundRect(cardX, cardY, cardW, cardH, 24);
-                    ctx.fill();
-
-                    // Bordure dégradé néon (Cyan vers Rose)
-                    const cardBorderGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
-                    cardBorderGrad.addColorStop(0, 'rgba(0, 240, 255, 0.7)');
-                    cardBorderGrad.addColorStop(1, 'rgba(255, 0, 127, 0.7)');
-                    ctx.strokeStyle = cardBorderGrad;
-                    ctx.lineWidth = 2.5;
-                    ctx.shadowColor = 'rgba(0, 240, 255, 0.35)';
-                    ctx.shadowBlur = 18;
-                    ctx.stroke();
-                    ctx.restore();
-
-                    // 4 LIGNES DE CONDITIONS STRUCTURÉES AVEC BADGES
-                    const conditionsData = [
-                        {
-                            num: '1',
-                            badgeColor: '#ff007f',
-                            badgeBg: 'rgba(255, 0, 127, 0.25)',
-                            text: concoursGTACondition1 || '1 - likez la publication'
-                        },
-                        {
-                            num: '2',
-                            badgeColor: '#00f0ff',
-                            badgeBg: 'rgba(0, 240, 255, 0.25)',
-                            text: concoursGTACondition2 || '2 - identifiez 2 potes qui doivent liker la page'
-                        },
-                        {
-                            num: '3',
-                            badgeColor: '#ffe600',
-                            badgeBg: 'rgba(255, 230, 0, 0.25)',
-                            text: concoursGTACondition3 || '3 - partagez en storie'
-                        },
-                        {
-                            num: '4',
-                            badgeColor: '#00f0ff',
-                            badgeBg: 'rgba(0, 240, 255, 0.25)',
-                            text: concoursGTACondition4 || '4 - pour validez la participation repondez aux 3 questions qui sont disponible sur le site dropsiders.fr'
-                        }
-                    ];
-
-                    const rowH = isPub ? 82 : 100;
-                    const badgeR = isPub ? 21 : 25;
-                    const badgeX = cardX + (isPub ? 46 : 56);
-                    const textStartX = badgeX + badgeR + (isPub ? 22 : 26);
-
-                    conditionsData.forEach((cond, idx) => {
-                        const rowCenterY = cardY + 28 + (idx * rowH) + (badgeR);
-
-                        // 1. Badge numéro circulaire
-                        ctx.save();
-                        ctx.beginPath();
-                        ctx.arc(badgeX, rowCenterY, badgeR, 0, Math.PI * 2);
-                        ctx.fillStyle = cond.badgeBg;
-                        ctx.fill();
-                        ctx.strokeStyle = cond.badgeColor;
-                        ctx.lineWidth = 2;
-                        ctx.shadowColor = cond.badgeColor;
-                        ctx.shadowBlur = 10;
-                        ctx.stroke();
-
-                        ctx.fillStyle = '#ffffff';
-                        ctx.font = `900 italic ${isPub ? 21 : 25}px "Montserrat", sans-serif`;
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                        ctx.shadowBlur = 6;
-                        ctx.fillText(cond.num, badgeX, rowCenterY + 1);
-                        ctx.restore();
-
-                        // 2. Texte de la condition (Gras, net, lisible)
-                        ctx.save();
-                        ctx.textAlign = 'left';
-                        ctx.textBaseline = 'middle';
-
-                        let fontSize = isPub ? (idx === 3 ? 19.5 : 22.5) : (idx === 3 ? 24 : 27);
-                        ctx.font = `800 italic ${fontSize}px "Montserrat", sans-serif`;
-
-                        const rawText = (cond.text || '').toUpperCase().trim();
-                        const cleanedText = rawText.replace(/^\d+\s*[-–.]\s*/, '');
-
-                        const keywords = [
-                            { word: 'DROPSIDERS.FR', color: '#00f0ff' },
-                            { word: '3 QUESTIONS', color: '#ffe600' },
-                            { word: '2 POTES', color: '#00f0ff' },
-                            { word: 'EN STORIE', color: '#ffe600' },
-                            { word: 'EN STORY', color: '#ffe600' },
-                            { word: 'LIKEZ LA PUBLICATION', color: '#ff007f' },
-                            { word: 'LA PUBLICATION', color: '#ff007f' }
-                        ];
-
-                        const kwPattern = new RegExp(`(${keywords.map(k => k.word.replace('.', '\\.')).join('|')})`, 'g');
-                        const tokens = cleanedText.split(kwPattern);
-
-                        let currentX = textStartX;
-                        const maxTextW = (cardX + cardW - 25) - textStartX;
-
-                        while (ctx.measureText(cleanedText).width > maxTextW && fontSize > 14) {
-                            fontSize -= 0.5;
-                            ctx.font = `800 italic ${fontSize}px "Montserrat", sans-serif`;
-                        }
-
-                        tokens.forEach(tok => {
-                            if (!tok) return;
-                            const matchedKw = keywords.find(k => k.word === tok);
-                            const textColor = matchedKw ? matchedKw.color : '#ffffff';
-
-                            ctx.fillStyle = textColor;
-                            ctx.shadowColor = matchedKw ? matchedKw.color : 'rgba(0, 0, 0, 0.95)';
-                            ctx.shadowBlur = matchedKw ? 12 : 8;
-                            ctx.fillText(tok, currentX, rowCenterY + 1);
-                            currentX += ctx.measureText(tok).width;
-                        });
-
-                        ctx.restore();
-                    });
-
-                } else {
-                    // ==========================================
-                    // 2. TEMPLATE FESTIVAL (Original)
-                    // ==========================================
-                    const festName = (concoursFestivalName || festivalNameText || 'NOM DU FESTIVAL').toUpperCase();
-                    const headlineText = 'GAGNE TES INVITATIONS POUR';
-                    const subtitleText = "POUR PARTICIPER C'EST TRÈS SIMPLE :";
-
-                    const baseStartY = effectiveTab === 'PUBLICATION' ? 950 : 1380;
-                    let curY = baseStartY;
-
-                    // A) GRAND TITRE : GAGNE TES INVITATIONS POUR
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'alphabetic';
-                    ctx.font = '900 italic 44px "Montserrat", sans-serif';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                    ctx.shadowBlur = 14;
-                    ctx.fillText(headlineText, canvas.width / 2, curY);
-
-                    // B) NOM DU FESTIVAL
-                    curY += 58;
-                    let festFontSize = 52;
-                    ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
-                    while (ctx.measureText(festName).width > (canvas.width - 120) && festFontSize > 26) {
-                        festFontSize -= 2;
-                        ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
-                    }
-                    ctx.fillStyle = '#00ffff';
-                    ctx.shadowColor = 'rgba(0, 255, 255, 0.45)';
-                    ctx.shadowBlur = 18;
-                    ctx.fillText(festName, canvas.width / 2, curY);
-
-                    // C) SOUS-TITRE : POUR PARTICIPER C'EST TRÈS SIMPLE :
-                    curY += 62;
-                    ctx.font = '900 italic 28px "Montserrat", sans-serif';
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                    ctx.shadowBlur = 10;
-                    ctx.fillText(subtitleText, canvas.width / 2, curY);
-
-                    // D) CONDITIONS DE PARTICIPATION FIXES
-                    curY += 58;
-                    const rawHandle = concoursFestivalHandle.trim();
-                    const festHandle = rawHandle
-                        ? (rawHandle.startsWith('@') ? rawHandle : `@${rawHandle}`)
-                        : (festivalNameText ? `@${festivalNameText.toLowerCase().replace(/\s+/g, '')}` : '@FESTIVAL');
-
-                    const flashyColor = '#00ffff';
-                    const stepSegments: Array<Array<{ text: string; color: string }>> = [
-                        [
-                            { text: '1. FOLLOW LA PAGE ', color: '#ffffff' },
-                            { text: '@DROPSIDERS.FR', color: flashyColor },
-                            { text: ' + ', color: '#ffffff' },
-                            { text: festHandle.toUpperCase(), color: flashyColor }
-                        ],
-                        [
-                            { text: "2. IDENTIFIE LA PERSONNE QUI T'ACCOMPAGNERA", color: '#ffffff' }
-                        ],
-                        [
-                            { text: '3. PARTAGE EN STORY (PUBLIC) EN NOUS IDENTIFIANT + ', color: '#ffffff' },
-                            { text: festHandle.toUpperCase(), color: flashyColor }
-                        ],
-                        [
-                            { text: '4. REPOST CE POST', color: '#ffffff' }
-                        ]
-                    ];
-
-                    let ruleFontSize = effectiveTab === 'PUBLICATION' ? 24 : 26;
-                    const ruleLineHeight = effectiveTab === 'PUBLICATION' ? 52 : 60;
-
-                    ctx.font = `800 italic ${ruleFontSize}px "Montserrat", sans-serif`;
-                    stepSegments.forEach(segments => {
-                        const fullText = segments.map(s => s.text).join('');
-                        while (ctx.measureText(fullText).width > (canvas.width - 100) && ruleFontSize > 18) {
-                            ruleFontSize -= 1;
-                            ctx.font = `800 italic ${ruleFontSize}px "Montserrat", sans-serif`;
-                        }
-                    });
-
-                    stepSegments.forEach((segments) => {
-                        const fullWidth = segments.reduce((acc, s) => acc + ctx.measureText(s.text).width, 0);
-                        let startX = (canvas.width / 2) - (fullWidth / 2);
-
-                        ctx.textAlign = 'left';
-                        segments.forEach(seg => {
-                            ctx.fillStyle = seg.color;
-                            ctx.shadowColor = seg.color === flashyColor ? 'rgba(0, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.95)';
-                            ctx.shadowBlur = seg.color === flashyColor ? 14 : 12;
-                            ctx.fillText(seg.text, startX, curY);
-                            startX += ctx.measureText(seg.text).width;
-                        });
-
-                        curY += ruleLineHeight;
-                    });
-                }
-
-                ctx.restore();
-
             } else if (theme === 'JEU') {
                 const centerX = canvas.width / 2;
                 const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
@@ -3131,8 +2764,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // 1. TOP-LEFT STYLIZED CAPSULE BADGE (French Crowd / Modern Editorial)
                 const isReel = effectiveTab === 'REEL';
                 const badgeX = isReel ? 80 : 60;
-                // Alignement au pixel près avec le haut de la boîte du logo Dropsiders (compense le padding transparent haut du fichier Logo.png)
-                const badgeY = isReel ? 78 : 54;
+                // Alignement au pixel près avec le haut du cadre du logo Dropsiders
+                const badgeY = isReel ? 74 : 50;
                 const themeDotColor = (theme === 'INTERVIEW') ? '#ffffff' : activeData.color;
                 const badgeLabelText = (theme === 'ARTISTE FESTIVAL') 
                     ? (festivalNameText ? festivalNameText.toUpperCase() : 'FESTIVAL')
@@ -3216,7 +2849,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
                 // 1.B AUTOMATIC DATE UNDERNEATH THE CAPSULE BADGE
-                const showEditorialDate = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL'].includes(theme);
+                const showEditorialDate = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'CONCOURS'].includes(theme);
                 if (showEditorialDate) {
                     ctx.save();
                     const now = new Date();
@@ -3292,7 +2925,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
                 // 4. MAIN TITLE IN WHITE (BOLD) & SUBTEXT UNDERNEATH (ITALIC)
-                const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS'].includes(theme);
+                const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme);
 
                 const mainTitleText = (conseilsTitle && conseilsTitle !== 'LE TITRE ICI') 
                     ? conseilsTitle 
@@ -4430,6 +4063,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setCustomText('DE QUEL CLIP CETTE IMAGE EST TIRÉE ?');
         } else if (newTheme === 'JEU_FESTIVAL') {
             setCustomText('DANS QUEL FESTIVAL PEUT-ON VOIR CETTE STAGE ?');
+        } else if (newTheme === 'CONCOURS') {
+            if (!conseilsTitle || conseilsTitle === 'LE TITRE ICI') {
+                const defT = '*1X PASS VIP 3 JOURS* À GAGNER';
+                setConseilsTitle(defT);
+                setCustomText(defT);
+            }
+            if (!conseilsSubtext) {
+                setConseilsSubtext('POUR PARTICIPER :\n1. *Like* ce post & *abonne-toi* à @dropsiders\n2. *Identifie 2 potes* en commentaire\n3. *Partage en story* pour doubler tes chances !\nTirage au sort le dimanche 25 octobre.');
+            }
         }
         setTextColor(LIGHT_TEXT_THEMES.includes(newTheme) ? '#000000' : '#ffffff');
     };
@@ -4573,6 +4215,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => handleSetTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
             <button onClick={() => handleSetTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3]' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
             <button onClick={() => { handleSetTheme('EVENTS'); setEventsSlide(1); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENTS' || theme === 'AFFICHE' ? 'bg-[#ff007f]/20 border-[#ff007f] text-[#ff007f] shadow-[0_0_12px_rgba(255,0,127,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENTS</button>
+            <button onClick={() => handleSetTheme('CONCOURS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONCOURS' ? 'bg-[#008cff]/20 border-[#008cff] text-[#008cff] shadow-[0_0_12px_rgba(0,140,255,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>CONCOURS</button>
             <button onClick={() => handleSetTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
             <button onClick={() => handleSetTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-[#ff3700]/20 border-[#ff3700] text-[#ff3700] shadow-[0_0_12px_rgba(255,55,0,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>AGENDA</button>
             <button onClick={() => handleSetTheme('INTERVIEW')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTERVIEW' ? 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTERVIEW</button>
@@ -6027,7 +5670,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const conseilsEditor = (
         <div className="space-y-4">
             {/* CARROUSEL SLIDE SWITCHER (POUR NEWS, RÉCAP, FOCUS, ETC.) */}
-            {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS'].includes(theme) && (
+            {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && (
                 <>
                     <div className="p-1.5 bg-black/60 border border-white/10 rounded-2xl flex gap-1 shadow-xl">
                         <button
@@ -6087,6 +5730,55 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <Download className="w-4 h-4 text-black" /> Télécharger Carrousel (Slide 1 + 2)
                         </button>
                     </div>
+
+                    {theme === 'CONCOURS' && (
+                        <div className="p-2.5 bg-[#008cff]/10 border border-[#008cff]/20 rounded-xl space-y-1.5">
+                            <span className="text-[8px] font-black uppercase text-[#008cff] tracking-wider flex items-center gap-1.5">
+                                🎁 Modèles rapides Concours en 1 clic :
+                            </span>
+                            <div className="grid grid-cols-3 gap-1.5">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const t = '*1X PASS VIP 3 JOURS* À GAGNER';
+                                        const s = 'POUR PARTICIPER :\n1. *Like* ce post & *abonne-toi* à @dropsiders\n2. *Identifie 2 potes* en commentaire\n3. *Partage en story* pour doubler tes chances !\nTirage au sort dimanche prochain.';
+                                        setConseilsTitle(t);
+                                        setCustomText(t);
+                                        setConseilsSubtext(s);
+                                    }}
+                                    className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                >
+                                    🎟️ Pass Festival
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const t = '*CASQUE AUDIO SANS FIL* À GAGNER';
+                                        const s = 'POUR PARTICIPER :\n1. *Like* ce post & *follow* @dropsiders\n2. *Tag 2 potes* qui ont besoin de bon son\n3. *Partage en story* !';
+                                        setConseilsTitle(t);
+                                        setCustomText(t);
+                                        setConseilsSubtext(s);
+                                    }}
+                                    className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                >
+                                    🎧 Tech / Audio
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const t = '*LE JEU DE TON CHOIX* À GAGNER';
+                                        const s = 'POUR PARTICIPER :\n1. *Like* ce post & *abonne-toi*\n2. *Commente ton jeu préféré* & identifie 1 pote\n3. *Partage en story* !';
+                                        setConseilsTitle(t);
+                                        setCustomText(t);
+                                        setConseilsSubtext(s);
+                                    }}
+                                    className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                >
+                                    🎮 Jeu Vidéo
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </>
             )}
 
@@ -6192,14 +5884,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 })()}
             </div>
 
-            <div className="space-y-2">
-                <div className="flex items-center justify-between pl-1">
-                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
-                        <span>Texte en dessous (italique)</span>
-                        <span className="text-[8px] font-bold text-neon-cyan px-1.5 py-0.5 rounded bg-neon-cyan/10 border border-neon-cyan/20">Slide 2</span>
-                    </label>
-                    <span className="text-[8px] font-bold text-gray-500">Astuce: *mot*</span>
-                </div>
+            {editorialSlide === 2 && (
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between pl-1">
+                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+                            <span>Texte en dessous (italique)</span>
+                            <span className="text-[8px] font-bold text-neon-cyan px-1.5 py-0.5 rounded bg-neon-cyan/10 border border-neon-cyan/20">Slide 2</span>
+                        </label>
+                        <span className="text-[8px] font-bold text-gray-500">Astuce: *mot*</span>
+                    </div>
                 <textarea 
                     ref={conseilsSubtextInputRef}
                     rows={3}
@@ -6288,7 +5981,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     );
                 })()}
-            </div>
+                </div>
+            )}
         </div>
     );
 
@@ -7916,10 +7610,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <><span className="text-[10px] font-black text-[#ff007f] uppercase">Événements & Affiche (Carrousel)</span>{eventsEditor}</>
                             ) : theme === 'MUSIQUE' ? (
                                 <><span className="text-[10px] font-black text-[#00ff66] uppercase">Musique & Cover Track (Carrousel)</span>{musiqueEditor}</>
-                            ) : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS'].includes(theme) ? (
-                                <><span className="text-[10px] font-black text-neon-red uppercase">Contenu Titre & Sous-titre ({theme})</span>{conseilsEditor}</>
-                            ) : theme === 'CONCOURS' ? (
-                                <><span className="text-[10px] font-black text-[#c084fc] uppercase">Paramètres Jeu Concours</span>{concoursEditor}</>
+                            ) : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS'].includes(theme) ? (
+                                <><span className="text-[10px] font-black text-neon-cyan uppercase">Contenu Titre & Sous-titre ({theme})</span>{conseilsEditor}</>
                             ) : theme === 'CITATION' ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Citation & Auteur</span>{citationEditor}</>
                             ) : theme === 'PROMO' ? (
@@ -8496,7 +8188,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 ))}
                                                 <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter</button>
                                             </div>
-                                        ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'ARTISTE FESTIVAL' ? artisteFestivalEditor : (theme === 'EVENTS' || theme === 'AFFICHE') ? eventsEditor : theme === 'MUSIQUE' ? musiqueEditor : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS'].includes(theme) ? conseilsEditor : theme === 'CONCOURS' ? concoursEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'PROMO' ? promoEditor : textEditor}
+                                        ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'ARTISTE FESTIVAL' ? artisteFestivalEditor : (theme === 'EVENTS' || theme === 'AFFICHE') ? eventsEditor : theme === 'MUSIQUE' ? musiqueEditor : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS'].includes(theme) ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'PROMO' ? promoEditor : textEditor}
                                     </div>
                                 )}
 
