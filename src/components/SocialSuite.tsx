@@ -3348,8 +3348,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 // 1. TOP-LEFT STYLIZED CAPSULE BADGE (French Crowd / Modern Editorial)
-                const badgeX = bgVideo ? 140 : 60;
-                const badgeY = bgVideo ? 70 : 42;
+                const isReel = effectiveTab === 'REEL';
+                const badgeX = isReel ? 80 : 60;
+                const badgeY = isReel ? 70 : 45;
                 const themeDotColor = (theme === 'INTERVIEW') ? '#ffffff' : activeData.color;
                 const badgeLabelText = (theme === 'ARTISTE FESTIVAL') 
                     ? (festivalNameText ? festivalNameText.toUpperCase() : 'FESTIVAL')
@@ -3593,19 +3594,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // --- FINAL OVERLAYS (Logo & Swipe) ---
             if (logoRef.current && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2) && theme !== 'PROMO') {
                 const logo = logoRef.current;
-                const w = 320;
-                // Move left and down for video backgrounds to avoid cropping and match requested safety margins
-                const xOffset = bgVideo ? 140 : 40;
-                const yOffset = bgVideo ? 70 : 20;
+                const isReel = effectiveTab === 'REEL';
+                const w = isReel ? 275 : 290;
+                // Safe margins preventing cropping from rounded corners and Instagram UI
+                const xOffset = isReel ? 80 : 60;
+                const yOffset = isReel ? 70 : 45;
+                const logoH = (logo.height * w) / logo.width;
                 ctx.save();
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 20;
+                ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                ctx.shadowBlur = 18;
                 if (isArtistLogoNegative) {
                     ctx.filter = 'brightness(0) invert(1)';
-                    ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, (logo.height * w) / logo.width);
+                    ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, logoH);
                     ctx.filter = 'none';
                 } else {
-                    ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, (logo.height * w) / logo.width);
+                    ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, logoH);
                 }
                 ctx.restore();
             }
