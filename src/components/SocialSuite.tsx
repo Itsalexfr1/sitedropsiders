@@ -3357,15 +3357,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     : (('label' in activeData) ? (activeData as any).label : theme);
 
                 ctx.save();
-                const badgeFontSize = 21;
+                const badgeFontSize = 20;
+                const badgeLetterSpacing = 1.8;
                 ctx.font = `900 italic ${badgeFontSize}px "Montserrat", sans-serif`;
-                const textMeasure = ctx.measureText(badgeLabelText);
-                const badgePadX = 20;
-                const dotSize = 6;
-                const dotGap = 12;
-                const badgeW = badgePadX + (dotSize * 2) + dotGap + textMeasure.width + badgePadX;
+                if ('letterSpacing' in ctx) {
+                    (ctx as any).letterSpacing = `${badgeLetterSpacing}px`;
+                }
+
+                // Precise text measurement with active font and letter spacing
+                const textMetrics = ctx.measureText(badgeLabelText);
+                const textWidth = textMetrics.width;
+
+                // Italic 900 slant compensation (Montserrat italic leans ~14° forward)
+                const italicSlantBuffer = 6;
+
+                // Pill spacing geometry
+                const badgePadLeft = 18;
+                const dotRadius = 5.5;
+                const dotGap = 11;
+                const badgePadRight = 24;
+
                 const badgeH = 46;
-                const badgeRadius = 23;
+                const badgeRadius = badgeH / 2;
+                const dotCenterX = badgeX + badgePadLeft + dotRadius;
+                const dotCenterY = badgeY + (badgeH / 2);
+                const textStartX = dotCenterX + dotRadius + dotGap;
+                const badgeW = Math.ceil(badgePadLeft + (dotRadius * 2) + dotGap + textWidth + italicSlantBuffer + badgePadRight);
 
                 // Glass Pill Background
                 ctx.fillStyle = 'rgba(12, 14, 20, 0.78)';
@@ -3386,24 +3403,34 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
                 ctx.stroke();
 
-                // Glowing Theme Dot
-                const dotCenterX = badgeX + badgePadX + dotSize;
-                const dotCenterY = badgeY + (badgeH / 2);
+                // Glowing Theme Dot (Centered horizontally & vertically)
                 ctx.save();
                 ctx.fillStyle = themeDotColor;
                 ctx.shadowColor = themeDotColor;
                 ctx.shadowBlur = 12;
                 ctx.beginPath();
-                ctx.arc(dotCenterX, dotCenterY, dotSize, 0, Math.PI * 2);
+                ctx.arc(dotCenterX, dotCenterY, dotRadius, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
 
-                // Pill Text (White bold italic)
+                // Pill Text (White bold italic, mathematically centered vertically)
                 ctx.fillStyle = '#ffffff';
-                ctx.letterSpacing = '2px';
-                ctx.textBaseline = 'middle';
+                if ('letterSpacing' in ctx) {
+                    (ctx as any).letterSpacing = `${badgeLetterSpacing}px`;
+                }
                 ctx.textAlign = 'left';
-                ctx.fillText(badgeLabelText, dotCenterX + dotSize + dotGap, dotCenterY + 1);
+
+                // Calculate exact vertical baseline alignment for uppercase glyphs
+                let textY = dotCenterY;
+                if (textMetrics.actualBoundingBoxAscent !== undefined && textMetrics.actualBoundingBoxDescent !== undefined) {
+                    ctx.textBaseline = 'alphabetic';
+                    textY = dotCenterY + (textMetrics.actualBoundingBoxAscent - textMetrics.actualBoundingBoxDescent) / 2;
+                } else {
+                    ctx.textBaseline = 'middle';
+                    textY = dotCenterY - 0.5;
+                }
+
+                ctx.fillText(badgeLabelText, textStartX, textY);
                 ctx.restore();
 
                 // 2. OPTIONAL ARTIST LOGO (For Interview or other themes if uploaded)
