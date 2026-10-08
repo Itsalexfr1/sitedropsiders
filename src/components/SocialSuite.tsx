@@ -213,6 +213,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [citationMedia, setCitationMedia] = useState('pour Dropsiders');
     const [conseilsTitle, setConseilsTitle] = useState('LE TITRE ICI');
     const [conseilsSubtext, setConseilsSubtext] = useState('');
+    const conseilsTitleInputRef = useRef<HTMLTextAreaElement | null>(null);
+    const conseilsSubtextInputRef = useRef<HTMLTextAreaElement | null>(null);
     const [isConseilsLargeTitle, setIsConseilsLargeTitle] = useState(false);
     const [promoCategory, setPromoCategory] = useState<string>(() => {
         if (initialTheme && initialTheme !== 'PROMO') return initialTheme;
@@ -769,8 +771,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fill();
                         ctx.restore();
                     }
-                    ctx.fillStyle = seg.color || defaultColor;
-                    ctx.fillText(seg.text, currentX, y);
+                    if (seg.color) {
+                        ctx.save();
+                        ctx.fillStyle = seg.color;
+                        ctx.shadowColor = seg.color;
+                        ctx.shadowBlur = 12;
+                        ctx.fillText(seg.text, currentX, y);
+                        ctx.restore();
+                    } else {
+                        ctx.fillStyle = defaultColor;
+                        ctx.fillText(seg.text, currentX, y);
+                    }
                     currentX += segWidth;
                 });
                 ctx.restore();
@@ -3238,53 +3249,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
                 ctx.shadowBlur = 8;
 
-                if (artistLogoRef.current) {
-                    const badgeW = 60;
-                    const badgeH = 50;
-                    const badgeLogoX = (canvas.width - badgeW) / 2;
-                    const badgeLogoY = dividerY - (badgeH / 2);
-
-                    ctx.beginPath();
-                    ctx.moveTo(lineMarginX, dividerY);
-                    ctx.lineTo(badgeLogoX - 16, dividerY);
-                    ctx.stroke();
-
-                    ctx.beginPath();
-                    ctx.moveTo(badgeLogoX + badgeW + 16, dividerY);
-                    ctx.lineTo(lineRightX, dividerY);
-                    ctx.stroke();
-
-                    // Badge Container for custom logo
-                    ctx.save();
-                    ctx.fillStyle = '#000000';
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 2.5;
-                    ctx.shadowColor = 'rgba(0,0,0,0.6)';
-                    ctx.shadowBlur = 10;
-                    ctx.beginPath();
-                    ctx.roundRect(badgeLogoX, badgeLogoY, badgeW, badgeH, 10);
-                    ctx.fill();
-                    ctx.stroke();
-
-                    const img = artistLogoRef.current;
-                    const padding = 10;
-                    const maxLW = badgeW - padding * 2;
-                    const maxLH = badgeH - padding * 2;
-                    let lw = img.width;
-                    let lh = img.height;
-                    const r = Math.min(maxLW / lw, maxLH / lh);
-                    lw *= r; lh *= r;
-                    if (isArtistLogoNegative) {
-                        ctx.filter = 'brightness(0) invert(1)';
-                    }
-                    ctx.drawImage(img, (canvas.width - lw) / 2, dividerY - (lh / 2), lw, lh);
-                    ctx.restore();
-                } else {
-                    ctx.beginPath();
-                    ctx.moveTo(lineMarginX, dividerY);
-                    ctx.lineTo(lineRightX, dividerY);
-                    ctx.stroke();
-                }
+                ctx.beginPath();
+                ctx.moveTo(lineMarginX, dividerY);
+                ctx.lineTo(lineRightX, dividerY);
+                ctx.stroke();
                 ctx.restore();
 
                 // 4. MAIN TITLE IN WHITE (BOLD) & SUBTEXT UNDERNEATH (ITALIC)
@@ -3297,7 +3265,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isTitleOnly = mainTitleText && !bodyText;
                 let curY = dividerY + 62;
 
-                // --- A) MAIN TITLE IN WHITE ---
+                // --- A) MAIN TITLE IN WHITE (WITH THEME COLOR HIGHLIGHTS) ---
                 if (mainTitleText) {
                     ctx.save();
                     let titleFontSize = isConseilsLargeTitle ? 66 : (isTitleOnly ? 58 : 44);
@@ -3312,7 +3280,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             let cur = '';
                             words.forEach(w => {
                                 const test = cur ? `${cur} ${w}` : w;
-                                if (ctx.measureText(test.toUpperCase()).width > lineWidth) {
+                                if (ctx.measureText(stripTags(test).toUpperCase()).width > lineWidth) {
                                     if (cur) lines.push(cur);
                                     cur = w;
                                 } else {
@@ -3325,7 +3293,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
 
                     let titleLines = formatTitleLines(titleFontSize);
-                    while (titleFontSize > 26 && titleLines.some(l => ctx.measureText(l.toUpperCase()).width > lineWidth)) {
+                    while (titleFontSize > 26 && titleLines.some(l => ctx.measureText(stripTags(l).toUpperCase()).width > lineWidth)) {
                         titleFontSize -= 2;
                         titleLines = formatTitleLines(titleFontSize);
                     }
@@ -3335,18 +3303,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                     ctx.shadowBlur = 16;
-                    ctx.textAlign = 'center';
                     ctx.textBaseline = 'alphabetic';
 
                     titleLines.forEach(tLine => {
-                        ctx.fillText(tLine.toUpperCase(), canvas.width / 2, curY);
+                        drawRichText(ctx, tLine.toUpperCase(), canvas.width / 2, curY, '#ffffff', 'center');
                         curY += titleLineHeight;
                     });
                     ctx.restore();
                     curY += 22; // Clean spacing
                 }
 
-                // --- B) SUBTEXT UNDERNEATH (ITALIC) ---
+                // --- B) SUBTEXT UNDERNEATH (ITALIC, WITH THEME COLOR HIGHLIGHTS) ---
                 if (bodyText) {
                     ctx.save();
                     let subFontSize = 26;
@@ -3361,7 +3328,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             let cur = '';
                             words.forEach(w => {
                                 const test = cur ? `${cur} ${w}` : w;
-                                if (ctx.measureText(test).width > lineWidth) {
+                                if (ctx.measureText(stripTags(test)).width > lineWidth) {
                                     if (cur) lines.push(cur);
                                     cur = w;
                                 } else {
@@ -3374,7 +3341,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
 
                     let subLines = formatSubLines(subFontSize);
-                    while (subFontSize > 16 && subLines.some(l => ctx.measureText(l).width > lineWidth)) {
+                    while (subFontSize > 16 && subLines.some(l => ctx.measureText(stripTags(l)).width > lineWidth)) {
                         subFontSize -= 1;
                         subLines = formatSubLines(subFontSize);
                     }
@@ -3384,11 +3351,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = 'rgba(255,255,255,0.92)';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                     ctx.shadowBlur = 10;
-                    ctx.textAlign = 'center';
                     ctx.textBaseline = 'alphabetic';
 
                     subLines.forEach(bLine => {
-                        ctx.fillText(bLine, canvas.width / 2, curY);
+                        drawRichText(ctx, bLine, canvas.width / 2, curY, 'rgba(255,255,255,0.92)', 'center');
                         curY += subLineHeight;
                     });
                     ctx.restore();
@@ -5901,64 +5867,225 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             </div>
 
+            {/* THEME COLOR ACCENT INFO BADGE */}
+            <div className="p-3 bg-white/[0.03] border border-white/10 rounded-2xl flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                    <span 
+                        className="w-3.5 h-3.5 rounded-full flex-shrink-0 animate-pulse" 
+                        style={{ backgroundColor: activeColor.color, boxShadow: `0 0 10px ${activeColor.color}` }}
+                    />
+                    <div className="flex flex-col min-w-0">
+                        <span className="text-[10px] font-black text-white uppercase tracking-wider truncate">
+                            Couleur du Thème : {theme}
+                        </span>
+                        <span className="text-[8px] font-bold text-gray-400">
+                            Clique sur un mot ci-dessous pour l'illuminer dans la couleur du thème
+                        </span>
+                    </div>
+                </div>
+                <span 
+                    className="text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider flex-shrink-0"
+                    style={{ backgroundColor: `${activeColor.color}25`, color: activeColor.color, border: `1px solid ${activeColor.color}40` }}
+                >
+                    {activeColor.color}
+                </span>
+            </div>
+
             <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Titre Principal (Grand texte blanc)</label>
+                <div className="flex items-center justify-between pl-1">
+                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Titre Principal</label>
+                    <span className="text-[8px] font-bold text-gray-500">Astuce: entoure un mot avec *étoiles*</span>
+                </div>
                 <textarea 
+                    ref={conseilsTitleInputRef}
                     rows={2}
                     value={conseilsTitle === 'LE TITRE ICI' ? (customText || '') : conseilsTitle} 
                     onChange={e => {
                         setConseilsTitle(e.target.value);
                         setCustomText(e.target.value);
                     }} 
-                    placeholder="EX: 3 FESTIVALS INCONTOURNABLES" 
+                    placeholder="EX: 3 *FESTIVALS* INCONTOURNABLES" 
                     className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-white/40 outline-none transition-all shadow-md resize-none" 
                 />
+                {(() => {
+                    const currentTitle = conseilsTitle === 'LE TITRE ICI' ? (customText || '') : conseilsTitle;
+                    const rawWords = currentTitle ? currentTitle.split(/\s+/).filter(Boolean) : [];
+                    if (rawWords.length === 0) return null;
+                    return (
+                        <div className="space-y-1.5 pt-1">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                    <span 
+                                        className="w-2 h-2 rounded-full inline-block animate-pulse" 
+                                        style={{ backgroundColor: activeColor.color, boxShadow: `0 0 8px ${activeColor.color}` }}
+                                    />
+                                    Clique pour colorer un mot :
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const el = conseilsTitleInputRef.current;
+                                        if (!el) return;
+                                        const start = el.selectionStart;
+                                        const end = el.selectionEnd;
+                                        if (start === end) return;
+                                        const sel = currentTitle.substring(start, end);
+                                        const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
+                                        const updated = currentTitle.substring(0, start) + rep + currentTitle.substring(end);
+                                        setConseilsTitle(updated);
+                                        setCustomText(updated);
+                                    }}
+                                    className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
+                                    title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
+                                >
+                                    Colorer sélection
+                                </button>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
+                                {rawWords.map((word, idx) => {
+                                    const isHighlighted = word.startsWith('*') && word.endsWith('*') && word.length >= 2;
+                                    const cleanWord = isHighlighted ? word.slice(1, -1) : word;
+                                    return (
+                                        <button
+                                            key={idx}
+                                            type="button"
+                                            onClick={() => {
+                                                const parts = currentTitle.split(/(\s+)/);
+                                                let curIdx = 0;
+                                                const res = parts.map(p => {
+                                                    if (/^\s+$/.test(p) || !p) return p;
+                                                    if (curIdx === idx) {
+                                                        curIdx++;
+                                                        if (p.startsWith('*') && p.endsWith('*') && p.length >= 2) {
+                                                            return p.slice(1, -1);
+                                                        } else {
+                                                            const clean = p.replace(/^\*+|\*+$/g, '');
+                                                            return `*${clean}*`;
+                                                        }
+                                                    }
+                                                    curIdx++;
+                                                    return p;
+                                                });
+                                                const updated = res.join('');
+                                                setConseilsTitle(updated);
+                                                setCustomText(updated);
+                                            }}
+                                            className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${
+                                                isHighlighted 
+                                                    ? 'shadow-md border-transparent' 
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
+                                            }`}
+                                            style={isHighlighted ? {
+                                                backgroundColor: `${activeColor.color}30`,
+                                                borderColor: activeColor.color,
+                                                color: activeColor.color,
+                                                boxShadow: `0 0 10px ${activeColor.color}50`,
+                                            } : undefined}
+                                            title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer en ${theme}`}
+                                        >
+                                            {cleanWord}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                })()}
             </div>
+
             <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Texte en dessous du titre (italique)</label>
+                <div className="flex items-center justify-between pl-1">
+                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Texte en dessous du titre (italique)</label>
+                    <span className="text-[8px] font-bold text-gray-500">Astuce: *mot*</span>
+                </div>
                 <textarea 
+                    ref={conseilsSubtextInputRef}
                     rows={3}
                     value={conseilsSubtext} 
                     onChange={e => setConseilsSubtext(e.target.value)} 
-                    placeholder="EX: Halloween 2026&#10;Electro to Techno to Hard Techno" 
+                    placeholder="EX: Halloween 2026&#10;*Electro* to Techno to Hard Techno" 
                     className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white italic focus:border-white/40 outline-none transition-all shadow-md resize-none" 
                 />
-            </div>
-            <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Logo / Icône du Badge Central (Optionnel)</label>
-                <div className="relative group/logo">
-                    {artistLogo && (
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); setArtistLogo(''); artistLogoRef.current = null; }}
-                            className="absolute top-2 right-2 z-10 p-1.5 bg-black/60 hover:bg-red-500 text-white rounded-full transition-all opacity-100"
-                        >
-                            <X className="w-3 h-3" />
-                        </button>
-                    )}
-                    <input type="file" onChange={handleArtistLogoChange} className="hidden" id="conseils-img-up" accept="image/*" />
-                    <button onClick={() => document.getElementById('conseils-img-up')?.click()} className="w-full aspect-video bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-all group overflow-hidden relative">
-                        {artistLogo ? (
-                            <img 
-                                src={artistLogo} 
-                                alt="Logo Badge" 
-                                className="w-full h-full object-contain p-4 transition-all" 
-                            />
-                        ) : (
-                            <>
-                                <ImageIcon className="w-8 h-8 text-white/20 group-hover:text-neon-cyan transition-colors" />
-                                <span className="text-[10px] font-black text-white/50 uppercase group-hover:text-white transition-colors">Personaliser le Logo du Badge</span>
-                            </>
-                        )}
-                    </button>
-                </div>
-                <div className="flex gap-2">
-                    <button onClick={() => {
-                        setR2TargetType('logo');
-                        setIsR2ModalOpen(true);
-                    }} className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-2">
-                        <Upload className="w-4 h-4 text-neon-cyan" /> {artistLogo ? 'Modifier Image Cloud' : 'Importer Cloud'}
-                    </button>
-                </div>
+                {(() => {
+                    const rawWords = conseilsSubtext ? conseilsSubtext.split(/\s+/).filter(Boolean) : [];
+                    if (rawWords.length === 0) return null;
+                    return (
+                        <div className="space-y-1.5 pt-1">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                    <span 
+                                        className="w-2 h-2 rounded-full inline-block animate-pulse" 
+                                        style={{ backgroundColor: activeColor.color, boxShadow: `0 0 8px ${activeColor.color}` }}
+                                    />
+                                    Clique pour colorer un mot :
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const el = conseilsSubtextInputRef.current;
+                                        if (!el) return;
+                                        const start = el.selectionStart;
+                                        const end = el.selectionEnd;
+                                        if (start === end) return;
+                                        const sel = conseilsSubtext.substring(start, end);
+                                        const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
+                                        const updated = conseilsSubtext.substring(0, start) + rep + conseilsSubtext.substring(end);
+                                        setConseilsSubtext(updated);
+                                    }}
+                                    className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
+                                    title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
+                                >
+                                    Colorer sélection
+                                </button>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
+                                {rawWords.map((word, idx) => {
+                                    const isHighlighted = word.startsWith('*') && word.endsWith('*') && word.length >= 2;
+                                    const cleanWord = isHighlighted ? word.slice(1, -1) : word;
+                                    return (
+                                        <button
+                                            key={idx}
+                                            type="button"
+                                            onClick={() => {
+                                                const parts = conseilsSubtext.split(/(\s+)/);
+                                                let curIdx = 0;
+                                                const res = parts.map(p => {
+                                                    if (/^\s+$/.test(p) || !p) return p;
+                                                    if (curIdx === idx) {
+                                                        curIdx++;
+                                                        if (p.startsWith('*') && p.endsWith('*') && p.length >= 2) {
+                                                            return p.slice(1, -1);
+                                                        } else {
+                                                            const clean = p.replace(/^\*+|\*+$/g, '');
+                                                            return `*${clean}*`;
+                                                        }
+                                                    }
+                                                    curIdx++;
+                                                    return p;
+                                                });
+                                                setConseilsSubtext(res.join(''));
+                                            }}
+                                            className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${
+                                                isHighlighted 
+                                                    ? 'shadow-md border-transparent' 
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
+                                            }`}
+                                            style={isHighlighted ? {
+                                                backgroundColor: `${activeColor.color}30`,
+                                                borderColor: activeColor.color,
+                                                color: activeColor.color,
+                                                boxShadow: `0 0 10px ${activeColor.color}50`,
+                                            } : undefined}
+                                            title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer en ${theme}`}
+                                        >
+                                            {cleanWord}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                })()}
             </div>
         </div>
     );
