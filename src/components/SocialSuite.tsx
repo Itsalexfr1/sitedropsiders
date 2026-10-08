@@ -3206,34 +3206,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-                // --- C) DISCREET AUDIO SPEAKER ICON (For Reel format or music/reels theme) ---
-                if (effectiveTab === 'REEL' || theme === 'REELS' || theme === 'MUSIQUE') {
-                    ctx.save();
-                    const spkX = canvas.width - (isReel ? 85 : 65);
-                    const spkY = canvas.height - safeBottom - 15;
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                    ctx.shadowBlur = 6;
-                    ctx.beginPath();
-                    ctx.moveTo(spkX - 8, spkY - 6);
-                    ctx.lineTo(spkX - 3, spkY - 6);
-                    ctx.lineTo(spkX + 4, spkY - 12);
-                    ctx.lineTo(spkX + 4, spkY + 12);
-                    ctx.lineTo(spkX - 3, spkY + 6);
-                    ctx.lineTo(spkX - 8, spkY + 6);
-                    ctx.closePath();
-                    ctx.fill();
 
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(spkX + 4, spkY, 7, -Math.PI / 3, Math.PI / 3);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.arc(spkX + 4, spkY, 13, -Math.PI / 3, Math.PI / 3);
-                    ctx.stroke();
-                    ctx.restore();
-                }
 
                 // 5. BOTTOM LINK INDICATORS (If activated)
                 const indicatorY = (effectiveTab === 'PUBLICATION') ? canvas.height - 55 : canvas.height - 230;
