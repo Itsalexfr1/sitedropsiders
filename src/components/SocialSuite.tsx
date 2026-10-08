@@ -3215,6 +3215,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(badgeLabelText, textStartX, textY);
                 ctx.restore();
 
+                // 1.B AUTOMATIC DATE UNDERNEATH THE CAPSULE BADGE
+                const showEditorialDate = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM'].includes(theme);
+                if (showEditorialDate) {
+                    ctx.save();
+                    const now = new Date();
+                    const dayStr = String(now.getDate()).padStart(2, '0');
+                    const monthStr = now.toLocaleDateString('fr-FR', { month: 'long' }).toUpperCase();
+                    const yearStr = now.getFullYear();
+                    const dateText = `${dayStr} ${monthStr} ${yearStr}`;
+
+                    const dateFontSize = isReel ? 15 : 13;
+                    const dateLetterSpacing = 2.4;
+                    ctx.font = `800 ${dateFontSize}px "Montserrat", sans-serif`;
+                    if ('letterSpacing' in ctx) {
+                        (ctx as any).letterSpacing = `${dateLetterSpacing}px`;
+                    }
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.72)';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                    ctx.shadowBlur = 6;
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'top';
+                    const dateY = badgeY + badgeH + 11;
+                    ctx.fillText(dateText, badgeX + 4, dateY);
+                    ctx.restore();
+                }
+
                 // 2. TOP RIGHT PHOTO CREDIT (Left of logo)
                 const headerRightX = canvas.width - (isReel ? 420 : 380);
                 const headerY = badgeY + 23;
