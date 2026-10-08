@@ -422,6 +422,7 @@ export function NewsCreate() {
                 'interview': { color: '#ffffff', grad: '255, 255, 255' },
                 'concours': { color: '#008cff', grad: '0, 140, 255' },
                 'events': { color: '#ff007f', grad: '255, 0, 127' },
+                'tracklist': { color: '#ff7800', grad: '255, 120, 0' },
             };
 
             const catNormalized = (finalCategory || 'news').toLowerCase();
@@ -431,6 +432,7 @@ export function NewsCreate() {
             else if (catNormalized.includes('focus')) themeData = categoryColors['focus'];
             else if (catNormalized.includes('concour')) themeData = categoryColors['concours'];
             else if (catNormalized.includes('event')) themeData = categoryColors['events'];
+            else if (catNormalized.includes('tracklist')) themeData = categoryColors['tracklist'];
             else if (catNormalized.includes('recap') || catNormalized.includes('review') || catNormalized.includes('sets-mixes') || catNormalized.includes('top-festival')) themeData = categoryColors['recap'];
 
             const labelText = finalCategory ? finalCategory.toUpperCase() : 'NEWS';
@@ -802,6 +804,7 @@ export function NewsCreate() {
         if (cat.includes('musique')) return 'MUSIQUE';
         if (cat.includes('interview')) return 'INTERVIEW';
         if (cat.includes('focus')) return 'FOCUS';
+        if (cat.includes('tracklist')) return 'TRACKLIST';
         if (cat.includes('recap')) return 'RECAP';
         return 'NEWS';
     };

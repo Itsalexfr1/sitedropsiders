@@ -274,6 +274,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setAfficheImage(url);
     };
 
+    // Text animation states for Reels
+    const [textAnimation, setTextAnimation] = useState<'NONE' | 'SLIDE_LEFT' | 'WORD_BY_WORD' | 'POP_UP'>('NONE');
+    const [animReplayKey, setAnimReplayKey] = useState<number>(0);
+    const animStartTimeRef = useRef<number>(Date.now());
+
     // MAP Theme States
     const [mapFestivalText, setMapFestivalText] = useState('LOLLAPALOOZA');
     const [mapCity, setMapCity] = useState('Paris');
@@ -789,6 +794,85 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
             };
 
+            const drawTopCapsuleBadge = (label: string, dotColor: string, gradStr: string) => {
+                const isReel = effectiveTab === 'REEL';
+                const badgeX = isReel ? 80 : 60;
+                // Alignement au pixel près avec le haut du cadre du logo Dropsiders
+                const badgeY = isReel ? 74 : 50;
+
+                ctx.save();
+                const badgeFontSize = 20;
+                const badgeLetterSpacing = 1.8;
+                ctx.font = `900 italic ${badgeFontSize}px "Montserrat", sans-serif`;
+                if ('letterSpacing' in ctx) {
+                    (ctx as any).letterSpacing = `${badgeLetterSpacing}px`;
+                }
+
+                // Mesure précise du texte avec espacement
+                const textMetrics = ctx.measureText(label);
+                const textWidth = textMetrics.width;
+                const italicSlantBuffer = 6;
+
+                // Géométrie de la capsule
+                const badgePadLeft = 18;
+                const dotRadius = 5.5;
+                const dotGap = 11;
+                const badgePadRight = 24;
+
+                const badgeH = 46;
+                const badgeRadius = badgeH / 2;
+                const dotCenterX = badgeX + badgePadLeft + dotRadius;
+                const dotCenterY = badgeY + (badgeH / 2);
+                const textStartX = dotCenterX + dotRadius + dotGap;
+                const badgeW = Math.ceil(badgePadLeft + (dotRadius * 2) + dotGap + textWidth + italicSlantBuffer + badgePadRight);
+
+                // Fond capsule verre fumé
+                ctx.fillStyle = 'rgba(12, 14, 20, 0.78)';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+                ctx.shadowBlur = 16;
+                ctx.shadowOffsetY = 4;
+                ctx.beginPath();
+                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
+                ctx.fill();
+
+                // Bordure fine avec accent du thème
+                ctx.shadowColor = 'transparent';
+                ctx.strokeStyle = `rgba(${gradStr}, 0.55)`;
+                ctx.lineWidth = 1.8;
+                ctx.beginPath();
+                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
+                ctx.stroke();
+
+                // Point lumineux néon
+                ctx.save();
+                ctx.fillStyle = dotColor;
+                ctx.shadowColor = dotColor;
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.arc(dotCenterX, dotCenterY, dotRadius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Texte de la capsule en blanc gras italique
+                ctx.fillStyle = '#ffffff';
+                if ('letterSpacing' in ctx) {
+                    (ctx as any).letterSpacing = `${badgeLetterSpacing}px`;
+                }
+                ctx.textAlign = 'left';
+
+                let textY = dotCenterY;
+                if (textMetrics.actualBoundingBoxAscent !== undefined && textMetrics.actualBoundingBoxDescent !== undefined) {
+                    ctx.textBaseline = 'alphabetic';
+                    textY = dotCenterY + (textMetrics.actualBoundingBoxAscent - textMetrics.actualBoundingBoxDescent) / 2;
+                } else {
+                    ctx.textBaseline = 'middle';
+                    textY = dotCenterY - 0.5;
+                }
+
+                ctx.fillText(label, textStartX, textY);
+                ctx.restore();
+            };
+
             if (!showText) return; 
 
             // Gradient overlays for CONSEILS / REELS (Smooth continuous gradient without harsh cuts)
@@ -812,7 +896,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             const isModernEditorialTheme = (
-                ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM'].includes(theme) ||
+                ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST'].includes(theme) ||
                 (theme === 'MUSIQUE' && editorialSlide === 1) ||
                 (theme === 'EVENTS' && eventsSlide === 1) ||
                 (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1)
@@ -1741,24 +1825,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
             } else if (theme === 'TRACKLIST') {
-                // Top black banner with opacity
-                ctx.save();
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-                ctx.fillRect(0, 0, canvas.width, 180);
-                
-                // Draw Dropsiders White Logo (Native)
-                if (logoRef.current) {
-                    const logo = logoRef.current;
-                    const lw = 500;
-                    const lh = (logo.height * lw) / logo.width;
-                    
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                    ctx.shadowBlur = 10;
-                    ctx.drawImage(logo, (canvas.width - lw) / 2, 90 - lh / 2, lw, lh);
-                    ctx.restore();
-                }
-                ctx.restore();
+                // Charte V2 : Capsule Badge en haut à gauche [ • TRACKLIST ]
+                drawTopCapsuleBadge('TRACKLIST', activeData.color || '#ff7800', activeData.grad || '255, 120, 0');
 
                 if (customText) {
                     const lines = customText.split('\n');
@@ -1775,7 +1843,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
 
                     const texts = [
-                        { text: (lines[0] || '').toUpperCase(), size: 90, color: '#ff0033' },
+                        { text: (lines[0] || '').toUpperCase(), size: 90, color: activeData.color || '#ff7800' },
                         { text: (lines[1] || '').toUpperCase(), size: 60, color: '#ffffff' },
                         { text: (lines[2] || '').toUpperCase(), size: 36, color: '#ffffff', isOrbitron: true },
                     ];
@@ -2763,90 +2831,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // 1. TOP-LEFT STYLIZED CAPSULE BADGE (French Crowd / Modern Editorial)
                 const isReel = effectiveTab === 'REEL';
-                const badgeX = isReel ? 80 : 60;
-                // Alignement au pixel près avec le haut du cadre du logo Dropsiders
-                const badgeY = isReel ? 74 : 50;
                 const themeDotColor = (theme === 'INTERVIEW') ? '#ffffff' : activeData.color;
                 const badgeLabelText = (theme === 'ARTISTE FESTIVAL') 
                     ? (festivalNameText ? festivalNameText.toUpperCase() : 'FESTIVAL')
                     : (('label' in activeData) ? (activeData as any).label : theme);
 
-                ctx.save();
-                const badgeFontSize = 20;
-                const badgeLetterSpacing = 1.8;
-                ctx.font = `900 italic ${badgeFontSize}px "Montserrat", sans-serif`;
-                if ('letterSpacing' in ctx) {
-                    (ctx as any).letterSpacing = `${badgeLetterSpacing}px`;
-                }
-
-                // Precise text measurement with active font and letter spacing
-                const textMetrics = ctx.measureText(badgeLabelText);
-                const textWidth = textMetrics.width;
-
-                // Italic 900 slant compensation (Montserrat italic leans ~14° forward)
-                const italicSlantBuffer = 6;
-
-                // Pill spacing geometry
-                const badgePadLeft = 18;
-                const dotRadius = 5.5;
-                const dotGap = 11;
-                const badgePadRight = 24;
-
-                const badgeH = 46;
-                const badgeRadius = badgeH / 2;
-                const dotCenterX = badgeX + badgePadLeft + dotRadius;
-                const dotCenterY = badgeY + (badgeH / 2);
-                const textStartX = dotCenterX + dotRadius + dotGap;
-                const badgeW = Math.ceil(badgePadLeft + (dotRadius * 2) + dotGap + textWidth + italicSlantBuffer + badgePadRight);
-
-                // Glass Pill Background
-                ctx.fillStyle = 'rgba(12, 14, 20, 0.78)';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
-                ctx.shadowBlur = 16;
-                ctx.shadowOffsetY = 4;
-                ctx.beginPath();
-                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
-                ctx.fill();
-
-                // Pill Border with Theme Accent
-                ctx.shadowColor = 'transparent';
-                ctx.strokeStyle = (theme === 'INTERVIEW')
-                    ? 'rgba(255, 255, 255, 0.55)'
-                    : `rgba(${activeData.grad}, 0.55)`;
-                ctx.lineWidth = 1.8;
-                ctx.beginPath();
-                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
-                ctx.stroke();
-
-                // Glowing Theme Dot (Centered horizontally & vertically)
-                ctx.save();
-                ctx.fillStyle = themeDotColor;
-                ctx.shadowColor = themeDotColor;
-                ctx.shadowBlur = 12;
-                ctx.beginPath();
-                ctx.arc(dotCenterX, dotCenterY, dotRadius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-
-                // Pill Text (White bold italic, mathematically centered vertically)
-                ctx.fillStyle = '#ffffff';
-                if ('letterSpacing' in ctx) {
-                    (ctx as any).letterSpacing = `${badgeLetterSpacing}px`;
-                }
-                ctx.textAlign = 'left';
-
-                // Calculate exact vertical baseline alignment for uppercase glyphs
-                let textY = dotCenterY;
-                if (textMetrics.actualBoundingBoxAscent !== undefined && textMetrics.actualBoundingBoxDescent !== undefined) {
-                    ctx.textBaseline = 'alphabetic';
-                    textY = dotCenterY + (textMetrics.actualBoundingBoxAscent - textMetrics.actualBoundingBoxDescent) / 2;
-                } else {
-                    ctx.textBaseline = 'middle';
-                    textY = dotCenterY - 0.5;
-                }
-
-                ctx.fillText(badgeLabelText, textStartX, textY);
-                ctx.restore();
+                drawTopCapsuleBadge(badgeLabelText, themeDotColor, (theme === 'INTERVIEW') ? '255, 255, 255' : activeData.grad);
 
                 // 2. TOP RIGHT PHOTO CREDIT (Left of logo)
                 const headerRightX = canvas.width - (isReel ? 420 : 380);
@@ -2885,6 +2875,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const lineRightX = canvas.width - lineMarginX - swipeSpaceRight;
 
+                // Animation temporelle pour les Reels (boucle fluide en preview, 0s à la fin en export vidéo)
+                const animElapsed = (isVideoRecording || (bgVideo && !isDownloading) || textAnimation !== 'NONE')
+                    ? (isVideoRecording 
+                        ? (Date.now() - recordingStartTimeRef.current) / 1000 
+                        : ((Date.now() - animStartTimeRef.current) % 5500) / 1000)
+                    : 99.0;
+
                 // Date automatique centrée dans la barre blanche (avec un segment de barre blanche de chaque côté)
                 const showEditorialDate = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'CONCOURS'].includes(theme);
 
@@ -2893,6 +2890,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.lineWidth = 5;
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
                 ctx.shadowBlur = 6;
+
+                if (textAnimation !== 'NONE') {
+                    const lineT = Math.max(0, Math.min(1, animElapsed / 0.35));
+                    ctx.globalAlpha = 1 - Math.pow(1 - lineT, 3);
+                }
 
                 if (showEditorialDate) {
                     const now = new Date();
@@ -2922,12 +2924,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     // 2. Texte de la date au centre exact
+                    let dateAlpha = 1;
+                    if (textAnimation !== 'NONE') {
+                        const dateT = Math.max(0, Math.min(1, (animElapsed - 0.20) / 0.30));
+                        dateAlpha = 1 - Math.pow(1 - dateT, 3);
+                    }
+                    ctx.save();
+                    ctx.globalAlpha = dateAlpha;
                     ctx.fillStyle = '#ffffff';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                     ctx.shadowBlur = 8;
                     ctx.fillText(dateText, centerX, dividerY);
+                    ctx.restore();
 
                     // 3. Bout de bande blanche droite
                     if (lineRightX > dateRight + gap) {
@@ -3004,8 +3014,35 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.shadowBlur = 6;
                     ctx.textBaseline = 'alphabetic';
 
-                    titleLines.forEach(tLine => {
-                        drawRichText(ctx, tLine.toUpperCase(), canvas.width / 2, curY, '#ffffff', 'center');
+                    titleLines.forEach((tLine, tIndex) => {
+                        let xOff = 0;
+                        let yOff = 0;
+                        let alpha = 1;
+
+                        if (textAnimation === 'SLIDE_LEFT') {
+                            const delay = 0.20 + (tIndex * 0.22);
+                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.55));
+                            const ease = 1 - Math.pow(1 - t, 3);
+                            xOff = -450 * (1 - ease);
+                            alpha = t;
+                        } else if (textAnimation === 'WORD_BY_WORD') {
+                            const delay = 0.15 + (tIndex * 0.30);
+                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.40));
+                            const ease = 1 - Math.pow(1 - t, 3);
+                            yOff = 25 * (1 - ease);
+                            alpha = t;
+                        } else if (textAnimation === 'POP_UP') {
+                            const delay = 0.20 + (tIndex * 0.20);
+                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.50));
+                            const ease = 1 - Math.pow(1 - t, 3);
+                            yOff = 80 * (1 - ease);
+                            alpha = t;
+                        }
+
+                        ctx.save();
+                        ctx.globalAlpha = alpha;
+                        drawRichText(ctx, tLine.toUpperCase(), (canvas.width / 2) + xOff, curY + yOff, '#ffffff', 'center');
+                        ctx.restore();
                         curY += titleLineHeight;
                     });
                     ctx.restore();
@@ -3053,8 +3090,37 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.shadowBlur = 4;
                     ctx.textBaseline = 'alphabetic';
 
-                    subLines.forEach(bLine => {
-                        drawRichText(ctx, bLine, canvas.width / 2, curY, 'rgba(255,255,255,0.92)', 'center');
+                    const subBaseDelay = 0.20 + ((mainTitleText ? 1 : 0) * 0.45);
+
+                    subLines.forEach((bLine, sIndex) => {
+                        let xOff = 0;
+                        let yOff = 0;
+                        let alpha = 1;
+
+                        if (textAnimation === 'SLIDE_LEFT') {
+                            const delay = subBaseDelay + (sIndex * 0.18);
+                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.50));
+                            const ease = 1 - Math.pow(1 - t, 3);
+                            xOff = -350 * (1 - ease);
+                            alpha = t;
+                        } else if (textAnimation === 'WORD_BY_WORD') {
+                            const delay = subBaseDelay + (sIndex * 0.25);
+                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.35));
+                            const ease = 1 - Math.pow(1 - t, 3);
+                            yOff = 20 * (1 - ease);
+                            alpha = t;
+                        } else if (textAnimation === 'POP_UP') {
+                            const delay = subBaseDelay + (sIndex * 0.16);
+                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.45));
+                            const ease = 1 - Math.pow(1 - t, 3);
+                            yOff = 50 * (1 - ease);
+                            alpha = t;
+                        }
+
+                        ctx.save();
+                        ctx.globalAlpha = alpha;
+                        drawRichText(ctx, bLine, (canvas.width / 2) + xOff, curY + yOff, 'rgba(255,255,255,0.92)', 'center');
+                        ctx.restore();
                         curY += subLineHeight;
                     });
                     ctx.restore();
@@ -3157,7 +3223,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // --- FINAL OVERLAYS (Logo & Swipe) ---
-            if (logoRef.current && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2) && theme !== 'PROMO') {
+            if (logoRef.current && theme !== 'SPOTLIGHT' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2) && theme !== 'PROMO') {
                 const logo = logoRef.current;
                 const isReel = effectiveTab === 'REEL';
                 const w = isReel ? 275 : 290;
@@ -3310,12 +3376,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     useEffect(() => {
         let anim: number;
-        if (bgVideo || isVideoRecording) {
+        if (bgVideo || isVideoRecording || textAnimation !== 'NONE' || theme === 'TRACKLIST') {
             const loop = () => { generateImage(); anim = requestAnimationFrame(loop); };
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey]);
 
     // Pre-charger l'affiche de l'événement dès que son URL change
     useEffect(() => {
@@ -3374,6 +3440,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!canvas) return;
         setIsVideoRecording(true);
         recordingStartTimeRef.current = Date.now();
+        animStartTimeRef.current = Date.now();
 
         const formats = [
             'video/mp4;codecs=h264',
@@ -3544,9 +3611,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             totalDuration = 4 * (16800 + 1200); // 4 slides (Cover + 3 Grid pages)
         } else {
             // Utilise la durée exacte de la vidéo uploadée.
-            // Fallback à 60s si aucune vidéo n'est présente.
-            // Plafond à 10 minutes pour éviter les exports trop lourds.
-            totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) ? bgVideo.duration * 1000 : 60000;
+            // Si pas de vidéo de fond mais une animation active (ou TRACKLIST), 6s suffisent pour capturer l'animation complète
+            // Fallback à 60s si aucune vidéo ni animation n'est présente.
+            totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
+                ? bgVideo.duration * 1000
+                : ((textAnimation !== 'NONE' || theme === 'TRACKLIST') ? 6000 : 60000);
             if (totalDuration > 600000) totalDuration = 600000; // Limit to 10 minutes
         }
 
@@ -4093,6 +4162,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (!conseilsSubtext) {
                 setConseilsSubtext('POUR PARTICIPER :\n1. *Like* ce post & *abonne-toi* à @dropsiders\n2. *Identifie 2 potes* en commentaire\n3. *Partage en story* pour doubler tes chances !\nTirage au sort le dimanche 25 octobre.');
             }
+        } else if (newTheme === 'TRACKLIST') {
+            if (!customText || !customText.includes('\n')) {
+                setCustomText('ODD MOB\nCRSSD FESTIVAL\nSAN DIEGO, USA, 2026');
+            }
         }
         setTextColor(LIGHT_TEXT_THEMES.includes(newTheme) ? '#000000' : '#ffffff');
     };
@@ -4261,7 +4334,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             {activeTab === 'REEL' && (
                 <>
                     <button onClick={() => handleSetTheme('REELS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'REELS' || theme === 'CONSEILS' ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>REELS</button>
-                    <button onClick={() => handleSetTheme('TRACKLIST')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TRACKLIST' ? 'bg-orange-500/20 border-orange-500 text-orange-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TRACKLIST</button>
+                    <button onClick={() => handleSetTheme('TRACKLIST')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TRACKLIST' ? 'bg-orange-500/20 border-orange-500 text-orange-500 shadow-[0_0_12px_rgba(255,120,0,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>TRACKLIST</button>
                     <button onClick={() => handleSetTheme('MAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MAP' ? 'bg-neon-red/20 border-neon-red text-neon-red animate-pulse' : 'bg-white/5 border-white/5 text-gray-400'}`}>CARTE (STORY)</button>
                 </>
             )}
@@ -5322,7 +5395,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const tracklistEditor = (
         <div className="space-y-4">
             <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Ligne 1 : Artiste</label>
+                <label className="text-[10px] font-black text-orange-400 uppercase tracking-widest pl-1">Ligne 1 : Artiste (Orange)</label>
                 <input 
                     value={customText.split('\n')[0] || ''} 
                     onChange={e => {
@@ -5331,11 +5404,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         setCustomText(lines.join('\n'));
                     }} 
                     placeholder="EX: ODD MOB" 
-                    className="w-full bg-white/10 border border-white/20 rounded-2xl p-4 text-white font-black italic uppercase text-sm focus:border-neon-red outline-none transition-all shadow-xl" 
+                    className="w-full bg-white/10 border border-white/20 rounded-2xl p-4 text-white font-black italic uppercase text-sm focus:border-orange-500 outline-none transition-all shadow-xl" 
                 />
             </div>
             <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Ligne 2 : Festival</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Ligne 2 : Festival / Événement (Blanc)</label>
                 <input 
                     value={customText.split('\n')[1] || ''} 
                     onChange={e => {
@@ -5349,7 +5422,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 />
             </div>
             <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Ligne 3 : Ville, Pays, Année</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Ligne 3 : Ville, Pays, Année (Orbitron)</label>
                 <input 
                     value={customText.split('\n')[2] || ''} 
                     onChange={e => {
@@ -5372,8 +5445,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     {showBottomLogo ? '✅ LOGO BAS ACTIVÉ (CACHÉ GRILLE)' : '❌ LOGO BAS DÉSACTIVÉ'}
                 </button>
             </div>
-            <p className="text-[9px] text-white/30 italic px-1 pt-1">
-                Design automatisé : L1 en rouge, L2 en blanc gras, L3 en blanc Orbitron.
+            <p className="text-[9px] text-white/40 italic px-1 pt-1">
+                Charte Graphique V2 : Badge <strong className="text-orange-400">• TRACKLIST</strong> en haut à gauche, logo Dropsiders en haut à droite, L1 en orange, L2 en blanc, L3 en blanc Orbitron.
             </p>
         </div>
     );
@@ -5686,10 +5759,99 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             )}
         </div>
+    const textAnimationControl = (
+        <div className="p-3.5 bg-white/5 border border-white/10 rounded-2xl space-y-2.5">
+            <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black uppercase text-gray-300 tracking-wider flex items-center gap-1.5">
+                    🎬 Animation Texte {activeTab === 'REEL' ? '(Reel)' : ''}
+                </span>
+                {textAnimation !== 'NONE' && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            animStartTimeRef.current = Date.now();
+                            setAnimReplayKey(k => k + 1);
+                        }}
+                        className="px-2 py-0.5 bg-neon-red/10 border border-neon-red/30 rounded-lg text-[8px] font-black uppercase text-neon-red hover:bg-neon-red hover:text-white transition-all flex items-center gap-1"
+                        title="Rejouer l'animation depuis le début"
+                    >
+                        <RotateCcw className="w-2.5 h-2.5" /> Rejouer
+                    </button>
+                )}
+            </div>
+            <div className="grid grid-cols-4 gap-1.5">
+                <button
+                    type="button"
+                    onClick={() => setTextAnimation('NONE')}
+                    className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all ${
+                        textAnimation === 'NONE'
+                            ? 'bg-white text-black font-black shadow-md'
+                            : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white'
+                    }`}
+                >
+                    Statique
+                </button>
+                <button
+                    type="button"
+                    onClick={() => {
+                        setTextAnimation('SLIDE_LEFT');
+                        animStartTimeRef.current = Date.now();
+                        setAnimReplayKey(k => k + 1);
+                    }}
+                    className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all ${
+                        textAnimation === 'SLIDE_LEFT'
+                            ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)] font-black'
+                            : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white'
+                    }`}
+                    title="Les lignes glissent de gauche à droite"
+                >
+                    Glissement
+                </button>
+                <button
+                    type="button"
+                    onClick={() => {
+                        setTextAnimation('WORD_BY_WORD');
+                        animStartTimeRef.current = Date.now();
+                        setAnimReplayKey(k => k + 1);
+                    }}
+                    className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all ${
+                        textAnimation === 'WORD_BY_WORD'
+                            ? 'bg-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.5)] font-black'
+                            : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white'
+                    }`}
+                    title="Apparition progressive mot par mot"
+                >
+                    Mot / Mot
+                </button>
+                <button
+                    type="button"
+                    onClick={() => {
+                        setTextAnimation('POP_UP');
+                        animStartTimeRef.current = Date.now();
+                        setAnimReplayKey(k => k + 1);
+                    }}
+                    className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all ${
+                        textAnimation === 'POP_UP'
+                            ? 'bg-[#ffe600] text-black shadow-[0_0_12px_rgba(255,230,0,0.5)] font-black'
+                            : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white'
+                    }`}
+                    title="Surgissement du bas vers le haut"
+                >
+                    Pop Up
+                </button>
+            </div>
+            {textAnimation !== 'NONE' && (
+                <p className="text-[8px] text-gray-400 italic px-1">
+                    ✨ Animation active dans le Reel ! Cliquez sur <strong className="text-white">Générer Vidéo</strong> dans le panneau export pour créer le fichier vidéo.
+                </p>
+            )}
+        </div>
     );
 
     const conseilsEditor = (
         <div className="space-y-4">
+            {textAnimationControl}
+
             {/* CARROUSEL SLIDE SWITCHER (POUR NEWS, RÉCAP, FOCUS, ETC.) */}
             {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && (
                 <>
