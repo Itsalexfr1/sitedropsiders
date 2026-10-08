@@ -2848,32 +2848,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(badgeLabelText, textStartX, textY);
                 ctx.restore();
 
-                // 1.B AUTOMATIC DATE UNDERNEATH THE CAPSULE BADGE
-                const showEditorialDate = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'CONCOURS'].includes(theme);
-                if (showEditorialDate) {
-                    ctx.save();
-                    const now = new Date();
-                    const dayStr = String(now.getDate()).padStart(2, '0');
-                    const monthStr = now.toLocaleDateString('fr-FR', { month: 'long' }).toUpperCase();
-                    const yearStr = now.getFullYear();
-                    const dateText = `${dayStr} ${monthStr} ${yearStr}`;
-
-                    const dateFontSize = isReel ? 15 : 13;
-                    const dateLetterSpacing = 2.4;
-                    ctx.font = `800 ${dateFontSize}px "Montserrat", sans-serif`;
-                    if ('letterSpacing' in ctx) {
-                        (ctx as any).letterSpacing = `${dateLetterSpacing}px`;
-                    }
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.72)';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                    ctx.shadowBlur = 6;
-                    ctx.textAlign = 'left';
-                    ctx.textBaseline = 'top';
-                    const dateY = badgeY + badgeH + 11;
-                    ctx.fillText(dateText, badgeX + 4, dateY);
-                    ctx.restore();
-                }
-
                 // 2. TOP RIGHT PHOTO CREDIT (Left of logo)
                 const headerRightX = canvas.width - (isReel ? 420 : 380);
                 const headerY = badgeY + 23;
@@ -2911,17 +2885,64 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const lineRightX = canvas.width - lineMarginX - swipeSpaceRight;
 
-                // Horizontal line (Thick 5px line with subtle shadow)
+                // Date automatique centrée dans la barre blanche (avec un segment de barre blanche de chaque côté)
+                const showEditorialDate = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'CONCOURS'].includes(theme);
+
                 ctx.save();
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 5;
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
                 ctx.shadowBlur = 6;
 
-                ctx.beginPath();
-                ctx.moveTo(lineMarginX, dividerY);
-                ctx.lineTo(lineRightX, dividerY);
-                ctx.stroke();
+                if (showEditorialDate) {
+                    const now = new Date();
+                    const dayStr = String(now.getDate()).padStart(2, '0');
+                    const monthStr = now.toLocaleDateString('fr-FR', { month: 'long' }).toUpperCase();
+                    const yearStr = now.getFullYear();
+                    const dateText = `${dayStr} ${monthStr} ${yearStr}`;
+
+                    const dateFontSize = isReel ? 18 : 16;
+                    const dateLetterSpacing = 3;
+                    ctx.font = `800 ${dateFontSize}px "Montserrat", sans-serif`;
+                    if ('letterSpacing' in ctx) {
+                        (ctx as any).letterSpacing = `${dateLetterSpacing}px`;
+                    }
+                    const dateWidth = ctx.measureText(dateText).width;
+                    const gap = 24; // Espace net entre le texte et chaque bout de barre blanche
+                    const centerX = canvas.width / 2;
+                    const dateLeft = centerX - (dateWidth / 2);
+                    const dateRight = centerX + (dateWidth / 2);
+
+                    // 1. Bout de bande blanche gauche
+                    if (dateLeft - gap > lineMarginX) {
+                        ctx.beginPath();
+                        ctx.moveTo(lineMarginX, dividerY);
+                        ctx.lineTo(dateLeft - gap, dividerY);
+                        ctx.stroke();
+                    }
+
+                    // 2. Texte de la date au centre exact
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                    ctx.shadowBlur = 8;
+                    ctx.fillText(dateText, centerX, dividerY);
+
+                    // 3. Bout de bande blanche droite
+                    if (lineRightX > dateRight + gap) {
+                        ctx.beginPath();
+                        ctx.moveTo(dateRight + gap, dividerY);
+                        ctx.lineTo(lineRightX, dividerY);
+                        ctx.stroke();
+                    }
+                } else {
+                    // Barre continue normale si le thème n'utilise pas la date
+                    ctx.beginPath();
+                    ctx.moveTo(lineMarginX, dividerY);
+                    ctx.lineTo(lineRightX, dividerY);
+                    ctx.stroke();
+                }
                 ctx.restore();
 
                 // 4. MAIN TITLE IN WHITE (BOLD) & SUBTEXT UNDERNEATH (ITALIC)
