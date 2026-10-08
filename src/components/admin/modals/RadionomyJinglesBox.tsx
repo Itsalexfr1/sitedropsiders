@@ -188,21 +188,6 @@ export const DEFAULT_JINGLES_PUBS: RadionomyItem[] = [
         audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav'
     },
 
-    // --- PUBLICITÉS & SPONSORS PARTENAIRES ---
-    {
-        id: 'rad_pub_1',
-        title: 'Publicité Dropsiders Voyages • Packs Festivals & Bus',
-        youtubeId: 'pQdsHoG2yhw',
-        duration: 30,
-        category: 'pub'
-    },
-    {
-        id: 'rad_pub_2',
-        title: 'Spot Partenaire • Dropsiders Shop Officiel & Goodies',
-        youtubeId: '61tiIdIrjUQ',
-        duration: 25,
-        category: 'pub'
-    },
     {
         id: 'rad_promo_1',
         title: 'Promo Dropsiders TV & Live Stream 24/7',

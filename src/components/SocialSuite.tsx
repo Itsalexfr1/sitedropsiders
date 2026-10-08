@@ -684,9 +684,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         try {
             await (async (theme: ThemeType) => {
                 const isPromoTheme = theme === 'PROMO';
+                const isAgendaSource = theme === 'PLANNING' || promoCategory === 'PLANNING';
                 const actualBaseTheme = (theme === 'PROMO' && promoOutroOverrideRef.current) 
-                    ? (themeColor ? themeColor : (baseThemeData[targetTab ? 'NEWS' : (theme === 'PROMO' ? (promoCategory as ThemeType) : theme)] || baseThemeData['NEWS']))
-                    : (baseThemeData[promoCategory as ThemeType] || baseThemeData['NEWS']);
+                    ? (themeColor ? themeColor : (baseThemeData[isAgendaSource ? 'PLANNING' : (targetTab ? 'NEWS' : (theme === 'PROMO' ? (promoCategory as ThemeType) : theme))] || baseThemeData['NEWS']))
+                    : (baseThemeData[isAgendaSource ? 'PLANNING' : (promoCategory as ThemeType)] || baseThemeData['NEWS']);
                 const promoThemeData = actualBaseTheme;
                 const activeColor = isPromoTheme 
                     ? (themeColor || promoThemeData) 
@@ -2642,8 +2643,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // ==========================================
                 // ZONE 1 : QUESTION DE L'ARTICLE
+                // (Omission complète pour l'AGENDA car hors-sujet pour un récap festivals/événements)
                 // ==========================================
-                // Question texte (auto-wrap multi-lignes)
+                const isAgendaPromo = promoCategory === 'PLANNING' || theme === 'PLANNING';
+
                 const rawQuestion = (customText && customText.trim()) 
                     ? customText.trim().replace(/^["']|["']$/g, '') 
                     : "ET TOI, QU'EN PENSES-TU ?";
@@ -2652,26 +2655,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // Helper pour découper en lignes (max ~920px)
                 const qLines: string[] = [];
-                const words = cleanQuestion.split(' ');
-                let currentLine = '';
                 let questionFontSize = isReel ? 62 : 54;
-                ctx.font = `900 italic ${questionFontSize}px "Montserrat", sans-serif`;
 
-                words.forEach((w: string) => {
-                    const test = currentLine ? `${currentLine} ${w}` : w;
-                    if (ctx.measureText(test).width > 920) {
-                        if (currentLine) qLines.push(currentLine);
-                        currentLine = w;
-                    } else {
-                        currentLine = test;
-                    }
-                });
-                if (currentLine) qLines.push(currentLine);
-
-                // Si trop de lignes (> 3), réduire la police
-                if (qLines.length > 3) {
-                    questionFontSize = isReel ? 48 : 40;
+                if (!isAgendaPromo) {
+                    const words = cleanQuestion.split(' ');
+                    let currentLine = '';
                     ctx.font = `900 italic ${questionFontSize}px "Montserrat", sans-serif`;
+
+                    words.forEach((w: string) => {
+                        const test = currentLine ? `${currentLine} ${w}` : w;
+                        if (ctx.measureText(test).width > 920) {
+                            if (currentLine) qLines.push(currentLine);
+                            currentLine = w;
+                        } else {
+                            currentLine = test;
+                        }
+                    });
+                    if (currentLine) qLines.push(currentLine);
+
+                    // Si trop de lignes (> 3), réduire la police
+                    if (qLines.length > 3) {
+                        questionFontSize = isReel ? 48 : 40;
+                        ctx.font = `900 italic ${questionFontSize}px "Montserrat", sans-serif`;
+                    }
                 }
 
                 const qLineHeight = questionFontSize * 1.25;
@@ -2680,111 +2686,128 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const ctaCommentOffset = isReel ? 70 : 60;
                 const sepOffset = isReel ? 65 : 55;
                 const outroOffset = isReel ? 75 : 65;
-                const outroSpacing = isReel ? 42 : 38;
-                const abonneOffset = outroSpacing + (isReel ? 30 : 28);
-                const dropsidersOffset = isReel ? 90 : 80;
-                const pillsOffset = isReel ? 65 : 55;
+                const outroSpacing = isReel ? (isAgendaPromo ? 48 : 42) : 38;
+                const abonneOffset = outroSpacing + (isReel ? (isAgendaPromo ? 42 : 30) : 28);
+                const dropsidersOffset = isReel ? (isAgendaPromo ? 105 : 90) : 80;
+                const pillsOffset = isReel ? (isAgendaPromo ? 75 : 65) : 55;
                 const pillH = isReel ? 44 : 40;
 
-                const blockSpanFromFirstBaseline = (qLines.length - 1) * qLineHeight 
-                    + ctaCommentOffset 
-                    + sepOffset 
-                    + outroOffset 
-                    + outroSpacing 
-                    + abonneOffset 
-                    + dropsidersOffset 
-                    + pillsOffset 
-                    + pillH;
-                
-                const questionAscender = questionFontSize * 0.8;
-                const totalBlockHeight = questionAscender + blockSpanFromFirstBaseline;
-
-                // Centrage vertical : centre optique sur le canvas (1350 ou 1920)
                 const targetCenterY = isReel ? 950 : 675;
-                const qStartY = Math.round(targetCenterY - (totalBlockHeight / 2) + questionAscender);
+                let outroStartY = 0;
+                let dropsidersY = 0;
+                let pillsY = 0;
 
-                // Accent glow centre derriere le bloc de texte
-                const bgGlow = ctx.createRadialGradient(centerX, targetCenterY, 60, centerX, targetCenterY, isReel ? 520 : 480);
-                bgGlow.addColorStop(0, `rgba(${activeColor.grad}, 0.20)`);
-                bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                ctx.fillStyle = bgGlow;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                if (!isAgendaPromo) {
+                    const blockSpanFromFirstBaseline = (qLines.length - 1) * qLineHeight 
+                        + ctaCommentOffset 
+                        + sepOffset 
+                        + outroOffset 
+                        + outroSpacing 
+                        + abonneOffset 
+                        + dropsidersOffset 
+                        + pillsOffset 
+                        + pillH;
+                    
+                    const questionAscender = questionFontSize * 0.8;
+                    const totalBlockHeight = questionAscender + blockSpanFromFirstBaseline;
+                    const qStartY = Math.round(targetCenterY - (totalBlockHeight / 2) + questionAscender);
 
-                ctx.save();
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'alphabetic';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                ctx.shadowBlur = 24;
+                    // Accent glow centre derriere le bloc de texte
+                    const bgGlow = ctx.createRadialGradient(centerX, targetCenterY, 60, centerX, targetCenterY, isReel ? 520 : 480);
+                    bgGlow.addColorStop(0, `rgba(${activeColor.grad}, 0.20)`);
+                    bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = bgGlow;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                qLines.forEach((line: string, idx: number) => {
-                    let fs = questionFontSize;
-                    ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
-                    while (ctx.measureText(line).width > 940 && fs > 24) {
-                        fs--;
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'alphabetic';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                    ctx.shadowBlur = 24;
+
+                    qLines.forEach((line: string, idx: number) => {
+                        let fs = questionFontSize;
                         ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
-                    }
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(line, centerX, qStartY + idx * qLineHeight);
-                });
-                ctx.restore();
+                        while (ctx.measureText(line).width > 940 && fs > 24) {
+                            fs--;
+                            ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                        }
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(line, centerX, qStartY + idx * qLineHeight);
+                    });
+                    ctx.restore();
 
-                // Call-to-action d'engagement : "DONNE TON AVIS EN COMMENTAIRE 👇"
-                const lastQLineY = qStartY + (qLines.length - 1) * qLineHeight;
-                const ctaCommentY = lastQLineY + ctaCommentOffset;
+                    // Call-to-action d'engagement : "DONNE TON AVIS EN COMMENTAIRE 👇"
+                    const lastQLineY = qStartY + (qLines.length - 1) * qLineHeight;
+                    const ctaCommentY = lastQLineY + ctaCommentOffset;
 
-                ctx.save();
-                ctx.textAlign = 'center';
-                ctx.font = `800 ${isReel ? 26 : 24}px "Montserrat", sans-serif`;
-                ctx.fillStyle = activeColor.color;
-                ctx.shadowColor = `rgba(${activeColor.grad}, 0.6)`;
-                ctx.shadowBlur = 18;
-                ctx.fillText('DONNE TON AVIS EN COMMENTAIRE 👇', centerX, ctaCommentY);
-                ctx.restore();
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.font = `800 ${isReel ? 26 : 24}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = activeColor.color;
+                    ctx.shadowColor = `rgba(${activeColor.grad}, 0.6)`;
+                    ctx.shadowBlur = 18;
+                    ctx.fillText('DONNE TON AVIS EN COMMENTAIRE 👇', centerX, ctaCommentY);
+                    ctx.restore();
 
-                // Ligne de séparation fine néon
-                const sepY = ctaCommentY + sepOffset;
-                const sepGrad = ctx.createLinearGradient(centerX - 200, 0, centerX + 200, 0);
-                sepGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-                sepGrad.addColorStop(0.5, activeColor.color);
-                sepGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                ctx.fillStyle = sepGrad;
-                ctx.fillRect(centerX - 200, sepY, 400, 2);
+                    // Ligne de séparation fine néon
+                    const sepY = ctaCommentY + sepOffset;
+                    const sepGrad = ctx.createLinearGradient(centerX - 200, 0, centerX + 200, 0);
+                    sepGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                    sepGrad.addColorStop(0.5, activeColor.color);
+                    sepGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = sepGrad;
+                    ctx.fillRect(centerX - 200, sepY, 400, 2);
+
+                    outroStartY = sepY + outroOffset;
+                } else {
+                    // AGENDA : Pas de question inutile ("ET TOI, QU'EN PENSES-TU ?")
+                    // Centrage direct, majestueux et élégant du message officiel Dropsiders
+                    const totalAgendaSpan = (2 * outroSpacing) + abonneOffset + dropsidersOffset + pillsOffset + pillH;
+                    outroStartY = Math.round(targetCenterY - (totalAgendaSpan / 2));
+
+                    const bgGlow = ctx.createRadialGradient(centerX, targetCenterY, 80, centerX, targetCenterY, isReel ? 560 : 480);
+                    bgGlow.addColorStop(0, `rgba(${activeColor.grad}, 0.26)`);
+                    bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = bgGlow;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
 
                 // ==========================================
                 // ZONE 2 : PHRASE OFFICIELLE
-                // "Pour être informé de toutes les news sur la musique électronique et les festivals, abonnez-vous à DROPSIDERS"
                 // ==========================================
-                const outroStartY = sepY + outroOffset;
-
                 ctx.save();
                 ctx.textAlign = 'center';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-                ctx.shadowBlur = 16;
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                ctx.shadowBlur = 18;
 
-                const outroLines = [
+                const outroLines = isAgendaPromo ? [
+                    'POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS',
+                    'SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,'
+                ] : [
                     'POUR ÊTRE INFORMÉ DE TOUTES LES NEWS',
                     'SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,'
                 ];
-                ctx.font = `700 ${isReel ? 28 : 25}px "Montserrat", sans-serif`;
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                ctx.font = `700 ${isReel ? (isAgendaPromo ? 30 : 28) : 25}px "Montserrat", sans-serif`;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
 
                 outroLines.forEach((line: string, i: number) => {
                     ctx.fillText(line, centerX, outroStartY + i * outroSpacing);
                 });
 
                 // "ABONNEZ-VOUS À"
-                const abonneY = outroStartY + outroLines.length * outroSpacing + (isReel ? 30 : 28);
+                const abonneY = outroStartY + outroLines.length * outroSpacing + (isReel ? (isAgendaPromo ? 36 : 30) : 28);
                 ctx.font = `700 ${isReel ? 26 : 24}px "Montserrat", sans-serif`;
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
                 ctx.fillText('ABONNEZ-VOUS À', centerX, abonneY);
 
                 // "DROPSIDERS" en grand Orbitron néon
-                const dropsidersY = abonneY + dropsidersOffset;
-                ctx.font = `900 italic ${isReel ? 92 : 86}px "Orbitron", sans-serif`;
+                dropsidersY = abonneY + dropsidersOffset;
+                ctx.font = `900 italic ${isReel ? (isAgendaPromo ? 98 : 92) : 86}px "Orbitron", sans-serif`;
                 ctx.letterSpacing = '-2px';
                 ctx.fillStyle = activeColor.color;
-                ctx.shadowColor = `rgba(${activeColor.grad}, 0.7)`;
-                ctx.shadowBlur = 36;
+                ctx.shadowColor = `rgba(${activeColor.grad}, 0.75)`;
+                ctx.shadowBlur = 38;
                 ctx.fillText('DROPSIDERS', centerX, dropsidersY);
                 ctx.restore();
 
@@ -2793,7 +2816,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // NEWS - MUSIQUE - FOCUS - RECAPS - CONCOURS - EVENTS - INTERVIEWS - VIDEOS
                 // ==========================================
                 const categories = ['NEWS', 'MUSIQUE', 'FOCUS', 'RECAPS', 'CONCOURS', 'EVENTS', 'INTERVIEWS', 'VIDEOS'];
-                const pillsY = dropsidersY + pillsOffset;
+                pillsY = dropsidersY + pillsOffset;
                 const pillFont = `800 ${isReel ? 15 : 14}px "Montserrat", sans-serif`;
                 ctx.font = pillFont;
 
@@ -2807,17 +2830,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 categories.forEach((cat: string, idx: number) => {
                     const pw = pillWidths[idx];
-                    const promoCatStr = (promoCategory || 'NEWS').toLowerCase();
+                    let promoCatStr = (promoCategory || 'NEWS').toLowerCase();
+                    // Si on est dans le contexte de l'AGENDA (PLANNING), la catégorie active DOIT être EVENTS !
+                    if (isAgendaPromo) {
+                        promoCatStr = 'events';
+                    }
                     const isSpecificCat = ['musique', 'focus', 'recap', 'concour', 'event', 'interview', 'video'].some(c => promoCatStr.includes(c));
                     const isPillActive = promoCatStr.includes(cat.toLowerCase().slice(0, 4)) || (!isSpecificCat && idx === 0);
                     ctx.save();
                     // Bulle arrondie (pill)
                     ctx.beginPath();
                     ctx.roundRect(currentPillX, pillsY, pw, pillH, pillH / 2);
-                    ctx.fillStyle = isPillActive ? `rgba(${activeColor.grad}, 0.15)` : 'rgba(255, 255, 255, 0.08)';
+                    ctx.fillStyle = isPillActive ? `rgba(${activeColor.grad}, 0.18)` : 'rgba(255, 255, 255, 0.08)';
                     ctx.fill();
                     ctx.strokeStyle = isPillActive ? activeColor.color : 'rgba(255, 255, 255, 0.22)';
-                    ctx.lineWidth = 1.5;
+                    ctx.lineWidth = isPillActive ? 2 : 1.5;
+                    if (isPillActive) {
+                        ctx.shadowColor = `rgba(${activeColor.grad}, 0.7)`;
+                        ctx.shadowBlur = 14;
+                    }
                     ctx.stroke();
 
                     // Texte
@@ -3954,8 +3985,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const slideDuration = Math.max(3000, Math.min(6500, Math.floor(availableForSlides / numContentSlides)));
             totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
         } else if (combinedMode === 'PLANNING') {
-            // Agenda: Slide 1 (5.5s) + transition (0.7s) + Slide 2 (5.6s) + transition (0.7s) + Promo outro (3.2s) = 15.7s
-            totalDuration = 5500 + 700 + 5600 + 700 + 3200; // 15700ms (~15.7s)
+            // Agenda: Slide 1 (5.2s) + transition (0.7s) + Slide 2 (5.2s) + transition (0.7s) + Promo outro (4.8s) = 16.6s
+            totalDuration = 5200 + 700 + 5200 + 700 + 4800; // 16600ms (~16.6s)
         } else if (theme.startsWith('TOP 5')) {
             totalDuration = 5 * (16800 + 1200); // 5 slides + transitions
         } else if (theme === 'TOP 10 FESTIVAL') {
@@ -4040,9 +4071,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             promoOutroOverrideRef.current = false;
 
         } else if (combinedMode === 'PLANNING') {
-            const promoDuration = 3200;
+            const promoDuration = 4800; // Rallongé de 3.2s à 4.8s pour avoir tout le temps de lire le message
             const transitionDuration = 700;
-            const slideDuration = 5500;
+            const slideDuration = 5200;
 
             // 1. Slide 1 (Cover)
             agendaSlideOverrideRef.current = 1;
@@ -4072,7 +4103,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             // 3. Slide 2 (Lineup)
             await generateImage();
-            await new Promise(r => setTimeout(r, 5600));
+            await new Promise(r => setTimeout(r, slideDuration));
 
             // 4. Transition vers le visuel PROMO outro à la fin du Reel
             const startPromoT = Date.now();
@@ -4092,7 +4123,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             transitionProgressRef.current = 0;
             setTransitionProgress(0);
 
-            // 5. Affichage du visuel promo final
+            // 5. Affichage du visuel promo final pendant promoDuration
             await generateImage();
             await new Promise(r => setTimeout(r, promoDuration));
             promoOutroOverrideRef.current = false;

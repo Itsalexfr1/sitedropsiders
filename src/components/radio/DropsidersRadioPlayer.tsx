@@ -2,17 +2,23 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useDragControls, useMotionValue } from 'framer-motion';
 import {
     Radio, Play, Pause, Volume2, VolumeX, Minimize2, X,
-    Clock, Sparkles, Disc3, ChevronDown, ChevronUp, MessageSquare, Heart
+    Clock, Sparkles, Disc3, ChevronDown, ChevronUp, MessageSquare, Heart,
+    Zap, Sliders, Timer, Check
 } from 'lucide-react';
 import {
     DEFAULT_RADIO_BLOCKS, STORAGE_RADIO_BLOCKS_KEY,
     getParisSeconds, formatDurationExact, getCurrentLiveRadioTrack,
     computeRadioDaySchedule, getCachedRadioDurations, saveCachedRadioDuration,
+    isForbiddenAdTrack,
     type RadioScheduleBlock, type ComputedRadioScheduleItem
 } from '../../utils/radioSchedule';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePlayer } from '../../context/PlayerContext';
 import { RadioDedicationModal } from './RadioDedicationModal';
+
+// ─── Modes d'enchaînement radio ──────────────────────────────────────────────
+export type RadioTransitionMode = 'RAPIDE' | 'CROSSFADE' | 'STANDARD';
+export const STORAGE_RADIO_TRANSITION_MODE_KEY = 'dropsiders_radio_transition_mode';
 
 // ─── Détection mobile fiable ──────────────────────────────────────────────────
 const IS_MOBILE = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -117,9 +123,6 @@ function useRadioAudio() {
     // Timestamp du démarrage du track actuel (pour le guard anti-coupure < 90s)
     const trackStartedAtRef = useRef<number>(0);
     // Cooldown pour le sync-auto : bloc toute re-déclenchement pendant 20s après une transition
-    // Fix du bug de boucle : advanceToNextTrack set uiTimeSec au futur, puis le clock
-    // interval le remet à l'heure réelle, ce qui fait changer liveInfo.item.id et
-    // déclenche le sync-auto à nouveau en boucle.
     const syncAutoCooldownUntilRef = useRef<number>(0);
     // Index séquentiel absolu dans la grille du jour (empèche les boucles sur le morceau 0/1)
     const currentTrackIndexRef = useRef<number>(-1);
@@ -127,6 +130,29 @@ function useRadioAudio() {
     const isHandledByAdvanceRef = useRef<boolean>(false);
     // Ref stable vers advanceToNextTrack pour les écouteurs du widget SoundCloud déclarés en amont
     const advanceToNextTrackRef = useRef<() => void>(() => {});
+
+    // ─── Nettoyage immédiat et définitif de toute fausse pub résiduelle dans le cache ───
+    useEffect(() => {
+        try {
+            const cleanKey = (key: string) => {
+                const raw = localStorage.getItem(key);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) {
+                        const cleaned = parsed.map((item: any) => {
+                            if (item && Array.isArray(item.tracks)) {
+                                item.tracks = item.tracks.filter((t: any) => !isForbiddenAdTrack(t));
+                            }
+                            return item;
+                        }).filter((item: any) => !isForbiddenAdTrack(item));
+                        localStorage.setItem(key, JSON.stringify(cleaned));
+                    }
+                }
+            };
+            cleanKey(STORAGE_RADIO_BLOCKS_KEY);
+            cleanKey('dropsiders_radionomy_palette');
+        } catch {}
+    }, []);
 
     // ─── Activation ──────────────────────────────────────────────────────────
     const [isEnabled, setIsEnabled] = useState<boolean>(() => {
@@ -144,11 +170,19 @@ function useRadioAudio() {
         return () => { window.removeEventListener('dropsiders_radio_toggle', h); window.removeEventListener('storage', h); };
     }, []);
 
-    // ─── Blocs radio ─────────────────────────────────────────────────────────
+    // ─── Blocs radio (garantis sans fausse pub) ──────────────────────────────
     const [radioBlocks, setRadioBlocks] = useState<RadioScheduleBlock[]>(() => {
         try {
             const s = localStorage.getItem(STORAGE_RADIO_BLOCKS_KEY);
-            if (s) { const p = JSON.parse(s); if (Array.isArray(p) && p.length > 0) return p; }
+            if (s) {
+                const p = JSON.parse(s);
+                if (Array.isArray(p) && p.length > 0) {
+                    return p.map((b: any) => ({
+                        ...b,
+                        tracks: (b.tracks || []).filter((t: any) => !isForbiddenAdTrack(t))
+                    }));
+                }
+            }
         } catch {}
         return DEFAULT_RADIO_BLOCKS;
     });
@@ -160,8 +194,12 @@ function useRadioAudio() {
                 if (s) {
                     const p = JSON.parse(s);
                     if (Array.isArray(p) && p.length > 0) {
-                        setRadioBlocks(p);
-                        radioBlocksRef.current = p;
+                        const cleaned = p.map((b: any) => ({
+                            ...b,
+                            tracks: (b.tracks || []).filter((t: any) => !isForbiddenAdTrack(t))
+                        }));
+                        setRadioBlocks(cleaned);
+                        radioBlocksRef.current = cleaned;
 
                         // Si la radio est en cours de lecture et qu'une playlist SoundCloud a été assignée au bloc en direct
                         if (isPlayingRef.current) {
@@ -243,6 +281,36 @@ function useRadioAudio() {
         try { const s = localStorage.getItem('dropsiders_radio_volume'); return s ? Math.max(0, Math.min(100, Number(s))) : 80; }
         catch { return 80; }
     });
+
+    // ─── Mode d'enchaînement (Option 1: Rapide 0 blanc, Option 2: Crossfade fondu, Standard) ──
+    const [transitionMode, setTransitionMode] = useState<RadioTransitionMode>(() => {
+        try {
+            const s = localStorage.getItem(STORAGE_RADIO_TRANSITION_MODE_KEY);
+            if (s === 'RAPIDE' || s === 'CROSSFADE' || s === 'STANDARD') return s as RadioTransitionMode;
+        } catch {}
+        return 'RAPIDE';
+    });
+    const transitionModeRef = useRef<RadioTransitionMode>(transitionMode);
+    useEffect(() => { transitionModeRef.current = transitionMode; }, [transitionMode]);
+
+    const changeTransitionMode = useCallback((mode: RadioTransitionMode) => {
+        setTransitionMode(mode);
+        transitionModeRef.current = mode;
+        try { localStorage.setItem(STORAGE_RADIO_TRANSITION_MODE_KEY, mode); } catch {}
+        window.dispatchEvent(new CustomEvent('dropsiders_radio_transition_mode_changed', { detail: mode }));
+    }, []);
+
+    useEffect(() => {
+        const handler = (e: any) => {
+            const mode = e.detail;
+            if (mode === 'RAPIDE' || mode === 'CROSSFADE' || mode === 'STANDARD') {
+                setTransitionMode(mode);
+                transitionModeRef.current = mode;
+            }
+        };
+        window.addEventListener('dropsiders_radio_transition_mode_changed', handler);
+        return () => window.removeEventListener('dropsiders_radio_transition_mode_changed', handler);
+    }, []);
 
     // ─── postMessage vers YouTube ────────────────────────────────────────────
     // sendCmd : envoie la commande à l'iframe ACTIVE seulement (en garantissant args = array)
@@ -764,15 +832,13 @@ function useRadioAudio() {
 
             if (nextTrack.audioUrl) {
                 // ── Track audio HTML5 ────────────────────────────────────────
-                // Couper les deux iframes YouTube
-                // Si YouTube jouait, on coupe les iframes. Si c'est SoundCloud, on pause sans détruire pour reprise fluide.
+                // Mettre en pause les iframes (sans détruire leur contexte avec about:blank pour éviter 4s de blanc au retour)
                 [iframeRef.current, iframeRefB.current].forEach(iframe => {
-                    if (iframe && iframe.src !== 'about:blank') {
+                    if (iframe && iframe.src && iframe.src !== 'about:blank') {
                         if (iframe.src.includes('soundcloud.com')) {
                             try { iframe.contentWindow?.postMessage(JSON.stringify({ method: 'pause' }), '*'); } catch {}
                         } else {
-                            iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
-                            iframe.src = 'about:blank';
+                            try { iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*'); } catch {}
                         }
                     }
                 });
@@ -806,10 +872,25 @@ function useRadioAudio() {
                 } else if (audioRef.current) {
                     audioRef.current.src = nextTrack.audioUrl;
                     audioRef.current.currentTime = targetAudioOffset;
-                    audioRef.current.volume = targetVol;
-                    audioRef.current.play().then(() => {
-                        currentPlayingMediaRef.current = nextTrack.id || nextTrack.audioUrl || null;
-                    }).catch(() => {});
+                    if (transitionModeRef.current === 'CROSSFADE' && !IS_MOBILE) {
+                        audioRef.current.volume = targetVol * 0.35;
+                        audioRef.current.play().then(() => {
+                            currentPlayingMediaRef.current = nextTrack.id || nextTrack.audioUrl || null;
+                            let aFade = 0;
+                            const aFadeIn = setInterval(() => {
+                                aFade++;
+                                if (audioRef.current) {
+                                    audioRef.current.volume = Math.min(targetVol, targetVol * (0.35 + 0.65 * (aFade / 5)));
+                                }
+                                if (aFade >= 5) clearInterval(aFadeIn);
+                            }, 150);
+                        }).catch(() => {});
+                    } else {
+                        audioRef.current.volume = targetVol;
+                        audioRef.current.play().then(() => {
+                            currentPlayingMediaRef.current = nextTrack.id || nextTrack.audioUrl || null;
+                        }).catch(() => {});
+                    }
                 }
             } else if (nextTrack.soundcloudUrl) {
                 // ── Track SoundCloud — Enchaînement et reprise directe sans blanc ──
@@ -905,9 +986,23 @@ function useRadioAudio() {
 
                 if (activeIframe) {
                     if (activeIframe.src && activeIframe.src.includes('youtube.com/embed/')) {
-                        // Charger la nouvelle vidéo ou reprise de set avec offset
-                        sendCmd('loadVideoById', [ytId, targetYtOffset]);
-                        sendCmd('playVideo', []);
+                        // Option 2 CROSSFADE : fondu d'entrée doux
+                        if (transitionModeRef.current === 'CROSSFADE' && !IS_MOBILE) {
+                            sendCmd('setVolume', [Math.max(10, Math.round(effectiveVolumeRef.current * 0.35))]);
+                            sendCmd('loadVideoById', [ytId, targetYtOffset]);
+                            sendCmd('playVideo', []);
+                            let ytFade = 0;
+                            const ytFadeIn = setInterval(() => {
+                                ytFade++;
+                                const v = Math.min(effectiveVolumeRef.current, Math.round(effectiveVolumeRef.current * (0.35 + 0.65 * (ytFade / 5))));
+                                sendCmd('setVolume', [v]);
+                                if (ytFade >= 5) clearInterval(ytFadeIn);
+                            }, 150);
+                        } else {
+                            // Option 1 RAPIDE : cut direct instantané
+                            sendCmd('loadVideoById', [ytId, targetYtOffset]);
+                            sendCmd('playVideo', []);
+                        }
                         // Réactiver le handshake
                         try {
                             activeIframe.contentWindow?.postMessage(JSON.stringify({ event: 'listening' }), '*');
@@ -1065,12 +1160,14 @@ function useRadioAudio() {
                         lastYtTimeReceivedAtRef.current = Date.now();
                         window.dispatchEvent(new CustomEvent('yt_current_time', { detail: ct }));
 
-                        // FIN DU TRACK : dès que ct approche de la fin à moins de 0.8s → enchaîner
+                        // FIN DU TRACK : anticiper selon transitionMode (Option 1 = 2.0s, Option 2 = 3.5s, Standard = 0.5s)
                         const effectiveDur = (reportedDur && reportedDur > 5)
                             ? reportedDur
                             : (knownDurationRef.current > 5 ? knownDurationRef.current : (currentSetRef.current?.durationSeconds || 0));
 
-                        if (effectiveDur > 5 && ct > 0 && ct >= effectiveDur - 0.8 && isPlayingRef.current) {
+                        const anticipationSec = transitionModeRef.current === 'CROSSFADE' ? 3.5 : (transitionModeRef.current === 'RAPIDE' ? 2.0 : 0.5);
+
+                        if (effectiveDur > 5 && ct > 0 && ct >= effectiveDur - anticipationSec && isPlayingRef.current) {
                             advanceToNextTrack();
                             return;
                         }
@@ -1098,12 +1195,13 @@ function useRadioAudio() {
                         return;
                     }
 
-                    // Détection de progression SoundCloud pour anticiper et éviter tout blanc
+                    // Détection de progression SoundCloud pour anticiper selon transitionMode
                     if (data?.event === 'playProgress' || data?.method === 'playProgress') {
                         const curPosMs = data?.data?.currentPosition ?? data?.currentPosition;
                         const totalDurMs = data?.data?.relativePosition ?? data?.duration;
                         if (typeof curPosMs === 'number' && typeof totalDurMs === 'number' && totalDurMs > 5000) {
-                            if (curPosMs >= totalDurMs - 600 && isPlayingRef.current) {
+                            const scAnticipationMs = transitionModeRef.current === 'CROSSFADE' ? 3500 : (transitionModeRef.current === 'RAPIDE' ? 1800 : 500);
+                            if (curPosMs >= totalDurMs - scAnticipationMs && isPlayingRef.current) {
                                 advanceToNextTrack();
                             }
                         }
@@ -1165,6 +1263,11 @@ function useRadioAudio() {
         const onTimeUpdate = () => {
             lastTimeUpdate = Date.now();
             clearSilenceTimer();
+            // Anticipation HTML5 audio selon transitionMode (Option 1 = 0.5s, Option 2 = 2.5s, Standard = 0.1s)
+            const audioAnticipation = transitionModeRef.current === 'CROSSFADE' ? 2.5 : (transitionModeRef.current === 'RAPIDE' ? 0.5 : 0.1);
+            if (el.duration > 2 && el.currentTime >= el.duration - audioAnticipation && isPlayingRef.current) {
+                advanceToNextTrack();
+            }
         };
         const onStalled = () => {
             if (!isPlayingRef.current || !el.src || el.src === 'about:blank') return;
@@ -1588,16 +1691,16 @@ function useRadioAudio() {
     }, [volume, effectiveVolume, isPlaying, isMuted, sendCmd, applySoundCloudVolume]);
 
     // ─── Broadcast vers autres composants ────────────────────────────────────
-    const stateRef = useRef({ isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking });
+    const stateRef = useRef({ isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking, transitionMode });
     useEffect(() => {
-        stateRef.current = { isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking };
-    }, [isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking]);
+        stateRef.current = { isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking, transitionMode };
+    }, [isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking, transitionMode]);
 
     useEffect(() => {
         window.dispatchEvent(new CustomEvent('dropsiders_radio_state', {
-            detail: { isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking }
+            detail: { isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking, transitionMode }
         }));
-    }, [isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking]);
+    }, [isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking, transitionMode]);
 
     useEffect(() => {
         const broadcast = () => window.dispatchEvent(new CustomEvent('dropsiders_radio_state', { detail: stateRef.current }));
@@ -1610,6 +1713,11 @@ function useRadioAudio() {
         const onVolume = (e: any) => {
             if (typeof e.detail === 'number') { setVolume(Math.max(0, Math.min(100, e.detail))); if (isMuted) setIsMuted(false); }
         };
+        const onSetMode = (e: any) => {
+            if (e.detail && (e.detail === 'RAPIDE' || e.detail === 'CROSSFADE' || e.detail === 'STANDARD')) {
+                changeTransitionMode(e.detail);
+            }
+        };
         window.addEventListener('dropsiders_radio_cmd_toggle', onToggle);
         window.addEventListener('dropsiders_radio_cmd_play', onPlay);
         window.addEventListener('dropsiders_radio_cmd_pause', onPause);
@@ -1617,6 +1725,7 @@ function useRadioAudio() {
         window.addEventListener('dropsiders_radio_cmd_next', onNext);
         window.addEventListener('dropsiders_radio_cmd_mute', onMute);
         window.addEventListener('dropsiders_radio_cmd_volume', onVolume);
+        window.addEventListener('dropsiders_radio_cmd_transition_mode', onSetMode);
         window.addEventListener('dropsiders_radio_query_state', broadcast);
         broadcast();
         return () => {
@@ -1627,13 +1736,15 @@ function useRadioAudio() {
             window.removeEventListener('dropsiders_radio_cmd_next', onNext);
             window.removeEventListener('dropsiders_radio_cmd_mute', onMute);
             window.removeEventListener('dropsiders_radio_cmd_volume', onVolume);
+            window.removeEventListener('dropsiders_radio_cmd_transition_mode', onSetMode);
             window.removeEventListener('dropsiders_radio_query_state', broadcast);
         };
-    }, [handlePlay, handleStop, handleNext, toggleMute, isMuted]);
+    }, [handlePlay, handleStop, handleNext, toggleMute, isMuted, changeTransitionMode]);
 
     return {
         isEnabled, currentSet, uiOffset, iframeRef, iframeRefB, audioRef,
         isPlaying, isMuted, volume, effectiveVolume, isDucking, listenersCount,
+        transitionMode, changeTransitionMode,
         setVolume, setIsMuted, handlePlay, handleStop, handleNext, toggleMute,
     };
 }

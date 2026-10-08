@@ -605,6 +605,29 @@ export function isItemExpired(item?: { expiresAt?: string } | null): boolean {
 }
 
 /**
+ * Filtre anti-publicités indésirables :
+ * Bloque définitivement les fausses pubs générées (Voyages & Shop) pour garantir zéro coupure pub.
+ */
+export function isForbiddenAdTrack(t: any): boolean {
+    if (!t) return false;
+    const title = (t.title || '').toLowerCase();
+    const id = (t.id || '').toLowerCase();
+    const yt = (t.youtubeId || '').toLowerCase();
+    return (
+        t.category === 'pub' ||
+        id.includes('pub_voyages') ||
+        id.includes('pub_shop') ||
+        id.startsWith('rad_pub_') ||
+        title.includes('publicité dropsiders voyages') ||
+        title.includes('spot partenaire • dropsiders shop') ||
+        title.includes('dropsiders voyages • packs') ||
+        title.includes('dropsiders shop officiel') ||
+        yt === 'pqdshog2yhw' ||
+        yt === '61tiidirjuq'
+    );
+}
+
+/**
  * Promos officielles du système Dropsiders (événements, festivals, partenaires)
  * NOTE: Les promos Insta & TikTok sont classées dans les JINGLES d'antenne (non commerciales).
  */
@@ -642,22 +665,6 @@ export const DEFAULT_SYSTEM_PROMOS: RadioTrackItem[] = [
         category: 'promo'
     },
     {
-        id: 'promo_sys_pub_voyages',
-        title: 'Publicité Dropsiders Voyages • Packs Festivals & Bus',
-        artist: 'PUBLICITÉ / SPONSOR',
-        youtubeId: 'pQdsHoG2yhw',
-        duration: 30,
-        category: 'pub'
-    },
-    {
-        id: 'promo_sys_pub_shop',
-        title: 'Spot Partenaire • Dropsiders Shop Officiel & Goodies',
-        artist: 'PUBLICITÉ / SPONSOR',
-        youtubeId: '61tiIdIrjUQ',
-        duration: 25,
-        category: 'pub'
-    },
-    {
         id: 'promo_sys_promo_tv',
         title: 'Promo Dropsiders TV & Live Stream 24/7',
         artist: 'PROMO DROPSIDERS',
@@ -684,18 +691,19 @@ export function getGeneralPromosList(): RadioTrackItem[] {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed) && parsed.length > 0) {
                     const promos = parsed.filter((j: any) => 
-                        (j.category === 'promo' || j.category === 'pub' || j.type === 'promo' || j.type === 'pub') && 
+                        (j.category === 'promo' || j.type === 'promo') && 
+                        !isForbiddenAdTrack(j) &&
                         !isInstaOrTiktok(j.title) && 
                         !isItemExpired(j)
                     );
                     if (promos.length > 0) return promos.map((p: any) => ({
                         id: p.id || `gp_${p.title?.slice(0, 8)}`,
                         title: cleanTitle(p.title),
-                        artist: p.artist || (p.category === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS'),
+                        artist: p.artist || 'PROMO DROPSIDERS',
                         audioUrl: p.audioUrl,
                         youtubeId: p.youtubeId,
                         duration: p.duration || 30,
-                        category: (p.category || 'promo') as RadioTrackCategory,
+                        category: 'promo' as RadioTrackCategory,
                         expiresAt: p.expiresAt
                     }));
                 }
@@ -705,18 +713,19 @@ export function getGeneralPromosList(): RadioTrackItem[] {
     // Promos depuis les settings JSON (si configurées, en excluant Insta & TikTok)
     const fromSettings = ((settings as any)?.radio_general_jingles || [])
         .filter((j: any) => 
-            (j.category === 'promo' || j.category === 'pub' || j.type === 'promo' || j.type === 'pub') && 
+            (j.category === 'promo' || j.type === 'promo') && 
+            !isForbiddenAdTrack(j) &&
             !isInstaOrTiktok(j.title) && 
             !isItemExpired(j)
         );
     if (fromSettings.length > 0) return fromSettings.map((p: any) => ({
         id: p.id || `gp_${p.title?.slice(0, 8)}`,
         title: cleanTitle(p.title),
-        artist: p.artist || (p.category === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS'),
+        artist: p.artist || 'PROMO DROPSIDERS',
         audioUrl: p.audioUrl,
         youtubeId: p.youtubeId,
         duration: p.duration || 30,
-        category: (p.category || 'promo') as RadioTrackCategory,
+        category: 'promo' as RadioTrackCategory,
         expiresAt: p.expiresAt
     }));
 
@@ -726,16 +735,16 @@ export function getGeneralPromosList(): RadioTrackItem[] {
         const seenUrls = new Set<string>();
         ((settings as any)?.radio_blocks || []).forEach((b: any) => {
             (b.tracks || []).forEach((t: any) => {
-                if ((t.category === 'promo' || t.category === 'pub') && !isItemExpired(t) && t.audioUrl && !seenUrls.has(t.audioUrl)) {
+                if (t.category === 'promo' && !isForbiddenAdTrack(t) && !isItemExpired(t) && t.audioUrl && !seenUrls.has(t.audioUrl)) {
                     seenUrls.add(t.audioUrl);
                     blockPromos.push({
                         id: t.id || `bp_${t.title?.slice(0, 8)}`,
                         title: t.title,
-                        artist: t.artist || (t.category === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS'),
+                        artist: t.artist || 'PROMO DROPSIDERS',
                         audioUrl: t.audioUrl,
                         youtubeId: t.youtubeId,
                         duration: t.duration || 30,
-                        category: (t.category || 'promo') as RadioTrackCategory,
+                        category: 'promo' as RadioTrackCategory,
                         expiresAt: t.expiresAt
                     });
                 }
@@ -744,8 +753,8 @@ export function getGeneralPromosList(): RadioTrackItem[] {
         if (blockPromos.length > 0) return blockPromos;
     } catch {}
 
-    // Fallback toujours garanti avec les promos officielles intégrées
-    return DEFAULT_SYSTEM_PROMOS;
+    // Fallback toujours garanti avec les promos officielles intégrées (sans pub)
+    return DEFAULT_SYSTEM_PROMOS.filter(p => !isForbiddenAdTrack(p));
 }
 
 /**
@@ -759,16 +768,16 @@ export function applyRotationPatternToTracks(
     overrideJingles?: RadioTrackItem[],
     overridePromos?: RadioTrackItem[]
 ): RadioTrackItem[] {
-    const allTracks = block.tracks || [];
+    const allTracks = (block.tracks || []).filter(t => !isForbiddenAdTrack(t));
 
     // 1. Extraire les musiques (sets, clips, interviews)
-    const musicTracks = musicList || allTracks.filter(
-        t => t.category !== 'jingle' && t.category !== 'promo' && t.category !== 'pub'
+    const musicTracks = (musicList || allTracks).filter(
+        t => t.category !== 'jingle' && t.category !== 'promo' && t.category !== 'pub' && !isForbiddenAdTrack(t)
     );
 
     // 2. Jingles spéciaux de l'émission
     const specialJingles: RadioTrackItem[] = (block.specialJingles || [])
-        .filter(j => j.enabled !== false && (j.audioUrl || j.youtubeId))
+        .filter(j => j.enabled !== false && (j.audioUrl || j.youtubeId) && !isForbiddenAdTrack(j))
         .map((j, idx) => ({
             id: j.id || `sj_${block.id}_${idx}`,
             title: j.title,
@@ -781,16 +790,16 @@ export function applyRotationPatternToTracks(
 
     // 3. Jingles normaux
     const normalJingles = (overrideJingles && overrideJingles.length > 0)
-        ? overrideJingles
-        : getGeneralJinglesList();
+        ? overrideJingles.filter(j => !isForbiddenAdTrack(j))
+        : getGeneralJinglesList().filter(j => !isForbiddenAdTrack(j));
 
-    // 4. Promos & Sponsors (exclure les expirées)
-    const blockPromos = (block.tracks || []).filter(t => (t.category === 'promo' || t.category === 'pub') && !isItemExpired(t));
+    // 4. Promos d'antenne (exclure les expirées et toute fausse pub)
+    const blockPromos = allTracks.filter(t => t.category === 'promo' && !isForbiddenAdTrack(t) && !isItemExpired(t));
     const rawPromos = (overridePromos && overridePromos.length > 0)
-        ? overridePromos
+        ? overridePromos.filter(p => !isForbiddenAdTrack(p))
         : (blockPromos.length > 0 ? blockPromos : getGeneralPromosList());
-    const promos = rawPromos.filter(p => !isItemExpired(p));
-    const effectivePromos = promos.length > 0 ? promos : DEFAULT_SYSTEM_PROMOS;
+    const promos = rawPromos.filter(p => !isItemExpired(p) && !isForbiddenAdTrack(p));
+    const effectivePromos = promos.length > 0 ? promos : DEFAULT_SYSTEM_PROMOS.filter(p => !isForbiddenAdTrack(p));
 
     const rule = block.rotationRule || 'jingle_son_special_promo';
 
@@ -957,9 +966,9 @@ export function buildInterleavedPlaylist(
     block: RadioScheduleBlock,
     todayStr: string
 ): RadioTrackItem[] {
-    const allTracks = (block.tracks || []).filter(t => !isItemExpired(t));
+    const allTracks = (block.tracks || []).filter(t => !isItemExpired(t) && !isForbiddenAdTrack(t));
     const musicTracks = allTracks.filter(
-        t => t.category !== 'jingle' && t.category !== 'promo' && t.category !== 'pub'
+        t => t.category !== 'jingle' && t.category !== 'promo' && t.category !== 'pub' && !isForbiddenAdTrack(t)
     );
 
     // Si une playlist SoundCloud est liée et qu'il n'y a plus d'anciens clips, alimenter avec la playlist SoundCloud
@@ -980,10 +989,10 @@ export function buildInterleavedPlaylist(
         ? musicTracks
         : getSeededShuffle(musicTracks, `${todayStr}_${block.id}`);
 
-    // Promos garanties pour la rotation du conducteur en direct
-    const blockPromos = allTracks.filter(t => (t.category === 'promo' || t.category === 'pub') && !isItemExpired(t));
+    // Promos garanties pour la rotation du conducteur en direct (sans aucune pub)
+    const blockPromos = allTracks.filter(t => t.category === 'promo' && !isForbiddenAdTrack(t) && !isItemExpired(t));
     const systemPromos = getGeneralPromosList();
-    const promosForLive = blockPromos.length > 0 ? blockPromos : (systemPromos.length > 0 ? systemPromos : DEFAULT_SYSTEM_PROMOS);
+    const promosForLive = blockPromos.length > 0 ? blockPromos : (systemPromos.length > 0 ? systemPromos : DEFAULT_SYSTEM_PROMOS.filter(p => !isForbiddenAdTrack(p)));
 
     const interleaved = applyRotationPatternToTracks(block, shuffledMusic, undefined, promosForLive);
     return interleaved.length > 0 ? interleaved : [{
@@ -1132,7 +1141,7 @@ export function computeRadioDaySchedule(
 
         const blockStartSec = startH * 3600;
         const totalBlockSec = blockDurationHours * 3600;
-        const tracks = buildInterleavedPlaylist(block, todayStr);
+        const tracks = buildInterleavedPlaylist(block, todayStr).filter(t => !isForbiddenAdTrack(t));
         let trackIdx = 0;
         let blockCursor = 0;
 
