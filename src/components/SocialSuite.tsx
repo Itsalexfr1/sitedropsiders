@@ -280,6 +280,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [animReplayKey, setAnimReplayKey] = useState<number>(0);
     const animStartTimeRef = useRef<number>(Date.now());
 
+    // Background animation states for Reels / Posts
+    type BgAnimType = 'NONE' | 'ZOOM_IN' | 'ZOOM_OUT' | 'PAN_LEFT' | 'PAN_RIGHT' | 'PULSE' | 'BREATHE' | 'GLITCH';
+    const [bgAnimation, setBgAnimation] = useState<BgAnimType>('NONE');
+
     // MAP Theme States
     const [mapFestivalText, setMapFestivalText] = useState('LOLLAPALOOZA');
     const [mapCity, setMapCity] = useState('Paris');
@@ -672,54 +676,203 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const safeTop = (canvas.height - safeSize) / 2;
             const safeBottom = safeTop + safeSize;
 
+            const isAnyAnimationActive = (textAnimation !== 'NONE' || bgAnimation !== 'NONE');
+            const animElapsed = (isVideoRecording || (bgVideo && !isDownloading) || isAnyAnimationActive)
+                ? (isVideoRecording
+                    ? (Date.now() - recordingStartTimeRef.current) / 1000
+                    : ((Date.now() - animStartTimeRef.current) % 6000) / 1000)
+                : 0;
+
+            const getTextAnimTransform = (delay: number = 0) => {
+                if (textAnimation === 'NONE') {
+                    return { alpha: 1, xOff: 0, yOff: 0, scale: 1 };
+                }
+                const el = animElapsed - delay;
+                let alpha = 1;
+                let xOff = 0;
+                let yOff = 0;
+                let scale = 1;
+
+                switch (textAnimation) {
+                    case 'SLIDE_LEFT': {
+                        const t = Math.max(0, Math.min(1, el / 0.55));
+                        const ease = 1 - Math.pow(1 - t, 3);
+                        xOff = -450 * (1 - ease);
+                        alpha = t;
+                        break;
+                    }
+                    case 'WORD_BY_WORD': {
+                        const t = Math.max(0, Math.min(1, el / 0.40));
+                        const ease = 1 - Math.pow(1 - t, 3);
+                        yOff = 25 * (1 - ease);
+                        alpha = t;
+                        break;
+                    }
+                    case 'POP_UP': {
+                        const t = Math.max(0, Math.min(1, el / 0.50));
+                        const ease = 1 - Math.pow(1 - t, 3);
+                        yOff = 80 * (1 - ease);
+                        alpha = t;
+                        break;
+                    }
+                    case 'ZOOM_IMPACT': {
+                        const t = Math.max(0, Math.min(1, el / 0.40));
+                        const ease = 1 - Math.pow(1 - t, 3);
+                        scale = 1.6 - (0.6 * ease);
+                        alpha = Math.min(1, t * 2);
+                        break;
+                    }
+                    case 'TYPEWRITER': {
+                        alpha = el >= 0 ? 1 : 0;
+                        break;
+                    }
+                    case 'BOUNCE': {
+                        const t = Math.max(0, Math.min(1, el / 0.65));
+                        let bounce = 1;
+                        if (t < 1) {
+                            bounce = 1 - Math.pow(2, -10 * t) * Math.cos((t * 10 - 0.75) * ((2 * Math.PI) / 3));
+                        }
+                        yOff = -140 * (1 - bounce);
+                        alpha = Math.min(1, t * 2.5);
+                        break;
+                    }
+                    case 'GLITCH': {
+                        if (el < 0) {
+                            alpha = 0;
+                        } else if (el < 0.45) {
+                            const step = Math.floor(el * 28);
+                            xOff = Math.sin(step * 7.5) * 35;
+                            alpha = (step % 3 === 0) ? 0.35 : 1;
+                        } else {
+                            xOff = 0;
+                            alpha = 1;
+                        }
+                        break;
+                    }
+                    default:
+                        break;
+                }
+                return { alpha, xOff, yOff, scale };
+            };
+
+            const applyTextAnimCtx = (ctx: CanvasRenderingContext2D, delay: number, anchorX: number, anchorY: number) => {
+                if (textAnimation === 'NONE') return;
+                const anim = getTextAnimTransform(delay);
+                ctx.globalAlpha *= Math.max(0, Math.min(1, anim.alpha));
+                ctx.translate(anchorX + anim.xOff, anchorY + anim.yOff);
+                if (anim.scale !== 1) {
+                    ctx.scale(anim.scale, anim.scale);
+                }
+                ctx.translate(-anchorX, -anchorY);
+            };
+
+            let bgAnimScale = 1.0;
+            let bgAnimX = 0;
+            let bgAnimY = 0;
+
+            if (bgAnimation !== 'NONE' && (img || bgVideo)) {
+                const loopDuration = 6.0;
+                const tLinear = isVideoRecording 
+                    ? Math.min(1, animElapsed / loopDuration) 
+                    : ((animElapsed % loopDuration) / loopDuration);
+                const tSmooth = isVideoRecording 
+                    ? Math.min(1, animElapsed / loopDuration) 
+                    : (0.5 - 0.5 * Math.cos(tLinear * 2 * Math.PI));
+
+                switch (bgAnimation) {
+                    case 'ZOOM_IN':
+                        bgAnimScale = 1.0 + tSmooth * 0.16;
+                        break;
+                    case 'ZOOM_OUT':
+                        bgAnimScale = 1.16 - tSmooth * 0.16;
+                        break;
+                    case 'PAN_LEFT':
+                        bgAnimScale = 1.12;
+                        bgAnimX = (0.5 - tSmooth) * 90;
+                        break;
+                    case 'PAN_RIGHT':
+                        bgAnimScale = 1.12;
+                        bgAnimX = (tSmooth - 0.5) * 90;
+                        break;
+                    case 'PULSE': {
+                        const beat = (animElapsed % 0.468) / 0.468;
+                        const beatDecay = Math.pow(Math.max(0, 1 - beat), 2.5);
+                        bgAnimScale = 1.0 + beatDecay * 0.055;
+                        break;
+                    }
+                    case 'BREATHE': {
+                        const breathePhase = (animElapsed / 4.0) * 2 * Math.PI;
+                        bgAnimScale = 1.04 + Math.sin(breathePhase) * 0.035;
+                        bgAnimY = Math.cos(breathePhase) * 16;
+                        break;
+                    }
+                    case 'GLITCH': {
+                        const shakeIntensity = 0.8 + 0.2 * Math.sin(animElapsed * 6);
+                        bgAnimScale = 1.04;
+                        bgAnimX = (Math.sin(animElapsed * 38) + Math.cos(animElapsed * 71)) * 4.5 * shakeIntensity;
+                        bgAnimY = (Math.cos(animElapsed * 43) + Math.sin(animElapsed * 67)) * 3.5 * shakeIntensity;
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+
             if (bgVideo) {
-                const scale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
-                let x = ((canvas.width - bgVideo.videoWidth * scale) / 2) + bgOffsetX;
-                let y = ((canvas.height - bgVideo.videoHeight * scale) / 2) + bgOffsetY;
+                const baseScale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
+                const scale = baseScale * bgAnimScale;
+                const vw = bgVideo.videoWidth * scale;
+                const vh = bgVideo.videoHeight * scale;
+                let x = ((canvas.width - vw) / 2) + bgOffsetX + bgAnimX;
+                let y = ((canvas.height - vh) / 2) + bgOffsetY + bgAnimY;
                 if (imgLayoutMode === 'PAR_LIGNES') {
-                    y = ((canvas.height * 0.62 - bgVideo.videoHeight * scale) / 2) + bgOffsetY;
+                    y = ((canvas.height * 0.62 - vh) / 2) + bgOffsetY + bgAnimY;
                 } else if (imgLayoutMode === 'HAUT_LIGNE') {
-                    y = ((canvas.height * 0.42 - bgVideo.videoHeight * scale) / 2) + bgOffsetY;
+                    y = ((canvas.height * 0.42 - vh) / 2) + bgOffsetY + bgAnimY;
                 } else if (imgLayoutMode === 'BAS_LIGNE') {
-                    y = ((canvas.height * 0.85 - bgVideo.videoHeight * scale) / 2) + bgOffsetY;
+                    y = ((canvas.height * 0.85 - vh) / 2) + bgOffsetY + bgAnimY;
                 }
                 if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && editorialSlide === 2)) {
                     ctx.save();
                     ctx.filter = 'blur(14px)';
                     const blurBleed = 28;
-                    ctx.drawImage(bgVideo, x - blurBleed, y - blurBleed, bgVideo.videoWidth * scale + blurBleed * 2, bgVideo.videoHeight * scale + blurBleed * 2);
+                    ctx.drawImage(bgVideo, x - blurBleed, y - blurBleed, vw + blurBleed * 2, vh + blurBleed * 2);
                     ctx.restore();
                 } else {
-                    ctx.drawImage(bgVideo, x, y, bgVideo.videoWidth * scale, bgVideo.videoHeight * scale);
+                    ctx.drawImage(bgVideo, x, y, vw, vh);
                 }
             } else if (img) {
                 if (theme === 'SPOTLIGHT') {
-                    const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+                    const baseScale = Math.max(canvas.width / img.width, canvas.height / img.height);
+                    const scale = baseScale * bgAnimScale;
                     const iw = img.width * scale;
                     const ih = img.height * scale;
                     // Position photo on the right with manual offset
-                    const x = (canvas.width - iw) + bgOffsetX;
-                    const y = ((canvas.height - ih) / 2) + bgOffsetY;
+                    const x = (canvas.width - iw) + bgOffsetX + bgAnimX;
+                    const y = ((canvas.height - ih) / 2) + bgOffsetY + bgAnimY;
                     ctx.drawImage(img, x, y, iw, ih);
                 } else {
-                    const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
-                    let x = ((canvas.width - img.width * scale) / 2) + bgOffsetX;
-                    let y = ((canvas.height - img.height * scale) / 2) + bgOffsetY;
+                    const baseScale = Math.max(canvas.width / img.width, canvas.height / img.height);
+                    const scale = baseScale * bgAnimScale;
+                    const iw = img.width * scale;
+                    const ih = img.height * scale;
+                    let x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
+                    let y = ((canvas.height - ih) / 2) + bgOffsetY + bgAnimY;
                     if (imgLayoutMode === 'PAR_LIGNES') {
-                        y = ((canvas.height * 0.62 - img.height * scale) / 2) + bgOffsetY;
+                        y = ((canvas.height * 0.62 - ih) / 2) + bgOffsetY + bgAnimY;
                     } else if (imgLayoutMode === 'HAUT_LIGNE') {
-                        y = ((canvas.height * 0.42 - img.height * scale) / 2) + bgOffsetY;
+                        y = ((canvas.height * 0.42 - ih) / 2) + bgOffsetY + bgAnimY;
                     } else if (imgLayoutMode === 'BAS_LIGNE') {
-                        y = ((canvas.height * 0.85 - img.height * scale) / 2) + bgOffsetY;
+                        y = ((canvas.height * 0.85 - ih) / 2) + bgOffsetY + bgAnimY;
                     }
                     if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && editorialSlide === 2)) {
                         ctx.save();
                         ctx.filter = 'blur(14px)';
                         const blurBleed = 28;
-                        ctx.drawImage(img, x - blurBleed, y - blurBleed, img.width * scale + blurBleed * 2, img.height * scale + blurBleed * 2);
+                        ctx.drawImage(img, x - blurBleed, y - blurBleed, iw + blurBleed * 2, ih + blurBleed * 2);
                         ctx.restore();
                     } else {
-                        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                        ctx.drawImage(img, x, y, iw, ih);
                     }
                 }
             } else {
@@ -1004,18 +1157,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.strokeStyle = activeData.color; ctx.lineWidth = 10; ctx.stroke();
                 }
                 // Artist & Title - Single Line Bold Italic
+                ctx.save();
+                applyTextAnimCtx(ctx, 0.20, centerX, centerY + radius + 140);
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#ffffff';
                 ctx.font = '900 italic 62px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 15;
                 ctx.fillText(`${item.main.toUpperCase()} - ${item.sub.toUpperCase()}`, centerX + slideX, centerY + radius + 140);
+                ctx.restore();
 
                 // Restore Ranking Number
+                ctx.save();
+                applyTextAnimCtx(ctx, 0.10, canvas.width - 100, canvas.height - 120);
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 147px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 120);
+                ctx.restore();
 
             } else if (theme === 'TOP 5 ARTISTE') {
                 const item = top5Items[currentPreviewIndex];
@@ -1038,6 +1197,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     if (photoImg && (photoImg.complete || photoImg.width > 0)) {
                         ctx.save();
+                        applyTextAnimCtx(ctx, 0.10, itemX + 160, baseY - 450 + 160);
                         ctx.shadowColor = 'rgba(0,0,0,0.5)';
                         ctx.shadowBlur = 30;
                         const size = 320;
@@ -1051,6 +1211,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
 
+                ctx.save();
+                applyTextAnimCtx(ctx, 0.18, itemX + 200, baseY);
                 ctx.textAlign = 'left';
                 ctx.fillStyle = '#ffffff';
                 ctx.font = '900 italic 49px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
@@ -1066,11 +1228,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.font = '900 italic 43px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.textAlign = 'left';
                 ctx.fillText(`${item.value.toUpperCase()} MILLIONS D'ÉCOUTES`, barX + 30 + slideX, barY + 60);
+                ctx.restore();
 
+                ctx.save();
+                applyTextAnimCtx(ctx, 0.10, canvas.width - 100, canvas.height - 120);
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 117px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 120); 
+                ctx.restore(); 
 
 
 
@@ -1248,6 +1414,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // Tilt badge ~ -2.3 deg
                     const pillCenterX = badgeX + pillW / 2;
                     const pillCenterY = badgeY + pillH / 2;
+                    applyTextAnimCtx(ctx, 0.05, pillCenterX, pillCenterY);
                     ctx.translate(pillCenterX, pillCenterY);
                     ctx.rotate(-0.04);
                     ctx.translate(-pillCenterX, -pillCenterY);
@@ -1289,7 +1456,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     // A) Sur-titre Mois & Année
                     const monthTagText = `${(agendaMonth || 'OCTOBRE').toUpperCase()}${agendaCoverYear ? ' ' + agendaCoverYear.trim() : ''}`;
+                    const tagY = centerY - 145;
                     ctx.save();
+                    applyTextAnimCtx(ctx, 0.18, centerX, tagY);
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.font = `900 italic 28px "Orbitron", sans-serif`;
@@ -1297,7 +1466,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = monthColor;
                     ctx.shadowColor = `rgba(${monthGrad}, 0.9)`;
                     ctx.shadowBlur = 16;
-                    const tagY = centerY - 145;
                     ctx.fillText(monthTagText, centerX, tagY);
 
                     // Decorative accent horizontal lines
@@ -1358,21 +1526,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     titleLines.forEach((line, idx) => {
                         const lineY = titleStartY + idx * titleLineHeight;
+                        ctx.save();
+                        applyTextAnimCtx(ctx, 0.30 + idx * 0.12, centerX, lineY);
                         ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                         ctx.shadowBlur = 24;
                         ctx.shadowOffsetX = 3;
                         ctx.shadowOffsetY = 4;
                         ctx.fillStyle = '#ffffff';
                         ctx.fillText(line, centerX, lineY);
+                        ctx.restore();
                     });
                     ctx.restore();
 
                     // C) Subtitle / Genres Musicaux
                     const genresText = (agendaCoverGenres || 'HARD TECHNO • RAWSTYLE • MULTI-GENRES').toUpperCase().trim();
                     if (genresText) {
-                        ctx.save();
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
                         let genresFontSize = 18;
                         ctx.font = `800 ${genresFontSize}px "Montserrat", Arial, sans-serif`;
                         ctx.letterSpacing = '3px';
@@ -1386,6 +1554,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const genresPillH = 44;
                         const genresY = titleStartY + titleBlockHeight / 2 + (titleLines.length > 1 ? 55 : 45);
 
+                        ctx.save();
+                        applyTextAnimCtx(ctx, 0.48, centerX, genresY);
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
                         ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
                         ctx.shadowBlur = 12;
                         ctx.fillStyle = 'rgba(15, 12, 10, 0.78)';
@@ -1405,9 +1577,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // 3. BOTTOM CTA SWIPE
                     const ctaText = (agendaCoverCta || 'Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️').trim();
                     if (ctaText) {
-                        ctx.save();
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
                         const ctaY = canvas.height - (isStory ? 170 : 95);
 
                         let ctaFontSize = 18;
@@ -1422,6 +1591,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const ctaPillW = Math.min(canvas.width - 80, ctaW + 52);
                         const ctaPillH = 50;
 
+                        ctx.save();
+                        applyTextAnimCtx(ctx, 0.62, centerX, ctaY);
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
                         ctx.shadowColor = `rgba(${monthGrad}, 0.4)`;
                         ctx.shadowBlur = 16;
                         ctx.fillStyle = 'rgba(12, 8, 6, 0.88)';
@@ -1448,284 +1621,292 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.save();
                     const badgeX = 65;
                     const badgeY = isStory ? 90 : 65;
-                const badgeText = (agendaBadgeText || 'COUPS DE CŒUR DU MOIS').toUpperCase().trim();
+                    const badgeText = (agendaBadgeText || 'COUPS DE CŒUR DU MOIS').toUpperCase().trim();
 
-                // Dynamic font size & letter spacing to keep the badge ultra sharp
-                let badgeFontSize = 13;
-                let letterSpacing = '3px';
-                if (badgeText.length <= 8) {
-                    badgeFontSize = 18;
-                    letterSpacing = '5px';
-                } else if (badgeText.length <= 14) {
-                    badgeFontSize = 15;
-                    letterSpacing = '4px';
-                } else if (badgeText.length <= 22) {
-                    badgeFontSize = 12.5;
-                    letterSpacing = '2.5px';
-                } else {
-                    badgeFontSize = 11;
-                    letterSpacing = '1.5px';
-                }
-
-                ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
-                ctx.letterSpacing = letterSpacing;
-                const textWidth = ctx.measureText(badgeText).width;
-                const pillPadding = 34;
-                const pillW = Math.max(180, Math.ceil(textWidth + pillPadding));
-                const pillH = 46;
-
-                // Tilt the badge ~ -2.3 degrees centered on the pill
-                const pillCenterX = badgeX + pillW / 2;
-                const pillCenterY = badgeY + pillH / 2;
-                ctx.translate(pillCenterX, pillCenterY);
-                ctx.rotate(-0.04);
-                ctx.translate(-pillCenterX, -pillCenterY);
-
-                // Cyber Box Glow & Fill (même couleur que le mois)
-                ctx.shadowColor = `rgba(${monthGrad}, 0.75)`;
-                ctx.shadowBlur = 18;
-                ctx.fillStyle = 'rgba(12, 6, 4, 0.92)';
-                ctx.strokeStyle = monthColor;
-                ctx.lineWidth = 2.5;
-
-                ctx.beginPath();
-                ctx.roundRect(badgeX, badgeY, pillW, pillH, 10);
-                ctx.fill();
-                ctx.stroke();
-
-                // Notches cyber assorties à la couleur du mois
-                ctx.strokeStyle = monthColor;
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(badgeX - 14, badgeY + pillH / 2);
-                ctx.lineTo(badgeX - 4, badgeY + pillH / 2);
-                ctx.moveTo(badgeX + pillW + 4, badgeY + pillH / 2);
-                ctx.lineTo(badgeX + pillW + 14, badgeY + pillH / 2);
-                ctx.stroke();
-
-                // Inner text with glow matching the month color
-                ctx.shadowColor = `rgba(${monthGrad}, 0.85)`;
-                ctx.shadowBlur = 12;
-                ctx.fillStyle = '#ffffff';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
-                ctx.letterSpacing = letterSpacing;
-                ctx.fillText(badgeText, badgeX + pillW / 2 + 1, badgeY + pillH / 2 + 1);
-                ctx.restore();
-
-                // 2. BIG HOLLOW MONTH TITLE
-                const monthY = isStory ? 430 : 310;
-                const monthText = (agendaMonth || 'OCTOBRE').toUpperCase().trim();
-
-                // Adaptive font size so any month name fits nicely
-                let monthFontSize = isStory ? 104 : 94;
-                ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
-                ctx.letterSpacing = '6px';
-                while (ctx.measureText(monthText).width > 720 && monthFontSize > 44) {
-                    monthFontSize -= 2;
-                    ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
-                }
-
-                // Clean Hollow Outline (Knockout Technique):
-                // Eliminates internal intersecting contours in variable font glyphs (M, A, B, R, etc.)
-                const offW = canvas.width;
-                const offH = Math.ceil(monthFontSize * 2.2);
-                const offCanvas = document.createElement('canvas');
-                offCanvas.width = offW;
-                offCanvas.height = offH;
-                const offCtx = offCanvas.getContext('2d');
-
-                if (offCtx) {
-                    const offCenterX = offW / 2;
-                    const offCenterY = offH / 2;
-
-                    offCtx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
-                    offCtx.letterSpacing = '6px';
-                    offCtx.textAlign = 'center';
-                    offCtx.textBaseline = 'middle';
-
-                    // Sharp, vibrant orange stroke (no blurry glow)
-                    offCtx.strokeStyle = '#ff3700';
-                    offCtx.lineWidth = 6;
-                    offCtx.strokeText(monthText, offCenterX, offCenterY);
-
-                    // KNOCKOUT: Punch out glyph solid interiors to erase any crossing lines inside the letters
-                    offCtx.globalCompositeOperation = 'destination-out';
-                    offCtx.fillStyle = '#000000';
-                    offCtx.fillText(monthText, offCenterX, offCenterY);
-
-                    // Draw clean hollow outline onto main canvas with a crisp subtle shadow for contrast
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-                    ctx.shadowBlur = 6;
-                    ctx.shadowOffsetY = 2;
-                    ctx.drawImage(offCanvas, 0, monthY - offCenterY);
-                    ctx.restore();
-                } else {
-                    ctx.save();
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.strokeStyle = '#ff3700';
-                    ctx.lineWidth = 6;
-                    ctx.strokeText(monthText, centerX, monthY);
-                    ctx.restore();
-                }
-
-                // 3. EVENTS LIST - With generous breathing room from the month title
-                const itemsToDraw = planningItems.slice(0, isStory ? 8 : 7);
-                const listStartY = isStory ? 630 : 470;
-                const bottomMargin = isStory ? 140 : 80;
-                const availableHeight = canvas.height - listStartY - bottomMargin;
-                let rowSpacing = Math.min(
-                    isStory ? 180 : 140,
-                    Math.floor(availableHeight / Math.max(1, itemsToDraw.length))
-                );
-                if (itemsToDraw.length <= 4 && itemsToDraw.length > 0) {
-                    rowSpacing = isStory ? 170 : 138;
-                }
-
-                itemsToDraw.forEach((item, i) => {
-                    const rowY = listStartY + (i * rowSpacing);
-                    if (rowY > canvas.height - 60) return;
-
-                    const dayText = (item.day || item.time || 'VENDREDI').toUpperCase().trim();
-                    const titleText = (item.title || item.artist || 'ÉVÉNEMENT').toUpperCase().trim();
-                    const artistsText = (item.artists || '').trim();
-                    const genreText = (item.genre || '').trim();
-                    const venueText = (item.venue || '').toUpperCase().trim();
-
-                    // A) Left sticker badge for Day
-                    ctx.save();
-                    ctx.font = '900 italic 20px "Montserrat", sans-serif';
-                    const dayMeasureW = ctx.measureText(dayText).width;
-                    const badgeW = Math.max(125, Math.min(185, dayMeasureW + 36));
-                    const badgeH = 42;
-                    const badgeXCenter = 75 + badgeW / 2;
-                    
-                    // Sticker angle: subtle tilt like real stickers/tape
-                    const stickerAngle = (i % 2 === 0 ? -0.04 : -0.025);
-                    ctx.translate(badgeXCenter, rowY);
-                    ctx.rotate(stickerAngle);
-
-                    // Sticker drop shadow
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                    ctx.shadowBlur = 14;
-                    ctx.shadowOffsetX = 3;
-                    ctx.shadowOffsetY = 4;
-
-                    // Sticker background: vibrant Rave red-orange #ff3700
-                    ctx.fillStyle = '#ff3700';
-                    ctx.beginPath();
-                    ctx.roundRect(-badgeW / 2, -badgeH / 2, badgeW, badgeH, 6);
-                    ctx.fill();
-
-                    // Sticker text: ultra-bold black
-                    ctx.shadowColor = 'transparent';
-                    ctx.fillStyle = '#000000';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.font = '900 italic 20px "Montserrat", sans-serif';
-                    ctx.letterSpacing = '1.2px';
-                    ctx.fillText(dayText, 0, 1);
-                    ctx.restore();
-
-                    // B) Right content block
-                    ctx.save();
-                    const contentX = badgeXCenter + badgeW / 2 + 28;
-                    const maxContentW = canvas.width - contentX - 55;
-                    ctx.textAlign = 'left';
-                    ctx.textBaseline = 'middle';
-
-                    const hasArtists = Boolean(artistsText);
-                    const hasDetails = Boolean(genreText || venueText);
-
-                    // Dynamic row vertical positions:
-                    // If only 1 line exists, vertically center it with the sticker!
-                    let titleY = rowY;
-                    let artistsY = rowY;
-                    let subY = rowY;
-
-                    if (hasArtists && hasDetails) {
-                        titleY = rowY - (rowSpacing > 130 ? 24 : 20);
-                        artistsY = rowY + (rowSpacing > 130 ? 4 : 2);
-                        subY = rowY + (rowSpacing > 130 ? 29 : 23);
-                    } else if (hasArtists || hasDetails) {
-                        titleY = rowY - 14;
-                        artistsY = rowY + 16;
-                        subY = rowY + 16;
+                    // Dynamic font size & letter spacing to keep the badge ultra sharp
+                    let badgeFontSize = 13;
+                    let letterSpacing = '3px';
+                    if (badgeText.length <= 8) {
+                        badgeFontSize = 18;
+                        letterSpacing = '5px';
+                    } else if (badgeText.length <= 14) {
+                        badgeFontSize = 15;
+                        letterSpacing = '4px';
+                    } else if (badgeText.length <= 22) {
+                        badgeFontSize = 12.5;
+                        letterSpacing = '2.5px';
                     } else {
-                        titleY = rowY;
+                        badgeFontSize = 11;
+                        letterSpacing = '1.5px';
                     }
 
-                    // 1. Title / Event Name (White Bold)
-                    ctx.fillStyle = '#ffffff';
-                    const baseTitleSize = (hasArtists || hasDetails) ? 27 : 29;
-                    ctx.font = `900 ${baseTitleSize}px "Montserrat", sans-serif`;
-                    ctx.letterSpacing = '0.5px';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                    ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
+                    ctx.letterSpacing = letterSpacing;
+                    const textWidth = ctx.measureText(badgeText).width;
+                    const pillPadding = 34;
+                    const pillW = Math.max(180, Math.ceil(textWidth + pillPadding));
+                    const pillH = 46;
+
+                    // Tilt the badge ~ -2.3 degrees centered on the pill
+                    const pillCenterX = badgeX + pillW / 2;
+                    const pillCenterY = badgeY + pillH / 2;
+                    applyTextAnimCtx(ctx, 0.05, pillCenterX, pillCenterY);
+                    ctx.translate(pillCenterX, pillCenterY);
+                    ctx.rotate(-0.04);
+                    ctx.translate(-pillCenterX, -pillCenterY);
+
+                    // Cyber Box Glow & Fill (même couleur que le mois)
+                    ctx.shadowColor = `rgba(${monthGrad}, 0.75)`;
+                    ctx.shadowBlur = 18;
+                    ctx.fillStyle = 'rgba(12, 6, 4, 0.92)';
+                    ctx.strokeStyle = monthColor;
+                    ctx.lineWidth = 2.5;
+
+                    ctx.beginPath();
+                    ctx.roundRect(badgeX, badgeY, pillW, pillH, 10);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Notches cyber assorties à la couleur du mois
+                    ctx.strokeStyle = monthColor;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(badgeX - 14, badgeY + pillH / 2);
+                    ctx.lineTo(badgeX - 4, badgeY + pillH / 2);
+                    ctx.moveTo(badgeX + pillW + 4, badgeY + pillH / 2);
+                    ctx.lineTo(badgeX + pillW + 14, badgeY + pillH / 2);
+                    ctx.stroke();
+
+                    // Inner text with glow matching the month color
+                    ctx.shadowColor = `rgba(${monthGrad}, 0.85)`;
                     ctx.shadowBlur = 12;
-
-                    let displayTitle = titleText;
-                    if (ctx.measureText(displayTitle).width > maxContentW) {
-                        let fs = baseTitleSize;
-                        while (ctx.measureText(displayTitle).width > maxContentW && fs > 18) {
-                            fs--;
-                            ctx.font = `900 ${fs}px "Montserrat", sans-serif`;
-                        }
-                    }
-                    ctx.fillText(displayTitle, contentX, titleY);
-
-                    // 2. Artists / Lineup (Light Silver)
-                    if (hasArtists) {
-                        ctx.font = '700 18px "Montserrat", sans-serif';
-                        ctx.letterSpacing = '0px';
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-                        ctx.shadowBlur = 8;
-                        
-                        let displayArtists = artistsText;
-                        if (ctx.measureText(displayArtists).width > maxContentW) {
-                            while (ctx.measureText(displayArtists + '...').width > maxContentW && displayArtists.length > 5) {
-                                displayArtists = displayArtists.slice(0, -1);
-                            }
-                            displayArtists += '...';
-                        }
-                        ctx.fillText(displayArtists, contentX, artistsY);
-                    }
-
-                    // 3. Genre | Venue
-                    if (hasDetails) {
-                        const targetLineY = hasArtists ? subY : artistsY;
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-                        ctx.shadowBlur = 8;
-                        let curLineX = contentX;
-
-                        if (genreText) {
-                            ctx.font = '600 16px "Montserrat", sans-serif';
-                            ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-                            ctx.fillText(genreText, curLineX, targetLineY);
-                            curLineX += ctx.measureText(genreText).width;
-                        }
-
-                        if (genreText && venueText) {
-                            ctx.font = '600 16px "Montserrat", sans-serif';
-                            ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-                            ctx.fillText(' | ', curLineX, targetLineY);
-                            curLineX += ctx.measureText(' | ').width;
-                        }
-
-                        if (venueText) {
-                            ctx.font = '900 17px "Montserrat", sans-serif';
-                            ctx.fillStyle = '#ff3700';
-                            ctx.shadowColor = 'rgba(255, 55, 0, 0.6)';
-                            ctx.shadowBlur = 10;
-                            ctx.fillText(venueText, curLineX, targetLineY);
-                        }
-                    }
-
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
+                    ctx.letterSpacing = letterSpacing;
+                    ctx.fillText(badgeText, badgeX + pillW / 2 + 1, badgeY + pillH / 2 + 1);
                     ctx.restore();
-                });
+
+                    // 2. BIG HOLLOW MONTH TITLE
+                    const monthY = isStory ? 430 : 310;
+                    const monthText = (agendaMonth || 'OCTOBRE').toUpperCase().trim();
+
+                    // Adaptive font size so any month name fits nicely
+                    let monthFontSize = isStory ? 104 : 94;
+                    ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
+                    ctx.letterSpacing = '6px';
+                    while (ctx.measureText(monthText).width > 720 && monthFontSize > 44) {
+                        monthFontSize -= 2;
+                        ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
+                    }
+
+                    // Clean Hollow Outline (Knockout Technique):
+                    // Eliminates internal intersecting contours in variable font glyphs (M, A, B, R, etc.)
+                    const offW = canvas.width;
+                    const offH = Math.ceil(monthFontSize * 2.2);
+                    const offCanvas = document.createElement('canvas');
+                    offCanvas.width = offW;
+                    offCanvas.height = offH;
+                    const offCtx = offCanvas.getContext('2d');
+
+                    if (offCtx) {
+                        const offCenterX = offW / 2;
+                        const offCenterY = offH / 2;
+
+                        offCtx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
+                        offCtx.letterSpacing = '6px';
+                        offCtx.textAlign = 'center';
+                        offCtx.textBaseline = 'middle';
+
+                        // Sharp, vibrant orange stroke (no blurry glow)
+                        offCtx.strokeStyle = '#ff3700';
+                        offCtx.lineWidth = 6;
+                        offCtx.strokeText(monthText, offCenterX, offCenterY);
+
+                        // KNOCKOUT: Punch out glyph solid interiors to erase any crossing lines inside the letters
+                        offCtx.globalCompositeOperation = 'destination-out';
+                        offCtx.fillStyle = '#000000';
+                        offCtx.fillText(monthText, offCenterX, offCenterY);
+
+                        // Draw clean hollow outline onto main canvas with a crisp subtle shadow for contrast
+                        ctx.save();
+                        applyTextAnimCtx(ctx, 0.18, centerX, monthY);
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                        ctx.shadowBlur = 6;
+                        ctx.shadowOffsetY = 2;
+                        ctx.drawImage(offCanvas, 0, monthY - offCenterY);
+                        ctx.restore();
+                    } else {
+                        ctx.save();
+                        applyTextAnimCtx(ctx, 0.18, centerX, monthY);
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.strokeStyle = '#ff3700';
+                        ctx.lineWidth = 6;
+                        ctx.strokeText(monthText, centerX, monthY);
+                        ctx.restore();
+                    }
+
+                    // 3. EVENTS LIST - With generous breathing room from the month title
+                    const itemsToDraw = planningItems.slice(0, isStory ? 8 : 7);
+                    const listStartY = isStory ? 630 : 470;
+                    const bottomMargin = isStory ? 140 : 80;
+                    const availableHeight = canvas.height - listStartY - bottomMargin;
+                    let rowSpacing = Math.min(
+                        isStory ? 180 : 140,
+                        Math.floor(availableHeight / Math.max(1, itemsToDraw.length))
+                    );
+                    if (itemsToDraw.length <= 4 && itemsToDraw.length > 0) {
+                        rowSpacing = isStory ? 170 : 138;
+                    }
+
+                    itemsToDraw.forEach((item, i) => {
+                        const rowY = listStartY + (i * rowSpacing);
+                        if (rowY > canvas.height - 60) return;
+
+                        const itemDelay = 0.28 + (i * 0.10);
+
+                        const dayText = (item.day || item.time || 'VENDREDI').toUpperCase().trim();
+                        const titleText = (item.title || item.artist || 'ÉVÉNEMENT').toUpperCase().trim();
+                        const artistsText = (item.artists || '').trim();
+                        const genreText = (item.genre || '').trim();
+                        const venueText = (item.venue || '').toUpperCase().trim();
+
+                        // A) Left sticker badge for Day
+                        ctx.save();
+                        ctx.font = '900 italic 20px "Montserrat", sans-serif';
+                        const dayMeasureW = ctx.measureText(dayText).width;
+                        const badgeW = Math.max(125, Math.min(185, dayMeasureW + 36));
+                        const badgeH = 42;
+                        const badgeXCenter = 75 + badgeW / 2;
+                        
+                        applyTextAnimCtx(ctx, itemDelay, badgeXCenter, rowY);
+
+                        // Sticker angle: subtle tilt like real stickers/tape
+                        const stickerAngle = (i % 2 === 0 ? -0.04 : -0.025);
+                        ctx.translate(badgeXCenter, rowY);
+                        ctx.rotate(stickerAngle);
+
+                        // Sticker drop shadow
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                        ctx.shadowBlur = 14;
+                        ctx.shadowOffsetX = 3;
+                        ctx.shadowOffsetY = 4;
+
+                        // Sticker background: vibrant Rave red-orange #ff3700
+                        ctx.fillStyle = '#ff3700';
+                        ctx.beginPath();
+                        ctx.roundRect(-badgeW / 2, -badgeH / 2, badgeW, badgeH, 6);
+                        ctx.fill();
+
+                        // Sticker text: ultra-bold black
+                        ctx.shadowColor = 'transparent';
+                        ctx.fillStyle = '#000000';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.font = '900 italic 20px "Montserrat", sans-serif';
+                        ctx.letterSpacing = '1.2px';
+                        ctx.fillText(dayText, 0, 1);
+                        ctx.restore();
+
+                        // B) Right content block
+                        ctx.save();
+                        const contentX = badgeXCenter + badgeW / 2 + 28;
+                        const maxContentW = canvas.width - contentX - 55;
+                        applyTextAnimCtx(ctx, itemDelay + 0.04, contentX + (maxContentW / 3), rowY);
+                        ctx.textAlign = 'left';
+                        ctx.textBaseline = 'middle';
+
+                        const hasArtists = Boolean(artistsText);
+                        const hasDetails = Boolean(genreText || venueText);
+
+                        // Dynamic row vertical positions:
+                        // If only 1 line exists, vertically center it with the sticker!
+                        let titleY = rowY;
+                        let artistsY = rowY;
+                        let subY = rowY;
+
+                        if (hasArtists && hasDetails) {
+                            titleY = rowY - (rowSpacing > 130 ? 24 : 20);
+                            artistsY = rowY + (rowSpacing > 130 ? 4 : 2);
+                            subY = rowY + (rowSpacing > 130 ? 29 : 23);
+                        } else if (hasArtists || hasDetails) {
+                            titleY = rowY - 14;
+                            artistsY = rowY + 16;
+                            subY = rowY + 16;
+                        } else {
+                            titleY = rowY;
+                        }
+
+                        // 1. Title / Event Name (White Bold)
+                        ctx.fillStyle = '#ffffff';
+                        const baseTitleSize = (hasArtists || hasDetails) ? 27 : 29;
+                        ctx.font = `900 ${baseTitleSize}px "Montserrat", sans-serif`;
+                        ctx.letterSpacing = '0.5px';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                        ctx.shadowBlur = 12;
+
+                        let displayTitle = titleText;
+                        if (ctx.measureText(displayTitle).width > maxContentW) {
+                            let fs = baseTitleSize;
+                            while (ctx.measureText(displayTitle).width > maxContentW && fs > 18) {
+                                fs--;
+                                ctx.font = `900 ${fs}px "Montserrat", sans-serif`;
+                            }
+                        }
+                        ctx.fillText(displayTitle, contentX, titleY);
+
+                        // 2. Artists / Lineup (Light Silver)
+                        if (hasArtists) {
+                            ctx.font = '700 18px "Montserrat", sans-serif';
+                            ctx.letterSpacing = '0px';
+                            ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                            ctx.shadowBlur = 8;
+                            
+                            let displayArtists = artistsText;
+                            if (ctx.measureText(displayArtists).width > maxContentW) {
+                                while (ctx.measureText(displayArtists + '...').width > maxContentW && displayArtists.length > 5) {
+                                    displayArtists = displayArtists.slice(0, -1);
+                                }
+                                displayArtists += '...';
+                            }
+                            ctx.fillText(displayArtists, contentX, artistsY);
+                        }
+
+                        // 3. Genre | Venue
+                        if (hasDetails) {
+                            const targetLineY = hasArtists ? subY : artistsY;
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                            ctx.shadowBlur = 8;
+                            let curLineX = contentX;
+
+                            if (genreText) {
+                                ctx.font = '600 16px "Montserrat", sans-serif';
+                                ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+                                ctx.fillText(genreText, curLineX, targetLineY);
+                                curLineX += ctx.measureText(genreText).width;
+                            }
+
+                            if (genreText && venueText) {
+                                ctx.font = '600 16px "Montserrat", sans-serif';
+                                ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+                                ctx.fillText(' | ', curLineX, targetLineY);
+                                curLineX += ctx.measureText(' | ').width;
+                            }
+
+                            if (venueText) {
+                                ctx.font = '900 17px "Montserrat", sans-serif';
+                                ctx.fillStyle = '#ff3700';
+                                ctx.shadowColor = 'rgba(255, 55, 0, 0.6)';
+                                ctx.shadowBlur = 10;
+                                ctx.fillText(venueText, curLineX, targetLineY);
+                            }
+                        }
+
+                        ctx.restore();
+                    });
                 }
 
             } else if (theme === 'CALENDRIER') {
@@ -1733,6 +1914,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const calTopY = effectiveTab === 'PUBLICATION' ? 280 : 580;
 
                 ctx.save();
+                applyTextAnimCtx(ctx, 0.10, calCenterX, calTopY);
                 ctx.shadowColor = 'rgba(0,0,0,0.8)';
                 ctx.shadowBlur = 20;
 
@@ -1760,6 +1942,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     // Card background
                     ctx.save();
+                    applyTextAnimCtx(ctx, 0.22 + i * 0.10, calCenterX, cardY + cardH / 2);
                     ctx.fillStyle = 'rgba(0,0,0,0.45)';
                     ctx.beginPath();
                     ctx.roundRect(cardPadX, cardY, canvas.width - cardPadX * 2, cardH, 18);
@@ -1925,6 +2108,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const ratio = Math.min(maxW / lw, maxH / lh);
                     lw *= ratio; lh *= ratio;
                     ctx.save();
+                    applyTextAnimCtx(ctx, 0.10, 80 + lw / 2, 150 + lh / 2);
                     if (isArtistLogoNegative) {
                         ctx.filter = 'brightness(0) invert(1)'; // Effet négatif (blanc)
                     }
@@ -1932,6 +2116,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 } else if (artistNameText) {
                     ctx.save();
+                    applyTextAnimCtx(ctx, 0.10, 80 + 200, 280);
                     ctx.fillStyle = '#ffffff';
                     let fontSize = 80;
                     ctx.font = `900 italic ${fontSize}px "Orbitron", sans-serif`;
@@ -1956,6 +2141,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // dayName est récupéré plus bas via lines[2]
 
                     ctx.save();
+                    applyTextAnimCtx(ctx, 0.22, 250, 480);
                     ctx.textAlign = 'left';
                     ctx.shadowColor = 'rgba(0,0,0,0.8)';
                     ctx.shadowBlur = 15;
@@ -2091,6 +2277,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const quote = lines.join('\n');
 
                     ctx.save();
+                    applyTextAnimCtx(ctx, 0.15, 500, 500);
                     
                     ctx.textAlign = 'left';
                     ctx.fillStyle = '#ffffff';
@@ -2165,6 +2352,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const rectH = 72;
                 const radius = 20;
 
+                applyTextAnimCtx(ctx, 0.10, centerX, rectY + (rectH / 2));
+
                 // Dark elegant glass capsule fill
                 ctx.fillStyle = 'rgba(10, 15, 28, 0.88)';
                 ctx.beginPath();
@@ -2209,6 +2398,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 ctx.save();
+                applyTextAnimCtx(ctx, 0.22, centerX, startY + 100);
                 ctx.textAlign = 'center';
                 const maxLines = effectiveTab === 'PUBLICATION' ? 8 : 10;
                 lines.slice(0, maxLines).forEach((line, i) => {
@@ -2234,6 +2424,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // 4. Discreet CTA Banner (Soft gradient pill)
                 ctx.save();
                 const ctaY = canvas.height - 60;
+                applyTextAnimCtx(ctx, 0.35, centerX, ctaY);
                 const ctaText = "💬 DEVINE EN COMMENTAIRE !";
                 ctx.font = '900 italic 25px "Montserrat", sans-serif';
                 ctx.letterSpacing = '3px';
@@ -2294,6 +2485,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const rectH = 72;
                 const radius = 20;
 
+                applyTextAnimCtx(ctx, 0.10, centerX, rectY + (rectH / 2));
+
                 ctx.fillStyle = 'rgba(10, 15, 28, 0.88)';
                 ctx.beginPath();
                 ctx.roundRect(rectX, rectY, rectW, rectH, radius);
@@ -2333,6 +2526,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 ctx.save();
+                applyTextAnimCtx(ctx, 0.22, centerX, startY + 100);
                 ctx.textAlign = 'center';
                 const maxLines = effectiveTab === 'PUBLICATION' ? 8 : 10;
                 lines.slice(0, maxLines).forEach((line, i) => {
@@ -2350,6 +2544,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // 4. CTA Banner
                 ctx.save();
                 const ctaY = canvas.height - 60;
+                applyTextAnimCtx(ctx, 0.35, centerX, ctaY);
                 const ctaText = "💬 DEVINE EN COMMENTAIRE !";
                 ctx.font = '900 italic 25px "Montserrat", sans-serif';
                 ctx.letterSpacing = '3px';
@@ -3429,12 +3624,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     useEffect(() => {
         let anim: number;
-        if (bgVideo || isVideoRecording || textAnimation !== 'NONE' || theme === 'TRACKLIST') {
+        if (bgVideo || isVideoRecording || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST') {
             const loop = () => { generateImage(); anim = requestAnimationFrame(loop); };
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation]);
 
     // Pre-charger l'affiche de l'événement dès que son URL change
     useEffect(() => {
@@ -3668,7 +3863,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // Fallback à 60s si aucune vidéo ni animation n'est présente.
             totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
                 ? bgVideo.duration * 1000
-                : ((textAnimation !== 'NONE' || theme === 'TRACKLIST') ? 6000 : 60000);
+                : ((textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST') ? 6000 : 60000);
             if (totalDuration > 600000) totalDuration = 600000; // Limit to 10 minutes
         }
 
@@ -3867,6 +4062,53 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 setIsDownloading(false);
                 generateImage(); // Restore preview with overlays
             }, 500);
+        }
+    };
+
+    const downloadBackgroundVisual = async (targetTab?: TabType) => {
+        if (!canvasRef.current) return;
+        setIsDownloading(true);
+        const prevShowText = showText;
+        try {
+            setShowText(false);
+            const format = targetTab || activeTab;
+            await new Promise(r => setTimeout(r, 50));
+            await generateImage(format, true);
+            const fileName = `dropsiders-fond-${format === 'REEL' ? 'story-9-16' : 'post-4-5'}-${Date.now()}.png`;
+
+            if (isMobile && ('share' in navigator)) {
+                try {
+                    const blob = await new Promise<Blob | null>(resolve => canvasRef.current!.toBlob(resolve, 'image/png'));
+                    if (blob) {
+                        const file = new File([blob], fileName, { type: 'image/png' });
+                        await (navigator as any).share({
+                            files: [file],
+                            title: 'Dropsiders Fond Visuel',
+                            text: 'Fond visuel généré avec Dropsiders Studio'
+                        });
+                        return;
+                    }
+                } catch (e) {
+                    console.log('Share API denied or failed', e);
+                }
+            }
+
+            const dataUrl = canvasRef.current!.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } catch (e) {
+            console.error('Erreur export fond visuel:', e);
+            setErrorMessage("Erreur lors de l'export du fond visuel.");
+        } finally {
+            setShowText(prevShowText);
+            setTimeout(() => {
+                setIsDownloading(false);
+                generateImage();
+            }, 300);
         }
     };
 
@@ -4282,6 +4524,80 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     />
                 </div>
             </div>
+        </div>
+    );
+
+    const bgAnimationControl = (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-3">
+            <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                    🎬 Animation du Fond (Reels / MP4)
+                </span>
+                {bgAnimation !== 'NONE' && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            animStartTimeRef.current = Date.now();
+                            setAnimReplayKey(k => k + 1);
+                        }}
+                        className="px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg text-[8px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all flex items-center gap-1"
+                        title="Rejouer l'animation depuis le début"
+                    >
+                        <RotateCcw className="w-2.5 h-2.5" /> Rejouer
+                    </button>
+                )}
+            </div>
+
+            <div className="grid grid-cols-4 gap-1.5">
+                {[
+                    { id: 'NONE', label: 'Statique', icon: '⏹️', activeClass: 'bg-white text-black border-white shadow-sm' },
+                    { id: 'ZOOM_IN', label: 'Zoom Lent', icon: '🔍', activeClass: 'bg-neon-red border-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]' },
+                    { id: 'ZOOM_OUT', label: 'Dézoom', icon: '🔎', activeClass: 'bg-neon-cyan border-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.5)]' },
+                    { id: 'PAN_LEFT', label: 'Pan Gauche', icon: '⬅️', activeClass: 'bg-neon-purple border-neon-purple text-white shadow-[0_0_12px_rgba(176,38,255,0.5)]' },
+                    { id: 'PAN_RIGHT', label: 'Pan Droite', icon: '➡️', activeClass: 'bg-amber-400 border-amber-400 text-black shadow-[0_0_12px_rgba(251,191,36,0.5)]' },
+                    { id: 'PULSE', label: 'Pulsation', icon: '💓', activeClass: 'bg-emerald-400 border-emerald-400 text-black shadow-[0_0_12px_rgba(52,211,153,0.5)]' },
+                    { id: 'BREATHE', label: 'Flottement', icon: '🌊', activeClass: 'bg-pink-500 border-pink-500 text-white shadow-[0_0_12px_rgba(236,72,153,0.5)]' },
+                    { id: 'GLITCH', label: 'Cyber Shake', icon: '⚡', activeClass: 'bg-indigo-500 border-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.5)]' },
+                ].map(anim => (
+                    <button
+                        key={anim.id}
+                        type="button"
+                        onClick={() => {
+                            setBgAnimation(anim.id as BgAnimType);
+                            animStartTimeRef.current = Date.now();
+                            setAnimReplayKey(k => k + 1);
+                        }}
+                        className={`py-2 px-1 rounded-xl text-[8.5px] font-black uppercase border transition-all flex flex-col items-center justify-center gap-0.5 ${
+                            bgAnimation === anim.id
+                                ? anim.activeClass
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                        }`}
+                    >
+                        <span className="text-[11px] leading-none">{anim.icon}</span>
+                        <span className="truncate w-full text-center">{anim.label}</span>
+                    </button>
+                ))}
+            </div>
+
+            {bgAnimation !== 'NONE' && (
+                <div className="space-y-1.5 pt-0.5">
+                    <p className="text-[8px] text-gray-400 italic px-1">
+                        ✨ Animation de fond active ! Cliquez ci-dessous pour exporter directement la vidéo en MP4.
+                    </p>
+                    <button
+                        type="button"
+                        onClick={startVideoRecording}
+                        disabled={isVideoRecording}
+                        className={`w-full py-2.5 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-md ${
+                            isVideoRecording
+                                ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
+                                : 'bg-neon-red/20 border border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white active:scale-[0.98]'
+                        }`}
+                    >
+                        <Video className="w-3.5 h-3.5" /> {isVideoRecording ? 'Capture MP4 en cours...' : '🎬 Exporter cette animation en MP4'}
+                    </button>
+                </div>
+            )}
         </div>
     );
 
@@ -6004,9 +6320,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </>
             )}
 
-            {/* ── CHOIX DE L'ANIMATION DU TEXTE (AU-DESSUS DU TEXTE) ── */}
-            {textAnimationControl}
-
             <div className="space-y-2">
                 <div className="flex items-center justify-between pl-1">
                     <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Titre Principal</label>
@@ -6909,6 +7222,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             </div>
             <button
                 type="button"
+                onClick={() => downloadBackgroundVisual(activeTab)}
+                disabled={isDownloading}
+                className="w-full py-2 bg-white/5 border border-white/10 hover:border-white/25 text-gray-300 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all"
+                title="Exporter l'image de fond seule sans texte"
+            >
+                <Download className="w-3 h-3 text-neon-cyan" /> Exporter le Fond Visuel (Seul)
+            </button>
+            <button
+                type="button"
                 onClick={startVideoRecording}
                 disabled={isVideoRecording}
                 className={`w-full py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-lg ${
@@ -7143,6 +7465,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     >
                         <LinkIcon className="w-3.5 h-3.5 text-neon-cyan" /> Télécharger via Lien (URL)
                     </button>
+                    <button
+                        type="button"
+                        onClick={() => downloadBackgroundVisual(activeTab)}
+                        disabled={isDownloading}
+                        className="w-full py-2 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white hover:text-neon-cyan flex items-center justify-center gap-1.5 transition-all"
+                    >
+                        <Download className="w-3.5 h-3.5 text-neon-cyan" /> Exporter le Fond Visuel (PNG)
+                    </button>
+                    {bgAnimationControl}
                 </div>
 
                 {/* 3. SWIPE DROPSIDERS >> */}
@@ -7792,7 +8123,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <Video className="w-3.5 h-3.5" /> Relancer la prévisualisation
                                 </button>
                             )}
+
+                            {/* Export du fond visuel + Option pour animer le fond */}
+                            <div className="pt-2 border-t border-white/10 space-y-2">
+                                <button
+                                    type="button"
+                                    onClick={() => downloadBackgroundVisual(activeTab)}
+                                    disabled={isDownloading}
+                                    className="w-full py-2.5 bg-white/5 border border-white/10 hover:border-white/30 rounded-xl text-[9px] font-black uppercase text-white hover:text-neon-cyan flex items-center justify-center gap-2 transition-all group shadow-sm"
+                                    title="Exporter l'image de fond seule sans texte"
+                                >
+                                    <Download className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
+                                    Exporter le fond visuel (PNG)
+                                </button>
+                                {bgAnimationControl}
+                            </div>
                         </div>
+
+                        {/* Animation universelle du texte & éléments (tous les thèmes) */}
+                        {textAnimationControl}
 
                         {/* Content editor */}
                         <div className="space-y-4">
@@ -8407,7 +8756,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 )}
 
                                 {activePanel === 'texte' && (
-                                    <div className="px-6 pb-8">
+                                    <div className="px-6 pb-8 space-y-4">
+                                        {textAnimationControl}
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Contenu</p>
                                         {theme === 'CALENDRIER' ? (
                                             <div className="space-y-3">
@@ -8458,6 +8808,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     </div>
                                                 </div>
                                             )}
+                                            <button
+                                                type="button"
+                                                onClick={() => downloadBackgroundVisual(activeTab)}
+                                                disabled={isDownloading}
+                                                className="w-full py-3.5 bg-white/5 border border-white/10 hover:border-white/30 rounded-2xl text-[10px] font-black uppercase text-white hover:text-neon-cyan flex items-center justify-center gap-2 transition-all shadow-sm"
+                                            >
+                                                <Download className="w-4 h-4 text-neon-cyan" /> Exporter le fond visuel (PNG)
+                                            </button>
+                                            {bgAnimationControl}
                                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                         </div>
                                     </div>
