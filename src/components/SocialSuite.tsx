@@ -2820,6 +2820,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // 2. TOP RIGHT PHOTO CREDIT (Left of logo)
                 const headerRightX = canvas.width - (isReel ? 420 : 380);
+                const badgeY = isReel ? 74 : 50;
                 const headerY = badgeY + 23;
                 if (citationAuthor) {
                     ctx.save();
@@ -5739,6 +5740,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             )}
         </div>
+    );
+
     const textAnimationControl = (
         <div className="p-3.5 bg-white/5 border border-white/10 rounded-2xl space-y-2.5">
             <div className="flex items-center justify-between">
