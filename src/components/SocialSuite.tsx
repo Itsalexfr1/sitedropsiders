@@ -685,13 +685,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             await (async (theme: ThemeType) => {
                 const isPromoTheme = theme === 'PROMO';
                 const isAgendaSource = theme === 'PLANNING' || promoCategory === 'PLANNING';
-                const actualBaseTheme = (theme === 'PROMO' && promoOutroOverrideRef.current) 
-                    ? (themeColor ? themeColor : (baseThemeData[isAgendaSource ? 'PLANNING' : (targetTab ? 'NEWS' : (theme === 'PROMO' ? (promoCategory as ThemeType) : theme))] || baseThemeData['NEWS']))
-                    : (baseThemeData[isAgendaSource ? 'PLANNING' : (promoCategory as ThemeType)] || baseThemeData['NEWS']);
-                const promoThemeData = actualBaseTheme;
+                const sourceThemeKey = (promoOutroOverrideRef.current 
+                    ? (isAgendaSource ? 'PLANNING' : (promoCategory as ThemeType || 'NEWS'))
+                    : (theme === 'PROMO' ? (promoCategory as ThemeType || 'NEWS') : theme)) as ThemeType;
+                const effectiveBaseThemeData = baseThemeData[sourceThemeKey] || baseThemeData['NEWS'];
+                const promoThemeData = themeColor || effectiveBaseThemeData;
                 const activeColor = isPromoTheme 
-                    ? (themeColor || promoThemeData) 
-                    : (themeColor || baseThemeData[theme]);
+                    ? promoThemeData 
+                    : (themeColor || baseThemeData[theme] || baseThemeData['NEWS']);
                 let img: HTMLImageElement | null = null;
             if (bgImage) {
                 if (imageCacheRef.current[bgImage]) {
@@ -2645,7 +2646,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // ZONE 1 : QUESTION DE L'ARTICLE
                 // (Omission complète pour l'AGENDA car hors-sujet pour un récap festivals/événements)
                 // ==========================================
-                const isAgendaPromo = promoCategory === 'PLANNING' || theme === 'PLANNING';
+                const isAgendaPromo = promoCategory === 'PLANNING';
 
                 const rawQuestion = (customText && customText.trim()) 
                     ? customText.trim().replace(/^["']|["']$/g, '') 
@@ -2781,11 +2782,55 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
                 ctx.shadowBlur = 18;
 
-                const outroLines = isAgendaPromo ? [
-                    'POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS',
-                    'SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,'
-                ] : [
-                    'POUR ÊTRE INFORMÉ DE TOUTES LES NEWS',
+                const getTargetPromoCategory = (t: string): string => {
+                    const raw = (t || 'NEWS').toUpperCase().trim();
+                    if (raw.includes('MUSIQUE') || raw.includes('TRACKLIST') || raw.includes('TOP 5') || raw.includes('TOP 100')) {
+                        return 'MUSIQUE';
+                    }
+                    if (raw.includes('FOCUS') || raw.includes('SPOTLIGHT') || raw.includes('CITATION')) {
+                        return 'FOCUS';
+                    }
+                    if (raw.includes('RECAP')) {
+                        return 'RECAPS';
+                    }
+                    if (raw.includes('CONCOURS') || raw.includes('JEU')) {
+                        return 'CONCOURS';
+                    }
+                    if (raw.includes('EVENT') || raw.includes('PLANNING') || raw.includes('AGENDA') || raw.includes('FESTIVAL') || raw.includes('AFFICHE') || raw.includes('MAP') || raw.includes('CALENDRIER')) {
+                        return 'EVENTS';
+                    }
+                    if (raw.includes('INTERVIEW')) {
+                        return 'INTERVIEWS';
+                    }
+                    if (raw.includes('REEL') || raw.includes('VIDEO') || raw.includes('DIRECT') || raw.includes('LIVESTREAM') || raw.includes('CONSEIL')) {
+                        return 'VIDEOS';
+                    }
+                    return 'NEWS';
+                };
+
+                const activeTargetCategory = isAgendaPromo 
+                    ? 'EVENTS' 
+                    : getTargetPromoCategory(promoCategory || theme);
+
+                let outroHeadline = 'POUR ÊTRE INFORMÉ DE TOUTES LES NEWS';
+                if (activeTargetCategory === 'EVENTS') {
+                    outroHeadline = 'POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS';
+                } else if (activeTargetCategory === 'MUSIQUE') {
+                    outroHeadline = 'POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES';
+                } else if (activeTargetCategory === 'FOCUS') {
+                    outroHeadline = 'POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS';
+                } else if (activeTargetCategory === 'RECAPS') {
+                    outroHeadline = 'POUR REVIVRE TOUS LES MEILLEURS FESTIVALS';
+                } else if (activeTargetCategory === 'CONCOURS') {
+                    outroHeadline = 'POUR NE RATER AUCUN CONCOURS & PASS FESTIVALS';
+                } else if (activeTargetCategory === 'INTERVIEWS') {
+                    outroHeadline = 'POUR NE RIEN MANQUER DE NOS INTERVIEWS EXCLUSIVES';
+                } else if (activeTargetCategory === 'VIDEOS') {
+                    outroHeadline = 'POUR NE RIEN MANQUER DE NOS VIDÉOS & REELS';
+                }
+
+                const outroLines = [
+                    outroHeadline,
                     'SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,'
                 ];
                 ctx.font = `700 ${isReel ? (isAgendaPromo ? 30 : 28) : 25}px "Montserrat", sans-serif`;
@@ -2830,13 +2875,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 categories.forEach((cat: string, idx: number) => {
                     const pw = pillWidths[idx];
-                    let promoCatStr = (promoCategory || 'NEWS').toLowerCase();
-                    // Si on est dans le contexte de l'AGENDA (PLANNING), la catégorie active DOIT être EVENTS !
-                    if (isAgendaPromo) {
-                        promoCatStr = 'events';
-                    }
-                    const isSpecificCat = ['musique', 'focus', 'recap', 'concour', 'event', 'interview', 'video'].some(c => promoCatStr.includes(c));
-                    const isPillActive = promoCatStr.includes(cat.toLowerCase().slice(0, 4)) || (!isSpecificCat && idx === 0);
+                    const isPillActive = cat === activeTargetCategory;
                     ctx.save();
                     // Bulle arrondie (pill)
                     ctx.beginPath();
@@ -4697,6 +4736,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setActiveTab('REEL');
         }
         setTheme(newTheme);
+        if (newTheme !== 'PROMO') {
+            setPromoCategory(newTheme);
+        }
         if (newTheme === 'JEU') {
             setCustomText('DE QUEL CLIP CETTE IMAGE EST TIRÉE ?');
         } else if (newTheme === 'JEU_FESTIVAL') {
