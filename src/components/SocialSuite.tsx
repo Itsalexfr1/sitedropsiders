@@ -5824,9 +5824,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </button>
             </div>
             {textAnimation !== 'NONE' && (
-                <p className="text-[8px] text-gray-400 italic px-1">
-                    ✨ Animation active dans le Reel ! Cliquez sur <strong className="text-white">Générer Vidéo</strong> dans le panneau export pour créer le fichier vidéo.
-                </p>
+                <div className="space-y-2 pt-1">
+                    <p className="text-[8px] text-gray-400 italic px-1">
+                        ✨ Animation active ! Cliquez ci-dessous pour exporter le fichier vidéo MP4.
+                    </p>
+                    <button
+                        type="button"
+                        onClick={startVideoRecording}
+                        disabled={isVideoRecording}
+                        className={`w-full py-2.5 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-md ${
+                            isVideoRecording
+                                ? 'bg-red-500/20 text-red-400 animate-pulse'
+                                : 'bg-neon-red/20 border border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white active:scale-[0.98]'
+                        }`}
+                    >
+                        <Video className="w-3.5 h-3.5" /> {isVideoRecording ? 'Capture en cours...' : '🎬 Exporter cette animation en MP4'}
+                    </button>
+                </div>
             )}
         </div>
     );
@@ -6848,9 +6862,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <Download className="w-3.5 h-3.5" /> PROMO STORY
                 </button>
             </div>
-            <button onClick={startVideoRecording} disabled={isVideoRecording}
-                className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'}`}>
-                <Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE EN COURS...' : `Générer Vidéo (${theme})`}
+            <button
+                type="button"
+                onClick={startVideoRecording}
+                disabled={isVideoRecording}
+                className={`w-full py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-lg ${
+                    isVideoRecording
+                        ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
+                        : 'bg-gradient-to-r from-neon-red to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_20px_rgba(255,0,51,0.4)]'
+                }`}
+            >
+                <Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE MP4 EN COURS...' : `🎬 GÉNÉRER LE MP4 (${activeTab === 'REEL' ? 'REEL 9:16' : theme})`}
             </button>
         </div>
     );
@@ -7645,7 +7667,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     );
 
     return createPortal(
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-3xl">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100001] bg-black/95 backdrop-blur-3xl">
 
             {!isMobile ? (
                 /* ══════════════════════════════════════════════════════════
@@ -7814,7 +7836,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         )}
 
                         {/* Toggles + Export */}
-                        <div className="space-y-4 mt-auto pb-8">
+                        <div className="space-y-4 mt-auto pb-36">
                             <div className="grid grid-cols-2 gap-2">
                                 <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowArticleLink(!showArticleLink)}>
                                     <div className="flex items-center gap-2 min-w-0"><LinkIcon className="w-3.5 h-3.5 flex-shrink-0 text-gray-500" /><span className="text-[9px] font-black text-white uppercase truncate">Lien Article</span></div>
