@@ -459,7 +459,7 @@ export function Agenda() {
                                 <div className="p-2 bg-neon-fuchsia/10 rounded-xl border border-neon-fuchsia/20 shadow-[0_0_15px_rgba(255,0,255,0.1)]">
                                     <Calendar className="w-5 h-5 text-neon-fuchsia" />
                                 </div>
-                                <span className="text-neon-fuchsia font-black tracking-[0.3em] text-[10px] uppercase">Calendrier Officiel</span>
+                                <span className="text-neon-fuchsia font-black tracking-[0.3em] text-[10px] uppercase">Nos events coups de cœur du mois</span>
                             </div>
                             <h1 className="text-4xl md:text-6xl font-display font-black text-white mb-6 uppercase italic tracking-tighter leading-none">
                                 {t('agenda.title').split(' ')[0]} <span className="text-neon-fuchsia drop-shadow-[0_0_20px_rgba(255,0,255,0.5)]">{t('agenda.title').split(' ').slice(1).join(' ')}</span>
@@ -612,7 +612,7 @@ export function Agenda() {
                             </button>
 
                             <div className="w-64 md:w-80 text-center">
-                                <h2 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
+                                <h2 className="text-3xl md:text-5xl font-display font-black text-neon-fuchsia drop-shadow-[0_0_20px_rgba(255,0,255,0.4)] uppercase italic tracking-tighter">
                                     {selectedMonth ? formatMonthName(selectedMonth) : '—'}
                                 </h2>
                             </div>

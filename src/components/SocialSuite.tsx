@@ -169,7 +169,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const MONTHS_FR = ['JANVIER', 'FÉVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUILLET', 'AOÛT', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÉCEMBRE'];
         return MONTHS_FR[new Date().getMonth()] || 'OCTOBRE';
     });
-    const [agendaBadgeSubtitle, setAgendaBadgeSubtitle] = useState<string>('WEEK-END');
+    const [agendaBadgeText, setAgendaBadgeText] = useState<string>('COUPS DE CŒUR DU MOIS');
     const [planningDate, setPlanningDate] = useState('OCTOBRE');
     const [calendarMonth, setCalendarMonth] = useState('MARS 2025');
     const [calendarEvents, setCalendarEvents] = useState<{ date: string; label: string }[]>([
@@ -1115,24 +1115,51 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const centerX = canvas.width / 2;
                 const isStory = effectiveTab === 'REEL';
 
-                // 1. TOP-LEFT BADGE ("AGENDA" - Clean cyber capsule)
+                // 1. TOP-LEFT BADGE (Cyber capsule assortie à la couleur du mois)
                 ctx.save();
                 const badgeX = 65;
                 const badgeY = isStory ? 90 : 65;
-                
-                // Tilt the badge ~ -3.5 degrees
-                ctx.translate(badgeX + 100, badgeY + 24);
-                ctx.rotate(-0.05);
-                ctx.translate(-(badgeX + 100), -(badgeY + 24));
 
-                const pillW = 205;
+                const monthColor = activeData.color || '#ff3700';
+                const monthGrad = activeData.grad || '255, 55, 0';
+                const badgeText = (agendaBadgeText || 'COUPS DE CŒUR DU MOIS').toUpperCase().trim();
+
+                // Dynamic font size & letter spacing to keep the badge ultra sharp
+                let badgeFontSize = 13;
+                let letterSpacing = '3px';
+                if (badgeText.length <= 8) {
+                    badgeFontSize = 18;
+                    letterSpacing = '5px';
+                } else if (badgeText.length <= 14) {
+                    badgeFontSize = 15;
+                    letterSpacing = '4px';
+                } else if (badgeText.length <= 22) {
+                    badgeFontSize = 12.5;
+                    letterSpacing = '2.5px';
+                } else {
+                    badgeFontSize = 11;
+                    letterSpacing = '1.5px';
+                }
+
+                ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
+                ctx.letterSpacing = letterSpacing;
+                const textWidth = ctx.measureText(badgeText).width;
+                const pillPadding = 34;
+                const pillW = Math.max(180, Math.ceil(textWidth + pillPadding));
                 const pillH = 46;
 
-                // Cyber Box Glow & Fill
-                ctx.shadowColor = 'rgba(0, 240, 255, 0.75)';
+                // Tilt the badge ~ -2.3 degrees centered on the pill
+                const pillCenterX = badgeX + pillW / 2;
+                const pillCenterY = badgeY + pillH / 2;
+                ctx.translate(pillCenterX, pillCenterY);
+                ctx.rotate(-0.04);
+                ctx.translate(-pillCenterX, -pillCenterY);
+
+                // Cyber Box Glow & Fill (même couleur que le mois)
+                ctx.shadowColor = `rgba(${monthGrad}, 0.75)`;
                 ctx.shadowBlur = 18;
-                ctx.fillStyle = 'rgba(6, 12, 22, 0.90)';
-                ctx.strokeStyle = '#00f0ff';
+                ctx.fillStyle = 'rgba(12, 6, 4, 0.92)';
+                ctx.strokeStyle = monthColor;
                 ctx.lineWidth = 2.5;
 
                 ctx.beginPath();
@@ -1140,8 +1167,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fill();
                 ctx.stroke();
 
-                // Small decorative cyber notches / lines flanking the box
-                ctx.strokeStyle = '#00f0ff';
+                // Notches cyber assorties à la couleur du mois
+                ctx.strokeStyle = monthColor;
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(badgeX - 14, badgeY + pillH / 2);
@@ -1150,15 +1177,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.lineTo(badgeX + pillW + 14, badgeY + pillH / 2);
                 ctx.stroke();
 
-                // Inner text: "AGENDA"
-                ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
+                // Inner text with glow matching the month color
+                ctx.shadowColor = `rgba(${monthGrad}, 0.85)`;
                 ctx.shadowBlur = 12;
                 ctx.fillStyle = '#ffffff';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.font = '900 italic 25px "Orbitron", sans-serif';
-                ctx.letterSpacing = '5px';
-                ctx.fillText('AGENDA', badgeX + pillW / 2 + 2, badgeY + pillH / 2 + 1);
+                ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
+                ctx.letterSpacing = letterSpacing;
+                ctx.fillText(badgeText, badgeX + pillW / 2 + 1, badgeY + pillH / 2 + 1);
                 ctx.restore();
 
                 // 2. BIG HOLLOW MONTH TITLE
@@ -3453,7 +3480,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeSubtitle, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY]);
 
     // Pre-charger l'affiche de l'événement dès que son URL change
     useEffect(() => {
@@ -4459,13 +4486,55 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const planningEditor = (
         <div className="space-y-4">
-            {/* Header: Mois & Sous-titre du Badge */}
+            {/* Header: Mois & Badge en haut à gauche */}
             <div className="p-3.5 bg-black/40 border border-[#ff3700]/30 rounded-2xl space-y-3 shadow-lg">
                 <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black text-[#ff3700] uppercase tracking-widest flex items-center gap-1.5">
-                        📅 Mois de l'Agenda
+                        🏷️ Badge & Mois de l'Agenda
                     </span>
-                    <span className="text-[9px] font-bold text-gray-500 uppercase">Titre central fluo</span>
+                    <span className="text-[9px] font-bold text-gray-500 uppercase">En-tête visuel</span>
+                </div>
+
+                {/* Badge en haut à gauche */}
+                <div className="space-y-1.5 bg-black/30 p-2.5 rounded-xl border border-white/5">
+                    <div className="flex items-center justify-between">
+                        <label className="block text-[8px] font-black text-[#ff3700] uppercase tracking-wider">Texte du carré en haut à gauche</label>
+                        <span className="text-[8px] font-bold text-gray-500 uppercase">Capsule Cyber Fluo</span>
+                    </div>
+                    <input
+                        value={agendaBadgeText}
+                        onChange={e => setAgendaBadgeText(e.target.value)}
+                        placeholder="ex: COUPS DE CŒUR DU MOIS"
+                        className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black uppercase text-xs focus:border-[#ff3700] focus:outline-none"
+                    />
+                    {/* Suggestions rapides */}
+                    <div className="flex flex-wrap gap-1 pt-1">
+                        {[
+                            'COUPS DE CŒUR DU MOIS',
+                            'NOS EVENTS DU MOIS',
+                            'EVENTS COUPS DE CŒUR',
+                            'SÉLECTION DU MOIS',
+                            'AGENDA DU MOIS',
+                            'AGENDA'
+                        ].map(badge => (
+                            <button
+                                key={badge}
+                                type="button"
+                                onClick={() => setAgendaBadgeText(badge)}
+                                className={`px-2 py-0.5 rounded text-[7px] font-black uppercase transition-all border ${
+                                    agendaBadgeText.toUpperCase() === badge
+                                        ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-[0_0_8px_rgba(255,55,0,0.5)]'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                }`}
+                            >
+                                {badge}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                    <span className="text-[9px] font-bold text-gray-400 uppercase">Mois affiché (Titre fluo creux)</span>
                 </div>
 
                 {/* Sélecteur rapide des 12 mois */}
