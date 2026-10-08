@@ -275,7 +275,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     // Text animation states for Reels
-    const [textAnimation, setTextAnimation] = useState<'NONE' | 'SLIDE_LEFT' | 'WORD_BY_WORD' | 'POP_UP'>('NONE');
+    type TextAnimType = 'NONE' | 'SLIDE_LEFT' | 'WORD_BY_WORD' | 'POP_UP' | 'ZOOM_IMPACT' | 'TYPEWRITER' | 'BOUNCE' | 'GLITCH';
+    const [textAnimation, setTextAnimation] = useState<TextAnimType>('NONE');
     const [animReplayKey, setAnimReplayKey] = useState<number>(0);
     const animStartTimeRef = useRef<number>(Date.now());
 
@@ -2999,6 +3000,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         let xOff = 0;
                         let yOff = 0;
                         let alpha = 1;
+                        let scale = 1;
+                        let displayText = tLine.toUpperCase();
 
                         if (textAnimation === 'SLIDE_LEFT') {
                             const delay = 0.20 + (tIndex * 0.22);
@@ -3018,11 +3021,52 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const ease = 1 - Math.pow(1 - t, 3);
                             yOff = 80 * (1 - ease);
                             alpha = t;
+                        } else if (textAnimation === 'ZOOM_IMPACT') {
+                            const delay = 0.15 + (tIndex * 0.24);
+                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.40));
+                            const ease = 1 - Math.pow(1 - t, 3);
+                            scale = 1.6 - (0.6 * ease);
+                            alpha = Math.min(1, t * 2);
+                        } else if (textAnimation === 'TYPEWRITER') {
+                            const delay = 0.15 + (tIndex * 0.35);
+                            const words = displayText.split(/\s+/);
+                            const wordsToShow = Math.min(words.length, Math.floor(Math.max(0, animElapsed - delay) / 0.14));
+                            const visibleWords = words.slice(0, wordsToShow).join(' ');
+                            displayText = visibleWords + (wordsToShow < words.length && wordsToShow > 0 ? ' ▌' : '');
+                            alpha = wordsToShow > 0 ? 1 : 0;
+                        } else if (textAnimation === 'BOUNCE') {
+                            const delay = 0.15 + (tIndex * 0.18);
+                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.65));
+                            let bounce = 1;
+                            if (t < 1) {
+                                bounce = 1 - Math.pow(2, -10 * t) * Math.cos((t * 10 - 0.75) * ((2 * Math.PI) / 3));
+                            }
+                            yOff = -140 * (1 - bounce);
+                            alpha = Math.min(1, t * 2.5);
+                        } else if (textAnimation === 'GLITCH') {
+                            const delay = 0.15 + (tIndex * 0.18);
+                            const el = animElapsed - delay;
+                            if (el < 0) {
+                                alpha = 0;
+                            } else if (el < 0.45) {
+                                const step = Math.floor(el * 28);
+                                xOff = Math.sin(step * 7.5) * 35;
+                                alpha = (step % 3 === 0) ? 0.35 : 1;
+                            } else {
+                                xOff = 0;
+                                alpha = 1;
+                            }
                         }
 
                         ctx.save();
                         ctx.globalAlpha = alpha;
-                        drawRichText(ctx, tLine.toUpperCase(), (canvas.width / 2) + xOff, curY + yOff, '#ffffff', 'center');
+                        if (scale !== 1) {
+                            ctx.translate((canvas.width / 2) + xOff, curY + yOff);
+                            ctx.scale(scale, scale);
+                            drawRichText(ctx, displayText, 0, 0, '#ffffff', 'center');
+                        } else {
+                            drawRichText(ctx, displayText, (canvas.width / 2) + xOff, curY + yOff, '#ffffff', 'center');
+                        }
                         ctx.restore();
                         curY += titleLineHeight;
                     });
@@ -3077,6 +3121,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         let xOff = 0;
                         let yOff = 0;
                         let alpha = 1;
+                        let scale = 1;
+                        let displayText = bLine;
 
                         if (textAnimation === 'SLIDE_LEFT') {
                             const delay = subBaseDelay + (sIndex * 0.18);
@@ -3096,11 +3142,52 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const ease = 1 - Math.pow(1 - t, 3);
                             yOff = 50 * (1 - ease);
                             alpha = t;
+                        } else if (textAnimation === 'ZOOM_IMPACT') {
+                            const delay = subBaseDelay + (sIndex * 0.20);
+                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.38));
+                            const ease = 1 - Math.pow(1 - t, 3);
+                            scale = 1.4 - (0.4 * ease);
+                            alpha = Math.min(1, t * 2);
+                        } else if (textAnimation === 'TYPEWRITER') {
+                            const delay = subBaseDelay + (sIndex * 0.30);
+                            const words = displayText.split(/\s+/);
+                            const wordsToShow = Math.min(words.length, Math.floor(Math.max(0, animElapsed - delay) / 0.12));
+                            const visibleWords = words.slice(0, wordsToShow).join(' ');
+                            displayText = visibleWords + (wordsToShow < words.length && wordsToShow > 0 ? ' ▌' : '');
+                            alpha = wordsToShow > 0 ? 1 : 0;
+                        } else if (textAnimation === 'BOUNCE') {
+                            const delay = subBaseDelay + (sIndex * 0.16);
+                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.55));
+                            let bounce = 1;
+                            if (t < 1) {
+                                bounce = 1 - Math.pow(2, -10 * t) * Math.cos((t * 10 - 0.75) * ((2 * Math.PI) / 3));
+                            }
+                            yOff = -80 * (1 - bounce);
+                            alpha = Math.min(1, t * 2);
+                        } else if (textAnimation === 'GLITCH') {
+                            const delay = subBaseDelay + (sIndex * 0.16);
+                            const el = animElapsed - delay;
+                            if (el < 0) {
+                                alpha = 0;
+                            } else if (el < 0.35) {
+                                const step = Math.floor(el * 28);
+                                xOff = Math.sin(step * 7.5) * 20;
+                                alpha = (step % 3 === 0) ? 0.4 : 1;
+                            } else {
+                                xOff = 0;
+                                alpha = 1;
+                            }
                         }
 
                         ctx.save();
                         ctx.globalAlpha = alpha;
-                        drawRichText(ctx, bLine, (canvas.width / 2) + xOff, curY + yOff, 'rgba(255,255,255,0.92)', 'center');
+                        if (scale !== 1) {
+                            ctx.translate((canvas.width / 2) + xOff, curY + yOff);
+                            ctx.scale(scale, scale);
+                            drawRichText(ctx, displayText, 0, 0, 'rgba(255,255,255,0.92)', 'center');
+                        } else {
+                            drawRichText(ctx, displayText, (canvas.width / 2) + xOff, curY + yOff, 'rgba(255,255,255,0.92)', 'center');
+                        }
                         ctx.restore();
                         curY += subLineHeight;
                     });
@@ -5743,10 +5830,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     );
 
     const textAnimationControl = (
-        <div className="p-3.5 bg-white/5 border border-white/10 rounded-2xl space-y-2.5">
+        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5">
             <div className="flex items-center justify-between">
-                <span className="text-[9px] font-black uppercase text-gray-300 tracking-wider flex items-center gap-1.5">
-                    🎬 Animation Texte {activeTab === 'REEL' ? '(Reel)' : ''}
+                <span className="text-[9px] font-black uppercase text-neon-cyan tracking-wider flex items-center gap-1.5">
+                    🎬 Animation du texte {activeTab === 'REEL' ? '(Reel 9:16)' : ''}
                 </span>
                 {textAnimation !== 'NONE' && (
                     <button
@@ -5755,78 +5842,49 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             animStartTimeRef.current = Date.now();
                             setAnimReplayKey(k => k + 1);
                         }}
-                        className="px-2 py-0.5 bg-neon-red/10 border border-neon-red/30 rounded-lg text-[8px] font-black uppercase text-neon-red hover:bg-neon-red hover:text-white transition-all flex items-center gap-1"
+                        className="px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg text-[8px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all flex items-center gap-1"
                         title="Rejouer l'animation depuis le début"
                     >
                         <RotateCcw className="w-2.5 h-2.5" /> Rejouer
                     </button>
                 )}
             </div>
+
             <div className="grid grid-cols-4 gap-1.5">
-                <button
-                    type="button"
-                    onClick={() => setTextAnimation('NONE')}
-                    className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all ${
-                        textAnimation === 'NONE'
-                            ? 'bg-white text-black font-black shadow-md'
-                            : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white'
-                    }`}
-                >
-                    Statique
-                </button>
-                <button
-                    type="button"
-                    onClick={() => {
-                        setTextAnimation('SLIDE_LEFT');
-                        animStartTimeRef.current = Date.now();
-                        setAnimReplayKey(k => k + 1);
-                    }}
-                    className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all ${
-                        textAnimation === 'SLIDE_LEFT'
-                            ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)] font-black'
-                            : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white'
-                    }`}
-                    title="Les lignes glissent de gauche à droite"
-                >
-                    Glissement
-                </button>
-                <button
-                    type="button"
-                    onClick={() => {
-                        setTextAnimation('WORD_BY_WORD');
-                        animStartTimeRef.current = Date.now();
-                        setAnimReplayKey(k => k + 1);
-                    }}
-                    className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all ${
-                        textAnimation === 'WORD_BY_WORD'
-                            ? 'bg-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.5)] font-black'
-                            : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white'
-                    }`}
-                    title="Apparition progressive mot par mot"
-                >
-                    Mot / Mot
-                </button>
-                <button
-                    type="button"
-                    onClick={() => {
-                        setTextAnimation('POP_UP');
-                        animStartTimeRef.current = Date.now();
-                        setAnimReplayKey(k => k + 1);
-                    }}
-                    className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all ${
-                        textAnimation === 'POP_UP'
-                            ? 'bg-[#ffe600] text-black shadow-[0_0_12px_rgba(255,230,0,0.5)] font-black'
-                            : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white'
-                    }`}
-                    title="Surgissement du bas vers le haut"
-                >
-                    Pop Up
-                </button>
+                {[
+                    { id: 'NONE', label: 'Statique', icon: '⏹️', activeClass: 'bg-white text-black border-white shadow-sm' },
+                    { id: 'SLIDE_LEFT', label: 'Glissement', icon: '➡️', activeClass: 'bg-neon-red border-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]' },
+                    { id: 'WORD_BY_WORD', label: 'Mot / Mot', icon: '✨', activeClass: 'bg-neon-cyan border-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.5)]' },
+                    { id: 'POP_UP', label: 'Pop Up', icon: '⬆️', activeClass: 'bg-neon-purple border-neon-purple text-white shadow-[0_0_12px_rgba(176,38,255,0.5)]' },
+                    { id: 'ZOOM_IMPACT', label: 'Zoom Impact', icon: '💥', activeClass: 'bg-amber-400 border-amber-400 text-black shadow-[0_0_12px_rgba(251,191,36,0.5)]' },
+                    { id: 'TYPEWRITER', label: 'Machine', icon: '⌨️', activeClass: 'bg-emerald-400 border-emerald-400 text-black shadow-[0_0_12px_rgba(52,211,153,0.5)]' },
+                    { id: 'BOUNCE', label: 'Rebond', icon: '🏀', activeClass: 'bg-pink-500 border-pink-500 text-white shadow-[0_0_12px_rgba(236,72,153,0.5)]' },
+                    { id: 'GLITCH', label: 'Glitch Cyber', icon: '⚡', activeClass: 'bg-indigo-500 border-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.5)]' },
+                ].map(anim => (
+                    <button
+                        key={anim.id}
+                        type="button"
+                        onClick={() => {
+                            setTextAnimation(anim.id as TextAnimType);
+                            animStartTimeRef.current = Date.now();
+                            setAnimReplayKey(k => k + 1);
+                        }}
+                        className={`py-2 px-1 rounded-xl text-[8.5px] font-black uppercase border transition-all flex flex-col items-center justify-center gap-0.5 ${
+                            textAnimation === anim.id
+                                ? anim.activeClass
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                        }`}
+                    >
+                        <span className="text-[11px] leading-none">{anim.icon}</span>
+                        <span className="truncate w-full text-center">{anim.label}</span>
+                    </button>
+                ))}
             </div>
+
             {textAnimation !== 'NONE' && (
-                <div className="space-y-2 pt-1">
+                <div className="space-y-1.5 pt-0.5">
                     <p className="text-[8px] text-gray-400 italic px-1">
-                        ✨ Animation active ! Cliquez ci-dessous pour exporter le fichier vidéo MP4.
+                        ✨ Animation active ! Cliquez ci-dessous pour exporter directement la vidéo en MP4.
                     </p>
                     <button
                         type="button"
@@ -5838,7 +5896,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 : 'bg-neon-red/20 border border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white active:scale-[0.98]'
                         }`}
                     >
-                        <Video className="w-3.5 h-3.5" /> {isVideoRecording ? 'Capture en cours...' : '🎬 Exporter cette animation en MP4'}
+                        <Video className="w-3.5 h-3.5" /> {isVideoRecording ? 'Capture MP4 en cours...' : '🎬 Exporter cette animation en MP4'}
                     </button>
                 </div>
             )}
@@ -5847,7 +5905,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const conseilsEditor = (
         <div className="space-y-4">
-            {textAnimationControl}
 
             {/* CARROUSEL SLIDE SWITCHER (POUR NEWS, RÉCAP, FOCUS, ETC.) */}
             {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && (
@@ -5961,6 +6018,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     )}
                 </>
             )}
+
+            {/* ── CHOIX DE L'ANIMATION DU TEXTE (AU-DESSUS DU TEXTE) ── */}
+            {textAnimationControl}
 
             <div className="space-y-2">
                 <div className="flex items-center justify-between pl-1">
