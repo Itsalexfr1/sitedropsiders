@@ -3676,26 +3676,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
 
                 // 5. BOTTOM LINK INDICATORS (If activated)
-                const indicatorY = (effectiveTab === 'PUBLICATION') ? canvas.height - 55 : canvas.height - 230;
+                let curIndicatorY = (effectiveTab === 'PUBLICATION') ? canvas.height - 55 : canvas.height - 230;
                 if (showArticleLink) {
                     ctx.save();
-                    ctx.font = '800 20px "Montserrat", sans-serif';
-                    ctx.letterSpacing = '1px';
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                    ctx.font = '900 italic 22px "Montserrat", sans-serif';
+                    ctx.letterSpacing = '0.5px';
+                    ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                    ctx.shadowBlur = 10;
+                    ctx.shadowBlur = 12;
                     ctx.textAlign = 'left';
-                    ctx.fillText('🔗 LIEN EN BIO', lineMarginX, indicatorY);
+                    ctx.fillText('ARTICLE COMPLET SUR DROPSIDERS.FR', lineMarginX, curIndicatorY);
                     ctx.restore();
-                } else if (showVoteLink) {
+                    if (showVoteLink) {
+                        curIndicatorY -= 32;
+                    }
+                }
+                if (showVoteLink) {
                     ctx.save();
-                    ctx.font = '800 20px "Montserrat", sans-serif';
-                    ctx.letterSpacing = '1px';
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                    ctx.font = '900 italic 22px "Montserrat", sans-serif';
+                    ctx.letterSpacing = '0.5px';
+                    ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                    ctx.shadowBlur = 10;
+                    ctx.shadowBlur = 12;
                     ctx.textAlign = 'left';
-                    ctx.fillText('🗳️ VOTER EN BIO', lineMarginX, indicatorY);
+                    ctx.fillText('VOTER SUR DROPSIDERS.FR', lineMarginX, curIndicatorY);
                     ctx.restore();
                 }
                 ctx.restore();
