@@ -500,7 +500,7 @@ export function ImageUploadModal({
     const modalContent = (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[9999] overflow-hidden flex items-center justify-center">
+                <div className="fixed inset-0 z-[100050] overflow-hidden flex items-center justify-center">
                     <div className="flex min-h-full items-center justify-center p-6 text-center">
                         <motion.div
                             initial={{ opacity: 0 }}

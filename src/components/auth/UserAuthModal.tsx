@@ -147,7 +147,7 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
     const modalContent = (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[99999] overflow-y-auto">
+                <div className="fixed inset-0 z-[100050] overflow-y-auto">
                     <div className="flex min-h-full items-center justify-center p-4 text-center">
                         <motion.div
                             initial={{ opacity: 0 }}

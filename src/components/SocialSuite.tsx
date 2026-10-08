@@ -544,28 +544,40 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const wrappedX = ((mapX % maxTileVal) + maxTileVal) % maxTileVal;
 
                 let tileUrl = '';
+                let tileRefUrl = '';
                 if (mapStyle === 'voyager') {
-                    tileUrl = `https://basemaps.cartocdn.com/rastertiles/voyager/${zoom}/${wrappedX}/${mapY}@2x.png`;
+                    tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${zoom}/${mapY}/${wrappedX}`;
                 } else if (mapStyle === 'satellite') {
                     tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${mapY}/${wrappedX}`;
+                    tileRefUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/${zoom}/${mapY}/${wrappedX}`;
                 } else {
-                    tileUrl = `https://basemaps.cartocdn.com/rastertiles/dark_all/${zoom}/${wrappedX}/${mapY}@2x.png`;
+                    tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/${zoom}/${mapY}/${wrappedX}`;
+                    tileRefUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/${zoom}/${mapY}/${wrappedX}`;
                 }
 
-                let tileImg = imageCacheRef.current[tileUrl];
-                if (!tileImg) {
-                    const imgObj = new Image();
-                    imgObj.crossOrigin = 'anonymous';
-                    imgObj.src = tileUrl;
-                    imgObj.onload = () => {
-                        imageCacheRef.current[tileUrl] = imgObj;
-                        generateImage();
-                    };
-                    imageCacheRef.current[tileUrl] = imgObj;
-                } else if (tileImg.complete && tileImg.naturalWidth > 0) {
-                    const tileDx = canvasCenterX + (x - centerTileX) * 256;
-                    const tileDy = canvasCenterY + (y - centerTileY) * 256;
-                    ctx.drawImage(tileImg, tileDx, tileDy, 256, 256);
+                const tileDx = canvasCenterX + (x - centerTileX) * 256;
+                const tileDy = canvasCenterY + (y - centerTileY) * 256;
+
+                const renderTile = (url: string) => {
+                    if (!url) return;
+                    let tileImg = imageCacheRef.current[url];
+                    if (!tileImg) {
+                        const imgObj = new Image();
+                        imgObj.crossOrigin = 'anonymous';
+                        imgObj.src = url;
+                        imgObj.onload = () => {
+                            imageCacheRef.current[url] = imgObj;
+                            generateImage();
+                        };
+                        imageCacheRef.current[url] = imgObj;
+                    } else if (tileImg.complete && tileImg.naturalWidth > 0) {
+                        ctx.drawImage(tileImg, tileDx, tileDy, 256, 256);
+                    }
+                };
+
+                renderTile(tileUrl);
+                if (tileRefUrl) {
+                    renderTile(tileRefUrl);
                 }
             }
         }

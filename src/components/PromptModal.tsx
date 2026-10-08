@@ -51,7 +51,7 @@ export function PromptModal({
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[9999] overflow-y-auto">
+                <div className="fixed inset-0 z-[100050] overflow-y-auto">
                     <div className="flex min-h-full items-center justify-center p-6 text-center">
                         <motion.div
                             initial={{ opacity: 0 }}
