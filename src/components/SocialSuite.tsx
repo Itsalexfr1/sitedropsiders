@@ -342,6 +342,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isCarouselPromoActive, setIsCarouselPromoActive] = useState<boolean>(false);
     const [promoCustomPhrase, setPromoCustomPhrase] = useState<string>('');
     const [promoCustomSubphrase, setPromoCustomSubphrase] = useState<string>('');
+    const [showPromoHook, setShowPromoHook] = useState<boolean>(true);
+    const [showPromoHeadline, setShowPromoHeadline] = useState<boolean>(true);
 
     const getTransitionDuration = (t: SlideTransitionType) => {
         switch (t) {
@@ -2761,144 +2763,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 // ==========================================
-                // ZONE 1 : QUESTION DE L'ARTICLE
-                // (Omission complète pour l'AGENDA car hors-sujet pour un récap festivals/événements)
+                // ZONE 1 & 2 : PROMO OUTRO (ACCROCHE & PHRASE OFFICIELLE)
                 // ==========================================
                 const isAgendaPromo = promoCategory === 'PLANNING';
-
-                const rawQuestion = (customText && customText.trim()) 
-                    ? customText.trim().replace(/^["']|["']$/g, '') 
-                    : "ET TOI, QU'EN PENSES-TU ?";
-                
-                const cleanQuestion = rawQuestion.toUpperCase();
-
-                // Helper pour découper en lignes (max ~920px)
-                const qLines: string[] = [];
-                let questionFontSize = isReel ? 62 : 54;
-
-                if (!isAgendaPromo) {
-                    const words = cleanQuestion.split(' ');
-                    let currentLine = '';
-                    ctx.font = `900 italic ${questionFontSize}px "Montserrat", sans-serif`;
-
-                    words.forEach((w: string) => {
-                        const test = currentLine ? `${currentLine} ${w}` : w;
-                        if (ctx.measureText(test).width > 920) {
-                            if (currentLine) qLines.push(currentLine);
-                            currentLine = w;
-                        } else {
-                            currentLine = test;
-                        }
-                    });
-                    if (currentLine) qLines.push(currentLine);
-
-                    // Si trop de lignes (> 3), réduire la police
-                    if (qLines.length > 3) {
-                        questionFontSize = isReel ? 48 : 40;
-                        ctx.font = `900 italic ${questionFontSize}px "Montserrat", sans-serif`;
-                    }
-                }
-
-                const qLineHeight = questionFontSize * 1.25;
-
-                // Offsets précis pour centrage vertical parfait
-                const ctaCommentOffset = isReel ? 70 : 60;
-                const sepOffset = isReel ? 65 : 55;
-                const outroOffset = isReel ? 75 : 65;
-                const outroSpacing = isReel ? (isAgendaPromo ? 48 : 42) : 38;
-                const abonneOffset = outroSpacing + (isReel ? (isAgendaPromo ? 42 : 30) : 28);
-                const dropsidersOffset = isReel ? (isAgendaPromo ? 105 : 90) : 80;
-                const pillsOffset = isReel ? (isAgendaPromo ? 75 : 65) : 55;
-                const pillH = isReel ? 44 : 40;
-
-                const targetCenterY = isReel ? 950 : 675;
-                let outroStartY = 0;
-                let dropsidersY = 0;
-                let pillsY = 0;
-
-                if (!isAgendaPromo) {
-                    const blockSpanFromFirstBaseline = (qLines.length - 1) * qLineHeight 
-                        + ctaCommentOffset 
-                        + sepOffset 
-                        + outroOffset 
-                        + outroSpacing 
-                        + abonneOffset 
-                        + dropsidersOffset 
-                        + pillsOffset 
-                        + pillH;
-                    
-                    const questionAscender = questionFontSize * 0.8;
-                    const totalBlockHeight = questionAscender + blockSpanFromFirstBaseline;
-                    const qStartY = Math.round(targetCenterY - (totalBlockHeight / 2) + questionAscender);
-
-                    // Accent glow centre derriere le bloc de texte
-                    const bgGlow = ctx.createRadialGradient(centerX, targetCenterY, 60, centerX, targetCenterY, isReel ? 520 : 480);
-                    bgGlow.addColorStop(0, `rgba(${activeColor.grad}, 0.20)`);
-                    bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                    ctx.fillStyle = bgGlow;
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    ctx.save();
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'alphabetic';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                    ctx.shadowBlur = 24;
-
-                    qLines.forEach((line: string, idx: number) => {
-                        let fs = questionFontSize;
-                        ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
-                        while (ctx.measureText(line).width > 940 && fs > 24) {
-                            fs--;
-                            ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
-                        }
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillText(line, centerX, qStartY + idx * qLineHeight);
-                    });
-                    ctx.restore();
-
-                    // Call-to-action d'engagement : "DONNE TON AVIS EN COMMENTAIRE 👇"
-                    const lastQLineY = qStartY + (qLines.length - 1) * qLineHeight;
-                    const ctaCommentY = lastQLineY + ctaCommentOffset;
-
-                    ctx.save();
-                    ctx.textAlign = 'center';
-                    ctx.font = `800 ${isReel ? 26 : 24}px "Montserrat", sans-serif`;
-                    ctx.fillStyle = activeColor.color;
-                    ctx.shadowColor = `rgba(${activeColor.grad}, 0.6)`;
-                    ctx.shadowBlur = 18;
-                    ctx.fillText('DONNE TON AVIS EN COMMENTAIRE 👇', centerX, ctaCommentY);
-                    ctx.restore();
-
-                    // Ligne de séparation fine néon
-                    const sepY = ctaCommentY + sepOffset;
-                    const sepGrad = ctx.createLinearGradient(centerX - 200, 0, centerX + 200, 0);
-                    sepGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-                    sepGrad.addColorStop(0.5, activeColor.color);
-                    sepGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                    ctx.fillStyle = sepGrad;
-                    ctx.fillRect(centerX - 200, sepY, 400, 2);
-
-                    outroStartY = sepY + outroOffset;
-                } else {
-                    // AGENDA : Pas de question inutile ("ET TOI, QU'EN PENSES-TU ?")
-                    // Centrage direct, majestueux et élégant du message officiel Dropsiders
-                    const totalAgendaSpan = (2 * outroSpacing) + abonneOffset + dropsidersOffset + pillsOffset + pillH;
-                    outroStartY = Math.round(targetCenterY - (totalAgendaSpan / 2));
-
-                    const bgGlow = ctx.createRadialGradient(centerX, targetCenterY, 80, centerX, targetCenterY, isReel ? 560 : 480);
-                    bgGlow.addColorStop(0, `rgba(${activeColor.grad}, 0.26)`);
-                    bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                    ctx.fillStyle = bgGlow;
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                }
-
-                // ==========================================
-                // ZONE 2 : PHRASE OFFICIELLE
-                // ==========================================
-                ctx.save();
-                ctx.textAlign = 'center';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-                ctx.shadowBlur = 18;
+                const isTopHookActive = showPromoHook && !isAgendaPromo;
 
                 const getTargetPromoCategory = (t: string): string => {
                     const raw = (t || 'NEWS').toUpperCase().trim();
@@ -2954,27 +2822,157 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? promoCustomSubphrase.trim().toUpperCase()
                     : 'SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,';
 
-                const headlineParts = effectiveHeadline.split('\n').filter(Boolean);
-                const outroLines = [
+                const headlineParts = (showPromoHeadline && effectiveHeadline) ? effectiveHeadline.split('\n').filter(Boolean) : [];
+                const outroLines = showPromoHeadline ? [
                     ...headlineParts,
                     ...(effectiveSubphrase ? [effectiveSubphrase] : [])
-                ];
-                let outroFontSize = isReel ? (isAgendaPromo ? 30 : 28) : 25;
-                ctx.font = `700 ${outroFontSize}px "Montserrat", sans-serif`;
-                outroLines.forEach(line => {
-                    while (ctx.measureText(line).width > 940 && outroFontSize > 18) {
-                        outroFontSize--;
-                        ctx.font = `700 ${outroFontSize}px "Montserrat", sans-serif`;
-                    }
-                });
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ] : [];
 
-                outroLines.forEach((line: string, i: number) => {
-                    ctx.fillText(line, centerX, outroStartY + i * outroSpacing);
-                });
+                const rawQuestion = (customText && customText.trim()) 
+                    ? customText.trim().replace(/^["']|["']$/g, '') 
+                    : "ET TOI, QU'EN PENSES-TU ?";
+                
+                const cleanQuestion = rawQuestion.toUpperCase();
+
+                const qLines: string[] = [];
+                let questionFontSize = isReel ? 62 : 54;
+
+                if (isTopHookActive) {
+                    const words = cleanQuestion.split(' ');
+                    let currentLine = '';
+                    ctx.font = `900 italic ${questionFontSize}px "Montserrat", sans-serif`;
+
+                    words.forEach((w: string) => {
+                        const test = currentLine ? `${currentLine} ${w}` : w;
+                        if (ctx.measureText(test).width > 920) {
+                            if (currentLine) qLines.push(currentLine);
+                            currentLine = w;
+                        } else {
+                            currentLine = test;
+                        }
+                    });
+                    if (currentLine) qLines.push(currentLine);
+
+                    if (qLines.length > 3) {
+                        questionFontSize = isReel ? 48 : 40;
+                        ctx.font = `900 italic ${questionFontSize}px "Montserrat", sans-serif`;
+                    }
+                }
+
+                const qLineHeight = questionFontSize * 1.25;
+
+                const ctaCommentOffset = isReel ? 70 : 60;
+                const sepOffset = isReel ? 65 : 55;
+                const outroOffset = isReel ? 75 : 65;
+                const outroSpacing = isReel ? (isAgendaPromo ? 48 : 42) : 38;
+                const abonneGap = outroLines.length > 0 ? (isReel ? (isAgendaPromo ? 36 : 30) : 28) : (isReel ? 20 : 18);
+                const dropsidersOffset = isReel ? (isAgendaPromo ? 105 : 90) : 80;
+                const pillsOffset = isReel ? (isAgendaPromo ? 75 : 65) : 55;
+                const pillH = isReel ? 44 : 40;
+
+                const targetCenterY = isReel ? 950 : 675;
+                let outroStartY = 0;
+                let dropsidersY = 0;
+                let pillsY = 0;
+
+                const outroLinesSpan = outroLines.length > 0 ? (outroLines.length * outroSpacing) : 0;
+                const lowerBlockHeight = outroLinesSpan + abonneGap + dropsidersOffset + pillsOffset + pillH;
+
+                if (isTopHookActive) {
+                    const blockSpanFromFirstBaseline = (qLines.length - 1) * qLineHeight 
+                        + ctaCommentOffset 
+                        + sepOffset 
+                        + outroOffset 
+                        + lowerBlockHeight;
+                    
+                    const questionAscender = questionFontSize * 0.8;
+                    const totalBlockHeight = questionAscender + blockSpanFromFirstBaseline;
+                    const qStartY = Math.round(targetCenterY - (totalBlockHeight / 2) + questionAscender);
+
+                    const bgGlow = ctx.createRadialGradient(centerX, targetCenterY, 60, centerX, targetCenterY, isReel ? 520 : 480);
+                    bgGlow.addColorStop(0, `rgba(${activeColor.grad}, 0.20)`);
+                    bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = bgGlow;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'alphabetic';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                    ctx.shadowBlur = 24;
+
+                    qLines.forEach((line: string, idx: number) => {
+                        let fs = questionFontSize;
+                        ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                        while (ctx.measureText(line).width > 940 && fs > 24) {
+                            fs--;
+                            ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                        }
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(line, centerX, qStartY + idx * qLineHeight);
+                    });
+                    ctx.restore();
+
+                    // Call-to-action d'engagement : "DONNE TON AVIS EN COMMENTAIRE 👇"
+                    const lastQLineY = qStartY + (qLines.length - 1) * qLineHeight;
+                    const ctaCommentY = lastQLineY + ctaCommentOffset;
+
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.font = `800 ${isReel ? 26 : 24}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = activeColor.color;
+                    ctx.shadowColor = `rgba(${activeColor.grad}, 0.6)`;
+                    ctx.shadowBlur = 18;
+                    ctx.fillText('DONNE TON AVIS EN COMMENTAIRE 👇', centerX, ctaCommentY);
+                    ctx.restore();
+
+                    // Ligne de séparation fine néon
+                    const sepY = ctaCommentY + sepOffset;
+                    const sepGrad = ctx.createLinearGradient(centerX - 200, 0, centerX + 200, 0);
+                    sepGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                    sepGrad.addColorStop(0.5, activeColor.color);
+                    sepGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = sepGrad;
+                    ctx.fillRect(centerX - 200, sepY, 400, 2);
+
+                    outroStartY = sepY + outroOffset;
+                } else {
+                    // Phrase d'accroche DÉSACTIVÉE : Centrage parfait du texte en dessous au milieu du visuel
+                    outroStartY = Math.round(targetCenterY - (lowerBlockHeight / 2));
+
+                    const bgGlow = ctx.createRadialGradient(centerX, targetCenterY, 80, centerX, targetCenterY, isReel ? 560 : 480);
+                    bgGlow.addColorStop(0, `rgba(${activeColor.grad}, 0.26)`);
+                    bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = bgGlow;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+
+                // ZONE 2 : PHRASE OFFICIELLE & ABONNEMENT
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                ctx.shadowBlur = 18;
+
+                if (outroLines.length > 0) {
+                    let outroFontSize = isReel ? (isAgendaPromo ? 30 : 28) : 25;
+                    ctx.font = `700 ${outroFontSize}px "Montserrat", sans-serif`;
+                    outroLines.forEach(line => {
+                        while (ctx.measureText(line).width > 940 && outroFontSize > 18) {
+                            outroFontSize--;
+                            ctx.font = `700 ${outroFontSize}px "Montserrat", sans-serif`;
+                        }
+                    });
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+
+                    outroLines.forEach((line: string, i: number) => {
+                        ctx.fillText(line, centerX, outroStartY + i * outroSpacing);
+                    });
+                }
 
                 // "ABONNEZ-VOUS À"
-                const abonneY = outroStartY + outroLines.length * outroSpacing + (isReel ? (isAgendaPromo ? 36 : 30) : 28);
+                const abonneY = outroLines.length > 0
+                    ? (outroStartY + outroLines.length * outroSpacing + abonneGap)
+                    : (outroStartY + abonneGap);
                 ctx.font = `700 ${isReel ? 26 : 24}px "Montserrat", sans-serif`;
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
                 ctx.fillText('ABONNEZ-VOUS À', centerX, abonneY);
@@ -3904,7 +3902,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, showTitleOnSlide2, extraEditorialSlides, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoCategory]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, showTitleOnSlide2, extraEditorialSlides, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoCategory, showPromoHook, showPromoHeadline]);
 
     // Pre-charger l'affiche de l'événement dès que son URL change
     useEffect(() => {
@@ -6084,6 +6082,42 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             )}
 
+            {/* Toggle Principal : Phrase d'accroche (Question / Débat) */}
+            <div className="p-3.5 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between shadow-sm">
+                <div className="space-y-0.5 pr-2">
+                    <div className="text-[10px] font-black uppercase text-white flex items-center gap-1.5">
+                        <MessageSquare className="w-3.5 h-3.5 text-neon-red" />
+                        <span>Phrase d'accroche (Question)</span>
+                        <span className={`text-[8.5px] px-1.5 py-0.5 rounded font-bold ${
+                            showPromoHook 
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                                : 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30'
+                        }`}>
+                            {showPromoHook ? 'Activée' : 'Désactivée (Texte Centré)'}
+                        </span>
+                    </div>
+                    <p className="text-[8px] text-gray-400">
+                        {showPromoHook 
+                            ? 'Affiche la question débat en haut + "Donne ton avis en commentaire".' 
+                            : 'Masquée : le texte en dessous est automatiquement centré au milieu du visuel.'}
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    onClick={() => {
+                        setShowPromoHook(!showPromoHook);
+                        setTimeout(() => generateImage(), 50);
+                    }}
+                    className={`px-3 py-2 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center gap-1.5 border shrink-0 ${
+                        showPromoHook
+                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
+                            : 'bg-neon-cyan/20 border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/30 shadow-[0_0_12px_rgba(0,240,255,0.25)]'
+                    }`}
+                >
+                    {showPromoHook ? '👁️ Accroche Active' : '🚫 Désactivée (Centré)'}
+                </button>
+            </div>
+
             {/* 1. Sélecteur de catégorie & couleur pour la page Promo */}
             <div className="space-y-2 bg-white/5 border border-white/10 rounded-2xl p-3.5">
                 <div className="flex items-center justify-between">
@@ -6135,123 +6169,170 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             </div>
 
-            {/* 2. Phrase officielle d'accroche Promo personnalisable */}
+            {/* 2. Phrase officielle Promo d'information (Pour être informé...) */}
             <div className="space-y-2.5 bg-white/5 border border-white/10 rounded-2xl p-3.5">
                 <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest flex items-center gap-1.5">
-                        📢 Phrase d'accroche Promo (Ligne 1)
-                    </label>
-                    {promoCustomPhrase && (
+                    <div className="flex items-center gap-2">
+                        <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest flex items-center gap-1.5">
+                            📢 Phrase Promo (Ligne 1 & 2)
+                        </label>
+                        <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold ${
+                            showPromoHeadline 
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                                : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        }`}>
+                            {showPromoHeadline ? 'Affichée' : 'Masquée (Centré)'}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
                         <button
                             type="button"
                             onClick={() => {
-                                setPromoCustomPhrase('');
+                                setShowPromoHeadline(!showPromoHeadline);
                                 setTimeout(() => generateImage(), 50);
                             }}
-                            className="text-[8.5px] text-gray-400 hover:text-white uppercase font-bold"
+                            className={`px-2 py-1 rounded-lg text-[8.5px] font-bold uppercase transition-all border ${
+                                showPromoHeadline
+                                    ? 'bg-white/10 border-white/20 text-gray-300 hover:text-white'
+                                    : 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                            }`}
                         >
-                            ↺ Par défaut
+                            {showPromoHeadline ? 'Masquer' : 'Afficher'}
                         </button>
-                    )}
-                </div>
-                <input
-                    value={promoCustomPhrase}
-                    onChange={e => {
-                        setPromoCustomPhrase(e.target.value);
-                        setTimeout(() => generateImage(), 50);
-                    }}
-                    placeholder={
-                        promoCategory === 'EVENTS' || promoCategory === 'PLANNING'
-                            ? "POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS"
-                            : promoCategory === 'MUSIQUE'
-                            ? "POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES"
-                            : promoCategory === 'FOCUS'
-                            ? "POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS"
-                            : "POUR ÊTRE INFORMÉ DE TOUTES LES NEWS"
-                    }
-                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-neon-cyan outline-none transition-all placeholder:text-gray-600"
-                />
-
-                <div className="pt-1 space-y-1">
-                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                        Ligne 2 (Sous-phrase)
-                    </label>
-                    <input
-                        value={promoCustomSubphrase}
-                        onChange={e => {
-                            setPromoCustomSubphrase(e.target.value);
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        placeholder="SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,"
-                        className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-neon-cyan outline-none transition-all placeholder:text-gray-600"
-                    />
-                </div>
-
-                <div className="pt-2">
-                    <p className="text-[8.5px] font-bold text-gray-500 uppercase mb-1.5">Phrases suggérées en 1 clic :</p>
-                    <div className="flex flex-wrap gap-1.5">
-                        {[
-                            "POUR ÊTRE INFORMÉ DE TOUTES LES NEWS",
-                            "POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS",
-                            "POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES",
-                            "POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS",
-                            "POUR REVIVRE TOUS LES MEILLEURS FESTIVALS",
-                        ].map((phrase, idx) => (
+                        {promoCustomPhrase && (
                             <button
-                                key={idx}
                                 type="button"
                                 onClick={() => {
-                                    setPromoCustomPhrase(phrase);
+                                    setPromoCustomPhrase('');
                                     setTimeout(() => generateImage(), 50);
                                 }}
-                                className="px-2.5 py-1 bg-white/5 hover:bg-neon-cyan/20 border border-white/10 hover:border-neon-cyan text-gray-300 hover:text-white rounded-lg text-[8.5px] font-bold transition-all text-left"
+                                className="text-[8.5px] text-gray-400 hover:text-white uppercase font-bold"
                             >
-                                {phrase}
+                                ↺ Par défaut
                             </button>
-                        ))}
+                        )}
                     </div>
                 </div>
+
+                {showPromoHeadline && (
+                    <>
+                        <input
+                            value={promoCustomPhrase}
+                            onChange={e => {
+                                setPromoCustomPhrase(e.target.value);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            placeholder={
+                                promoCategory === 'EVENTS' || promoCategory === 'PLANNING'
+                                    ? "POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS"
+                                    : promoCategory === 'MUSIQUE'
+                                    ? "POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES"
+                                    : promoCategory === 'FOCUS'
+                                    ? "POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS"
+                                    : "POUR ÊTRE INFORMÉ DE TOUTES LES NEWS"
+                            }
+                            className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-neon-cyan outline-none transition-all placeholder:text-gray-600"
+                        />
+
+                        <div className="pt-1 space-y-1">
+                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                                Ligne 2 (Sous-phrase)
+                            </label>
+                            <input
+                                value={promoCustomSubphrase}
+                                onChange={e => {
+                                    setPromoCustomSubphrase(e.target.value);
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                placeholder="SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,"
+                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-neon-cyan outline-none transition-all placeholder:text-gray-600"
+                            />
+                        </div>
+
+                        <div className="pt-2">
+                            <p className="text-[8.5px] font-bold text-gray-500 uppercase mb-1.5">Phrases suggérées en 1 clic :</p>
+                            <div className="flex flex-wrap gap-1.5">
+                                {[
+                                    "POUR ÊTRE INFORMÉ DE TOUTES LES NEWS",
+                                    "POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS",
+                                    "POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES",
+                                    "POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS",
+                                    "POUR REVIVRE TOUS LES MEILLEURS FESTIVALS",
+                                ].map((phrase, idx) => (
+                                    <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={() => {
+                                            setPromoCustomPhrase(phrase);
+                                            setTimeout(() => generateImage(), 50);
+                                        }}
+                                        className="px-2.5 py-1 bg-white/5 hover:bg-neon-cyan/20 border border-white/10 hover:border-neon-cyan text-gray-300 hover:text-white rounded-lg text-[8.5px] font-bold transition-all text-left"
+                                    >
+                                        {phrase}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
 
-            {/* 3. Question / Débat de l'article (Optionnelle / Hors agenda) */}
-            <div className="space-y-1.5">
+            {/* 3. Question / Débat de l'article (Accroche du haut) */}
+            <div className="space-y-2 bg-white/5 border border-white/10 rounded-2xl p-3.5">
                 <div className="flex items-center justify-between">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
                         <MessageSquare className="w-3.5 h-3.5 text-neon-red" /> Question / Débat de l'article
                     </label>
                     <span className="text-[9px] text-gray-500 font-bold">{customText.length}/200</span>
                 </div>
-                <textarea
-                    value={customText}
-                    onChange={e => setCustomText(e.target.value.slice(0, 200))}
-                    placeholder="Ex: Que penses-tu du nouveau titre de l'artiste ?"
-                    spellCheck="true"
-                    autoCorrect="on"
-                    className="w-full h-20 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold resize-none focus:border-neon-red outline-none transition-all uppercase"
-                />
-            </div>
-
-            <div>
-                <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">Suggestions rapides pour la question :</p>
-                <div className="flex flex-wrap gap-1.5">
-                    {[
-                        "Et toi, qu'en penses-tu ?",
-                        "Validé ou surcoté ?",
-                        "Tu y seras cet été ?",
-                        "Dans ta playlist ou poubelle ?",
-                        "Tu valides ce retour ?",
-                        "Quelle est ta collab de rêve ?"
-                    ].map((sug, i) => (
+                {showPromoHook ? (
+                    <>
+                        <textarea
+                            value={customText}
+                            onChange={e => setCustomText(e.target.value.slice(0, 200))}
+                            placeholder="Ex: Que penses-tu du nouveau titre de l'artiste ?"
+                            spellCheck="true"
+                            autoCorrect="on"
+                            className="w-full h-20 bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs font-bold resize-none focus:border-neon-red outline-none transition-all uppercase"
+                        />
+                        <div className="pt-1">
+                            <p className="text-[8.5px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Suggestions rapides pour la question :</p>
+                            <div className="flex flex-wrap gap-1.5">
+                                {[
+                                    "Et toi, qu'en penses-tu ?",
+                                    "Validé ou surcoté ?",
+                                    "Tu y seras cet été ?",
+                                    "Dans ta playlist ou poubelle ?",
+                                    "Tu valides ce retour ?",
+                                    "Quelle est ta collab de rêve ?"
+                                ].map((sug, i) => (
+                                    <button
+                                        key={i}
+                                        type="button"
+                                        onClick={() => setCustomText(sug)}
+                                        className="px-2.5 py-1.5 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red text-gray-300 hover:text-white rounded-lg text-[9px] font-bold transition-all"
+                                    >
+                                        {sug}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <div className="p-2.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-xl text-[9px] text-neon-cyan font-bold flex items-center justify-between">
+                        <span>Accroche désactivée : Le texte d'abonnement est centré sur le visuel.</span>
                         <button
-                            key={i}
                             type="button"
-                            onClick={() => setCustomText(sug)}
-                            className="px-2.5 py-1.5 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red text-gray-300 hover:text-white rounded-lg text-[9px] font-bold transition-all"
+                            onClick={() => {
+                                setShowPromoHook(true);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="text-[8.5px] underline hover:text-white uppercase font-black"
                         >
-                            {sug}
+                            Réactiver
                         </button>
-                    ))}
-                </div>
+                    </div>
+                )}
             </div>
 
             <div className="p-3 bg-white/5 border border-white/10 rounded-xl space-y-2">
