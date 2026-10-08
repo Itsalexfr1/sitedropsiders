@@ -28,7 +28,8 @@ import {
     Calendar,
     Search,
     CheckSquare,
-    Square
+    Square,
+    Play
 } from 'lucide-react';
 import { ExportSuccessModal } from './ExportSuccessModal';
 import { fixEncoding } from '../utils/standardizer';
@@ -318,6 +319,65 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     // Background animation states for Reels / Posts
     type BgAnimType = 'NONE' | 'ZOOM_IN' | 'ZOOM_OUT' | 'PAN_LEFT' | 'PAN_RIGHT' | 'PULSE' | 'BREATHE' | 'GLITCH';
     const [bgAnimation, setBgAnimation] = useState<BgAnimType>('NONE');
+
+    // Slide transition states for Multi-Slide / Carrousel / Reels
+    type SlideTransitionType = 'SLIDE' | 'FADE' | 'ZOOM' | 'GLITCH' | 'CUT';
+    const SLIDE_TRANSITIONS: { id: SlideTransitionType; label: string; icon: string; desc: string }[] = [
+        { id: 'SLIDE', label: 'Glissement', icon: '➡️', desc: 'Carrousel fluide horizontal' },
+        { id: 'FADE', label: 'Fondu', icon: '🎚️', desc: 'Crossfade enchaîné doux' },
+        { id: 'ZOOM', label: 'Zoom', icon: '🔍', desc: 'Zoom avant / arrière percutant' },
+        { id: 'GLITCH', label: 'Glitch Cyber', icon: '⚡', desc: 'Flash & secousse numérique' },
+        { id: 'CUT', label: 'Cut Direct', icon: '✂️', desc: 'Passage sec instantané' },
+    ];
+    const [slideTransition, setSlideTransition] = useState<SlideTransitionType>(() => {
+        try {
+            const saved = localStorage.getItem('dropsiders_slide_transition');
+            if (saved && ['SLIDE', 'FADE', 'ZOOM', 'GLITCH', 'CUT'].includes(saved)) {
+                return saved as SlideTransitionType;
+            }
+        } catch {}
+        return 'SLIDE';
+    });
+    const isTransitioningRef = useRef<boolean>(false);
+
+    const getTransitionDuration = (t: SlideTransitionType) => {
+        switch (t) {
+            case 'CUT': return 80;
+            case 'GLITCH': return 550;
+            case 'FADE': return 650;
+            case 'ZOOM': return 650;
+            case 'SLIDE':
+            default: return 700;
+        }
+    };
+
+    const handleSetSlideTransition = (mode: SlideTransitionType) => {
+        setSlideTransition(mode);
+        try {
+            localStorage.setItem('dropsiders_slide_transition', mode);
+        } catch {}
+    };
+
+    const playTransitionPreview = async (overrideMode?: SlideTransitionType) => {
+        if (isTransitioningRef.current) return;
+        isTransitioningRef.current = true;
+        const mode = overrideMode || slideTransition;
+        const duration = getTransitionDuration(mode);
+        const startTime = Date.now();
+
+        const step = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(1, elapsed / duration);
+            setTransitionProgress(progress);
+            if (elapsed < duration) {
+                requestAnimationFrame(step);
+            } else {
+                setTransitionProgress(0);
+                isTransitioningRef.current = false;
+            }
+        };
+        requestAnimationFrame(step);
+    };
 
     // MAP Theme States
     const [mapFestivalText, setMapFestivalText] = useState('LOLLAPALOOZA');
@@ -1144,17 +1204,75 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            // Transition Slide logic
+            // Universal Slide Transition Engine (SLIDE, FADE, ZOOM, GLITCH, CUT)
             let slideX = 0;
+            const applySlideTransitionCtx = (targetCtx: CanvasRenderingContext2D, centerX: number, centerY: number) => {
+                if (effectiveTransitionProgress <= 0) return;
+                const p = effectiveTransitionProgress;
+
+                switch (slideTransition) {
+                    case 'SLIDE': {
+                        if (p < 0.5) {
+                            const subP = p * 2;
+                            const sx = -canvas.width * (subP * subP);
+                            targetCtx.translate(sx, 0);
+                        } else {
+                            const subP = (p - 0.5) * 2;
+                            const sx = canvas.width * (1 - (subP * (2 - subP)));
+                            targetCtx.translate(sx, 0);
+                        }
+                        break;
+                    }
+                    case 'FADE': {
+                        const alpha = p < 0.5 ? Math.max(0, 1 - (p * 2)) : Math.min(1, (p - 0.5) * 2);
+                        targetCtx.globalAlpha *= alpha;
+                        break;
+                    }
+                    case 'ZOOM': {
+                        targetCtx.translate(centerX, centerY);
+                        if (p < 0.5) {
+                            const subP = p * 2;
+                            const scale = 1 - (subP * 0.22);
+                            const alpha = Math.max(0, 1 - (subP * 1.5));
+                            targetCtx.scale(scale, scale);
+                            targetCtx.globalAlpha *= alpha;
+                        } else {
+                            const subP = (p - 0.5) * 2;
+                            const scale = 0.78 + (subP * 0.22);
+                            const alpha = Math.min(1, subP * 1.5);
+                            targetCtx.scale(scale, scale);
+                            targetCtx.globalAlpha *= alpha;
+                        }
+                        targetCtx.translate(-centerX, -centerY);
+                        break;
+                    }
+                    case 'GLITCH': {
+                        const shake = Math.sin(p * 50) * 35;
+                        targetCtx.translate(shake, Math.cos(p * 35) * 12);
+                        if (p > 0.42 && p < 0.58) {
+                            targetCtx.globalAlpha *= 0.35;
+                        } else {
+                            targetCtx.globalAlpha *= (0.75 + 0.25 * Math.sin(p * 25));
+                        }
+                        break;
+                    }
+                    case 'CUT':
+                    default:
+                        break;
+                }
+            };
+
             if (effectiveTransitionProgress > 0) {
-                if (effectiveTransitionProgress < 0.5) {
-                    // Slide OUT to the LEFT (Ease In)
-                    const p = effectiveTransitionProgress * 2;
-                    slideX = -canvas.width * (p * p);
-                } else {
-                    // Slide IN from the RIGHT (Ease Out)
-                    const p = (effectiveTransitionProgress - 0.5) * 2;
-                    slideX = canvas.width * (1 - (p * (2 - p)));
+                if (slideTransition === 'SLIDE') {
+                    if (effectiveTransitionProgress < 0.5) {
+                        const p = effectiveTransitionProgress * 2;
+                        slideX = -canvas.width * (p * p);
+                    } else {
+                        const p = (effectiveTransitionProgress - 0.5) * 2;
+                        slideX = canvas.width * (1 - (p * (2 - p)));
+                    }
+                } else if (slideTransition === 'GLITCH') {
+                    slideX = Math.sin(effectiveTransitionProgress * 50) * 35;
                 }
             }
 
@@ -1418,9 +1536,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const monthGrad = activeData.grad || '255, 55, 0';
 
                 ctx.save();
-                if (slideX !== 0) {
-                    ctx.translate(slideX, 0);
-                }
+                applySlideTransitionCtx(ctx, centerX, canvas.height / 2);
 
                 if (effectiveAgendaSlide === 1) {
                     // ══════════════════════════════════════════════════════════
@@ -2628,9 +2744,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isReel = effectiveTab === 'REEL';
 
                 ctx.save();
-                if (slideX !== 0) {
-                    ctx.translate(slideX, 0);
-                }
+                applySlideTransitionCtx(ctx, centerX, canvas.height / 2);
 
                 // 1. Dark overlay — 75% opaque black
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
@@ -3145,8 +3259,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme);
 
                 ctx.save();
-                if (isEditorialCarouselTheme && slideX !== 0) {
-                    ctx.translate(slideX, 0);
+                if (isEditorialCarouselTheme) {
+                    applySlideTransitionCtx(ctx, canvas.width / 2, canvas.height / 2);
                 }
 
                 const themeDotColor = (theme === 'INTERVIEW') ? '#ffffff' : activeData.color;
@@ -4016,16 +4130,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         recorder.start(1000);
 
         let totalDuration = 0;
+        const currentTransitionDuration = getTransitionDuration(slideTransition);
         if (combinedMode === 'EDITORIAL') {
             const numContentSlides = 2 + extraEditorialSlides.length;
             const promoDuration = 3200;
-            const transitionDuration = 700;
+            const transitionDuration = currentTransitionDuration;
             const availableForSlides = 30000 - promoDuration - (numContentSlides * transitionDuration);
             const slideDuration = Math.max(3000, Math.min(6500, Math.floor(availableForSlides / numContentSlides)));
             totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
         } else if (combinedMode === 'PLANNING') {
-            // Agenda: Slide 1 (5.2s) + transition (0.7s) + Slide 2 (5.2s) + transition (0.7s) + Promo outro (4.8s) = 16.6s
-            totalDuration = 5200 + 700 + 5200 + 700 + 4800; // 16600ms (~16.6s)
+            // Agenda: Slide 1 (5.2s) + transition + Slide 2 (5.2s) + transition + Promo outro (4.8s)
+            totalDuration = 5200 + currentTransitionDuration + 5200 + currentTransitionDuration + 4800;
         } else if (theme.startsWith('TOP 5')) {
             totalDuration = 5 * (16800 + 1200); // 5 slides + transitions
         } else if (theme === 'TOP 10 FESTIVAL') {
@@ -4051,7 +4166,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (combinedMode === 'EDITORIAL') {
             const numContentSlides = 2 + extraEditorialSlides.length;
             const promoDuration = 3200;
-            const transitionDuration = 700;
+            const transitionDuration = currentTransitionDuration;
             const availableForSlides = 30000 - promoDuration - (numContentSlides * transitionDuration);
             const slideDuration = Math.max(3000, Math.min(6500, Math.floor(availableForSlides / numContentSlides)));
 
@@ -4111,7 +4226,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         } else if (combinedMode === 'PLANNING') {
             const promoDuration = 4800; // Rallongé de 3.2s à 4.8s pour avoir tout le temps de lire le message
-            const transitionDuration = 700;
+            const transitionDuration = currentTransitionDuration;
             const slideDuration = 5200;
 
             // 1. Slide 1 (Cover)
@@ -6507,6 +6622,94 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
+    const isMultiSlideTheme = ['PLANNING', 'ARTISTE FESTIVAL', 'EVENTS', 'AFFICHE', 'MUSIQUE', 'NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 5 STYLES', 'TOP 5 ARTISTE', 'TOP 10 FESTIVAL'].includes(theme);
+
+    const slideTransitionQuickBar = (
+        <div className="flex items-center gap-1 pl-2 ml-1 border-l border-white/15">
+            <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider hidden sm:inline">Enchaînement :</span>
+            <div className="flex items-center bg-black/60 rounded-xl p-0.5 border border-white/10 gap-0.5">
+                {SLIDE_TRANSITIONS.map(trans => (
+                    <button
+                        key={trans.id}
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleSetSlideTransition(trans.id);
+                            playTransitionPreview(trans.id);
+                        }}
+                        className={`px-1.5 py-0.5 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 ${
+                            slideTransition === trans.id
+                                ? 'bg-neon-red text-white shadow-sm'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                        title={`${trans.label} - ${trans.desc}`}
+                    >
+                        <span>{trans.icon}</span>
+                        <span className="hidden md:inline text-[7.5px]">{trans.label}</span>
+                    </button>
+                ))}
+            </div>
+            <button
+                type="button"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    playTransitionPreview();
+                }}
+                disabled={isTransitioningRef.current}
+                className="px-1.5 py-1 bg-white/10 hover:bg-white/20 border border-white/15 rounded-lg text-[8px] font-black uppercase text-gray-200 transition-all flex items-center gap-0.5 active:scale-95 disabled:opacity-40"
+                title="Tester l'enchaînement en direct sur le canvas"
+            >
+                <Play className="w-2 h-2 fill-current text-neon-red" />
+            </button>
+        </div>
+    );
+
+    const slideTransitionControl = (
+        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5">
+            <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black uppercase text-neon-red tracking-wider flex items-center gap-1.5">
+                    🎚️ Enchaînement des Slides
+                </span>
+                <button
+                    type="button"
+                    onClick={() => playTransitionPreview()}
+                    disabled={isTransitioningRef.current}
+                    className="px-2 py-0.5 bg-neon-red/10 border border-neon-red/30 rounded-lg text-[8px] font-black uppercase text-neon-red hover:bg-neon-red hover:text-white transition-all flex items-center gap-1 active:scale-95 disabled:opacity-50"
+                    title="Tester l'enchaînement en direct sur le canvas"
+                >
+                    <Play className="w-2.5 h-2.5 fill-current" /> Tester
+                </button>
+            </div>
+
+            <div className="grid grid-cols-5 gap-1">
+                {SLIDE_TRANSITIONS.map(trans => (
+                    <button
+                        key={trans.id}
+                        type="button"
+                        onClick={() => {
+                            handleSetSlideTransition(trans.id);
+                            playTransitionPreview(trans.id);
+                        }}
+                        className={`py-2 px-1 rounded-xl text-[8px] font-black uppercase border transition-all flex flex-col items-center justify-center gap-0.5 ${
+                            slideTransition === trans.id
+                                ? 'bg-neon-red border-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)] scale-[1.02]'
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                        }`}
+                        title={trans.desc}
+                    >
+                        <span className="text-[12px] leading-none">{trans.icon}</span>
+                        <span className="truncate w-full text-center">{trans.label}</span>
+                    </button>
+                ))}
+            </div>
+
+            <div className="flex items-center justify-between text-[8px] text-gray-400 italic px-1 pt-0.5">
+                <span>{SLIDE_TRANSITIONS.find(t => t.id === slideTransition)?.desc}</span>
+                <span className="text-gray-500 font-mono font-normal">{getTransitionDuration(slideTransition)}ms</span>
+            </div>
+        </div>
+    );
+
     const conseilsEditor = (
         <div className="space-y-4">
 
@@ -8608,6 +8811,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         {/* Animation universelle du texte & éléments (tous les thèmes) */}
                         {textAnimationControl}
+                        {isMultiSlideTheme && slideTransitionControl}
 
                         {/* Content editor */}
                         <div className="space-y-4">
@@ -8730,7 +8934,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     {/* Preview */}
                     <div className="flex-1 bg-[#020202] flex flex-col items-center justify-center relative overflow-hidden h-full border-l border-white/10">
                         {theme === 'PLANNING' && (
-                            <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20">
+                            <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20 flex-wrap justify-center">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
                                 <button
                                     type="button"
@@ -8763,10 +8967,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     <Video className="w-3 h-3 text-black" /> Vidéo (1+2)
                                 </button>
+                                {slideTransitionQuickBar}
                             </div>
                         )}
                         {theme === 'ARTISTE FESTIVAL' && (
-                            <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20">
+                            <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20 flex-wrap justify-center">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
                                 <button
                                     type="button"
@@ -8790,10 +8995,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     ⭐ Slide 2 (Spotlight)
                                 </button>
+                                {slideTransitionQuickBar}
                             </div>
                         )}
                         {(theme === 'EVENTS' || theme === 'AFFICHE') && (
-                            <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20">
+                            <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20 flex-wrap justify-center">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
                                 <button
                                     type="button"
@@ -8817,10 +9023,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     🎨 Slide 2 (Affiche)
                                 </button>
+                                {slideTransitionQuickBar}
                             </div>
                         )}
                         {theme === 'MUSIQUE' && (
-                            <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-[#00ff66]/30 shadow-2xl z-20">
+                            <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-[#00ff66]/30 shadow-2xl z-20 flex-wrap justify-center">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Musique :</span>
                                 <button
                                     type="button"
@@ -8855,6 +9062,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <Video className="w-3 h-3 text-black" /> Reel (1+2)
                                     </button>
                                 )}
+                                {slideTransitionQuickBar}
                             </div>
                         )}
                         {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && (
@@ -8910,6 +9118,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <Video className="w-3 h-3 text-white" /> Reel ({2 + extraEditorialSlides.length} Slides + Promo)
                                     </button>
                                 )}
+                                {slideTransitionQuickBar}
                             </div>
                         )}
                         <div className={`relative ${activeTab === 'REEL' ? 'w-full max-w-[280px]' : 'w-full max-w-[450px]'} transition-all duration-300`} style={{ aspectRatio: activeTab === 'REEL' ? '9/16' : '4/5' }}>
@@ -9023,11 +9232,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         onClick={() => { if (activePanel) setActivePanel(null); }}
                     >
                         {theme === 'PLANNING' && (
-                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl">
+                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); setAgendaSlide(1); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all ${
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
                                         agendaSlide === 1 ? 'bg-[#ff3700] text-black shadow-md' : 'text-gray-400'
                                     }`}
                                 >
@@ -9036,20 +9245,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); setAgendaSlide(2); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all ${
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
                                         agendaSlide === 2 ? 'bg-[#ff3700] text-black shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 2 (Events)
                                 </button>
+                                {slideTransitionQuickBar}
                             </div>
                         )}
                         {theme === 'ARTISTE FESTIVAL' && (
-                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl">
+                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); setArtisteFestivalSlide(1); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all ${
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
                                         artisteFestivalSlide === 1 ? 'bg-neon-red text-white shadow-md' : 'text-gray-400'
                                     }`}
                                 >
@@ -9058,20 +9268,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); setArtisteFestivalSlide(2); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all ${
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
                                         artisteFestivalSlide === 2 ? 'bg-neon-red text-white shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 2 (Spotlight)
                                 </button>
+                                {slideTransitionQuickBar}
                             </div>
                         )}
                         {(theme === 'EVENTS' || theme === 'AFFICHE') && (
-                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl">
+                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); setEventsSlide(1); if (theme === 'AFFICHE') handleSetTheme('EVENTS'); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all ${
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
                                         eventsSlide === 1 && theme !== 'AFFICHE' ? 'bg-[#ff007f] text-white shadow-md' : 'text-gray-400'
                                     }`}
                                 >
@@ -9080,20 +9291,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); setEventsSlide(2); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all ${
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
                                         eventsSlide === 2 || theme === 'AFFICHE' ? 'bg-[#ff007f] text-white shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 2 (Affiche)
                                 </button>
+                                {slideTransitionQuickBar}
                             </div>
                         )}
                         {theme === 'MUSIQUE' && (
-                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-[#00ff66]/30 shadow-2xl">
+                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-[#00ff66]/30 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); setEditorialSlide(1); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all ${
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
                                         editorialSlide === 1 ? 'bg-[#00ff66] text-black shadow-md' : 'text-gray-400'
                                     }`}
                                 >
@@ -9102,20 +9314,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); setEditorialSlide(2); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all ${
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
                                         editorialSlide === 2 ? 'bg-[#00ff66] text-black shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 2 (Cover Track)
                                 </button>
+                                {slideTransitionQuickBar}
                             </div>
                         )}
-                        {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS'].includes(theme) && (
-                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl">
+                        {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && (
+                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); setEditorialSlide(1); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all ${
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
                                         editorialSlide === 1 ? 'bg-white text-black shadow-md' : 'text-gray-400'
                                     }`}
                                 >
@@ -9124,12 +9337,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); setEditorialSlide(2); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all ${
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
                                         editorialSlide === 2 ? 'bg-white text-black shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 2 (Détail)
                                 </button>
+                                {slideTransitionQuickBar}
                             </div>
                         )}
                         <canvas 
@@ -9272,6 +9486,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {activePanel === 'texte' && (
                                     <div className="px-6 pb-8 space-y-4">
                                         {textAnimationControl}
+                                        {isMultiSlideTheme && slideTransitionControl}
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Contenu</p>
                                         {theme === 'CALENDRIER' ? (
                                             <div className="space-y-3">
