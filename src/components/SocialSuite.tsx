@@ -2864,7 +2864,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     : 99.0;
 
                 // Date automatique centrée dans la barre blanche (avec un segment de barre blanche de chaque côté)
-                const showEditorialDate = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'CONCOURS'].includes(theme);
+                const showEditorialDate = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'CONCOURS', 'REELS', 'CONSEILS'].includes(theme);
 
                 ctx.save();
                 ctx.strokeStyle = '#ffffff';
