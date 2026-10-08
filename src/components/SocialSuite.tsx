@@ -202,7 +202,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const festivalLogoRef = useRef<HTMLImageElement | null>(null); // NEW
     const [bgOffsetX, setBgOffsetX] = useState<number>(0);
     const [bgOffsetY, setBgOffsetY] = useState<number>(0);
-    const [menuOpacity, setMenuOpacity] = useState<number>(35); // Menu transparency (35% default so image is visible behind)
+    const [menuOpacity, setMenuOpacity] = useState<number>(95);
     const [isSlidingPosition, setIsSlidingPosition] = useState<boolean>(false);
     const [imgLayoutMode, setImgLayoutMode] = useState<'1_PAR_LIGNE' | 'PAR_LIGNES' | 'HAUT_LIGNE' | 'BAS_LIGNE'>('1_PAR_LIGNE');
     const [quizColor1, setQuizColor1] = useState<string>('#38bdf8');
@@ -776,8 +776,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (seg.color) {
                         ctx.save();
                         ctx.fillStyle = seg.color;
-                        ctx.shadowColor = seg.color;
-                        ctx.shadowBlur = 12;
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                        ctx.shadowBlur = 4;
                         ctx.fillText(seg.text, currentX, y);
                         ctx.restore();
                     } else {
@@ -3229,8 +3229,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-                // 3. HORIZONTAL DIVIDER LINE & SWIPE (Positioned at ~65-67% height)
-                const dividerY = Math.floor(canvas.height * (isReel ? 0.65 : 0.67));
+                // 3. HORIZONTAL DIVIDER LINE & SWIPE (Positioned at ~68-70% height)
+                const dividerY = Math.floor(canvas.height * (isReel ? 0.68 : 0.70));
                 const lineMarginX = isReel ? 80 : 60;
                 let swipeSpaceRight = 0;
 
@@ -3240,7 +3240,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.font = '800 24px "Montserrat", sans-serif';
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0,0,0,0.85)';
-                    ctx.shadowBlur = 8;
+                    ctx.shadowBlur = 6;
                     ctx.textAlign = 'right';
                     ctx.textBaseline = 'middle';
                     const swipeText = 'Swipe ──>';
@@ -3256,7 +3256,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 5;
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-                ctx.shadowBlur = 8;
+                ctx.shadowBlur = 6;
 
                 ctx.beginPath();
                 ctx.moveTo(lineMarginX, dividerY);
@@ -3280,13 +3280,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isTitleOnly = mainTitleText && !bodyText;
                 
                 // Décalage du texte par rapport à la barre horizontale (donne de l'air pour que le texte ne soit pas trop proche de la ligne)
-                let curY = dividerY + (isReel ? 104 : 96);
+                let curY = dividerY + (isReel ? 118 : 108);
 
                 // --- A) MAIN TITLE IN WHITE (WITH THEME COLOR HIGHLIGHTS) ---
                 if (mainTitleText) {
                     ctx.save();
-                    // Sur la slide 1 (titre seul) ou en mode titre large, le titre est agrandi pour un maximum d'impact
-                    let titleFontSize = isConseilsLargeTitle ? 72 : (isTitleOnly ? 64 : (isEditorialCarouselTheme ? 50 : 44));
+                    // Sur la slide 1 (titre seul), le titre est agrandi pour un maximum d'impact
+                    let titleFontSize = isTitleOnly ? 64 : (isEditorialCarouselTheme ? 50 : 44);
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
 
                     const formatTitleLines = (fSize: number) => {
@@ -3319,8 +3319,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const titleLineHeight = Math.round(titleFontSize * 1.18);
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                    ctx.shadowBlur = 16;
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                    ctx.shadowBlur = 6;
                     ctx.textBaseline = 'alphabetic';
 
                     titleLines.forEach(tLine => {
@@ -3368,8 +3368,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const subLineHeight = Math.round(subFontSize * 1.38);
                     ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = 'rgba(255,255,255,0.92)';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                    ctx.shadowBlur = 4;
                     ctx.textBaseline = 'alphabetic';
 
                     subLines.forEach(bLine => {
@@ -4428,18 +4428,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             </div>
 
             <div className="space-y-2 pt-1">
-                {/* Menu Panel Transparency Control */}
-                <div className="space-y-1 bg-black/40 p-2.5 rounded-xl border border-white/10">
-                    <div className="flex justify-between text-[8px] font-black uppercase text-gray-400">
-                        <span>👁️ Opacité du Menu Option</span>
-                        <span className="text-neon-cyan font-mono">{menuOpacity}%</span>
-                    </div>
-                    <input
-                        type="range" min="10" max="100" value={menuOpacity}
-                        onChange={e => setMenuOpacity(parseInt(e.target.value))}
-                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
-                    />
-                </div>
 
                 <div className="space-y-1">
                     <div className="flex justify-between text-[8px] font-black uppercase text-gray-400">
@@ -6074,46 +6062,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </>
             )}
-            <div 
-                className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-2xl cursor-pointer group hover:border-white/20 transition-all" 
-                onClick={() => setIsConseilsLargeTitle(!isConseilsLargeTitle)}
-            >
-                <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-white uppercase tracking-widest group-hover:text-neon-cyan transition-colors">Titre Extra Large (Pleine Largeur)</span>
-                    <span className="text-[8px] font-bold text-gray-500">Grossit le titre pour occuper toute la largeur de la ligne</span>
-                </div>
-                <div className={`w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${isConseilsLargeTitle ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
-                    {isConseilsLargeTitle && (
-                        <motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-3 h-3 text-black font-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </motion.svg>
-                    )}
-                </div>
-            </div>
-
-            {/* THEME COLOR ACCENT INFO BADGE */}
-            <div className="p-3 bg-white/[0.03] border border-white/10 rounded-2xl flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5 min-w-0">
-                    <span 
-                        className="w-3.5 h-3.5 rounded-full flex-shrink-0 animate-pulse" 
-                        style={{ backgroundColor: activeColor.color, boxShadow: `0 0 10px ${activeColor.color}` }}
-                    />
-                    <div className="flex flex-col min-w-0">
-                        <span className="text-[10px] font-black text-white uppercase tracking-wider truncate">
-                            Couleur du Thème : {theme}
-                        </span>
-                        <span className="text-[8px] font-bold text-gray-400">
-                            Clique sur un mot ci-dessous pour l'illuminer dans la couleur du thème
-                        </span>
-                    </div>
-                </div>
-                <span 
-                    className="text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider flex-shrink-0"
-                    style={{ backgroundColor: `${activeColor.color}25`, color: activeColor.color, border: `1px solid ${activeColor.color}40` }}
-                >
-                    {activeColor.color}
-                </span>
-            </div>
 
             <div className="space-y-2">
                 <div className="flex items-center justify-between pl-1">
@@ -7890,15 +7838,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <Video className="w-3.5 h-3.5" /> Relancer la prévisualisation
                                 </button>
                             )}
-                            {!(bgImage || bgVideo) && (
-                                <button 
-                                    onClick={() => setIsTransparent(!isTransparent)} 
-                                    className={`w-full py-2.5 border rounded-xl flex items-center justify-center gap-2 text-[9px] font-black uppercase transition-all ${isTransparent ? 'bg-white/20 border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
-                                >
-                                    <Sparkles className={`w-3.5 h-3.5 ${isTransparent ? 'text-white' : 'text-gray-500'}`} />
-                                    FOND TRANSPARENT : {isTransparent ? 'OUI (PNG)' : 'NON'}
-                                </button>
-                            )}
                         </div>
 
                         {/* Content editor */}
@@ -8566,14 +8505,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                         <button onClick={applyMagicErase} className="flex-[2] py-3 bg-neon-cyan text-black rounded-xl text-[9px] font-black uppercase shadow-[0_0_15px_rgba(0,255,255,0.4)] hover:scale-[1.02] transition-all flex items-center justify-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Appliquer</button>
                                                     </div>
                                                 </div>
-                                            )}
-                                            {!(bgImage || bgVideo) && (
-                                                <button 
-                                                    onClick={() => setIsTransparent(!isTransparent)} 
-                                                    className={`w-full py-4 border rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${isTransparent ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
-                                                >
-                                                    <Sparkles className="w-4 h-4" /> FOND TRANSPARENT (PNG) : {isTransparent ? 'OUI' : 'NON'}
-                                                </button>
                                             )}
                                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                         </div>
