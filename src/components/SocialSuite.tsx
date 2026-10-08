@@ -178,7 +178,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [agendaCoverCta, setAgendaCoverCta] = useState<string>('Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️');
     const [artisteFestivalSlide, setArtisteFestivalSlide] = useState<1 | 2>(1);
     const [eventsSlide, setEventsSlide] = useState<1 | 2>(1);
-    const [editorialSlide, setEditorialSlide] = useState<1 | 2>(1);
+    const [editorialSlide, setEditorialSlide] = useState<number>(1);
     const [planningDate, setPlanningDate] = useState('OCTOBRE');
     const [calendarMonth, setCalendarMonth] = useState('MARS 2025');
     const [calendarEvents, setCalendarEvents] = useState<{ date: string; label: string }[]>([
@@ -218,10 +218,41 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const conseilsTitleInputRef = useRef<HTMLTextAreaElement | null>(null);
     const conseilsSubtextInputRef = useRef<HTMLTextAreaElement | null>(null);
     const [isConseilsLargeTitle, setIsConseilsLargeTitle] = useState(false);
+    const [showTitleOnSlide2, setShowTitleOnSlide2] = useState<boolean>(false);
+    const [extraEditorialSlides, setExtraEditorialSlides] = useState<string[]>([]); // Slides 3, 4, 5... (texte de chaque slide)
     const [promoCategory, setPromoCategory] = useState<string>(() => {
         if (initialTheme && initialTheme !== 'PROMO') return initialTheme;
         return 'NEWS';
     });
+
+    const addEditorialSlide = () => {
+        if (extraEditorialSlides.length >= 5) return; // Limite à 7 slides totales max (2 de base + 5 supplémentaires)
+        const nextSlideNum = 2 + extraEditorialSlides.length + 1;
+        setExtraEditorialSlides(prev => [...prev, '']);
+        setEditorialSlide(nextSlideNum);
+    };
+
+    const removeEditorialSlide = (slideIndexToRemove: number) => {
+        if (slideIndexToRemove < 3) return; // Les slides 1 et 2 restent indispensables
+        const extraIdx = slideIndexToRemove - 3;
+        setExtraEditorialSlides(prev => prev.filter((_, idx) => idx !== extraIdx));
+        if (editorialSlide >= slideIndexToRemove) {
+            setEditorialSlide(Math.max(2, editorialSlide - 1));
+        }
+    };
+
+    const updateEditorialSlideText = (slideNum: number, text: string) => {
+        if (slideNum === 2) {
+            setConseilsSubtext(text);
+        } else if (slideNum >= 3) {
+            const extraIdx = slideNum - 3;
+            setExtraEditorialSlides(prev => {
+                const next = [...prev];
+                next[extraIdx] = text;
+                return next;
+            });
+        }
+    };
 
     // Détection clôture GTA 6 après le 12 novembre 2026
     const isGTA6Expired = typeof window !== 'undefined' && new Date() > new Date('2026-11-12T23:59:59');
@@ -246,6 +277,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [concoursGTACondition3, setConcoursGTACondition3] = useState('3 - PARTAGEZ EN STORIE');
     const [concoursGTACondition4, setConcoursGTACondition4] = useState('4 - POUR VALIDER LA PARTICIPATION RÉPONDEZ AUX 3 QUESTIONS SUR DROPSIDERS.FR');
     const recordingStartTimeRef = useRef<number>(0);
+    const agendaSlideOverrideRef = useRef<1 | 2 | null>(null);
+    const editorialSlideOverrideRef = useRef<number | null>(null);
+    const transitionProgressRef = useRef<number | null>(null);
+    const promoOutroOverrideRef = useRef<boolean>(false);
     const ffmpegRef = useRef<any>(null);
     const audioCtxRef = useRef<AudioContext | null>(null);
     // On stocke la source et la dest pour ne pas rappeler createMediaElementSource
@@ -644,13 +679,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         const effectiveTab = targetTab || activeTab;
         const forceTheme = typeof exportMode === 'string' ? (exportMode as ThemeType) : forceThemeParam;
-        const effectiveTheme = forceTheme || theme;
+        const effectiveTheme = promoOutroOverrideRef.current ? 'PROMO' : (forceTheme || theme);
 
         try {
             await (async (theme: ThemeType) => {
                 const isPromoTheme = theme === 'PROMO';
-                const promoCategoryKey = (promoCategory as ThemeType) || 'NEWS';
-                const promoThemeData = baseThemeData[promoCategoryKey] || baseThemeData['NEWS'];
+                const actualBaseTheme = (theme === 'PROMO' && promoOutroOverrideRef.current) 
+                    ? (themeColor ? themeColor : (baseThemeData[targetTab ? 'NEWS' : (theme === 'PROMO' ? (promoCategory as ThemeType) : theme)] || baseThemeData['NEWS']))
+                    : (baseThemeData[promoCategory as ThemeType] || baseThemeData['NEWS']);
+                const promoThemeData = actualBaseTheme;
                 const activeColor = isPromoTheme 
                     ? (themeColor || promoThemeData) 
                     : (themeColor || baseThemeData[theme]);
@@ -676,10 +713,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const safeTop = (canvas.height - safeSize) / 2;
             const safeBottom = safeTop + safeSize;
 
+            const effectiveAgendaSlide = agendaSlideOverrideRef.current !== null ? agendaSlideOverrideRef.current : agendaSlide;
+            const effectiveEditorialSlide = editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide;
+            const effectiveTransitionProgress = transitionProgressRef.current !== null ? transitionProgressRef.current : transitionProgress;
+
             const isAnyAnimationActive = (textAnimation !== 'NONE' || bgAnimation !== 'NONE');
             const animElapsed = (isVideoRecording || (bgVideo && !isDownloading) || isAnyAnimationActive)
                 ? (isVideoRecording
-                    ? (Date.now() - recordingStartTimeRef.current) / 1000
+                    ? (Date.now() - animStartTimeRef.current) / 1000
                     : ((Date.now() - animStartTimeRef.current) % 6000) / 1000)
                 : 0;
 
@@ -832,7 +873,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else if (imgLayoutMode === 'BAS_LIGNE') {
                     y = ((canvas.height * 0.85 - vh) / 2) + bgOffsetY + bgAnimY;
                 }
-                if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && editorialSlide === 2)) {
+                if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide === 2)) {
                     ctx.save();
                     ctx.filter = 'blur(14px)';
                     const blurBleed = 28;
@@ -865,7 +906,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     } else if (imgLayoutMode === 'BAS_LIGNE') {
                         y = ((canvas.height * 0.85 - ih) / 2) + bgOffsetY + bgAnimY;
                     }
-                    if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && editorialSlide === 2)) {
+                    if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide === 2)) {
                         ctx.save();
                         ctx.filter = 'blur(14px)';
                         const blurBleed = 28;
@@ -1043,7 +1084,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             const isModernEditorialTheme = (
                 ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS'].includes(theme) ||
-                (theme === 'MUSIQUE' && editorialSlide === 1) ||
+                (theme === 'MUSIQUE' && effectiveEditorialSlide === 1) ||
                 (theme === 'EVENTS' && eventsSlide === 1) ||
                 (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1)
             );
@@ -1078,7 +1119,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, canvas.height * 0.82, canvas.width, canvas.height * 0.18);
                 }
             } else {
-                if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && eventsSlide === 2) && !(theme === 'MUSIQUE' && editorialSlide === 2) && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
+                if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && eventsSlide === 2) && !(theme === 'MUSIQUE' && effectiveEditorialSlide === 2) && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
                     const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                         ? canvas.height * 0.8
                         : canvas.height * 0.4;
@@ -1103,14 +1144,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             // Transition Slide logic
             let slideX = 0;
-            if (transitionProgress > 0) {
-                if (transitionProgress < 0.5) {
+            if (effectiveTransitionProgress > 0) {
+                if (effectiveTransitionProgress < 0.5) {
                     // Slide OUT to the LEFT (Ease In)
-                    const p = transitionProgress * 2;
+                    const p = effectiveTransitionProgress * 2;
                     slideX = -canvas.width * (p * p);
                 } else {
                     // Slide IN from the RIGHT (Ease Out)
-                    const p = (transitionProgress - 0.5) * 2;
+                    const p = (effectiveTransitionProgress - 0.5) * 2;
                     slideX = canvas.width * (1 - (p * (2 - p)));
                 }
             }
@@ -1374,7 +1415,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const monthColor = activeData.color || '#ff3700';
                 const monthGrad = activeData.grad || '255, 55, 0';
 
-                if (agendaSlide === 1) {
+                ctx.save();
+                if (slideX !== 0) {
+                    ctx.translate(slideX, 0);
+                }
+
+                if (effectiveAgendaSlide === 1) {
                     // ══════════════════════════════════════════════════════════
                     // SLIDE 1 : COVER CARROUSEL (ACCROCHE INSTAGRAM)
                     // ══════════════════════════════════════════════════════════
@@ -1908,6 +1954,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
                     });
                 }
+                ctx.restore();
 
             } else if (theme === 'CALENDRIER') {
                 const calCenterX = canvas.width / 2;
@@ -2578,6 +2625,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const centerX = canvas.width / 2;
                 const isReel = effectiveTab === 'REEL';
 
+                ctx.save();
+                if (slideX !== 0) {
+                    ctx.translate(slideX, 0);
+                }
+
                 // 1. Dark overlay — 75% opaque black
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -2793,8 +2845,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.drawImage(logo, centerX - lw / 2, logoY, lw, lh);
                     ctx.restore();
                 }
+                ctx.restore();
 
-            } else if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && editorialSlide === 2)) {
+            } else if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide === 2)) {
                 const isStory = canvas.height > 1500;
                 const isMusicTrack = (theme === 'MUSIQUE');
 
@@ -3019,6 +3072,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // 1. TOP-LEFT STYLIZED CAPSULE BADGE (French Crowd / Modern Editorial)
                 const isReel = effectiveTab === 'REEL';
+                const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme);
+
+                ctx.save();
+                if (isEditorialCarouselTheme && slideX !== 0) {
+                    ctx.translate(slideX, 0);
+                }
+
                 const themeDotColor = (theme === 'INTERVIEW') ? '#ffffff' : activeData.color;
                 const badgeLabelText = (theme === 'ARTISTE FESTIVAL') 
                     ? (festivalNameText ? festivalNameText.toUpperCase() : 'FESTIVAL')
@@ -3067,7 +3127,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // Animation temporelle pour les Reels (boucle fluide en preview, 0s à la fin en export vidéo)
                 const animElapsed = (isVideoRecording || (bgVideo && !isDownloading) || textAnimation !== 'NONE')
                     ? (isVideoRecording 
-                        ? (Date.now() - recordingStartTimeRef.current) / 1000 
+                        ? (Date.now() - animStartTimeRef.current) / 1000 
                         : ((Date.now() - animStartTimeRef.current) % 5500) / 1000)
                     : 99.0;
 
@@ -3145,22 +3205,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
                 // 4. MAIN TITLE IN WHITE (BOLD) & SUBTEXT UNDERNEATH (ITALIC)
-                const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme);
-
-                const mainTitleText = (conseilsTitle && conseilsTitle !== 'LE TITRE ICI') 
+                let mainTitleText = (conseilsTitle && conseilsTitle !== 'LE TITRE ICI') 
                     ? conseilsTitle 
                     : (customText || (theme === 'ARTISTE FESTIVAL' ? 'LES 10 ARTISTES À NE PAS LOUPER' : ''));
                 
-                // Sur la slide 1 des thèmes éditoriaux (News, Récap, etc.), on retire le texte en dessous pour ne laisser que le titre principal
-                const bodyText = (editorialSlide === 1 && isEditorialCarouselTheme) 
-                    ? '' 
-                    : (conseilsSubtext || '');
+                // Sur les slides 2+ des thèmes éditoriaux, possibilité de masquer le grand titre selon le choix de l'utilisateur
+                if (effectiveEditorialSlide >= 2 && isEditorialCarouselTheme && !showTitleOnSlide2) {
+                    mainTitleText = '';
+                }
+
+                // Récupération du bodyText pour la slide active (Slide 1 = pas de bodyText, Slide 2 = conseilsSubtext, Slide >= 3 = extraEditorialSlides[s - 3])
+                let bodyText = '';
+                if (effectiveEditorialSlide === 1 && isEditorialCarouselTheme) {
+                    bodyText = '';
+                } else if (effectiveEditorialSlide === 2) {
+                    bodyText = conseilsSubtext || '';
+                } else if (effectiveEditorialSlide >= 3) {
+                    const extraIdx = effectiveEditorialSlide - 3;
+                    bodyText = extraEditorialSlides[extraIdx] || '';
+                } else {
+                    bodyText = conseilsSubtext || '';
+                }
 
                 const lineWidth = canvas.width - (lineMarginX * 2);
                 const isTitleOnly = mainTitleText && !bodyText;
                 
                 // Décalage du texte par rapport à la barre horizontale (donne de l'air pour que le texte ne soit pas trop proche de la ligne)
-                let curY = dividerY + (isReel ? 118 : 108);
+                let curY = dividerY + (isReel ? (!mainTitleText ? 85 : 118) : (!mainTitleText ? 75 : 108));
 
                 // --- A) MAIN TITLE IN WHITE (WITH THEME COLOR HIGHLIGHTS) ---
                 if (mainTitleText) {
@@ -3284,8 +3355,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // --- B) SUBTEXT UNDERNEATH (ITALIC, WITH THEME COLOR HIGHLIGHTS) ---
                 if (bodyText) {
                     ctx.save();
-                    // Sur la slide 2, le texte en dessous est agrandi (32px au lieu de 26px) pour une excellente lisibilité
-                    let subFontSize = isEditorialCarouselTheme ? 32 : 26;
+                    // Sur la slide 2, le texte en dessous est agrandi (jusqu'à 38px si le titre est retiré) pour une excellente lisibilité
+                    let subFontSize = !mainTitleText ? (isReel ? 38 : 34) : (isEditorialCarouselTheme ? 32 : 26);
                     ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
 
                     const formatSubLines = (fSize: number) => {
@@ -3426,11 +3497,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText('🗳️ VOTER EN BIO', lineMarginX, indicatorY);
                     ctx.restore();
                 }
+                ctx.restore();
             }
 
             // 5. Apply Transition Effects (Glitch / Zoom)
-            if (transitionProgress > 0) {
-                const glitchIntensity = Math.sin(transitionProgress * Math.PI);
+            if (effectiveTransitionProgress > 0) {
+                const glitchIntensity = Math.sin(effectiveTransitionProgress * Math.PI);
 
                 // Zoom Blur effect
                 ctx.save();
@@ -3624,12 +3696,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     useEffect(() => {
         let anim: number;
-        if (bgVideo || isVideoRecording || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST') {
+        if (bgVideo || isVideoRecording || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || transitionProgress > 0) {
             const loop = () => { generateImage(); anim = requestAnimationFrame(loop); };
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, showTitleOnSlide2, extraEditorialSlides, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation]);
 
     // Pre-charger l'affiche de l'événement dès que son URL change
     useEffect(() => {
@@ -3683,9 +3755,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    const startVideoRecording = async () => {
+    const startVideoRecording = async (combinedMode: 'NONE' | 'PLANNING' | 'EDITORIAL' = 'NONE') => {
         const canvas = canvasRef.current;
         if (!canvas) return;
+
+        const prevAgendaSlide = agendaSlide;
+        const prevEditorialSlide = editorialSlide;
+
+        if (combinedMode === 'PLANNING') {
+            agendaSlideOverrideRef.current = 1;
+            setAgendaSlide(1);
+        } else if (combinedMode === 'EDITORIAL') {
+            editorialSlideOverrideRef.current = 1;
+            setEditorialSlide(1);
+        }
+        transitionProgressRef.current = 0;
+        setTransitionProgress(0);
+
         setIsVideoRecording(true);
         recordingStartTimeRef.current = Date.now();
         animStartTimeRef.current = Date.now();
@@ -3707,6 +3793,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!canvasStream) {
             setErrorMessage("Votre navigateur ne supporte pas la capture vidéo.");
             setIsVideoRecording(false);
+            if (combinedMode === 'PLANNING') {
+                agendaSlideOverrideRef.current = null;
+                setAgendaSlide(prevAgendaSlide);
+            } else if (combinedMode === 'EDITORIAL') {
+                editorialSlideOverrideRef.current = null;
+                setEditorialSlide(prevEditorialSlide);
+            }
             return;
         }
 
@@ -3853,17 +3946,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         recorder.start(1000);
 
         let totalDuration = 0;
-        if (theme.startsWith('TOP 5')) {
+        if (combinedMode === 'EDITORIAL') {
+            const numContentSlides = 2 + extraEditorialSlides.length;
+            const promoDuration = 3200;
+            const transitionDuration = 700;
+            const availableForSlides = 30000 - promoDuration - (numContentSlides * transitionDuration);
+            const slideDuration = Math.max(3000, Math.min(6500, Math.floor(availableForSlides / numContentSlides)));
+            totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
+        } else if (combinedMode === 'PLANNING') {
+            // Agenda: Slide 1 (5.5s) + transition (0.7s) + Slide 2 (5.6s) + transition (0.7s) + Promo outro (3.2s) = 15.7s
+            totalDuration = 5500 + 700 + 5600 + 700 + 3200; // 15700ms (~15.7s)
+        } else if (theme.startsWith('TOP 5')) {
             totalDuration = 5 * (16800 + 1200); // 5 slides + transitions
         } else if (theme === 'TOP 10 FESTIVAL') {
             totalDuration = 4 * (16800 + 1200); // 4 slides (Cover + 3 Grid pages)
         } else {
             // Utilise la durée exacte de la vidéo uploadée.
-            // Si pas de vidéo de fond mais une animation active (ou TRACKLIST), 6s suffisent pour capturer l'animation complète
+            // Si pas de vidéo de fond mais une animation active (ou format REEL ou TRACKLIST), 15s pour un format Reel complet
             // Fallback à 60s si aucune vidéo ni animation n'est présente.
             totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
                 ? bgVideo.duration * 1000
-                : ((textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST') ? 6000 : 60000);
+                : ((activeTab === 'REEL' || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST') ? 15000 : 60000);
             if (totalDuration > 600000) totalDuration = 600000; // Limit to 10 minutes
         }
 
@@ -3875,7 +3978,126 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setRecordingTimeLeft(Math.max(0, Math.ceil((totalDuration - elapsed) / 1000)));
         }, 100);
 
-        if (theme.startsWith('TOP 5')) {
+        if (combinedMode === 'EDITORIAL') {
+            const numContentSlides = 2 + extraEditorialSlides.length;
+            const promoDuration = 3200;
+            const transitionDuration = 700;
+            const availableForSlides = 30000 - promoDuration - (numContentSlides * transitionDuration);
+            const slideDuration = Math.max(3000, Math.min(6500, Math.floor(availableForSlides / numContentSlides)));
+
+            // 1. Déroulement des slides de contenu (Slide 1 à N)
+            for (let s = 1; s <= numContentSlides; s++) {
+                if (s > 1) {
+                    const startT = Date.now();
+                    let switched = false;
+                    while (Date.now() - startT < transitionDuration) {
+                        const progress = Math.min(1, (Date.now() - startT) / transitionDuration);
+                        transitionProgressRef.current = progress;
+                        setTransitionProgress(progress);
+                        if (progress >= 0.5 && !switched) {
+                            editorialSlideOverrideRef.current = s;
+                            setEditorialSlide(s);
+                            animStartTimeRef.current = Date.now();
+                            switched = true;
+                        }
+                        await generateImage();
+                        await new Promise(r => requestAnimationFrame(r));
+                    }
+                    transitionProgressRef.current = 0;
+                    setTransitionProgress(0);
+                } else {
+                    editorialSlideOverrideRef.current = 1;
+                    setEditorialSlide(1);
+                    animStartTimeRef.current = Date.now();
+                    await generateImage();
+                }
+
+                // Affichage de la slide pendant slideDuration (garanti >= 3.0s et total <= 30.0s)
+                await new Promise(r => setTimeout(r, slideDuration));
+            }
+
+            // 2. Transition vers le visuel PROMO outro à la fin du Reel
+            const startPromoT = Date.now();
+            let switchedPromo = false;
+            while (Date.now() - startPromoT < transitionDuration) {
+                const progress = Math.min(1, (Date.now() - startPromoT) / transitionDuration);
+                transitionProgressRef.current = progress;
+                setTransitionProgress(progress);
+                if (progress >= 0.5 && !switchedPromo) {
+                    promoOutroOverrideRef.current = true;
+                    animStartTimeRef.current = Date.now();
+                    switchedPromo = true;
+                }
+                await generateImage();
+                await new Promise(r => requestAnimationFrame(r));
+            }
+            transitionProgressRef.current = 0;
+            setTransitionProgress(0);
+
+            // 3. Affichage du visuel promo final pendant promoDuration
+            await generateImage();
+            await new Promise(r => setTimeout(r, promoDuration));
+            promoOutroOverrideRef.current = false;
+
+        } else if (combinedMode === 'PLANNING') {
+            const promoDuration = 3200;
+            const transitionDuration = 700;
+            const slideDuration = 5500;
+
+            // 1. Slide 1 (Cover)
+            agendaSlideOverrideRef.current = 1;
+            setAgendaSlide(1);
+            animStartTimeRef.current = Date.now();
+            await generateImage();
+            await new Promise(r => setTimeout(r, slideDuration));
+
+            // 2. Transition carrousel vers Slide 2
+            const startT = Date.now();
+            let switched = false;
+            while (Date.now() - startT < transitionDuration) {
+                const progress = Math.min(1, (Date.now() - startT) / transitionDuration);
+                transitionProgressRef.current = progress;
+                setTransitionProgress(progress);
+                if (progress >= 0.5 && !switched) {
+                    agendaSlideOverrideRef.current = 2;
+                    setAgendaSlide(2);
+                    animStartTimeRef.current = Date.now();
+                    switched = true;
+                }
+                await generateImage();
+                await new Promise(r => requestAnimationFrame(r));
+            }
+            transitionProgressRef.current = 0;
+            setTransitionProgress(0);
+
+            // 3. Slide 2 (Lineup)
+            await generateImage();
+            await new Promise(r => setTimeout(r, 5600));
+
+            // 4. Transition vers le visuel PROMO outro à la fin du Reel
+            const startPromoT = Date.now();
+            let switchedPromo = false;
+            while (Date.now() - startPromoT < transitionDuration) {
+                const progress = Math.min(1, (Date.now() - startPromoT) / transitionDuration);
+                transitionProgressRef.current = progress;
+                setTransitionProgress(progress);
+                if (progress >= 0.5 && !switchedPromo) {
+                    promoOutroOverrideRef.current = true;
+                    animStartTimeRef.current = Date.now();
+                    switchedPromo = true;
+                }
+                await generateImage();
+                await new Promise(r => requestAnimationFrame(r));
+            }
+            transitionProgressRef.current = 0;
+            setTransitionProgress(0);
+
+            // 5. Affichage du visuel promo final
+            await generateImage();
+            await new Promise(r => setTimeout(r, promoDuration));
+            promoOutroOverrideRef.current = false;
+
+        } else if (theme.startsWith('TOP 5')) {
             for (let i = 0; i < 5; i++) {
                 if (i > 0) {
                     const durationTransition = 1200;
@@ -3924,7 +4146,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         clearInterval(progressInterval);
         setRecordingProgress(100);
         setRecordingTimeLeft(0);
+        promoOutroOverrideRef.current = false;
+        transitionProgressRef.current = null;
         setTransitionProgress(0);
+        if (combinedMode === 'PLANNING') {
+            agendaSlideOverrideRef.current = null;
+            setAgendaSlide(prevAgendaSlide);
+        } else if (combinedMode === 'EDITORIAL') {
+            editorialSlideOverrideRef.current = null;
+            setEditorialSlide(prevEditorialSlide);
+        }
         if (bgVideo) {
             bgVideo.muted = true; // remet en silencieux pour le preview
             bgVideo.loop = true;
@@ -4319,7 +4550,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    const downloadEditorialSlide = async (slideNumber: 1 | 2, format: TabType = (activeTab || 'PUBLICATION')) => {
+    const downloadEditorialSlide = async (slideNumber: number, format: TabType = (activeTab || 'PUBLICATION')) => {
         if (!canvasRef.current) return;
         setIsDownloading(true);
         const prevSlide = editorialSlide;
@@ -4330,7 +4561,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const isMusicTheme = (theme === 'MUSIQUE');
             const suffix = slideNumber === 1 
                 ? (isMusicTheme ? 'annonce' : 'cover') 
-                : (isMusicTheme ? 'track-cover' : 'detail');
+                : (isMusicTheme ? 'track-cover' : `detail-slide${slideNumber}`);
             const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide${slideNumber}-${suffix}.png`;
             const dataUrl = canvasRef.current.toDataURL('image/png');
             const a = document.createElement('a');
@@ -4356,31 +4587,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setIsDownloading(true);
         const prevSlide = editorialSlide;
         const isMusicTheme = (theme === 'MUSIQUE');
+        const numSlides = 2 + extraEditorialSlides.length;
         try {
-            // 1. Slide 1 (Cover / Annonce)
-            setEditorialSlide(1);
-            await new Promise(r => setTimeout(r, 60));
-            await generateImage(format, true);
-            const dataUrl1 = canvasRef.current.toDataURL('image/png');
-            const a1 = document.createElement('a');
-            a1.href = dataUrl1;
-            a1.download = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide1-${isMusicTheme ? 'annonce' : 'cover'}.png`;
-            document.body.appendChild(a1);
-            a1.click();
-            document.body.removeChild(a1);
-
-            // 2. Slide 2 (Detail / Track Cover)
-            await new Promise(r => setTimeout(r, 350));
-            setEditorialSlide(2);
-            await new Promise(r => setTimeout(r, 60));
-            await generateImage(format, true);
-            const dataUrl2 = canvasRef.current.toDataURL('image/png');
-            const a2 = document.createElement('a');
-            a2.href = dataUrl2;
-            a2.download = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide2-${isMusicTheme ? 'track-cover' : 'detail'}.png`;
-            document.body.appendChild(a2);
-            a2.click();
-            document.body.removeChild(a2);
+            for (let s = 1; s <= numSlides; s++) {
+                if (s > 1) await new Promise(r => setTimeout(r, 350));
+                setEditorialSlide(s);
+                await new Promise(r => setTimeout(r, 60));
+                await generateImage(format, true);
+                const dataUrl = canvasRef.current.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = dataUrl;
+                const suffix = s === 1 ? (isMusicTheme ? 'annonce' : 'cover') : (isMusicTheme ? 'track-cover' : `detail-slide${s}`);
+                a.download = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide${s}-${suffix}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
         } catch (e) {
             console.error(e);
             setErrorMessage("Erreur lors de l'exportation du carrousel.");
@@ -4586,7 +4808,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </p>
                     <button
                         type="button"
-                        onClick={startVideoRecording}
+                        onClick={() => startVideoRecording()}
                         disabled={isVideoRecording}
                         className={`w-full py-2.5 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-md ${
                             isVideoRecording
@@ -5099,7 +5321,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     disabled={isDownloading}
                     className="w-full py-2 bg-[#ff3700]/20 hover:bg-[#ff3700]/30 border border-[#ff3700]/40 text-[#ff3700] hover:text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-2"
                 >
-                    <Sparkles className="w-3.5 h-3.5" /> Exporter le Carrousel Complet (Slide 1 + 2)
+                    <Sparkles className="w-3.5 h-3.5" /> Exporter le Carrousel Images (Slide 1 + 2)
+                </button>
+                <button
+                    type="button"
+                    onClick={() => startVideoRecording('PLANNING')}
+                    disabled={isVideoRecording}
+                    className="w-full py-2.5 bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 hover:opacity-90 text-black font-black text-[9.5px] uppercase rounded-lg shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+                >
+                    <Video className="w-3.5 h-3.5 text-black" /> {isVideoRecording ? 'Enregistrement Vidéo en cours...' : '🎬 Exporter Vidéo Complète (Slide 1 + 2) • 15s'}
                 </button>
             </div>
 
@@ -6189,7 +6419,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </p>
                     <button
                         type="button"
-                        onClick={startVideoRecording}
+                        onClick={() => startVideoRecording()}
                         disabled={isVideoRecording}
                         className={`w-full py-2.5 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-md ${
                             isVideoRecording
@@ -6210,54 +6440,102 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             {/* CARROUSEL SLIDE SWITCHER (POUR NEWS, RÉCAP, FOCUS, ETC.) */}
             {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && (
                 <>
-                    <div className="p-1.5 bg-black/60 border border-white/10 rounded-2xl flex gap-1 shadow-xl">
-                        <button
-                            type="button"
-                            onClick={() => setEditorialSlide(1)}
-                            className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
-                                editorialSlide === 1
-                                    ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-[1.02]'
-                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
-                            }`}
-                        >
-                            <span className="text-xs">📌</span> Slide 1 : Titre Seul (Cover)
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setEditorialSlide(2)}
-                            className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
-                                editorialSlide === 2
-                                    ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-[1.02]'
-                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
-                            }`}
-                        >
-                            <span className="text-xs">📖</span> Slide 2 : Titre + Sous-titre
-                        </button>
+                    <div className="p-2 bg-black/60 border border-white/10 rounded-2xl space-y-2 shadow-xl">
+                        <div className="flex items-center justify-between text-[8.5px] font-bold text-gray-400 uppercase px-1">
+                            <span>Slides du Carrousel ({2 + extraEditorialSlides.length}/7 max)</span>
+                            {extraEditorialSlides.length < 5 && (
+                                <button
+                                    type="button"
+                                    onClick={addEditorialSlide}
+                                    className="px-2.5 py-1 bg-neon-cyan/20 hover:bg-neon-cyan/30 text-neon-cyan border border-neon-cyan/40 rounded-lg text-[9px] font-black uppercase transition-all flex items-center gap-1 shadow-sm active:scale-95"
+                                >
+                                    <span>➕</span> Ajouter Slide
+                                </button>
+                            )}
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                            <button
+                                type="button"
+                                onClick={() => setEditorialSlide(1)}
+                                className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                                    editorialSlide === 1
+                                        ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-[1.02]'
+                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                }`}
+                            >
+                                <span className="text-xs">📌</span> Slide 1 : Cover
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setEditorialSlide(2)}
+                                className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                                    editorialSlide === 2
+                                        ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-[1.02]'
+                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                }`}
+                            >
+                                <span className="text-xs">📖</span> Slide 2
+                            </button>
+                            {extraEditorialSlides.map((_, idx) => {
+                                const sNum = idx + 3;
+                                return (
+                                    <button
+                                        key={sNum}
+                                        type="button"
+                                        onClick={() => setEditorialSlide(sNum)}
+                                        className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                                            editorialSlide === sNum
+                                                ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-[1.02]'
+                                                : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                        }`}
+                                    >
+                                        <span className="text-xs">📄</span> Slide {sNum}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Calcul automatique de la durée des Reels (≤ 30s max, ≥ 3s min par slide + outro promo) */}
+                        {activeTab === 'REEL' && (() => {
+                            const numSlides = 2 + extraEditorialSlides.length;
+                            const promoD = 3.2;
+                            const transD = 0.7;
+                            const avail = 30.0 - promoD - (numSlides * transD);
+                            const perSlideSec = Math.max(3.0, Math.min(6.5, avail / numSlides));
+                            const totalSec = ((numSlides * perSlideSec) + (numSlides * transD) + promoD).toFixed(1);
+                            return (
+                                <div className="p-2 bg-gradient-to-r from-neon-cyan/10 to-indigo-500/10 border border-neon-cyan/20 rounded-xl flex items-center justify-between text-[8.5px]">
+                                    <div className="flex items-center gap-1.5 text-gray-300">
+                                        <span className="text-neon-cyan font-black">⏱️ Durée auto :</span>
+                                        <span className="text-white font-mono font-black">{totalSec}s</span>
+                                        <span className="text-emerald-400 font-bold">(≤ 30s max)</span>
+                                    </div>
+                                    <div className="text-gray-400 font-medium">
+                                        <span className="text-white font-mono font-bold">{perSlideSec.toFixed(1)}s</span>/slide (≥ 3s min) + 3.2s Promo
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     {/* Quick Carousel Download Bar */}
                     <div className="p-2.5 bg-white/5 border border-white/10 rounded-xl space-y-2">
                         <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
-                            <span>Export Carrousel Rapide</span>
+                            <span>Export Carrousel Rapide ({2 + extraEditorialSlides.length} Slides)</span>
                             <span className="text-white font-mono">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
-                            <button
-                                type="button"
-                                onClick={() => downloadEditorialSlide(1)}
-                                disabled={isDownloading}
-                                className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
-                            >
-                                <Download className="w-3.5 h-3.5 text-neon-cyan" /> Slide 1 (PNG)
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => downloadEditorialSlide(2)}
-                                disabled={isDownloading}
-                                className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
-                            >
-                                <Download className="w-3.5 h-3.5 text-neon-cyan" /> Slide 2 (PNG)
-                            </button>
+                        <div className="flex flex-wrap gap-1.5">
+                            {Array.from({ length: 2 + extraEditorialSlides.length }).map((_, i) => (
+                                <button
+                                    key={i + 1}
+                                    type="button"
+                                    onClick={() => downloadEditorialSlide(i + 1)}
+                                    disabled={isDownloading}
+                                    className="flex-1 min-w-[70px] py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1"
+                                >
+                                    <Download className="w-3.5 h-3.5 text-neon-cyan" /> S{i + 1}
+                                </button>
+                            ))}
                         </div>
                         <button
                             type="button"
@@ -6265,8 +6543,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             disabled={isDownloading}
                             className="w-full py-2.5 bg-gradient-to-r from-neon-cyan via-blue-500 to-indigo-600 hover:opacity-90 text-black font-black text-[10px] uppercase rounded-lg shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95"
                         >
-                            <Download className="w-4 h-4 text-black" /> Télécharger Carrousel (Slide 1 + 2)
+                            <Download className="w-4 h-4 text-black" /> Télécharger Carrousel Images ({2 + extraEditorialSlides.length} Slides)
                         </button>
+                        {activeTab === 'REEL' && (() => {
+                            const numSlides = 2 + extraEditorialSlides.length;
+                            const promoD = 3.2;
+                            const transD = 0.7;
+                            const avail = 30.0 - promoD - (numSlides * transD);
+                            const perSlideSec = Math.max(3.0, Math.min(6.5, avail / numSlides));
+                            const totalSec = ((numSlides * perSlideSec) + (numSlides * transD) + promoD).toFixed(1);
+                            return (
+                                <button
+                                    type="button"
+                                    onClick={() => startVideoRecording('EDITORIAL')}
+                                    disabled={isVideoRecording}
+                                    className="w-full py-2.5 bg-gradient-to-r from-red-500 via-rose-500 to-pink-600 hover:opacity-90 text-white font-black text-[10px] uppercase rounded-lg shadow-lg shadow-rose-500/25 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+                                >
+                                    <Video className="w-4 h-4 text-white" /> {isVideoRecording ? 'Capture Reel en cours...' : `🎬 Exporter Reel Vidéo Complet (${numSlides} Slides + Promo) • ${totalSec}s`}
+                                </button>
+                            );
+                        })()}
                     </div>
 
                     {theme === 'CONCOURS' && (
@@ -6422,105 +6718,153 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 })()}
             </div>
 
-            {editorialSlide === 2 && (
-                <div className="space-y-2">
-                    <div className="flex items-center justify-between pl-1">
-                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
-                            <span>Texte en dessous (italique)</span>
-                            <span className="text-[8px] font-bold text-neon-cyan px-1.5 py-0.5 rounded bg-neon-cyan/10 border border-neon-cyan/20">Slide 2</span>
-                        </label>
-                        <span className="text-[8px] font-bold text-gray-500">Astuce: *mot*</span>
-                    </div>
-                <textarea 
-                    ref={conseilsSubtextInputRef}
-                    rows={3}
-                    value={conseilsSubtext} 
-                    onChange={e => setConseilsSubtext(e.target.value)} 
-                    placeholder="EX: Halloween 2026&#10;*Electro* to Techno to Hard Techno" 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white italic focus:border-white/40 outline-none transition-all shadow-md resize-none" 
-                />
-                {(() => {
-                    const rawWords = conseilsSubtext ? conseilsSubtext.split(/\s+/).filter(Boolean) : [];
-                    if (rawWords.length === 0) return null;
-                    return (
-                        <div className="space-y-1.5 pt-1">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                                    <span 
-                                        className="w-2 h-2 rounded-full inline-block animate-pulse" 
-                                        style={{ backgroundColor: activeColor.color, boxShadow: `0 0 8px ${activeColor.color}` }}
-                                    />
-                                    Clique pour colorer un mot :
-                                </span>
+            {editorialSlide >= 2 && (() => {
+                const currentSlideText = editorialSlide === 2 ? conseilsSubtext : (extraEditorialSlides[editorialSlide - 3] || '');
+                return (
+                    <div className="space-y-3">
+                        {/* Header Slide info & delete button */}
+                        <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase text-neon-cyan flex items-center gap-1.5">
+                                <span>📄 Contenu de la Slide {editorialSlide}</span>
+                                <span className="text-[8px] font-bold text-gray-400">({editorialSlide}/{2 + extraEditorialSlides.length})</span>
+                            </span>
+                            {editorialSlide >= 3 && (
                                 <button
                                     type="button"
-                                    onClick={() => {
-                                        const el = conseilsSubtextInputRef.current;
-                                        if (!el) return;
-                                        const start = el.selectionStart;
-                                        const end = el.selectionEnd;
-                                        if (start === end) return;
-                                        const sel = conseilsSubtext.substring(start, end);
-                                        const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
-                                        const updated = conseilsSubtext.substring(0, start) + rep + conseilsSubtext.substring(end);
-                                        setConseilsSubtext(updated);
-                                    }}
-                                    className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
-                                    title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
+                                    onClick={() => removeEditorialSlide(editorialSlide)}
+                                    className="px-2 py-1 text-[8.5px] font-bold text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-all flex items-center gap-1 active:scale-95"
                                 >
-                                    Colorer sélection
+                                    🗑️ Supprimer Slide {editorialSlide}
                                 </button>
-                            </div>
-                            <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
-                                {rawWords.map((word, idx) => {
-                                    const isHighlighted = word.startsWith('*') && word.endsWith('*') && word.length >= 2;
-                                    const cleanWord = isHighlighted ? word.slice(1, -1) : word;
-                                    return (
-                                        <button
-                                            key={idx}
-                                            type="button"
-                                            onClick={() => {
-                                                const parts = conseilsSubtext.split(/(\s+)/);
-                                                let curIdx = 0;
-                                                const res = parts.map(p => {
-                                                    if (/^\s+$/.test(p) || !p) return p;
-                                                    if (curIdx === idx) {
-                                                        curIdx++;
-                                                        if (p.startsWith('*') && p.endsWith('*') && p.length >= 2) {
-                                                            return p.slice(1, -1);
-                                                        } else {
-                                                            const clean = p.replace(/^\*+|\*+$/g, '');
-                                                            return `*${clean}*`;
-                                                        }
-                                                    }
-                                                    curIdx++;
-                                                    return p;
-                                                });
-                                                setConseilsSubtext(res.join(''));
-                                            }}
-                                            className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${
-                                                isHighlighted 
-                                                    ? 'shadow-md border-transparent' 
-                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
-                                            }`}
-                                            style={isHighlighted ? {
-                                                backgroundColor: `${activeColor.color}30`,
-                                                borderColor: activeColor.color,
-                                                color: activeColor.color,
-                                                boxShadow: `0 0 10px ${activeColor.color}50`,
-                                            } : undefined}
-                                            title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer en ${theme}`}
-                                        >
-                                            {cleanWord}
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                            )}
                         </div>
-                    );
-                })()}
-                </div>
-            )}
+
+                        {/* Toggle Afficher / Masquer le grand titre sur Slide 2+ */}
+                        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between shadow-sm">
+                            <div className="space-y-0.5">
+                                <div className="text-[10px] font-black uppercase text-white flex items-center gap-1.5">
+                                    <span>Titre principal sur Slide {editorialSlide}</span>
+                                    <span className={`text-[8.5px] px-1.5 py-0.5 rounded font-bold ${showTitleOnSlide2 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30'}`}>
+                                        {showTitleOnSlide2 ? 'Affiché' : 'Masqué (Texte Plein Écran)'}
+                                    </span>
+                                </div>
+                                <p className="text-[8.5px] text-gray-400">
+                                    {showTitleOnSlide2 ? 'Le grand titre reste au-dessus.' : 'Masque le grand titre pour agrandir le texte de l\'article (38px) et libérer tout l\'espace.'}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowTitleOnSlide2(!showTitleOnSlide2)}
+                                className={`px-3 py-1.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center gap-1.5 border ${
+                                    showTitleOnSlide2
+                                        ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
+                                        : 'bg-white/10 border-white/20 text-white hover:bg-white/20 shadow-md'
+                                }`}
+                            >
+                                {showTitleOnSlide2 ? '👁️ Titre Visible' : '🚫 Titre Masqué'}
+                            </button>
+                        </div>
+
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between pl-1">
+                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+                                    <span>Texte de la slide</span>
+                                    <span className="text-[8px] font-bold text-neon-cyan px-1.5 py-0.5 rounded bg-neon-cyan/10 border border-neon-cyan/20">Slide {editorialSlide}</span>
+                                </label>
+                                <span className="text-[8px] font-bold text-gray-500">Astuce: *mot*</span>
+                            </div>
+                            <textarea 
+                                ref={conseilsSubtextInputRef}
+                                rows={3}
+                                value={currentSlideText} 
+                                onChange={e => updateEditorialSlideText(editorialSlide, e.target.value)} 
+                                placeholder={editorialSlide === 2 ? "EX: Halloween 2026\n*Electro* to Techno to Hard Techno" : `Texte pour la Slide ${editorialSlide}...`} 
+                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white italic focus:border-white/40 outline-none transition-all shadow-md resize-none" 
+                            />
+                            {(() => {
+                                const rawWords = currentSlideText ? currentSlideText.split(/\s+/).filter(Boolean) : [];
+                                if (rawWords.length === 0) return null;
+                                return (
+                                    <div className="space-y-1.5 pt-1">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                <span 
+                                                    className="w-2 h-2 rounded-full inline-block animate-pulse" 
+                                                    style={{ backgroundColor: activeColor.color, boxShadow: `0 0 8px ${activeColor.color}` }}
+                                                />
+                                                Clique pour colorer un mot :
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const el = conseilsSubtextInputRef.current;
+                                                    if (!el) return;
+                                                    const start = el.selectionStart;
+                                                    const end = el.selectionEnd;
+                                                    if (start === end) return;
+                                                    const sel = currentSlideText.substring(start, end);
+                                                    const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
+                                                    const updated = currentSlideText.substring(0, start) + rep + currentSlideText.substring(end);
+                                                    updateEditorialSlideText(editorialSlide, updated);
+                                                }}
+                                                className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
+                                                title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
+                                            >
+                                                Colorer sélection
+                                            </button>
+                                        </div>
+                                        <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
+                                            {rawWords.map((word, idx) => {
+                                                const isHighlighted = word.startsWith('*') && word.endsWith('*') && word.length >= 2;
+                                                const cleanWord = isHighlighted ? word.slice(1, -1) : word;
+                                                return (
+                                                    <button
+                                                        key={idx}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const parts = currentSlideText.split(/(\s+)/);
+                                                            let curIdx = 0;
+                                                            const res = parts.map(p => {
+                                                                if (/^\s+$/.test(p) || !p) return p;
+                                                                if (curIdx === idx) {
+                                                                    curIdx++;
+                                                                    if (p.startsWith('*') && p.endsWith('*') && p.length >= 2) {
+                                                                        return p.slice(1, -1);
+                                                                    } else {
+                                                                        const clean = p.replace(/^\*+|\*+$/g, '');
+                                                                        return `*${clean}*`;
+                                                                    }
+                                                                }
+                                                                curIdx++;
+                                                                return p;
+                                                            });
+                                                            updateEditorialSlideText(editorialSlide, res.join(''));
+                                                        }}
+                                                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${
+                                                            isHighlighted 
+                                                                ? 'shadow-md border-transparent' 
+                                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
+                                                        }`}
+                                                        style={isHighlighted ? {
+                                                            backgroundColor: `${activeColor.color}30`,
+                                                            borderColor: activeColor.color,
+                                                            color: activeColor.color,
+                                                            boxShadow: `0 0 10px ${activeColor.color}50`,
+                                                        } : undefined}
+                                                        title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer en ${theme}`}
+                                                    >
+                                                        {cleanWord}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    </div>
+                );
+            })()}
         </div>
     );
 
@@ -7229,18 +7573,67 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             >
                 <Download className="w-3 h-3 text-neon-cyan" /> Exporter le Fond Visuel (Seul)
             </button>
-            <button
-                type="button"
-                onClick={startVideoRecording}
-                disabled={isVideoRecording}
-                className={`w-full py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-lg ${
-                    isVideoRecording
-                        ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
-                        : 'bg-gradient-to-r from-neon-red to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_20px_rgba(255,0,51,0.4)]'
-                }`}
-            >
-                <Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE MP4 EN COURS...' : `🎬 GÉNÉRER LE MP4 (${activeTab === 'REEL' ? 'REEL 9:16' : theme})`}
-            </button>
+            {/* Si thème PLANNING ou Thème Éditorial en REEL, on propose Option A (Slide actuelle) et Option B (Vidéo Complète) */}
+            {theme === 'PLANNING' ? (
+                <div className="space-y-1.5">
+                    <button
+                        type="button"
+                        onClick={() => startVideoRecording('PLANNING')}
+                        disabled={isVideoRecording}
+                        className={`w-full py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-lg ${
+                            isVideoRecording
+                                ? 'bg-[#ff3700]/30 text-[#ff3700] border border-[#ff3700]/50 animate-pulse'
+                                : 'bg-gradient-to-r from-[#ff3700] to-orange-500 text-black hover:brightness-110 active:scale-[0.98] shadow-[0_0_20px_rgba(255,55,0,0.4)]'
+                        }`}
+                    >
+                        <Video className="w-4 h-4 text-black" /> {isVideoRecording ? 'CAPTURE VIDÉO EN COURS...' : '🎬 EXPORTER VIDÉO COMPLÈTE (SLIDE 1 + 2) • 15S'}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => startVideoRecording('NONE')}
+                        disabled={isVideoRecording}
+                        className="w-full py-2 bg-white/5 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all"
+                    >
+                        <Video className="w-3.5 h-3.5 text-[#ff3700]" /> Exporter Slide Actuelle Seule ({agendaSlide === 1 ? 'Cover' : 'Lineup'})
+                    </button>
+                </div>
+            ) : (['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && activeTab === 'REEL') ? (
+                <div className="space-y-1.5">
+                    <button
+                        type="button"
+                        onClick={() => startVideoRecording('EDITORIAL')}
+                        disabled={isVideoRecording}
+                        className={`w-full py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-lg ${
+                            isVideoRecording
+                                ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
+                                : 'bg-gradient-to-r from-neon-red via-rose-500 to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_20px_rgba(255,0,51,0.4)]'
+                        }`}
+                    >
+                        <Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE REEL EN COURS...' : '🎬 EXPORTER REEL COMPLET (SLIDE 1 + 2) • 15S'}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => startVideoRecording('NONE')}
+                        disabled={isVideoRecording}
+                        className="w-full py-2 bg-white/5 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all"
+                    >
+                        <Video className="w-3.5 h-3.5 text-neon-red" /> Exporter Slide Actuelle Seule (Slide {editorialSlide})
+                    </button>
+                </div>
+            ) : (
+                <button
+                    type="button"
+                    onClick={() => startVideoRecording('NONE')}
+                    disabled={isVideoRecording}
+                    className={`w-full py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-lg ${
+                        isVideoRecording
+                            ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
+                            : 'bg-gradient-to-r from-neon-red to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_20px_rgba(255,0,51,0.4)]'
+                    }`}
+                >
+                    <Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE MP4 EN COURS...' : `🎬 GÉNÉRER LE MP4 (${activeTab === 'REEL' ? 'REEL 9:16' : theme})`}
+                </button>
+            )}
         </div>
     );
 
@@ -8288,6 +8681,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     📋 Slide 2 (Événements)
                                 </button>
+                                <button
+                                    type="button"
+                                    onClick={() => startVideoRecording('PLANNING')}
+                                    disabled={isVideoRecording}
+                                    className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1 bg-gradient-to-r from-[#ff3700] to-orange-500 text-black shadow-md hover:scale-105 active:scale-95 disabled:opacity-50 ml-1"
+                                    title="Exporter une vidéo MP4 combinant Slide 1 + Slide 2 avec transition"
+                                >
+                                    <Video className="w-3 h-3 text-black" /> Vidéo (1+2)
+                                </button>
                             </div>
                         )}
                         {theme === 'ARTISTE FESTIVAL' && (
@@ -8369,10 +8771,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     💿 Slide 2 (Cover Track)
                                 </button>
+                                {activeTab === 'REEL' && (
+                                    <button
+                                        type="button"
+                                        onClick={() => startVideoRecording('EDITORIAL')}
+                                        disabled={isVideoRecording}
+                                        className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1 bg-gradient-to-r from-[#00ff66] to-emerald-400 text-black shadow-md hover:scale-105 active:scale-95 disabled:opacity-50 ml-1"
+                                        title="Exporter un Reel vidéo combinant Slide 1 + Slide 2 avec transition"
+                                    >
+                                        <Video className="w-3 h-3 text-black" /> Reel (1+2)
+                                    </button>
+                                )}
                             </div>
                         )}
-                        {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS'].includes(theme) && (
-                            <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20">
+                        {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && (
+                            <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20 flex-wrap justify-center">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
                                 <button
                                     type="button"
@@ -8383,7 +8796,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
                                 >
-                                    📌 Slide 1 (Titre)
+                                    📌 Slide 1 (Cover)
                                 </button>
                                 <button
                                     type="button"
@@ -8394,8 +8807,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
                                 >
-                                    📖 Slide 2 (Détail)
+                                    📖 Slide 2
                                 </button>
+                                {extraEditorialSlides.map((_, idx) => {
+                                    const sNum = idx + 3;
+                                    return (
+                                        <button
+                                            key={sNum}
+                                            type="button"
+                                            onClick={() => setEditorialSlide(sNum)}
+                                            className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                                editorialSlide === sNum
+                                                    ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
+                                                    : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                            }`}
+                                        >
+                                            📄 Slide {sNum}
+                                        </button>
+                                    );
+                                })}
+                                {activeTab === 'REEL' && (
+                                    <button
+                                        type="button"
+                                        onClick={() => startVideoRecording('EDITORIAL')}
+                                        disabled={isVideoRecording}
+                                        className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1 bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-md hover:scale-105 active:scale-95 disabled:opacity-50 ml-1"
+                                        title={`Exporter un Reel vidéo combinant ${2 + extraEditorialSlides.length} slides + Promo Outro`}
+                                    >
+                                        <Video className="w-3 h-3 text-white" /> Reel ({2 + extraEditorialSlides.length} Slides + Promo)
+                                    </button>
+                                )}
                             </div>
                         )}
                         <div className={`relative ${activeTab === 'REEL' ? 'w-full max-w-[280px]' : 'w-full max-w-[450px]'} transition-all duration-300`} style={{ aspectRatio: activeTab === 'REEL' ? '9/16' : '4/5' }}>
