@@ -62,7 +62,7 @@
     "youtubeId": "",
     "showVideo": true,
     "category": "News",
-    "isFeatured": false,
+    "isFeatured": true,
     "isFocus": false,
     "isDraft": false,
     "isReview": false,
