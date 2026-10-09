@@ -78,6 +78,42 @@ export function ImageUploadModal({
         return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'avif', 'ico'].includes(ext);
     };
 
+    // Deletion State
+    const [deleteConfirmKey, setDeleteConfirmKey] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDeleteFile = (key: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setDeleteConfirmKey(key);
+    };
+
+    const confirmDeleteFile = async () => {
+        if (!deleteConfirmKey) return;
+        setIsDeleting(true);
+        try {
+            const res = await fetch('/api/r2/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify({ key: deleteConfirmKey })
+            });
+            if (res.ok) {
+                setR2Photos(prev => prev.filter(p => p.key !== deleteConfirmKey));
+                setSelectedImages(prev => prev.filter(img => !img.preview.includes(deleteConfirmKey)));
+            } else {
+                const data = await res.json().catch(() => ({}));
+                setStatus('error');
+                setMessage(data.error || 'Erreur lors de la suppression');
+            }
+        } catch (err: any) {
+            console.error('Failed to delete file from Cloud', err);
+            setStatus('error');
+            setMessage('Erreur: ' + (err.message || 'Impossible de supprimer le fichier'));
+        } finally {
+            setIsDeleting(false);
+            setDeleteConfirmKey(null);
+        }
+    };
+
     // Web Search State
     const [webQuery, setWebQuery] = useState('');
     const [webResults, setWebResults] = useState<any[]>([]);
@@ -861,16 +897,37 @@ export function ImageUploadModal({
                                                                     />
                                                                 )}
                                                                 
+                                                                {/* Bouton de suppression directe au survol (en haut à droite) */}
+                                                                <button
+                                                                    type="button"
+                                                                    title="Supprimer définitivement du Cloud"
+                                                                    onClick={(e) => handleDeleteFile(photo.key, e)}
+                                                                    className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-black/80 hover:bg-red-600 text-gray-300 hover:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110 shadow-lg z-30 border border-white/20 hover:border-red-500/40 backdrop-blur-md"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+
                                                                 {selectedImages.some(img => img.preview === photo.url) && (
-                                                                    <div className="absolute top-6 right-6 w-10 h-10 bg-neon-blue rounded-full flex items-center justify-center shadow-2xl animate-in zoom-in duration-300 z-20">
-                                                                        <div className="text-sm font-black text-black">
-                                                                            {allowMultiple ? selectedImages.findIndex(img => img.preview === photo.url) + 1 : <Check className="w-5 h-5" strokeWidth={4} />}
+                                                                    <div className="absolute top-2.5 left-2.5 w-7 h-7 bg-neon-blue rounded-full flex items-center justify-center shadow-2xl animate-in zoom-in duration-300 z-20 pointer-events-none">
+                                                                        <div className="text-xs font-black text-black">
+                                                                            {allowMultiple ? selectedImages.findIndex(img => img.preview === photo.url) + 1 : <Check className="w-4 h-4" strokeWidth={4} />}
                                                                         </div>
                                                                     </div>
                                                                 )}
 
-                                                                <div className="absolute inset-x-0 bottom-0 bg-black/90 backdrop-blur-xl p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 border-t border-white/10 z-20">
-                                                                    <span className="text-[10px] font-black text-white block truncate text-center uppercase tracking-[0.2em]">{photo.key.split('/').pop()}</span>
+                                                                {/* Tiroir inférieur avec nom du fichier et bouton poubelle */}
+                                                                <div className="absolute inset-x-0 bottom-0 bg-black/90 backdrop-blur-xl p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-500 border-t border-white/10 z-20 flex items-center justify-between gap-2">
+                                                                    <span className="text-[10px] font-black text-white block truncate uppercase tracking-[0.15em] flex-1">
+                                                                        {photo.key.split('/').pop()}
+                                                                    </span>
+                                                                    <button
+                                                                        type="button"
+                                                                        title="Supprimer du Cloud"
+                                                                        onClick={(e) => handleDeleteFile(photo.key, e)}
+                                                                        className="p-1.5 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white rounded-lg transition-all shrink-0 hover:scale-110 shadow"
+                                                                    >
+                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                    </button>
                                                                 </div>
                                                             </div>
                                                             );
@@ -918,6 +975,60 @@ export function ImageUploadModal({
                     }}
                     onCancel={() => setIsCropOpen(false)}
                 />
+            )}
+
+            {/* Modal de confirmation de suppression */}
+            {deleteConfirmKey && (
+                <div className="fixed inset-0 z-[100060] flex items-center justify-center p-4">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => !isDeleting && setDeleteConfirmKey(null)}
+                        className="fixed inset-0 bg-black/90 backdrop-blur-md"
+                    />
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                        className="relative w-full max-w-md bg-[#0d0d0d] border border-red-500/30 rounded-3xl p-6 shadow-2xl z-10 space-y-4 text-left"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-red-500/20 text-red-500 rounded-2xl border border-red-500/30">
+                                <Trash2 className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black text-white uppercase tracking-wider">Supprimer du Cloud</h3>
+                                <p className="text-xs text-gray-400">Cette action est définitive et irréversible.</p>
+                            </div>
+                        </div>
+
+                        <div className="p-3 bg-white/5 border border-white/10 rounded-xl">
+                            <p className="text-xs text-gray-300 font-mono truncate">{deleteConfirmKey.split('/').pop()}</p>
+                            <p className="text-[10px] text-gray-500 font-bold uppercase mt-1">Dossier Cloud : {deleteConfirmKey.split('/')[0] || 'uploads'}</p>
+                        </div>
+
+                        <div className="flex gap-3 pt-2">
+                            <button
+                                type="button"
+                                disabled={isDeleting}
+                                onClick={() => setDeleteConfirmKey(null)}
+                                className="flex-1 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all disabled:opacity-50"
+                            >
+                                Annuler
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isDeleting}
+                                onClick={confirmDeleteFile}
+                                className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-600/30 disabled:opacity-50"
+                            >
+                                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                {isDeleting ? 'Suppression...' : 'Supprimer'}
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
             )}
         </AnimatePresence>
     );
