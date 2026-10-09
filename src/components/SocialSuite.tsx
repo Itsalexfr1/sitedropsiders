@@ -3421,6 +3421,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             video.loop = true;
             video.playsInline = true; // Important for mobile preview
             video.crossOrigin = "anonymous";
+            video.currentTime = 0;
+            const onLoaded = () => {
+                video.currentTime = 0;
+                video.play().catch(e => console.warn("Auto-preview play failed", e));
+                video.removeEventListener('loadedmetadata', onLoaded);
+            };
+            video.addEventListener('loadedmetadata', onLoaded);
             video.play().catch(e => console.warn("Auto-preview play failed", e));
             setBgVideo(video); setBgImage('');
         } else {
@@ -3506,11 +3513,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         if (bgVideo) {
             try {
-                // Crucial : la vidéo de fond doit impérativement boucler pour ne jamais se figer
+                // Impératif : la vidéo de fond doit recommencer à 0:00 pile pour que l'export commence au tout début du clip
+                bgVideo.pause();
+                bgVideo.currentTime = 0;
+                await new Promise<void>((resolve) => {
+                    const onSeeked = () => {
+                        bgVideo.removeEventListener('seeked', onSeeked);
+                        resolve();
+                    };
+                    bgVideo.addEventListener('seeked', onSeeked);
+                    // Sécurité : timeout de 200ms si l'événement seeked n'est pas émis
+                    setTimeout(resolve, 200);
+                });
                 bgVideo.loop = true;
-                if (bgVideo.ended) {
-                    bgVideo.currentTime = 0;
-                }
 
                 // Tente de jouer avec le son démuté pour alimenter l'AudioContext si permis
                 try {
@@ -4619,22 +4634,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             </div>
 
             {bgAnimation !== 'NONE' && (
-                <div className="space-y-1.5 pt-0.5">
+                <div className="pt-0.5">
                     <p className="text-[8px] text-gray-400 italic px-1">
-                        ✨ Animation de fond active ! Cliquez ci-dessous pour exporter directement la vidéo en MP4.
+                        ✨ Animation de fond active ! Retrouvez le bouton d'export dans la section <span className="text-neon-cyan font-bold">Vidéo Animée (MP4)</span> ci-dessous.
                     </p>
-                    <button
-                        type="button"
-                        onClick={() => startVideoRecording()}
-                        disabled={isVideoRecording}
-                        className={`w-full py-2.5 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-md ${
-                            isVideoRecording
-                                ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
-                                : 'bg-neon-red/20 border border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white active:scale-[0.98]'
-                        }`}
-                    >
-                        <Video className="w-3.5 h-3.5" /> {isVideoRecording ? 'Capture MP4 en cours...' : '🎬 Exporter cette animation en MP4'}
-                    </button>
                 </div>
             )}
         </div>
@@ -6693,24 +6696,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         >
                             <Download className="w-4 h-4 text-black" /> Télécharger Carrousel Images ({2 + extraEditorialSlides.length} Slides)
                         </button>
-                        {activeTab === 'REEL' && (() => {
-                            const numSlides = skipEditorialSlide2 ? (1 + extraEditorialSlides.length) : (2 + extraEditorialSlides.length);
-                            const promoD = 3.2;
-                            const transD = 0.7;
-                            const avail = 30.0 - promoD - (numSlides * transD);
-                            const perSlideSec = Math.max(3.0, Math.min(6.5, avail / numSlides));
-                            const totalSec = ((numSlides * perSlideSec) + (numSlides * transD) + promoD).toFixed(1);
-                            return (
-                                <button
-                                    type="button"
-                                    onClick={() => startVideoRecording('EDITORIAL')}
-                                    disabled={isVideoRecording}
-                                    className="w-full py-2.5 bg-gradient-to-r from-red-500 via-rose-500 to-pink-600 hover:opacity-90 text-white font-black text-[10px] uppercase rounded-lg shadow-lg shadow-rose-500/25 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 disabled:opacity-50"
-                                >
-                                    <Video className="w-4 h-4 text-white" /> {isVideoRecording ? 'Capture Reel en cours...' : skipEditorialSlide2 ? `🎬 Exporter Reel Vidéo (Slide 1 + Promo) • ${totalSec}s` : `🎬 Exporter Reel Vidéo Complet (${numSlides} Slides + Promo) • ${totalSec}s`}
-                                </button>
-                            );
-                        })()}
                     </div>
 
                     {theme === 'CONCOURS' && (
@@ -7747,30 +7732,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <div className="space-y-1.5 pt-1 border-t border-white/10">
                 <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">🎬 Vidéo Animée (MP4)</span>
                 {theme === 'PLANNING' ? (
-                    <div className="space-y-2">
-                        <button
-                            type="button"
-                            onClick={() => startVideoRecording('PLANNING')}
-                            disabled={isVideoRecording}
-                            className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${
-                                isVideoRecording
-                                    ? 'bg-[#ff3700]/30 text-[#ff3700] border border-[#ff3700]/50 animate-pulse'
-                                    : 'bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 text-black hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,55,0,0.45)]'
-                            }`}
-                        >
-                            <Video className="w-4 h-4 text-black" />
-                            {isVideoRecording ? 'CAPTURE VIDÉO EN COURS...' : '🎬 EXPORTER VIDÉO COMPLÈTE (SLIDE 1 + 2 + PROMO) • MP4'}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => startVideoRecording('NONE')}
-                            disabled={isVideoRecording}
-                            className="w-full py-2 bg-white/5 border border-white/10 hover:border-white/20 text-gray-400 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all"
-                        >
-                            <Video className="w-3.5 h-3.5 text-[#ff3700]" />
-                            Exporter la slide actuelle seule ({agendaSlide === 1 ? 'Cover' : 'Lineup'}) en MP4
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        onClick={() => startVideoRecording('PLANNING')}
+                        disabled={isVideoRecording}
+                        className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${
+                            isVideoRecording
+                                ? 'bg-[#ff3700]/30 text-[#ff3700] border border-[#ff3700]/50 animate-pulse'
+                                : 'bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 text-black hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,55,0,0.45)]'
+                        }`}
+                    >
+                        <Video className="w-4 h-4 text-black" />
+                        {isVideoRecording ? 'CAPTURE VIDÉO EN COURS...' : '🎬 EXPORTER VIDÉO COMPLÈTE (SLIDE 1 + 2 + PROMO) • MP4'}
+                    </button>
                 ) : (['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && activeTab === 'REEL') ? (
                     <div className="space-y-2">
 {/* Configuration Reel : Format & Timing */}
@@ -7917,15 +7891,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 : skipEditorialSlide2
                                     ? `🎬 EXPORTER REEL (${exportFps} FPS • SLIDE 1 [${editorialSlide1Duration}s] + PROMO [${editorialPromoDuration}s]) • MP4`
                                     : `🎬 EXPORTER REEL COMPLET (${exportFps} FPS • ${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => startVideoRecording('NONE')}
-                            disabled={isVideoRecording}
-                            className="w-full py-2 bg-white/5 border border-white/10 hover:border-white/20 text-gray-400 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all"
-                        >
-                            <Video className="w-3.5 h-3.5 text-neon-red" />
-                            Exporter la slide actuelle seule (Slide {editorialSlide}) en MP4
                         </button>
                     </div>
                 ) : (
@@ -8839,12 +8804,38 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             )}
                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                             {bgVideo && (
-                                <button
-                                    onClick={() => bgVideo.play().catch(() => { })}
-                                    className="w-full py-2 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl text-[9px] font-black text-neon-cyan uppercase hover:bg-neon-cyan/20 transition-all flex items-center justify-center gap-2"
-                                >
-                                    <Video className="w-3.5 h-3.5" /> Relancer la prévisualisation
-                                </button>
+                                <div className="space-y-1.5 pt-1">
+                                    <div className="flex gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                bgVideo.currentTime = 0;
+                                                bgVideo.play().catch(() => {});
+                                            }}
+                                            className="flex-1 py-2 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl text-[9px] font-black text-neon-cyan uppercase hover:bg-neon-cyan/20 transition-all flex items-center justify-center gap-1.5 active:scale-95 shadow-sm"
+                                            title="Remettre la vidéo à 0:00 et relancer"
+                                        >
+                                            <RotateCcw className="w-3.5 h-3.5" /> Recommencer à 0:00
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (bgVideo.paused) {
+                                                    bgVideo.play().catch(() => {});
+                                                } else {
+                                                    bgVideo.pause();
+                                                }
+                                            }}
+                                            className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-gray-300 uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                                            title="Mettre en pause ou relancer la lecture"
+                                        >
+                                            <Video className="w-3.5 h-3.5" /> Play / Pause
+                                        </button>
+                                    </div>
+                                    <p className="text-[7.5px] text-gray-400 italic text-center">
+                                        ⏱️ Le clip repartira automatiquement à 0:00 pile lors de l'export MP4
+                                    </p>
+                                </div>
                             )}
 
                             {/* Export du fond visuel + Option pour animer le fond */}
@@ -9030,15 +9021,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     🔥 Slide PROMO
                                 </button>
-                                <button
-                                    type="button"
-                                    onClick={() => startVideoRecording('PLANNING')}
-                                    disabled={isVideoRecording}
-                                    className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1 bg-gradient-to-r from-[#ff3700] to-orange-500 text-black shadow-md hover:scale-105 active:scale-95 disabled:opacity-50 ml-1"
-                                    title="Exporter une vidéo MP4 combinant Slide 1 + Slide 2 avec transition"
-                                >
-                                    <Video className="w-3 h-3 text-black" /> Vidéo (1+2)
-                                </button>
                                 {slideTransitionQuickBar}
                             </div>
                         )}
@@ -9165,17 +9147,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     🔥 Slide PROMO
                                 </button>
-                                {activeTab === 'REEL' && (
-                                    <button
-                                        type="button"
-                                        onClick={() => startVideoRecording('EDITORIAL')}
-                                        disabled={isVideoRecording}
-                                        className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1 bg-gradient-to-r from-[#00ff66] to-emerald-400 text-black shadow-md hover:scale-105 active:scale-95 disabled:opacity-50 ml-1"
-                                        title="Exporter un Reel vidéo combinant Slide 1 + Slide 2 avec transition"
-                                    >
-                                        <Video className="w-3 h-3 text-black" /> {skipEditorialSlide2 ? 'Reel (S1 + Promo)' : 'Reel (1+2)'}
-                                    </button>
-                                )}
                                 {slideTransitionQuickBar}
                             </div>
                         )}
@@ -9235,17 +9206,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     🔥 Slide PROMO
                                 </button>
-                                {activeTab === 'REEL' && (
-                                    <button
-                                        type="button"
-                                        onClick={() => startVideoRecording('EDITORIAL')}
-                                        disabled={isVideoRecording}
-                                        className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1 bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-md hover:scale-105 active:scale-95 disabled:opacity-50 ml-1"
-                                        title={skipEditorialSlide2 ? "Exporter un Reel vidéo Slide 1 + Promo Outro" : `Exporter un Reel vidéo combinant ${2 + extraEditorialSlides.length} slides + Promo Outro`}
-                                    >
-                                        <Video className="w-3 h-3 text-white" /> {skipEditorialSlide2 ? 'Reel (Slide 1 + Promo)' : `Reel (${2 + extraEditorialSlides.length} Slides + Promo)`}
-                                    </button>
-                                )}
                                 {slideTransitionQuickBar}
                             </div>
                         )}
