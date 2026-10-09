@@ -165,7 +165,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         venue?: string; 
         time?: string; 
         artist?: string; 
-    }[]>([]);
+    }[]>([
+        { day: '06 OCT', title: 'WAREHOUSE RAVE', artists: 'I HATE MODELS • NICO MORENO', genre: 'HARD TECHNO', venue: 'PARIS' },
+        { day: '13 OCT', title: 'SUB ZERO PROJECT LIVE', artists: 'SUB ZERO PROJECT • REBELION', genre: 'RAWSTYLE', venue: 'LYON' },
+        { day: '20 OCT', title: 'APEX FESTIVAL', artists: 'AMELIE LENS • CHARLOTTE DE WITTE', genre: 'TECHNO', venue: 'MARSEILLE' },
+        { day: '27 OCT', title: 'HALLOWEEN MASSACRE', artists: 'D-STURB • WARFACE', genre: 'HARDSTYLE', venue: 'BORDEAUX' },
+    ]);
     const [agendaMonth, setAgendaMonth] = useState<string>(() => {
         const MONTHS_FR = ['JANVIER', 'FÉVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUILLET', 'AOÛT', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÉCEMBRE'];
         return MONTHS_FR[new Date().getMonth()] || 'OCTOBRE';
@@ -1874,7 +1879,241 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (alpha < 1) sCtx.globalAlpha *= alpha;
                     if (offsetX !== 0) sCtx.translate(offsetX, 0);
                     const ctx = sCtx;
+
+                    // 1. TOP-LEFT BADGE (Cyber capsule assortie à la couleur du mois)
+                    ctx.save();
+                    const badgeX = 65;
+                    const badgeY = isStory ? 90 : 65;
+                    const badgeText = (agendaCoverBadge || agendaBadgeText || 'AGENDA FESTIVALS & SOIRÉES').toUpperCase().trim();
+
+                    let badgeFontSize = 13;
+                    let letterSpacing = '3px';
+                    if (badgeText.length <= 8) {
+                        badgeFontSize = 18;
+                        letterSpacing = '5px';
+                    } else if (badgeText.length <= 14) {
+                        badgeFontSize = 15;
+                        letterSpacing = '4px';
+                    } else if (badgeText.length <= 22) {
+                        badgeFontSize = 12.5;
+                        letterSpacing = '2.5px';
+                    } else {
+                        badgeFontSize = 11;
+                        letterSpacing = '1.5px';
+                    }
+
+                    ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
+                    ctx.letterSpacing = letterSpacing;
+                    const textWidth = ctx.measureText(badgeText).width;
+                    const pillPadding = 34;
+                    const pillW = Math.max(180, Math.ceil(textWidth + pillPadding));
+                    const pillH = 46;
+
+                    const pillCenterX = badgeX + pillW / 2;
+                    const pillCenterY = badgeY + pillH / 2;
+                    applyTextAnimCtx(ctx, 0.05, pillCenterX, pillCenterY);
+                    ctx.translate(pillCenterX, pillCenterY);
+                    ctx.rotate(-0.04);
+                    ctx.translate(-pillCenterX, -pillCenterY);
+
+                    // Cyber Box Glow & Fill
+                    ctx.shadowColor = `rgba(${monthGrad}, 0.75)`;
+                    ctx.shadowBlur = 18;
+                    ctx.fillStyle = 'rgba(12, 6, 4, 0.92)';
+                    ctx.strokeStyle = monthColor;
+                    ctx.lineWidth = 2.5;
+
+                    ctx.beginPath();
+                    ctx.roundRect(badgeX, badgeY, pillW, pillH, 10);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Notches cyber
+                    ctx.strokeStyle = monthColor;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(badgeX - 14, badgeY + pillH / 2);
+                    ctx.lineTo(badgeX - 4, badgeY + pillH / 2);
+                    ctx.moveTo(badgeX + pillW + 4, badgeY + pillH / 2);
+                    ctx.lineTo(badgeX + pillW + 14, badgeY + pillH / 2);
+                    ctx.stroke();
+
+                    // Inner text
+                    ctx.shadowColor = `rgba(${monthGrad}, 0.85)`;
+                    ctx.shadowBlur = 12;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
+                    ctx.letterSpacing = letterSpacing;
+                    ctx.fillText(badgeText, badgeX + pillW / 2 + 1, badgeY + pillH / 2 + 1);
+                    ctx.restore();
+
+                    // 2. HERO COVER HOOK
+                    const centerY = canvas.height / 2;
+
+                    // A) Top Year / Branding tag
+                    const tagYear = (agendaCoverYear || '2026').trim();
+                    const tagText = tagYear ? `DROPSIDERS • ${tagYear}` : 'DROPSIDERS';
+                    const tagY = centerY - (isStory ? 220 : 160);
+
+                    ctx.save();
+                    applyTextAnimCtx(ctx, 0.16, centerX, tagY);
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.font = `900 18px "Orbitron", sans-serif`;
+                    ctx.letterSpacing = '5px';
+                    ctx.shadowColor = `rgba(${monthGrad}, 0.85)`;
+                    ctx.shadowBlur = 16;
+                    ctx.fillStyle = monthColor;
+                    ctx.fillText(tagText, centerX, tagY);
+
+                    // Lignes néon fines à gauche et droite du tag
+                    const tagMeasureW = ctx.measureText(tagText).width;
+                    const lineW = isStory ? 90 : 70;
+                    const lineGap = 24;
+
+                    const leftGrad = ctx.createLinearGradient(centerX - tagMeasureW / 2 - lineGap - lineW, 0, centerX - tagMeasureW / 2 - lineGap, 0);
+                    leftGrad.addColorStop(0, 'rgba(255, 55, 0, 0)');
+                    leftGrad.addColorStop(1, monthColor);
+                    ctx.strokeStyle = leftGrad;
+                    ctx.lineWidth = isStory ? 3.5 : 2.5;
+                    ctx.beginPath();
+                    ctx.moveTo(centerX - tagMeasureW / 2 - lineGap - lineW, tagY);
+                    ctx.lineTo(centerX - tagMeasureW / 2 - lineGap, tagY);
+                    ctx.stroke();
+
+                    const rightGrad = ctx.createLinearGradient(centerX + tagMeasureW / 2 + lineGap, 0, centerX + tagMeasureW / 2 + lineGap + lineW, 0);
+                    rightGrad.addColorStop(0, monthColor);
+                    rightGrad.addColorStop(1, 'rgba(255, 55, 0, 0)');
+                    ctx.strokeStyle = rightGrad;
+                    ctx.beginPath();
+                    ctx.moveTo(centerX + tagMeasureW / 2 + lineGap, tagY);
+                    ctx.lineTo(centerX + tagMeasureW / 2 + lineGap + lineW, tagY);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // B) Grand Hook Principal
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const rawTitle = (agendaCoverTitle || 'ON VA OÙ CE MOIS-CI ?').toUpperCase().trim();
                     
+                    let titleLines: string[] = [];
+                    if (rawTitle.includes('\n')) {
+                        titleLines = rawTitle.split('\n').map(l => l.trim()).filter(Boolean);
+                    } else if (rawTitle.length > 18 && rawTitle.includes(' ')) {
+                        const words = rawTitle.split(' ');
+                        const mid = Math.ceil(words.length / 2);
+                        titleLines = [words.slice(0, mid).join(' '), words.slice(mid).join(' ')];
+                    } else {
+                        titleLines = [rawTitle];
+                    }
+
+                    let titleFontSize = isStory 
+                        ? (titleLines.length > 2 ? 80 : (titleLines.length === 2 ? 105 : 120))
+                        : (titleLines.length > 2 ? 58 : (titleLines.length === 2 ? 76 : 88));
+                    ctx.font = `900 italic ${titleFontSize}px "Montserrat", Arial, sans-serif`;
+                    ctx.letterSpacing = '2px';
+                    titleLines.forEach(l => {
+                        while (ctx.measureText(l).width > (canvas.width - 100) && titleFontSize > 36) {
+                            titleFontSize -= 2;
+                            ctx.font = `900 italic ${titleFontSize}px "Montserrat", Arial, sans-serif`;
+                        }
+                    });
+
+                    const titleLineHeight = titleFontSize * 1.16;
+                    const titleBlockHeight = titleLines.length * titleLineHeight;
+                    const titleStartY = centerY - 10 - ((titleLines.length - 1) * titleLineHeight) / 2;
+
+                    titleLines.forEach((line, idx) => {
+                        const lineY = titleStartY + idx * titleLineHeight;
+                        ctx.save();
+                        applyTextAnimCtx(ctx, 0.30 + idx * 0.12, centerX, lineY);
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                        ctx.shadowBlur = 28;
+                        ctx.shadowOffsetX = 3;
+                        ctx.shadowOffsetY = 4;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(line, centerX, lineY);
+                        ctx.restore();
+                    });
+                    ctx.restore();
+
+                    // C) Subtitle / Genres Musicaux
+                    const genresText = (agendaCoverGenres || 'HARD TECHNO • RAWSTYLE • MULTI-GENRES').toUpperCase().trim();
+                    if (genresText) {
+                        let genresFontSize = isStory ? 28 : 20;
+                        ctx.font = `800 ${genresFontSize}px "Montserrat", Arial, sans-serif`;
+                        ctx.letterSpacing = isStory ? '3.5px' : '3px';
+                        while (ctx.measureText(genresText).width > (canvas.width - 140) && genresFontSize > 14) {
+                            genresFontSize -= 1;
+                            ctx.font = `800 ${genresFontSize}px "Montserrat", Arial, sans-serif`;
+                        }
+
+                        const genresW = ctx.measureText(genresText).width;
+                        const genresPillW = Math.min(canvas.width - 60, genresW + (isStory ? 64 : 48));
+                        const genresPillH = isStory ? 58 : 46;
+                        const genresY = titleStartY + titleBlockHeight / 2 + (isStory ? (titleLines.length > 1 ? 88 : 72) : (titleLines.length > 1 ? 55 : 45));
+
+                        ctx.save();
+                        applyTextAnimCtx(ctx, 0.48, centerX, genresY);
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                        ctx.shadowBlur = 14;
+                        ctx.fillStyle = 'rgba(15, 12, 10, 0.82)';
+                        ctx.strokeStyle = `rgba(${monthGrad}, 0.55)`;
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.roundRect(centerX - genresPillW / 2, genresY - genresPillH / 2, genresPillW, genresPillH, 14);
+                        ctx.fill();
+                        ctx.stroke();
+
+                        ctx.shadowColor = 'transparent';
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                        ctx.fillText(genresText, centerX, genresY + 1);
+                        ctx.restore();
+                    }
+
+                    // 3. BOTTOM CTA SWIPE
+                    const ctaText = (agendaCoverCta || 'Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️').trim();
+                    if (ctaText) {
+                        const ctaY = canvas.height - (isStory ? 170 : 95);
+
+                        let ctaFontSize = 18;
+                        ctx.font = `800 italic ${ctaFontSize}px "Montserrat", Arial, sans-serif`;
+                        ctx.letterSpacing = '1px';
+                        while (ctx.measureText(ctaText).width > 880 && ctaFontSize > 12) {
+                            ctaFontSize -= 0.5;
+                            ctx.font = `800 italic ${ctaFontSize}px "Montserrat", Arial, sans-serif`;
+                        }
+
+                        const ctaW = ctx.measureText(ctaText).width;
+                        const ctaPillW = Math.min(canvas.width - 80, ctaW + 52);
+                        const ctaPillH = 50;
+
+                        ctx.save();
+                        applyTextAnimCtx(ctx, 0.62, centerX, ctaY);
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.shadowColor = `rgba(${monthGrad}, 0.4)`;
+                        ctx.shadowBlur = 16;
+                        ctx.fillStyle = 'rgba(12, 8, 6, 0.88)';
+                        ctx.strokeStyle = monthColor;
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.roundRect(centerX - ctaPillW / 2, ctaY - ctaPillH / 2, ctaPillW, ctaPillH, 14);
+                        ctx.fill();
+                        ctx.stroke();
+
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                        ctx.shadowBlur = 6;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(ctaText, centerX, ctaY + 1);
+                        ctx.restore();
+                    }
+
                     sCtx.restore();
                 };
 
@@ -1883,7 +2122,292 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (alpha < 1) sCtx.globalAlpha *= alpha;
                     if (offsetX !== 0) sCtx.translate(offsetX, 0);
                     const ctx = sCtx;
-                    
+
+                    // 1. TOP-LEFT BADGE (Cyber capsule)
+                    ctx.save();
+                    const badgeX = 65;
+                    const badgeY = isStory ? 90 : 65;
+                    const badgeText = (agendaBadgeText || 'AGENDA DU MOIS').toUpperCase().trim();
+
+                    let badgeFontSize = 13;
+                    let letterSpacing = '3px';
+                    if (badgeText.length <= 8) {
+                        badgeFontSize = 18;
+                        letterSpacing = '5px';
+                    } else if (badgeText.length <= 14) {
+                        badgeFontSize = 15;
+                        letterSpacing = '4px';
+                    } else if (badgeText.length <= 22) {
+                        badgeFontSize = 12.5;
+                        letterSpacing = '2.5px';
+                    } else {
+                        badgeFontSize = 11;
+                        letterSpacing = '1.5px';
+                    }
+
+                    ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
+                    ctx.letterSpacing = letterSpacing;
+                    const textWidth = ctx.measureText(badgeText).width;
+                    const pillPadding = 34;
+                    const pillW = Math.max(180, Math.ceil(textWidth + pillPadding));
+                    const pillH = 46;
+
+                    const pillCenterX = badgeX + pillW / 2;
+                    const pillCenterY = badgeY + pillH / 2;
+                    applyTextAnimCtx(ctx, 0.05, pillCenterX, pillCenterY);
+                    ctx.translate(pillCenterX, pillCenterY);
+                    ctx.rotate(-0.04);
+                    ctx.translate(-pillCenterX, -pillCenterY);
+
+                    ctx.shadowColor = `rgba(${monthGrad}, 0.75)`;
+                    ctx.shadowBlur = 18;
+                    ctx.fillStyle = 'rgba(12, 6, 4, 0.92)';
+                    ctx.strokeStyle = monthColor;
+                    ctx.lineWidth = 2.5;
+
+                    ctx.beginPath();
+                    ctx.roundRect(badgeX, badgeY, pillW, pillH, 10);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.strokeStyle = monthColor;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(badgeX - 14, badgeY + pillH / 2);
+                    ctx.lineTo(badgeX - 4, badgeY + pillH / 2);
+                    ctx.moveTo(badgeX + pillW + 4, badgeY + pillH / 2);
+                    ctx.lineTo(badgeX + pillW + 14, badgeY + pillH / 2);
+                    ctx.stroke();
+
+                    ctx.shadowColor = `rgba(${monthGrad}, 0.85)`;
+                    ctx.shadowBlur = 12;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
+                    ctx.letterSpacing = letterSpacing;
+                    ctx.fillText(badgeText, badgeX + pillW / 2 + 1, badgeY + pillH / 2 + 1);
+                    ctx.restore();
+
+                    // 2. BIG HOLLOW MONTH TITLE
+                    const monthY = isStory ? 430 : 310;
+                    const monthText = (agendaMonth || 'OCTOBRE').toUpperCase().trim();
+
+                    let monthFontSize = isStory ? 104 : 94;
+                    ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
+                    ctx.letterSpacing = '6px';
+                    while (ctx.measureText(monthText).width > 720 && monthFontSize > 44) {
+                        monthFontSize -= 2;
+                        ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
+                    }
+
+                    const offW = canvas.width;
+                    const offH = Math.ceil(monthFontSize * 2.2);
+                    if (!offCanvasRef.current) {
+                        offCanvasRef.current = document.createElement('canvas');
+                    }
+                    const offCanvas = offCanvasRef.current;
+                    if (offCanvas.width !== offW) offCanvas.width = offW;
+                    if (offCanvas.height !== offH) offCanvas.height = offH;
+                    const offCtx = offCanvas.getContext('2d');
+
+                    if (offCtx) {
+                        offCtx.clearRect(0, 0, offW, offH);
+                        const offCenterX = offW / 2;
+                        const offCenterY = offH / 2;
+
+                        offCtx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
+                        offCtx.letterSpacing = '6px';
+                        offCtx.textAlign = 'center';
+                        offCtx.textBaseline = 'middle';
+
+                        offCtx.strokeStyle = '#ff3700';
+                        offCtx.lineWidth = 6;
+                        offCtx.strokeText(monthText, offCenterX, offCenterY);
+
+                        offCtx.globalCompositeOperation = 'destination-out';
+                        offCtx.fillStyle = '#000000';
+                        offCtx.fillText(monthText, offCenterX, offCenterY);
+
+                        ctx.save();
+                        applyTextAnimCtx(ctx, 0.18, centerX, monthY);
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                        ctx.shadowBlur = 6;
+                        ctx.shadowOffsetY = 2;
+                        ctx.drawImage(offCanvas, 0, monthY - offCenterY);
+                        ctx.restore();
+                    } else {
+                        ctx.save();
+                        applyTextAnimCtx(ctx, 0.18, centerX, monthY);
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.strokeStyle = '#ff3700';
+                        ctx.lineWidth = 6;
+                        ctx.strokeText(monthText, centerX, monthY);
+                        ctx.restore();
+                    }
+
+                    // 3. EVENTS LIST
+                    const itemsToDraw = planningItems.slice(0, isStory ? 8 : 7);
+                    const listStartY = isStory ? 630 : 470;
+                    const bottomMargin = isStory ? 140 : 80;
+                    const availableHeight = canvas.height - listStartY - bottomMargin;
+                    let rowSpacing = Math.min(
+                        isStory ? 180 : 140,
+                        Math.floor(availableHeight / Math.max(1, itemsToDraw.length))
+                    );
+                    if (itemsToDraw.length <= 4 && itemsToDraw.length > 0) {
+                        rowSpacing = isStory ? 170 : 138;
+                    }
+
+                    if (itemsToDraw.length === 0) {
+                        ctx.save();
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                        ctx.font = '700 italic 24px "Montserrat", sans-serif';
+                        ctx.fillText("Aucun événement renseigné — ajoutez vos dates dans le panneau latéral", centerX, listStartY + 100);
+                        ctx.restore();
+                    } else {
+                        itemsToDraw.forEach((item, i) => {
+                            const rowY = listStartY + (i * rowSpacing);
+                            if (rowY > canvas.height - 60) return;
+
+                            const itemDelay = 0.28 + (i * 0.10);
+
+                            const dayText = (item.day || item.time || 'VENDREDI').toUpperCase().trim();
+                            const titleText = (item.title || item.artist || 'ÉVÉNEMENT').toUpperCase().trim();
+                            const artistsText = (item.artists || '').trim();
+                            const genreText = (item.genre || '').trim();
+                            const venueText = (item.venue || '').toUpperCase().trim();
+
+                            // A) Left sticker badge for Day
+                            ctx.save();
+                            ctx.font = '900 italic 20px "Montserrat", sans-serif';
+                            const dayMeasureW = ctx.measureText(dayText).width;
+                            const badgeW = Math.max(125, Math.min(185, dayMeasureW + 36));
+                            const badgeH = 42;
+                            const badgeXCenter = 75 + badgeW / 2;
+                            
+                            applyTextAnimCtx(ctx, itemDelay, badgeXCenter, rowY);
+
+                            const stickerAngle = (i % 2 === 0 ? -0.04 : -0.025);
+                            ctx.translate(badgeXCenter, rowY);
+                            ctx.rotate(stickerAngle);
+
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                            ctx.shadowBlur = 14;
+                            ctx.shadowOffsetX = 3;
+                            ctx.shadowOffsetY = 4;
+
+                            ctx.fillStyle = '#ff3700';
+                            ctx.beginPath();
+                            ctx.roundRect(-badgeW / 2, -badgeH / 2, badgeW, badgeH, 6);
+                            ctx.fill();
+
+                            ctx.shadowColor = 'transparent';
+                            ctx.fillStyle = '#000000';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.font = '900 italic 20px "Montserrat", sans-serif';
+                            ctx.letterSpacing = '1.2px';
+                            ctx.fillText(dayText, 0, 1);
+                            ctx.restore();
+
+                            // B) Right content block
+                            ctx.save();
+                            const contentX = badgeXCenter + badgeW / 2 + 28;
+                            const maxContentW = canvas.width - contentX - 55;
+                            applyTextAnimCtx(ctx, itemDelay + 0.04, contentX + (maxContentW / 3), rowY);
+                            ctx.textAlign = 'left';
+                            ctx.textBaseline = 'middle';
+
+                            const hasArtists = Boolean(artistsText);
+                            const hasDetails = Boolean(genreText || venueText);
+
+                            let titleY = rowY;
+                            let artistsY = rowY;
+                            let subY = rowY;
+
+                            if (hasArtists && hasDetails) {
+                                titleY = rowY - (rowSpacing > 130 ? 24 : 20);
+                                artistsY = rowY + (rowSpacing > 130 ? 4 : 2);
+                                subY = rowY + (rowSpacing > 130 ? 29 : 23);
+                            } else if (hasArtists || hasDetails) {
+                                titleY = rowY - 14;
+                                artistsY = rowY + 16;
+                                subY = rowY + 16;
+                            } else {
+                                titleY = rowY;
+                            }
+
+                            ctx.fillStyle = '#ffffff';
+                            const baseTitleSize = (hasArtists || hasDetails) ? 27 : 29;
+                            ctx.font = `900 ${baseTitleSize}px "Montserrat", sans-serif`;
+                            ctx.letterSpacing = '0.5px';
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                            ctx.shadowBlur = 12;
+
+                            let displayTitle = titleText;
+                            if (ctx.measureText(displayTitle).width > maxContentW) {
+                                let fs = baseTitleSize;
+                                while (ctx.measureText(displayTitle).width > maxContentW && fs > 18) {
+                                    fs--;
+                                    ctx.font = `900 ${fs}px "Montserrat", sans-serif`;
+                                }
+                            }
+                            ctx.fillText(displayTitle, contentX, titleY);
+
+                            if (hasArtists) {
+                                ctx.font = '700 18px "Montserrat", sans-serif';
+                                ctx.letterSpacing = '0px';
+                                ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
+                                ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                                ctx.shadowBlur = 8;
+                                
+                                let displayArtists = artistsText;
+                                if (ctx.measureText(displayArtists).width > maxContentW) {
+                                    while (ctx.measureText(displayArtists + '...').width > maxContentW && displayArtists.length > 5) {
+                                        displayArtists = displayArtists.slice(0, -1);
+                                    }
+                                    displayArtists += '...';
+                                }
+                                ctx.fillText(displayArtists, contentX, artistsY);
+                            }
+
+                            if (hasDetails) {
+                                const targetLineY = hasArtists ? subY : artistsY;
+                                ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                                ctx.shadowBlur = 8;
+                                let curLineX = contentX;
+
+                                if (genreText) {
+                                    ctx.font = '600 16px "Montserrat", sans-serif';
+                                    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+                                    ctx.fillText(genreText, curLineX, targetLineY);
+                                    curLineX += ctx.measureText(genreText).width;
+                                }
+
+                                if (genreText && venueText) {
+                                    ctx.font = '600 16px "Montserrat", sans-serif';
+                                    ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+                                    ctx.fillText(' | ', curLineX, targetLineY);
+                                    curLineX += ctx.measureText(' | ').width;
+                                }
+
+                                if (venueText) {
+                                    ctx.font = '900 17px "Montserrat", sans-serif';
+                                    ctx.fillStyle = '#ff3700';
+                                    ctx.shadowColor = 'rgba(255, 55, 0, 0.6)';
+                                    ctx.shadowBlur = 10;
+                                    ctx.fillText(venueText, curLineX, targetLineY);
+                                }
+                            }
+
+                            ctx.restore();
+                        });
+                    }
+
                     sCtx.restore();
                 };
 
