@@ -424,6 +424,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const fileInputRef = useRef<HTMLInputElement>(null);
     const logoRef = useRef<HTMLImageElement | null>(null);
     const imageCacheRef = useRef<Record<string, HTMLImageElement>>({});
+    const offCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
     const [selection, setSelection] = useState({ start: 0, end: 0 });
     const selectionRef = useRef({ start: 0, end: 0 });
@@ -775,8 +776,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            canvas.width = 1080;
-            canvas.height = effectiveTab === 'REEL' ? 1920 : 1350;
+            const targetHeight = effectiveTab === 'REEL' ? 1920 : 1350;
+            if (canvas.width !== 1080) canvas.width = 1080;
+            if (canvas.height !== targetHeight) canvas.height = targetHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             const safeSize = effectiveTab === 'PUBLICATION' ? 1050 : 1080;
             const safeTop = (canvas.height - safeSize) / 2;
             const safeBottom = safeTop + safeSize;
@@ -1622,32 +1625,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
 
                     // 2. CENTRAL SECTION (Sur-titre Mois, Grand Hook, Genres)
-                    const centerY = isStory ? 940 : 660;
+                    const centerY = isStory ? 950 : 660;
 
                     // A) Sur-titre Mois & Année
                     const monthTagText = `${(agendaMonth || 'OCTOBRE').toUpperCase()}${agendaCoverYear ? ' ' + agendaCoverYear.trim() : ''}`;
-                    const tagY = centerY - 145;
+                    const monthTagFontSize = isStory ? 44 : 34;
+                    const tagY = centerY - (isStory ? 210 : 160);
                     ctx.save();
                     applyTextAnimCtx(ctx, 0.18, centerX, tagY);
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.font = `900 italic 28px "Orbitron", sans-serif`;
-                    ctx.letterSpacing = '7px';
+                    ctx.font = `900 italic ${monthTagFontSize}px "Orbitron", sans-serif`;
+                    ctx.letterSpacing = isStory ? '9px' : '7px';
                     ctx.fillStyle = monthColor;
-                    ctx.shadowColor = `rgba(${monthGrad}, 0.9)`;
-                    ctx.shadowBlur = 16;
+                    ctx.shadowColor = `rgba(${monthGrad}, 0.95)`;
+                    ctx.shadowBlur = 22;
                     ctx.fillText(monthTagText, centerX, tagY);
 
                     // Decorative accent horizontal lines
                     const tagMeasureW = ctx.measureText(monthTagText).width;
-                    const lineW = 90;
-                    const lineGap = 26;
+                    const lineW = isStory ? 140 : 90;
+                    const lineGap = isStory ? 34 : 26;
                     
                     const leftGrad = ctx.createLinearGradient(centerX - tagMeasureW / 2 - lineGap - lineW, 0, centerX - tagMeasureW / 2 - lineGap, 0);
                     leftGrad.addColorStop(0, 'rgba(255, 55, 0, 0)');
                     leftGrad.addColorStop(1, monthColor);
                     ctx.strokeStyle = leftGrad;
-                    ctx.lineWidth = 2.5;
+                    ctx.lineWidth = isStory ? 3.5 : 2.5;
                     ctx.beginPath();
                     ctx.moveTo(centerX - tagMeasureW / 2 - lineGap - lineW, tagY);
                     ctx.lineTo(centerX - tagMeasureW / 2 - lineGap, tagY);
@@ -1680,26 +1684,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         titleLines = [rawTitle];
                     }
 
-                    let titleFontSize = titleLines.length > 2 ? 54 : (titleLines.length === 2 ? 66 : 74);
+                    // Grande typographie percutante adaptée au format Reel / Publication
+                    let titleFontSize = isStory 
+                        ? (titleLines.length > 2 ? 80 : (titleLines.length === 2 ? 105 : 120))
+                        : (titleLines.length > 2 ? 58 : (titleLines.length === 2 ? 76 : 88));
                     ctx.font = `900 italic ${titleFontSize}px "Montserrat", Arial, sans-serif`;
                     ctx.letterSpacing = '2px';
                     titleLines.forEach(l => {
-                        while (ctx.measureText(l).width > 920 && titleFontSize > 34) {
+                        while (ctx.measureText(l).width > (canvas.width - 100) && titleFontSize > 36) {
                             titleFontSize -= 2;
                             ctx.font = `900 italic ${titleFontSize}px "Montserrat", Arial, sans-serif`;
                         }
                     });
 
-                    const titleLineHeight = titleFontSize * 1.18;
+                    const titleLineHeight = titleFontSize * 1.16;
                     const titleBlockHeight = titleLines.length * titleLineHeight;
-                    const titleStartY = centerY - 30 - ((titleLines.length - 1) * titleLineHeight) / 2;
+                    const titleStartY = centerY - 10 - ((titleLines.length - 1) * titleLineHeight) / 2;
 
                     titleLines.forEach((line, idx) => {
                         const lineY = titleStartY + idx * titleLineHeight;
                         ctx.save();
                         applyTextAnimCtx(ctx, 0.30 + idx * 0.12, centerX, lineY);
                         ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                        ctx.shadowBlur = 24;
+                        ctx.shadowBlur = 28;
                         ctx.shadowOffsetX = 3;
                         ctx.shadowOffsetY = 4;
                         ctx.fillStyle = '#ffffff';
@@ -1711,35 +1718,35 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // C) Subtitle / Genres Musicaux
                     const genresText = (agendaCoverGenres || 'HARD TECHNO • RAWSTYLE • MULTI-GENRES').toUpperCase().trim();
                     if (genresText) {
-                        let genresFontSize = 18;
+                        let genresFontSize = isStory ? 28 : 20;
                         ctx.font = `800 ${genresFontSize}px "Montserrat", Arial, sans-serif`;
-                        ctx.letterSpacing = '3px';
-                        while (ctx.measureText(genresText).width > 840 && genresFontSize > 13) {
+                        ctx.letterSpacing = isStory ? '3.5px' : '3px';
+                        while (ctx.measureText(genresText).width > (canvas.width - 140) && genresFontSize > 14) {
                             genresFontSize -= 1;
                             ctx.font = `800 ${genresFontSize}px "Montserrat", Arial, sans-serif`;
                         }
 
                         const genresW = ctx.measureText(genresText).width;
-                        const genresPillW = Math.min(canvas.width - 80, genresW + 48);
-                        const genresPillH = 44;
-                        const genresY = titleStartY + titleBlockHeight / 2 + (titleLines.length > 1 ? 55 : 45);
+                        const genresPillW = Math.min(canvas.width - 60, genresW + (isStory ? 64 : 48));
+                        const genresPillH = isStory ? 58 : 46;
+                        const genresY = titleStartY + titleBlockHeight / 2 + (isStory ? (titleLines.length > 1 ? 88 : 72) : (titleLines.length > 1 ? 55 : 45));
 
                         ctx.save();
                         applyTextAnimCtx(ctx, 0.48, centerX, genresY);
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-                        ctx.shadowBlur = 12;
-                        ctx.fillStyle = 'rgba(15, 12, 10, 0.78)';
-                        ctx.strokeStyle = `rgba(${monthGrad}, 0.45)`;
-                        ctx.lineWidth = 1.8;
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                        ctx.shadowBlur = 14;
+                        ctx.fillStyle = 'rgba(15, 12, 10, 0.82)';
+                        ctx.strokeStyle = `rgba(${monthGrad}, 0.55)`;
+                        ctx.lineWidth = 2;
                         ctx.beginPath();
-                        ctx.roundRect(centerX - genresPillW / 2, genresY - genresPillH / 2, genresPillW, genresPillH, 12);
+                        ctx.roundRect(centerX - genresPillW / 2, genresY - genresPillH / 2, genresPillW, genresPillH, 14);
                         ctx.fill();
                         ctx.stroke();
 
                         ctx.shadowColor = 'transparent';
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
                         ctx.fillText(genresText, centerX, genresY + 1);
                         ctx.restore();
                     }
@@ -1875,12 +1882,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // Eliminates internal intersecting contours in variable font glyphs (M, A, B, R, etc.)
                     const offW = canvas.width;
                     const offH = Math.ceil(monthFontSize * 2.2);
-                    const offCanvas = document.createElement('canvas');
-                    offCanvas.width = offW;
-                    offCanvas.height = offH;
+                    if (!offCanvasRef.current) {
+                        offCanvasRef.current = document.createElement('canvas');
+                    }
+                    const offCanvas = offCanvasRef.current;
+                    if (offCanvas.width !== offW) offCanvas.width = offW;
+                    if (offCanvas.height !== offH) offCanvas.height = offH;
                     const offCtx = offCanvas.getContext('2d');
 
                     if (offCtx) {
+                        offCtx.clearRect(0, 0, offW, offH);
                         const offCenterX = offW / 2;
                         const offCenterY = offH / 2;
 
@@ -3901,7 +3912,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     useEffect(() => {
         let anim: number;
-        if (bgVideo || isVideoRecording || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || transitionProgress > 0) {
+        // Pendant l'export vidéo actif, la boucle de capture gère elle-même les frames pour éviter les doublons
+        if (isVideoRecording) {
+            return;
+        }
+        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || transitionProgress > 0) {
             const loop = () => { generateImage(); anim = requestAnimationFrame(loop); };
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
@@ -4081,7 +4096,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         }
 
-        const bitrate = isMobile ? 6000000 : 12000000;
+        const bitrate = isMobile ? 6000000 : 8000000;
 
         const recorder = new MediaRecorder(combinedStream, {
             mimeType,
@@ -4142,6 +4157,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     '-preset', 'ultrafast',
                     '-crf', '22',
                     '-pix_fmt', 'yuv420p',
+                    '-r', '30',
+                    '-vsync', 'cfr',
                     '-movflags', '+faststart'
                 ];
                 if (hasAudioTrack) {
@@ -4249,10 +4266,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     while (Date.now() - startT < transitionDuration) {
                         const progress = Math.min(1, (Date.now() - startT) / transitionDuration);
                         transitionProgressRef.current = progress;
-                        setTransitionProgress(progress);
                         if (progress >= 0.5 && !switched) {
                             editorialSlideOverrideRef.current = s;
-                            setEditorialSlide(s);
                             animStartTimeRef.current = Date.now();
                             switched = true;
                         }
@@ -4263,6 +4278,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         await new Promise(r => requestAnimationFrame(r));
                     }
                     transitionProgressRef.current = 0;
+                    editorialSlideOverrideRef.current = s;
+                    setEditorialSlide(s);
                     setTransitionProgress(0);
                 } else {
                     editorialSlideOverrideRef.current = 1;
@@ -4280,7 +4297,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             while (Date.now() - startPromoT < transitionDuration) {
                 const progress = Math.min(1, (Date.now() - startPromoT) / transitionDuration);
                 transitionProgressRef.current = progress;
-                setTransitionProgress(progress);
                 if (progress >= 0.5 && !switchedPromo) {
                     promoOutroOverrideRef.current = true;
                     animStartTimeRef.current = Date.now();
@@ -4316,10 +4332,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             while (Date.now() - startT < transitionDuration) {
                 const progress = Math.min(1, (Date.now() - startT) / transitionDuration);
                 transitionProgressRef.current = progress;
-                setTransitionProgress(progress);
                 if (progress >= 0.5 && !switched) {
                     agendaSlideOverrideRef.current = 2;
-                    setAgendaSlide(2);
                     animStartTimeRef.current = Date.now();
                     switched = true;
                 }
@@ -4330,6 +4344,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await new Promise(r => requestAnimationFrame(r));
             }
             transitionProgressRef.current = 0;
+            agendaSlideOverrideRef.current = 2;
+            setAgendaSlide(2);
             setTransitionProgress(0);
 
             // 3. Slide 2 (Lineup)
@@ -4341,7 +4357,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             while (Date.now() - startPromoT < transitionDuration) {
                 const progress = Math.min(1, (Date.now() - startPromoT) / transitionDuration);
                 transitionProgressRef.current = progress;
-                setTransitionProgress(progress);
                 if (progress >= 0.5 && !switchedPromo) {
                     promoOutroOverrideRef.current = true;
                     animStartTimeRef.current = Date.now();
