@@ -66,6 +66,17 @@ export function ImageUploadModal({
     const [r2Cursor, setR2Cursor] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name'>('newest');
     const [searchTerm, setSearchTerm] = useState('');
+    const [mediaFilter, setMediaFilter] = useState<'all' | 'images' | 'videos'>('all');
+
+    const isVideoFile = (keyOrUrl: string) => {
+        const ext = (keyOrUrl.split('.').pop() || '').split('?')[0].toLowerCase();
+        return ['mp4', 'webm', 'mov', 'm4v', 'mkv', 'avi'].includes(ext);
+    };
+
+    const isImageFile = (keyOrUrl: string) => {
+        const ext = (keyOrUrl.split('.').pop() || '').split('?')[0].toLowerCase();
+        return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'avif', 'ico'].includes(ext);
+    };
 
     // Web Search State
     const [webQuery, setWebQuery] = useState('');
@@ -193,8 +204,8 @@ export function ImageUploadModal({
             }
 
             const sortParam = sortBy === 'newest' ? '&sort=date' : '';
-            const prefixParam = '&prefix=uploads%2F';
-            const url = `/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${prefixParam}${sortParam}`;
+            // Ne pas restreindre au dossier uploads/ pour récupérer aussi les vidéos dans VIDEOS/
+            const url = `/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${sortParam}`;
             const res = await fetch(url, { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
@@ -495,7 +506,9 @@ export function ImageUploadModal({
         }
     };
 
-    const hasVideo = selectedImages.some(img => img.file?.type.startsWith('video/'));
+    const hasVideo = selectedImages.some(img => 
+        img.file?.type.startsWith('video/') || (img.preview && isVideoFile(img.preview))
+    );
 
     const modalContent = (
         <AnimatePresence>
@@ -545,6 +558,26 @@ export function ImageUploadModal({
                                     </div>
                                 ) : step === 'preview' && selectedImages.length > 0 ? (
                                     <motion.div key="preview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-5">
+                                        {/* Aperçu du média sélectionné */}
+                                        {selectedImages[0]?.preview && (
+                                            <div className="relative w-full h-52 bg-black/80 rounded-3xl overflow-hidden border border-white/10 flex items-center justify-center p-2 shadow-2xl">
+                                                {hasVideo ? (
+                                                    <video 
+                                                        src={selectedImages[0].preview} 
+                                                        controls 
+                                                        playsInline 
+                                                        className="max-w-full max-h-full rounded-2xl object-contain" 
+                                                    />
+                                                ) : (
+                                                    <img 
+                                                        src={selectedImages[0].preview} 
+                                                        alt="Aperçu" 
+                                                        className="max-w-full max-h-full rounded-2xl object-contain" 
+                                                    />
+                                                )}
+                                            </div>
+                                        )}
+
                                         {/* Watermark Toggle */}
                                         {!hasVideo && (
                                             <button 
@@ -671,7 +704,31 @@ export function ImageUploadModal({
                                                             <option value="name">Nom</option>
                                                             <option value="unused">Non utilisées 🗑️</option>
                                                         </select>
-                                                        <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest italic ml-2">{r2Photos.length} fichiers</span>
+                                                        
+                                                        {/* Filtres Type Médias (Tout / Images / Vidéos) */}
+                                                        <div className="flex items-center gap-1 bg-black/40 border border-white/10 rounded-lg p-1">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setMediaFilter('all')}
+                                                                className={`px-2 py-1 rounded text-[8px] font-black uppercase transition-all ${mediaFilter === 'all' ? 'bg-neon-blue text-black' : 'text-gray-400 hover:text-white'}`}
+                                                            >
+                                                                Tout
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setMediaFilter('images')}
+                                                                className={`px-2 py-1 rounded text-[8px] font-black uppercase transition-all ${mediaFilter === 'images' ? 'bg-neon-cyan text-black' : 'text-gray-400 hover:text-white'}`}
+                                                            >
+                                                                Images ({r2Photos.filter(p => isImageFile(p.key)).length})
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setMediaFilter('videos')}
+                                                                className={`px-2 py-1 rounded text-[8px] font-black uppercase transition-all ${mediaFilter === 'videos' ? 'bg-[#ff3700] text-white' : 'text-gray-400 hover:text-white'}`}
+                                                            >
+                                                                Vidéos ({r2Photos.filter(p => isVideoFile(p.key)).length})
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
@@ -752,10 +809,15 @@ export function ImageUploadModal({
                                                 <>
                                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6 max-h-[60vh] overflow-y-auto no-scrollbar rounded-3xl p-4 w-full auto-rows-max content-start">
                                                         {r2Photos.filter(p => {
-                                                            const ext = (p.key.split('.').pop() || '').toLowerCase();
-                                                            const isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'avif', 'ico'].includes(ext);
-                                                            return isImg && (!searchTerm || p.key.toLowerCase().includes(searchTerm.toLowerCase()));
-                                                        }).map(photo => (
+                                                            const isImg = isImageFile(p.key);
+                                                            const isVid = isVideoFile(p.key);
+                                                            if (!isImg && !isVid) return false;
+                                                            if (mediaFilter === 'images' && !isImg) return false;
+                                                            if (mediaFilter === 'videos' && !isVid) return false;
+                                                            return (!searchTerm || p.key.toLowerCase().includes(searchTerm.toLowerCase()));
+                                                        }).map(photo => {
+                                                            const isVid = isVideoFile(photo.key);
+                                                            return (
                                                             <div 
                                                                 key={photo.key} 
                                                                 onClick={() => {
@@ -773,11 +835,31 @@ export function ImageUploadModal({
                                                                 }}
                                                                 className={`relative w-full aspect-square min-h-[100px] md:min-h-[120px] bg-[#111] border-2 rounded-2xl md:rounded-[2rem] overflow-hidden cursor-pointer transition-all duration-300 group shadow-lg ${selectedImages.some(img => img.preview === photo.url) ? 'border-neon-blue ring-4 ring-neon-blue/20 scale-[0.98]' : 'border-white/5 hover:border-white/10 hover:scale-[1.02]'}`}
                                                             >
-                                                                <img  
-                                                                    src={photo.url} 
-                                                                    alt="" 
-                                                                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${selectedImages.some(img => img.preview === photo.url) ? 'opacity-100 scale-110' : 'opacity-70 group-hover:opacity-100 group-hover:scale-110'}`} 
-                                                                />
+                                                                {isVid ? (
+                                                                    <div className="absolute inset-0 w-full h-full bg-black/60 flex items-center justify-center">
+                                                                        <video  
+                                                                            src={photo.url} 
+                                                                            muted 
+                                                                            playsInline 
+                                                                            loop 
+                                                                            preload="metadata"
+                                                                            onMouseEnter={e => { e.currentTarget.play().catch(() => {}); }}
+                                                                            onMouseLeave={e => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}
+                                                                            className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${selectedImages.some(img => img.preview === photo.url) ? 'opacity-100 scale-110' : 'opacity-70 group-hover:opacity-100 group-hover:scale-110'}`} 
+                                                                        />
+                                                                        <div className="absolute top-3 left-3 px-2 py-0.5 bg-black/80 backdrop-blur-md rounded-md border border-white/20 flex items-center gap-1.5 pointer-events-none z-10 shadow-lg">
+                                                                            <Film className="w-3 h-3 text-[#ff3700]" />
+                                                                            <span className="text-[8px] font-black uppercase text-white tracking-wider">Vidéo</span>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <img  
+                                                                        src={photo.url} 
+                                                                        alt="" 
+                                                                        loading="lazy"
+                                                                        className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${selectedImages.some(img => img.preview === photo.url) ? 'opacity-100 scale-110' : 'opacity-70 group-hover:opacity-100 group-hover:scale-110'}`} 
+                                                                    />
+                                                                )}
                                                                 
                                                                 {selectedImages.some(img => img.preview === photo.url) && (
                                                                     <div className="absolute top-6 right-6 w-10 h-10 bg-neon-blue rounded-full flex items-center justify-center shadow-2xl animate-in zoom-in duration-300 z-20">
@@ -787,11 +869,12 @@ export function ImageUploadModal({
                                                                     </div>
                                                                 )}
 
-                                                                <div className="absolute inset-x-0 bottom-0 bg-black/90 backdrop-blur-xl p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 border-t border-white/10">
+                                                                <div className="absolute inset-x-0 bottom-0 bg-black/90 backdrop-blur-xl p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 border-t border-white/10 z-20">
                                                                     <span className="text-[10px] font-black text-white block truncate text-center uppercase tracking-[0.2em]">{photo.key.split('/').pop()}</span>
                                                                 </div>
                                                             </div>
-                                                        ))}
+                                                            );
+                                                        })}
                                                         <div ref={sentinelRef} className="col-span-full h-32 flex items-center justify-center">
                                                             {r2Loading && <Loader2 className="w-10 h-10 animate-spin text-neon-blue" />}
                                                         </div>
