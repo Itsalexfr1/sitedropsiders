@@ -1286,6 +1286,322 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
+            const renderPromoOutro = (pCtx: CanvasRenderingContext2D, offsetX: number = 0, alpha: number = 1.0) => {
+                pCtx.save();
+                if (alpha < 1) pCtx.globalAlpha *= alpha;
+                if (offsetX !== 0) pCtx.translate(offsetX, 0);
+                const ctx = pCtx;
+                const centerX = canvas.width / 2;
+                const isReel = effectiveTab === 'REEL';
+                if (offsetX === 0 && alpha === 1.0 && effectiveTransitionProgress > 0 && !transitionTargetRef.current) {
+                    applySlideTransitionCtx(ctx, centerX, canvas.height / 2);
+                }
+
+                // 1. Dark overlay — 75% opaque black
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Scan lines subtle texture
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+                for (let i = 0; i < canvas.height; i += 6) {
+                    ctx.fillRect(0, i, canvas.width, 2);
+                }
+
+                // ==========================================
+                // ZONE 1 & 2 : PROMO OUTRO (ACCROCHE & PHRASE OFFICIELLE)
+                // ==========================================
+                const isAgendaPromo = promoCategory === 'PLANNING';
+                const isTopHookActive = showPromoHook && !isAgendaPromo;
+
+                const getTargetPromoCategory = (t: string): string => {
+                    const raw = (t || 'NEWS').toUpperCase().trim();
+                    if (raw.includes('MUSIQUE') || raw.includes('TRACKLIST') || raw.includes('TOP 5') || raw.includes('TOP 100')) {
+                        return 'MUSIQUE';
+                    }
+                    if (raw.includes('FOCUS') || raw.includes('SPOTLIGHT') || raw.includes('CITATION')) {
+                        return 'FOCUS';
+                    }
+                    if (raw.includes('RECAP')) {
+                        return 'RECAPS';
+                    }
+                    if (raw.includes('CONCOURS') || raw.includes('JEU')) {
+                        return 'CONCOURS';
+                    }
+                    if (raw.includes('EVENT') || raw.includes('PLANNING') || raw.includes('AGENDA') || raw.includes('FESTIVAL') || raw.includes('AFFICHE') || raw.includes('MAP') || raw.includes('CALENDRIER')) {
+                        return 'EVENTS';
+                    }
+                    if (raw.includes('INTERVIEW')) {
+                        return 'INTERVIEWS';
+                    }
+                    if (raw.includes('REEL') || raw.includes('VIDEO') || raw.includes('DIRECT') || raw.includes('LIVESTREAM') || raw.includes('CONSEIL')) {
+                        return 'VIDEOS';
+                    }
+                    return 'NEWS';
+                };
+
+                const activeTargetCategory = isAgendaPromo 
+                    ? 'EVENTS' 
+                    : getTargetPromoCategory(promoCategory || theme);
+
+                const defaultHeadline = (activeTargetCategory === 'EVENTS')
+                    ? 'POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS'
+                    : (activeTargetCategory === 'MUSIQUE')
+                    ? 'POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES'
+                    : (activeTargetCategory === 'FOCUS')
+                    ? 'POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS'
+                    : (activeTargetCategory === 'RECAPS')
+                    ? 'POUR REVIVRE TOUS LES MEILLEURS FESTIVALS'
+                    : (activeTargetCategory === 'CONCOURS')
+                    ? 'POUR NE RATER AUCUN CONCOURS & PASS FESTIVALS'
+                    : (activeTargetCategory === 'INTERVIEWS')
+                    ? 'POUR NE RIEN MANQUER DE NOS INTERVIEWS EXCLUSIVES'
+                    : (activeTargetCategory === 'VIDEOS')
+                    ? 'POUR NE RIEN MANQUER DE NOS VIDÉOS & REELS'
+                    : 'POUR ÊTRE INFORMÉ DE TOUTES LES NEWS';
+
+                const effectiveHeadline = promoCustomPhrase.trim() 
+                    ? promoCustomPhrase.trim().toUpperCase() 
+                    : defaultHeadline;
+
+                const effectiveSubphrase = promoCustomSubphrase.trim()
+                    ? promoCustomSubphrase.trim().toUpperCase()
+                    : 'SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,';
+
+                const headlineParts = (showPromoHeadline && effectiveHeadline) ? effectiveHeadline.split('\n').filter(Boolean) : [];
+                const outroLines = showPromoHeadline ? [
+                    ...headlineParts,
+                    ...(effectiveSubphrase ? [effectiveSubphrase] : [])
+                ] : [];
+
+                const rawQuestion = (customText && customText.trim()) 
+                    ? customText.trim().replace(/^["']|["']$/g, '') 
+                    : "ET TOI, QU'EN PENSES-TU ?";
+                
+                const cleanQuestion = rawQuestion.toUpperCase();
+
+                const qLines: string[] = [];
+                let questionFontSize = isReel ? 62 : 54;
+
+                if (isTopHookActive) {
+                    const words = cleanQuestion.split(' ');
+                    let currentLine = '';
+                    ctx.font = `900 italic ${questionFontSize}px "Montserrat", sans-serif`;
+
+                    words.forEach((w: string) => {
+                        const test = currentLine ? `${currentLine} ${w}` : w;
+                        if (ctx.measureText(test).width > 920) {
+                            if (currentLine) qLines.push(currentLine);
+                            currentLine = w;
+                        } else {
+                            currentLine = test;
+                        }
+                    });
+                    if (currentLine) qLines.push(currentLine);
+
+                    if (qLines.length > 3) {
+                        questionFontSize = isReel ? 48 : 40;
+                        ctx.font = `900 italic ${questionFontSize}px "Montserrat", sans-serif`;
+                    }
+                }
+
+                const qLineHeight = questionFontSize * 1.25;
+
+                const ctaCommentOffset = isReel ? 70 : 60;
+                const sepOffset = isReel ? 65 : 55;
+                const outroOffset = isReel ? 75 : 65;
+                const outroSpacing = isReel ? (isAgendaPromo ? 48 : 42) : 38;
+                const abonneGap = outroLines.length > 0 ? (isReel ? (isAgendaPromo ? 36 : 30) : 28) : (isReel ? 20 : 18);
+                const dropsidersOffset = isReel ? (isAgendaPromo ? 105 : 90) : 80;
+                const pillsOffset = isReel ? (isAgendaPromo ? 75 : 65) : 55;
+                const pillH = isReel ? 44 : 40;
+
+                const targetCenterY = isReel ? 950 : 675;
+                let outroStartY = 0;
+                let dropsidersY = 0;
+                let pillsY = 0;
+
+                const outroLinesSpan = outroLines.length > 0 ? (outroLines.length * outroSpacing) : 0;
+                const lowerBlockHeight = outroLinesSpan + abonneGap + dropsidersOffset + pillsOffset + pillH;
+
+                if (isTopHookActive) {
+                    const blockSpanFromFirstBaseline = (qLines.length - 1) * qLineHeight 
+                        + ctaCommentOffset 
+                        + sepOffset 
+                        + outroOffset 
+                        + lowerBlockHeight;
+                    
+                    const questionAscender = questionFontSize * 0.8;
+                    const totalBlockHeight = questionAscender + blockSpanFromFirstBaseline;
+                    const qStartY = Math.round(targetCenterY - (totalBlockHeight / 2) + questionAscender);
+
+                    const bgGlow = ctx.createRadialGradient(centerX, targetCenterY, 60, centerX, targetCenterY, isReel ? 520 : 480);
+                    bgGlow.addColorStop(0, `rgba(${activeColor.grad}, 0.20)`);
+                    bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = bgGlow;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'alphabetic';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                    ctx.shadowBlur = 24;
+
+                    qLines.forEach((line: string, idx: number) => {
+                        let fs = questionFontSize;
+                        ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                        while (ctx.measureText(line).width > 940 && fs > 24) {
+                            fs--;
+                            ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                        }
+                        ctx.save();
+                        applyTextAnimCtx(ctx, 0.08 + idx * 0.08, centerX, qStartY + idx * qLineHeight);
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(line, centerX, qStartY + idx * qLineHeight);
+                        ctx.restore();
+                    });
+                    ctx.restore();
+
+                    // Call-to-action d'engagement : "DONNE TON AVIS EN COMMENTAIRE 👇"
+                    const lastQLineY = qStartY + (qLines.length - 1) * qLineHeight;
+                    const ctaCommentY = lastQLineY + ctaCommentOffset;
+
+                    ctx.save();
+                    applyTextAnimCtx(ctx, 0.22, centerX, ctaCommentY);
+                    ctx.textAlign = 'center';
+                    ctx.font = `800 ${isReel ? 26 : 24}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = activeColor.color;
+                    ctx.shadowColor = `rgba(${activeColor.grad}, 0.6)`;
+                    ctx.shadowBlur = 18;
+                    ctx.fillText('DONNE TON AVIS EN COMMENTAIRE 👇', centerX, ctaCommentY);
+                    ctx.restore();
+
+                    // Ligne de séparation fine néon
+                    const sepY = ctaCommentY + sepOffset;
+                    const sepGrad = ctx.createLinearGradient(centerX - 200, 0, centerX + 200, 0);
+                    sepGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                    sepGrad.addColorStop(0.5, activeColor.color);
+                    sepGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = sepGrad;
+                    ctx.fillRect(centerX - 200, sepY, 400, 2);
+
+                    outroStartY = sepY + outroOffset;
+                } else {
+                    // Phrase d'accroche DÉSACTIVÉE : Centrage parfait du texte en dessous au milieu du visuel
+                    outroStartY = Math.round(targetCenterY - (lowerBlockHeight / 2));
+
+                    const bgGlow = ctx.createRadialGradient(centerX, targetCenterY, 80, centerX, targetCenterY, isReel ? 560 : 480);
+                    bgGlow.addColorStop(0, `rgba(${activeColor.grad}, 0.26)`);
+                    bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = bgGlow;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+
+                // ZONE 2 : PHRASE OFFICIELLE & ABONNEMENT
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                ctx.shadowBlur = 18;
+
+                if (outroLines.length > 0) {
+                    let outroFontSize = isReel ? (isAgendaPromo ? 30 : 28) : 25;
+                    ctx.font = `700 ${outroFontSize}px "Montserrat", sans-serif`;
+                    outroLines.forEach(line => {
+                        while (ctx.measureText(line).width > 940 && outroFontSize > 18) {
+                            outroFontSize--;
+                            ctx.font = `700 ${outroFontSize}px "Montserrat", sans-serif`;
+                        }
+                    });
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+
+                    outroLines.forEach((line: string, i: number) => {
+                        ctx.save();
+                        applyTextAnimCtx(ctx, 0.28 + i * 0.08, centerX, outroStartY + i * outroSpacing);
+                        ctx.fillText(line, centerX, outroStartY + i * outroSpacing);
+                        ctx.restore();
+                    });
+                }
+
+                // "ABONNEZ-VOUS À"
+                const abonneY = outroLines.length > 0
+                    ? (outroStartY + outroLines.length * outroSpacing + abonneGap)
+                    : (outroStartY + abonneGap);
+                ctx.font = `700 ${isReel ? 26 : 24}px "Montserrat", sans-serif`;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+                ctx.fillText('ABONNEZ-VOUS À', centerX, abonneY);
+
+                // "DROPSIDERS" en grand Orbitron néon
+                dropsidersY = abonneY + dropsidersOffset;
+                ctx.font = `900 italic ${isReel ? (isAgendaPromo ? 98 : 92) : 86}px "Orbitron", sans-serif`;
+                ctx.letterSpacing = '-2px';
+                ctx.fillStyle = activeColor.color;
+                ctx.shadowColor = `rgba(${activeColor.grad}, 0.75)`;
+                ctx.shadowBlur = 38;
+                ctx.fillText('DROPSIDERS', centerX, dropsidersY);
+                ctx.restore();
+
+                // ==========================================
+                // ZONE 3 : BULLES ARRONDIES
+                // NEWS - MUSIQUE - FOCUS - RECAPS - CONCOURS - EVENTS - INTERVIEWS - VIDEOS
+                // ==========================================
+                const categories = ['NEWS', 'MUSIQUE', 'FOCUS', 'RECAPS', 'CONCOURS', 'EVENTS', 'INTERVIEWS', 'VIDEOS'];
+                pillsY = dropsidersY + pillsOffset;
+                const pillFont = `800 ${isReel ? 15 : 14}px "Montserrat", sans-serif`;
+                ctx.font = pillFont;
+
+                // Calculer la largeur de chaque pill
+                const pillPaddingX = 14;
+                const pillGap = 8;
+                const pillWidths = categories.map((cat: string) => ctx.measureText(cat).width + pillPaddingX * 2);
+                const totalPillsWidth = pillWidths.reduce((a: number, b: number) => a + b, 0) + (categories.length - 1) * pillGap;
+
+                let currentPillX = centerX - totalPillsWidth / 2;
+
+                categories.forEach((cat: string, idx: number) => {
+                    const pw = pillWidths[idx];
+                    const isPillActive = cat === activeTargetCategory;
+                    ctx.save();
+                    // Bulle arrondie (pill)
+                    ctx.beginPath();
+                    ctx.roundRect(currentPillX, pillsY, pw, pillH, pillH / 2);
+                    ctx.fillStyle = isPillActive ? `rgba(${activeColor.grad}, 0.18)` : 'rgba(255, 255, 255, 0.08)';
+                    ctx.fill();
+                    ctx.strokeStyle = isPillActive ? activeColor.color : 'rgba(255, 255, 255, 0.22)';
+                    ctx.lineWidth = isPillActive ? 2 : 1.5;
+                    if (isPillActive) {
+                        ctx.shadowColor = `rgba(${activeColor.grad}, 0.7)`;
+                        ctx.shadowBlur = 14;
+                    }
+                    ctx.stroke();
+
+                    // Texte
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = isPillActive ? activeColor.color : '#ffffff';
+                    ctx.font = pillFont;
+                    ctx.fillText(cat, currentPillX + pw / 2, pillsY + pillH / 2);
+                    ctx.restore();
+
+                    currentPillX += pw + pillGap;
+                });
+
+                // ==========================================
+                // ZONE 4 : LOGO DROPSIDERS TOUT EN BAS
+                // ==========================================
+                if (logoRef.current) {
+                    const logo = logoRef.current;
+                    const lw = isReel ? 240 : 220;
+                    const lh = (logo.height / logo.width) * lw;
+                    const logoY = canvas.height - lh - (isReel ? 65 : 50);
+                    ctx.save();
+                    ctx.filter = 'brightness(0) invert(1)';
+                    ctx.globalAlpha = 0.85;
+                    ctx.drawImage(logo, centerX - lw / 2, logoY, lw, lh);
+                    ctx.restore();
+                }
+                ctx.restore();
+                pCtx.restore();
+            };
+
             if (theme === 'TOP 5 STYLES') {
                 const item = top5Items[currentPreviewIndex];
                 const centerX = canvas.width / 2;
@@ -1539,20 +1855,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillRect(startX + w1, footerY + 15, w2, 2);
 
                 ctx.restore();
-                        const renderPromoOutro = (pCtx: CanvasRenderingContext2D, offsetX: number = 0, alpha: number = 1.0) => {
-                pCtx.save();
-                if (alpha < 1) pCtx.globalAlpha *= alpha;
-                if (offsetX !== 0) pCtx.translate(offsetX, 0);
-                const ctx = pCtx;
-                const centerX = canvas.width / 2;
-                const isReel = effectiveTab === 'REEL';
-                if (offsetX === 0 && alpha === 1.0 && effectiveTransitionProgress > 0 && !transitionTargetRef.current) {
-                    applySlideTransitionCtx(ctx, centerX, canvas.height / 2);
-                }
-
-                
-                pCtx.restore();
-            };
+                        
 
 } else if (theme === 'PLANNING') {
                 const centerX = canvas.width / 2;
@@ -3138,6 +3441,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const prevAgendaSlide = agendaSlide;
         const prevEditorialSlide = editorialSlide;
 
+                // Helper pour animer frame-par-frame en garantissant que la vidéo de fond avance
+        const renderDuration = async (durationMs: number) => {
+            const t0 = Date.now();
+            while (Date.now() - t0 < durationMs) {
+                if (bgVideo && bgVideo.paused) {
+                    bgVideo.play().catch(() => {});
+                }
+                await generateImage();
+                await new Promise(r => requestAnimationFrame(r));
+            }
+        };
+
         if (combinedMode === 'PLANNING') {
             agendaSlideOverrideRef.current = 1;
             setAgendaSlide(1);
@@ -3443,17 +3758,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setRecordingTimeLeft(Math.max(0, Math.ceil((totalDuration - elapsed) / 1000)));
         }, 100);
 
-        // Helper pour animer frame-par-frame en garantissant que la vidéo de fond avance
-        const renderDuration = async (durationMs: number) => {
-            const t0 = Date.now();
-            while (Date.now() - t0 < durationMs) {
-                if (bgVideo && bgVideo.paused) {
-                    bgVideo.play().catch(() => {});
-                }
-                await generateImage();
-                await new Promise(r => requestAnimationFrame(r));
-            }
-        };
+        
 
         if (combinedMode === 'EDITORIAL') {
             const numContentSlides = 2 + extraEditorialSlides.length;
@@ -4250,19 +4555,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
                     🎬 Animation du Fond (Reels / MP4)
                 </span>
-                {bgAnimation !== 'NONE' && (
-                    <button
-                        type="button"
-                        onClick={() => {
-                            animStartTimeRef.current = Date.now();
-                            setAnimReplayKey(k => k + 1);
-                        }}
-                        className="px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg text-[8px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all flex items-center gap-1"
-                        title="Rejouer l'animation depuis le début"
-                    >
-                        <RotateCcw className="w-2.5 h-2.5" /> Rejouer
-                    </button>
-                )}
+    
             </div>
 
             <div className="grid grid-cols-4 gap-1.5">
@@ -4818,14 +5111,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 >
                     <Sparkles className="w-3.5 h-3.5" /> Exporter le Carrousel Images (Slide 1 + 2)
                 </button>
-                <button
-                    type="button"
-                    onClick={() => startVideoRecording('PLANNING')}
-                    disabled={isVideoRecording}
-                    className="w-full py-2.5 bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 hover:opacity-90 text-black font-black text-[9.5px] uppercase rounded-lg shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 disabled:opacity-50"
-                >
-                    <Video className="w-3.5 h-3.5 text-black" /> {isVideoRecording ? 'Enregistrement Vidéo en cours...' : '🎬 Exporter Vidéo Complète (Slide 1 + 2) • 15s'}
-                </button>
+                
             </div>
 
             {agendaSlide === 1 ? (
@@ -5347,8 +5633,71 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 </div>
     );
 
+    const textAnimationControl = (
+        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5">
+            <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black uppercase text-neon-cyan tracking-wider flex items-center gap-1.5">
+                    🎬 Animation du texte {activeTab === 'REEL' ? '(Reel 9:16)' : ''}
+                </span>
+                {textAnimation !== 'NONE' && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            animStartTimeRef.current = Date.now();
+                            setAnimReplayKey(k => k + 1);
+                        }}
+                        className="px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg text-[8px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all flex items-center gap-1"
+                        title="Rejouer l'animation depuis le début"
+                    >
+                        <RotateCcw className="w-2.5 h-2.5" /> Rejouer
+                    </button>
+                )}
+            </div>
+
+            <div className="grid grid-cols-4 gap-1.5">
+                {[
+                    { id: 'NONE', label: 'Statique', icon: '⏹️', activeClass: 'bg-white text-black border-white shadow-sm' },
+                    { id: 'SLIDE_LEFT', label: 'Glissement', icon: '➡️', activeClass: 'bg-neon-red border-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]' },
+                    { id: 'WORD_BY_WORD', label: 'Mot / Mot', icon: '✨', activeClass: 'bg-neon-cyan border-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.5)]' },
+                    { id: 'POP_UP', label: 'Pop Up', icon: '⬆️', activeClass: 'bg-neon-purple border-neon-purple text-white shadow-[0_0_12px_rgba(176,38,255,0.5)]' },
+                    { id: 'ZOOM_IMPACT', label: 'Zoom Impact', icon: '💥', activeClass: 'bg-amber-400 border-amber-400 text-black shadow-[0_0_12px_rgba(251,191,36,0.5)]' },
+                    { id: 'TYPEWRITER', label: 'Machine', icon: '⌨️', activeClass: 'bg-emerald-400 border-emerald-400 text-black shadow-[0_0_12px_rgba(52,211,153,0.5)]' },
+                    { id: 'BOUNCE', label: 'Rebond', icon: '🏀', activeClass: 'bg-pink-500 border-pink-500 text-white shadow-[0_0_12px_rgba(236,72,153,0.5)]' },
+                    { id: 'GLITCH', label: 'Glitch Cyber', icon: '⚡', activeClass: 'bg-indigo-500 border-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.5)]' },
+                ].map(anim => (
+                    <button
+                        key={anim.id}
+                        type="button"
+                        onClick={() => {
+                            setTextAnimation(anim.id as TextAnimType);
+                            animStartTimeRef.current = Date.now();
+                            setAnimReplayKey(k => k + 1);
+                        }}
+                        className={`py-2 px-1 rounded-xl text-[8.5px] font-black uppercase border transition-all flex flex-col items-center justify-center gap-0.5 ${
+                            textAnimation === anim.id
+                                ? anim.activeClass
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                        }`}
+                    >
+                        <span className="text-[11px] leading-none">{anim.icon}</span>
+                        <span className="truncate w-full text-center">{anim.label}</span>
+                    </button>
+                ))}
+            </div>
+
+            
+        </div>
+    );
+
     const promoEditor = (
         <div className="space-y-4">
+            {/* Effet & Animation du texte */}
+            <div className="space-y-1">
+                <span className="text-[10px] font-black uppercase text-neon-cyan tracking-wider flex items-center gap-1.5">
+                    ✨ Effet & Animation du texte
+                </span>
+                {textAnimationControl}
+            </div>
             {isCarouselPromoActive && (
                 <div className="p-3 bg-neon-red/10 border border-neon-red/30 rounded-2xl flex items-center justify-between shadow-lg">
                     <div className="flex items-center gap-2">
@@ -5538,29 +5887,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             />
                         </div>
 
-                        <div className="pt-2">
-                            <p className="text-[8.5px] font-bold text-gray-500 uppercase mb-1.5">Phrases suggérées en 1 clic :</p>
-                            <div className="flex flex-wrap gap-1.5">
-                                {[
-                                    "POUR ÊTRE INFORMÉ DE TOUTES LES NEWS",
-                                    "POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS",
-                                    "POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES",
-                                    "POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS",
-                                    "POUR REVIVRE TOUS LES MEILLEURS FESTIVALS",
-                                ].map((phrase, idx) => (
-                                    <button
-                                        key={idx}
-                                        type="button"
-                                        onClick={() => {
-                                            setPromoCustomPhrase(phrase);
-                                            setTimeout(() => generateImage(), 50);
-                                        }}
-                                        className="px-2.5 py-1 bg-white/5 hover:bg-neon-cyan/20 border border-white/10 hover:border-neon-cyan text-gray-300 hover:text-white rounded-lg text-[8.5px] font-bold transition-all text-left"
-                                    >
-                                        {phrase}
-                                    </button>
-                                ))}
-                            </div>
+                        <div className="pt-2 space-y-1">
+                            <label className="text-[8.5px] font-bold text-gray-400 uppercase tracking-wider block">
+                                💡 Phrases suggérées en 1 clic :
+                            </label>
+                            <select
+                                value=""
+                                onChange={e => {
+                                    if (e.target.value) {
+                                        setPromoCustomPhrase(e.target.value);
+                                        setTimeout(() => generateImage(), 50);
+                                    }
+                                }}
+                                className="w-full bg-black/60 border border-white/10 hover:border-neon-cyan/50 focus:border-neon-cyan rounded-xl p-2.5 text-white text-xs font-bold uppercase outline-none transition-all cursor-pointer"
+                            >
+                                <option value="" disabled>-- Choisir une phrase suggérée --</option>
+                                <option value="POUR ÊTRE INFORMÉ DE TOUTES LES NEWS">POUR ÊTRE INFORMÉ DE TOUTES LES NEWS</option>
+                                <option value="POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS">POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS</option>
+                                <option value="POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES">POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES</option>
+                                <option value="POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS">POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS</option>
+                                <option value="POUR REVIVRE TOUS LES MEILLEURS FESTIVALS">POUR REVIVRE TOUS LES MEILLEURS FESTIVALS</option>
+                            </select>
                         </div>
                     </>
                 )}
@@ -5584,28 +5931,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             autoCorrect="on"
                             className="w-full h-20 bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs font-bold resize-none focus:border-neon-red outline-none transition-all uppercase"
                         />
-                        <div className="pt-1">
-                            <p className="text-[8.5px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Suggestions rapides pour la question :</p>
-                            <div className="flex flex-wrap gap-1.5">
-                                {[
-                                    "Et toi, qu'en penses-tu ?",
-                                    "Validé ou surcoté ?",
-                                    "Tu y seras cet été ?",
-                                    "Dans ta playlist ou poubelle ?",
-                                    "Tu valides ce retour ?",
-                                    "Quelle est ta collab de rêve ?"
-                                ].map((sug, i) => (
-                                    <button
-                                        key={i}
-                                        type="button"
-                                        onClick={() => setCustomText(sug)}
-                                        className="px-2.5 py-1.5 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red text-gray-300 hover:text-white rounded-lg text-[9px] font-bold transition-all"
-                                    >
-                                        {sug}
-                                    </button>
-                                ))}
+                        <div className="pt-1 space-y-1">
+                                <label className="text-[8.5px] font-bold text-gray-400 uppercase tracking-wider block">
+                                    💡 Suggestions rapides pour la question :
+                                </label>
+                                <select
+                                    value=""
+                                    onChange={e => {
+                                        if (e.target.value) {
+                                            setCustomText(e.target.value.toUpperCase());
+                                            setTimeout(() => generateImage(), 50);
+                                        }
+                                    }}
+                                    className="w-full bg-black/60 border border-white/10 hover:border-neon-red/50 focus:border-neon-red rounded-xl p-2.5 text-white text-xs font-bold uppercase outline-none transition-all cursor-pointer"
+                                >
+                                    <option value="" disabled>-- Choisir une question suggérée --</option>
+                                    <option value="Et toi, qu'en penses-tu ?">Et toi, qu'en penses-tu ?</option>
+                                    <option value="Validé ou surcoté ?">Validé ou surcoté ?</option>
+                                    <option value="Tu y seras cet été ?">Tu y seras cet été ?</option>
+                                    <option value="Dans ta playlist ou poubelle ?">Dans ta playlist ou poubelle ?</option>
+                                    <option value="Tu valides ce retour ?">Tu valides ce retour ?</option>
+                                    <option value="Quelle est ta collab de rêve ?">Quelle est ta collab de rêve ?</option>
+                                </select>
                             </div>
-                        </div>
                     </>
                 ) : (
                     <div className="p-2.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-xl text-[9px] text-neon-cyan font-bold flex items-center justify-between">
@@ -6038,80 +6386,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <span className="text-neon-red">Slide 2</span>
                     </div>
                     {spotlightEditor}
-                </div>
-            )}
-        </div>
-    );
-
-    const textAnimationControl = (
-        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5">
-            <div className="flex items-center justify-between">
-                <span className="text-[9px] font-black uppercase text-neon-cyan tracking-wider flex items-center gap-1.5">
-                    🎬 Animation du texte {activeTab === 'REEL' ? '(Reel 9:16)' : ''}
-                </span>
-                {textAnimation !== 'NONE' && (
-                    <button
-                        type="button"
-                        onClick={() => {
-                            animStartTimeRef.current = Date.now();
-                            setAnimReplayKey(k => k + 1);
-                        }}
-                        className="px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg text-[8px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all flex items-center gap-1"
-                        title="Rejouer l'animation depuis le début"
-                    >
-                        <RotateCcw className="w-2.5 h-2.5" /> Rejouer
-                    </button>
-                )}
-            </div>
-
-            <div className="grid grid-cols-4 gap-1.5">
-                {[
-                    { id: 'NONE', label: 'Statique', icon: '⏹️', activeClass: 'bg-white text-black border-white shadow-sm' },
-                    { id: 'SLIDE_LEFT', label: 'Glissement', icon: '➡️', activeClass: 'bg-neon-red border-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]' },
-                    { id: 'WORD_BY_WORD', label: 'Mot / Mot', icon: '✨', activeClass: 'bg-neon-cyan border-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.5)]' },
-                    { id: 'POP_UP', label: 'Pop Up', icon: '⬆️', activeClass: 'bg-neon-purple border-neon-purple text-white shadow-[0_0_12px_rgba(176,38,255,0.5)]' },
-                    { id: 'ZOOM_IMPACT', label: 'Zoom Impact', icon: '💥', activeClass: 'bg-amber-400 border-amber-400 text-black shadow-[0_0_12px_rgba(251,191,36,0.5)]' },
-                    { id: 'TYPEWRITER', label: 'Machine', icon: '⌨️', activeClass: 'bg-emerald-400 border-emerald-400 text-black shadow-[0_0_12px_rgba(52,211,153,0.5)]' },
-                    { id: 'BOUNCE', label: 'Rebond', icon: '🏀', activeClass: 'bg-pink-500 border-pink-500 text-white shadow-[0_0_12px_rgba(236,72,153,0.5)]' },
-                    { id: 'GLITCH', label: 'Glitch Cyber', icon: '⚡', activeClass: 'bg-indigo-500 border-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.5)]' },
-                ].map(anim => (
-                    <button
-                        key={anim.id}
-                        type="button"
-                        onClick={() => {
-                            setTextAnimation(anim.id as TextAnimType);
-                            animStartTimeRef.current = Date.now();
-                            setAnimReplayKey(k => k + 1);
-                        }}
-                        className={`py-2 px-1 rounded-xl text-[8.5px] font-black uppercase border transition-all flex flex-col items-center justify-center gap-0.5 ${
-                            textAnimation === anim.id
-                                ? anim.activeClass
-                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
-                        }`}
-                    >
-                        <span className="text-[11px] leading-none">{anim.icon}</span>
-                        <span className="truncate w-full text-center">{anim.label}</span>
-                    </button>
-                ))}
-            </div>
-
-            {textAnimation !== 'NONE' && (
-                <div className="space-y-1.5 pt-0.5">
-                    <p className="text-[8px] text-gray-400 italic px-1">
-                        ✨ Animation active ! Cliquez ci-dessous pour exporter directement la vidéo en MP4.
-                    </p>
-                    <button
-                        type="button"
-                        onClick={() => startVideoRecording()}
-                        disabled={isVideoRecording}
-                        className={`w-full py-2.5 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-md ${
-                            isVideoRecording
-                                ? 'bg-red-500/20 text-red-400 animate-pulse'
-                                : 'bg-neon-red/20 border border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white active:scale-[0.98]'
-                        }`}
-                    >
-                        <Video className="w-3.5 h-3.5" /> {isVideoRecording ? 'Capture MP4 en cours...' : '🎬 Exporter cette animation en MP4'}
-                    </button>
                 </div>
             )}
         </div>
@@ -7324,106 +7598,156 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     );
 
     const exportButtons = (
-        <div className="space-y-2">
-            <button onClick={addVisualToList} className="w-full py-2.5 bg-white/5 border border-white/10 text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><PlusCircle className="w-3.5 h-3.5" /> Ajouter à la liste</button>
-            <div className="grid grid-cols-2 gap-2">
-                <button onClick={() => downloadFormat('PUBLICATION')} disabled={isDownloading} className="py-2.5 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all">
-                    <Download className="w-3.5 h-3.5" /> PNG POST
-                </button>
-                <button onClick={() => downloadFormat('REEL')} disabled={isDownloading} className="py-2.5 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-purple/20 transition-all">
-                    <Download className="w-3.5 h-3.5" /> PNG STORY
-                </button>
+        <div className="p-4 bg-gradient-to-b from-white/[0.08] to-black/60 border border-white/15 rounded-3xl space-y-3.5 shadow-2xl">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Download className="w-4 h-4 text-neon-cyan" />
+                    <span className="text-[10px] font-black uppercase text-white tracking-widest">Centre d'Exportation</span>
+                </div>
+                <span className="text-[8px] font-bold text-gray-400 uppercase bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
+                    {theme} • {activeTab === 'REEL' ? 'Story / Reel 9:16' : 'Post 1:1'}
+                </span>
             </div>
-            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/5">
-                <button
-                    onClick={() => downloadPromoFormat('PUBLICATION')}
-                    disabled={isDownloading}
-                    className="py-2.5 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-red hover:text-white transition-all disabled:opacity-40"
-                >
-                    <Download className="w-3.5 h-3.5" /> PROMO POST
-                </button>
-                <button
-                    onClick={() => downloadPromoFormat('REEL')}
-                    disabled={isDownloading}
-                    className="py-2.5 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-red hover:text-white transition-all disabled:opacity-40"
-                >
-                    <Download className="w-3.5 h-3.5" /> PROMO STORY
-                </button>
-            </div>
-            <button
-                type="button"
-                onClick={() => downloadBackgroundVisual(activeTab)}
-                disabled={isDownloading}
-                className="w-full py-2 bg-white/5 border border-white/10 hover:border-white/25 text-gray-300 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all"
-                title="Exporter l'image de fond seule sans texte"
-            >
-                <Download className="w-3 h-3 text-neon-cyan" /> Exporter le Fond Visuel (Seul)
-            </button>
-            {/* Si thème PLANNING ou Thème Éditorial en REEL, on propose Option A (Slide actuelle) et Option B (Vidéo Complète) */}
-            {theme === 'PLANNING' ? (
-                <div className="space-y-1.5">
+
+            {/* Section 1 : Visuel Actuel (PNG) */}
+            <div className="space-y-1.5">
+                <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">📸 Visuel Actuel (PNG)</span>
+                <div className="grid grid-cols-2 gap-2">
                     <button
                         type="button"
-                        onClick={() => startVideoRecording('PLANNING')}
-                        disabled={isVideoRecording}
-                        className={`w-full py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-lg ${
-                            isVideoRecording
-                                ? 'bg-[#ff3700]/30 text-[#ff3700] border border-[#ff3700]/50 animate-pulse'
-                                : 'bg-gradient-to-r from-[#ff3700] to-orange-500 text-black hover:brightness-110 active:scale-[0.98] shadow-[0_0_20px_rgba(255,55,0,0.4)]'
-                        }`}
+                        onClick={() => downloadFormat('PUBLICATION')}
+                        disabled={isDownloading}
+                        className="py-2.5 px-3 bg-neon-cyan/10 hover:bg-neon-cyan/20 border border-neon-cyan/30 hover:border-neon-cyan text-neon-cyan rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
                     >
-                        <Video className="w-4 h-4 text-black" /> {isVideoRecording ? 'CAPTURE VIDÉO EN COURS...' : '🎬 EXPORTER VIDÉO COMPLÈTE (SLIDE 1 + 2) • 15S'}
+                        <Download className="w-3.5 h-3.5" /> PNG POST
                     </button>
+                    <button
+                        type="button"
+                        onClick={() => downloadFormat('REEL')}
+                        disabled={isDownloading}
+                        className="py-2.5 px-3 bg-neon-purple/10 hover:bg-neon-purple/20 border border-neon-purple/30 hover:border-neon-purple text-neon-purple rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
+                    >
+                        <Download className="w-3.5 h-3.5" /> PNG STORY
+                    </button>
+                </div>
+            </div>
+
+            {/* Section 2 : Slide Promo Outro (PNG) */}
+            <div className="space-y-1.5">
+                <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">🔥 Slide Promo Outro (PNG)</span>
+                <div className="grid grid-cols-2 gap-2">
+                    <button
+                        type="button"
+                        onClick={() => downloadPromoFormat('PUBLICATION')}
+                        disabled={isDownloading}
+                        className="py-2.5 px-3 bg-neon-red/10 hover:bg-neon-red/20 border border-neon-red/30 hover:border-neon-red text-neon-red rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
+                    >
+                        <Download className="w-3.5 h-3.5" /> PROMO POST
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => downloadPromoFormat('REEL')}
+                        disabled={isDownloading}
+                        className="py-2.5 px-3 bg-neon-red/10 hover:bg-neon-red/20 border border-neon-red/30 hover:border-neon-red text-neon-red rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
+                    >
+                        <Download className="w-3.5 h-3.5" /> PROMO STORY
+                    </button>
+                </div>
+            </div>
+
+            {/* Section 3 : Vidéo Animée (MP4) */}
+            <div className="space-y-1.5 pt-1 border-t border-white/10">
+                <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">🎬 Vidéo Animée (MP4)</span>
+                {theme === 'PLANNING' ? (
+                    <div className="space-y-2">
+                        <button
+                            type="button"
+                            onClick={() => startVideoRecording('PLANNING')}
+                            disabled={isVideoRecording}
+                            className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${
+                                isVideoRecording
+                                    ? 'bg-[#ff3700]/30 text-[#ff3700] border border-[#ff3700]/50 animate-pulse'
+                                    : 'bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 text-black hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,55,0,0.45)]'
+                            }`}
+                        >
+                            <Video className="w-4 h-4 text-black" />
+                            {isVideoRecording ? 'CAPTURE VIDÉO EN COURS...' : '🎬 EXPORTER VIDÉO COMPLÈTE (SLIDE 1 + 2 + PROMO) • MP4'}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => startVideoRecording('NONE')}
+                            disabled={isVideoRecording}
+                            className="w-full py-2 bg-white/5 border border-white/10 hover:border-white/20 text-gray-400 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all"
+                        >
+                            <Video className="w-3.5 h-3.5 text-[#ff3700]" />
+                            Exporter la slide actuelle seule ({agendaSlide === 1 ? 'Cover' : 'Lineup'}) en MP4
+                        </button>
+                    </div>
+                ) : (['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && activeTab === 'REEL') ? (
+                    <div className="space-y-2">
+                        <button
+                            type="button"
+                            onClick={() => startVideoRecording('EDITORIAL')}
+                            disabled={isVideoRecording}
+                            className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${
+                                isVideoRecording
+                                    ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
+                                    : 'bg-gradient-to-r from-neon-red via-rose-500 to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,0,51,0.45)]'
+                            }`}
+                        >
+                            <Video className="w-4 h-4" />
+                            {isVideoRecording ? 'CAPTURE REEL EN COURS...' : `🎬 EXPORTER REEL COMPLET (${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => startVideoRecording('NONE')}
+                            disabled={isVideoRecording}
+                            className="w-full py-2 bg-white/5 border border-white/10 hover:border-white/20 text-gray-400 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all"
+                        >
+                            <Video className="w-3.5 h-3.5 text-neon-red" />
+                            Exporter la slide actuelle seule (Slide {editorialSlide}) en MP4
+                        </button>
+                    </div>
+                ) : (
                     <button
                         type="button"
                         onClick={() => startVideoRecording('NONE')}
                         disabled={isVideoRecording}
-                        className="w-full py-2 bg-white/5 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all"
-                    >
-                        <Video className="w-3.5 h-3.5 text-[#ff3700]" /> Exporter Slide Actuelle Seule ({agendaSlide === 1 ? 'Cover' : 'Lineup'})
-                    </button>
-                </div>
-            ) : (['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && activeTab === 'REEL') ? (
-                <div className="space-y-1.5">
-                    <button
-                        type="button"
-                        onClick={() => startVideoRecording('EDITORIAL')}
-                        disabled={isVideoRecording}
-                        className={`w-full py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-lg ${
+                        className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${
                             isVideoRecording
                                 ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
-                                : 'bg-gradient-to-r from-neon-red via-rose-500 to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_20px_rgba(255,0,51,0.4)]'
+                                : 'bg-gradient-to-r from-neon-red to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,0,51,0.45)]'
                         }`}
                     >
-                        <Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE REEL EN COURS...' : '🎬 EXPORTER REEL COMPLET (SLIDE 1 + 2) • 15S'}
+                        <Video className="w-4 h-4" />
+                        {isVideoRecording ? 'CAPTURE MP4 EN COURS...' : `🎬 EXPORTER EN VIDÉO MP4 (${activeTab === 'REEL' ? 'REEL 9:16' : theme})`}
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => startVideoRecording('NONE')}
-                        disabled={isVideoRecording}
-                        className="w-full py-2 bg-white/5 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all"
-                    >
-                        <Video className="w-3.5 h-3.5 text-neon-red" /> Exporter Slide Actuelle Seule (Slide {editorialSlide})
-                    </button>
-                </div>
-            ) : (
+                )}
+            </div>
+
+            {/* Actions secondaires */}
+            <div className="pt-2 border-t border-white/5 flex gap-2">
                 <button
                     type="button"
-                    onClick={() => startVideoRecording('NONE')}
-                    disabled={isVideoRecording}
-                    className={`w-full py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-lg ${
-                        isVideoRecording
-                            ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
-                            : 'bg-gradient-to-r from-neon-red to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_20px_rgba(255,0,51,0.4)]'
-                    }`}
+                    onClick={addVisualToList}
+                    className="flex-1 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all"
                 >
-                    <Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE MP4 EN COURS...' : `🎬 GÉNÉRER LE MP4 (${activeTab === 'REEL' ? 'REEL 9:16' : theme})`}
+                    <PlusCircle className="w-3 h-3" /> Ajouter à la liste
                 </button>
-            )}
+                <button
+                    type="button"
+                    onClick={() => downloadBackgroundVisual(activeTab)}
+                    disabled={isDownloading}
+                    className="flex-1 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all"
+                    title="Exporter l'image de fond seule sans texte"
+                >
+                    <Download className="w-3 h-3 text-neon-cyan" /> Fond seul
+                </button>
+            </div>
         </div>
     );
 
-    const afficheEditor = (() => {
+        const afficheEditor = (() => {
         const isMusicTheme = (theme === 'MUSIQUE');
         const accentTextClass = isMusicTheme ? 'text-[#00ff66]' : 'text-neon-red';
         const accentGlowBorder = isMusicTheme ? 'border-[#00ff66]/40 text-[#00ff66] bg-[#00ff66]/20' : 'border-neon-red/40 text-neon-red bg-neon-red/20';
