@@ -4009,49 +4009,75 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
 
         let combinedStream = canvasStream;
+        let hasAudioTrack = false;
 
         if (bgVideo) {
             try {
-                // ⚠️ IMPORTANT : démuter AVANT play() pour que le navigateur initialise
-                // le décodeur audio. Avec muted=true, certains navigateurs (Chrome notamment)
-                // ne décodent pas l'audio → la piste AudioContext est silencieuse.
-                bgVideo.muted = false;
-                bgVideo.currentTime = 0;
-                bgVideo.loop = false;
-                await bgVideo.play().catch(e => console.warn("Audio capture play failed", e));
-
-                // Ferme l'ancien AudioContext s'il existe, puis en crée un nouveau propre.
-                // On doit recréer à chaque export car createMediaElementSource sur un même
-                // élément dans un même AudioContext lance InvalidStateError.
-                if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
-                    await audioCtxRef.current.close();
+                // Crucial : la vidéo de fond doit impérativement boucler pour ne jamais se figer
+                bgVideo.loop = true;
+                if (bgVideo.ended) {
+                    bgVideo.currentTime = 0;
                 }
-                audioCtxRef.current = new AudioContext();
-                audioSourceNodeRef.current = null;
-                audioDestNodeRef.current = null;
-                audioSourceVideoRef.current = null;
 
-                const audioCtx = audioCtxRef.current;
-                await audioCtx.resume();
+                // Tente de jouer avec le son démuté pour alimenter l'AudioContext si permis
+                try {
+                    bgVideo.muted = false;
+                    await bgVideo.play();
+                } catch (unmutedErr) {
+                    console.warn("Lecture unmuted bloquée par le navigateur, bascule en lecture muette :", unmutedErr);
+                    bgVideo.muted = true;
+                    await bgVideo.play().catch(e => console.error("Échec play() vidéo :", e));
+                }
 
-                const source = audioCtx.createMediaElementSource(bgVideo);
-                const dest = audioCtx.createMediaStreamDestination();
-                source.connect(dest);
-                audioSourceNodeRef.current = source;
-                audioDestNodeRef.current = dest;
-                audioSourceVideoRef.current = bgVideo;
+                // Sécurité absolue : si le navigateur a encore mis pause, forcer la lecture muette
+                if (bgVideo.paused) {
+                    bgVideo.muted = true;
+                    await bgVideo.play().catch(() => {});
+                }
 
-                const audioTracks = dest.stream.getAudioTracks();
-                if (audioTracks.length > 0) {
-                    combinedStream = new MediaStream([
-                        ...canvasStream.getTracks(),
-                        ...audioTracks
-                    ]);
-                } else {
-                    console.warn('Aucune piste audio disponible pour cet élément vidéo.');
+                // Configuration AudioContext seulement si le son est actif
+                if (!bgVideo.muted) {
+                    try {
+                        if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+                            audioCtxRef.current = new AudioContext();
+                        }
+                        const audioCtx = audioCtxRef.current;
+                        if (audioCtx.state === 'suspended') {
+                            await audioCtx.resume();
+                        }
+
+                        if (!audioSourceNodeRef.current || audioSourceVideoRef.current !== bgVideo) {
+                            try {
+                                audioSourceNodeRef.current = audioCtx.createMediaElementSource(bgVideo);
+                                audioSourceVideoRef.current = bgVideo;
+                            } catch (e) {
+                                console.warn("createMediaElementSource déjà lié ou indisponible :", e);
+                            }
+                        }
+
+                        if (audioSourceNodeRef.current) {
+                            const dest = audioCtx.createMediaStreamDestination();
+                            audioSourceNodeRef.current.connect(dest);
+                            audioDestNodeRef.current = dest;
+
+                            const audioTracks = dest.stream.getAudioTracks();
+                            if (audioTracks.length > 0) {
+                                hasAudioTrack = true;
+                                combinedStream = new MediaStream([
+                                    ...canvasStream.getTracks(),
+                                    ...audioTracks
+                                ]);
+                            }
+                        }
+                    } catch (audioErr) {
+                        console.warn("Configuration AudioContext impossible :", audioErr);
+                    }
                 }
             } catch (e) {
-                console.error("Audio capture error:", e);
+                console.error("Erreur initialisation vidéo de fond :", e);
+                bgVideo.muted = true;
+                bgVideo.loop = true;
+                await bgVideo.play().catch(() => {});
             }
         }
 
@@ -4076,8 +4102,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             const initialBlob = new Blob(chunks, { type: mimeType });
             
-            // On PC we always use FFmpeg to ensure .MOV format
-            // On mobile, we bypass FFmpeg for performance, but we will force the .mov extension in the UI if possible
+            // Sur mobile : modal de prévisualisation et partage natif
             if (isMobile) {
                 const url = URL.createObjectURL(initialBlob);
                 setIsVideoRecording(false);
@@ -4088,7 +4113,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 return;
             }
 
-            // --- FFMPEG CONVERSION START ---
+            // Sur PC : conversion rapide MP4 H.264 et téléchargement automatique immédiat
             try {
                 setIsVideoRecording(false);
                 setIsConverting(true);
@@ -4111,40 +4136,55 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 await ffmpeg.writeFile('input.webm', await fetchFile(initialBlob));
                 
-                // Optimized MOV export (H.264)
-                // Note: True transparency in MOV (ProRes/qtrle) is too heavy for browser WASM memory (hits 2GB limit).
-                // We use high-compatibility H.264 (.mov) for all exports.
-                await ffmpeg.exec([
+                const ffmpegArgs = [
                     '-i', 'input.webm',
                     '-c:v', 'libx264',
-                    '-preset', 'ultrafast', // Switch back to ultrafast for stability/speed during debug
+                    '-preset', 'ultrafast',
                     '-crf', '22',
                     '-pix_fmt', 'yuv420p',
-                    '-profile:v', 'high',
-                    '-level', '4.1',
-                    '-tune', 'stillimage',
-                    '-c:a', 'aac',
-                    '-b:a', '128k',
-                    'output.mov'
-                ]);
+                    '-movflags', '+faststart'
+                ];
+                if (hasAudioTrack) {
+                    ffmpegArgs.push('-c:a', 'aac', '-b:a', '128k');
+                } else {
+                    ffmpegArgs.push('-an');
+                }
+                ffmpegArgs.push('output.mp4');
 
-                const data: any = await ffmpeg.readFile('output.mov');
-                const movBlob = new Blob([data.buffer], { type: 'video/quicktime' });
-                const url = URL.createObjectURL(movBlob);
+                await ffmpeg.exec(ffmpegArgs);
+
+                const data: any = await ffmpeg.readFile('output.mp4');
+                const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
+                const url = URL.createObjectURL(mp4Blob);
 
                 setIsConverting(false);
-                setReadyVideoBlob(movBlob);
+                setReadyVideoBlob(mp4Blob);
                 setReadyVideoUrl(url);
                 setActivePanel(null);
+
+                // Téléchargement automatique direct pour l'utilisateur
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
             } catch (err) {
                 console.error("FFmpeg Error:", err);
-                setErrorMessage("Erreur lors de l'optimisation MOV. Essayez de rafraîchir.");
                 setIsConverting(false);
-                // Fallback to initial webm if conversion fails
+                // Repli direct sur le fichier brut capturé
+                const ext = initialBlob.type.includes('mp4') ? 'mp4' : 'webm';
                 const url = URL.createObjectURL(initialBlob);
                 setReadyVideoBlob(initialBlob);
                 setReadyVideoUrl(url);
                 setActivePanel(null);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.${ext}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
             }
         };
 
@@ -4168,8 +4208,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             totalDuration = 4 * (16800 + 1200); // 4 slides (Cover + 3 Grid pages)
         } else {
             // Utilise la durée exacte de la vidéo uploadée.
-            // Si pas de vidéo de fond mais une animation active (ou format REEL ou TRACKLIST), 15s pour un format Reel complet
-            // Fallback à 60s si aucune vidéo ni animation n'est présente.
             totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
                 ? bgVideo.duration * 1000
                 : ((activeTab === 'REEL' || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST') ? 15000 : 60000);
@@ -4183,6 +4221,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setRecordingProgress(progress);
             setRecordingTimeLeft(Math.max(0, Math.ceil((totalDuration - elapsed) / 1000)));
         }, 100);
+
+        // Helper pour animer frame-par-frame en garantissant que la vidéo de fond avance
+        const renderDuration = async (durationMs: number) => {
+            const t0 = Date.now();
+            while (Date.now() - t0 < durationMs) {
+                if (bgVideo && bgVideo.paused) {
+                    bgVideo.play().catch(() => {});
+                }
+                await generateImage();
+                await new Promise(r => requestAnimationFrame(r));
+            }
+        };
 
         if (combinedMode === 'EDITORIAL') {
             const numContentSlides = 2 + extraEditorialSlides.length;
@@ -4206,6 +4256,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             animStartTimeRef.current = Date.now();
                             switched = true;
                         }
+                        if (bgVideo && bgVideo.paused) {
+                            bgVideo.play().catch(() => {});
+                        }
                         await generateImage();
                         await new Promise(r => requestAnimationFrame(r));
                     }
@@ -4215,11 +4268,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     editorialSlideOverrideRef.current = 1;
                     setEditorialSlide(1);
                     animStartTimeRef.current = Date.now();
-                    await generateImage();
                 }
 
-                // Affichage de la slide pendant slideDuration (garanti >= 3.0s et total <= 30.0s)
-                await new Promise(r => setTimeout(r, slideDuration));
+                // Rendu actif frame-par-frame
+                await renderDuration(slideDuration);
             }
 
             // 2. Transition vers le visuel PROMO outro à la fin du Reel
@@ -4234,6 +4286,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     animStartTimeRef.current = Date.now();
                     switchedPromo = true;
                 }
+                if (bgVideo && bgVideo.paused) {
+                    bgVideo.play().catch(() => {});
+                }
                 await generateImage();
                 await new Promise(r => requestAnimationFrame(r));
             }
@@ -4241,12 +4296,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setTransitionProgress(0);
 
             // 3. Affichage du visuel promo final pendant promoDuration
-            await generateImage();
-            await new Promise(r => setTimeout(r, promoDuration));
+            await renderDuration(promoDuration);
             promoOutroOverrideRef.current = false;
 
         } else if (combinedMode === 'PLANNING') {
-            const promoDuration = 4800; // Rallongé de 3.2s à 4.8s pour avoir tout le temps de lire le message
+            const promoDuration = 4800; // 4.8s pour avoir tout le temps de lire le message
             const transitionDuration = currentTransitionDuration;
             const slideDuration = 5200;
 
@@ -4254,8 +4308,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             agendaSlideOverrideRef.current = 1;
             setAgendaSlide(1);
             animStartTimeRef.current = Date.now();
-            await generateImage();
-            await new Promise(r => setTimeout(r, slideDuration));
+            await renderDuration(slideDuration);
 
             // 2. Transition carrousel vers Slide 2
             const startT = Date.now();
@@ -4270,6 +4323,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     animStartTimeRef.current = Date.now();
                     switched = true;
                 }
+                if (bgVideo && bgVideo.paused) {
+                    bgVideo.play().catch(() => {});
+                }
                 await generateImage();
                 await new Promise(r => requestAnimationFrame(r));
             }
@@ -4277,8 +4333,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setTransitionProgress(0);
 
             // 3. Slide 2 (Lineup)
-            await generateImage();
-            await new Promise(r => setTimeout(r, slideDuration));
+            await renderDuration(slideDuration);
 
             // 4. Transition vers le visuel PROMO outro à la fin du Reel
             const startPromoT = Date.now();
@@ -4292,6 +4347,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     animStartTimeRef.current = Date.now();
                     switchedPromo = true;
                 }
+                if (bgVideo && bgVideo.paused) {
+                    bgVideo.play().catch(() => {});
+                }
                 await generateImage();
                 await new Promise(r => requestAnimationFrame(r));
             }
@@ -4299,8 +4357,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setTransitionProgress(0);
 
             // 5. Affichage du visuel promo final pendant promoDuration
-            await generateImage();
-            await new Promise(r => setTimeout(r, promoDuration));
+            await renderDuration(promoDuration);
             promoOutroOverrideRef.current = false;
 
         } else if (theme.startsWith('TOP 5')) {
@@ -4316,13 +4373,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setCurrentPreviewIndex(i);
                             switched = true;
                         }
+                        if (bgVideo && bgVideo.paused) {
+                            bgVideo.play().catch(() => {});
+                        }
+                        await generateImage();
                         await new Promise(r => requestAnimationFrame(r));
                     }
                 } else {
                     setCurrentPreviewIndex(i);
                 }
                 setTransitionProgress(0);
-                await new Promise(r => setTimeout(r, 16800));
+                await renderDuration(16800);
             }
         } else if (theme === 'TOP 10 FESTIVAL') {
             for (let i = 0; i < 11; i++) {
@@ -4337,16 +4398,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setCurrentPreviewIndex(i);
                             switched = true;
                         }
+                        if (bgVideo && bgVideo.paused) {
+                            bgVideo.play().catch(() => {});
+                        }
+                        await generateImage();
                         await new Promise(r => requestAnimationFrame(r));
                     }
-                    setTransitionProgress(0);
                 } else {
                     setCurrentPreviewIndex(i);
                 }
-                await new Promise(r => setTimeout(r, 16800));
+                setTransitionProgress(0);
+                await renderDuration(16800);
             }
         } else {
-            await new Promise(r => setTimeout(r, totalDuration));
+            await renderDuration(totalDuration);
         }
 
         clearInterval(progressInterval);
@@ -10011,7 +10076,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }}
                 readyBlob={readyVideoBlob}
                 readyUrl={readyVideoUrl}
-                filename={`dropsiders-${theme.replace(/ /g, '-')}.${readyVideoBlob?.type.includes('mp4') ? 'mp4' : 'webm'}`}
+                filename={`dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}.${readyVideoBlob?.type.includes('mp4') ? 'mp4' : (readyVideoBlob?.type.includes('quicktime') ? 'mov' : 'mp4')}`}
                 type="video"
                 title="VIDÉO PRÊTE !"
                 subtitle="Enregistrez-la pour vos réseaux"
