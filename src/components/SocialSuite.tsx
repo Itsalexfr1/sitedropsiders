@@ -1539,7 +1539,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillRect(startX + w1, footerY + 15, w2, 2);
 
                 ctx.restore();
-                        const renderPromoOutro = (pCtx: CanvasRenderingContext2D, offsetX: number = 0, alpha: number = 1.0) => {
+                                    const renderPromoOutro = (pCtx: CanvasRenderingContext2D, offsetX: number = 0, alpha: number = 1.0) => {
                 pCtx.save();
                 if (alpha < 1) pCtx.globalAlpha *= alpha;
                 if (offsetX !== 0) pCtx.translate(offsetX, 0);
@@ -1550,7 +1550,421 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     applySlideTransitionCtx(ctx, centerX, canvas.height / 2);
                 }
 
+                // 1. Dark overlay ??? 75% opaque black
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Scan lines subtle texture
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+                for (let i = 0; i < canvas.height; i += 6) {
+                    ctx.fillRect(0, i, canvas.width, 2);
+                }
+
+                // ==========================================
+                // ZONE 1 & 2 : PROMO OUTRO (ACCROCHE & PHRASE OFFICIELLE)
+                // ==========================================
+                const isAgendaPromo = promoCategory === 'PLANNING';
+                const isTopHookActive = showPromoHook && !isAgendaPromo;
+
+                const getTargetPromoCategory = (t: string): string => {
+                    const raw = (t || 'NEWS').toUpperCase().trim();
+                    if (raw.includes('MUSIQUE') || raw.includes('TRACKLIST') || raw.includes('TOP 5') || raw.includes('TOP 100')) {
+                        return 'MUSIQUE';
+                    }
+                    if (raw.includes('FOCUS') || raw.includes('SPOTLIGHT') || raw.includes('CITATION')) {
+                        return 'FOCUS';
+                    }
+                    if (raw.includes('RECAP')) {
+                        return 'RECAPS';
+                    }
+                    if (raw.includes('CONCOURS') || raw.includes('JEU')) {
+                        return 'CONCOURS';
+                    }
+                    if (raw.includes('EVENT') || raw.includes('PLANNING') || raw.includes('AGENDA') || raw.includes('FESTIVAL') || raw.includes('AFFICHE') || raw.includes('MAP') || raw.includes('CALENDRIER')) {
+                        return 'EVENTS';
+                    }
+                    if (raw.includes('INTERVIEW')) {
+                        return 'INTERVIEWS';
+                    }
+                    if (raw.includes('REEL') || raw.includes('VIDEO') || raw.includes('DIRECT') || raw.includes('LIVESTREAM') || raw.includes('CONSEIL')) {
+                        return 'VIDEOS';
+                    }
+                    return 'NEWS';
+                };
+
+                const activeTargetCategory = isAgendaPromo 
+                    ? 'EVENTS' 
+                    : getTargetPromoCategory(promoCategory || theme);
+
+                const defaultHeadline = (activeTargetCategory === 'EVENTS')
+                    ? 'POUR ??TRE INFORM?? DE TOUS LES ??V??NEMENTS'
+                    : (activeTargetCategory === 'MUSIQUE')
+                    ? 'POUR ??TRE INFORM?? DE TOUTES LES SORTIES MUSICALES'
+                    : (activeTargetCategory === 'FOCUS')
+                    ? 'POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS'
+                    : (activeTargetCategory === 'RECAPS')
+                    ? 'POUR REVIVRE TOUS LES MEILLEURS FESTIVALS'
+                    : (activeTargetCategory === 'CONCOURS')
+                    ? 'POUR NE RATER AUCUN CONCOURS & PASS FESTIVALS'
+                    : (activeTargetCategory === 'INTERVIEWS')
+                    ? 'POUR NE RIEN MANQUER DE NOS INTERVIEWS EXCLUSIVES'
+                    : (activeTargetCategory === 'VIDEOS')
+                    ? 'POUR NE RIEN MANQUER DE NOS VID??OS & REELS'
+                    : 'POUR ??TRE INFORM?? DE TOUTES LES NEWS';
+
+                const effectiveHeadline = promoCustomPhrase.trim() 
+                    ? promoCustomPhrase.trim().toUpperCase() 
+                    : defaultHeadline;
+
+                const effectiveSubphrase = promoCustomSubphrase.trim()
+                    ? promoCustomSubphrase.trim().toUpperCase()
+                    : 'SUR LA MUSIQUE ??LECTRONIQUE ET LES FESTIVALS,';
+
+                const headlineParts = (showPromoHeadline && effectiveHeadline) ? effectiveHeadline.split('\n').filter(Boolean) : [];
+                const outroLines = showPromoHeadline ? [
+                    ...headlineParts,
+                    ...(effectiveSubphrase ? [effectiveSubphrase] : [])
+                ] : [];
+
+                const rawQuestion = (customText && customText.trim()) 
+                    ? customText.trim().replace(/^["']|["']$/g, '') 
+                    : "ET TOI, QU'EN PENSES-TU ?";
                 
+                const cleanQuestion = rawQuestion.toUpperCase();
+
+                const qLines: string[] = [];
+                let questionFontSize = isReel ? 62 : 54;
+
+                if (isTopHookActive) {
+                    const words = cleanQuestion.split(' ');
+                    let currentLine = '';
+                    ctx.font = `900 italic ${questionFontSize}px "Montserrat", sans-serif`;
+
+                    words.forEach((w: string) => {
+                        const test = currentLine ? `${currentLine} ${w}` : w;
+                        if (ctx.measureText(test).width > 920) {
+                            if (currentLine) qLines.push(currentLine);
+                            currentLine = w;
+                        } else {
+                            currentLine = test;
+                        }
+                    });
+                    if (currentLine) qLines.push(currentLine);
+
+                    if (qLines.length > 3) {
+                        questionFontSize = isReel ? 48 : 40;
+                        ctx.font = `900 italic ${questionFontSize}px "Montserrat", sans-serif`;
+                    }
+                }
+
+                const qLineHeight = questionFontSize * 1.25;
+
+                const ctaCommentOffset = isReel ? 70 : 60;
+                const sepOffset = isReel ? 65 : 55;
+                const outroOffset = isReel ? 75 : 65;
+                const outroSpacing = isReel ? (isAgendaPromo ? 48 : 42) : 38;
+                const abonneGap = outroLines.length > 0 ? (isReel ? (isAgendaPromo ? 36 : 30) : 28) : (isReel ? 20 : 18);
+                const dropsidersOffset = isReel ? (isAgendaPromo ? 105 : 90) : 80;
+                const pillsOffset = isReel ? (isAgendaPromo ? 75 : 65) : 55;
+                const pillH = isReel ? 44 : 40;
+
+                const targetCenterY = isReel ? 950 : 675;
+                let outroStartY = 0;
+                let dropsidersY = 0;
+                let pillsY = 0;
+
+                const outroLinesSpan = outroLines.length > 0 ? (outroLines.length * outroSpacing) : 0;
+                const lowerBlockHeight = outroLinesSpan + abonneGap + dropsidersOffset + pillsOffset + pillH;
+
+                if (isTopHookActive) {
+                    const blockSpanFromFirstBaseline = (qLines.length - 1) * qLineHeight 
+                        + ctaCommentOffset 
+                        + sepOffset 
+                        + outroOffset 
+                        + lowerBlockHeight;
+                    
+                    const questionAscender = questionFontSize * 0.8;
+                    const totalBlockHeight = questionAscender + blockSpanFromFirstBaseline;
+                    const qStartY = Math.round(targetCenterY - (totalBlockHeight / 2) + questionAscender);
+
+                    const bgGlow = ctx.createRadialGradient(centerX, targetCenterY, 60, centerX, targetCenterY, isReel ? 520 : 480);
+                    bgGlow.addColorStop(0, `rgba(${activeColor.grad}, 0.20)`);
+                    bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = bgGlow;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'alphabetic';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                    ctx.shadowBlur = 24;
+
+                    qLines.forEach((line: string, idx: number) => {
+                        let fs = questionFontSize;
+                        ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                        while (ctx.measureText(line).width > 940 && fs > 24) {
+                            fs--;
+                            ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                        }
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(line, centerX, qStartY + idx * qLineHeight);
+                    });
+                    ctx.restore();
+
+                    // Call-to-action d'engagement : "DONNE TON AVIS EN COMMENTAIRE ????"
+                    const lastQLineY = qStartY + (qLines.length - 1) * qLineHeight;
+                    const ctaCommentY = lastQLineY + ctaCommentOffset;
+
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.font = `800 ${isReel ? 26 : 24}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = activeColor.color;
+                    ctx.shadowColor = `rgba(${activeColor.grad}, 0.6)`;
+                    ctx.shadowBlur = 18;
+                    ctx.fillText('DONNE TON AVIS EN COMMENTAIRE ????', centerX, ctaCommentY);
+                    ctx.restore();
+
+                    // Ligne de s??paration fine n??on
+                    const sepY = ctaCommentY + sepOffset;
+                    const sepGrad = ctx.createLinearGradient(centerX - 200, 0, centerX + 200, 0);
+                    sepGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                    sepGrad.addColorStop(0.5, activeColor.color);
+                    sepGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = sepGrad;
+                    ctx.fillRect(centerX - 200, sepY, 400, 2);
+
+                    outroStartY = sepY + outroOffset;
+                } else {
+                    // Phrase d'accroche D??SACTIV??E : Centrage parfait du texte en dessous au milieu du visuel
+                    outroStartY = Math.round(targetCenterY - (lowerBlockHeight / 2));
+
+                    const bgGlow = ctx.createRadialGradient(centerX, targetCenterY, 80, centerX, targetCenterY, isReel ? 560 : 480);
+                    bgGlow.addColorStop(0, `rgba(${activeColor.grad}, 0.26)`);
+                    bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = bgGlow;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+
+                // ZONE 2 : PHRASE OFFICIELLE & ABONNEMENT
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                ctx.shadowBlur = 18;
+
+                if (outroLines.length > 0) {
+                    let outroFontSize = isReel ? (isAgendaPromo ? 30 : 28) : 25;
+                    ctx.font = `700 ${outroFontSize}px "Montserrat", sans-serif`;
+                    outroLines.forEach(line => {
+                        while (ctx.measureText(line).width > 940 && outroFontSize > 18) {
+                            outroFontSize--;
+                            ctx.font = `700 ${outroFontSize}px "Montserrat", sans-serif`;
+                        }
+                    });
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+
+                    outroLines.forEach((line: string, i: number) => {
+                        ctx.fillText(line, centerX, outroStartY + i * outroSpacing);
+                    });
+                }
+
+                // "ABONNEZ-VOUS ??"
+                const abonneY = outroLines.length > 0
+                    ? (outroStartY + outroLines.length * outroSpacing + abonneGap)
+                    : (outroStartY + abonneGap);
+                ctx.font = `700 ${isReel ? 26 : 24}px "Montserrat", sans-serif`;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+                ctx.fillText('ABONNEZ-VOUS ??', centerX, abonneY);
+
+                // "DROPSIDERS" en grand Orbitron n??on
+                dropsidersY = abonneY + dropsidersOffset;
+                ctx.font = `900 italic ${isReel ? (isAgendaPromo ? 98 : 92) : 86}px "Orbitron", sans-serif`;
+                ctx.letterSpacing = '-2px';
+                ctx.fillStyle = activeColor.color;
+                ctx.shadowColor = `rgba(${activeColor.grad}, 0.75)`;
+                ctx.shadowBlur = 38;
+                ctx.fillText('DROPSIDERS', centerX, dropsidersY);
+                ctx.restore();
+
+                // ==========================================
+                // ZONE 3 : BULLES ARRONDIES
+                // NEWS - MUSIQUE - FOCUS - RECAPS - CONCOURS - EVENTS - INTERVIEWS - VIDEOS
+                // ==========================================
+                const categories = ['NEWS', 'MUSIQUE', 'FOCUS', 'RECAPS', 'CONCOURS', 'EVENTS', 'INTERVIEWS', 'VIDEOS'];
+                pillsY = dropsidersY + pillsOffset;
+                const pillFont = `800 ${isReel ? 15 : 14}px "Montserrat", sans-serif`;
+                ctx.font = pillFont;
+
+                // Calculer la largeur de chaque pill
+                const pillPaddingX = 14;
+                const pillGap = 8;
+                const pillWidths = categories.map((cat: string) => ctx.measureText(cat).width + pillPaddingX * 2);
+                const totalPillsWidth = pillWidths.reduce((a: number, b: number) => a + b, 0) + (categories.length - 1) * pillGap;
+
+                let currentPillX = centerX - totalPillsWidth / 2;
+
+                categories.forEach((cat: string, idx: number) => {
+                    const pw = pillWidths[idx];
+                    const isPillActive = cat === activeTargetCategory;
+                    ctx.save();
+                    // Bulle arrondie (pill)
+                    ctx.beginPath();
+                    ctx.roundRect(currentPillX, pillsY, pw, pillH, pillH / 2);
+                    ctx.fillStyle = isPillActive ? `rgba(${activeColor.grad}, 0.18)` : 'rgba(255, 255, 255, 0.08)';
+                    ctx.fill();
+                    ctx.strokeStyle = isPillActive ? activeColor.color : 'rgba(255, 255, 255, 0.22)';
+                    ctx.lineWidth = isPillActive ? 2 : 1.5;
+                    if (isPillActive) {
+                        ctx.shadowColor = `rgba(${activeColor.grad}, 0.7)`;
+                        ctx.shadowBlur = 14;
+                    }
+                    ctx.stroke();
+
+                    // Texte
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = isPillActive ? activeColor.color : '#ffffff';
+                    ctx.font = pillFont;
+                    ctx.fillText(cat, currentPillX + pw / 2, pillsY + pillH / 2);
+                    ctx.restore();
+
+                    currentPillX += pw + pillGap;
+                });
+
+                // ==========================================
+                // ZONE 4 : LOGO DROPSIDERS TOUT EN BAS
+                // ==========================================
+                if (logoRef.current) {
+                    const logo = logoRef.current;
+                    const lw = isReel ? 240 : 220;
+                    const lh = (logo.height / logo.width) * lw;
+                    const logoY = canvas.height - lh - (isReel ? 65 : 50);
+                    ctx.save();
+                    ctx.filter = 'brightness(0) invert(1)';
+                    ctx.globalAlpha = 0.85;
+                    ctx.drawImage(logo, centerX - lw / 2, logoY, lw, lh);
+                    ctx.restore();
+                }
+                ctx.restore();
+
+            } else if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide === 2)) {
+                const isStory = canvas.height > 1500;
+                const isMusicTrack = (theme === 'MUSIQUE');
+
+                // 1. Dark Vignette overlay (Atmosph??re sombre et immersive Dropsiders)
+                const vig = ctx.createRadialGradient(
+                    canvas.width / 2, canvas.height / 2, canvas.width * 0.15,
+                    canvas.width / 2, canvas.height / 2, canvas.height * 0.72
+                );
+                vig.addColorStop(0, 'rgba(0, 0, 0, 0.20)');
+                vig.addColorStop(0.65, 'rgba(0, 0, 0, 0.60)');
+                vig.addColorStop(1, 'rgba(0, 0, 0, 0.88)');
+                ctx.fillStyle = vig;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 2. Dimensions de la carte (carr??e 1:1 pour les covers de tracks musicales, ou format affiche pour les ??v??nements)
+                const baseCardW = isMusicTrack ? (isStory ? 860 : 780) : 800;
+                const baseCardH = isMusicTrack ? baseCardW : (isStory ? 1380 : 980);
+                const baseCardY = isMusicTrack 
+                    ? Math.round((canvas.height - baseCardH) / 2 + (afficheOffsetY || 0)) 
+                    : (isStory ? (bgVideo ? 250 : 220) : (bgVideo ? 230 : 195));
+
+                const scale = (afficheScale || 100) / 100;
+                const cardW = Math.round(baseCardW * scale);
+                const cardH = Math.round(baseCardH * scale);
+                const cardX = Math.round((canvas.width - cardW) / 2);
+                const cardY = isMusicTrack 
+                    ? Math.round(baseCardY + ((baseCardH - cardH) / 2)) 
+                    : Math.round(baseCardY + ((baseCardH - cardH) / 2) + (afficheOffsetY || 0));
+                const rad = isMusicTrack ? (isStory ? 32 : 28) : (isStory ? 28 : 24);
+
+                // 3. Ombre port??e 3D et halo ambiant n??on
+                ctx.save();
+                if (afficheGlow) {
+                    ctx.shadowColor = `rgba(${activeColor.grad}, 0.40)`;
+                    ctx.shadowBlur = 50;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 0;
+                    ctx.beginPath();
+                    ctx.roundRect(cardX, cardY, cardW, cardH, rad);
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                    ctx.fill();
+                }
+
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                ctx.shadowBlur = 55;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 22;
+                ctx.beginPath();
+                ctx.roundRect(cardX, cardY, cardW, cardH, rad);
+                ctx.fillStyle = '#0a0a0c';
+                ctx.fill();
+                ctx.restore();
+
+                // 4. Rendu de l'image de la cover/affiche dans le rectangle arrondi clipp??
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(cardX, cardY, cardW, cardH, rad);
+                ctx.clip();
+
+                if (afficheImageRef.current) {
+                    const poster = afficheImageRef.current;
+                    if (afficheMode === 'contain') {
+                        ctx.fillStyle = '#0a0a0e';
+                        ctx.fillRect(cardX, cardY, cardW, cardH);
+                        const fitScale = Math.min(cardW / poster.width, cardH / poster.height);
+                        const dw = poster.width * fitScale;
+                        const dh = poster.height * fitScale;
+                        const dx = cardX + (cardW - dw) / 2;
+                        const dy = cardY + (cardH - dh) / 2;
+                        ctx.drawImage(poster, dx, dy, dw, dh);
+                    } else {
+                        // Mode Cover
+                        const posterRatio = poster.width / poster.height;
+                        const cardRatio = cardW / cardH;
+                        let sx = 0, sy = 0, sw = poster.width, sh = poster.height;
+                        if (posterRatio > cardRatio) {
+                            sw = poster.height * cardRatio;
+                            sx = (poster.width - sw) / 2;
+                        } else {
+                            sh = poster.width / cardRatio;
+                            sy = (poster.height - sh) / 2;
+                        }
+                        ctx.drawImage(poster, sx, sy, sw, sh, cardX, cardY, cardW, cardH);
+                    }
+                } else {
+                    // Carte placeholder ??l??gante en attente d'image
+                    const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
+                    phGrad.addColorStop(0, 'rgba(26, 26, 32, 0.95)');
+                    phGrad.addColorStop(1, 'rgba(12, 12, 16, 0.98)');
+                    ctx.fillStyle = phGrad;
+                    ctx.fillRect(cardX, cardY, cardW, cardH);
+
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '900 italic 30px "Orbitron", sans-serif';
+                    ctx.fillText(isMusicTrack ? "COVER DE LA TRACK" : "AFFICHE DE L'??V??NEMENT", cardX + cardW / 2, cardY + cardH / 2 - 25);
+
+                    ctx.font = '700 16px "Montserrat", sans-serif';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+                    ctx.fillText(isMusicTrack ? "Importez la cover dans le panneau lat??ral" : "Importez l'affiche dans le panneau lat??ral", cardX + cardW / 2, cardY + cardH / 2 + 25);
+                }
+
+                // Reflet subtil en d??grad?? sur le haut de la carte
+                const glossGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH * 0.35);
+                glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
+                glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = glossGrad;
+                ctx.fillRect(cardX, cardY, cardW, cardH * 0.35);
+                ctx.restore();
+
+                // 5. Contour bordure ??l??gant
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(cardX, cardY, cardW, cardH, rad);
+                ctx.strokeStyle = afficheBorderColor || (isMusicTrack ? 'rgba(0, 255, 102, 0.40)' : 'rgba(255, 255, 255, 0.22)');
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
                 pCtx.restore();
             };
 
@@ -4241,6 +4655,1806 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     />
                 </div>
             </div>
+        </div>
+    );
+
+    const bgAnimationControl = (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-3">
+            <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                    🎬 Animation du Fond (Reels / MP4)
+                </span>
+                {bgAnimation !== 'NONE' && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            animStartTimeRef.current = Date.now();
+                            setAnimReplayKey(k => k + 1);
+                        }}
+                        className="px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg text-[8px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all flex items-center gap-1"
+                        title="Rejouer l'animation depuis le début"
+                    >
+                        <RotateCcw className="w-2.5 h-2.5" /> Rejouer
+                    </button>
+                )}
+            </div>
+
+            <div className="grid grid-cols-4 gap-1.5">
+                {[
+                    { id: 'NONE', label: 'Statique', icon: '⏹️', activeClass: 'bg-white text-black border-white shadow-sm' },
+                    { id: 'ZOOM_IN', label: 'Zoom Lent', icon: '🔍', activeClass: 'bg-neon-red border-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]' },
+                    { id: 'ZOOM_OUT', label: 'Dézoom', icon: '🔎', activeClass: 'bg-neon-cyan border-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.5)]' },
+                    { id: 'PAN_LEFT', label: 'Pan Gauche', icon: '⬅️', activeClass: 'bg-neon-purple border-neon-purple text-white shadow-[0_0_12px_rgba(176,38,255,0.5)]' },
+                    { id: 'PAN_RIGHT', label: 'Pan Droite', icon: '➡️', activeClass: 'bg-amber-400 border-amber-400 text-black shadow-[0_0_12px_rgba(251,191,36,0.5)]' },
+                    { id: 'PULSE', label: 'Pulsation', icon: '💓', activeClass: 'bg-emerald-400 border-emerald-400 text-black shadow-[0_0_12px_rgba(52,211,153,0.5)]' },
+                    { id: 'BREATHE', label: 'Flottement', icon: '🌊', activeClass: 'bg-pink-500 border-pink-500 text-white shadow-[0_0_12px_rgba(236,72,153,0.5)]' },
+                    { id: 'GLITCH', label: 'Cyber Shake', icon: '⚡', activeClass: 'bg-indigo-500 border-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.5)]' },
+                ].map(anim => (
+                    <button
+                        key={anim.id}
+                        type="button"
+                        onClick={() => {
+                            setBgAnimation(anim.id as BgAnimType);
+                            animStartTimeRef.current = Date.now();
+                            setAnimReplayKey(k => k + 1);
+                        }}
+                        className={`py-2 px-1 rounded-xl text-[8.5px] font-black uppercase border transition-all flex flex-col items-center justify-center gap-0.5 ${
+                            bgAnimation === anim.id
+                                ? anim.activeClass
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                        }`}
+                    >
+                        <span className="text-[11px] leading-none">{anim.icon}</span>
+                        <span className="truncate w-full text-center">{anim.label}</span>
+                    </button>
+                ))}
+            </div>
+
+            {bgAnimation !== 'NONE' && (
+                <div className="space-y-1.5 pt-0.5">
+                    <p className="text-[8px] text-gray-400 italic px-1">
+                        ✨ Animation de fond active ! Cliquez ci-dessous pour exporter directement la vidéo en MP4.
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() => startVideoRecording()}
+                        disabled={isVideoRecording}
+                        className={`w-full py-2.5 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-md ${
+                            isVideoRecording
+                                ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
+                                : 'bg-neon-red/20 border border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white active:scale-[0.98]'
+                        }`}
+                    >
+                        <Video className="w-3.5 h-3.5" /> {isVideoRecording ? 'Capture MP4 en cours...' : '🎬 Exporter cette animation en MP4'}
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+
+    const quizColorControls = theme === 'JEU' ? (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-3">
+            <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                    🎨 Double Couleurs Quiz
+                </span>
+                <div className="w-5 h-5 rounded-full border border-white/20 shadow-sm" style={{ background: `linear-gradient(135deg, ${quizColor1}, ${quizColor2})` }} />
+            </div>
+
+            {/* Color Presets */}
+            <div className="grid grid-cols-2 gap-1.5">
+                {[
+                    { label: 'Cyan & Violet', c1: '#38bdf8', c2: '#a855f7' },
+                    { label: 'Rouge & Or', c1: '#ff0033', c2: '#ffaa00' },
+                    { label: 'Bleu & Émeraude', c1: '#00f0ff', c2: '#39ff14' },
+                    { label: 'Fuchsia & Rose', c1: '#c026d3', c2: '#f43f5e' },
+                    { label: 'Sunset Red', c1: '#ff6700', c2: '#ff0055' },
+                ].map(p => (
+                    <button
+                        key={p.label}
+                        onClick={() => {
+                            setQuizColor1(p.c1);
+                            setQuizColor2(p.c2);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="py-1.5 px-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white flex items-center gap-1.5 transition-all"
+                    >
+                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: `linear-gradient(135deg, ${p.c1}, ${p.c2})` }} />
+                        <span className="truncate">{p.label}</span>
+                    </button>
+                ))}
+            </div>
+
+            {/* Custom Color Pickers */}
+            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/5">
+                <div className="space-y-1">
+                    <span className="text-[7px] font-black uppercase text-gray-400 block">Couleur 1</span>
+                    <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1.5 rounded-xl">
+                        <input
+                            type="color"
+                            value={quizColor1}
+                            onChange={e => {
+                                setQuizColor1(e.target.value);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="w-5 h-5 rounded cursor-pointer bg-transparent border-0"
+                        />
+                        <span className="text-[8px] font-mono text-white uppercase">{quizColor1}</span>
+                    </div>
+                </div>
+                <div className="space-y-1">
+                    <span className="text-[7px] font-black uppercase text-gray-400 block">Couleur 2</span>
+                    <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1.5 rounded-xl">
+                        <input
+                            type="color"
+                            value={quizColor2}
+                            onChange={e => {
+                                setQuizColor2(e.target.value);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="w-5 h-5 rounded cursor-pointer bg-transparent border-0"
+                        />
+                        <span className="text-[8px] font-mono text-white uppercase">{quizColor2}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    ) : null;
+
+    // Shared content blocks (used in both mobile & desktop)
+    const themeButtons = (
+        <div className="grid grid-cols-3 gap-1.5">
+            <button onClick={() => handleSetTheme('NEWS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>NEWS</button>
+            <button onClick={() => handleSetTheme('FOCUS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
+            <button onClick={() => handleSetTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
+            <button onClick={() => handleSetTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3]' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
+            <button onClick={() => { handleSetTheme('EVENTS'); setEventsSlide(1); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENTS' || theme === 'AFFICHE' ? 'bg-[#ff007f]/20 border-[#ff007f] text-[#ff007f] shadow-[0_0_12px_rgba(255,0,127,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENTS</button>
+            <button onClick={() => handleSetTheme('CONCOURS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONCOURS' ? 'bg-[#008cff]/20 border-[#008cff] text-[#008cff] shadow-[0_0_12px_rgba(0,140,255,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>CONCOURS</button>
+            <button onClick={() => handleSetTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
+            <button onClick={() => handleSetTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-[#ff3700]/20 border-[#ff3700] text-[#ff3700] shadow-[0_0_12px_rgba(255,55,0,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>AGENDA</button>
+            <button onClick={() => handleSetTheme('INTERVIEW')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTERVIEW' ? 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTERVIEW</button>
+            <button onClick={() => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(2); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2) ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>SPOTLIGHT</button>
+            <button onClick={() => handleSetTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
+            <button onClick={() => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(1); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1 ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>ARTISTE FESTIVAL</button>
+            <button
+                onClick={() => handleSetTheme('JEU')}
+                style={theme === 'JEU' ? { background: `linear-gradient(135deg, ${quizColor1}44, ${quizColor2}44)`, borderColor: quizColor1 } : {}}
+                className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'JEU' ? 'text-white shadow-[0_0_15px_rgba(0,240,255,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}
+            >
+                DEVINE LE CLIP
+            </button>
+            <button
+                onClick={() => handleSetTheme('JEU_FESTIVAL')}
+                className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'JEU_FESTIVAL' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_15px_rgba(255,170,0,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}
+            >
+                DEVINE LE FESTIVAL
+            </button>
+            <button onClick={() => handleSetTheme('TOP 100 DROPSIDERS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 100 DROPSIDERS' ? 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600]' : 'bg-white/5 border-white/10 text-gray-400'}`}>TOP 100 DROPSIDERS</button>
+            
+            {activeTab === 'REEL' && (
+                <>
+                    <button onClick={() => handleSetTheme('REELS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'REELS' || theme === 'CONSEILS' ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>REELS</button>
+                    <button onClick={() => handleSetTheme('TRACKLIST')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TRACKLIST' ? 'bg-orange-500/20 border-orange-500 text-orange-500 shadow-[0_0_12px_rgba(255,120,0,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>TRACKLIST</button>
+                    <button onClick={() => handleSetTheme('MAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MAP' ? 'bg-neon-red/20 border-neon-red text-neon-red animate-pulse' : 'bg-white/5 border-white/5 text-gray-400'}`}>CARTE (STORY)</button>
+                </>
+            )}
+
+        </div>
+    );
+
+    const styleMusicButtons = activeTab === 'REEL' && theme === 'TOP 5 STYLES' ? (
+        <div className="space-y-4">
+            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Style de musique</span>
+            <div className="flex flex-wrap gap-2">
+                {STYLE_PRESETS.map(s => (
+                    <button key={s.name} onClick={() => setThemeColor(s)}
+                        className={`px-3 py-2 rounded-xl text-[8px] font-black uppercase transition-all border-2 ${themeColor?.name === s.name ? 'bg-white text-black border-white' : 'bg-black/40 border-white/10 hover:border-white/30'}`}
+                        style={themeColor?.name === s.name ? {} : { borderColor: `rgba(${s.grad}, 0.3)`, color: s.color }}>
+                        {s.name}
+                    </button>
+                ))}
+                <button onClick={() => setThemeColor(null)} className="px-2 text-[8px] font-bold text-gray-500 uppercase hover:text-white transition-all underline underline-offset-4 decoration-neon-red">Reset</button>
+            </div>
+        </div>
+    ) : null;
+
+    const top5Editor = (
+        <div className="space-y-4">
+            {top5Items.map((item, i) => (
+                <div key={i} className={`p-4 rounded-2xl border transition-all cursor-pointer ${currentPreviewIndex === i ? 'bg-white/10 border-white/30' : 'bg-white/5 border-white/5'}`} onClick={() => setCurrentPreviewIndex(i)}>
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                        <input value={item.main} onChange={e => { const n = [...top5Items]; n[i].main = e.target.value; setTop5Items(n); }} placeholder="ARTISTE" spellCheck="true" autoCorrect="on" autoCapitalize="words" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
+                        <input value={item.sub} onChange={e => { const n = [...top5Items]; n[i].sub = e.target.value; setTop5Items(n); }} placeholder="TITRE" spellCheck="true" autoCorrect="on" autoCapitalize="words" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
+                    </div>
+                    {theme === 'TOP 5 ARTISTE' && (
+                        <input value={item.value} onChange={e => { const n = [...top5Items]; n[i].value = e.target.value; setTop5Items(n); }} placeholder="STREAMS (MILLIONS)" spellCheck="true" autoCorrect="on" className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold mb-2" />
+                    )}
+                    <input value={item.spotifyUrl} onChange={e => { const n = [...top5Items]; n[i].spotifyUrl = e.target.value; setTop5Items(n); }} placeholder="LIEN SPOTIFY / VIDEO" spellCheck="false" autoCorrect="off" autoCapitalize="none" className="w-full bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-[#1DB954] font-bold mb-2" />
+                    <div className="flex items-center gap-2">
+                        <button onClick={(e) => {
+                            e.stopPropagation();
+                            setR2TargetIdx(i);
+                            setR2TargetType('top5');
+                            setIsR2ModalOpen(true);
+                        }} className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+                            <Upload className="w-3 h-3 text-neon-red" /> {item.photo ? 'Modifier Photo' : 'Ajouter Photo (Cloud)'}
+                        </button>
+                        {item.photo && (
+                            <button onClick={(e) => { e.stopPropagation(); const n = [...top5Items]; n[i].photo = ''; setTop5Items(n); }}
+                                className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all">
+                                <X className="w-3 h-3" />
+                            </button>
+                        )}
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+
+
+
+    const handleConvertPlanningTimes = () => {
+        if (planningTimezoneOffset === 0) return;
+        const next = planningItems.map(item => {
+            let cleaned = (item.time || '00:00').trim().toLowerCase();
+            const isPM = cleaned.includes('pm') || cleaned.includes(' p.m');
+            cleaned = cleaned.replace('am', '').replace('pm', '').replace(' a.m', '').replace(' p.m', '').trim();
+            cleaned = cleaned.replace('.', ':').replace('h', ':');
+
+            let [hStr, mStr] = cleaned.split(':');
+            let h = parseInt(hStr || '0', 10);
+            let m = parseInt(mStr || '0', 10);
+            if (isNaN(h)) h = 0;
+            if (isNaN(m)) m = 0;
+            if (isPM && h < 12) h += 12;
+            if (!isPM && h === 12) h = 0;
+
+            h = (h + planningTimezoneOffset) % 24;
+            if (h < 0) h += 24;
+            
+            return { ...item, time: `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}` };
+        });
+        setPlanningItems(next);
+        setPlanningTimezoneOffset(0);
+    };
+
+    const fetchTakeover = async () => {
+        setIsTakeoverLoading(true);
+        try {
+            const resp = await fetch('/api/takeover-settings');
+            const data = await resp.json();
+            
+            // The API returns settings at the root, and lineup is a stringified JSON
+            let parsedLineup = [];
+            if (data.lineup) {
+                try {
+                    const l = typeof data.lineup === 'string' ? JSON.parse(data.lineup) : data.lineup;
+                    parsedLineup = Array.isArray(l) ? l : [];
+                } catch (e) { console.error(e); }
+            }
+
+            if (parsedLineup.length > 0 || (data.streams && data.streams.length > 0)) {
+                setTakeoverData({
+                    lineup: parsedLineup,
+                    streams: data.streams || []
+                });
+            } else {
+              setErrorMessage("Aucune donnée de planning trouvée.");
+            }
+        } catch (e) {
+            console.error(e);
+            setErrorMessage("Erreur lors de la récupération du Live Takeover");
+        } finally {
+            setIsTakeoverLoading(false);
+        }
+    };
+
+    const handleImportFromTakeover = (stageMatch: string, day: string) => {
+        if (!takeoverData) return;
+        
+        const filtered = takeoverData.lineup
+            .filter(item => {
+                const itemStage = (item.stage || '').toUpperCase();
+                const target = stageMatch.toUpperCase();
+                return (itemStage === target) && item.day === day;
+            })
+            .sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+
+        if (filtered.length === 0) {
+            setErrorMessage(`Aucun artiste trouvé sur ${stageMatch} le ${day}`);
+            return;
+        }
+
+        const items = filtered.map(item => ({
+            time: item.startTime || '00:00',
+            artist: item.artist || 'INCONNU'
+        }));
+
+        setPlanningItems(items);
+        setCustomText(`LINE-UP ${stageMatch.toUpperCase()}`);
+        
+        const [, m, d] = day.split('-');
+        const dateNames = ['JAN', 'FEV', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUIL', 'AOUT', 'SEPT', 'OCT', 'NOV', 'DEC'];
+        setPlanningDate(`${d} ${dateNames[parseInt(m) - 1] || '??'}`);
+        
+        setTakeoverData(null);
+    };
+
+    const parseAgendaDate = (dateStr: string) => {
+        if (!dateStr) return null;
+        const clean = dateStr.split('T')[0];
+        const parts = clean.split('-');
+        if (parts.length === 3) {
+            const y = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10) - 1;
+            const d = parseInt(parts[2], 10);
+            return new Date(y, m, d);
+        }
+        const parsed = new Date(dateStr);
+        return isNaN(parsed.getTime()) ? null : parsed;
+    };
+
+    const getEventMonthName = (event: any): string => {
+        if (event.month && typeof event.month === 'string' && event.month.trim()) {
+            return event.month.trim().toUpperCase();
+        }
+        const rawDate = event.startDate || event.date;
+        if (rawDate) {
+            const d = parseAgendaDate(rawDate);
+            if (d) {
+                const MONTHS_FR = ['JANVIER', 'FÉVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUILLET', 'AOÛT', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÉCEMBRE'];
+                return MONTHS_FR[d.getMonth()] || 'OCTOBRE';
+            }
+        }
+        return 'OCTOBRE';
+    };
+
+    const formatEventDayForVisual = (event: any): string => {
+        const rawDate = event.startDate || event.date;
+        if (!rawDate) return 'DATE';
+        
+        const start = parseAgendaDate(rawDate);
+        if (!start) return 'DATE';
+        
+        const DAYS_SHORT = ['DIM', 'LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM'];
+        const MONTHS_SHORT = ['JAN', 'FÉV', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUIL', 'AOÛT', 'SEPT', 'OCT', 'NOV', 'DÉC'];
+        
+        const dayName = DAYS_SHORT[start.getDay()];
+        const dayNum = start.getDate();
+        
+        if (event.endDate && event.endDate !== rawDate) {
+            const end = parseAgendaDate(event.endDate);
+            if (end && end.getDate() !== dayNum) {
+                const endDayNum = end.getDate();
+                const startMonth = MONTHS_SHORT[start.getMonth()];
+                const endMonth = MONTHS_SHORT[end.getMonth()];
+                if (start.getMonth() === end.getMonth()) {
+                    return `${dayNum}-${endDayNum} ${startMonth}`;
+                }
+                return `${dayNum} ${startMonth}-${endDayNum} ${endMonth}`;
+            }
+        }
+        
+        return `${dayName} ${dayNum}`;
+    };
+
+    const fetchSiteAgenda = async () => {
+        setIsSiteAgendaLoading(true);
+        try {
+            const res = await fetch('/api/agenda');
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    const sorted = [...data].sort((a, b) => {
+                        const dateA = new Date(a.startDate || a.date || 0).getTime();
+                        const dateB = new Date(b.startDate || b.date || 0).getTime();
+                        return dateA - dateB;
+                    });
+                    setSiteAgendaEvents(sorted);
+                }
+            } else {
+                setErrorMessage("Impossible de récupérer l'agenda du site");
+            }
+        } catch (e) {
+            console.error('Failed to load site agenda:', e);
+            setErrorMessage("Erreur réseau lors de la récupération de l'agenda");
+        } finally {
+            setIsSiteAgendaLoading(false);
+        }
+    };
+
+    const handleImportFromSiteAgenda = (eventsToImport: any[], replace: boolean = true) => {
+        if (!eventsToImport || eventsToImport.length === 0) return;
+        
+        const newItems = eventsToImport.map(ev => {
+            const formattedDay = formatEventDayForVisual(ev);
+            const titleStr = (ev.title || '').trim().toUpperCase();
+            
+            let artistsStr = '';
+            if (Array.isArray(ev.lineUp)) {
+                artistsStr = ev.lineUp.filter(Boolean).join(' / ').toUpperCase();
+            } else if (typeof ev.lineUp === 'string' && ev.lineUp.trim()) {
+                artistsStr = ev.lineUp.trim().toUpperCase();
+            } else if (ev.description) {
+                artistsStr = ev.description.trim().toUpperCase();
+            }
+            
+            const genreStr = (ev.genre || ev.type || '').trim().toUpperCase();
+            const venueStr = (ev.venue || ev.location || (ev.country ? `${ev.location || ''} (${ev.country})` : '')).trim().toUpperCase();
+            
+            return {
+                day: formattedDay,
+                time: formattedDay,
+                title: titleStr,
+                artist: titleStr,
+                artists: artistsStr,
+                genre: genreStr,
+                venue: venueStr
+            };
+        });
+        
+        if (replace) {
+            setPlanningItems(newItems);
+        } else {
+            setPlanningItems(prev => [...prev, ...newItems]);
+        }
+        
+        if (autoSyncAgendaMonth && eventsToImport.length > 0) {
+            const detectedMonth = getEventMonthName(eventsToImport[0]);
+            if (detectedMonth) {
+                setAgendaMonth(detectedMonth);
+                setPlanningDate(detectedMonth);
+            }
+        }
+        
+        setIsAgendaPickerOpen(false);
+        setSelectedSiteEventIds([]);
+    };
+
+    const availableAgendaMonths = useMemo(() => {
+        const set = new Set<string>();
+        siteAgendaEvents.forEach(e => {
+            const m = getEventMonthName(e);
+            if (m) set.add(m);
+        });
+        return Array.from(set);
+    }, [siteAgendaEvents]);
+
+    const filteredSiteAgendaList = useMemo(() => {
+        let list = siteAgendaEvents;
+        if (agendaPickerMonth !== 'ALL') {
+            list = list.filter(e => getEventMonthName(e) === agendaPickerMonth);
+        }
+        if (agendaPickerSearch.trim()) {
+            const q = agendaPickerSearch.toLowerCase().trim();
+            list = list.filter(e => {
+                const title = (e.title || '').toLowerCase();
+                const venue = (e.venue || '').toLowerCase();
+                const loc = (e.location || '').toLowerCase();
+                const genre = (e.genre || '').toLowerCase();
+                const country = (e.country || '').toLowerCase();
+                const artists = Array.isArray(e.lineUp) ? e.lineUp.join(' ').toLowerCase() : (e.lineUp || '').toLowerCase();
+                return title.includes(q) || venue.includes(q) || loc.includes(q) || genre.includes(q) || country.includes(q) || artists.includes(q);
+            });
+        }
+        return list;
+    }, [siteAgendaEvents, agendaPickerMonth, agendaPickerSearch]);
+
+    const interviewEditor = (
+        <div className="space-y-3">
+            <textarea 
+                value={customText} 
+                onChange={e => setCustomText(e.target.value)} 
+                placeholder={`[NOM DE L'ARTISTE]\n[SOUS TITRE / DESCRIPTION]`} 
+                spellCheck="true"
+                autoCorrect="on"
+                autoCapitalize="sentences"
+                className="w-full h-24 bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs mb-2 transition-all focus:border-neon-cyan focus:bg-white/[0.15]" 
+            />
+            <div className="flex gap-2">
+                <button onClick={() => {
+                    setR2TargetType('logo');
+                    setIsR2ModalOpen(true);
+                }} className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+                    <Upload className="w-4 h-4 text-neon-cyan" /> {artistLogo ? 'Modifier Logo Artiste' : 'Ajouter Logo Artiste (Cloud)'}
+                </button>
+                {artistLogo && (
+                    <button onClick={() => { setArtistLogo(''); artistLogoRef.current = null; generateImage(); }} className="px-4 py-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all">
+                        <X className="w-4 h-4" />
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+
+    const MONTH_OPTIONS = [
+        'JANVIER', 'FÉVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN', 
+        'JUILLET', 'AOÛT', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÉCEMBRE'
+    ];
+
+    const planningEditor = (
+        <div className="space-y-4">
+            {/* 1. CARROUSEL SLIDE SWITCHER */}
+            <div className="p-1.5 bg-black/60 border border-[#ff3700]/30 rounded-2xl flex gap-1 shadow-xl">
+                <button
+                    type="button"
+                    onClick={() => setAgendaSlide(1)}
+                    className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
+                        agendaSlide === 1
+                            ? 'bg-[#ff3700] text-black shadow-[0_0_15px_rgba(255,55,0,0.5)] scale-[1.02]'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                >
+                    <span className="text-xs">🎴</span> Slide 1 : Cover (Accroche)
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setAgendaSlide(2)}
+                    className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
+                        agendaSlide === 2
+                            ? 'bg-[#ff3700] text-black shadow-[0_0_15px_rgba(255,55,0,0.5)] scale-[1.02]'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                >
+                    <span className="text-xs">📋</span> Slide 2 : Événements ({planningItems.length})
+                </button>
+            </div>
+
+            {/* Quick Carousel Download Bar */}
+            <div className="p-2.5 bg-white/5 border border-white/10 rounded-xl space-y-2">
+                <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
+                    <span>Export Carrousel Rapide</span>
+                    <span className="text-[#ff3700]">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                    <button
+                        type="button"
+                        onClick={() => downloadAgendaSlide(1)}
+                        disabled={isDownloading}
+                        className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                    >
+                        <Download className="w-3 h-3 text-[#ff3700]" /> Télécharger Slide 1
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => downloadAgendaSlide(2)}
+                        disabled={isDownloading}
+                        className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                    >
+                        <Download className="w-3 h-3 text-[#ff3700]" /> Télécharger Slide 2
+                    </button>
+                </div>
+                <button
+                    type="button"
+                    onClick={() => downloadFullAgendaCarousel()}
+                    disabled={isDownloading}
+                    className="w-full py-2 bg-[#ff3700]/20 hover:bg-[#ff3700]/30 border border-[#ff3700]/40 text-[#ff3700] hover:text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-2"
+                >
+                    <Sparkles className="w-3.5 h-3.5" /> Exporter le Carrousel Images (Slide 1 + 2)
+                </button>
+                <button
+                    type="button"
+                    onClick={() => startVideoRecording('PLANNING')}
+                    disabled={isVideoRecording}
+                    className="w-full py-2.5 bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 hover:opacity-90 text-black font-black text-[9.5px] uppercase rounded-lg shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+                >
+                    <Video className="w-3.5 h-3.5 text-black" /> {isVideoRecording ? 'Enregistrement Vidéo en cours...' : '🎬 Exporter Vidéo Complète (Slide 1 + 2) • 15s'}
+                </button>
+            </div>
+
+            {agendaSlide === 1 ? (
+                /* ══════════════════════════════════════════════════════════
+                   EDITEUR SLIDE 1 : COVER (ACCROCHE INSTAGRAM)
+                   ══════════════════════════════════════════════════════════ */
+                <div className="space-y-3.5 animate-in fade-in duration-200">
+                    {/* Mois & Année (Synchronisé) */}
+                    <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2.5">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider">
+                                📅 Mois & Année de l'Agenda
+                            </label>
+                            <span className="text-[8px] font-bold text-gray-500 uppercase">Synchronisé sur les 2 slides</span>
+                        </div>
+                        {/* Sélecteur rapide des 12 mois */}
+                        <div className="grid grid-cols-6 gap-1">
+                            {MONTH_OPTIONS.map(m => (
+                                <button
+                                    key={m}
+                                    type="button"
+                                    onClick={() => {
+                                        setAgendaMonth(m);
+                                        setPlanningDate(m);
+                                    }}
+                                    className={`py-1 rounded-lg text-[8px] font-black uppercase transition-all border ${
+                                        agendaMonth.toUpperCase() === m
+                                            ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-[0_0_10px_rgba(255,55,0,0.5)]'
+                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    {m.slice(0, 4)}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                            <div>
+                                <label className="block text-[8px] font-bold text-gray-400 uppercase mb-1">Mois écrit</label>
+                                <input
+                                    value={agendaMonth}
+                                    onChange={e => {
+                                        setAgendaMonth(e.target.value);
+                                        setPlanningDate(e.target.value);
+                                    }}
+                                    placeholder="ex: OCTOBRE"
+                                    className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black uppercase text-xs focus:border-[#ff3700] focus:outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[8px] font-bold text-gray-400 uppercase mb-1">Année</label>
+                                <input
+                                    value={agendaCoverYear}
+                                    onChange={e => setAgendaCoverYear(e.target.value)}
+                                    placeholder="ex: 2026"
+                                    className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black uppercase text-xs focus:border-[#ff3700] focus:outline-none"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Badge en haut à gauche */}
+                    <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider">
+                                🏷️ Badge Haut Gauche (Slide 1)
+                            </label>
+                            <span className="text-[8px] font-bold text-gray-500 uppercase">Capsule Cyber</span>
+                        </div>
+                        <input
+                            value={agendaCoverBadge}
+                            onChange={e => setAgendaCoverBadge(e.target.value)}
+                            placeholder="ex: AGENDA FESTIVALS & SOIRÉES"
+                            className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black uppercase text-xs focus:border-[#ff3700] focus:outline-none"
+                        />
+                        <div className="flex flex-wrap gap-1 pt-1">
+                            {[
+                                'AGENDA FESTIVALS & SOIRÉES',
+                                'COUPS DE CŒUR DU MOIS',
+                                'SÉLECTION DU MOIS',
+                                'AGENDA DU MOIS',
+                                'OÙ SORTIR ?'
+                            ].map(b => (
+                                <button
+                                    key={b}
+                                    type="button"
+                                    onClick={() => setAgendaCoverBadge(b)}
+                                    className={`px-2 py-0.5 rounded text-[7px] font-black uppercase transition-all border ${
+                                        agendaCoverBadge.toUpperCase() === b
+                                            ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-sm'
+                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                    }`}
+                                >
+                                    {b}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Grand Titre d'Accroche */}
+                    <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider">
+                                🔥 Grand Titre d'Accroche (Hook)
+                            </label>
+                            <span className="text-[8px] font-bold text-gray-500 uppercase">Texte principal géant</span>
+                        </div>
+                        <textarea
+                            value={agendaCoverTitle}
+                            onChange={e => setAgendaCoverTitle(e.target.value)}
+                            placeholder="ex: ON VA OÙ CE MOIS-CI ?"
+                            rows={2}
+                            className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black uppercase text-xs focus:border-[#ff3700] focus:outline-none resize-none"
+                        />
+                        <div className="flex flex-wrap gap-1 pt-1">
+                            {[
+                                'ON VA OÙ CE MOIS-CI ?',
+                                'OÙ SORTIR CE MOIS-CI ?',
+                                'TON AGENDA DU MOIS',
+                                'LES INCONTOURNABLES',
+                                'LE GUIDE DES SOIRÉES'
+                            ].map(t => (
+                                <button
+                                    key={t}
+                                    type="button"
+                                    onClick={() => setAgendaCoverTitle(t)}
+                                    className={`px-2 py-0.5 rounded text-[7px] font-black uppercase transition-all border ${
+                                        agendaCoverTitle.toUpperCase() === t
+                                            ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-sm'
+                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                    }`}
+                                >
+                                    {t}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Styles Musicaux / Genres */}
+                    <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider">
+                                🎧 Ambiance & Genres Musicaux
+                            </label>
+                            <span className="text-[8px] font-bold text-gray-500 uppercase">Pilule centrale</span>
+                        </div>
+                        <input
+                            value={agendaCoverGenres}
+                            onChange={e => setAgendaCoverGenres(e.target.value)}
+                            placeholder="ex: HARD TECHNO • RAWSTYLE • MULTI-GENRES"
+                            className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black uppercase text-xs focus:border-[#ff3700] focus:outline-none"
+                        />
+                        <div className="flex flex-wrap gap-1 pt-1">
+                            {[
+                                'HARD TECHNO • RAWSTYLE • MULTI-GENRES',
+                                'TECHNO • HARD TECHNO • TRANCE',
+                                'ELECTRO • HOUSE • TECH HOUSE',
+                                'TOUS LES STYLES • TOUTES LES VILLES'
+                            ].map(g => (
+                                <button
+                                    key={g}
+                                    type="button"
+                                    onClick={() => setAgendaCoverGenres(g)}
+                                    className={`px-2 py-0.5 rounded text-[7px] font-black uppercase transition-all border ${
+                                        agendaCoverGenres.toUpperCase() === g
+                                            ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-sm'
+                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                    }`}
+                                >
+                                    {g}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Call to action Swipe */}
+                    <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider">
+                                ➡️ Call to Action (Bas de page)
+                            </label>
+                            <span className="text-[8px] font-bold text-gray-500 uppercase">Incitation Swipe</span>
+                        </div>
+                        <input
+                            value={agendaCoverCta}
+                            onChange={e => setAgendaCoverCta(e.target.value)}
+                            placeholder="ex: Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️"
+                            className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black text-xs focus:border-[#ff3700] focus:outline-none"
+                        />
+                        <div className="flex flex-wrap gap-1 pt-1">
+                            {[
+                                'Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️',
+                                'Glisse pour découvrir la sélection complète ➡️',
+                                'Swipe pour ton agenda du mois ➡️',
+                                'Swipe pour voir toutes les dates ➡️'
+                            ].map(cta => (
+                                <button
+                                    key={cta}
+                                    type="button"
+                                    onClick={() => setAgendaCoverCta(cta)}
+                                    className={`px-2 py-0.5 rounded text-[7px] font-black transition-all border text-left ${
+                                        agendaCoverCta === cta
+                                            ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-sm'
+                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                    }`}
+                                >
+                                    {cta}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={() => setAgendaSlide(2)}
+                        className="w-full py-3 bg-[#ff3700] hover:bg-[#ff5522] text-black font-black text-[10px] uppercase rounded-xl transition-all shadow-lg shadow-[#ff3700]/20 flex items-center justify-center gap-2"
+                    >
+                        Continuer vers la Slide 2 (Événements) ➔
+                    </button>
+                </div>
+            ) : (
+                /* ══════════════════════════════════════════════════════════
+                   EDITEUR SLIDE 2 : ÉVÉNEMENTS & DATES
+                   ══════════════════════════════════════════════════════════ */
+                <div className="space-y-4 animate-in fade-in duration-200">
+            {/* Header: Mois & Badge en haut à gauche */}
+            <div className="p-3.5 bg-black/40 border border-[#ff3700]/30 rounded-2xl space-y-3 shadow-lg">
+                <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black text-[#ff3700] uppercase tracking-widest flex items-center gap-1.5">
+                        🏷️ Badge & Mois de l'Agenda
+                    </span>
+                    <span className="text-[9px] font-bold text-gray-500 uppercase">En-tête visuel</span>
+                </div>
+
+                {/* Badge en haut à gauche */}
+                <div className="space-y-1.5 bg-black/30 p-2.5 rounded-xl border border-white/5">
+                    <div className="flex items-center justify-between">
+                        <label className="block text-[8px] font-black text-[#ff3700] uppercase tracking-wider">Texte du carré en haut à gauche</label>
+                        <span className="text-[8px] font-bold text-gray-500 uppercase">Capsule Cyber Fluo</span>
+                    </div>
+                    <input
+                        value={agendaBadgeText}
+                        onChange={e => setAgendaBadgeText(e.target.value)}
+                        placeholder="ex: COUPS DE CŒUR DU MOIS"
+                        className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black uppercase text-xs focus:border-[#ff3700] focus:outline-none"
+                    />
+                    {/* Suggestions rapides */}
+                    <div className="flex flex-wrap gap-1 pt-1">
+                        {[
+                            'COUPS DE CŒUR DU MOIS',
+                            'NOS EVENTS DU MOIS',
+                            'EVENTS COUPS DE CŒUR',
+                            'SÉLECTION DU MOIS',
+                            'AGENDA DU MOIS',
+                            'AGENDA'
+                        ].map(badge => (
+                            <button
+                                key={badge}
+                                type="button"
+                                onClick={() => setAgendaBadgeText(badge)}
+                                className={`px-2 py-0.5 rounded text-[7px] font-black uppercase transition-all border ${
+                                    agendaBadgeText.toUpperCase() === badge
+                                        ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-[0_0_8px_rgba(255,55,0,0.5)]'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                }`}
+                            >
+                                {badge}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                    <span className="text-[9px] font-bold text-gray-400 uppercase">Mois affiché (Titre fluo creux)</span>
+                </div>
+
+                {/* Sélecteur rapide des 12 mois */}
+                <div className="grid grid-cols-6 gap-1">
+                    {MONTH_OPTIONS.map(m => (
+                        <button
+                            key={m}
+                            type="button"
+                            onClick={() => {
+                                setAgendaMonth(m);
+                                setPlanningDate(m);
+                            }}
+                            className={`py-1 rounded-lg text-[8px] font-black uppercase transition-all border ${
+                                agendaMonth.toUpperCase() === m
+                                    ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-[0_0_10px_rgba(255,55,0,0.5)]'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                            }`}
+                        >
+                            {m.slice(0, 4)}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Champ personnalisé pour le mois + Action vider */}
+                <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                        <label className="block text-[8px] font-bold text-gray-400 uppercase mb-1">Mois affiché (Titre central)</label>
+                        <input
+                            value={agendaMonth}
+                            onChange={e => {
+                                setAgendaMonth(e.target.value);
+                                setPlanningDate(e.target.value);
+                            }}
+                            placeholder="ex: OCTOBRE"
+                            className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black uppercase text-xs focus:border-[#ff3700] focus:outline-none"
+                        />
+                    </div>
+                    {planningItems.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={() => setPlanningItems([])}
+                            className="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 h-[34px]"
+                            title="Effacer tous les événements"
+                        >
+                            <Eraser className="w-3.5 h-3.5" /> Tout effacer
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Importer depuis l'Agenda du Site */}
+            <div className="border border-[#ff3700]/30 bg-gradient-to-br from-[#ff3700]/15 via-black/40 to-black/20 rounded-2xl p-3.5 space-y-2 shadow-lg shadow-[#ff3700]/5">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-xl bg-[#ff3700]/20 border border-[#ff3700]/40 flex items-center justify-center text-[#ff3700] shadow-sm">
+                            <Calendar className="w-4 h-4" />
+                        </div>
+                        <div>
+                            <span className="text-[10px] font-black text-white uppercase tracking-wider block">Agenda du Site</span>
+                            <span className="text-[8px] text-gray-400 font-medium">Prendre les soirées & festivals du site</span>
+                        </div>
+                    </div>
+                    <button 
+                        type="button"
+                        onClick={() => {
+                            setIsAgendaPickerOpen(true);
+                            if (siteAgendaEvents.length === 0) {
+                                fetchSiteAgenda();
+                            }
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ff3700] hover:bg-[#ff5522] text-black font-black text-[9px] uppercase rounded-xl shadow-md shadow-[#ff3700]/20 hover:scale-105 active:scale-95 transition-all"
+                    >
+                        <Sparkles className="w-3 h-3" /> Importer
+                    </button>
+                </div>
+            </div>
+
+            {/* Live Takeover Import */}
+            <div className="border border-white/10 bg-black/20 rounded-xl p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Live Takeover Import</span>
+                    <button 
+                        onClick={fetchTakeover}
+                        disabled={isTakeoverLoading}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase text-white hover:bg-white/10 transition-all"
+                    >
+                        {isTakeoverLoading ? <RotateCcw className="w-3 h-3 animate-spin" /> : <Layers className="w-3 h-3" />}
+                        {takeoverData ? 'Actualiser' : 'Charger les données'}
+                    </button>
+                </div>
+
+                {takeoverData && (
+                    <div className="grid grid-cols-1 gap-2 p-2 bg-white/5 rounded-lg border border-white/5 animate-in fade-in slide-in-from-top-2">
+                        <p className="text-[8px] font-black text-gray-500 uppercase px-1 mb-1">Sélectionnez une stage & date :</p>
+                        <div className="max-h-[150px] overflow-y-auto space-y-1 custom-scrollbar">
+                            {Array.from(new Set(takeoverData.lineup.map(l => `${l.stage}:${l.day}`)))
+                                .sort()
+                                .map(key => {
+                                    const [st, dy] = key.split(':');
+                                    return (
+                                        <button 
+                                            key={key}
+                                            onClick={() => handleImportFromTakeover(st, dy)}
+                                            className="w-full px-3 py-2 bg-white/5 hover:bg-neon-cyan/20 border border-white/5 hover:border-neon-cyan/30 rounded-lg text-left transition-all group"
+                                        >
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[10px] font-black text-white group-hover:text-neon-cyan uppercase">{st || 'STAGE INCONNUE'}</span>
+                                                <span className="text-[9px] font-bold text-gray-500">{dy}</span>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Liste des événements de l'Agenda */}
+            <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1 custom-scrollbar">
+                <div className="flex items-center justify-between px-1">
+                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                        Événements ({planningItems.length})
+                    </span>
+                    <span className="text-[8px] text-[#ff3700] font-bold">Style Rave Feed</span>
+                </div>
+
+                {planningItems.length === 0 ? (
+                    <div className="p-6 bg-white/[0.03] border border-dashed border-white/10 rounded-2xl text-center space-y-2.5">
+                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-wider">Aucun événement pour le moment</p>
+                        <p className="text-[9px] text-gray-500 font-medium">Ajoutez un événement manuellement ou prenez ceux du site.</p>
+                        <div className="pt-1 flex flex-col sm:flex-row gap-2 justify-center">
+                            <button 
+                                type="button"
+                                onClick={() => {
+                                    setIsAgendaPickerOpen(true);
+                                    if (siteAgendaEvents.length === 0) {
+                                        fetchSiteAgenda();
+                                    }
+                                }}
+                                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-[#ff3700]/20 border border-[#ff3700]/40 text-[#ff3700] hover:bg-[#ff3700] hover:text-black rounded-xl text-[9px] font-black uppercase transition-all"
+                            >
+                                <Calendar className="w-3.5 h-3.5" /> Prendre les events du site
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    planningItems.map((item, i) => (
+                        <div key={i} className="p-3 bg-white/5 hover:bg-white/[0.07] border border-white/10 rounded-xl space-y-2 transition-all">
+                            {/* Ligne 1 : Jour & Titre */}
+                            <div className="flex gap-2 items-center">
+                                <input 
+                                    value={item.day || item.time || ''} 
+                                    onChange={e => { 
+                                        const n = [...planningItems]; 
+                                        n[i].day = e.target.value.toUpperCase(); 
+                                        n[i].time = e.target.value.toUpperCase(); 
+                                        setPlanningItems(n); 
+                                    }} 
+                                    placeholder="JOUR (ex: VENDREDI)" 
+                                    spellCheck="false"
+                                    className="w-28 bg-[#ff3700]/15 border border-[#ff3700]/30 rounded-lg p-2 text-[10px] text-[#ff3700] font-black uppercase text-center" 
+                                />
+                                <input 
+                                    value={item.title || item.artist || ''} 
+                                    onChange={e => { 
+                                        const n = [...planningItems]; 
+                                        n[i].title = e.target.value.toUpperCase(); 
+                                        n[i].artist = e.target.value.toUpperCase(); 
+                                        setPlanningItems(n); 
+                                    }} 
+                                    placeholder="TITRE ÉVÉNEMENT (ex: GODDESS RAVE)" 
+                                    spellCheck="false"
+                                    className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-white font-black uppercase" 
+                                />
+                                <button 
+                                    onClick={() => setPlanningItems(planningItems.filter((_, idx) => idx !== i))} 
+                                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                    title="Supprimer"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+
+                            {/* Ligne 2 : Artistes / Lineup */}
+                            <input 
+                                value={item.artists || ''} 
+                                onChange={e => { 
+                                    const n = [...planningItems]; 
+                                    n[i].artists = e.target.value; 
+                                    setPlanningItems(n); 
+                                }} 
+                                placeholder="LINEUP (ex: URUMI / A5KM / ESILISE ...)" 
+                                spellCheck="false"
+                                className="w-full bg-white/5 border border-white/10 rounded-lg p-1.5 text-[10px] text-gray-200 font-semibold" 
+                            />
+
+                            {/* Ligne 3 : Genre & Lieu */}
+                            <div className="flex gap-2">
+                                <input 
+                                    value={item.genre || ''} 
+                                    onChange={e => { 
+                                        const n = [...planningItems]; 
+                                        n[i].genre = e.target.value; 
+                                        setPlanningItems(n); 
+                                    }} 
+                                    placeholder="GENRE (ex: Hard-Techno)" 
+                                    spellCheck="false"
+                                    className="w-1/2 bg-white/5 border border-white/10 rounded-lg p-1.5 text-[9px] text-gray-400 font-bold" 
+                                />
+                                <input 
+                                    value={item.venue || ''} 
+                                    onChange={e => { 
+                                        const n = [...planningItems]; 
+                                        n[i].venue = e.target.value.toUpperCase(); 
+                                        setPlanningItems(n); 
+                                    }} 
+                                    placeholder="LIEU (ex: MKILOMÈTRE25)" 
+                                    spellCheck="false"
+                                    className="w-1/2 bg-[#ff3700]/10 border border-[#ff3700]/20 rounded-lg p-1.5 text-[9px] text-[#ff3700] font-black uppercase" 
+                                />
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            <button 
+                onClick={() => setPlanningItems([
+                    ...planningItems, 
+                    { day: 'VENDREDI', title: '', artists: '', genre: '', venue: '' }
+                ])} 
+                className="w-full py-3 bg-[#ff3700]/10 border border-dashed border-[#ff3700]/30 hover:border-[#ff3700] rounded-xl text-[9px] font-black uppercase text-[#ff3700] hover:bg-[#ff3700]/20 transition-all flex items-center justify-center gap-2"
+            >
+                <Plus className="w-3.5 h-3.5" /> Ajouter un événement à l'Agenda
+            </button>
+
+            <button
+                type="button"
+                onClick={() => setAgendaSlide(1)}
+                className="w-full py-2.5 text-gray-400 hover:text-white text-[9px] font-black uppercase transition-colors"
+            >
+                ❮ Revenir à la Slide 1 (Cover)
+            </button>
+        </div>
+    )}
+</div>
+    );
+
+
+    const promoEditor = (
+        <div className="space-y-4">
+            {isCarouselPromoActive && (
+                <div className="p-3 bg-neon-red/10 border border-neon-red/30 rounded-2xl flex items-center justify-between shadow-lg">
+                    <div className="flex items-center gap-2">
+                        <span className="text-base">🔥</span>
+                        <div>
+                            <p className="text-[10px] font-black uppercase text-neon-red tracking-wider">Slide Outro PROMO active</p>
+                            <p className="text-[8px] text-gray-400">Modifiez ici la phrase et la question de fin de carrousel</p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setIsCarouselPromoActive(false);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[8.5px] font-black uppercase transition-all flex items-center gap-1 active:scale-95"
+                    >
+                        ❮ Revenir aux slides
+                    </button>
+                </div>
+            )}
+
+            {/* Toggle Principal : Phrase d'accroche (Question / Débat) */}
+            <div className="p-3.5 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between shadow-sm">
+                <div className="space-y-0.5 pr-2">
+                    <div className="text-[10px] font-black uppercase text-white flex items-center gap-1.5">
+                        <MessageSquare className="w-3.5 h-3.5 text-neon-red" />
+                        <span>Phrase d'accroche (Question)</span>
+                        <span className={`text-[8.5px] px-1.5 py-0.5 rounded font-bold ${
+                            showPromoHook 
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                                : 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30'
+                        }`}>
+                            {showPromoHook ? 'Activée' : 'Désactivée (Texte Centré)'}
+                        </span>
+                    </div>
+                    <p className="text-[8px] text-gray-400">
+                        {showPromoHook 
+                            ? 'Affiche la question débat en haut + "Donne ton avis en commentaire".' 
+                            : 'Masquée : le texte en dessous est automatiquement centré au milieu du visuel.'}
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    onClick={() => {
+                        setShowPromoHook(!showPromoHook);
+                        setTimeout(() => generateImage(), 50);
+                    }}
+                    className={`px-3 py-2 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center gap-1.5 border shrink-0 ${
+                        showPromoHook
+                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
+                            : 'bg-neon-cyan/20 border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/30 shadow-[0_0_12px_rgba(0,240,255,0.25)]'
+                    }`}
+                >
+                    {showPromoHook ? '👁️ Accroche Active' : '🚫 Désactivée (Centré)'}
+                </button>
+            </div>
+
+            {/* 1. Sélecteur de catégorie & couleur pour la page Promo */}
+            <div className="space-y-2 bg-white/5 border border-white/10 rounded-2xl p-3.5">
+                <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                        🎨 Thème & Couleur Promo
+                    </label>
+                    <span 
+                        className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full"
+                        style={{ 
+                            backgroundColor: `${(baseThemeData[promoCategory as ThemeType] || baseThemeData['NEWS']).color}20`, 
+                            color: (baseThemeData[promoCategory as ThemeType] || baseThemeData['NEWS']).color,
+                            border: `1px solid ${(baseThemeData[promoCategory as ThemeType] || baseThemeData['NEWS']).color}60` 
+                        }}
+                    >
+                        {promoCategory}
+                    </span>
+                </div>
+                <div className="grid grid-cols-4 gap-1.5 pt-1">
+                    {[
+                        { id: 'NEWS', label: 'NEWS', color: '#ff0033' },
+                        { id: 'RECAP', label: 'RÉCAP', color: '#c026d3' },
+                        { id: 'MUSIQUE', label: 'MUSIQUE', color: '#39ff14' },
+                        { id: 'FOCUS', label: 'FOCUS', color: '#ffaa00' },
+                        { id: 'EVENTS', label: 'EVENTS', color: '#ff007f' },
+                        { id: 'INTERVIEW', label: 'INTERVIEW', color: '#ffffff' },
+                        { id: 'CONCOURS', label: 'CONCOURS', color: '#008cff' },
+                    ].map(cat => {
+                        const isSelected = (promoCategory || 'NEWS') === cat.id;
+                        return (
+                            <button
+                                key={cat.id}
+                                type="button"
+                                onClick={() => {
+                                    setPromoCategory(cat.id);
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                className={`py-2 px-2.5 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 border transition-all ${
+                                    isSelected 
+                                        ? 'bg-white/15 text-white shadow-md' 
+                                        : 'bg-black/30 border-white/5 text-gray-400 hover:text-white hover:bg-white/5'
+                                }`}
+                                style={isSelected ? { borderColor: cat.color, color: cat.color, boxShadow: `0 0 12px ${cat.color}40` } : {}}
+                            >
+                                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
+                                <span className="truncate">{cat.label}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* 2. Phrase officielle Promo d'information (Pour être informé...) */}
+            <div className="space-y-2.5 bg-white/5 border border-white/10 rounded-2xl p-3.5">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest flex items-center gap-1.5">
+                            📢 Phrase Promo (Ligne 1 & 2)
+                        </label>
+                        <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold ${
+                            showPromoHeadline 
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                                : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        }`}>
+                            {showPromoHeadline ? 'Affichée' : 'Masquée (Centré)'}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setShowPromoHeadline(!showPromoHeadline);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className={`px-2 py-1 rounded-lg text-[8.5px] font-bold uppercase transition-all border ${
+                                showPromoHeadline
+                                    ? 'bg-white/10 border-white/20 text-gray-300 hover:text-white'
+                                    : 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                            }`}
+                        >
+                            {showPromoHeadline ? 'Masquer' : 'Afficher'}
+                        </button>
+                        {promoCustomPhrase && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setPromoCustomPhrase('');
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                className="text-[8.5px] text-gray-400 hover:text-white uppercase font-bold"
+                            >
+                                ↺ Par défaut
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {showPromoHeadline && (
+                    <>
+                        <input
+                            value={promoCustomPhrase}
+                            onChange={e => {
+                                setPromoCustomPhrase(e.target.value);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            placeholder={
+                                promoCategory === 'EVENTS' || promoCategory === 'PLANNING'
+                                    ? "POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS"
+                                    : promoCategory === 'MUSIQUE'
+                                    ? "POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES"
+                                    : promoCategory === 'FOCUS'
+                                    ? "POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS"
+                                    : "POUR ÊTRE INFORMÉ DE TOUTES LES NEWS"
+                            }
+                            className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-neon-cyan outline-none transition-all placeholder:text-gray-600"
+                        />
+
+                        <div className="pt-1 space-y-1">
+                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                                Ligne 2 (Sous-phrase)
+                            </label>
+                            <input
+                                value={promoCustomSubphrase}
+                                onChange={e => {
+                                    setPromoCustomSubphrase(e.target.value);
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                placeholder="SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,"
+                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-neon-cyan outline-none transition-all placeholder:text-gray-600"
+                            />
+                        </div>
+
+                        <div className="pt-2">
+                            <p className="text-[8.5px] font-bold text-gray-500 uppercase mb-1.5">Phrases suggérées en 1 clic :</p>
+                            <div className="flex flex-wrap gap-1.5">
+                                {[
+                                    "POUR ÊTRE INFORMÉ DE TOUTES LES NEWS",
+                                    "POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS",
+                                    "POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES",
+                                    "POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS",
+                                    "POUR REVIVRE TOUS LES MEILLEURS FESTIVALS",
+                                ].map((phrase, idx) => (
+                                    <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={() => {
+                                            setPromoCustomPhrase(phrase);
+                                            setTimeout(() => generateImage(), 50);
+                                        }}
+                                        className="px-2.5 py-1 bg-white/5 hover:bg-neon-cyan/20 border border-white/10 hover:border-neon-cyan text-gray-300 hover:text-white rounded-lg text-[8.5px] font-bold transition-all text-left"
+                                    >
+                                        {phrase}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
+
+            {/* 3. Question / Débat de l'article (Accroche du haut) */}
+            <div className="space-y-2 bg-white/5 border border-white/10 rounded-2xl p-3.5">
+                <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                        <MessageSquare className="w-3.5 h-3.5 text-neon-red" /> Question / Débat de l'article
+                    </label>
+                    <span className="text-[9px] text-gray-500 font-bold">{customText.length}/200</span>
+                </div>
+                {showPromoHook ? (
+                    <>
+                        <textarea
+                            value={customText}
+                            onChange={e => setCustomText(e.target.value.slice(0, 200))}
+                            placeholder="Ex: Que penses-tu du nouveau titre de l'artiste ?"
+                            spellCheck="true"
+                            autoCorrect="on"
+                            className="w-full h-20 bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs font-bold resize-none focus:border-neon-red outline-none transition-all uppercase"
+                        />
+                        <div className="pt-1">
+                            <p className="text-[8.5px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Suggestions rapides pour la question :</p>
+                            <div className="flex flex-wrap gap-1.5">
+                                {[
+                                    "Et toi, qu'en penses-tu ?",
+                                    "Validé ou surcoté ?",
+                                    "Tu y seras cet été ?",
+                                    "Dans ta playlist ou poubelle ?",
+                                    "Tu valides ce retour ?",
+                                    "Quelle est ta collab de rêve ?"
+                                ].map((sug, i) => (
+                                    <button
+                                        key={i}
+                                        type="button"
+                                        onClick={() => setCustomText(sug)}
+                                        className="px-2.5 py-1.5 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red text-gray-300 hover:text-white rounded-lg text-[9px] font-bold transition-all"
+                                    >
+                                        {sug}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <div className="p-2.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-xl text-[9px] text-neon-cyan font-bold flex items-center justify-between">
+                        <span>Accroche désactivée : Le texte d'abonnement est centré sur le visuel.</span>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setShowPromoHook(true);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="text-[8.5px] underline hover:text-white uppercase font-black"
+                        >
+                            Réactiver
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            <div className="p-3 bg-white/5 border border-white/10 rounded-xl space-y-2">
+                <p className="text-[9px] font-black text-neon-cyan uppercase tracking-widest">Aperçu Outro & Bulles :</p>
+                <p className="text-[10px] text-gray-300 font-bold leading-relaxed">
+                    « {promoCustomPhrase || (promoCategory === 'EVENTS' || promoCategory === 'PLANNING' ? "Pour être informé de tous les événements" : "Pour être informé de toutes les news")} {promoCustomSubphrase || "sur la musique électronique et les festivals"}, abonnez-vous à DROPSIDERS »
+                </p>
+                <div className="flex flex-wrap gap-1 pt-1">
+                    {['NEWS', 'MUSIQUE', 'FOCUS', 'RECAPS', 'CONCOURS', 'EVENTS', 'INTERVIEWS', 'VIDEOS'].map((tag, i) => (
+                        <span key={i} className={`px-2.5 py-1 border rounded-full text-[8px] font-black transition-all ${
+                            (promoCategory === tag || (promoCategory === 'PLANNING' && tag === 'EVENTS'))
+                                ? 'bg-neon-red/20 border-neon-red text-neon-red'
+                                : 'bg-white/10 border-white/15 text-white/90'
+                        }`}>
+                            {tag}
+                        </span>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+
+    const textEditor = (
+        <div className="space-y-2">
+            <textarea
+                ref={textAreaRef}
+                value={customText}
+                onSelect={(e) => { 
+                    const t = e.target as HTMLTextAreaElement; 
+                    setSelection({ start: t.selectionStart, end: t.selectionEnd }); 
+                    selectionRef.current = { start: t.selectionStart, end: t.selectionEnd };
+                }}
+                onChange={e => setCustomText(e.target.value.slice(0, 1100))}
+                placeholder="VOTRE TEXTE..."
+                spellCheck="true"
+                autoCorrect="on"
+                autoComplete="on"
+                autoCapitalize="sentences"
+                className="w-full h-24 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm font-bold italic resize-none focus:border-cyan-500 outline-none transition-all shadow-inner shadow-black font-sans uppercase break-words"
+            />
+            <div className="flex justify-between items-center gap-2 px-1">
+                <span className="text-[9px] text-white/40 italic">Astuce : entoure un mot de *étoiles* pour le colorer en néon (ex: *EXCLUSIF*)</span>
+                <button 
+                    onClick={() => setCustomText(fixEncoding(customText))}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-[9px] font-black uppercase hover:bg-green-500 hover:text-white transition-all shrink-0"
+                >
+                    <Sparkles className="w-3 h-3" /> Nettoyer
+                </button>
+            </div>
+        </div>
+    );
+
+    const tracklistEditor = (
+        <div className="space-y-4">
+            <div className="space-y-2">
+                <label className="text-[10px] font-black text-orange-400 uppercase tracking-widest pl-1">Ligne 1 : Artiste (Orange)</label>
+                <input 
+                    value={customText.split('\n')[0] || ''} 
+                    onChange={e => {
+                        const lines = customText.split('\n');
+                        lines[0] = e.target.value;
+                        setCustomText(lines.join('\n'));
+                    }} 
+                    placeholder="EX: ODD MOB" 
+                    className="w-full bg-white/10 border border-white/20 rounded-2xl p-4 text-white font-black italic uppercase text-sm focus:border-orange-500 outline-none transition-all shadow-xl" 
+                />
+            </div>
+            <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Ligne 2 : Festival / Événement (Blanc)</label>
+                <input 
+                    value={customText.split('\n')[1] || ''} 
+                    onChange={e => {
+                        const lines = customText.split('\n');
+                        while (lines.length < 2) lines.push('');
+                        lines[1] = e.target.value;
+                        setCustomText(lines.join('\n'));
+                    }} 
+                    placeholder="EX: CRSSD FESTIVAL" 
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-black italic uppercase text-sm focus:border-white/40 outline-none transition-all shadow-lg" 
+                />
+            </div>
+            <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Ligne 3 : Ville, Pays, Année (Orbitron)</label>
+                <input 
+                    value={customText.split('\n')[2] || ''} 
+                    onChange={e => {
+                        let val = e.target.value;
+                        if (val.endsWith(' ') && val.length > 1 && val[val.length - 2] !== ',' && !val.endsWith(', ')) {
+                            val = val.slice(0, -1).trim() + ', ';
+                        }
+                        const lines = customText.split('\n');
+                        while (lines.length < 3) lines.push('');
+                        lines[2] = val;
+                        setCustomText(lines.join('\n'));
+                    }} 
+                    placeholder="EX: SAN DIEGO, USA, 2026" 
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold uppercase text-[10px] focus:border-white/40 outline-none transition-all shadow-md" 
+                />
+                <button 
+                    onClick={() => setShowBottomLogo(!showBottomLogo)}
+                    className={`w-full py-3 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-2 ${showBottomLogo ? 'bg-white/20 text-white border border-white' : 'bg-white/5 text-gray-500 border border-white/10'}`}
+                >
+                    {showBottomLogo ? '✅ LOGO BAS ACTIVÉ (CACHÉ GRILLE)' : '❌ LOGO BAS DÉSACTIVÉ'}
+                </button>
+            </div>
+            <p className="text-[9px] text-white/40 italic px-1 pt-1">
+                Charte Graphique V2 : Badge <strong className="text-orange-400">• TRACKLIST</strong> en haut à gauche, logo Dropsiders en haut à droite, L1 en orange, L2 en blanc, L3 en blanc Orbitron.
+            </p>
+        </div>
+    );
+
+    const spotlightEditor = (
+        <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Logo Artiste</label>
+                    <div className="relative group/logo">
+                        {artistLogo && (
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); setArtistLogo(''); artistLogoRef.current = null; }}
+                                className="absolute top-2 right-2 z-10 p-1.5 bg-black/60 hover:bg-red-500 text-white rounded-full transition-all opacity-100"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                        )}
+                        <input type="file" onChange={handleArtistLogoChange} className="hidden" id="artist-logo-up" accept="image/*" />
+                        <button onClick={() => document.getElementById('artist-logo-up')?.click()} className="w-full aspect-square bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-all group overflow-hidden">
+                            {artistLogo ? (
+                                <img 
+                                    src={artistLogo} 
+                                    alt="Artist Logo" 
+                                    className="w-full h-full object-contain p-2 transition-all" 
+                                    style={{ filter: isArtistLogoNegative ? 'brightness(0) invert(1)' : 'none' }}
+                                />
+                            ) : (
+                                <>
+                                    <Plus className="w-5 h-5 text-gray-600 group-hover:text-neon-red" />
+                                    <span className="text-[8px] font-black text-gray-600 uppercase">Logo Artiste</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
+                    {!artistLogo && (
+                        <input 
+                            value={artistNameText}
+                            onChange={e => setArtistNameText(e.target.value)}
+                            placeholder="Ou nom artiste..."
+                            className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[9px] text-white uppercase font-bold"
+                        />
+                    )}
+                    {artistLogo && (
+                        <div className="flex items-center gap-2 px-1">
+                            <input 
+                                type="checkbox" 
+                                checked={isArtistLogoNegative} 
+                                onChange={e => setIsArtistLogoNegative(e.target.checked)}
+                                className="w-3 h-3 accent-neon-red"
+                                id="logo-neg-toggle"
+                            />
+                            <label htmlFor="logo-neg-toggle" className="text-[8px] font-black text-gray-500 uppercase cursor-pointer">Effet Négatif (Blanc)</label>
+                        </div>
+                    )}
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Logo Festival</label>
+                    <div className="relative group/logo">
+                        {festivalLogo && (
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); setFestivalLogo(''); festivalLogoRef.current = null; }}
+                                className="absolute top-2 right-2 z-10 p-1.5 bg-black/60 hover:bg-red-500 text-white rounded-full transition-all opacity-100"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                        )}
+                        <input type="file" onChange={handleFestivalLogoChange} className="hidden" id="fest-logo-up" accept="image/*" />
+                        <button onClick={() => document.getElementById('fest-logo-up')?.click()} className="w-full aspect-square bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-all group overflow-hidden">
+                            {festivalLogo ? (
+                                <img src={festivalLogo} alt="Fest Logo" className="w-full h-full object-contain p-2" />
+                            ) : (
+                                <>
+                                    <Plus className="w-5 h-5 text-gray-600 group-hover:text-neon-red" />
+                                    <span className="text-[8px] font-black text-gray-600 uppercase">Logo Festival</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
+                    {!festivalLogo && (
+                        <input 
+                            value={festivalNameText}
+                            onChange={e => setFestivalNameText(e.target.value)}
+                            placeholder="Ou nom festival..."
+                            className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[9px] text-white uppercase font-bold"
+                        />
+                    )}
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Tagline / Phrase (Ligne 1 & 2)</label>
+                <div className="space-y-2">
+                    <input 
+                        value={customText.split('\n')[0] || ''} 
+                        onChange={e => {
+                            const lines = customText.split('\n');
+                            lines[0] = e.target.value;
+                            setCustomText(lines.join('\n'));
+                        }} 
+                        placeholder="LIGNE 1 (EX: FROM UNDERGROUND ROOTS)" 
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase text-[10px]" 
+                    />
+                    <input 
+                        value={customText.split('\n')[3] || ''} 
+                        onChange={e => {
+                            const lines = customText.split('\n');
+                            while (lines.length < 4) lines.push('');
+                            lines[3] = e.target.value;
+                            setCustomText(lines.join('\n'));
+                        }} 
+                        placeholder="LIGNE 2 (EX: TO BASS CULTURE ICON)" 
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase text-[10px]" 
+                    />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Nom Stage</label>
+                    <input 
+                        value={customText.split('\n')[1] || ''} 
+                        onChange={e => {
+                            const lines = customText.split('\n');
+                            while (lines.length < 2) lines.push('');
+                            lines[1] = e.target.value;
+                            setCustomText(lines.join('\n'));
+                        }} 
+                        placeholder="BASSPOD" 
+                        className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-neon-red font-black italic uppercase text-xs" 
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Jour</label>
+                    <input 
+                        value={customText.split('\n')[2] || ''} 
+                        onChange={e => {
+                            const lines = customText.split('\n');
+                            while (lines.length < 3) lines.push('');
+                            lines[2] = e.target.value;
+                            setCustomText(lines.join('\n'));
+                        }} 
+                        placeholder="SATURDAY" 
+                        className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-neon-red font-black italic uppercase text-xs" 
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Heure</label>
+                    <input 
+                        value={customText.split('\n')[4] || ''} 
+                        onChange={e => {
+                            const lines = customText.split('\n');
+                            while (lines.length < 5) lines.push('');
+                            lines[4] = e.target.value;
+                            setCustomText(lines.join('\n'));
+                        }} 
+                        placeholder="22:00 - 23:00" 
+                        className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-neon-red font-black italic uppercase text-xs" 
+                    />
+                </div>
+            </div>
+
+            {/* Background Offsets for Spotlight */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-4">
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ajuster la position de la photo</p>
+                <div className="space-y-3">
+                    <div className="space-y-1">
+                        <div className="flex justify-between text-[8px] font-black uppercase text-gray-500">
+                            <span>Horizontal (Gauche/Droite)</span>
+                            <span className="text-white">{bgOffsetX}px</span>
+                        </div>
+                        <input 
+                            type="range" min="-800" max="800" value={bgOffsetX} 
+                            onChange={e => setBgOffsetX(parseInt(e.target.value))}
+                            onMouseDown={() => setIsSlidingPosition(true)}
+                            onMouseUp={() => setIsSlidingPosition(false)}
+                            onTouchStart={() => setIsSlidingPosition(true)}
+                            onTouchEnd={() => setIsSlidingPosition(false)}
+                            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-red" 
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <div className="flex justify-between text-[8px] font-black uppercase text-gray-500">
+                            <span>Vertical (Haut/Bas)</span>
+                            <span className="text-white">{bgOffsetY}px</span>
+                        </div>
+                        <input 
+                            type="range" min="-800" max="800" value={bgOffsetY} 
+                            onChange={e => setBgOffsetY(parseInt(e.target.value))}
+                            onMouseDown={() => setIsSlidingPosition(true)}
+                            onMouseUp={() => setIsSlidingPosition(false)}
+                            onTouchStart={() => setIsSlidingPosition(true)}
+                            onTouchEnd={() => setIsSlidingPosition(false)}
+                            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-red" 
+                        />
+                    </div>
+                    <button onClick={() => { setBgOffsetX(0); setBgOffsetY(0); }} className="w-full py-1.5 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black text-gray-500 uppercase hover:text-white transition-all">Réinitialiser Position</button>
+                </div>
+            </div>
+        </div>
+    );
+
+    const artisteFestivalEditor = (
+        <div className="space-y-4">
+            {/* CARROUSEL SLIDE SWITCHER */}
+            <div className="p-1.5 bg-black/60 border border-neon-red/30 rounded-2xl flex gap-1 shadow-xl">
+                <button
+                    type="button"
+                    onClick={() => setArtisteFestivalSlide(1)}
+                    className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
+                        artisteFestivalSlide === 1
+                            ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                >
+                    <span className="text-xs">🎪</span> Slide 1 : Cover Festival
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setArtisteFestivalSlide(2)}
+                    className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
+                        artisteFestivalSlide === 2
+                            ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                >
+                    <span className="text-xs">⭐</span> Slide 2 : Spotlight Artiste
+                </button>
+            </div>
+
+            {/* Quick Carousel Download Bar */}
+            <div className="p-2.5 bg-white/5 border border-white/10 rounded-xl space-y-2">
+                <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
+                    <span>Export Carrousel Rapide</span>
+                    <span className="text-neon-red">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                    <button
+                        type="button"
+                        onClick={() => downloadArtisteFestivalSlide(1)}
+                        disabled={isDownloading}
+                        className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                    >
+                        <Download className="w-3.5 h-3.5 text-neon-red" /> Slide 1 (PNG)
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => downloadArtisteFestivalSlide(2)}
+                        disabled={isDownloading}
+                        className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                    >
+                        <Download className="w-3.5 h-3.5 text-neon-red" /> Slide 2 (PNG)
+                    </button>
+                </div>
+                <button
+                    type="button"
+                    onClick={() => downloadArtisteFestivalCarousel()}
+                    disabled={isDownloading}
+                    className="w-full py-2.5 bg-gradient-to-r from-[#ff0033] to-[#ff4400] hover:from-[#ff1a47] hover:to-[#ff551a] text-white font-black text-[10px] uppercase rounded-lg shadow-lg shadow-red-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95"
+                >
+                    <Download className="w-4 h-4" /> Télécharger Carrousel (1 + 2)
+                </button>
+            </div>
+
+            {/* Slide 1 Content */}
+            {artisteFestivalSlide === 1 && (
+                <div className="space-y-3">
+                    <div className="space-y-1">
+                        <label className="text-[9px] font-black text-gray-400 uppercase">Nom du Festival</label>
+                        <input
+                            value={festivalNameText}
+                            onChange={e => setFestivalNameText(e.target.value)}
+                            placeholder="NOM DU FESTIVAL (ex: TOMORROWLAND)"
+                            className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs"
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-[9px] font-black text-gray-400 uppercase">Titre de la Cover (Hook)</label>
+                        <textarea
+                            value={customText || 'LES 10 ARTISTES À NE PAS LOUPER'}
+                            onChange={e => {
+                                setCustomText(e.target.value);
+                                setConseilsTitle(e.target.value);
+                            }}
+                            placeholder="LES 10 ARTISTES À NE PAS LOUPER"
+                            className="w-full h-20 bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs"
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-[9px] font-black text-gray-400 uppercase">Sous-titre / Détails (Italique)</label>
+                        <textarea
+                            rows={2}
+                            value={conseilsSubtext}
+                            onChange={e => setConseilsSubtext(e.target.value)}
+                            placeholder="EX: Édition 2026&#10;Belgique"
+                            className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white italic text-xs resize-none"
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* Slide 2 Content (Spotlight) */}
+            {artisteFestivalSlide === 2 && (
+                <div className="space-y-3">
+                    <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
+                        <span>Édition Spotlight de l'Artiste</span>
+                        <span className="text-neon-red">Slide 2</span>
+                    </div>
+                    {spotlightEditor}
+                </div>
+            )}
         </div>
     );
 
