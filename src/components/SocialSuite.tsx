@@ -222,6 +222,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [showTitleOnSlide2, setShowTitleOnSlide2] = useState<boolean>(false);
     const [extraEditorialSlides, setExtraEditorialSlides] = useState<string[]>([]); // Slides 3, 4, 5... (texte de chaque slide)
     const [skipEditorialSlide2, setSkipEditorialSlide2] = useState<boolean>(false); // Masquer Slide 2 dans l'export Reel (Slide 1 + Promo uniquement)
+    const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(5); // Durée Slide 1 (en secondes, min 2s, max 15s)
+    const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(3.5); // Durée Promo (en secondes, min 2s, max 8s)
     const [promoCategory, setPromoCategory] = useState<string>(() => {
         if (initialTheme && initialTheme !== 'PROMO') return initialTheme;
         return 'NEWS';
@@ -747,7 +749,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         const effectiveTab = targetTab || activeTab;
         const forceTheme = typeof exportMode === 'string' ? (exportMode as ThemeType) : forceThemeParam;
-        const isPromoRequested = promoOutroOverrideRef.current || (isCarouselPromoActive && isMultiSlideTheme);
+        const isPromoRequested = isVideoRecording
+            ? promoOutroOverrideRef.current
+            : (promoOutroOverrideRef.current || (isCarouselPromoActive && isMultiSlideTheme));
         const effectiveTheme = isPromoRequested ? 'PROMO' : (forceTheme || theme);
 
         try {
@@ -3454,12 +3458,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         };
 
+        promoOutroOverrideRef.current = false;
+        const prevWasCarouselPromoActive = isCarouselPromoActive;
         if (combinedMode === 'PLANNING') {
             agendaSlideOverrideRef.current = 1;
             setAgendaSlide(1);
+            setIsCarouselPromoActive(false);
         } else if (combinedMode === 'EDITORIAL') {
             editorialSlideOverrideRef.current = 1;
             setEditorialSlide(1);
+            setIsCarouselPromoActive(false);
         }
         transitionProgressRef.current = 0;
         setTransitionProgress(0);
@@ -3488,9 +3496,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (combinedMode === 'PLANNING') {
                 agendaSlideOverrideRef.current = null;
                 setAgendaSlide(prevAgendaSlide);
+                setIsCarouselPromoActive(prevWasCarouselPromoActive);
             } else if (combinedMode === 'EDITORIAL') {
                 editorialSlideOverrideRef.current = null;
                 setEditorialSlide(prevEditorialSlide);
+                setIsCarouselPromoActive(prevWasCarouselPromoActive);
             }
             return;
         }
@@ -3687,10 +3697,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                 : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)];
             const numContentSlides = contentSlideNumbers.length;
-            const promoDuration = 3200;
+            const promoDuration = Math.round(editorialPromoDuration * 1000);
             const transitionDuration = currentTransitionDuration;
-            const availableForSlides = 30000 - promoDuration - (numContentSlides * transitionDuration);
-            const slideDuration = Math.max(3000, Math.min(6500, Math.floor(availableForSlides / numContentSlides)));
+            const slideDuration = Math.round(editorialSlide1Duration * 1000);
             totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
         } else if (combinedMode === 'PLANNING') {
             const promoDuration = 4500;
@@ -3771,10 +3780,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                 : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)];
             const numContentSlides = contentSlideNumbers.length;
-            const promoDuration = 3200;
+            const promoDuration = Math.round(editorialPromoDuration * 1000);
             const transitionDuration = currentTransitionDuration;
-            const availableForSlides = 30000 - promoDuration - (numContentSlides * transitionDuration);
-            const slideDuration = Math.max(3000, Math.min(6500, Math.floor(availableForSlides / numContentSlides)));
+            const slideDuration = Math.round(editorialSlide1Duration * 1000);
 
             // 1. Déroulement des slides de contenu (selon contentSlideNumbers)
             for (let i = 0; i < contentSlideNumbers.length; i++) {
@@ -3958,9 +3966,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (combinedMode === 'PLANNING') {
             agendaSlideOverrideRef.current = null;
             setAgendaSlide(prevAgendaSlide);
+            setIsCarouselPromoActive(prevWasCarouselPromoActive);
         } else if (combinedMode === 'EDITORIAL') {
             editorialSlideOverrideRef.current = null;
             setEditorialSlide(prevEditorialSlide);
+            setIsCarouselPromoActive(prevWasCarouselPromoActive);
         }
         if (bgVideo) {
             bgVideo.muted = true; // remet en silencieux pour le preview
@@ -6536,33 +6546,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </button>
                         </div>
 
-                        {/* Calcul automatique de la durée des Reels (≤ 30s max, ≥ 3s min par slide + outro promo) */}
+                        {/* Contrôle de la durée et du format Reel (Slide 1, Promo, Slide 2) */}
                         {activeTab === 'REEL' && (() => {
                             const numSlides = skipEditorialSlide2 ? (1 + extraEditorialSlides.length) : (2 + extraEditorialSlides.length);
-                            const promoD = 3.2;
-                            const transD = 0.7;
-                            const avail = 30.0 - promoD - (numSlides * transD);
-                            const perSlideSec = Math.max(3.0, Math.min(6.5, avail / numSlides));
-                            const totalSec = ((numSlides * perSlideSec) + (numSlides * transD) + promoD).toFixed(1);
+                            const totalSec = ((numSlides * editorialSlide1Duration) + (numSlides * 0.7) + editorialPromoDuration).toFixed(1);
                             return (
-                                <div className="space-y-1.5">
-                                    <div className="p-2 bg-gradient-to-r from-neon-cyan/10 to-indigo-500/10 border border-neon-cyan/20 rounded-xl flex items-center justify-between text-[8.5px]">
-                                        <div className="flex items-center gap-1.5 text-gray-300">
-                                            <span className="text-neon-cyan font-black">⏱️ Durée auto :</span>
-                                            <span className="text-white font-mono font-black">{totalSec}s</span>
-                                            <span className="text-emerald-400 font-bold">(≤ 30s max)</span>
-                                        </div>
-                                        <div className="text-gray-400 font-medium">
-                                            <span className="text-white font-mono font-bold">{perSlideSec.toFixed(1)}s</span>/slide (≥ 3s min) + 3.2s Promo
-                                        </div>
-                                    </div>
-                                    <div className="p-2 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between text-[8.5px]">
+                                <div className="space-y-2 p-2.5 bg-gradient-to-r from-neon-cyan/5 via-black/40 to-indigo-500/5 border border-neon-cyan/20 rounded-2xl">
+                                    <div className="flex items-center justify-between text-[8.5px]">
                                         <div className="space-y-0.5">
                                             <span className="font-black uppercase text-white flex items-center gap-1">
-                                                ⚡ Format Reel Export :
+                                                ⚡ Format Reel :
                                             </span>
                                             <span className="text-gray-400 text-[8px]">
-                                                {skipEditorialSlide2 ? 'Slide 2 masquée (Slide 1 + Promo uniquement)' : 'Slide 1 + Slide 2 + Promo'}
+                                                {skipEditorialSlide2 ? 'Slide 1 + Promo uniquement' : 'Slide 1 + Slide 2 + Promo'}
                                             </span>
                                         </div>
                                         <button
@@ -6570,12 +6566,70 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             onClick={() => setSkipEditorialSlide2(!skipEditorialSlide2)}
                                             className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase transition-all border ${
                                                 skipEditorialSlide2
-                                                    ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                                                    ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
                                                     : 'bg-white/10 border-white/20 text-gray-300 hover:text-white'
                                             }`}
                                         >
                                             {skipEditorialSlide2 ? '🚫 Slide 2 Masquée' : '👁️ Slide 2 Incluse'}
                                         </button>
+                                    </div>
+
+                                    {/* Durée Slide 1 */}
+                                    <div className="pt-2 border-t border-white/10 space-y-1">
+                                        <div className="flex items-center justify-between text-[8px]">
+                                            <span className="text-gray-300 font-bold">⏱️ Durée Slide 1 :</span>
+                                            <span className="text-amber-400 font-mono font-black bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                                                {editorialSlide1Duration}s
+                                            </span>
+                                        </div>
+                                        <div className="flex gap-1">
+                                            {[3, 4, 5, 7, 10].map(s => (
+                                                <button
+                                                    key={s}
+                                                    type="button"
+                                                    onClick={() => setEditorialSlide1Duration(s)}
+                                                    className={`flex-1 py-1 rounded-lg text-[8px] font-black transition-all border ${
+                                                        editorialSlide1Duration === s
+                                                            ? 'bg-amber-500 text-black border-amber-400'
+                                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                    }`}
+                                                >
+                                                    {s}s
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Durée Outro Promo */}
+                                    <div className="pt-1.5 border-t border-white/10 space-y-1">
+                                        <div className="flex items-center justify-between text-[8px]">
+                                            <span className="text-gray-300 font-bold">🔥 Durée Promo Outro :</span>
+                                            <span className="text-rose-400 font-mono font-black bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">
+                                                {editorialPromoDuration}s
+                                            </span>
+                                        </div>
+                                        <div className="flex gap-1">
+                                            {[2.5, 3.5, 4.5, 6].map(s => (
+                                                <button
+                                                    key={s}
+                                                    type="button"
+                                                    onClick={() => setEditorialPromoDuration(s)}
+                                                    className={`flex-1 py-1 rounded-lg text-[8px] font-black transition-all border ${
+                                                        editorialPromoDuration === s
+                                                            ? 'bg-rose-500 text-white border-rose-400'
+                                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                    }`}
+                                                >
+                                                    {s}s
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Récap total */}
+                                    <div className="p-1.5 bg-black/50 rounded-xl border border-white/5 flex items-center justify-between text-[8px]">
+                                        <span className="text-neon-cyan font-black">⏱️ Durée Totale Reel :</span>
+                                        <span className="text-white font-mono font-black">{totalSec}s</span>
                                     </div>
                                 </div>
                             );
@@ -7689,29 +7743,104 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 ) : (['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && activeTab === 'REEL') ? (
                     <div className="space-y-2">
-{/* Option pour masquer la slide 2 dans l'export Reel News / Éditorial */}
-                        <div className="p-2.5 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
-                            <div className="space-y-0.5">
-                                <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
-                                    ⚡ Format Vidéo Reel {theme}
-                                </span>
-                                <p className="text-[8px] text-gray-400">
-                                    {skipEditorialSlide2
-                                        ? 'Slide 2 masquée (Slide 1 + Promo uniquement)'
-                                        : `Complet (Slide 1 + Slide 2${extraEditorialSlides.length > 0 ? ` + ${extraEditorialSlides.length} slides` : ''} + Promo)`}
-                                </p>
+{/* Configuration Reel : Format & Timing */}
+                        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                    <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
+                                        ⚡ Format Reel {theme}
+                                    </span>
+                                    <p className="text-[8px] text-gray-400">
+                                        {skipEditorialSlide2
+                                            ? 'Slide 2 masquée (Slide 1 + Promo uniquement)'
+                                            : `Complet (Slide 1 + Slide 2${extraEditorialSlides.length > 0 ? ` + ${extraEditorialSlides.length} slides` : ''} + Promo)`}
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setSkipEditorialSlide2(!skipEditorialSlide2)}
+                                    className={`px-2.5 py-1.5 rounded-xl text-[8.5px] font-black uppercase transition-all border flex items-center gap-1.5 ${
+                                        skipEditorialSlide2
+                                            ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
+                                            : 'bg-white/10 border-white/20 text-gray-300 hover:text-white'
+                                    }`}
+                                >
+                                    {skipEditorialSlide2 ? '🚫 Slide 2 Masquée' : '👁️ Slide 2 Incluse'}
+                                </button>
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => setSkipEditorialSlide2(!skipEditorialSlide2)}
-                                className={`px-2.5 py-1.5 rounded-xl text-[8.5px] font-black uppercase transition-all border flex items-center gap-1.5 ${
-                                    skipEditorialSlide2
-                                        ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
-                                        : 'bg-white/10 border-white/20 text-gray-300 hover:text-white'
-                                }`}
-                            >
-                                {skipEditorialSlide2 ? '🚫 Slide 2 Masquée' : '👁️ Slide 2 Incluse'}
-                            </button>
+
+                            {/* Durée Slide 1 */}
+                            <div className="pt-2 border-t border-white/10 space-y-1.5">
+                                <div className="flex items-center justify-between text-[8.5px]">
+                                    <span className="text-gray-300 font-bold flex items-center gap-1">
+                                        ⏱️ Durée Slide 1 (Titre) :
+                                    </span>
+                                    <span className="text-amber-400 font-mono font-black bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                                        {editorialSlide1Duration} secondes
+                                    </span>
+                                </div>
+                                <div className="flex gap-1.5">
+                                    {[3, 4, 5, 7, 10].map(s => (
+                                        <button
+                                            key={s}
+                                            type="button"
+                                            onClick={() => setEditorialSlide1Duration(s)}
+                                            className={`flex-1 py-1 rounded-lg text-[8px] font-black transition-all border ${
+                                                editorialSlide1Duration === s
+                                                    ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.4)]'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                            }`}
+                                        >
+                                            {s}s
+                                        </button>
+                                    ))}
+                                </div>
+                                <input
+                                    type="range"
+                                    min="2"
+                                    max="15"
+                                    step="0.5"
+                                    value={editorialSlide1Duration}
+                                    onChange={(e) => setEditorialSlide1Duration(parseFloat(e.target.value))}
+                                    className="w-full accent-amber-400 h-1 bg-white/10 rounded-lg cursor-pointer"
+                                />
+                            </div>
+
+                            {/* Durée Promo Outro */}
+                            <div className="pt-2 border-t border-white/10 space-y-1.5">
+                                <div className="flex items-center justify-between text-[8.5px]">
+                                    <span className="text-gray-300 font-bold flex items-center gap-1">
+                                        🔥 Durée Outro Promo :
+                                    </span>
+                                    <span className="text-rose-400 font-mono font-black bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20">
+                                        {editorialPromoDuration} secondes
+                                    </span>
+                                </div>
+                                <div className="flex gap-1.5">
+                                    {[2.5, 3.5, 4.5, 6].map(s => (
+                                        <button
+                                            key={s}
+                                            type="button"
+                                            onClick={() => setEditorialPromoDuration(s)}
+                                            className={`flex-1 py-1 rounded-lg text-[8px] font-black transition-all border ${
+                                                editorialPromoDuration === s
+                                                    ? 'bg-rose-500 text-white border-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.4)]'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                            }`}
+                                        >
+                                            {s}s
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Résumé timing */}
+                            <div className="p-2 bg-black/40 rounded-xl border border-white/5 flex items-center justify-between text-[8px] text-gray-300">
+                                <span>Timing : S1 ({editorialSlide1Duration}s) + Promo ({editorialPromoDuration}s)</span>
+                                <span className="text-white font-mono font-bold">
+                                    Total : ~{(((skipEditorialSlide2 ? (1 + extraEditorialSlides.length) : (2 + extraEditorialSlides.length)) * editorialSlide1Duration) + ((skipEditorialSlide2 ? (1 + extraEditorialSlides.length) : (2 + extraEditorialSlides.length)) * 0.7) + editorialPromoDuration).toFixed(1)}s
+                                </span>
+                            </div>
                         </div>
 
                         <button
@@ -7728,7 +7857,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             {isVideoRecording
                                 ? 'CAPTURE REEL EN COURS...'
                                 : skipEditorialSlide2
-                                    ? '🎬 EXPORTER REEL (SLIDE 1 + PROMO) • MP4'
+                                    ? `🎬 EXPORTER REEL (SLIDE 1 [${editorialSlide1Duration}s] + PROMO [${editorialPromoDuration}s]) • MP4`
                                     : `🎬 EXPORTER REEL COMPLET (${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
                         </button>
                         <button
