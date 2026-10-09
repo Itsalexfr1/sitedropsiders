@@ -4633,6 +4633,53 @@ ${urls.map(u => `  <url>
             return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }
 
+        // --- API: INSTAGRAM FEED ---
+        if (path === '/api/instagram-feed' && request.method === 'GET') {
+            try {
+                if (env.CHAT_KV) {
+                    const cached = await env.CHAT_KV.get('instagram_feed_cache', { type: 'json' });
+                    if (cached) {
+                        return new Response(JSON.stringify(cached), { status: 200, headers });
+                    }
+                }
+                const INSTA_PATH = 'src/data/instagram_feed.json';
+                const file = await fetchGitHubFile(INSTA_PATH, gitConfig);
+                if (file && file.content) {
+                    if (env.CHAT_KV) {
+                        await env.CHAT_KV.put('instagram_feed_cache', JSON.stringify(file.content), { expirationTtl: 3600 });
+                    }
+                    return new Response(JSON.stringify(file.content), { status: 200, headers });
+                }
+            } catch (err: any) {
+                console.error('Error fetching instagram feed:', err);
+            }
+            return new Response(JSON.stringify({
+                profile: {
+                    username: 'dropsiders.fr',
+                    name: 'DROPSIDERS',
+                    followers: '4 689',
+                    postsCount: '1 434',
+                    url: 'https://www.instagram.com/dropsiders.fr/'
+                },
+                posts: []
+            }), { status: 200, headers });
+        }
+
+        if (path === '/api/instagram-feed/update' && request.method === 'POST') {
+            try {
+                const body = await request.json() as any;
+                if (env.CHAT_KV) {
+                    await env.CHAT_KV.put('instagram_feed_cache', JSON.stringify(body), { expirationTtl: 86400 * 7 });
+                }
+                const INSTA_PATH = 'src/data/instagram_feed.json';
+                const file = await fetchGitHubFile(INSTA_PATH, gitConfig);
+                await saveGitHubFile(INSTA_PATH, body, 'Mise à jour flux Instagram [skip ci]', file?.sha, gitConfig);
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (err: any) {
+                return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+            }
+        }
+
         // --- API: SETTINGS MANAGEMENT ---
 
         if (path === '/api/settings' && request.method === 'GET') {
