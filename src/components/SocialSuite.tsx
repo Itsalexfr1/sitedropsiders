@@ -282,6 +282,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const editorialSlideOverrideRef = useRef<number | null>(null);
     const transitionProgressRef = useRef<number | null>(null);
     const promoOutroOverrideRef = useRef<boolean>(false);
+    const transitionTargetRef = useRef<'SLIDE_1_TO_2' | 'SLIDE_2_TO_PROMO' | null>(null);
     const ffmpegRef = useRef<any>(null);
     const audioCtxRef = useRef<AudioContext | null>(null);
     // On stocke la source et la dest pour ne pas rappeler createMediaElementSource
@@ -1538,558 +1539,134 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillRect(startX + w1, footerY + 15, w2, 2);
 
                 ctx.restore();
-            } else if (theme === 'PLANNING') {
+                        const renderPromoOutro = (pCtx: CanvasRenderingContext2D, offsetX: number = 0, alpha: number = 1.0) => {
+                pCtx.save();
+                if (alpha < 1) pCtx.globalAlpha *= alpha;
+                if (offsetX !== 0) pCtx.translate(offsetX, 0);
+                const ctx = pCtx;
+                const centerX = canvas.width / 2;
+                const isReel = effectiveTab === 'REEL';
+                if (offsetX === 0 && alpha === 1.0 && effectiveTransitionProgress > 0 && !transitionTargetRef.current) {
+                    applySlideTransitionCtx(ctx, centerX, canvas.height / 2);
+                }
+
+                
+                pCtx.restore();
+            };
+
+} else if (theme === 'PLANNING') {
                 const centerX = canvas.width / 2;
                 const isStory = effectiveTab === 'REEL';
                 const monthColor = activeData.color || '#ff3700';
                 const monthGrad = activeData.grad || '255, 55, 0';
 
-                ctx.save();
-                applySlideTransitionCtx(ctx, centerX, canvas.height / 2);
-
-                if (effectiveAgendaSlide === 1) {
-                    // ══════════════════════════════════════════════════════════
-                    // SLIDE 1 : COVER CARROUSEL (ACCROCHE INSTAGRAM)
-                    // ══════════════════════════════════════════════════════════
-
-                    // 1. TOP-LEFT BADGE (Cyber capsule assortie)
-                    ctx.save();
-                    const badgeX = 65;
-                    const badgeY = isStory ? 90 : 65;
-                    const badgeText = (agendaCoverBadge || 'AGENDA FESTIVALS & SOIRÉES').toUpperCase().trim();
-
-                    let badgeFontSize = 13;
-                    let letterSpacing = '3px';
-                    if (badgeText.length <= 8) {
-                        badgeFontSize = 18;
-                        letterSpacing = '5px';
-                    } else if (badgeText.length <= 14) {
-                        badgeFontSize = 15;
-                        letterSpacing = '4px';
-                    } else if (badgeText.length <= 22) {
-                        badgeFontSize = 12.5;
-                        letterSpacing = '2.5px';
-                    } else if (badgeText.length <= 32) {
-                        badgeFontSize = 11;
-                        letterSpacing = '1.8px';
-                    } else {
-                        badgeFontSize = 9.5;
-                        letterSpacing = '1px';
-                    }
-
-                    ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
-                    ctx.letterSpacing = letterSpacing;
-                    const textWidth = ctx.measureText(badgeText).width;
-                    const pillPadding = 34;
-                    const pillW = Math.max(180, Math.ceil(textWidth + pillPadding));
-                    const pillH = 46;
-
-                    // Tilt badge ~ -2.3 deg
-                    const pillCenterX = badgeX + pillW / 2;
-                    const pillCenterY = badgeY + pillH / 2;
-                    applyTextAnimCtx(ctx, 0.05, pillCenterX, pillCenterY);
-                    ctx.translate(pillCenterX, pillCenterY);
-                    ctx.rotate(-0.04);
-                    ctx.translate(-pillCenterX, -pillCenterY);
-
-                    ctx.shadowColor = `rgba(${monthGrad}, 0.75)`;
-                    ctx.shadowBlur = 18;
-                    ctx.fillStyle = 'rgba(12, 6, 4, 0.92)';
-                    ctx.strokeStyle = monthColor;
-                    ctx.lineWidth = 2.5;
-
-                    ctx.beginPath();
-                    ctx.roundRect(badgeX, badgeY, pillW, pillH, 10);
-                    ctx.fill();
-                    ctx.stroke();
-
-                    // Notches cyber
-                    ctx.strokeStyle = monthColor;
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(badgeX - 14, badgeY + pillH / 2);
-                    ctx.lineTo(badgeX - 4, badgeY + pillH / 2);
-                    ctx.moveTo(badgeX + pillW + 4, badgeY + pillH / 2);
-                    ctx.lineTo(badgeX + pillW + 14, badgeY + pillH / 2);
-                    ctx.stroke();
-
-                    // Inner text
-                    ctx.shadowColor = `rgba(${monthGrad}, 0.85)`;
-                    ctx.shadowBlur = 12;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
-                    ctx.letterSpacing = letterSpacing;
-                    ctx.fillText(badgeText, badgeX + pillW / 2 + 1, badgeY + pillH / 2 + 1);
-                    ctx.restore();
-
-                    // 2. CENTRAL SECTION (Sur-titre Mois, Grand Hook, Genres)
-                    const centerY = isStory ? 950 : 660;
-
-                    // A) Sur-titre Mois & Année
-                    const monthTagText = `${(agendaMonth || 'OCTOBRE').toUpperCase()}${agendaCoverYear ? ' ' + agendaCoverYear.trim() : ''}`;
-                    const monthTagFontSize = isStory ? 44 : 34;
-                    const tagY = centerY - (isStory ? 210 : 160);
-                    ctx.save();
-                    applyTextAnimCtx(ctx, 0.18, centerX, tagY);
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.font = `900 italic ${monthTagFontSize}px "Orbitron", sans-serif`;
-                    ctx.letterSpacing = isStory ? '9px' : '7px';
-                    ctx.fillStyle = monthColor;
-                    ctx.shadowColor = `rgba(${monthGrad}, 0.95)`;
-                    ctx.shadowBlur = 22;
-                    ctx.fillText(monthTagText, centerX, tagY);
-
-                    // Decorative accent horizontal lines
-                    const tagMeasureW = ctx.measureText(monthTagText).width;
-                    const lineW = isStory ? 140 : 90;
-                    const lineGap = isStory ? 34 : 26;
+                const renderAgendaSlide1 = (sCtx: CanvasRenderingContext2D, offsetX: number = 0, alpha: number = 1.0) => {
+                    sCtx.save();
+                    if (alpha < 1) sCtx.globalAlpha *= alpha;
+                    if (offsetX !== 0) sCtx.translate(offsetX, 0);
+                    const ctx = sCtx;
                     
-                    const leftGrad = ctx.createLinearGradient(centerX - tagMeasureW / 2 - lineGap - lineW, 0, centerX - tagMeasureW / 2 - lineGap, 0);
-                    leftGrad.addColorStop(0, 'rgba(255, 55, 0, 0)');
-                    leftGrad.addColorStop(1, monthColor);
-                    ctx.strokeStyle = leftGrad;
-                    ctx.lineWidth = isStory ? 3.5 : 2.5;
-                    ctx.beginPath();
-                    ctx.moveTo(centerX - tagMeasureW / 2 - lineGap - lineW, tagY);
-                    ctx.lineTo(centerX - tagMeasureW / 2 - lineGap, tagY);
-                    ctx.stroke();
+                    sCtx.restore();
+                };
 
-                    const rightGrad = ctx.createLinearGradient(centerX + tagMeasureW / 2 + lineGap, 0, centerX + tagMeasureW / 2 + lineGap + lineW, 0);
-                    rightGrad.addColorStop(0, monthColor);
-                    rightGrad.addColorStop(1, 'rgba(255, 55, 0, 0)');
-                    ctx.strokeStyle = rightGrad;
-                    ctx.beginPath();
-                    ctx.moveTo(centerX + tagMeasureW / 2 + lineGap, tagY);
-                    ctx.lineTo(centerX + tagMeasureW / 2 + lineGap + lineW, tagY);
-                    ctx.stroke();
-                    ctx.restore();
-
-                    // B) Grand Hook Principal
-                    ctx.save();
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    const rawTitle = (agendaCoverTitle || 'ON VA OÙ CE MOIS-CI ?').toUpperCase().trim();
+                const renderAgendaSlide2 = (sCtx: CanvasRenderingContext2D, offsetX: number = 0, alpha: number = 1.0) => {
+                    sCtx.save();
+                    if (alpha < 1) sCtx.globalAlpha *= alpha;
+                    if (offsetX !== 0) sCtx.translate(offsetX, 0);
+                    const ctx = sCtx;
                     
-                    let titleLines: string[] = [];
-                    if (rawTitle.includes('\n')) {
-                        titleLines = rawTitle.split('\n').map(l => l.trim()).filter(Boolean);
-                    } else if (rawTitle.length > 18 && rawTitle.includes(' ')) {
-                        const words = rawTitle.split(' ');
-                        const mid = Math.ceil(words.length / 2);
-                        titleLines = [words.slice(0, mid).join(' '), words.slice(mid).join(' ')];
+                    sCtx.restore();
+                };
+
+                if (transitionTargetRef.current === 'SLIDE_1_TO_2') {
+                    const p = effectiveTransitionProgress;
+                    const ease = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+                    if (slideTransition === 'SLIDE') {
+                        renderAgendaSlide1(ctx, -ease * canvas.width, 1.0);
+                        renderAgendaSlide2(ctx, (1 - ease) * canvas.width, 1.0);
+                    } else if (slideTransition === 'FADE') {
+                        renderAgendaSlide1(ctx, 0, Math.max(0, 1 - p));
+                        renderAgendaSlide2(ctx, 0, Math.min(1, p));
+                    } else if (slideTransition === 'ZOOM') {
+                        ctx.save();
+                        const s1 = 1 + ease * 0.12;
+                        ctx.translate(centerX, canvas.height / 2);
+                        ctx.scale(s1, s1);
+                        ctx.translate(-centerX, -canvas.height / 2);
+                        renderAgendaSlide1(ctx, 0, Math.max(0, 1 - p));
+                        ctx.restore();
+
+                        ctx.save();
+                        const s2 = 0.88 + ease * 0.12;
+                        ctx.translate(centerX, canvas.height / 2);
+                        ctx.scale(s2, s2);
+                        ctx.translate(-centerX, -canvas.height / 2);
+                        renderAgendaSlide2(ctx, 0, Math.min(1, p));
+                        ctx.restore();
+                    } else if (slideTransition === 'GLITCH') {
+                        const shake1 = Math.sin(p * 45) * (1 - p) * 32;
+                        const shake2 = Math.sin(p * 45) * p * 32;
+                        renderAgendaSlide1(ctx, shake1, Math.max(0, 1 - p));
+                        renderAgendaSlide2(ctx, shake2, Math.min(1, p));
                     } else {
-                        titleLines = [rawTitle];
+                        if (p < 0.5) renderAgendaSlide1(ctx, 0, 1);
+                        else renderAgendaSlide2(ctx, 0, 1);
                     }
-
-                    // Grande typographie percutante adaptée au format Reel / Publication
-                    let titleFontSize = isStory 
-                        ? (titleLines.length > 2 ? 80 : (titleLines.length === 2 ? 105 : 120))
-                        : (titleLines.length > 2 ? 58 : (titleLines.length === 2 ? 76 : 88));
-                    ctx.font = `900 italic ${titleFontSize}px "Montserrat", Arial, sans-serif`;
-                    ctx.letterSpacing = '2px';
-                    titleLines.forEach(l => {
-                        while (ctx.measureText(l).width > (canvas.width - 100) && titleFontSize > 36) {
-                            titleFontSize -= 2;
-                            ctx.font = `900 italic ${titleFontSize}px "Montserrat", Arial, sans-serif`;
-                        }
-                    });
-
-                    const titleLineHeight = titleFontSize * 1.16;
-                    const titleBlockHeight = titleLines.length * titleLineHeight;
-                    const titleStartY = centerY - 10 - ((titleLines.length - 1) * titleLineHeight) / 2;
-
-                    titleLines.forEach((line, idx) => {
-                        const lineY = titleStartY + idx * titleLineHeight;
+                } else if (transitionTargetRef.current === 'SLIDE_2_TO_PROMO') {
+                    const p = effectiveTransitionProgress;
+                    const ease = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+                    if (slideTransition === 'SLIDE') {
+                        renderAgendaSlide2(ctx, -ease * canvas.width, 1.0);
+                        renderPromoOutro(ctx, (1 - ease) * canvas.width, 1.0);
+                    } else if (slideTransition === 'FADE') {
+                        renderAgendaSlide2(ctx, 0, Math.max(0, 1 - p));
+                        renderPromoOutro(ctx, 0, Math.min(1, p));
+                    } else if (slideTransition === 'ZOOM') {
                         ctx.save();
-                        applyTextAnimCtx(ctx, 0.30 + idx * 0.12, centerX, lineY);
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                        ctx.shadowBlur = 28;
-                        ctx.shadowOffsetX = 3;
-                        ctx.shadowOffsetY = 4;
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillText(line, centerX, lineY);
+                        const s1 = 1 + ease * 0.12;
+                        ctx.translate(centerX, canvas.height / 2);
+                        ctx.scale(s1, s1);
+                        ctx.translate(-centerX, -canvas.height / 2);
+                        renderAgendaSlide2(ctx, 0, Math.max(0, 1 - p));
                         ctx.restore();
-                    });
-                    ctx.restore();
-
-                    // C) Subtitle / Genres Musicaux
-                    const genresText = (agendaCoverGenres || 'HARD TECHNO • RAWSTYLE • MULTI-GENRES').toUpperCase().trim();
-                    if (genresText) {
-                        let genresFontSize = isStory ? 28 : 20;
-                        ctx.font = `800 ${genresFontSize}px "Montserrat", Arial, sans-serif`;
-                        ctx.letterSpacing = isStory ? '3.5px' : '3px';
-                        while (ctx.measureText(genresText).width > (canvas.width - 140) && genresFontSize > 14) {
-                            genresFontSize -= 1;
-                            ctx.font = `800 ${genresFontSize}px "Montserrat", Arial, sans-serif`;
-                        }
-
-                        const genresW = ctx.measureText(genresText).width;
-                        const genresPillW = Math.min(canvas.width - 60, genresW + (isStory ? 64 : 48));
-                        const genresPillH = isStory ? 58 : 46;
-                        const genresY = titleStartY + titleBlockHeight / 2 + (isStory ? (titleLines.length > 1 ? 88 : 72) : (titleLines.length > 1 ? 55 : 45));
 
                         ctx.save();
-                        applyTextAnimCtx(ctx, 0.48, centerX, genresY);
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-                        ctx.shadowBlur = 14;
-                        ctx.fillStyle = 'rgba(15, 12, 10, 0.82)';
-                        ctx.strokeStyle = `rgba(${monthGrad}, 0.55)`;
-                        ctx.lineWidth = 2;
-                        ctx.beginPath();
-                        ctx.roundRect(centerX - genresPillW / 2, genresY - genresPillH / 2, genresPillW, genresPillH, 14);
-                        ctx.fill();
-                        ctx.stroke();
-
-                        ctx.shadowColor = 'transparent';
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-                        ctx.fillText(genresText, centerX, genresY + 1);
+                        const s2 = 0.88 + ease * 0.12;
+                        ctx.translate(centerX, canvas.height / 2);
+                        ctx.scale(s2, s2);
+                        ctx.translate(-centerX, -canvas.height / 2);
+                        renderPromoOutro(ctx, 0, Math.min(1, p));
                         ctx.restore();
+                    } else if (slideTransition === 'GLITCH') {
+                        const shake1 = Math.sin(p * 45) * (1 - p) * 32;
+                        const shake2 = Math.sin(p * 45) * p * 32;
+                        renderAgendaSlide2(ctx, shake1, Math.max(0, 1 - p));
+                        renderPromoOutro(ctx, shake2, Math.min(1, p));
+                    } else {
+                        if (p < 0.5) renderAgendaSlide2(ctx, 0, 1);
+                        else renderPromoOutro(ctx, 0, 1);
                     }
-
-                    // 3. BOTTOM CTA SWIPE
-                    const ctaText = (agendaCoverCta || 'Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️').trim();
-                    if (ctaText) {
-                        const ctaY = canvas.height - (isStory ? 170 : 95);
-
-                        let ctaFontSize = 18;
-                        ctx.font = `800 italic ${ctaFontSize}px "Montserrat", Arial, sans-serif`;
-                        ctx.letterSpacing = '1px';
-                        while (ctx.measureText(ctaText).width > 880 && ctaFontSize > 12) {
-                            ctaFontSize -= 0.5;
-                            ctx.font = `800 italic ${ctaFontSize}px "Montserrat", Arial, sans-serif`;
-                        }
-
-                        const ctaW = ctx.measureText(ctaText).width;
-                        const ctaPillW = Math.min(canvas.width - 80, ctaW + 52);
-                        const ctaPillH = 50;
-
-                        ctx.save();
-                        applyTextAnimCtx(ctx, 0.62, centerX, ctaY);
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.shadowColor = `rgba(${monthGrad}, 0.4)`;
-                        ctx.shadowBlur = 16;
-                        ctx.fillStyle = 'rgba(12, 8, 6, 0.88)';
-                        ctx.strokeStyle = monthColor;
-                        ctx.lineWidth = 2;
-                        ctx.beginPath();
-                        ctx.roundRect(centerX - ctaPillW / 2, ctaY - ctaPillH / 2, ctaPillW, ctaPillH, 14);
-                        ctx.fill();
-                        ctx.stroke();
-
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                        ctx.shadowBlur = 6;
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillText(ctaText, centerX, ctaY + 1);
-                        ctx.restore();
-                    }
-
                 } else {
-                    // ══════════════════════════════════════════════════════════
-                    // SLIDE 2 : ÉVÉNEMENTS (DATES & LINEUPS)
-                    // ══════════════════════════════════════════════════════════
-
-                    // 1. TOP-LEFT BADGE (Cyber capsule assortie à la couleur du mois)
-                    ctx.save();
-                    const badgeX = 65;
-                    const badgeY = isStory ? 90 : 65;
-                    const badgeText = (agendaBadgeText || 'COUPS DE CŒUR DU MOIS').toUpperCase().trim();
-
-                    // Dynamic font size & letter spacing to keep the badge ultra sharp
-                    let badgeFontSize = 13;
-                    let letterSpacing = '3px';
-                    if (badgeText.length <= 8) {
-                        badgeFontSize = 18;
-                        letterSpacing = '5px';
-                    } else if (badgeText.length <= 14) {
-                        badgeFontSize = 15;
-                        letterSpacing = '4px';
-                    } else if (badgeText.length <= 22) {
-                        badgeFontSize = 12.5;
-                        letterSpacing = '2.5px';
-                    } else {
-                        badgeFontSize = 11;
-                        letterSpacing = '1.5px';
-                    }
-
-                    ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
-                    ctx.letterSpacing = letterSpacing;
-                    const textWidth = ctx.measureText(badgeText).width;
-                    const pillPadding = 34;
-                    const pillW = Math.max(180, Math.ceil(textWidth + pillPadding));
-                    const pillH = 46;
-
-                    // Tilt the badge ~ -2.3 degrees centered on the pill
-                    const pillCenterX = badgeX + pillW / 2;
-                    const pillCenterY = badgeY + pillH / 2;
-                    applyTextAnimCtx(ctx, 0.05, pillCenterX, pillCenterY);
-                    ctx.translate(pillCenterX, pillCenterY);
-                    ctx.rotate(-0.04);
-                    ctx.translate(-pillCenterX, -pillCenterY);
-
-                    // Cyber Box Glow & Fill (même couleur que le mois)
-                    ctx.shadowColor = `rgba(${monthGrad}, 0.75)`;
-                    ctx.shadowBlur = 18;
-                    ctx.fillStyle = 'rgba(12, 6, 4, 0.92)';
-                    ctx.strokeStyle = monthColor;
-                    ctx.lineWidth = 2.5;
-
-                    ctx.beginPath();
-                    ctx.roundRect(badgeX, badgeY, pillW, pillH, 10);
-                    ctx.fill();
-                    ctx.stroke();
-
-                    // Notches cyber assorties à la couleur du mois
-                    ctx.strokeStyle = monthColor;
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(badgeX - 14, badgeY + pillH / 2);
-                    ctx.lineTo(badgeX - 4, badgeY + pillH / 2);
-                    ctx.moveTo(badgeX + pillW + 4, badgeY + pillH / 2);
-                    ctx.lineTo(badgeX + pillW + 14, badgeY + pillH / 2);
-                    ctx.stroke();
-
-                    // Inner text with glow matching the month color
-                    ctx.shadowColor = `rgba(${monthGrad}, 0.85)`;
-                    ctx.shadowBlur = 12;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
-                    ctx.letterSpacing = letterSpacing;
-                    ctx.fillText(badgeText, badgeX + pillW / 2 + 1, badgeY + pillH / 2 + 1);
-                    ctx.restore();
-
-                    // 2. BIG HOLLOW MONTH TITLE
-                    const monthY = isStory ? 430 : 310;
-                    const monthText = (agendaMonth || 'OCTOBRE').toUpperCase().trim();
-
-                    // Adaptive font size so any month name fits nicely
-                    let monthFontSize = isStory ? 104 : 94;
-                    ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
-                    ctx.letterSpacing = '6px';
-                    while (ctx.measureText(monthText).width > 720 && monthFontSize > 44) {
-                        monthFontSize -= 2;
-                        ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
-                    }
-
-                    // Clean Hollow Outline (Knockout Technique):
-                    // Eliminates internal intersecting contours in variable font glyphs (M, A, B, R, etc.)
-                    const offW = canvas.width;
-                    const offH = Math.ceil(monthFontSize * 2.2);
-                    if (!offCanvasRef.current) {
-                        offCanvasRef.current = document.createElement('canvas');
-                    }
-                    const offCanvas = offCanvasRef.current;
-                    if (offCanvas.width !== offW) offCanvas.width = offW;
-                    if (offCanvas.height !== offH) offCanvas.height = offH;
-                    const offCtx = offCanvas.getContext('2d');
-
-                    if (offCtx) {
-                        offCtx.clearRect(0, 0, offW, offH);
-                        const offCenterX = offW / 2;
-                        const offCenterY = offH / 2;
-
-                        offCtx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
-                        offCtx.letterSpacing = '6px';
-                        offCtx.textAlign = 'center';
-                        offCtx.textBaseline = 'middle';
-
-                        // Sharp, vibrant orange stroke (no blurry glow)
-                        offCtx.strokeStyle = '#ff3700';
-                        offCtx.lineWidth = 6;
-                        offCtx.strokeText(monthText, offCenterX, offCenterY);
-
-                        // KNOCKOUT: Punch out glyph solid interiors to erase any crossing lines inside the letters
-                        offCtx.globalCompositeOperation = 'destination-out';
-                        offCtx.fillStyle = '#000000';
-                        offCtx.fillText(monthText, offCenterX, offCenterY);
-
-                        // Draw clean hollow outline onto main canvas with a crisp subtle shadow for contrast
-                        ctx.save();
-                        applyTextAnimCtx(ctx, 0.18, centerX, monthY);
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-                        ctx.shadowBlur = 6;
-                        ctx.shadowOffsetY = 2;
-                        ctx.drawImage(offCanvas, 0, monthY - offCenterY);
-                        ctx.restore();
-                    } else {
-                        ctx.save();
-                        applyTextAnimCtx(ctx, 0.18, centerX, monthY);
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.strokeStyle = '#ff3700';
-                        ctx.lineWidth = 6;
-                        ctx.strokeText(monthText, centerX, monthY);
-                        ctx.restore();
-                    }
-
-                    // 3. EVENTS LIST - With generous breathing room from the month title
-                    const itemsToDraw = planningItems.slice(0, isStory ? 8 : 7);
-                    const listStartY = isStory ? 630 : 470;
-                    const bottomMargin = isStory ? 140 : 80;
-                    const availableHeight = canvas.height - listStartY - bottomMargin;
-                    let rowSpacing = Math.min(
-                        isStory ? 180 : 140,
-                        Math.floor(availableHeight / Math.max(1, itemsToDraw.length))
-                    );
-                    if (itemsToDraw.length <= 4 && itemsToDraw.length > 0) {
-                        rowSpacing = isStory ? 170 : 138;
-                    }
-
-                    itemsToDraw.forEach((item, i) => {
-                        const rowY = listStartY + (i * rowSpacing);
-                        if (rowY > canvas.height - 60) return;
-
-                        const itemDelay = 0.28 + (i * 0.10);
-
-                        const dayText = (item.day || item.time || 'VENDREDI').toUpperCase().trim();
-                        const titleText = (item.title || item.artist || 'ÉVÉNEMENT').toUpperCase().trim();
-                        const artistsText = (item.artists || '').trim();
-                        const genreText = (item.genre || '').trim();
-                        const venueText = (item.venue || '').toUpperCase().trim();
-
-                        // A) Left sticker badge for Day
-                        ctx.save();
-                        ctx.font = '900 italic 20px "Montserrat", sans-serif';
-                        const dayMeasureW = ctx.measureText(dayText).width;
-                        const badgeW = Math.max(125, Math.min(185, dayMeasureW + 36));
-                        const badgeH = 42;
-                        const badgeXCenter = 75 + badgeW / 2;
-                        
-                        applyTextAnimCtx(ctx, itemDelay, badgeXCenter, rowY);
-
-                        // Sticker angle: subtle tilt like real stickers/tape
-                        const stickerAngle = (i % 2 === 0 ? -0.04 : -0.025);
-                        ctx.translate(badgeXCenter, rowY);
-                        ctx.rotate(stickerAngle);
-
-                        // Sticker drop shadow
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                        ctx.shadowBlur = 14;
-                        ctx.shadowOffsetX = 3;
-                        ctx.shadowOffsetY = 4;
-
-                        // Sticker background: vibrant Rave red-orange #ff3700
-                        ctx.fillStyle = '#ff3700';
-                        ctx.beginPath();
-                        ctx.roundRect(-badgeW / 2, -badgeH / 2, badgeW, badgeH, 6);
-                        ctx.fill();
-
-                        // Sticker text: ultra-bold black
-                        ctx.shadowColor = 'transparent';
-                        ctx.fillStyle = '#000000';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.font = '900 italic 20px "Montserrat", sans-serif';
-                        ctx.letterSpacing = '1.2px';
-                        ctx.fillText(dayText, 0, 1);
-                        ctx.restore();
-
-                        // B) Right content block
-                        ctx.save();
-                        const contentX = badgeXCenter + badgeW / 2 + 28;
-                        const maxContentW = canvas.width - contentX - 55;
-                        applyTextAnimCtx(ctx, itemDelay + 0.04, contentX + (maxContentW / 3), rowY);
-                        ctx.textAlign = 'left';
-                        ctx.textBaseline = 'middle';
-
-                        const hasArtists = Boolean(artistsText);
-                        const hasDetails = Boolean(genreText || venueText);
-
-                        // Dynamic row vertical positions:
-                        // If only 1 line exists, vertically center it with the sticker!
-                        let titleY = rowY;
-                        let artistsY = rowY;
-                        let subY = rowY;
-
-                        if (hasArtists && hasDetails) {
-                            titleY = rowY - (rowSpacing > 130 ? 24 : 20);
-                            artistsY = rowY + (rowSpacing > 130 ? 4 : 2);
-                            subY = rowY + (rowSpacing > 130 ? 29 : 23);
-                        } else if (hasArtists || hasDetails) {
-                            titleY = rowY - 14;
-                            artistsY = rowY + 16;
-                            subY = rowY + 16;
+                    if (effectiveAgendaSlide === 1) {
+                        if (effectiveTransitionProgress > 0) {
+                            const p = effectiveTransitionProgress;
+                            const ease = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+                            if (slideTransition === 'SLIDE') {
+                                renderAgendaSlide1(ctx, -ease * canvas.width, 1.0);
+                                renderAgendaSlide2(ctx, (1 - ease) * canvas.width, 1.0);
+                            } else if (slideTransition === 'FADE') {
+                                renderAgendaSlide1(ctx, 0, Math.max(0, 1 - p));
+                                renderAgendaSlide2(ctx, 0, Math.min(1, p));
+                            } else {
+                                renderAgendaSlide1(ctx, 0, 1.0);
+                            }
                         } else {
-                            titleY = rowY;
+                            renderAgendaSlide1(ctx, 0, 1.0);
                         }
-
-                        // 1. Title / Event Name (White Bold)
-                        ctx.fillStyle = '#ffffff';
-                        const baseTitleSize = (hasArtists || hasDetails) ? 27 : 29;
-                        ctx.font = `900 ${baseTitleSize}px "Montserrat", sans-serif`;
-                        ctx.letterSpacing = '0.5px';
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                        ctx.shadowBlur = 12;
-
-                        let displayTitle = titleText;
-                        if (ctx.measureText(displayTitle).width > maxContentW) {
-                            let fs = baseTitleSize;
-                            while (ctx.measureText(displayTitle).width > maxContentW && fs > 18) {
-                                fs--;
-                                ctx.font = `900 ${fs}px "Montserrat", sans-serif`;
-                            }
-                        }
-                        ctx.fillText(displayTitle, contentX, titleY);
-
-                        // 2. Artists / Lineup (Light Silver)
-                        if (hasArtists) {
-                            ctx.font = '700 18px "Montserrat", sans-serif';
-                            ctx.letterSpacing = '0px';
-                            ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
-                            ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-                            ctx.shadowBlur = 8;
-                            
-                            let displayArtists = artistsText;
-                            if (ctx.measureText(displayArtists).width > maxContentW) {
-                                while (ctx.measureText(displayArtists + '...').width > maxContentW && displayArtists.length > 5) {
-                                    displayArtists = displayArtists.slice(0, -1);
-                                }
-                                displayArtists += '...';
-                            }
-                            ctx.fillText(displayArtists, contentX, artistsY);
-                        }
-
-                        // 3. Genre | Venue
-                        if (hasDetails) {
-                            const targetLineY = hasArtists ? subY : artistsY;
-                            ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-                            ctx.shadowBlur = 8;
-                            let curLineX = contentX;
-
-                            if (genreText) {
-                                ctx.font = '600 16px "Montserrat", sans-serif';
-                                ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-                                ctx.fillText(genreText, curLineX, targetLineY);
-                                curLineX += ctx.measureText(genreText).width;
-                            }
-
-                            if (genreText && venueText) {
-                                ctx.font = '600 16px "Montserrat", sans-serif';
-                                ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-                                ctx.fillText(' | ', curLineX, targetLineY);
-                                curLineX += ctx.measureText(' | ').width;
-                            }
-
-                            if (venueText) {
-                                ctx.font = '900 17px "Montserrat", sans-serif';
-                                ctx.fillStyle = '#ff3700';
-                                ctx.shadowColor = 'rgba(255, 55, 0, 0.6)';
-                                ctx.shadowBlur = 10;
-                                ctx.fillText(venueText, curLineX, targetLineY);
-                            }
-                        }
-
-                        ctx.restore();
-                    });
+                    } else {
+                        renderAgendaSlide2(ctx, 0, 1.0);
+                    }
                 }
-                ctx.restore();
 
             } else if (theme === 'CALENDRIER') {
                 const calCenterX = canvas.width / 2;
@@ -2757,428 +2334,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
             } else if (theme === 'PROMO') {
-                const centerX = canvas.width / 2;
-                const isReel = effectiveTab === 'REEL';
-
-                ctx.save();
-                applySlideTransitionCtx(ctx, centerX, canvas.height / 2);
-
-                // 1. Dark overlay — 75% opaque black
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                // Scan lines subtle texture
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
-                for (let i = 0; i < canvas.height; i += 6) {
-                    ctx.fillRect(0, i, canvas.width, 2);
-                }
-
-                // ==========================================
-                // ZONE 1 & 2 : PROMO OUTRO (ACCROCHE & PHRASE OFFICIELLE)
-                // ==========================================
-                const isAgendaPromo = promoCategory === 'PLANNING';
-                const isTopHookActive = showPromoHook && !isAgendaPromo;
-
-                const getTargetPromoCategory = (t: string): string => {
-                    const raw = (t || 'NEWS').toUpperCase().trim();
-                    if (raw.includes('MUSIQUE') || raw.includes('TRACKLIST') || raw.includes('TOP 5') || raw.includes('TOP 100')) {
-                        return 'MUSIQUE';
-                    }
-                    if (raw.includes('FOCUS') || raw.includes('SPOTLIGHT') || raw.includes('CITATION')) {
-                        return 'FOCUS';
-                    }
-                    if (raw.includes('RECAP')) {
-                        return 'RECAPS';
-                    }
-                    if (raw.includes('CONCOURS') || raw.includes('JEU')) {
-                        return 'CONCOURS';
-                    }
-                    if (raw.includes('EVENT') || raw.includes('PLANNING') || raw.includes('AGENDA') || raw.includes('FESTIVAL') || raw.includes('AFFICHE') || raw.includes('MAP') || raw.includes('CALENDRIER')) {
-                        return 'EVENTS';
-                    }
-                    if (raw.includes('INTERVIEW')) {
-                        return 'INTERVIEWS';
-                    }
-                    if (raw.includes('REEL') || raw.includes('VIDEO') || raw.includes('DIRECT') || raw.includes('LIVESTREAM') || raw.includes('CONSEIL')) {
-                        return 'VIDEOS';
-                    }
-                    return 'NEWS';
-                };
-
-                const activeTargetCategory = isAgendaPromo 
-                    ? 'EVENTS' 
-                    : getTargetPromoCategory(promoCategory || theme);
-
-                const defaultHeadline = (activeTargetCategory === 'EVENTS')
-                    ? 'POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS'
-                    : (activeTargetCategory === 'MUSIQUE')
-                    ? 'POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES'
-                    : (activeTargetCategory === 'FOCUS')
-                    ? 'POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS'
-                    : (activeTargetCategory === 'RECAPS')
-                    ? 'POUR REVIVRE TOUS LES MEILLEURS FESTIVALS'
-                    : (activeTargetCategory === 'CONCOURS')
-                    ? 'POUR NE RATER AUCUN CONCOURS & PASS FESTIVALS'
-                    : (activeTargetCategory === 'INTERVIEWS')
-                    ? 'POUR NE RIEN MANQUER DE NOS INTERVIEWS EXCLUSIVES'
-                    : (activeTargetCategory === 'VIDEOS')
-                    ? 'POUR NE RIEN MANQUER DE NOS VIDÉOS & REELS'
-                    : 'POUR ÊTRE INFORMÉ DE TOUTES LES NEWS';
-
-                const effectiveHeadline = promoCustomPhrase.trim() 
-                    ? promoCustomPhrase.trim().toUpperCase() 
-                    : defaultHeadline;
-
-                const effectiveSubphrase = promoCustomSubphrase.trim()
-                    ? promoCustomSubphrase.trim().toUpperCase()
-                    : 'SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,';
-
-                const headlineParts = (showPromoHeadline && effectiveHeadline) ? effectiveHeadline.split('\n').filter(Boolean) : [];
-                const outroLines = showPromoHeadline ? [
-                    ...headlineParts,
-                    ...(effectiveSubphrase ? [effectiveSubphrase] : [])
-                ] : [];
-
-                const rawQuestion = (customText && customText.trim()) 
-                    ? customText.trim().replace(/^["']|["']$/g, '') 
-                    : "ET TOI, QU'EN PENSES-TU ?";
-                
-                const cleanQuestion = rawQuestion.toUpperCase();
-
-                const qLines: string[] = [];
-                let questionFontSize = isReel ? 62 : 54;
-
-                if (isTopHookActive) {
-                    const words = cleanQuestion.split(' ');
-                    let currentLine = '';
-                    ctx.font = `900 italic ${questionFontSize}px "Montserrat", sans-serif`;
-
-                    words.forEach((w: string) => {
-                        const test = currentLine ? `${currentLine} ${w}` : w;
-                        if (ctx.measureText(test).width > 920) {
-                            if (currentLine) qLines.push(currentLine);
-                            currentLine = w;
-                        } else {
-                            currentLine = test;
-                        }
-                    });
-                    if (currentLine) qLines.push(currentLine);
-
-                    if (qLines.length > 3) {
-                        questionFontSize = isReel ? 48 : 40;
-                        ctx.font = `900 italic ${questionFontSize}px "Montserrat", sans-serif`;
-                    }
-                }
-
-                const qLineHeight = questionFontSize * 1.25;
-
-                const ctaCommentOffset = isReel ? 70 : 60;
-                const sepOffset = isReel ? 65 : 55;
-                const outroOffset = isReel ? 75 : 65;
-                const outroSpacing = isReel ? (isAgendaPromo ? 48 : 42) : 38;
-                const abonneGap = outroLines.length > 0 ? (isReel ? (isAgendaPromo ? 36 : 30) : 28) : (isReel ? 20 : 18);
-                const dropsidersOffset = isReel ? (isAgendaPromo ? 105 : 90) : 80;
-                const pillsOffset = isReel ? (isAgendaPromo ? 75 : 65) : 55;
-                const pillH = isReel ? 44 : 40;
-
-                const targetCenterY = isReel ? 950 : 675;
-                let outroStartY = 0;
-                let dropsidersY = 0;
-                let pillsY = 0;
-
-                const outroLinesSpan = outroLines.length > 0 ? (outroLines.length * outroSpacing) : 0;
-                const lowerBlockHeight = outroLinesSpan + abonneGap + dropsidersOffset + pillsOffset + pillH;
-
-                if (isTopHookActive) {
-                    const blockSpanFromFirstBaseline = (qLines.length - 1) * qLineHeight 
-                        + ctaCommentOffset 
-                        + sepOffset 
-                        + outroOffset 
-                        + lowerBlockHeight;
-                    
-                    const questionAscender = questionFontSize * 0.8;
-                    const totalBlockHeight = questionAscender + blockSpanFromFirstBaseline;
-                    const qStartY = Math.round(targetCenterY - (totalBlockHeight / 2) + questionAscender);
-
-                    const bgGlow = ctx.createRadialGradient(centerX, targetCenterY, 60, centerX, targetCenterY, isReel ? 520 : 480);
-                    bgGlow.addColorStop(0, `rgba(${activeColor.grad}, 0.20)`);
-                    bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                    ctx.fillStyle = bgGlow;
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    ctx.save();
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'alphabetic';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                    ctx.shadowBlur = 24;
-
-                    qLines.forEach((line: string, idx: number) => {
-                        let fs = questionFontSize;
-                        ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
-                        while (ctx.measureText(line).width > 940 && fs > 24) {
-                            fs--;
-                            ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
-                        }
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillText(line, centerX, qStartY + idx * qLineHeight);
-                    });
-                    ctx.restore();
-
-                    // Call-to-action d'engagement : "DONNE TON AVIS EN COMMENTAIRE 👇"
-                    const lastQLineY = qStartY + (qLines.length - 1) * qLineHeight;
-                    const ctaCommentY = lastQLineY + ctaCommentOffset;
-
-                    ctx.save();
-                    ctx.textAlign = 'center';
-                    ctx.font = `800 ${isReel ? 26 : 24}px "Montserrat", sans-serif`;
-                    ctx.fillStyle = activeColor.color;
-                    ctx.shadowColor = `rgba(${activeColor.grad}, 0.6)`;
-                    ctx.shadowBlur = 18;
-                    ctx.fillText('DONNE TON AVIS EN COMMENTAIRE 👇', centerX, ctaCommentY);
-                    ctx.restore();
-
-                    // Ligne de séparation fine néon
-                    const sepY = ctaCommentY + sepOffset;
-                    const sepGrad = ctx.createLinearGradient(centerX - 200, 0, centerX + 200, 0);
-                    sepGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-                    sepGrad.addColorStop(0.5, activeColor.color);
-                    sepGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                    ctx.fillStyle = sepGrad;
-                    ctx.fillRect(centerX - 200, sepY, 400, 2);
-
-                    outroStartY = sepY + outroOffset;
-                } else {
-                    // Phrase d'accroche DÉSACTIVÉE : Centrage parfait du texte en dessous au milieu du visuel
-                    outroStartY = Math.round(targetCenterY - (lowerBlockHeight / 2));
-
-                    const bgGlow = ctx.createRadialGradient(centerX, targetCenterY, 80, centerX, targetCenterY, isReel ? 560 : 480);
-                    bgGlow.addColorStop(0, `rgba(${activeColor.grad}, 0.26)`);
-                    bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                    ctx.fillStyle = bgGlow;
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                }
-
-                // ZONE 2 : PHRASE OFFICIELLE & ABONNEMENT
-                ctx.save();
-                ctx.textAlign = 'center';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-                ctx.shadowBlur = 18;
-
-                if (outroLines.length > 0) {
-                    let outroFontSize = isReel ? (isAgendaPromo ? 30 : 28) : 25;
-                    ctx.font = `700 ${outroFontSize}px "Montserrat", sans-serif`;
-                    outroLines.forEach(line => {
-                        while (ctx.measureText(line).width > 940 && outroFontSize > 18) {
-                            outroFontSize--;
-                            ctx.font = `700 ${outroFontSize}px "Montserrat", sans-serif`;
-                        }
-                    });
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-
-                    outroLines.forEach((line: string, i: number) => {
-                        ctx.fillText(line, centerX, outroStartY + i * outroSpacing);
-                    });
-                }
-
-                // "ABONNEZ-VOUS À"
-                const abonneY = outroLines.length > 0
-                    ? (outroStartY + outroLines.length * outroSpacing + abonneGap)
-                    : (outroStartY + abonneGap);
-                ctx.font = `700 ${isReel ? 26 : 24}px "Montserrat", sans-serif`;
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-                ctx.fillText('ABONNEZ-VOUS À', centerX, abonneY);
-
-                // "DROPSIDERS" en grand Orbitron néon
-                dropsidersY = abonneY + dropsidersOffset;
-                ctx.font = `900 italic ${isReel ? (isAgendaPromo ? 98 : 92) : 86}px "Orbitron", sans-serif`;
-                ctx.letterSpacing = '-2px';
-                ctx.fillStyle = activeColor.color;
-                ctx.shadowColor = `rgba(${activeColor.grad}, 0.75)`;
-                ctx.shadowBlur = 38;
-                ctx.fillText('DROPSIDERS', centerX, dropsidersY);
-                ctx.restore();
-
-                // ==========================================
-                // ZONE 3 : BULLES ARRONDIES
-                // NEWS - MUSIQUE - FOCUS - RECAPS - CONCOURS - EVENTS - INTERVIEWS - VIDEOS
-                // ==========================================
-                const categories = ['NEWS', 'MUSIQUE', 'FOCUS', 'RECAPS', 'CONCOURS', 'EVENTS', 'INTERVIEWS', 'VIDEOS'];
-                pillsY = dropsidersY + pillsOffset;
-                const pillFont = `800 ${isReel ? 15 : 14}px "Montserrat", sans-serif`;
-                ctx.font = pillFont;
-
-                // Calculer la largeur de chaque pill
-                const pillPaddingX = 14;
-                const pillGap = 8;
-                const pillWidths = categories.map((cat: string) => ctx.measureText(cat).width + pillPaddingX * 2);
-                const totalPillsWidth = pillWidths.reduce((a: number, b: number) => a + b, 0) + (categories.length - 1) * pillGap;
-
-                let currentPillX = centerX - totalPillsWidth / 2;
-
-                categories.forEach((cat: string, idx: number) => {
-                    const pw = pillWidths[idx];
-                    const isPillActive = cat === activeTargetCategory;
-                    ctx.save();
-                    // Bulle arrondie (pill)
-                    ctx.beginPath();
-                    ctx.roundRect(currentPillX, pillsY, pw, pillH, pillH / 2);
-                    ctx.fillStyle = isPillActive ? `rgba(${activeColor.grad}, 0.18)` : 'rgba(255, 255, 255, 0.08)';
-                    ctx.fill();
-                    ctx.strokeStyle = isPillActive ? activeColor.color : 'rgba(255, 255, 255, 0.22)';
-                    ctx.lineWidth = isPillActive ? 2 : 1.5;
-                    if (isPillActive) {
-                        ctx.shadowColor = `rgba(${activeColor.grad}, 0.7)`;
-                        ctx.shadowBlur = 14;
-                    }
-                    ctx.stroke();
-
-                    // Texte
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillStyle = isPillActive ? activeColor.color : '#ffffff';
-                    ctx.font = pillFont;
-                    ctx.fillText(cat, currentPillX + pw / 2, pillsY + pillH / 2);
-                    ctx.restore();
-
-                    currentPillX += pw + pillGap;
-                });
-
-                // ==========================================
-                // ZONE 4 : LOGO DROPSIDERS TOUT EN BAS
-                // ==========================================
-                if (logoRef.current) {
-                    const logo = logoRef.current;
-                    const lw = isReel ? 240 : 220;
-                    const lh = (logo.height / logo.width) * lw;
-                    const logoY = canvas.height - lh - (isReel ? 65 : 50);
-                    ctx.save();
-                    ctx.filter = 'brightness(0) invert(1)';
-                    ctx.globalAlpha = 0.85;
-                    ctx.drawImage(logo, centerX - lw / 2, logoY, lw, lh);
-                    ctx.restore();
-                }
-                ctx.restore();
-
-            } else if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide === 2)) {
-                const isStory = canvas.height > 1500;
-                const isMusicTrack = (theme === 'MUSIQUE');
-
-                // 1. Dark Vignette overlay (Atmosphère sombre et immersive Dropsiders)
-                const vig = ctx.createRadialGradient(
-                    canvas.width / 2, canvas.height / 2, canvas.width * 0.15,
-                    canvas.width / 2, canvas.height / 2, canvas.height * 0.72
-                );
-                vig.addColorStop(0, 'rgba(0, 0, 0, 0.20)');
-                vig.addColorStop(0.65, 'rgba(0, 0, 0, 0.60)');
-                vig.addColorStop(1, 'rgba(0, 0, 0, 0.88)');
-                ctx.fillStyle = vig;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                // 2. Dimensions de la carte (carrée 1:1 pour les covers de tracks musicales, ou format affiche pour les événements)
-                const baseCardW = isMusicTrack ? (isStory ? 860 : 780) : 800;
-                const baseCardH = isMusicTrack ? baseCardW : (isStory ? 1380 : 980);
-                const baseCardY = isMusicTrack 
-                    ? Math.round((canvas.height - baseCardH) / 2 + (afficheOffsetY || 0)) 
-                    : (isStory ? (bgVideo ? 250 : 220) : (bgVideo ? 230 : 195));
-
-                const scale = (afficheScale || 100) / 100;
-                const cardW = Math.round(baseCardW * scale);
-                const cardH = Math.round(baseCardH * scale);
-                const cardX = Math.round((canvas.width - cardW) / 2);
-                const cardY = isMusicTrack 
-                    ? Math.round(baseCardY + ((baseCardH - cardH) / 2)) 
-                    : Math.round(baseCardY + ((baseCardH - cardH) / 2) + (afficheOffsetY || 0));
-                const rad = isMusicTrack ? (isStory ? 32 : 28) : (isStory ? 28 : 24);
-
-                // 3. Ombre portée 3D et halo ambiant néon
-                ctx.save();
-                if (afficheGlow) {
-                    ctx.shadowColor = `rgba(${activeColor.grad}, 0.40)`;
-                    ctx.shadowBlur = 50;
-                    ctx.shadowOffsetX = 0;
-                    ctx.shadowOffsetY = 0;
-                    ctx.beginPath();
-                    ctx.roundRect(cardX, cardY, cardW, cardH, rad);
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-                    ctx.fill();
-                }
-
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-                ctx.shadowBlur = 55;
-                ctx.shadowOffsetX = 0;
-                ctx.shadowOffsetY = 22;
-                ctx.beginPath();
-                ctx.roundRect(cardX, cardY, cardW, cardH, rad);
-                ctx.fillStyle = '#0a0a0c';
-                ctx.fill();
-                ctx.restore();
-
-                // 4. Rendu de l'image de la cover/affiche dans le rectangle arrondi clippé
-                ctx.save();
-                ctx.beginPath();
-                ctx.roundRect(cardX, cardY, cardW, cardH, rad);
-                ctx.clip();
-
-                if (afficheImageRef.current) {
-                    const poster = afficheImageRef.current;
-                    if (afficheMode === 'contain') {
-                        ctx.fillStyle = '#0a0a0e';
-                        ctx.fillRect(cardX, cardY, cardW, cardH);
-                        const fitScale = Math.min(cardW / poster.width, cardH / poster.height);
-                        const dw = poster.width * fitScale;
-                        const dh = poster.height * fitScale;
-                        const dx = cardX + (cardW - dw) / 2;
-                        const dy = cardY + (cardH - dh) / 2;
-                        ctx.drawImage(poster, dx, dy, dw, dh);
-                    } else {
-                        // Mode Cover
-                        const posterRatio = poster.width / poster.height;
-                        const cardRatio = cardW / cardH;
-                        let sx = 0, sy = 0, sw = poster.width, sh = poster.height;
-                        if (posterRatio > cardRatio) {
-                            sw = poster.height * cardRatio;
-                            sx = (poster.width - sw) / 2;
-                        } else {
-                            sh = poster.width / cardRatio;
-                            sy = (poster.height - sh) / 2;
-                        }
-                        ctx.drawImage(poster, sx, sy, sw, sh, cardX, cardY, cardW, cardH);
-                    }
-                } else {
-                    // Carte placeholder élégante en attente d'image
-                    const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
-                    phGrad.addColorStop(0, 'rgba(26, 26, 32, 0.95)');
-                    phGrad.addColorStop(1, 'rgba(12, 12, 16, 0.98)');
-                    ctx.fillStyle = phGrad;
-                    ctx.fillRect(cardX, cardY, cardW, cardH);
-
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 italic 30px "Orbitron", sans-serif';
-                    ctx.fillText(isMusicTrack ? "COVER DE LA TRACK" : "AFFICHE DE L'ÉVÉNEMENT", cardX + cardW / 2, cardY + cardH / 2 - 25);
-
-                    ctx.font = '700 16px "Montserrat", sans-serif';
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-                    ctx.fillText(isMusicTrack ? "Importez la cover dans le panneau latéral" : "Importez l'affiche dans le panneau latéral", cardX + cardW / 2, cardY + cardH / 2 + 25);
-                }
-
-                // Reflet subtil en dégradé sur le haut de la carte
-                const glossGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH * 0.35);
-                glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
-                glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                ctx.fillStyle = glossGrad;
-                ctx.fillRect(cardX, cardY, cardW, cardH * 0.35);
-                ctx.restore();
-
-                // 5. Contour bordure élégant
-                ctx.save();
-                ctx.beginPath();
-                ctx.roundRect(cardX, cardY, cardW, cardH, rad);
-                ctx.strokeStyle = afficheBorderColor || (isMusicTrack ? 'rgba(0, 255, 102, 0.40)' : 'rgba(255, 255, 255, 0.22)');
-                ctx.lineWidth = 2.5;
-                ctx.stroke();
-                ctx.restore();
+                renderPromoOutro(ctx, 0, 1.0);
 
             } else if (theme === 'MAP') {
                 // 1. Draw Map Tiles
@@ -4217,8 +3373,56 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const slideDuration = Math.max(3000, Math.min(6500, Math.floor(availableForSlides / numContentSlides)));
             totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
         } else if (combinedMode === 'PLANNING') {
-            // Agenda: Slide 1 (5.2s) + transition + Slide 2 (5.2s) + transition + Promo outro (4.8s)
-            totalDuration = 5200 + currentTransitionDuration + 5200 + currentTransitionDuration + 4800;
+            const promoDuration = 4500;
+            const transitionDuration = currentTransitionDuration;
+            const slideDuration = 4800;
+
+            // 1. Slide 1 (Cover)
+            agendaSlideOverrideRef.current = 1;
+            promoOutroOverrideRef.current = false;
+            transitionTargetRef.current = null;
+            transitionProgressRef.current = 0;
+            await renderDuration(slideDuration);
+
+            // 2. Transition carrousel ultra-fluide vers Slide 2 (Lineup)
+            transitionTargetRef.current = 'SLIDE_1_TO_2';
+            const startT = Date.now();
+            while (Date.now() - startT < transitionDuration) {
+                const progress = Math.min(1, (Date.now() - startT) / transitionDuration);
+                transitionProgressRef.current = progress;
+                if (bgVideo && bgVideo.paused) {
+                    bgVideo.play().catch(() => {});
+                }
+                await generateImage();
+                await new Promise(r => requestAnimationFrame(r));
+            }
+            transitionProgressRef.current = 0;
+            transitionTargetRef.current = null;
+            agendaSlideOverrideRef.current = 2;
+
+            // 3. Slide 2 (Lineup)
+            await renderDuration(slideDuration);
+
+            // 4. Transition carrousel ultra-fluide vers Promo Outro
+            transitionTargetRef.current = 'SLIDE_2_TO_PROMO';
+            const startPromoT = Date.now();
+            while (Date.now() - startPromoT < transitionDuration) {
+                const progress = Math.min(1, (Date.now() - startPromoT) / transitionDuration);
+                transitionProgressRef.current = progress;
+                if (bgVideo && bgVideo.paused) {
+                    bgVideo.play().catch(() => {});
+                }
+                await generateImage();
+                await new Promise(r => requestAnimationFrame(r));
+            }
+            transitionProgressRef.current = 0;
+            transitionTargetRef.current = null;
+            promoOutroOverrideRef.current = true;
+
+            // 5. Affichage du visuel promo final pendant promoDuration
+            await renderDuration(promoDuration);
+            promoOutroOverrideRef.current = false;
+
         } else if (theme.startsWith('TOP 5')) {
             totalDuration = 5 * (16800 + 1200); // 5 slides + transitions
         } else if (theme === 'TOP 10 FESTIVAL') {
@@ -4434,6 +3638,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setRecordingTimeLeft(0);
         promoOutroOverrideRef.current = false;
         transitionProgressRef.current = null;
+        transitionTargetRef.current = null;
         setTransitionProgress(0);
         if (combinedMode === 'PLANNING') {
             agendaSlideOverrideRef.current = null;
