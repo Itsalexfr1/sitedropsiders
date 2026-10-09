@@ -1952,16 +1952,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // 2. HERO COVER HOOK
                     const centerY = canvas.height / 2;
 
-                    // A) Top Year / Branding tag
-                    const tagYear = (agendaCoverYear || '2026').trim();
-                    const tagText = tagYear ? `DROPSIDERS • ${tagYear}` : 'DROPSIDERS';
+                    // A) Top Month / Tag (remplace DROPSIDERS 2026 par le mois)
+                    const monthName = (agendaMonth || 'OCTOBRE').toUpperCase().trim();
+                    const tagYear = (agendaCoverYear || '').trim();
+                    const tagText = tagYear && !monthName.includes(tagYear)
+                        ? `${monthName} • ${tagYear}`
+                        : monthName;
                     const tagY = centerY - (isStory ? 220 : 160);
 
                     ctx.save();
                     applyTextAnimCtx(ctx, 0.16, centerX, tagY);
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.font = `900 18px "Orbitron", sans-serif`;
+                    ctx.font = `900 20px "Orbitron", sans-serif`;
                     ctx.letterSpacing = '5px';
                     ctx.shadowColor = `rgba(${monthGrad}, 0.85)`;
                     ctx.shadowBlur = 16;
@@ -1970,8 +1973,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     // Lignes néon fines à gauche et droite du tag
                     const tagMeasureW = ctx.measureText(tagText).width;
-                    const lineW = isStory ? 90 : 70;
-                    const lineGap = 24;
+                    const lineW = isStory ? 80 : 60;
+                    const lineGap = 20;
 
                     const leftGrad = ctx.createLinearGradient(centerX - tagMeasureW / 2 - lineGap - lineW, 0, centerX - tagMeasureW / 2 - lineGap, 0);
                     leftGrad.addColorStop(0, 'rgba(255, 55, 0, 0)');
@@ -5640,11 +5643,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 />
                             </div>
                             <div>
-                                <label className="block text-[8px] font-bold text-gray-400 uppercase mb-1">Année</label>
+                                <label className="block text-[8px] font-bold text-gray-400 uppercase mb-1">Année (optionnel)</label>
                                 <input
                                     value={agendaCoverYear}
                                     onChange={e => setAgendaCoverYear(e.target.value)}
-                                    placeholder="ex: 2026"
+                                    placeholder="ex: 2026 (ou vide)"
                                     className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black uppercase text-xs focus:border-[#ff3700] focus:outline-none"
                                 />
                             </div>
