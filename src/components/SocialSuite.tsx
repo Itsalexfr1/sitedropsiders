@@ -5756,55 +5756,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </button>
             </div>
 
-            {/* 1. Sélecteur de catégorie & couleur pour la page Promo */}
-            <div className="space-y-2 bg-white/5 border border-white/10 rounded-2xl p-3.5">
-                <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+            {/* Thème & Couleur synchronisés avec la publication */}
+            <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between shadow-sm">
+                <div className="space-y-0.5">
+                    <span className="text-[10px] font-black uppercase text-gray-300 flex items-center gap-1.5">
                         🎨 Thème & Couleur Promo
-                    </label>
-                    <span 
-                        className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full"
-                        style={{ 
-                            backgroundColor: `${(baseThemeData[promoCategory as ThemeType] || baseThemeData['NEWS']).color}20`, 
-                            color: (baseThemeData[promoCategory as ThemeType] || baseThemeData['NEWS']).color,
-                            border: `1px solid ${(baseThemeData[promoCategory as ThemeType] || baseThemeData['NEWS']).color}60` 
-                        }}
-                    >
-                        {promoCategory}
                     </span>
+                    <p className="text-[8px] text-gray-400">
+                        Synchronisé avec le thème officiel de votre publication ({theme})
+                    </p>
                 </div>
-                <div className="grid grid-cols-4 gap-1.5 pt-1">
-                    {[
-                        { id: 'NEWS', label: 'NEWS', color: '#ff0033' },
-                        { id: 'RECAP', label: 'RÉCAP', color: '#c026d3' },
-                        { id: 'MUSIQUE', label: 'MUSIQUE', color: '#39ff14' },
-                        { id: 'FOCUS', label: 'FOCUS', color: '#ffaa00' },
-                        { id: 'EVENTS', label: 'EVENTS', color: '#ff007f' },
-                        { id: 'INTERVIEW', label: 'INTERVIEW', color: '#ffffff' },
-                        { id: 'CONCOURS', label: 'CONCOURS', color: '#008cff' },
-                    ].map(cat => {
-                        const isSelected = (promoCategory || 'NEWS') === cat.id;
-                        return (
-                            <button
-                                key={cat.id}
-                                type="button"
-                                onClick={() => {
-                                    setPromoCategory(cat.id);
-                                    setTimeout(() => generateImage(), 50);
-                                }}
-                                className={`py-2 px-2.5 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 border transition-all ${
-                                    isSelected 
-                                        ? 'bg-white/15 text-white shadow-md' 
-                                        : 'bg-black/30 border-white/5 text-gray-400 hover:text-white hover:bg-white/5'
-                                }`}
-                                style={isSelected ? { borderColor: cat.color, color: cat.color, boxShadow: `0 0 12px ${cat.color}40` } : {}}
-                            >
-                                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
-                                <span className="truncate">{cat.label}</span>
-                            </button>
-                        );
-                    })}
-                </div>
+                <span 
+                    className="text-[9px] font-black uppercase px-2.5 py-1 rounded-full border shadow-sm"
+                    style={{ 
+                        backgroundColor: `${(baseThemeData[promoCategory as ThemeType] || baseThemeData[theme] || baseThemeData['NEWS']).color}20`, 
+                        color: (baseThemeData[promoCategory as ThemeType] || baseThemeData[theme] || baseThemeData['NEWS']).color,
+                        borderColor: `${(baseThemeData[promoCategory as ThemeType] || baseThemeData[theme] || baseThemeData['NEWS']).color}60` 
+                    }}
+                >
+                    {promoCategory || theme}
+                </span>
             </div>
 
             {/* 2. Phrase officielle Promo d'information (Pour être informé...) */}
