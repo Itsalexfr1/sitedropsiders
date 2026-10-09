@@ -224,6 +224,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [skipEditorialSlide2, setSkipEditorialSlide2] = useState<boolean>(false); // Masquer Slide 2 dans l'export Reel (Slide 1 + Promo uniquement)
     const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(5); // Durée Slide 1 (en secondes, min 2s, max 15s)
     const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(3.5); // Durée Promo (en secondes, min 2s, max 8s)
+    const [exportFps, setExportFps] = useState<number>(60); // Fluidité vidéo : 60 FPS ultra-fluide par défaut (ou 30 FPS standard)
     const [promoCategory, setPromoCategory] = useState<string>(() => {
         if (initialTheme && initialTheme !== 'PROMO') return initialTheme;
         return 'NEWS';
@@ -3482,7 +3483,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         const mimeType = formats.find(f => MediaRecorder.isTypeSupported(f)) || 'video/webm';
 
-        const fps = 30; // 30 FPS ensures smoother recording on most hardware compared to 60
+        const fps = exportFps || 60; // 60 FPS Ultra-Fluide Studio par défaut
         const canvasStream = (canvas as any).captureStream ? (canvas as any).captureStream(fps) : (canvas as any).mozCaptureStream ? (canvas as any).mozCaptureStream(fps) : null;
 
         if (!canvasStream) {
@@ -3531,7 +3532,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (!bgVideo.muted) {
                     try {
                         if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
-                            audioCtxRef.current = new AudioContext();
+                            audioCtxRef.current = new AudioContext({ sampleRate: 48000 });
                         }
                         const audioCtx = audioCtxRef.current;
                         if (audioCtx.state === 'suspended') {
@@ -3548,8 +3549,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
 
                         if (audioSourceNodeRef.current) {
+                            // GainNode professionnel pour éviter toute distorsion et appliquer un micro-fade in anti-clic
+                            const gainNode = audioCtx.createGain();
+                            const now = audioCtx.currentTime;
+                            gainNode.gain.setValueAtTime(0.01, now);
+                            gainNode.gain.exponentialRampToValueAtTime(1.0, now + 0.06);
+
                             const dest = audioCtx.createMediaStreamDestination();
-                            audioSourceNodeRef.current.connect(dest);
+                            audioSourceNodeRef.current.connect(gainNode);
+                            gainNode.connect(dest);
                             audioDestNodeRef.current = dest;
 
                             const audioTracks = dest.stream.getAudioTracks();
@@ -3573,7 +3581,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         }
 
-        const bitrate = isMobile ? 6000000 : 8000000;
+        // Bitrate optimisé : 16 Mbps en 60 FPS sur desktop, 10 Mbps sur mobile
+        const bitrate = isMobile ? 10000000 : (fps === 60 ? 16000000 : 10000000);
 
         const recorder = new MediaRecorder(combinedStream, {
             mimeType,
@@ -3631,15 +3640,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const ffmpegArgs = [
                     '-i', 'input.webm',
                     '-c:v', 'libx264',
-                    '-preset', 'ultrafast',
-                    '-crf', '22',
+                    '-preset', 'faster', // Encodage haute précision sans macro-blocs
+                    '-crf', '18',        // Qualité visuelle studio (18 = quasi-lossless)
                     '-pix_fmt', 'yuv420p',
-                    '-r', '30',
-                    '-vsync', 'cfr',
+                    '-r', String(fps),   // 60 FPS constant ultra-fluide
+                    '-vsync', 'cfr',     // Constant Frame Rate strict pour Instagram/TikTok
                     '-movflags', '+faststart'
                 ];
                 if (hasAudioTrack) {
-                    ffmpegArgs.push('-c:a', 'aac', '-b:a', '128k');
+                    ffmpegArgs.push(
+                        '-c:a', 'aac',
+                        '-b:a', '256k',           // Son Hi-Fi 256 kbps AAC pour basses profondes et clarté
+                        '-ar', '48000',          // Échantillonnage studio 48 kHz
+                        '-af', 'aresample=async=1000' // Resynchronisation A/V dynamique continue sans décalage
+                    );
                 } else {
                     ffmpegArgs.push('-an');
                 }
@@ -6621,10 +6635,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         </div>
                                     </div>
 
+                                    {/* Sélecteur de Fluidité (FPS) */}
+                                    <div className="pt-1.5 border-t border-white/10 flex items-center justify-between text-[8px]">
+                                        <span className="text-gray-300 font-bold">🚀 Fluidité :</span>
+                                        <div className="flex gap-1">
+                                            {[60, 30].map(f => (
+                                                <button
+                                                    key={f}
+                                                    type="button"
+                                                    onClick={() => setExportFps(f)}
+                                                    className={`px-2 py-0.5 rounded text-[7.5px] font-black uppercase transition-all border ${
+                                                        exportFps === f
+                                                            ? 'bg-neon-cyan text-black border-neon-cyan'
+                                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                    }`}
+                                                >
+                                                    {f} FPS
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
                                     {/* Récap total */}
                                     <div className="p-1.5 bg-black/50 rounded-xl border border-white/5 flex items-center justify-between text-[8px]">
                                         <span className="text-neon-cyan font-black">⏱️ Durée Totale Reel :</span>
-                                        <span className="text-white font-mono font-black">{totalSec}s</span>
+                                        <span className="text-white font-mono font-black">{totalSec}s ({exportFps} FPS • Hi-Fi)</span>
                                     </div>
                                 </div>
                             );
@@ -7829,11 +7864,39 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                             </div>
 
+                            {/* Sélecteur de Fluidité (FPS) */}
+                            <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[8.5px]">
+                                <div className="space-y-0.5">
+                                    <span className="font-bold text-gray-300 flex items-center gap-1">
+                                        🚀 Fluidité Vidéo :
+                                    </span>
+                                    <span className="text-[7.5px] text-gray-400">
+                                        {exportFps === 60 ? '60 FPS Ultra-Fluide • Audio 256k' : '30 FPS Standard • Audio 256k'}
+                                    </span>
+                                </div>
+                                <div className="flex gap-1">
+                                    {[60, 30].map(f => (
+                                        <button
+                                            key={f}
+                                            type="button"
+                                            onClick={() => setExportFps(f)}
+                                            className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase transition-all border ${
+                                                exportFps === f
+                                                    ? 'bg-neon-cyan text-black border-neon-cyan shadow-[0_0_10px_rgba(0,240,255,0.4)]'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            {f} FPS {f === 60 ? '✨' : ''}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
                             {/* Résumé timing */}
                             <div className="p-2 bg-black/40 rounded-xl border border-white/5 flex items-center justify-between text-[8px] text-gray-300">
                                 <span>Timing : S1 ({editorialSlide1Duration}s) + Promo ({editorialPromoDuration}s)</span>
-                                <span className="text-white font-mono font-bold">
-                                    Total : ~{(((skipEditorialSlide2 ? (1 + extraEditorialSlides.length) : (2 + extraEditorialSlides.length)) * editorialSlide1Duration) + ((skipEditorialSlide2 ? (1 + extraEditorialSlides.length) : (2 + extraEditorialSlides.length)) * 0.7) + editorialPromoDuration).toFixed(1)}s
+                                <span className="text-neon-cyan font-mono font-bold">
+                                    Total : ~{(((skipEditorialSlide2 ? (1 + extraEditorialSlides.length) : (2 + extraEditorialSlides.length)) * editorialSlide1Duration) + ((skipEditorialSlide2 ? (1 + extraEditorialSlides.length) : (2 + extraEditorialSlides.length)) * 0.7) + editorialPromoDuration).toFixed(1)}s • {exportFps} FPS
                                 </span>
                             </div>
                         </div>
@@ -7852,8 +7915,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             {isVideoRecording
                                 ? 'CAPTURE REEL EN COURS...'
                                 : skipEditorialSlide2
-                                    ? `🎬 EXPORTER REEL (SLIDE 1 [${editorialSlide1Duration}s] + PROMO [${editorialPromoDuration}s]) • MP4`
-                                    : `🎬 EXPORTER REEL COMPLET (${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
+                                    ? `🎬 EXPORTER REEL (${exportFps} FPS • SLIDE 1 [${editorialSlide1Duration}s] + PROMO [${editorialPromoDuration}s]) • MP4`
+                                    : `🎬 EXPORTER REEL COMPLET (${exportFps} FPS • ${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
                         </button>
                         <button
                             type="button"
