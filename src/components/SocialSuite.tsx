@@ -281,6 +281,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [concoursGTACondition2, setConcoursGTACondition2] = useState('2 - IDENTIFIEZ 2 POTES QUI DOIVENT LIKER LA PAGE');
     const [concoursGTACondition3, setConcoursGTACondition3] = useState('3 - PARTAGEZ EN STORIE');
     const [concoursGTACondition4, setConcoursGTACondition4] = useState('4 - POUR VALIDER LA PARTICIPATION RÉPONDEZ AUX 3 QUESTIONS SUR DROPSIDERS.FR');
+    const isVideoRecordingRef = useRef<boolean>(false);
     const recordingStartTimeRef = useRef<number>(0);
     const agendaSlideOverrideRef = useRef<1 | 2 | null>(null);
     const editorialSlideOverrideRef = useRef<number | null>(null);
@@ -750,7 +751,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         const effectiveTab = targetTab || activeTab;
         const forceTheme = typeof exportMode === 'string' ? (exportMode as ThemeType) : forceThemeParam;
-        const isPromoRequested = isVideoRecording
+        const isPromoRequested = isVideoRecordingRef.current
             ? promoOutroOverrideRef.current
             : (promoOutroOverrideRef.current || (isCarouselPromoActive && isMultiSlideTheme));
         const effectiveTheme = isPromoRequested ? 'PROMO' : (forceTheme || theme);
@@ -3461,6 +3462,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         };
 
+        isVideoRecordingRef.current = true;
         promoOutroOverrideRef.current = false;
         const prevWasCarouselPromoActive = isCarouselPromoActive;
         if (combinedMode === 'PLANNING') {
@@ -3470,6 +3472,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else if (combinedMode === 'EDITORIAL') {
             editorialSlideOverrideRef.current = 1;
             setEditorialSlide(1);
+            setIsCarouselPromoActive(false);
+        } else {
+            setArtisteFestivalSlide(1);
+            setEventsSlide(1);
             setIsCarouselPromoActive(false);
         }
         transitionProgressRef.current = 0;
@@ -3495,6 +3501,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         if (!canvasStream) {
             setErrorMessage("Votre navigateur ne supporte pas la capture vidéo.");
+            isVideoRecordingRef.current = false;
             setIsVideoRecording(false);
             if (combinedMode === 'PLANNING') {
                 agendaSlideOverrideRef.current = null;
@@ -3612,6 +3619,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         recorder.onstop = async () => {
             if (chunks.length === 0) {
                 setErrorMessage("Erreur de capture vidéo.");
+                isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
                 return;
             }
@@ -3621,6 +3629,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // Sur mobile : modal de prévisualisation et partage natif
             if (isMobile) {
                 const url = URL.createObjectURL(initialBlob);
+                isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
                 setRecordingProgress(0);
                 setReadyVideoBlob(initialBlob);
@@ -3631,6 +3640,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             // Sur PC : conversion rapide MP4 H.264 et téléchargement automatique immédiat
             try {
+                isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
                 setIsConverting(true);
                 setConversionProgress(0);
@@ -3726,56 +3736,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const slideDuration = Math.round(editorialSlide1Duration * 1000);
             totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
         } else if (combinedMode === 'PLANNING') {
-            const promoDuration = 4500;
+            const promoDuration = 4800;
             const transitionDuration = currentTransitionDuration;
-            const slideDuration = 4800;
-
-            // 1. Slide 1 (Cover)
-            agendaSlideOverrideRef.current = 1;
-            promoOutroOverrideRef.current = false;
-            transitionTargetRef.current = null;
-            transitionProgressRef.current = 0;
-            await renderDuration(slideDuration);
-
-            // 2. Transition carrousel ultra-fluide vers Slide 2 (Lineup)
-            transitionTargetRef.current = 'SLIDE_1_TO_2';
-            const startT = Date.now();
-            while (Date.now() - startT < transitionDuration) {
-                const progress = Math.min(1, (Date.now() - startT) / transitionDuration);
-                transitionProgressRef.current = progress;
-                if (bgVideo && bgVideo.paused) {
-                    bgVideo.play().catch(() => {});
-                }
-                await generateImage();
-                await new Promise(r => requestAnimationFrame(r));
-            }
-            transitionProgressRef.current = 0;
-            transitionTargetRef.current = null;
-            agendaSlideOverrideRef.current = 2;
-
-            // 3. Slide 2 (Lineup)
-            await renderDuration(slideDuration);
-
-            // 4. Transition carrousel ultra-fluide vers Promo Outro
-            transitionTargetRef.current = 'SLIDE_2_TO_PROMO';
-            const startPromoT = Date.now();
-            while (Date.now() - startPromoT < transitionDuration) {
-                const progress = Math.min(1, (Date.now() - startPromoT) / transitionDuration);
-                transitionProgressRef.current = progress;
-                if (bgVideo && bgVideo.paused) {
-                    bgVideo.play().catch(() => {});
-                }
-                await generateImage();
-                await new Promise(r => requestAnimationFrame(r));
-            }
-            transitionProgressRef.current = 0;
-            transitionTargetRef.current = null;
-            promoOutroOverrideRef.current = true;
-
-            // 5. Affichage du visuel promo final pendant promoDuration
-            await renderDuration(promoDuration);
-            promoOutroOverrideRef.current = false;
-
+            const slideDuration = 5200;
+            totalDuration = (2 * slideDuration) + (2 * transitionDuration) + promoDuration;
         } else if (theme.startsWith('TOP 5')) {
             totalDuration = 5 * (16800 + 1200); // 5 slides + transitions
         } else if (theme === 'TOP 10 FESTIVAL') {
@@ -3983,6 +3947,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         clearInterval(progressInterval);
         setRecordingProgress(100);
         setRecordingTimeLeft(0);
+        isVideoRecordingRef.current = false;
         promoOutroOverrideRef.current = false;
         transitionProgressRef.current = null;
         transitionTargetRef.current = null;
@@ -7745,14 +7710,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <Video className="w-4 h-4 text-black" />
                         {isVideoRecording ? 'CAPTURE VIDÉO EN COURS...' : '🎬 EXPORTER VIDÉO COMPLÈTE (SLIDE 1 + 2 + PROMO) • MP4'}
                     </button>
-                ) : (['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && activeTab === 'REEL') ? (
+                ) : ['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) ? (
                     <div className="space-y-2">
 {/* Configuration Reel : Format & Timing */}
                         <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
                                     <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
-                                        ⚡ Format Reel {theme}
+                                        ⚡ Format Vidéo {activeTab === 'REEL' ? 'Reel 9:16' : 'Post 1:1'} • {theme}
                                     </span>
                                     <p className="text-[8px] text-gray-400">
                                         {skipEditorialSlide2
@@ -7887,10 +7852,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         >
                             <Video className="w-4 h-4" />
                             {isVideoRecording
-                                ? 'CAPTURE REEL EN COURS...'
+                                ? 'CAPTURE VIDÉO EN COURS...'
                                 : skipEditorialSlide2
-                                    ? `🎬 EXPORTER REEL (${exportFps} FPS • SLIDE 1 [${editorialSlide1Duration}s] + PROMO [${editorialPromoDuration}s]) • MP4`
-                                    : `🎬 EXPORTER REEL COMPLET (${exportFps} FPS • ${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
+                                    ? `🎬 EXPORTER VIDÉO (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${exportFps} FPS • SLIDE 1 [${editorialSlide1Duration}s] + PROMO [${editorialPromoDuration}s]) • MP4`
+                                    : `🎬 EXPORTER VIDÉO COMPLÈTE (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${exportFps} FPS • ${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
                         </button>
                     </div>
                 ) : (
