@@ -660,14 +660,6 @@ export const DEFAULT_SYSTEM_PROMOS: RadioTrackItem[] = [
         audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav',
         duration: 40,
         category: 'promo'
-    },
-    {
-        id: 'promo_sys_promo_tv',
-        title: 'Promo Dropsiders TV & Live Stream 24/7',
-        artist: 'PROMO DROPSIDERS',
-        youtubeId: 'DuXXMZLfAkQ',
-        duration: 20,
-        category: 'promo'
     }
 ];
 

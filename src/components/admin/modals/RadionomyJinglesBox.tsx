@@ -188,14 +188,6 @@ export const DEFAULT_JINGLES_PUBS: RadionomyItem[] = [
         audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav'
     },
 
-    {
-        id: 'rad_promo_1',
-        title: 'Promo Dropsiders TV & Live Stream 24/7',
-        youtubeId: 'DuXXMZLfAkQ',
-        duration: 20,
-        category: 'promo'
-    },
-
     // --- INTERVIEWS ---
     {
         id: 'rad_inter_1',

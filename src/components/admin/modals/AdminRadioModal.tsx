@@ -325,6 +325,9 @@ export function AdminRadioModal({
         trackId: string;
         artist: string;
         title: string;
+        originalTitle?: string;
+        originalAudioUrl?: string;
+        originalYoutubeId?: string;
         category: RadioTrackCategory | 'liveset' | 'clip' | 'jingle' | 'promo' | 'pub';
         durationSeconds: number;
         youtubeId: string;
@@ -822,6 +825,25 @@ export function AdminRadioModal({
         if (!isOpen) return;
         const fetchSettings = async () => {
             try {
+                // Clés et titres supprimés mémorisés
+                const deletedSet = new Set<string>();
+                try {
+                    const rawDel = localStorage.getItem('dropsiders_deleted_media_keys');
+                    if (rawDel) JSON.parse(rawDel).forEach((k: string) => deletedSet.add((k + '').toLowerCase().trim()));
+                } catch {}
+
+                const sanitizeTrackList = <T extends { id?: string; title?: string; audioUrl?: string; youtubeId?: string }>(tracks: T[]): T[] => {
+                    return (tracks || []).filter(t => {
+                        const title = (t.title || '').trim().toLowerCase();
+                        if (title.includes('promo dropsiders tv & live stream 24/7') || t.youtubeId === 'DuXXMZLfAkQ') return false;
+                        if (t.id && deletedSet.has(t.id.toLowerCase())) return false;
+                        if (title && deletedSet.has(title)) return false;
+                        if (t.audioUrl && deletedSet.has(t.audioUrl.toLowerCase())) return false;
+                        if (t.youtubeId && deletedSet.has(t.youtubeId.toLowerCase())) return false;
+                        return true;
+                    });
+                };
+
                 const res = await apiFetch('/api/settings', {
                     headers: getAuthHeaders()
                 });
@@ -832,14 +854,23 @@ export function AdminRadioModal({
                         localStorage.setItem(STORAGE_RADIO_TOP_HORAIRE_KEY, JSON.stringify(data.radio_top_horaire));
                     }
                     if (Array.isArray(data?.radio_general_jingles) && data.radio_general_jingles.length > 0) {
-                        setGeneralJingles(data.radio_general_jingles);
+                        const cleanGen = sanitizeTrackList<RadionomyItem>(data.radio_general_jingles);
+                        setGeneralJingles(cleanGen);
                         try {
-                            localStorage.setItem('dropsiders_radionomy_palette', JSON.stringify(data.radio_general_jingles));
+                            localStorage.setItem('dropsiders_radionomy_palette', JSON.stringify(cleanGen));
                         } catch {}
                     }
                     if (Array.isArray(data?.radio_blocks) && data.radio_blocks.length > 0) {
-                        const sorted = sortRadioBlocksByBroadcastOrder(data.radio_blocks, true);
+                        const cleanBlocks = data.radio_blocks.map((b: any) => ({
+                            ...b,
+                            tracks: sanitizeTrackList<RadioTrackItem>(b.tracks || []),
+                            specialJingles: sanitizeTrackList<RadioTrackItem>(b.specialJingles || [])
+                        }));
+                        const sorted = sortRadioBlocksByBroadcastOrder(cleanBlocks, true);
                         setBlocks(sorted);
+                        try {
+                            localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(sorted));
+                        } catch {}
                         if (!selectedBlockId && sorted.length > 0) {
                             setSelectedBlockId(sorted[0].id);
                             setActiveFolder(`emission:${sorted[0].id}`);
@@ -850,7 +881,12 @@ export function AdminRadioModal({
                             if (saved) {
                                 const parsed = JSON.parse(saved);
                                 if (Array.isArray(parsed) && parsed.length > 0) {
-                                    const sorted = sortRadioBlocksByBroadcastOrder(parsed, true);
+                                    const cleanBlocks = parsed.map((b: any) => ({
+                                        ...b,
+                                        tracks: sanitizeTrackList<RadioTrackItem>(b.tracks || []),
+                                        specialJingles: sanitizeTrackList<RadioTrackItem>(b.specialJingles || [])
+                                    }));
+                                    const sorted = sortRadioBlocksByBroadcastOrder(cleanBlocks, true);
                                     setBlocks(sorted);
                                     if (!selectedBlockId && sorted.length > 0) {
                                         setSelectedBlockId(sorted[0].id);
@@ -1254,6 +1290,16 @@ export function AdminRadioModal({
             try {
                 localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
                 window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+                // Persister immédiatement sur le serveur pour ne jamais réapparaître
+                apiFetch('/api/settings/update', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        radio_blocks: next,
+                        radio_tracks: next.flatMap(b => b.tracks || []),
+                        radio_general_jingles: generalJingles
+                    })
+                }).catch(() => {});
             } catch {}
             return next;
         });
@@ -1262,42 +1308,106 @@ export function AdminRadioModal({
         }, 0);
     };
 
-    // Supprimer n'importe quel item par son id (tous les bacs : émissions, promos, pubs, jingles)
-    const handleDeleteItemById = (itemId: string, itemTitle: string) => {
-        // 1. Cherche dans les tracks de chaque bloc (promo, pub, jingle, set...)
-        let found = false;
+    // Supprimer n'importe quel item par son id/titre/audio/youtube (tous les bacs : émissions, promos, pubs, jingles)
+    const handleDeleteItemById = (itemId: string, itemTitle?: string, itemAudioUrl?: string, itemYtId?: string) => {
+        const cleanTitle = (itemTitle || '').trim().toLowerCase();
+        let nextGeneralList = generalJingles;
+
+        // 1. Cherche et supprime dans les tracks et specialJingles de CHAQUE bloc
         setBlocks(prev => {
             const next = prev.map(b => {
-                const inTracks = (b.tracks || []).some(t => t.id === itemId);
-                const inSpecial = (b.specialJingles || []).some(j => j.id === itemId);
-                if (!inTracks && !inSpecial) return b;
-                found = true;
-                return {
-                    ...b,
-                    tracks: (b.tracks || []).filter(t => t.id !== itemId),
-                    specialJingles: (b.specialJingles || []).filter(j => j.id !== itemId)
-                };
+                const tracksBefore = (b.tracks || []).length;
+                const filteredTracks = (b.tracks || []).filter(t => {
+                    if (itemId && t.id === itemId) return false;
+                    if (cleanTitle && t.title && t.title.trim().toLowerCase() === cleanTitle) return false;
+                    if (itemAudioUrl && t.audioUrl && t.audioUrl === itemAudioUrl) return false;
+                    if (itemYtId && t.youtubeId && t.youtubeId === itemYtId) return false;
+                    return true;
+                });
+
+                const specialBefore = (b.specialJingles || []).length;
+                const filteredSpecial = (b.specialJingles || []).filter(j => {
+                    if (itemId && j.id === itemId) return false;
+                    if (cleanTitle && j.title && j.title.trim().toLowerCase() === cleanTitle) return false;
+                    if (itemAudioUrl && j.audioUrl && j.audioUrl === itemAudioUrl) return false;
+                    if (itemYtId && j.youtubeId && j.youtubeId === itemYtId) return false;
+                    return true;
+                });
+
+                if (tracksBefore !== filteredTracks.length || specialBefore !== filteredSpecial.length) {
+                    return {
+                        ...b,
+                        tracks: filteredTracks,
+                        specialJingles: filteredSpecial
+                    };
+                }
+                return b;
             });
-            if (found) {
-                try {
-                    localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
-                    window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
-                } catch {}
-            }
-            return next;
-        });
-        // 2. Cherche dans la palette générale (jingles, promos, pubs généraux)
-        setGeneralJingles(prev => {
-            const updated = prev.filter(j => j.id !== itemId);
-            if (updated.length !== prev.length) {
-                found = true;
+
+            // 2. Cherche et supprime dans la palette générale
+            setGeneralJingles(genPrev => {
+                const updated = genPrev.filter(j => {
+                    if (itemId && j.id === itemId) return false;
+                    if (cleanTitle && j.title && j.title.trim().toLowerCase() === cleanTitle) return false;
+                    if (itemAudioUrl && j.audioUrl && j.audioUrl === itemAudioUrl) return false;
+                    if (itemYtId && j.youtubeId && j.youtubeId === itemYtId) return false;
+                    return true;
+                });
+                nextGeneralList = updated;
                 try {
                     localStorage.setItem('dropsiders_radionomy_palette', JSON.stringify(updated));
                 } catch {}
-            }
-            return updated;
+                return updated;
+            });
+
+            // 3. Cherche et supprime dans la vidéothèque TV si présent
+            setTvBlocks(tvPrev => {
+                let tvChanged = false;
+                const nextTv = tvPrev.map(tb => {
+                    const filtered = (tb.videos || []).filter(v => {
+                        if (itemId && v.id === itemId) return false;
+                        if (itemYtId && v.youtubeId === itemYtId) return false;
+                        if (cleanTitle && v.title && v.title.trim().toLowerCase() === cleanTitle) return false;
+                        return true;
+                    });
+                    if (filtered.length !== (tb.videos || []).length) tvChanged = true;
+                    return { ...tb, videos: filtered };
+                });
+                return tvChanged ? nextTv : tvPrev;
+            });
+
+            // 4. Mémoriser les clés supprimées pour que les listes système ne les réinjectent jamais
+            try {
+                const deletedSet = new Set<string>();
+                try {
+                    const rawDel = localStorage.getItem('dropsiders_deleted_media_keys');
+                    if (rawDel) JSON.parse(rawDel).forEach((k: string) => deletedSet.add((k + '').toLowerCase().trim()));
+                } catch {}
+                if (itemId) deletedSet.add(itemId.toLowerCase());
+                if (cleanTitle) deletedSet.add(cleanTitle);
+                if (itemAudioUrl) deletedSet.add(itemAudioUrl.toLowerCase());
+                if (itemYtId) deletedSet.add(itemYtId.toLowerCase());
+                localStorage.setItem('dropsiders_deleted_media_keys', JSON.stringify(Array.from(deletedSet)));
+            } catch {}
+
+            // 5. Sauvegarder immédiatement en localStorage + notifier player + persister sur le serveur
+            try {
+                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
+                window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+                apiFetch('/api/settings/update', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        radio_blocks: next,
+                        radio_tracks: next.flatMap(b => b.tracks || []),
+                        radio_general_jingles: nextGeneralList
+                    })
+                }).catch(() => {});
+            } catch {}
+            return next;
         });
-        showToast(`« ${itemTitle} » supprimé`);
+
+        showToast(`« ${itemTitle || 'Élément'} » supprimé`);
     };
 
     // Sauvegarder les modifications d'un morceau/promo/pub/jingle édité
@@ -1305,7 +1415,9 @@ export function AdminRadioModal({
         if (!editingTrack) return;
         const targetId = editingTrack.trackId;
         const targetTitle = editingTrack.title.trim();
-        const targetAudioUrl = editingTrack.audioUrl;
+        const origTitle = (editingTrack.originalTitle || targetTitle).trim().toLowerCase();
+        const origAudioUrl = editingTrack.originalAudioUrl || editingTrack.audioUrl;
+        const origYtId = editingTrack.originalYoutubeId || editingTrack.youtubeId;
         const ytId = extractYouTubeId(editingTrack.youtubeId) || editingTrack.youtubeId;
         const newCat = editingTrack.category as RadioTrackCategory;
         const newArtist = editingTrack.artist.trim() || (newCat === 'promo' ? 'PROMO DROPSIDERS' : newCat === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'Artiste');
@@ -1316,11 +1428,15 @@ export function AdminRadioModal({
         let nextGeneral = generalJingles;
         setGeneralJingles(prev => {
             const updated = prev.map(j => {
-                const isMatch = j.id === targetId || (targetAudioUrl && j.audioUrl === targetAudioUrl) || (targetTitle && j.title === targetTitle);
+                const isMatch = (targetId && j.id === targetId) ||
+                    (origAudioUrl && j.audioUrl === origAudioUrl) ||
+                    (origYtId && j.youtubeId === origYtId) ||
+                    (origTitle && j.title && j.title.trim().toLowerCase() === origTitle);
                 if (!isMatch) return j;
                 return {
                     ...j,
                     title: targetTitle || j.title,
+                    artist: newArtist,
                     category: newCat as any,
                     type: newCat as any,
                     duration: newDur,
@@ -1341,8 +1457,11 @@ export function AdminRadioModal({
             const next = prev.map(b => {
                 let changed = false;
                 const newTracks = (b.tracks || []).map(t => {
-                    const isDirectMatch = t.id === targetId;
-                    const isSharedBroadcast = (targetAudioUrl && t.audioUrl === targetAudioUrl) || (targetTitle && t.title === targetTitle && (t.category === 'pub' || t.category === 'promo' || t.category === 'jingle'));
+                    const isDirectMatch = (targetId && t.id === targetId);
+                    const isSharedBroadcast = 
+                        (origAudioUrl && t.audioUrl === origAudioUrl) || 
+                        (origYtId && t.youtubeId === origYtId) ||
+                        (origTitle && t.title && t.title.trim().toLowerCase() === origTitle);
                     if (!isDirectMatch && !isSharedBroadcast) return t;
 
                     changed = true;
@@ -1359,14 +1478,18 @@ export function AdminRadioModal({
                 });
 
                 const newSpecial = (b.specialJingles || []).map(j => {
-                    const isDirect = j.id === targetId;
-                    const isShared = (targetAudioUrl && j.audioUrl === targetAudioUrl) || (targetTitle && j.title === targetTitle);
+                    const isDirect = (targetId && j.id === targetId);
+                    const isShared = 
+                        (origAudioUrl && j.audioUrl === origAudioUrl) || 
+                        (origYtId && j.youtubeId === origYtId) ||
+                        (origTitle && j.title && j.title.trim().toLowerCase() === origTitle);
                     if (!isDirect && !isShared) return j;
 
                     changed = true;
                     return {
                         ...j,
                         title: targetTitle || j.title,
+                        artist: newArtist,
                         duration: newDur,
                         youtubeId: ytId || j.youtubeId,
                         audioUrl: editingTrack.audioUrl || j.audioUrl,
@@ -1387,6 +1510,7 @@ export function AdminRadioModal({
                     headers: getAuthHeaders(),
                     body: JSON.stringify({
                         radio_blocks: next,
+                        radio_tracks: next.flatMap(b => b.tracks || []),
                         radio_general_jingles: nextGeneral
                     })
                 }).catch(() => {});
@@ -1765,10 +1889,28 @@ export function AdminRadioModal({
 
         if (activeFolder === 'promos' || activeFolder === 'pubs' || activeFolder === 'promos_pubs') {
             const promoPubMap = new Map<string, TableItem & { emissionCount: number }>();
+            const deletedSet = new Set<string>();
+            try {
+                const rawDel = localStorage.getItem('dropsiders_deleted_media_keys');
+                if (rawDel) JSON.parse(rawDel).forEach((k: string) => deletedSet.add((k + '').toLowerCase().trim()));
+            } catch {}
+
+            const isDeleted = (id?: string, title?: string, audio?: string, yt?: string) => {
+                if (id && deletedSet.has(id.toLowerCase())) return true;
+                if (title) {
+                    const low = title.toLowerCase().trim();
+                    if (low.includes('promo dropsiders tv & live stream 24/7')) return true;
+                    if (deletedSet.has(low)) return true;
+                }
+                if (audio && deletedSet.has(audio.toLowerCase())) return true;
+                if (yt && (yt === 'DuXXMZLfAkQ' || deletedSet.has(yt.toLowerCase()))) return true;
+                return false;
+            };
 
             // 1. Scanner les émissions
             blocks.forEach(b => {
                 (b.tracks || []).forEach((t, tIdx) => {
+                    if (isDeleted(t.id, t.title, t.audioUrl, t.youtubeId)) return;
                     const isPromoOrPub = (t.category === 'promo' || t.category === 'pub' || t.artist === 'SPONSOR' || t.artist === 'PUBLICITÉ / SPONSOR') && !t.title?.includes('Promo Insta & Tiktok');
                     if (isPromoOrPub) {
                         const key = ((t.audioUrl || t.title) + '').toLowerCase().trim();
@@ -1796,6 +1938,7 @@ export function AdminRadioModal({
 
             // 2. Scanner la palette générale
             generalJingles.forEach(j => {
+                if (isDeleted(j.id, j.title, j.audioUrl, j.youtubeId)) return;
                 const isPromo = ((j as any).category === 'promo' || (j as any).type === 'promo') && !j.title?.includes('Promo Insta & Tiktok');
                 const isPub = (j as any).category === 'pub' || (j as any).type === 'pub';
                 if (isPromo || isPub) {
@@ -1819,6 +1962,7 @@ export function AdminRadioModal({
 
             // 3. Scanner les promos système par défaut
             DEFAULT_SYSTEM_PROMOS.forEach(j => {
+                if (isDeleted(j.id, j.title, j.audioUrl, j.youtubeId)) return;
                 const key = ((j.audioUrl || j.title) + '').toLowerCase().trim();
                 if (!promoPubMap.has(key)) {
                     promoPubMap.set(key, {
@@ -4600,7 +4744,7 @@ export function AdminRadioModal({
 
                         {/* ── GRAND TABLEAU STYLE RADIOMANAGER AVEC COLONNES ── */}
                         <div className="flex-1 overflow-x-auto overflow-y-auto">
-                            <table className="w-full text-left border-collapse text-xs">
+                            <table className="w-full min-w-[760px] text-left border-collapse text-xs">
                                 <thead>
                                     <tr className="border-b border-white/10 bg-black/60 text-gray-400 font-display font-black uppercase italic text-[10px] tracking-wider sticky top-0 z-10">
                                         <th className="py-2.5 px-3 w-12 text-center">#</th>
@@ -4740,16 +4884,16 @@ export function AdminRadioModal({
                                                     </td>
 
                                                     {/* Actions (Monter, Descendre, Modifier, Supprimer) */}
-                                                    <td className="py-2 px-3 text-right">
-                                                        <div className="inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <td className="py-2 px-3 text-right whitespace-nowrap">
+                                                        <div className="inline-flex items-center gap-1.5 justify-end">
                                                             {/* Boutons Monter / Descendre uniquement pour les tracks d'émission */}
-                                                            {(item as any).index !== undefined && selectedBlock && (
+                                                            {(item as any).index !== undefined && selectedBlock && activeFolder.startsWith('emission:') && (
                                                                 <>
                                                                     <button
                                                                         type="button"
                                                                         disabled={(item as any).index === 0}
                                                                         onClick={() => handleMoveItem((item as any).index, 'up')}
-                                                                        className="p-1 rounded text-gray-500 hover:text-white hover:bg-white/10 disabled:opacity-20 cursor-pointer"
+                                                                        className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-20 cursor-pointer transition-all"
                                                                         title="Monter"
                                                                     >
                                                                         <ChevronUp className="w-3.5 h-3.5" />
@@ -4758,7 +4902,7 @@ export function AdminRadioModal({
                                                                         type="button"
                                                                         disabled={(item as any).index === (selectedBlock.tracks?.length || 0) - 1}
                                                                         onClick={() => handleMoveItem((item as any).index, 'down')}
-                                                                        className="p-1 rounded text-gray-500 hover:text-white hover:bg-white/10 disabled:opacity-20 cursor-pointer"
+                                                                        className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-20 cursor-pointer transition-all"
                                                                         title="Descendre"
                                                                     >
                                                                         <ChevronDown className="w-3.5 h-3.5" />
@@ -4775,6 +4919,9 @@ export function AdminRadioModal({
                                                                         trackId: item.id || '',
                                                                         artist: item.artist || '',
                                                                         title: item.title || '',
+                                                                        originalTitle: item.title || '',
+                                                                        originalAudioUrl: item.audioUrl || '',
+                                                                        originalYoutubeId: item.youtubeId || '',
                                                                         category: (cat === 'promo' || cat === 'pub' || cat === 'jingle' || cat === 'clip' || cat === 'liveset' || cat === 'set') ? (cat === 'set' ? 'liveset' : cat) : 'liveset',
                                                                         durationSeconds: item.duration || (cat === 'jingle' ? 15 : (cat === 'promo' || cat === 'pub') ? 30 : 3600),
                                                                         youtubeId: item.youtubeId || '',
@@ -4782,8 +4929,8 @@ export function AdminRadioModal({
                                                                         expiresAt: item.expiresAt
                                                                     });
                                                                 }}
-                                                                className="p-1 rounded text-gray-500 hover:text-cyan-400 hover:bg-cyan-500/10 cursor-pointer"
-                                                                title="Modifier"
+                                                                className="p-1.5 rounded-lg text-cyan-400 hover:text-white bg-cyan-500/10 hover:bg-cyan-500/30 border border-cyan-500/20 transition-all cursor-pointer shadow-sm"
+                                                                title="Modifier ce média"
                                                             >
                                                                 <Pencil className="w-3.5 h-3.5" />
                                                             </button>
@@ -4792,14 +4939,14 @@ export function AdminRadioModal({
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
-                                                                    if ((item as any).index !== undefined && selectedBlock) {
+                                                                    if ((item as any).index !== undefined && selectedBlock && activeFolder.startsWith('emission:')) {
                                                                         handleDeleteTrack((item as any).index);
                                                                     } else {
-                                                                        handleDeleteItemById(item.id, item.title);
+                                                                        handleDeleteItemById(item.id, item.title, item.audioUrl, item.youtubeId);
                                                                     }
                                                                 }}
-                                                                className="p-1 rounded text-gray-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
-                                                                title="Supprimer"
+                                                                className="p-1.5 rounded-lg text-red-400 hover:text-white bg-red-500/10 hover:bg-red-500/30 border border-red-500/20 transition-all cursor-pointer shadow-sm"
+                                                                title="Supprimer ce média"
                                                             >
                                                                 <Trash2 className="w-3.5 h-3.5" />
                                                             </button>
