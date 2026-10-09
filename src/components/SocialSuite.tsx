@@ -3450,13 +3450,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const prevAgendaSlide = agendaSlide;
         const prevEditorialSlide = editorialSlide;
 
-                // Helper pour animer frame-par-frame en garantissant que la vidéo de fond avance
+        // Helper pour animer frame-par-frame avec timing fluide
         const renderDuration = async (durationMs: number) => {
             const t0 = Date.now();
             while (Date.now() - t0 < durationMs) {
-                if (bgVideo && bgVideo.paused) {
-                    bgVideo.play().catch(() => {});
-                }
                 await generateImage();
                 await new Promise(r => requestAnimationFrame(r));
             }
@@ -3467,11 +3464,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const prevWasCarouselPromoActive = isCarouselPromoActive;
         if (combinedMode === 'PLANNING') {
             agendaSlideOverrideRef.current = 1;
-            setAgendaSlide(1);
             setIsCarouselPromoActive(false);
         } else if (combinedMode === 'EDITORIAL') {
             editorialSlideOverrideRef.current = 1;
-            setEditorialSlide(1);
             setIsCarouselPromoActive(false);
         } else {
             setArtisteFestivalSlide(1);
@@ -3479,7 +3474,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setIsCarouselPromoActive(false);
         }
         transitionProgressRef.current = 0;
-        setTransitionProgress(0);
 
         setIsVideoRecording(true);
         recordingStartTimeRef.current = Date.now();
@@ -3496,7 +3490,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         const mimeType = formats.find(f => MediaRecorder.isTypeSupported(f)) || 'video/webm';
 
-        const fps = exportFps || 60; // 60 FPS Ultra-Fluide Studio par défaut
+        const fps = exportFps || 60; // 60 FPS Studio
         const canvasStream = (canvas as any).captureStream ? (canvas as any).captureStream(fps) : (canvas as any).mozCaptureStream ? (canvas as any).mozCaptureStream(fps) : null;
 
         if (!canvasStream) {
@@ -3529,70 +3523,81 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         resolve();
                     };
                     bgVideo.addEventListener('seeked', onSeeked);
-                    // Sécurité : timeout de 200ms si l'événement seeked n'est pas émis
                     setTimeout(resolve, 200);
                 });
                 bgVideo.loop = true;
 
-                // Tente de jouer avec le son démuté pour alimenter l'AudioContext si permis
+                // Tente de jouer avec le son démuté
                 try {
                     bgVideo.muted = false;
                     await bgVideo.play();
                 } catch (unmutedErr) {
-                    console.warn("Lecture unmuted bloquée par le navigateur, bascule en lecture muette :", unmutedErr);
+                    console.warn("Lecture unmuted bloquée par le navigateur, bascule en muette :", unmutedErr);
                     bgVideo.muted = true;
                     await bgVideo.play().catch(e => console.error("Échec play() vidéo :", e));
                 }
 
-                // Sécurité absolue : si le navigateur a encore mis pause, forcer la lecture muette
-                if (bgVideo.paused) {
-                    bgVideo.muted = true;
-                    await bgVideo.play().catch(() => {});
-                }
-
-                // Configuration AudioContext seulement si le son est actif
+                // Configuration de la piste audio fluide (zéro micro-coupure)
                 if (!bgVideo.muted) {
+                    // 1. Tente d'extraire la piste audio directement du stream natif matériel (Zero CPU, zéro jitter)
                     try {
-                        if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
-                            audioCtxRef.current = new AudioContext({ sampleRate: 48000 });
+                        const directStream = (bgVideo as any).captureStream
+                            ? (bgVideo as any).captureStream()
+                            : (bgVideo as any).mozCaptureStream
+                                ? (bgVideo as any).mozCaptureStream()
+                                : null;
+                        if (directStream && directStream.getAudioTracks().length > 0) {
+                            const nativeAudioTrack = directStream.getAudioTracks()[0];
+                            hasAudioTrack = true;
+                            combinedStream = new MediaStream([
+                                ...canvasStream.getTracks(),
+                                nativeAudioTrack
+                            ]);
                         }
-                        const audioCtx = audioCtxRef.current;
-                        if (audioCtx.state === 'suspended') {
-                            await audioCtx.resume();
-                        }
+                    } catch (e) {
+                        console.warn("captureStream direct vidéo indisponible:", e);
+                    }
 
-                        if (!audioSourceNodeRef.current || audioSourceVideoRef.current !== bgVideo) {
-                            try {
-                                audioSourceNodeRef.current = audioCtx.createMediaElementSource(bgVideo);
-                                audioSourceVideoRef.current = bgVideo;
-                            } catch (e) {
-                                console.warn("createMediaElementSource déjà lié ou indisponible :", e);
+                    // 2. Fallback WebAudio AudioContext si pas de piste directe
+                    if (!hasAudioTrack) {
+                        try {
+                            if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+                                audioCtxRef.current = new AudioContext({ sampleRate: 48000 });
                             }
-                        }
-
-                        if (audioSourceNodeRef.current) {
-                            // GainNode professionnel pour éviter toute distorsion et appliquer un micro-fade in anti-clic
-                            const gainNode = audioCtx.createGain();
-                            const now = audioCtx.currentTime;
-                            gainNode.gain.setValueAtTime(0.01, now);
-                            gainNode.gain.exponentialRampToValueAtTime(1.0, now + 0.06);
-
-                            const dest = audioCtx.createMediaStreamDestination();
-                            audioSourceNodeRef.current.connect(gainNode);
-                            gainNode.connect(dest);
-                            audioDestNodeRef.current = dest;
-
-                            const audioTracks = dest.stream.getAudioTracks();
-                            if (audioTracks.length > 0) {
-                                hasAudioTrack = true;
-                                combinedStream = new MediaStream([
-                                    ...canvasStream.getTracks(),
-                                    ...audioTracks
-                                ]);
+                            const audioCtx = audioCtxRef.current;
+                            if (audioCtx.state === 'suspended') {
+                                await audioCtx.resume();
                             }
+
+                            if (!audioSourceNodeRef.current || audioSourceVideoRef.current !== bgVideo) {
+                                try {
+                                    audioSourceNodeRef.current = audioCtx.createMediaElementSource(bgVideo);
+                                    audioSourceVideoRef.current = bgVideo;
+                                } catch (e) {
+                                    console.warn("createMediaElementSource déjà lié :", e);
+                                }
+                            }
+
+                            if (audioSourceNodeRef.current) {
+                                const dest = audioCtx.createMediaStreamDestination();
+                                try {
+                                    audioSourceNodeRef.current.disconnect();
+                                } catch (_) {}
+                                audioSourceNodeRef.current.connect(dest);
+                                audioDestNodeRef.current = dest;
+
+                                const audioTracks = dest.stream.getAudioTracks();
+                                if (audioTracks.length > 0) {
+                                    hasAudioTrack = true;
+                                    combinedStream = new MediaStream([
+                                        ...canvasStream.getTracks(),
+                                        ...audioTracks
+                                    ]);
+                                }
+                            }
+                        } catch (audioErr) {
+                            console.warn("Configuration AudioContext impossible :", audioErr);
                         }
-                    } catch (audioErr) {
-                        console.warn("Configuration AudioContext impossible :", audioErr);
                     }
                 }
             } catch (e) {
@@ -3603,8 +3608,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         }
 
-        // Bitrate optimisé : 16 Mbps en 60 FPS sur desktop, 10 Mbps sur mobile
-        const bitrate = isMobile ? 10000000 : (fps === 60 ? 16000000 : 10000000);
+        // Bitrate fluide équilibré pour éviter toute saturation CPU/mémoire et zéro drop de frame
+        const bitrate = isMobile ? 8000000 : (fps === 60 ? 12000000 : 8000000);
 
         const recorder = new MediaRecorder(combinedStream, {
             mimeType,
@@ -3665,19 +3670,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const ffmpegArgs = [
                     '-i', 'input.webm',
                     '-c:v', 'libx264',
-                    '-preset', 'faster', // Encodage haute précision sans macro-blocs
-                    '-crf', '18',        // Qualité visuelle studio (18 = quasi-lossless)
+                    '-preset', 'fast',
+                    '-crf', '19',
                     '-pix_fmt', 'yuv420p',
-                    '-r', String(fps),   // 60 FPS constant ultra-fluide
-                    '-vsync', 'cfr',     // Constant Frame Rate strict pour Instagram/TikTok
+                    '-r', String(fps),
                     '-movflags', '+faststart'
                 ];
                 if (hasAudioTrack) {
                     ffmpegArgs.push(
                         '-c:a', 'aac',
-                        '-b:a', '256k',           // Son Hi-Fi 256 kbps AAC pour basses profondes et clarté
-                        '-ar', '48000',          // Échantillonnage studio 48 kHz
-                        '-af', 'aresample=async=1000' // Resynchronisation A/V dynamique continue sans décalage
+                        '-b:a', '192k',
+                        '-ar', '48000'
                     );
                 } else {
                     ffmpegArgs.push('-an');
@@ -3721,7 +3724,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         };
 
-        recorder.start(1000);
+        recorder.start();
 
         let totalDuration = 0;
         const currentTransitionDuration = getTransitionDuration(slideTransition);
@@ -3758,16 +3761,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const progress = Math.min((elapsed / totalDuration) * 100, 99);
             setRecordingProgress(progress);
             setRecordingTimeLeft(Math.max(0, Math.ceil((totalDuration - elapsed) / 1000)));
-        }, 100);
-
-        
+        }, 400);
 
         if (combinedMode === 'EDITORIAL') {
             const shouldSkipSlide2 = skipEditorialSlide2;
             const contentSlideNumbers: number[] = shouldSkipSlide2
                 ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                 : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)];
-            const numContentSlides = contentSlideNumbers.length;
             const promoDuration = Math.round(editorialPromoDuration * 1000);
             const transitionDuration = currentTransitionDuration;
             const slideDuration = Math.round(editorialSlide1Duration * 1000);
@@ -3786,19 +3786,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             animStartTimeRef.current = Date.now();
                             switched = true;
                         }
-                        if (bgVideo && bgVideo.paused) {
-                            bgVideo.play().catch(() => {});
-                        }
                         await generateImage();
                         await new Promise(r => requestAnimationFrame(r));
                     }
                     transitionProgressRef.current = 0;
                     editorialSlideOverrideRef.current = s;
-                    setEditorialSlide(s);
-                    setTransitionProgress(0);
                 } else {
                     editorialSlideOverrideRef.current = s;
-                    setEditorialSlide(s);
                     animStartTimeRef.current = Date.now();
                 }
 
@@ -3817,14 +3811,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     animStartTimeRef.current = Date.now();
                     switchedPromo = true;
                 }
-                if (bgVideo && bgVideo.paused) {
-                    bgVideo.play().catch(() => {});
-                }
                 await generateImage();
                 await new Promise(r => requestAnimationFrame(r));
             }
             transitionProgressRef.current = 0;
-            setTransitionProgress(0);
 
             // 3. Affichage du visuel promo final pendant promoDuration
             await renderDuration(promoDuration);
@@ -3837,7 +3827,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             // 1. Slide 1 (Cover)
             agendaSlideOverrideRef.current = 1;
-            setAgendaSlide(1);
             animStartTimeRef.current = Date.now();
             await renderDuration(slideDuration);
 
@@ -3852,16 +3841,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     animStartTimeRef.current = Date.now();
                     switched = true;
                 }
-                if (bgVideo && bgVideo.paused) {
-                    bgVideo.play().catch(() => {});
-                }
                 await generateImage();
                 await new Promise(r => requestAnimationFrame(r));
             }
             transitionProgressRef.current = 0;
             agendaSlideOverrideRef.current = 2;
-            setAgendaSlide(2);
-            setTransitionProgress(0);
 
             // 3. Slide 2 (Lineup)
             await renderDuration(slideDuration);
@@ -3877,14 +3861,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     animStartTimeRef.current = Date.now();
                     switchedPromo = true;
                 }
-                if (bgVideo && bgVideo.paused) {
-                    bgVideo.play().catch(() => {});
-                }
                 await generateImage();
                 await new Promise(r => requestAnimationFrame(r));
             }
             transitionProgressRef.current = 0;
-            setTransitionProgress(0);
 
             // 5. Affichage du visuel promo final pendant promoDuration
             await renderDuration(promoDuration);
@@ -3898,21 +3878,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let switched = false;
                     while (Date.now() - startT < durationTransition) {
                         const progress = (Date.now() - startT) / durationTransition;
-                        setTransitionProgress(progress);
+                        transitionProgressRef.current = progress;
                         if (progress > 0.5 && !switched) {
                             setCurrentPreviewIndex(i);
                             switched = true;
                         }
-                        if (bgVideo && bgVideo.paused) {
-                            bgVideo.play().catch(() => {});
-                        }
                         await generateImage();
                         await new Promise(r => requestAnimationFrame(r));
                     }
+                    transitionProgressRef.current = 0;
                 } else {
                     setCurrentPreviewIndex(i);
                 }
-                setTransitionProgress(0);
                 await renderDuration(16800);
             }
         } else if (theme === 'TOP 10 FESTIVAL') {
@@ -3923,21 +3900,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let switched = false;
                     while (Date.now() - startT < durationTransition) {
                         const progress = (Date.now() - startT) / durationTransition;
-                        setTransitionProgress(progress);
+                        transitionProgressRef.current = progress;
                         if (progress > 0.5 && !switched) {
                             setCurrentPreviewIndex(i);
                             switched = true;
                         }
-                        if (bgVideo && bgVideo.paused) {
-                            bgVideo.play().catch(() => {});
-                        }
                         await generateImage();
                         await new Promise(r => requestAnimationFrame(r));
                     }
+                    transitionProgressRef.current = 0;
                 } else {
                     setCurrentPreviewIndex(i);
                 }
-                setTransitionProgress(0);
                 await renderDuration(16800);
             }
         } else {
