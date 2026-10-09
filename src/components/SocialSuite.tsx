@@ -795,11 +795,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const effectiveTransitionProgress = transitionProgressRef.current !== null ? transitionProgressRef.current : transitionProgress;
 
             const isAnyAnimationActive = (textAnimation !== 'NONE' || bgAnimation !== 'NONE');
+            // Animation d'entrée jouée une seule fois au début, puis reste 100% fixe (aucun re-bouclage intempestif)
             const animElapsed = (isVideoRecording || (bgVideo && !isDownloading) || isAnyAnimationActive)
-                ? (isVideoRecording
-                    ? (Date.now() - animStartTimeRef.current) / 1000
-                    : ((Date.now() - animStartTimeRef.current) % 6000) / 1000)
-                : 0;
+                ? (Date.now() - animStartTimeRef.current) / 1000
+                : 99.0;
 
             const getTextAnimTransform = (delay: number = 0) => {
                 if (textAnimation === 'NONE') {
@@ -2094,11 +2093,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.save();
                     ctx.textAlign = 'center';
                     
-                    // Animation logic: Loop in preview, start from 0 in recording
+                    // Animation logic: Entrée au début puis reste fixe
                     const elapsed = (isVideoRecording || (bgVideo && !isDownloading))
-                        ? (isVideoRecording 
-                            ? (Date.now() - recordingStartTimeRef.current) / 1000 
-                            : (Date.now() % 5000) / 1000)
+                        ? (Date.now() - animStartTimeRef.current) / 1000
                         : 99.0;
                     
                     let currY = 1480; 
@@ -2800,11 +2797,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const lineRightX = canvas.width - lineMarginX - swipeSpaceRight;
 
-                // Animation temporelle pour les Reels (boucle fluide en preview, 0s à la fin en export vidéo)
+                // Animation temporelle pour les textes (jouée une seule fois au début, puis le texte reste 100% fixe)
                 const animElapsed = (isVideoRecording || (bgVideo && !isDownloading) || textAnimation !== 'NONE')
-                    ? (isVideoRecording 
-                        ? (Date.now() - animStartTimeRef.current) / 1000 
-                        : ((Date.now() - animStartTimeRef.current) % 5500) / 1000)
+                    ? (Date.now() - animStartTimeRef.current) / 1000
                     : 99.0;
 
                 // Date automatique centrée dans la barre blanche (avec un segment de barre blanche de chaque côté)
