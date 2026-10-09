@@ -420,42 +420,39 @@ export const DEFAULT_RADIO_BLOCKS: RadioScheduleBlock[] = (() => {
 /**
  * Heure de Paris en secondes depuis minuit
  */
-export function getParisSeconds(): number {
-    const now = new Date();
+export function getParisSeconds(date: Date = new Date()): number {
     try {
-        const pStr = now.toLocaleString('en-US', { timeZone: 'Europe/Paris', hour12: false });
+        const pStr = date.toLocaleString('en-US', { timeZone: 'Europe/Paris', hour12: false });
         const p = new Date(pStr);
         return p.getHours() * 3600 + p.getMinutes() * 60 + p.getSeconds();
     } catch {
-        return now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+        return date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds();
     }
 }
 
 /**
  * Date du jour à Paris au format YYYY-MM-DD (pour seed deterministe)
  */
-export function getParisTodayString(): string {
-    const now = new Date();
+export function getParisTodayString(date: Date = new Date()): string {
     try {
-        const pStr = now.toLocaleString('en-US', { timeZone: 'Europe/Paris' });
+        const pStr = date.toLocaleString('en-US', { timeZone: 'Europe/Paris' });
         const p = new Date(pStr);
         return p.toISOString().slice(0, 10);
     } catch {
-        return now.toISOString().slice(0, 10);
+        return date.toISOString().slice(0, 10);
     }
 }
 
 /**
  * Jour de la semaine à Paris (0=Dimanche, 1=Lundi ... 6=Samedi)
  */
-export function getParisDayOfWeek(): number {
-    const now = new Date();
+export function getParisDayOfWeek(date: Date = new Date()): number {
     try {
-        const pStr = now.toLocaleString('en-US', { timeZone: 'Europe/Paris' });
+        const pStr = date.toLocaleString('en-US', { timeZone: 'Europe/Paris' });
         const p = new Date(pStr);
         return p.getDay();
     } catch {
-        return now.getDay();
+        return date.getDay();
     }
 }
 
@@ -1119,12 +1116,21 @@ export function computeRadioDaySchedule(
     dateOrSec: Date | number = new Date()
 ): ComputedRadioScheduleItem[] {
     const list = Array.isArray(blocks) && blocks.length > 0 ? blocks : DEFAULT_RADIO_BLOCKS;
-    const dayOfWeek = getParisDayOfWeek();
+    const targetDate = typeof dateOrSec === 'number' ? new Date() : dateOrSec;
+    const dayOfWeek = getParisDayOfWeek(targetDate);
     const activeBlocks = list.filter(b => isRadioBlockActiveOnDay(b, dayOfWeek));
     const sorted = sortRadioBlocksByBroadcastOrder(activeBlocks.length > 0 ? activeBlocks : list);
-    const todayStr = getParisTodayString();
+    const todayStr = getParisTodayString(targetDate);
 
-    const nowSec = typeof dateOrSec === 'number' ? dateOrSec : getParisSeconds();
+    const isToday = getParisTodayString(targetDate) === getParisTodayString(new Date());
+    const isPast = targetDate.getTime() < new Date().setHours(0, 0, 0, 0);
+    const nowSec = typeof dateOrSec === 'number'
+        ? dateOrSec
+        : isToday
+            ? getParisSeconds()
+            : isPast
+                ? 86400
+                : -1;
     const topHoraire = getTopHoraireConfig();
     const topDuration = (topHoraire.enabled && topHoraire.duration > 0) ? topHoraire.duration : 0;
     const items: ComputedRadioScheduleItem[] = [];
@@ -1531,6 +1537,109 @@ export function computeRadioDaySchedule(
     });
 
     return items;
+}
+
+export interface RadioHistoryEntry {
+    id: string;
+    artist: string;
+    title: string;
+    startTime: string; // "HH:MM"
+    endTime: string;   // "HH:MM"
+    day: string;       // "vendredi 9 octobre"
+    timestamp: number;
+    category?: RadioTrackCategory;
+    durationFormatted?: string;
+    youtubeId?: string;
+    audioUrl?: string;
+    soundcloudUrl?: string;
+    coverUrl?: string;
+    blockTitle?: string;
+    blockHost?: string;
+}
+
+/**
+ * Calcule l'historique complet et fidèle des titres diffusés sur les N derniers jours (par défaut 30 jours / 1 mois).
+ * Exclut automatiquement tous les jingles, autopromos et pubs.
+ * Pour la journée en cours, ne conserve que les titres dont la diffusion a déjà commencé.
+ */
+export function computeRadioHistory(
+    blocks: RadioScheduleBlock[],
+    daysBack: number = 30,
+    currentSec: number = getParisSeconds()
+): RadioHistoryEntry[] {
+    const history: RadioHistoryEntry[] = [];
+    const now = new Date();
+
+    for (let d = 0; d < daysBack; d++) {
+        const targetDate = new Date(now.getTime() - d * 86400000);
+        const dayStr = targetDate.toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            timeZone: 'Europe/Paris'
+        });
+        const todayDateStr = getParisTodayString(targetDate);
+        const isToday = d === 0;
+
+        const daySchedule = computeRadioDaySchedule(blocks, targetDate);
+
+        // Morceaux musicaux uniquement (sans jingles, promos, pubs, génériques, top horaire)
+        const dayMusicTracks = daySchedule.filter(item => {
+            if (item.category === 'jingle' || item.category === 'promo' || item.category === 'pub') return false;
+            if (item.isTopHoraire || item.isThemeJingle) return false;
+            if ((item.durationSeconds ?? 9999) < 60) return false;
+            const artistLower = (item.artist || '').toLowerCase();
+            const titleLower = (item.title || '').toLowerCase();
+            if (artistLower.includes('dropsiders radio') && (titleLower.includes('promo') || titleLower.includes('jingle'))) return false;
+            return true;
+        });
+
+        // Pour aujourd'hui : uniquement les morceaux dont la diffusion a commencé <= currentSec
+        // Pour les jours passés : tous les morceaux
+        const playedTracks = dayMusicTracks.filter(item => {
+            if (isToday) {
+                return item.startSecondsFromMidnight <= currentSec;
+            }
+            return true;
+        });
+
+        playedTracks.forEach((item, index) => {
+            const startSec = item.startSecondsFromMidnight;
+            const endSec = (startSec + (item.durationSeconds || 180)) % 86400;
+
+            const sH = Math.floor(startSec / 3600);
+            const sM = Math.floor((startSec % 3600) / 60);
+            const eH = Math.floor(endSec / 3600);
+            const eM = Math.floor((endSec % 3600) / 60);
+
+            const startTime = `${String(sH).padStart(2, '0')}:${String(sM).padStart(2, '0')}`;
+            const endTime = `${String(eH).padStart(2, '0')}:${String(eM).padStart(2, '0')}`;
+
+            const itemDate = new Date(targetDate);
+            itemDate.setHours(sH, sM, Math.floor(startSec % 60), 0);
+            const timestamp = itemDate.getTime();
+
+            history.push({
+                id: `hist_${todayDateStr}_${startSec}_${item.id || index}`,
+                artist: item.artist || 'Artiste inconnu',
+                title: item.title,
+                startTime,
+                endTime,
+                day: dayStr,
+                timestamp,
+                category: item.category,
+                durationFormatted: item.durationFormatted,
+                youtubeId: item.youtubeId,
+                audioUrl: item.audioUrl,
+                soundcloudUrl: item.soundcloudUrl,
+                coverUrl: item.coverUrl,
+                blockTitle: item.blockTitle,
+                blockHost: item.blockHost
+            });
+        });
+    }
+
+    return history.sort((a, b) => b.timestamp - a.timestamp);
 }
 
 /**

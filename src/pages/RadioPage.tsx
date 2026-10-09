@@ -12,8 +12,10 @@ import {
     formatDurationExact,
     getCurrentLiveRadioTrack,
     computeRadioDaySchedule,
+    computeRadioHistory,
     type RadioScheduleBlock,
-    type ComputedRadioScheduleItem
+    type ComputedRadioScheduleItem,
+    type RadioHistoryEntry
 } from '../utils/radioSchedule';
 
 const RADIO_HISTORY_KEY = 'dropsiders_radio_history';
@@ -178,35 +180,83 @@ function TrackCard({
     );
 }
 
-interface HistoryEntry {
-    id: string;
-    artist: string;
-    title: string;
-    startTime: string;
-    endTime: string;
-    day: string;
-    timestamp: number;
+interface HistorySectionProps {
+    radioBlocks: RadioScheduleBlock[];
+    parisSec: number;
+    onVote?: (title: string, media?: string) => void;
+    votedTracks?: string[];
+    voteLoading?: boolean;
 }
 
-function HistorySection() {
-    const [history, setHistory] = useState<HistoryEntry[]>([]);
+function HistorySection({
+    radioBlocks,
+    parisSec,
+    onVote,
+    votedTracks = [],
+    voteLoading = false
+}: HistorySectionProps) {
     const [searchDay, setSearchDay] = useState('');
     const [searchTime, setSearchTime] = useState('');
-    const [searchResult, setSearchResult] = useState<HistoryEntry | null | 'none'>(null);
+    const [searchResult, setSearchResult] = useState<RadioHistoryEntry | null | 'none'>(null);
+    const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
+    const [visibleDaysCount, setVisibleDaysCount] = useState(7);
+
+    // 1. Calcul dynamique de l'historique complet et fidèle sur 30 jours (1 mois)
+    const computedHistory = useMemo(() => {
+        try {
+            return computeRadioHistory(radioBlocks, 30, parisSec);
+        } catch {
+            return [];
+        }
+    }, [radioBlocks, parisSec]);
+
+    // 2. Nettoyage et récupération d'éventuels titres enregistrés en direct localement (exclut les promos/jingles)
+    const [localHistory, setLocalHistory] = useState<RadioHistoryEntry[]>([]);
 
     useEffect(() => {
-        const load = () => {
-            try {
-                const raw = localStorage.getItem(RADIO_HISTORY_KEY);
-                if (raw) setHistory(JSON.parse(raw));
-            } catch {}
-        };
-        load();
-        const id = setInterval(load, 10000);
-        return () => clearInterval(id);
+        try {
+            const raw = localStorage.getItem(RADIO_HISTORY_KEY);
+            if (raw) {
+                const parsed: any[] = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                    // Nettoyer définitivement les jingles / promos résiduelles
+                    const cleaned: RadioHistoryEntry[] = parsed.filter(e =>
+                        e && e.title &&
+                        e.artist !== 'DROPSIDERS RADIO' &&
+                        !e.title.toLowerCase().includes('promo') &&
+                        !e.title.toLowerCase().includes('jingle')
+                    );
+                    if (cleaned.length !== parsed.length) {
+                        localStorage.setItem(RADIO_HISTORY_KEY, JSON.stringify(cleaned));
+                    }
+                    setLocalHistory(cleaned);
+                }
+            }
+        } catch {}
     }, []);
 
-    // Liste des jours disponibles (ordre d'apparition, plus récent en premier)
+    // 3. Fusion consolidée de l'historique
+    const history = useMemo(() => {
+        const map = new Map<string, RadioHistoryEntry>();
+
+        // Ajouter l'historique officiel calculé
+        computedHistory.forEach(item => {
+            const key = `${item.day}_${item.startTime}_${item.title}`.toLowerCase();
+            map.set(key, item);
+        });
+
+        // Compléter avec les entrées locales non dupliquées
+        localHistory.forEach(item => {
+            const key = `${item.day}_${item.startTime}_${item.title}`.toLowerCase();
+            if (!map.has(key)) {
+                map.set(key, item);
+            }
+        });
+
+        return Array.from(map.values()).sort((a, b) => b.timestamp - a.timestamp);
+    }, [computedHistory, localHistory]);
+
+    // Liste des jours disponibles (ordre chronologique décroissant)
     const availableDays = useMemo(() => {
         const seen = new Set<string>();
         return [...history]
@@ -215,9 +265,9 @@ function HistorySection() {
             .filter(d => { if (seen.has(d)) return false; seen.add(d); return true; });
     }, [history]);
 
-    // Grouper par jour (sans filtre)
+    // Grouper par jour
     const grouped = useMemo(() => {
-        const map = new Map<string, HistoryEntry[]>();
+        const map = new Map<string, RadioHistoryEntry[]>();
         [...history].sort((a, b) => b.timestamp - a.timestamp).forEach(e => {
             if (!map.has(e.day)) map.set(e.day, []);
             map.get(e.day)!.push(e);
@@ -225,24 +275,24 @@ function HistorySection() {
         return map;
     }, [history]);
 
-    // Convertir "HH:MM" en nombre de minutes depuis minuit pour la comparaison
+    // Convertir "HH:MM" ou "HHhMM" en minutes depuis minuit
     const timeToMinutes = (t: string) => {
         if (!t) return -1;
-        const [h, m] = t.split(':').map(Number);
-        return h * 60 + (m || 0);
+        const clean = t.replace('h', ':');
+        const [h, m] = clean.split(':').map(Number);
+        return (isNaN(h) ? 0 : h) * 60 + (isNaN(m) ? 0 : m);
     };
 
     // Recherche : trouver le titre qui était diffusé à l'heure demandée
     const handleSearch = () => {
         if (!searchDay || !searchTime) return;
-        const dayEntries = history.filter(e => e.day === searchDay);
+        const dayEntries = history.filter(e => e.day.toLowerCase() === searchDay.toLowerCase());
         const targetMin = timeToMinutes(searchTime);
 
         // Chercher une entrée dont startTime <= searchTime <= endTime
         const match = dayEntries.find(e => {
             const start = timeToMinutes(e.startTime);
             const end = timeToMinutes(e.endTime);
-            // Gérer le cas où la fin est après minuit (end < start)
             if (end < start) {
                 return targetMin >= start || targetMin <= end;
             }
@@ -266,22 +316,25 @@ function HistorySection() {
         setSearchResult(null);
     };
 
+    const toggleExpandDay = (day: string) => {
+        setExpandedDays(prev => ({ ...prev, [day]: !prev[day] }));
+    };
+
     const isSearchActive = searchResult !== null;
 
     if (history.length === 0) {
         return (
             <div className="py-16 text-center">
                 <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4">
-                    <History className="w-6 h-6 text-gray-500" />
+                    <History className="w-6 h-6 text-gray-500 animate-spin" />
                 </div>
-                <p className="text-gray-500 text-xs font-mono uppercase tracking-widest">Aucun titre dans l'historique</p>
-                <p className="text-gray-600 text-[10px] mt-1">L'historique se remplit au fur et à mesure de l'écoute</p>
+                <p className="text-gray-500 text-xs font-mono uppercase tracking-widest">Chargement de l'historique...</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-5">
+        <div className="space-y-6">
             {/* ── Barre de recherche par jour + heure ── */}
             <div className="rounded-2xl bg-gradient-to-br from-[#0d0d20] to-[#07070f] border border-purple-500/30 p-4 shadow-[0_0_20px_rgba(168,85,247,0.07)]">
                 <div className="flex items-center gap-2 mb-3">
@@ -359,7 +412,7 @@ function HistorySection() {
                                     <p className="text-gray-500 text-[11px] font-mono">
                                         Aucun titre trouvé pour <span className="text-white font-bold capitalize">{searchDay}</span> à <span className="text-white font-bold">{searchTime}</span>
                                     </p>
-                                    <p className="text-gray-600 text-[9px] mt-1">Cette heure n'est peut-être pas encore dans l'historique.</p>
+                                    <p className="text-gray-600 text-[9px] mt-1">Vérifie l'heure sélectionnée.</p>
                                 </div>
                             ) : (
                                 <motion.div
@@ -369,7 +422,7 @@ function HistorySection() {
                                 >
                                     {/* Badge résultat */}
                                     <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-purple-500/25 border border-purple-400/50 text-purple-300 text-[8px] font-black uppercase tracking-widest">
-                                        Résultat
+                                        Résultat trouvé
                                     </div>
 
                                     <p className="text-[9px] font-mono text-purple-400 mb-2 flex items-center gap-1.5">
@@ -379,16 +432,38 @@ function HistorySection() {
                                         <span className="font-bold text-purple-300">{searchResult.startTime}</span>
                                         <span>→</span>
                                         <span>{searchResult.endTime}</span>
+                                        {searchResult.blockTitle && (
+                                            <span className="ml-2 text-cyan-400 font-sans font-bold">📻 {searchResult.blockTitle}</span>
+                                        )}
                                     </p>
 
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center shrink-0">
-                                            <Music2 className="w-5 h-5 text-purple-400" />
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center shrink-0">
+                                                <Music2 className="w-5 h-5 text-purple-400" />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-[13px] font-black text-white uppercase italic tracking-tight truncate">{searchResult.artist}</p>
+                                                <p className="text-[11px] text-gray-300 truncate">{searchResult.title}</p>
+                                            </div>
                                         </div>
-                                        <div className="min-w-0">
-                                            <p className="text-[13px] font-black text-white uppercase italic tracking-tight truncate">{searchResult.artist}</p>
-                                            <p className="text-[11px] text-gray-300 truncate">{searchResult.title}</p>
-                                        </div>
+
+                                        {onVote && (
+                                            <button
+                                                type="button"
+                                                onClick={() => onVote(`${searchResult.artist} - ${searchResult.title}`, searchResult.youtubeId || searchResult.audioUrl)}
+                                                disabled={voteLoading}
+                                                className={`shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl border text-[10px] font-display font-black uppercase italic tracking-wider transition-all cursor-pointer ${
+                                                    votedTracks.includes(`${searchResult.artist} - ${searchResult.title}`)
+                                                        ? 'bg-red-500/20 text-red-400 border-red-500/50 shadow-[0_0_12px_rgba(255,0,85,0.3)]'
+                                                        : 'bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 border-white/10'
+                                                }`}
+                                                title={votedTracks.includes(`${searchResult.artist} - ${searchResult.title}`) ? 'Déjà voté pour le Top 5' : 'Voter pour ce morceau dans le Top 5'}
+                                            >
+                                                <Heart className={`w-3.5 h-3.5 ${votedTracks.includes(`${searchResult.artist} - ${searchResult.title}`) ? 'fill-current text-red-400' : ''}`} />
+                                                <span className="hidden sm:inline">{votedTracks.includes(`${searchResult.artist} - ${searchResult.title}`) ? 'Voté Top 5' : 'Voter Top 5'}</span>
+                                            </button>
+                                        )}
                                     </div>
 
                                     {/* Note si pas exact */}
@@ -397,7 +472,7 @@ function HistorySection() {
                                         !(timeToMinutes(e.startTime) <= timeToMinutes(searchTime) && timeToMinutes(e.endTime) >= timeToMinutes(searchTime))
                                     ) && (
                                         <p className="text-[8px] font-mono text-gray-500 mt-2">
-                                            ⚠ Titre le plus proche avant <strong>{searchTime}</strong>
+                                            ℹ Morceau diffusé le plus proche de <strong>{searchTime}</strong>
                                         </p>
                                     )}
                                 </motion.div>
@@ -407,52 +482,113 @@ function HistorySection() {
                 </AnimatePresence>
             </div>
 
-            {/* ── Historique complet ── */}
-            {Array.from(grouped.entries()).map(([day, entries]) => (
-                <div key={day}>
-                    <div className="flex items-center gap-2 mb-3">
-                        <Calendar className="w-3.5 h-3.5 text-purple-400" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-purple-300 capitalize">{day}</span>
-                        <div className="flex-1 h-px bg-white/5" />
-                    </div>
-                    <div className="space-y-2">
-                        {entries.map((entry, i) => {
-                            const isHighlighted = !!(searchResult && searchResult !== 'none' && searchResult.id === entry.id);
-                            return (
-                                <motion.div
-                                    key={entry.id}
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: i * 0.03 }}
-                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all group ${
-                                        isHighlighted
-                                            ? 'bg-gradient-to-r from-purple-950/60 to-[#07070f] border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.15)]'
-                                            : 'bg-white/[0.03] border-white/[0.08] hover:border-white/15 hover:bg-white/[0.05]'
-                                    }`}
+            {/* ── Historique complet par journée ── */}
+            {Array.from(grouped.entries()).slice(0, visibleDaysCount).map(([day, entries]) => {
+                const isExpanded = !!expandedDays[day];
+                const displayedEntries = isExpanded ? entries : entries.slice(0, 30);
+
+                return (
+                    <div key={day} className="space-y-3">
+                        <div className="flex items-center gap-2 pt-2">
+                            <Calendar className="w-3.5 h-3.5 text-purple-400" />
+                            <span className="text-[11px] font-black uppercase tracking-widest text-purple-300 capitalize">{day}</span>
+                            <div className="flex-1 h-px bg-white/10" />
+                            <span className="text-[9px] font-mono text-gray-500 uppercase">{entries.length} titres</span>
+                        </div>
+
+                        <div className="space-y-2">
+                            {displayedEntries.map((entry, i) => {
+                                const isHighlighted = !!(searchResult && searchResult !== 'none' && searchResult.id === entry.id);
+                                const trackKey = `${entry.artist} - ${entry.title}`;
+                                const isVoted = votedTracks.includes(trackKey);
+
+                                return (
+                                    <motion.div
+                                        key={entry.id}
+                                        initial={{ opacity: 0, x: -6 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: Math.min(0.2, i * 0.015) }}
+                                        className={`flex items-center justify-between gap-3 p-3 rounded-xl border transition-all group ${
+                                            isHighlighted
+                                                ? 'bg-gradient-to-r from-purple-950/60 to-[#07070f] border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.15)]'
+                                                : 'bg-white/[0.03] border-white/[0.08] hover:border-white/15 hover:bg-white/[0.05]'
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                                            <div className="shrink-0 text-center w-12">
+                                                <p className={`text-[10px] font-mono font-bold ${isHighlighted ? 'text-purple-300' : 'text-cyan-400'}`}>{entry.startTime}</p>
+                                                <p className="text-[8px] font-mono text-gray-600">{entry.endTime}</p>
+                                            </div>
+                                            <div className="w-px h-8 bg-white/10 shrink-0" />
+                                            <div className="min-w-0 flex-1">
+                                                <p className={`text-[11px] font-black uppercase italic tracking-tight truncate ${isHighlighted ? 'text-white' : 'text-gray-200'}`}>{entry.artist}</p>
+                                                <p className="text-[10px] text-gray-400 truncate">{entry.title}</p>
+                                                {entry.blockTitle && (
+                                                    <p className="text-[8px] font-bold text-cyan-400/80 uppercase tracking-wider truncate mt-0.5">
+                                                        📻 {entry.blockTitle}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            {onVote && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => onVote(trackKey, entry.youtubeId || entry.audioUrl)}
+                                                    disabled={voteLoading}
+                                                    className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                                                        isVoted
+                                                            ? 'bg-red-500/20 text-red-400 border-red-500/50'
+                                                            : 'bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 border-white/10'
+                                                    }`}
+                                                    title={isVoted ? 'Déjà voté' : 'Voter pour ce titre dans le Top 5'}
+                                                >
+                                                    <Heart className={`w-3.5 h-3.5 ${isVoted ? 'fill-current text-red-400' : ''}`} />
+                                                </button>
+                                            )}
+                                            {isHighlighted ? (
+                                                <div className="w-2 h-2 rounded-full bg-purple-400 animate-ping mr-1" />
+                                            ) : (
+                                                <Music2 className="w-3.5 h-3.5 text-gray-600 group-hover:text-gray-400 transition-colors mr-1" />
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+
+                            {entries.length > 30 && (
+                                <button
+                                    type="button"
+                                    onClick={() => toggleExpandDay(day)}
+                                    className="w-full py-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.08] text-[10px] font-mono text-purple-300 hover:text-white transition-all cursor-pointer text-center"
                                 >
-                                    <div className="shrink-0 text-center w-12">
-                                        <p className={`text-[10px] font-mono font-bold ${isHighlighted ? 'text-purple-300' : 'text-cyan-400'}`}>{entry.startTime}</p>
-                                        <p className="text-[8px] font-mono text-gray-600">{entry.endTime}</p>
-                                    </div>
-                                    <div className="w-px h-8 bg-white/10 shrink-0" />
-                                    <div className="min-w-0 flex-1">
-                                        <p className={`text-[11px] font-black uppercase italic tracking-tight truncate ${isHighlighted ? 'text-white' : 'text-gray-200'}`}>{entry.artist}</p>
-                                        <p className="text-[10px] text-gray-400 truncate">{entry.title}</p>
-                                    </div>
-                                    {isHighlighted
-                                        ? <div className="w-2 h-2 rounded-full bg-purple-400 animate-ping shrink-0" />
-                                        : <Music2 className="w-3.5 h-3.5 text-gray-600 group-hover:text-gray-400 transition-colors shrink-0" />
-                                    }
-                                </motion.div>
-                            );
-                        })}
+                                    {isExpanded
+                                        ? '▲ Réduire la liste'
+                                        : `▼ Afficher tous les ${entries.length} titres de la journée (+${entries.length - 30})`}
+                                </button>
+                            )}
+                        </div>
                     </div>
+                );
+            })}
+
+            {/* Bouton pour charger d'autres jours de l'historique mensuel */}
+            {Array.from(grouped.entries()).length > visibleDaysCount && (
+                <div className="pt-3 pb-2 text-center">
+                    <button
+                        type="button"
+                        onClick={() => setVisibleDaysCount(prev => Math.min(prev + 7, Array.from(grouped.entries()).length))}
+                        className="px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-900/40 via-purple-800/30 to-cyan-900/40 hover:from-purple-800/60 hover:to-cyan-800/60 border border-purple-500/40 hover:border-purple-400 text-white text-xs font-black uppercase italic tracking-wider transition-all cursor-pointer shadow-[0_0_20px_rgba(168,85,247,0.2)] active:scale-95 flex items-center justify-center gap-2.5 mx-auto"
+                    >
+                        <Calendar className="w-4 h-4 text-purple-400" />
+                        Charger les jours précédents (+7 jours jusqu'à 1 mois)
+                    </button>
                 </div>
-            ))}
+            )}
         </div>
     );
 }
-
 
 function MessageForm({ currentTrackTitle }: { currentTrackTitle?: string }) {
     const [author, setAuthor] = useState('');
@@ -702,29 +838,6 @@ export function RadioPage() {
         }
     };
 
-    // Auto-save history when track changes
-    useEffect(() => {
-        if (!currentSet) return;
-        try {
-            const raw = localStorage.getItem(RADIO_HISTORY_KEY);
-            const existing: HistoryEntry[] = raw ? JSON.parse(raw) : [];
-            if (existing[0]?.artist === currentSet.artist && existing[0]?.title === currentSet.title) return;
-            const now = new Date();
-            const endTime = new Date(now.getTime() + ((currentSet.durationSeconds || 180) - (liveInfo?.offsetSeconds || 0)) * 1000);
-            const entry: HistoryEntry = {
-                id: 'hist-' + Date.now(),
-                artist: currentSet.artist || 'Artiste inconnu',
-                title: currentSet.title || currentSet.startTime,
-                startTime: formatParisTime(now),
-                endTime: formatParisTime(endTime),
-                day: formatParisDate(now),
-                timestamp: Date.now()
-            };
-            localStorage.setItem(RADIO_HISTORY_KEY, JSON.stringify([entry, ...existing].slice(0, 50)));
-        } catch {}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentSet?.artist, currentSet?.title]);
-
     // Filtre : tracks visibles dans le programme (pas les jingles/promos/pubs/courts)
     const isTransientItem = (item: ComputedRadioScheduleItem) => (
         item.category === 'jingle' ||
@@ -732,8 +845,45 @@ export function RadioPage() {
         item.category === 'pub' ||
         (item as any).isTopHoraire ||
         (item as any).isThemeJingle ||
-        (item.durationSeconds ?? 9999) < 120
+        (item.durationSeconds ?? 9999) < 60 ||
+        ((item.artist || '').toLowerCase().includes('dropsiders radio') && (item.title || '').toLowerCase().includes('promo'))
     );
+
+    // Auto-save history when track changes (musique uniquement, aucun jingle/promo)
+    useEffect(() => {
+        if (!currentSet || isTransientItem(currentSet)) return;
+        try {
+            const raw = localStorage.getItem(RADIO_HISTORY_KEY);
+            const existing: RadioHistoryEntry[] = raw ? JSON.parse(raw) : [];
+            const cleaned = existing.filter(e =>
+                e && e.title &&
+                e.artist !== 'DROPSIDERS RADIO' &&
+                !e.title.toLowerCase().includes('promo') &&
+                !e.title.toLowerCase().includes('jingle')
+            );
+            if (cleaned[0]?.artist === currentSet.artist && cleaned[0]?.title === currentSet.title) return;
+            const now = new Date();
+            const endTime = new Date(now.getTime() + ((currentSet.durationSeconds || 180) - (liveInfo?.offsetSeconds || 0)) * 1000);
+            const entry: RadioHistoryEntry = {
+                id: 'hist-' + Date.now(),
+                artist: currentSet.artist || 'Artiste inconnu',
+                title: currentSet.title || currentSet.startTime,
+                startTime: formatParisTime(now),
+                endTime: formatParisTime(endTime),
+                day: formatParisDate(now),
+                timestamp: Date.now(),
+                category: currentSet.category,
+                durationFormatted: currentSet.durationFormatted,
+                youtubeId: currentSet.youtubeId,
+                audioUrl: currentSet.audioUrl,
+                soundcloudUrl: currentSet.soundcloudUrl,
+                blockTitle: currentSet.blockTitle,
+                blockHost: currentSet.blockHost
+            };
+            localStorage.setItem(RADIO_HISTORY_KEY, JSON.stringify([entry, ...cleaned].slice(0, 100)));
+        } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentSet?.artist, currentSet?.title]);
 
     // Track "public" : on masque les jingles/promos dans la vue auditeur
     const publicCurrentSet = currentSet && !isTransientItem(currentSet) ? currentSet : null;
@@ -926,7 +1076,13 @@ export function RadioPage() {
 
                     {activeTab === 'history' && (
                         <motion.div key="history" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-                            <HistorySection />
+                            <HistorySection
+                                radioBlocks={radioBlocks}
+                                parisSec={parisSec}
+                                onVote={handleVoteTrack}
+                                votedTracks={votedTracks}
+                                voteLoading={voteLoading}
+                            />
                         </motion.div>
                     )}
 
