@@ -2189,68 +2189,52 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(badgeText, badgeX + pillW / 2 + 1, badgeY + pillH / 2 + 1);
                     ctx.restore();
 
-                    // 2. BIG HOLLOW MONTH TITLE
-                    const monthY = isStory ? 430 : 310;
+                    // 2. GRAND TITRE DU MOIS (Ultra-lisible, néon & haut contraste)
+                    const monthY = isStory ? 370 : 280;
                     const monthText = (agendaMonth || 'OCTOBRE').toUpperCase().trim();
 
-                    let monthFontSize = isStory ? 104 : 94;
-                    ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
+                    let monthFontSize = isStory ? 104 : 92;
+                    ctx.font = `900 italic ${monthFontSize}px "Montserrat", Arial, sans-serif`;
                     ctx.letterSpacing = '6px';
-                    while (ctx.measureText(monthText).width > 720 && monthFontSize > 44) {
+                    while (ctx.measureText(monthText).width > (canvas.width - 160) && monthFontSize > 44) {
                         monthFontSize -= 2;
-                        ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
+                        ctx.font = `900 italic ${monthFontSize}px "Montserrat", Arial, sans-serif`;
                     }
 
-                    const offW = canvas.width;
-                    const offH = Math.ceil(monthFontSize * 2.2);
-                    if (!offCanvasRef.current) {
-                        offCanvasRef.current = document.createElement('canvas');
-                    }
-                    const offCanvas = offCanvasRef.current;
-                    if (offCanvas.width !== offW) offCanvas.width = offW;
-                    if (offCanvas.height !== offH) offCanvas.height = offH;
-                    const offCtx = offCanvas.getContext('2d');
+                    ctx.save();
+                    applyTextAnimCtx(ctx, 0.18, centerX, monthY);
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
 
-                    if (offCtx) {
-                        offCtx.clearRect(0, 0, offW, offH);
-                        const offCenterX = offW / 2;
-                        const offCenterY = offH / 2;
+                    // 1. Ombre portée noire profonde (détache le texte de n'importe quel arrière-plan)
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                    ctx.shadowBlur = 26;
+                    ctx.shadowOffsetX = 3;
+                    ctx.shadowOffsetY = 6;
 
-                        offCtx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
-                        offCtx.letterSpacing = '6px';
-                        offCtx.textAlign = 'center';
-                        offCtx.textBaseline = 'middle';
+                    // 2. Bordure néon couleur du mois avec lueur
+                    ctx.strokeStyle = monthColor;
+                    ctx.lineWidth = 8;
+                    ctx.strokeText(monthText, centerX, monthY);
 
-                        offCtx.strokeStyle = '#ff3700';
-                        offCtx.lineWidth = 6;
-                        offCtx.strokeText(monthText, offCenterX, offCenterY);
+                    // 3. Intérieur blanc éclatant avec halo subtil
+                    ctx.shadowColor = `rgba(${monthGrad}, 0.60)`;
+                    ctx.shadowBlur = 14;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(monthText, centerX, monthY);
 
-                        offCtx.globalCompositeOperation = 'destination-out';
-                        offCtx.fillStyle = '#000000';
-                        offCtx.fillText(monthText, offCenterX, offCenterY);
+                    // 4. Contour net final
+                    ctx.shadowColor = 'transparent';
+                    ctx.strokeStyle = monthColor;
+                    ctx.lineWidth = 3;
+                    ctx.strokeText(monthText, centerX, monthY);
 
-                        ctx.save();
-                        applyTextAnimCtx(ctx, 0.18, centerX, monthY);
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-                        ctx.shadowBlur = 6;
-                        ctx.shadowOffsetY = 2;
-                        ctx.drawImage(offCanvas, 0, monthY - offCenterY);
-                        ctx.restore();
-                    } else {
-                        ctx.save();
-                        applyTextAnimCtx(ctx, 0.18, centerX, monthY);
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.strokeStyle = '#ff3700';
-                        ctx.lineWidth = 6;
-                        ctx.strokeText(monthText, centerX, monthY);
-                        ctx.restore();
-                    }
+                    ctx.restore();
 
                     // 3. EVENTS LIST
                     const itemsToDraw = planningItems.slice(0, isStory ? 8 : 7);
-                    const listStartY = isStory ? 630 : 470;
-                    const bottomMargin = isStory ? 140 : 80;
+                    const listStartY = isStory ? 570 : 440;
+                    const bottomMargin = isStory ? 120 : 70;
                     const availableHeight = canvas.height - listStartY - bottomMargin;
                     let rowSpacing = Math.min(
                         isStory ? 180 : 140,
