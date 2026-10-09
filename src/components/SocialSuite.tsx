@@ -221,6 +221,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isConseilsLargeTitle, setIsConseilsLargeTitle] = useState(false);
     const [showTitleOnSlide2, setShowTitleOnSlide2] = useState<boolean>(false);
     const [extraEditorialSlides, setExtraEditorialSlides] = useState<string[]>([]); // Slides 3, 4, 5... (texte de chaque slide)
+    const [skipEditorialSlide2, setSkipEditorialSlide2] = useState<boolean>(false); // Masquer Slide 2 dans l'export Reel (Slide 1 + Promo uniquement)
     const [promoCategory, setPromoCategory] = useState<string>(() => {
         if (initialTheme && initialTheme !== 'PROMO') return initialTheme;
         return 'NEWS';
@@ -3681,7 +3682,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         let totalDuration = 0;
         const currentTransitionDuration = getTransitionDuration(slideTransition);
         if (combinedMode === 'EDITORIAL') {
-            const numContentSlides = 2 + extraEditorialSlides.length;
+            const shouldSkipSlide2 = skipEditorialSlide2;
+            const contentSlideNumbers: number[] = shouldSkipSlide2
+                ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
+                : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)];
+            const numContentSlides = contentSlideNumbers.length;
             const promoDuration = 3200;
             const transitionDuration = currentTransitionDuration;
             const availableForSlides = 30000 - promoDuration - (numContentSlides * transitionDuration);
@@ -3761,15 +3766,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         
 
         if (combinedMode === 'EDITORIAL') {
-            const numContentSlides = 2 + extraEditorialSlides.length;
+            const shouldSkipSlide2 = skipEditorialSlide2;
+            const contentSlideNumbers: number[] = shouldSkipSlide2
+                ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
+                : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)];
+            const numContentSlides = contentSlideNumbers.length;
             const promoDuration = 3200;
             const transitionDuration = currentTransitionDuration;
             const availableForSlides = 30000 - promoDuration - (numContentSlides * transitionDuration);
             const slideDuration = Math.max(3000, Math.min(6500, Math.floor(availableForSlides / numContentSlides)));
 
-            // 1. Déroulement des slides de contenu (Slide 1 à N)
-            for (let s = 1; s <= numContentSlides; s++) {
-                if (s > 1) {
+            // 1. Déroulement des slides de contenu (selon contentSlideNumbers)
+            for (let i = 0; i < contentSlideNumbers.length; i++) {
+                const s = contentSlideNumbers[i];
+                if (i > 0) {
                     const startT = Date.now();
                     let switched = false;
                     while (Date.now() - startT < transitionDuration) {
@@ -3791,8 +3801,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setEditorialSlide(s);
                     setTransitionProgress(0);
                 } else {
-                    editorialSlideOverrideRef.current = 1;
-                    setEditorialSlide(1);
+                    editorialSlideOverrideRef.current = s;
+                    setEditorialSlide(s);
                     animStartTimeRef.current = Date.now();
                 }
 
@@ -6528,21 +6538,44 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         {/* Calcul automatique de la durée des Reels (≤ 30s max, ≥ 3s min par slide + outro promo) */}
                         {activeTab === 'REEL' && (() => {
-                            const numSlides = 2 + extraEditorialSlides.length;
+                            const numSlides = skipEditorialSlide2 ? (1 + extraEditorialSlides.length) : (2 + extraEditorialSlides.length);
                             const promoD = 3.2;
                             const transD = 0.7;
                             const avail = 30.0 - promoD - (numSlides * transD);
                             const perSlideSec = Math.max(3.0, Math.min(6.5, avail / numSlides));
                             const totalSec = ((numSlides * perSlideSec) + (numSlides * transD) + promoD).toFixed(1);
                             return (
-                                <div className="p-2 bg-gradient-to-r from-neon-cyan/10 to-indigo-500/10 border border-neon-cyan/20 rounded-xl flex items-center justify-between text-[8.5px]">
-                                    <div className="flex items-center gap-1.5 text-gray-300">
-                                        <span className="text-neon-cyan font-black">⏱️ Durée auto :</span>
-                                        <span className="text-white font-mono font-black">{totalSec}s</span>
-                                        <span className="text-emerald-400 font-bold">(≤ 30s max)</span>
+                                <div className="space-y-1.5">
+                                    <div className="p-2 bg-gradient-to-r from-neon-cyan/10 to-indigo-500/10 border border-neon-cyan/20 rounded-xl flex items-center justify-between text-[8.5px]">
+                                        <div className="flex items-center gap-1.5 text-gray-300">
+                                            <span className="text-neon-cyan font-black">⏱️ Durée auto :</span>
+                                            <span className="text-white font-mono font-black">{totalSec}s</span>
+                                            <span className="text-emerald-400 font-bold">(≤ 30s max)</span>
+                                        </div>
+                                        <div className="text-gray-400 font-medium">
+                                            <span className="text-white font-mono font-bold">{perSlideSec.toFixed(1)}s</span>/slide (≥ 3s min) + 3.2s Promo
+                                        </div>
                                     </div>
-                                    <div className="text-gray-400 font-medium">
-                                        <span className="text-white font-mono font-bold">{perSlideSec.toFixed(1)}s</span>/slide (≥ 3s min) + 3.2s Promo
+                                    <div className="p-2 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between text-[8.5px]">
+                                        <div className="space-y-0.5">
+                                            <span className="font-black uppercase text-white flex items-center gap-1">
+                                                ⚡ Format Reel Export :
+                                            </span>
+                                            <span className="text-gray-400 text-[8px]">
+                                                {skipEditorialSlide2 ? 'Slide 2 masquée (Slide 1 + Promo uniquement)' : 'Slide 1 + Slide 2 + Promo'}
+                                            </span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setSkipEditorialSlide2(!skipEditorialSlide2)}
+                                            className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase transition-all border ${
+                                                skipEditorialSlide2
+                                                    ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                                                    : 'bg-white/10 border-white/20 text-gray-300 hover:text-white'
+                                            }`}
+                                        >
+                                            {skipEditorialSlide2 ? '🚫 Slide 2 Masquée' : '👁️ Slide 2 Incluse'}
+                                        </button>
                                     </div>
                                 </div>
                             );
@@ -6577,7 +6610,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <Download className="w-4 h-4 text-black" /> Télécharger Carrousel Images ({2 + extraEditorialSlides.length} Slides)
                         </button>
                         {activeTab === 'REEL' && (() => {
-                            const numSlides = 2 + extraEditorialSlides.length;
+                            const numSlides = skipEditorialSlide2 ? (1 + extraEditorialSlides.length) : (2 + extraEditorialSlides.length);
                             const promoD = 3.2;
                             const transD = 0.7;
                             const avail = 30.0 - promoD - (numSlides * transD);
@@ -6590,7 +6623,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     disabled={isVideoRecording}
                                     className="w-full py-2.5 bg-gradient-to-r from-red-500 via-rose-500 to-pink-600 hover:opacity-90 text-white font-black text-[10px] uppercase rounded-lg shadow-lg shadow-rose-500/25 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 disabled:opacity-50"
                                 >
-                                    <Video className="w-4 h-4 text-white" /> {isVideoRecording ? 'Capture Reel en cours...' : `🎬 Exporter Reel Vidéo Complet (${numSlides} Slides + Promo) • ${totalSec}s`}
+                                    <Video className="w-4 h-4 text-white" /> {isVideoRecording ? 'Capture Reel en cours...' : skipEditorialSlide2 ? `🎬 Exporter Reel Vidéo (Slide 1 + Promo) • ${totalSec}s` : `🎬 Exporter Reel Vidéo Complet (${numSlides} Slides + Promo) • ${totalSec}s`}
                                 </button>
                             );
                         })()}
@@ -7656,6 +7689,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 ) : (['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && activeTab === 'REEL') ? (
                     <div className="space-y-2">
+{/* Option pour masquer la slide 2 dans l'export Reel News / Éditorial */}
+                        <div className="p-2.5 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
+                            <div className="space-y-0.5">
+                                <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
+                                    ⚡ Format Vidéo Reel {theme}
+                                </span>
+                                <p className="text-[8px] text-gray-400">
+                                    {skipEditorialSlide2
+                                        ? 'Slide 2 masquée (Slide 1 + Promo uniquement)'
+                                        : `Complet (Slide 1 + Slide 2${extraEditorialSlides.length > 0 ? ` + ${extraEditorialSlides.length} slides` : ''} + Promo)`}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setSkipEditorialSlide2(!skipEditorialSlide2)}
+                                className={`px-2.5 py-1.5 rounded-xl text-[8.5px] font-black uppercase transition-all border flex items-center gap-1.5 ${
+                                    skipEditorialSlide2
+                                        ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
+                                        : 'bg-white/10 border-white/20 text-gray-300 hover:text-white'
+                                }`}
+                            >
+                                {skipEditorialSlide2 ? '🚫 Slide 2 Masquée' : '👁️ Slide 2 Incluse'}
+                            </button>
+                        </div>
+
                         <button
                             type="button"
                             onClick={() => startVideoRecording('EDITORIAL')}
@@ -7667,7 +7725,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }`}
                         >
                             <Video className="w-4 h-4" />
-                            {isVideoRecording ? 'CAPTURE REEL EN COURS...' : `🎬 EXPORTER REEL COMPLET (${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
+                            {isVideoRecording
+                                ? 'CAPTURE REEL EN COURS...'
+                                : skipEditorialSlide2
+                                    ? '🎬 EXPORTER REEL (SLIDE 1 + PROMO) • MP4'
+                                    : `🎬 EXPORTER REEL COMPLET (${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
                         </button>
                         <button
                             type="button"
@@ -8924,7 +8986,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1 bg-gradient-to-r from-[#00ff66] to-emerald-400 text-black shadow-md hover:scale-105 active:scale-95 disabled:opacity-50 ml-1"
                                         title="Exporter un Reel vidéo combinant Slide 1 + Slide 2 avec transition"
                                     >
-                                        <Video className="w-3 h-3 text-black" /> Reel (1+2)
+                                        <Video className="w-3 h-3 text-black" /> {skipEditorialSlide2 ? 'Reel (S1 + Promo)' : 'Reel (1+2)'}
                                     </button>
                                 )}
                                 {slideTransitionQuickBar}
@@ -8992,9 +9054,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         onClick={() => startVideoRecording('EDITORIAL')}
                                         disabled={isVideoRecording}
                                         className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1 bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-md hover:scale-105 active:scale-95 disabled:opacity-50 ml-1"
-                                        title={`Exporter un Reel vidéo combinant ${2 + extraEditorialSlides.length} slides + Promo Outro`}
+                                        title={skipEditorialSlide2 ? "Exporter un Reel vidéo Slide 1 + Promo Outro" : `Exporter un Reel vidéo combinant ${2 + extraEditorialSlides.length} slides + Promo Outro`}
                                     >
-                                        <Video className="w-3 h-3 text-white" /> Reel ({2 + extraEditorialSlides.length} Slides + Promo)
+                                        <Video className="w-3 h-3 text-white" /> {skipEditorialSlide2 ? 'Reel (Slide 1 + Promo)' : `Reel (${2 + extraEditorialSlides.length} Slides + Promo)`}
                                     </button>
                                 )}
                                 {slideTransitionQuickBar}
