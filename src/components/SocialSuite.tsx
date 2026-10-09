@@ -2192,44 +2192,48 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(badgeText, badgeX + pillW / 2 + 1, badgeY + pillH / 2 + 1);
                     ctx.restore();
 
-                    // 2. GRAND TITRE DU MOIS (Ultra-lisible, néon & haut contraste)
+                    // 2. GRAND TITRE DU MOIS EN CONTOUR NÉON CREUX (Style Rave Hollow, sans blanc)
                     const monthY = isStory ? 370 : 280;
                     const monthText = (agendaMonth || 'OCTOBRE').toUpperCase().trim();
 
                     let monthFontSize = isStory ? 104 : 92;
-                    ctx.font = `900 italic ${monthFontSize}px "Montserrat", Arial, sans-serif`;
+                    ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
                     ctx.letterSpacing = '6px';
                     while (ctx.measureText(monthText).width > (canvas.width - 160) && monthFontSize > 44) {
                         monthFontSize -= 2;
-                        ctx.font = `900 italic ${monthFontSize}px "Montserrat", Arial, sans-serif`;
+                        ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
                     }
 
                     ctx.save();
                     applyTextAnimCtx(ctx, 0.18, centerX, monthY);
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
+                    ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
+                    ctx.letterSpacing = '6px';
 
-                    // 1. Ombre portée noire profonde (détache le texte de n'importe quel arrière-plan)
+                    // A) Ombre noire profonde derrière pour détacher le contour du fond
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                    ctx.shadowBlur = 26;
-                    ctx.shadowOffsetX = 3;
-                    ctx.shadowOffsetY = 6;
-
-                    // 2. Bordure néon couleur du mois avec lueur
+                    ctx.shadowBlur = 18;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 4;
                     ctx.strokeStyle = monthColor;
-                    ctx.lineWidth = 8;
+                    ctx.lineWidth = isStory ? 6 : 5;
                     ctx.strokeText(monthText, centerX, monthY);
 
-                    // 3. Intérieur blanc éclatant avec halo subtil
-                    ctx.shadowColor = `rgba(${monthGrad}, 0.60)`;
-                    ctx.shadowBlur = 14;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(monthText, centerX, monthY);
-
-                    // 4. Contour net final
-                    ctx.shadowColor = 'transparent';
+                    // B) Halo néon vibrant dans la couleur du thème
+                    ctx.shadowColor = `rgba(${monthGrad}, 0.90)`;
+                    ctx.shadowBlur = 20;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 0;
                     ctx.strokeStyle = monthColor;
-                    ctx.lineWidth = 3;
+                    ctx.lineWidth = isStory ? 5 : 4;
+                    ctx.strokeText(monthText, centerX, monthY);
+
+                    // C) Contour net de précision (ultra-propre, creux à l'intérieur)
+                    ctx.shadowColor = 'transparent';
+                    ctx.shadowBlur = 0;
+                    ctx.strokeStyle = monthColor;
+                    ctx.lineWidth = isStory ? 3.5 : 2.8;
                     ctx.strokeText(monthText, centerX, monthY);
 
                     ctx.restore();
