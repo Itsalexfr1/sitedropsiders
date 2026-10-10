@@ -124,6 +124,11 @@ const lat2tile = (lat: number, zoom: number) => {
 
 export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab, onGeneratePromo, isGeneratingPromo }: SocialSuiteProps) {
     const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'PUBLICATION');
+    // Accordéon "Animations & Mouvements" : fermé par défaut sur POST, ouvert sur REEL
+    const [animOptionsOpen, setAnimOptionsOpen] = useState<boolean>((initialTab || 'PUBLICATION') === 'REEL');
+    useEffect(() => {
+        setAnimOptionsOpen(activeTab === 'REEL');
+    }, [activeTab]);
     const [theme, setTheme] = useState<ThemeType>(() => {
         if (initialTheme) return initialTheme;
         return 'NEWS';
@@ -5048,14 +5053,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     );
 
     const bgAnimationControl = (
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-3">
-            <div className="flex items-center justify-between">
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+        <div className={`bg-white/5 border border-white/10 rounded-2xl p-3.5 transition-all ${animOptionsOpen ? 'space-y-3' : ''}`}>
+            <button
+                type="button"
+                onClick={() => setAnimOptionsOpen(o => !o)}
+                className="w-full flex items-center justify-between gap-2 group"
+                title={animOptionsOpen ? 'Masquer les options d\'animation' : 'Afficher les options d\'animation'}
+            >
+                <span className="text-[9px] font-black text-gray-400 group-hover:text-white uppercase tracking-widest flex items-center gap-1.5 transition-colors">
                     🎬 Animation du Fond (Reels / MP4)
                 </span>
-    
-            </div>
+                <span className="flex items-center gap-1.5">
+                    <span className={`px-1.5 py-0.5 rounded-md text-[7.5px] font-black uppercase tracking-wider border ${
+                        bgAnimation !== 'NONE'
+                            ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan shadow-[0_0_8px_rgba(0,240,255,0.3)]'
+                            : 'bg-white/5 border-white/10 text-gray-500'
+                    }`}>
+                        {bgAnimation !== 'NONE' ? '● Active' : 'Statique'}
+                    </span>
+                    <span className={`text-[10px] text-gray-400 group-hover:text-white transition-transform duration-300 ${animOptionsOpen ? 'rotate-180' : ''}`}>▾</span>
+                </span>
+            </button>
 
+            {animOptionsOpen && (<>
             <div className="grid grid-cols-4 gap-1.5">
                 {[
                     { id: 'NONE', label: 'Statique', icon: '⏹️', activeClass: 'bg-white text-black border-white shadow-sm' },
@@ -5094,6 +5114,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </p>
                 </div>
             )}
+            </>)}
         </div>
     );
 
@@ -6120,12 +6141,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     );
 
     const textAnimationControl = (
-        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5">
-            <div className="flex items-center justify-between">
-                <span className="text-[9px] font-black uppercase text-neon-cyan tracking-wider flex items-center gap-1.5">
-                    🎬 Animation du texte {activeTab === 'REEL' ? '(Reel 9:16)' : ''}
-                </span>
-                {textAnimation !== 'NONE' && (
+        <div className={`p-3 bg-white/5 border border-white/10 rounded-2xl transition-all ${animOptionsOpen ? 'space-y-2.5' : ''}`}>
+            <div className="flex items-center justify-between gap-2">
+                <button
+                    type="button"
+                    onClick={() => setAnimOptionsOpen(o => !o)}
+                    className="flex-1 flex items-center justify-between gap-2 group min-w-0"
+                    title={animOptionsOpen ? 'Masquer les options d\'animation' : 'Afficher les options d\'animation'}
+                >
+                    <span className="text-[9px] font-black uppercase text-neon-cyan tracking-wider flex items-center gap-1.5 truncate">
+                        🎬 Animation du texte {activeTab === 'REEL' ? '(Reel 9:16)' : ''}
+                    </span>
+                    <span className="flex items-center gap-1.5 shrink-0">
+                        <span className={`px-1.5 py-0.5 rounded-md text-[7.5px] font-black uppercase tracking-wider border ${
+                            textAnimation !== 'NONE'
+                                ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan shadow-[0_0_8px_rgba(0,240,255,0.3)]'
+                                : 'bg-white/5 border-white/10 text-gray-500'
+                        }`}>
+                            {textAnimation !== 'NONE' ? '● Active' : 'Statique'}
+                        </span>
+                        <span className={`text-[10px] text-gray-400 group-hover:text-white transition-transform duration-300 ${animOptionsOpen ? 'rotate-180' : ''}`}>▾</span>
+                    </span>
+                </button>
+                {animOptionsOpen && textAnimation !== 'NONE' && (
                     <button
                         type="button"
                         onClick={() => {
@@ -6140,6 +6178,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 )}
             </div>
 
+            {animOptionsOpen && (
             <div className="grid grid-cols-4 gap-1.5">
                 {[
                     { id: 'NONE', label: 'Statique', icon: '⏹️', activeClass: 'bg-white text-black border-white shadow-sm' },
@@ -6170,8 +6209,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </button>
                 ))}
             </div>
-
-            
+            )}
         </div>
     );
 
