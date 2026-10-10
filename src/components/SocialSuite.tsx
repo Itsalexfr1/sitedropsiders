@@ -122,12 +122,35 @@ const lat2tile = (lat: number, zoom: number) => {
     );
 };
 
+// Petits helpers visuels pour les accordéons rétractables (badge d'état + chevron)
+const AccordionBadge = ({ active, label }: { active: boolean; label: string }) => (
+    <span className={`px-1.5 py-0.5 rounded-md text-[7.5px] font-black uppercase tracking-wider border whitespace-nowrap ${
+        active
+            ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan shadow-[0_0_8px_rgba(0,240,255,0.3)]'
+            : 'bg-white/5 border-white/10 text-gray-500'
+    }`}>
+        {label}
+    </span>
+);
+
+const AccordionChevron = ({ open }: { open: boolean }) => (
+    <span className={`text-[10px] text-gray-400 group-hover:text-white transition-transform duration-300 ${open ? 'rotate-180' : ''}`}>▾</span>
+);
+
 export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab, onGeneratePromo, isGeneratingPromo }: SocialSuiteProps) {
     const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'PUBLICATION');
-    // Accordéon "Animations & Mouvements" : fermé par défaut sur POST, ouvert sur REEL
-    const [animOptionsOpen, setAnimOptionsOpen] = useState<boolean>((initialTab || 'PUBLICATION') === 'REEL');
+    // Accordéons rétractables : fermés par défaut sur POST, ouverts sur REEL
+    const isInitialReel = (initialTab || 'PUBLICATION') === 'REEL';
+    const [animOptionsOpen, setAnimOptionsOpen] = useState<boolean>(isInitialReel);
+    const [videoOptionsOpen, setVideoOptionsOpen] = useState<boolean>(isInitialReel);
+    const [slideTransOptionsOpen, setSlideTransOptionsOpen] = useState<boolean>(isInitialReel);
+    const [bgPositionOptionsOpen, setBgPositionOptionsOpen] = useState<boolean>(isInitialReel);
     useEffect(() => {
-        setAnimOptionsOpen(activeTab === 'REEL');
+        const isReel = activeTab === 'REEL';
+        setAnimOptionsOpen(isReel);
+        setVideoOptionsOpen(isReel);
+        setSlideTransOptionsOpen(isReel);
+        setBgPositionOptionsOpen(isReel);
     }, [activeTab]);
     const [theme, setTheme] = useState<ThemeType>(() => {
         if (initialTheme) return initialTheme;
@@ -4991,11 +5014,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const bgPositionControls = (
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-3">
-            <div className="flex items-center justify-between">
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                    🎯 Centrage Image (X / Y)
-                </span>
+        <div className={`bg-white/5 border border-white/10 rounded-2xl p-3.5 transition-all ${bgPositionOptionsOpen ? 'space-y-3' : ''}`}>
+            <div className="flex items-center justify-between gap-2">
+                <button
+                    type="button"
+                    onClick={() => setBgPositionOptionsOpen(o => !o)}
+                    className="flex-1 flex items-center justify-between gap-2 group min-w-0"
+                    title={bgPositionOptionsOpen ? 'Masquer le centrage' : 'Afficher le centrage'}
+                >
+                    <span className="text-[9px] font-black text-gray-400 group-hover:text-white uppercase tracking-widest flex items-center gap-1.5 transition-colors truncate">
+                        🎯 Centrage Image (X / Y)
+                    </span>
+                    <span className="flex items-center gap-1.5 shrink-0">
+                        <AccordionBadge
+                            active={bgOffsetX !== 0 || bgOffsetY !== 0}
+                            label={bgOffsetX !== 0 || bgOffsetY !== 0 ? '● Décalé' : 'Centré'}
+                        />
+                        <AccordionChevron open={bgPositionOptionsOpen} />
+                    </span>
+                </button>
                 <button
                     onClick={() => {
                         setBgOffsetX(0);
@@ -5006,10 +5043,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     className="px-2.5 py-1 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl text-[8px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all flex items-center gap-1 shadow-sm active:scale-95"
                     title="Réinitialiser et centrer l'image au milieu"
                 >
-                    <RotateCcw className="w-3 h-3" /> Centrer Image
+                    <RotateCcw className="w-3 h-3" /> Centrer
                 </button>
             </div>
 
+            {bgPositionOptionsOpen && (
             <div className="space-y-2 pt-1">
 
                 <div className="space-y-1">
@@ -5049,6 +5087,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     />
                 </div>
             </div>
+            )}
         </div>
     );
 
@@ -6929,11 +6968,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     );
 
     const slideTransitionControl = (
-        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5">
-            <div className="flex items-center justify-between">
-                <span className="text-[9px] font-black uppercase text-neon-red tracking-wider flex items-center gap-1.5">
-                    🎚️ Enchaînement des Slides
-                </span>
+        <div className={`p-3 bg-white/5 border border-white/10 rounded-2xl transition-all ${slideTransOptionsOpen ? 'space-y-2.5' : ''}`}>
+            <div className="flex items-center justify-between gap-2">
+                <button
+                    type="button"
+                    onClick={() => setSlideTransOptionsOpen(o => !o)}
+                    className="flex-1 flex items-center justify-between gap-2 group min-w-0"
+                    title={slideTransOptionsOpen ? 'Masquer les enchaînements' : 'Afficher les enchaînements'}
+                >
+                    <span className="text-[9px] font-black uppercase text-neon-red tracking-wider flex items-center gap-1.5 truncate">
+                        🎚️ Enchaînement des Slides
+                    </span>
+                    <span className="flex items-center gap-1.5 shrink-0">
+                        {(() => {
+                            const current = SLIDE_TRANSITIONS.find(t => t.id === slideTransition);
+                            return <AccordionBadge active={!!current} label={current ? `${current.icon} ${current.label}` : 'Aucun'} />;
+                        })()}
+                        <AccordionChevron open={slideTransOptionsOpen} />
+                    </span>
+                </button>
+                {slideTransOptionsOpen && (
                 <button
                     type="button"
                     onClick={() => playTransitionPreview()}
@@ -6943,8 +6997,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 >
                     <Play className="w-2.5 h-2.5 fill-current" /> Tester
                 </button>
+                )}
             </div>
 
+            {slideTransOptionsOpen && (<>
             <div className="grid grid-cols-5 gap-1">
                 {SLIDE_TRANSITIONS.map(trans => (
                     <button
@@ -6971,6 +7027,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <span>{SLIDE_TRANSITIONS.find(t => t.id === slideTransition)?.desc}</span>
                 <span className="text-gray-500 font-mono font-normal">{getTransitionDuration(slideTransition)}ms</span>
             </div>
+            </>)}
         </div>
     );
 
@@ -8222,8 +8279,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             {/* Section 3 : Vidéo Animée (MP4) */}
             <div className="space-y-1.5 pt-1 border-t border-white/10">
-                <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">🎬 Vidéo Animée (MP4)</span>
-                {theme === 'PLANNING' ? (
+                <button
+                    type="button"
+                    onClick={() => setVideoOptionsOpen(o => !o)}
+                    className="w-full flex items-center justify-between gap-2 group py-0.5"
+                    title={videoOptionsOpen ? 'Masquer la vidéo animée' : 'Afficher la vidéo animée'}
+                >
+                    <span className="text-[8px] font-black text-gray-400 group-hover:text-white uppercase tracking-wider transition-colors">🎬 Vidéo Animée (MP4)</span>
+                    <span className="flex items-center gap-1.5">
+                        <AccordionBadge
+                            active={isVideoRecording || textAnimation !== 'NONE' || bgAnimation !== 'NONE'}
+                            label={isVideoRecording ? '● REC' : `${activeTab === 'REEL' ? '9:16' : '1:1'} • ${exportFps} FPS`}
+                        />
+                        <AccordionChevron open={videoOptionsOpen} />
+                    </span>
+                </button>
+                {!videoOptionsOpen ? null : theme === 'PLANNING' ? (
                     <button
                         type="button"
                         onClick={() => startVideoRecording('PLANNING')}
