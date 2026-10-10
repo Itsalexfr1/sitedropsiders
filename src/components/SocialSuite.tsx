@@ -146,16 +146,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     // Accordéons rétractables : fermés par défaut sur POST, ouverts sur REEL
     const isInitialReel = (initialTab || 'PUBLICATION') === 'REEL';
     const [animOptionsOpen, setAnimOptionsOpen] = useState<boolean>(isInitialReel);
-    const [videoOptionsOpen, setVideoOptionsOpen] = useState<boolean>(isInitialReel);
+    const [videoOptionsOpen, setVideoOptionsOpen] = useState<boolean>(true);
     const [slideTransOptionsOpen, setSlideTransOptionsOpen] = useState<boolean>(isInitialReel);
     const [bgPositionOptionsOpen, setBgPositionOptionsOpen] = useState<boolean>(isInitialReel);
     useEffect(() => {
         const isReel = activeTab === 'REEL';
         setAnimOptionsOpen(isReel);
-        setVideoOptionsOpen(isReel);
+        if (theme === 'MUSIQUE' || isReel) {
+            setVideoOptionsOpen(true);
+        } else {
+            setVideoOptionsOpen(false);
+        }
         setSlideTransOptionsOpen(isReel);
         setBgPositionOptionsOpen(isReel);
-    }, [activeTab]);
+    }, [activeTab, theme]);
     const [theme, setTheme] = useState<ThemeType>(() => {
         if (initialTheme) return initialTheme;
         return 'NEWS';
@@ -389,6 +393,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         p.onended = () => setActiveAudioPreviewSrc(null);
     };
 
+    const [singleSlideVideoDuration, setSingleSlideVideoDuration] = useState<number>(10);
     const musicAudioInputRef = useRef<HTMLInputElement>(null);
     const musicIntroAudioInputRef = useRef<HTMLInputElement>(null);
     const musicCoverImgsRef = useRef<Record<string, HTMLImageElement>>({});
@@ -3585,14 +3590,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 drawTopCapsuleBadge('MUSIQUE', '#39ff14', '57, 255, 20');
 
                 // 3. Dimensions et proportions de la pochette carrée 1:1
-                const baseCardSize = isStory ? 780 : 640;
+                const baseCardSize = isStory ? 780 : 540;
                 const scale = (afficheScale || 100) / 100;
                 const cardW = Math.round(baseCardSize * scale);
                 const cardH = cardW; // Format 1:1
                 const cardX = Math.round((canvas.width - cardW) / 2);
-                const baseCardY = isStory ? 340 : 235;
+                const baseCardY = isStory ? 340 : 175;
                 const cardY = Math.round(baseCardY + (afficheOffsetY || 0));
-                const rad = isStory ? 34 : 28;
+                const rad = isStory ? 34 : 26;
 
                 // 4. Ombre portée 3D et halo ambiant néon vert
                 ctx.save();
@@ -3716,13 +3721,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const centerX = canvas.width / 2;
 
                 // A) Track Number Pill (ex: "TRACK 01")
-                const pillY = isStory ? 1180 : 925;
+                const pillY = isStory ? 1170 : 750;
                 const trackNumText = `TRACK ${String(trackIdx + 1).padStart(2, '0')}`;
                 ctx.save();
                 ctx.font = '900 italic 15px "Montserrat", sans-serif';
                 ctx.letterSpacing = '1.5px';
                 const pillPaddingX = 16;
-                const pillH = isStory ? 32 : 28;
+                const pillH = isStory ? 32 : 26;
                 const pillW = ctx.measureText(trackNumText).width + (pillPaddingX * 2);
                 ctx.fillStyle = 'rgba(57, 255, 20, 0.14)';
                 ctx.strokeStyle = 'rgba(57, 255, 20, 0.45)';
@@ -3738,12 +3743,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
                 // B) TITRE DU MORCEAU (Gros, blanc avec highlights)
-                const titleY = isStory ? 1275 : 995;
+                const titleY = isStory ? 1265 : 810;
                 const titleText = currentTrack.title?.trim() || (trackIdx === 0 && conseilsTitle && conseilsTitle !== 'LE TITRE ICI' ? conseilsTitle : `TITRE DU MORCEAU`);
                 ctx.save();
-                let titleFontSize = isStory ? 52 : 44;
+                let titleFontSize = isStory ? 52 : 38;
                 ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
-                while (ctx.measureText(stripTags(titleText).toUpperCase()).width > contentWidth && titleFontSize > 24) {
+                while (ctx.measureText(stripTags(titleText).toUpperCase()).width > contentWidth && titleFontSize > 22) {
                     titleFontSize -= 2;
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                 }
@@ -3753,12 +3758,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
                 // C) ARTISTE (En vert néon gras italique)
-                const artistY = isStory ? 1370 : 1070;
+                const artistY = isStory ? 1355 : 868;
                 const artistText = currentTrack.artist?.trim() || (trackIdx === 0 && artistNameText ? artistNameText : 'NOM DE L\'ARTISTE');
                 ctx.save();
-                let artistFontSize = isStory ? 36 : 28;
+                let artistFontSize = isStory ? 36 : 26;
                 ctx.font = `800 italic ${artistFontSize}px "Montserrat", sans-serif`;
-                while (ctx.measureText(artistText.toUpperCase()).width > contentWidth && artistFontSize > 20) {
+                while (ctx.measureText(artistText.toUpperCase()).width > contentWidth && artistFontSize > 18) {
                     artistFontSize -= 2;
                     ctx.font = `800 italic ${artistFontSize}px "Montserrat", sans-serif`;
                 }
@@ -3773,13 +3778,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // D) LABEL DISCOGRAPHIQUE (Badge capsule élégant si renseigné)
                 const labelRaw = currentTrack.label?.trim();
                 if (labelRaw) {
-                    const labelY = isStory ? 1465 : 1150;
+                    const labelY = isStory ? 1445 : 930;
                     const labelDisplay = `LABEL : ${labelRaw.toUpperCase()}`;
                     ctx.save();
-                    const labelFontSize = isStory ? 20 : 16;
+                    const labelFontSize = isStory ? 20 : 15;
                     ctx.font = `800 ${labelFontSize}px "Montserrat", sans-serif`;
                     const lPadX = 20;
-                    const lH = isStory ? 42 : 36;
+                    const lH = isStory ? 42 : 34;
                     const lW = ctx.measureText(labelDisplay).width + (lPadX * 2);
 
                     ctx.fillStyle = 'rgba(18, 22, 19, 0.85)';
@@ -3799,6 +3804,37 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(labelDisplay, centerX, labelY);
                     ctx.restore();
                 }
+
+                // E) Visualiseur audio / Barres equalizer animées néon vert
+                const eqY = isStory ? (labelRaw ? 1530 : 1450) : (labelRaw ? 985 : 940);
+                const isPlayingOrRec = isVideoRecording || (activeAudioPreviewSrc !== null);
+                const animT = (Date.now() - animStartTimeRef.current) / 1000;
+                const barCount = 18;
+                const totalEqW = isStory ? 220 : 170;
+                const barW = isStory ? 5.5 : 4.5;
+                const barGap = (totalEqW - (barCount * barW)) / (barCount - 1);
+                const startEqX = centerX - totalEqW / 2;
+
+                ctx.save();
+                for (let bi = 0; bi < barCount; bi++) {
+                    const bx = startEqX + bi * (barW + barGap);
+                    const waveFactor = isPlayingOrRec
+                        ? (Math.sin(animT * 6 + bi * 0.7) * 0.4 + Math.cos(animT * 10 + bi * 1.3) * 0.3 + 0.5)
+                        : (Math.sin(bi * 0.8) * 0.25 + 0.35);
+                    const barH = Math.max(4, Math.round((isStory ? 28 : 20) * Math.min(1, Math.max(0.15, waveFactor))));
+                    const by = eqY - barH / 2;
+
+                    const barGrad = ctx.createLinearGradient(bx, by, bx, by + barH);
+                    barGrad.addColorStop(0, '#39ff14');
+                    barGrad.addColorStop(1, '#00cc66');
+                    ctx.fillStyle = barGrad;
+                    ctx.shadowColor = 'rgba(57, 255, 20, 0.35)';
+                    ctx.shadowBlur = 5;
+                    ctx.beginPath();
+                    ctx.roundRect(bx, by, barW, barH, barW / 2);
+                    ctx.fill();
+                }
+                ctx.restore();
 
                 // F) FOOTER & SWIPE
                 const footerY = canvas.height - (isStory ? 80 : 50);
@@ -5026,11 +5062,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else if (theme === 'TOP 10 FESTIVAL') {
             totalDuration = 4 * (16800 + 1200); // 4 slides (Cover + 3 Grid pages)
         } else {
-            // Utilise la durée exacte de la vidéo uploadée.
-            totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
-                ? bgVideo.duration * 1000
-                : ((activeTab === 'REEL' || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST') ? 15000 : 60000);
-            if (totalDuration > 600000) totalDuration = 600000; // Limit to 10 minutes
+            // Pour MUSIQUE slide unique (Cover + Son), régler sur la durée choisie (10s par défaut) au lieu de 60s
+            if (theme === 'MUSIQUE') {
+                totalDuration = Math.round((singleSlideVideoDuration || 10) * 1000);
+            } else {
+                totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
+                    ? bgVideo.duration * 1000
+                    : ((activeTab === 'REEL' || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST') ? 15000 : 60000);
+                if (totalDuration > 600000) totalDuration = 600000; // Limit to 10 minutes
+            }
         }
 
         const startTime = Date.now();
@@ -5253,6 +5293,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
 
         if (recorder.state !== 'inactive') recorder.stop();
+    };
+
+    const exportCurrentSlideVideo = async (formatTab?: 'PUBLICATION' | 'REEL') => {
+        if (formatTab && formatTab !== activeTab) {
+            setActiveTab(formatTab);
+            setTimeout(() => {
+                startVideoRecording('NONE');
+            }, 150);
+            return;
+        }
+        startVideoRecording('NONE');
     };
 
     const addVisualToList = () => {
@@ -8999,14 +9050,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </span>
             </div>
 
-            {/* Section 1 : Visuel Actuel (PNG) */}
-            <div className="space-y-1.5">
-                <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">📸 Visuel Actuel (PNG)</span>
+            {/* Section 1 : Visuel Actuel (PNG & MP4) */}
+            <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">📸 Visuel Actuel (Image & Vidéo)</span>
+                    <span className="text-[7.5px] font-bold text-[#00ff66] uppercase">PNG & MP4</span>
+                </div>
+                {/* Ligne 1 : Image PNG */}
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         type="button"
                         onClick={() => downloadFormat('PUBLICATION')}
-                        disabled={isDownloading}
+                        disabled={isDownloading || isVideoRecording}
                         className="py-2.5 px-3 bg-neon-cyan/10 hover:bg-neon-cyan/20 border border-neon-cyan/30 hover:border-neon-cyan text-neon-cyan rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
                     >
                         <Download className="w-3.5 h-3.5" /> PNG POST
@@ -9014,10 +9069,34 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <button
                         type="button"
                         onClick={() => downloadFormat('REEL')}
-                        disabled={isDownloading}
+                        disabled={isDownloading || isVideoRecording}
                         className="py-2.5 px-3 bg-neon-purple/10 hover:bg-neon-purple/20 border border-neon-purple/30 hover:border-neon-purple text-neon-purple rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
                     >
                         <Download className="w-3.5 h-3.5" /> PNG STORY
+                    </button>
+                </div>
+
+                {/* Ligne 2 : Vidéo MP4 (avec Cover et Musique) */}
+                <div className="grid grid-cols-2 gap-2">
+                    <button
+                        type="button"
+                        onClick={() => exportCurrentSlideVideo('PUBLICATION')}
+                        disabled={isDownloading || isVideoRecording}
+                        className="py-2.5 px-3 bg-gradient-to-r from-[#00ff66]/20 to-[#00cc88]/20 hover:from-[#00ff66]/30 hover:to-[#00cc88]/30 border border-[#00ff66]/50 hover:border-[#00ff66] text-[#00ff66] rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-40"
+                        title="Exporter ce visuel en vidéo MP4 Post 1:1 avec la musique et la cover"
+                    >
+                        <Video className="w-3.5 h-3.5 text-[#00ff66]" />
+                        {isVideoRecording ? 'CAPTURE...' : '🎬 MP4 POST (SON)'}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => exportCurrentSlideVideo('REEL')}
+                        disabled={isDownloading || isVideoRecording}
+                        className="py-2.5 px-3 bg-gradient-to-r from-neon-purple/20 to-pink-500/20 hover:from-neon-purple/30 hover:to-pink-500/30 border border-neon-purple/50 hover:border-neon-purple text-white rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-40"
+                        title="Exporter ce visuel en vidéo MP4 Story 9:16 avec la musique et la cover"
+                    >
+                        <Video className="w-3.5 h-3.5 text-neon-purple" />
+                        {isVideoRecording ? 'CAPTURE...' : '🎬 MP4 STORY (SON)'}
                     </button>
                 </div>
             </div>
@@ -9093,7 +9172,55 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </button>
                 ) : ['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) ? (
                     <div className="space-y-2">
-{/* Configuration Reel : Format & Timing */}
+                        {/* Option Dédiée pour thème MUSIQUE : Exporter le morceau actif seul */}
+                        {theme === 'MUSIQUE' && (
+                            <div className="p-3 bg-gradient-to-r from-[#00ff66]/15 via-black/80 to-black/80 border border-[#00ff66]/40 rounded-2xl space-y-2 shadow-lg">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[9px] font-black uppercase text-[#00ff66] flex items-center gap-1.5">
+                                        🎵 Ce Morceau Seul (Cover + Son) • MP4
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        {[5, 10, 15, 30].map(s => (
+                                            <button
+                                                key={s}
+                                                type="button"
+                                                onClick={() => setSingleSlideVideoDuration(s)}
+                                                className={`px-1.5 py-0.5 rounded text-[7.5px] font-black border transition-all ${
+                                                    singleSlideVideoDuration === s
+                                                        ? 'bg-[#00ff66] text-black border-[#00ff66]'
+                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                }`}
+                                            >
+                                                {s}s
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <p className="text-[7.5px] text-gray-400">
+                                    Exporte uniquement ce morceau avec sa pochette carrée 1:1 et son extrait audio synchronisé ({singleSlideVideoDuration}s).
+                                </p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => exportCurrentSlideVideo('PUBLICATION')}
+                                        disabled={isDownloading || isVideoRecording}
+                                        className="py-2.5 px-2 bg-[#00ff66] hover:bg-[#33ff85] text-black rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow active:scale-95 disabled:opacity-40"
+                                    >
+                                        <Video className="w-3.5 h-3.5" /> MP4 POST 1:1
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => exportCurrentSlideVideo('REEL')}
+                                        disabled={isDownloading || isVideoRecording}
+                                        className="py-2.5 px-2 bg-neon-purple hover:bg-purple-500 text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow active:scale-95 disabled:opacity-40"
+                                    >
+                                        <Video className="w-3.5 h-3.5" /> MP4 STORY 9:16
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Configuration Reel : Format & Timing */}
                         <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
@@ -9234,9 +9361,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <Video className="w-4 h-4" />
                             {isVideoRecording
                                 ? 'CAPTURE VIDÉO EN COURS...'
-                                : skipEditorialSlide2
-                                    ? `🎬 EXPORTER VIDÉO (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${exportFps} FPS • SLIDE 1 [${editorialSlide1Duration}s] + PROMO [${editorialPromoDuration}s]) • MP4`
-                                    : `🎬 EXPORTER VIDÉO COMPLÈTE (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${exportFps} FPS • ${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
+                                : theme === 'MUSIQUE'
+                                    ? `🎬 EXPORTER LE CARROUSEL VIDÉO COMPLET (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`
+                                    : skipEditorialSlide2
+                                        ? `🎬 EXPORTER VIDÉO (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${exportFps} FPS • SLIDE 1 [${editorialSlide1Duration}s] + PROMO [${editorialPromoDuration}s]) • MP4`
+                                        : `🎬 EXPORTER VIDÉO COMPLÈTE (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${exportFps} FPS • ${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
                         </button>
                     </div>
                 ) : (
@@ -9897,15 +10026,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-white font-black">TRACK {String(activeTrackIdx + 1).padStart(2, '0')}</span>
                                 <span className="text-[#00ff66]">Slide {editorialSlide}</span>
                             </span>
-                            {musicTracks.length > 1 && (
+                            <div className="flex items-center gap-2">
                                 <button
                                     type="button"
-                                    onClick={() => removeMusicTrack(activeTrackIdx)}
-                                    className="text-[9px] font-bold text-red-400 hover:text-red-300 transition-colors uppercase flex items-center gap-1"
+                                    onClick={() => exportCurrentSlideVideo()}
+                                    disabled={isDownloading || isVideoRecording}
+                                    className="px-2.5 py-1 bg-[#00ff66]/15 hover:bg-[#00ff66]/25 border border-[#00ff66]/40 text-[#00ff66] rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 active:scale-95 disabled:opacity-40"
+                                    title="Exporter ce morceau en vidéo MP4 avec sa pochette 1:1 et son extrait sonore"
                                 >
-                                    🗑️ Supprimer cette slide
+                                    <Video className="w-3 h-3 text-[#00ff66]" />
+                                    {isVideoRecording ? 'Capture...' : '🎬 Exporter MP4'}
                                 </button>
-                            )}
+                                {musicTracks.length > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => removeMusicTrack(activeTrackIdx)}
+                                        className="text-[9px] font-bold text-red-400 hover:text-red-300 transition-colors uppercase flex items-center gap-1"
+                                    >
+                                        🗑️ Supprimer
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         {/* MODULE 1-CLIC IMPORT MORCEAU (COVER + AUDIO + TITRES) */}
@@ -10407,6 +10548,66 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     </p>
                                 </div>
                             )}
+                        </div>
+
+                        {/* EXPORT VIDÉO RAPIDE DE CE MORCEAU (COVER + AUDIO) */}
+                        <div className="p-3 bg-gradient-to-r from-[#00ff66]/15 via-emerald-950/40 to-black/80 border border-[#00ff66]/50 rounded-2xl space-y-2.5 shadow-lg">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-[10px]">🎬</span>
+                                    <span className="text-[9.5px] font-black text-[#00ff66] uppercase tracking-wide">
+                                        Exporter ce Morceau en MP4 (Cover + Son)
+                                    </span>
+                                </div>
+                                <span className="text-[8px] font-bold text-white/80 bg-white/10 px-2 py-0.5 rounded-full">
+                                    {singleSlideVideoDuration}s
+                                </span>
+                            </div>
+
+                            <p className="text-[7.5px] text-gray-300">
+                                Génère la vidéo MP4 avec la pochette carrée 1:1, les informations de la track, le visualiseur audio et l'extrait musical synchronisé ({singleSlideVideoDuration}s).
+                            </p>
+
+                            <div className="flex items-center justify-between gap-2 text-[8px] text-gray-300 pt-0.5">
+                                <span className="font-bold">⏱️ Durée de l'extrait :</span>
+                                <div className="flex gap-1">
+                                    {[5, 10, 15, 30].map(s => (
+                                        <button
+                                            key={s}
+                                            type="button"
+                                            onClick={() => setSingleSlideVideoDuration(s)}
+                                            className={`px-2 py-0.5 rounded-lg font-black transition-all border ${
+                                                singleSlideVideoDuration === s
+                                                    ? 'bg-[#00ff66] text-black border-[#00ff66] shadow-[0_0_8px_rgba(0,255,102,0.5)]'
+                                                    : 'bg-white/5 border-white/15 text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            {s}s
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => exportCurrentSlideVideo('PUBLICATION')}
+                                    disabled={isDownloading || isVideoRecording}
+                                    className="py-2.5 px-2 bg-gradient-to-r from-[#00ff66] to-[#00cc88] hover:from-[#33ff85] hover:to-[#00e699] text-black rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-40"
+                                >
+                                    <Video className="w-3.5 h-3.5 text-black" />
+                                    {isVideoRecording ? 'CAPTURE...' : '🎬 MP4 POST (1:1)'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => exportCurrentSlideVideo('REEL')}
+                                    disabled={isDownloading || isVideoRecording}
+                                    className="py-2.5 px-2 bg-gradient-to-r from-neon-purple to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-40"
+                                >
+                                    <Video className="w-3.5 h-3.5 text-white" />
+                                    {isVideoRecording ? 'CAPTURE...' : '🎬 MP4 STORY (9:16)'}
+                                </button>
+                            </div>
                         </div>
 
                         {/* SECTION D : IMAGE DE FOND / AMBIANCE */}
