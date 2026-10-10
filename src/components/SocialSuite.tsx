@@ -29,7 +29,9 @@ import {
     Search,
     CheckSquare,
     Square,
-    Play
+    Play,
+    Volume2,
+    Music
 } from 'lucide-react';
 import { ExportSuccessModal } from './ExportSuccessModal';
 import { fixEncoding } from '../utils/standardizer';
@@ -330,7 +332,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const audioSourceVideoRef = useRef<HTMLVideoElement | null>(null); // pour détecter si bgVideo a changé
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
     const [r2TargetIdx, setR2TargetIdx] = useState<number | null>(null);
-    const [r2TargetType, setR2TargetType] = useState<'top5' | 'top10' | 'background' | 'logo' | 'affiche' | 'musicCover' | null>(null);
+    const [r2TargetType, setR2TargetType] = useState<'top5' | 'top10' | 'background' | 'logo' | 'affiche' | 'musicCover' | 'musicAudio' | 'musicIntroAudio' | null>(null);
 
     // AFFICHE Theme States (Poster Événement Flottant)
     const [afficheImage, setAfficheImage] = useState<string>('');
@@ -342,11 +344,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [afficheOffsetY, setAfficheOffsetY] = useState<number>(0);
     const afficheFileInputRef = useRef<HTMLInputElement>(null);
 
-    // MUSIQUE : Slide 1 = Annonce, Slides 2 à 19 = Tracks (pochette + titre + artiste + label), Slide 20 = Promo
-    type MusicTrackSlide = { cover: string; title: string; artist: string; label: string };
+    // MUSIQUE : Slide 1 = Annonce, Slides 2 à 19 = Tracks (pochette + titre + artiste + label + extrait audio), Slide 20 = Promo
+    type MusicTrackSlide = { cover: string; title: string; artist: string; label: string; audio?: string };
     const MAX_MUSIC_TRACKS = 18; // 1 intro + 18 tracks + 1 promo = 20 slides max (limite carrousel Instagram)
-    const createEmptyMusicTrack = (): MusicTrackSlide => ({ cover: '', title: '', artist: '', label: '' });
+    const createEmptyMusicTrack = (): MusicTrackSlide => ({ cover: '', title: '', artist: '', label: '', audio: '' });
     const [musicTracks, setMusicTracks] = useState<MusicTrackSlide[]>(() => [createEmptyMusicTrack()]);
+    const [musicIntroAudio, setMusicIntroAudio] = useState<string>('');
+    const musicAudioInputRef = useRef<HTMLInputElement>(null);
+    const musicIntroAudioInputRef = useRef<HTMLInputElement>(null);
     const musicCoverImgsRef = useRef<Record<string, HTMLImageElement>>({});
 
     const updateMusicTrack = (idx: number, patch: Partial<MusicTrackSlide>) => {
@@ -380,6 +385,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else {
             setAfficheImage(url);
         }
+        e.target.value = '';
+    };
+
+    const handleMusicAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        updateMusicTrack(Math.max(0, editorialSlide - 2), { audio: url });
+        e.target.value = '';
+    };
+
+    const handleMusicIntroAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        setMusicIntroAudio(url);
         e.target.value = '';
     };
 
@@ -4657,6 +4678,40 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         }
 
+        let musicAudioEl: HTMLAudioElement | null = null;
+        let musicAudioCtx: AudioContext | null = null;
+        let musicAudioDest: MediaStreamAudioDestinationNode | null = null;
+
+        const hasAnyMusicAudio = (theme === 'MUSIQUE') && (!!musicIntroAudio || musicTracks.some(t => !!t.audio));
+        if (hasAnyMusicAudio && !hasAudioTrack) {
+            try {
+                const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+                if (AudioContextClass) {
+                    musicAudioCtx = new AudioContextClass({ sampleRate: 48000 });
+                    if (musicAudioCtx.state === 'suspended') {
+                        await musicAudioCtx.resume();
+                    }
+                    musicAudioDest = musicAudioCtx.createMediaStreamDestination();
+                    musicAudioEl = document.createElement('audio');
+                    musicAudioEl.crossOrigin = 'anonymous';
+                    const musicSourceNode = musicAudioCtx.createMediaElementSource(musicAudioEl);
+                    musicSourceNode.connect(musicAudioDest);
+                    musicSourceNode.connect(musicAudioCtx.destination);
+
+                    const audioTracks = musicAudioDest.stream.getAudioTracks();
+                    if (audioTracks.length > 0) {
+                        hasAudioTrack = true;
+                        combinedStream = new MediaStream([
+                            ...canvasStream.getTracks(),
+                            ...audioTracks
+                        ]);
+                    }
+                }
+            } catch (audioInitErr) {
+                console.warn("Impossible de configurer l'AudioContext pour la musique :", audioInitErr);
+            }
+        }
+
         // Bitrate fluide équilibré pour éviter toute saturation CPU/mémoire et zéro drop de frame
         const bitrate = isMobile ? 6000000 : (fps === 60 ? 10000000 : 7000000);
 
@@ -4671,6 +4726,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         };
 
         recorder.onstop = async () => {
+            if (musicAudioEl) {
+                musicAudioEl.pause();
+                musicAudioEl.src = '';
+            }
+            if (musicAudioCtx && musicAudioCtx.state !== 'closed') {
+                musicAudioCtx.close().catch(() => {});
+            }
+
             if (chunks.length === 0) {
                 setErrorMessage("Erreur de capture vidéo.");
                 isVideoRecordingRef.current = false;
@@ -4865,6 +4928,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     animStartTimeRef.current = Date.now();
                 }
 
+                // Déclenchement synchronisé de l'extrait audio pour cette slide en mode MUSIQUE
+                if (isMusicTheme && musicAudioEl) {
+                    let slideAudioUrl = '';
+                    if (s === 1) {
+                        slideAudioUrl = musicIntroAudio || '';
+                    } else if (s >= 2) {
+                        const trIdx = s - 2;
+                        slideAudioUrl = musicTracks[trIdx]?.audio || '';
+                    }
+                    if (slideAudioUrl) {
+                        try {
+                            musicAudioEl.src = slideAudioUrl;
+                            musicAudioEl.currentTime = 0;
+                            musicAudioEl.play().catch(e => console.warn("Lecture extrait audio bloquée :", e));
+                        } catch (e) {
+                            console.warn("Erreur assignation audio :", e);
+                        }
+                    } else {
+                        musicAudioEl.pause();
+                        musicAudioEl.src = '';
+                    }
+                }
+
                 // Rendu actif frame-par-frame
                 await renderDuration(slideDuration);
             }
@@ -4964,6 +5050,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await renderDuration(16800);
             }
         } else {
+            if (theme === 'MUSIQUE' && musicAudioEl) {
+                let singleAudioUrl = '';
+                if (editorialSlide === 1) {
+                    singleAudioUrl = musicIntroAudio || '';
+                } else if (editorialSlide >= 2) {
+                    const trIdx = editorialSlide - 2;
+                    singleAudioUrl = musicTracks[trIdx]?.audio || '';
+                }
+                if (singleAudioUrl) {
+                    try {
+                        musicAudioEl.src = singleAudioUrl;
+                        musicAudioEl.currentTime = 0;
+                        musicAudioEl.play().catch(e => console.warn("Lecture extrait audio :", e));
+                    } catch (e) {
+                        console.warn("Erreur assignation audio :", e);
+                    }
+                }
+            }
             await renderDuration(totalDuration);
         }
 
@@ -4988,6 +5092,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             bgVideo.muted = true; // remet en silencieux pour le preview
             bgVideo.loop = true;
             bgVideo.play().catch(() => { });
+        }
+        if (musicAudioEl) {
+            musicAudioEl.pause();
+            musicAudioEl.src = '';
+        }
+        if (musicAudioCtx && musicAudioCtx.state !== 'closed') {
+            musicAudioCtx.close().catch(() => {});
         }
 
         if (recorder.state !== 'inactive') recorder.stop();
@@ -9333,7 +9444,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                             }`}
                         >
-                            <span className="text-xs">📢</span> Slide 1 : Annonce
+                            <span className="text-xs">📢</span> Slide 1 : Annonce {musicIntroAudio && <span className="text-[10px]" title="Audio attaché">🎵</span>}
                         </button>
 
                         {musicTracks.map((tr, idx) => {
@@ -9350,7 +9461,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
                                 >
-                                    <span className="text-xs">💿</span> S{sNum} : {tr.title ? (tr.title.length > 10 ? tr.title.substring(0, 10) + '...' : tr.title) : `Track ${idx + 1}`}
+                                    <span className="text-xs">💿</span> S{sNum} : {tr.title ? (tr.title.length > 10 ? tr.title.substring(0, 10) + '...' : tr.title) : `Track ${idx + 1}`} {tr.audio && <span className="text-[10px]" title="Audio attaché">🎵</span>}
                                 </button>
                             );
                         })}
@@ -9409,6 +9520,87 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <span>Édition Annonce Sortie Track</span>
                             <span className="text-[#00ff66]">Slide 1 (Intro)</span>
                         </div>
+
+                        {/* Extrait Audio Intro Optionnel */}
+                        <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-black text-[#00ff66] uppercase tracking-widest flex items-center gap-1.5">
+                                    <Music className="w-3.5 h-3.5 text-[#00ff66]" /> Extrait Audio Intro / Teaser (Optionnel)
+                                </label>
+                                {musicIntroAudio && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setMusicIntroAudio('')}
+                                        className="text-[9px] font-bold text-red-400 hover:text-red-300 transition-colors uppercase"
+                                    >
+                                        Retirer l'audio
+                                    </button>
+                                )}
+                            </div>
+
+                            <input
+                                type="file"
+                                ref={musicIntroAudioInputRef}
+                                onChange={handleMusicIntroAudioChange}
+                                accept="audio/*"
+                                className="hidden"
+                            />
+
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-between text-[9px] font-bold uppercase text-gray-400">
+                                    <span>Lien direct vers l'audio</span>
+                                    <span className="text-[8px] text-gray-500 font-normal">MP3, WAV, R2, CDN...</span>
+                                </div>
+                                <input
+                                    type="url"
+                                    placeholder="https://.../intro.mp3 (ou importer un fichier ci-dessous)"
+                                    value={musicIntroAudio.startsWith('blob:') ? '' : musicIntroAudio}
+                                    onChange={e => setMusicIntroAudio(e.target.value)}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => musicIntroAudioInputRef.current?.click()}
+                                    className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                                >
+                                    <Upload className="w-3.5 h-3.5 text-[#00ff66]" /> Fichier Audio Local
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setR2TargetType('musicIntroAudio');
+                                        setIsR2ModalOpen(true);
+                                    }}
+                                    className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                                >
+                                    <Volume2 className="w-3.5 h-3.5 text-neon-cyan" /> Audio Cloud R2
+                                </button>
+                            </div>
+
+                            {musicIntroAudio && (
+                                <div className="p-3 bg-black/50 border border-[#00ff66]/30 rounded-xl space-y-1.5">
+                                    <div className="flex items-center justify-between text-[8.5px] font-black uppercase">
+                                        <span className="text-[#00ff66] flex items-center gap-1">
+                                            <span>🔊</span> Audio Intro Chargé
+                                        </span>
+                                        <span className="text-gray-400 font-mono text-[7.5px]">
+                                            {musicIntroAudio.startsWith('blob:') ? 'Fichier local' : 'Lien Web / R2'}
+                                        </span>
+                                    </div>
+                                    <audio
+                                        key="preview-audio-intro"
+                                        controls
+                                        src={musicIntroAudio}
+                                        className="w-full h-8 rounded-lg"
+                                        preload="metadata"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
                         {conseilsEditor}
                     </div>
                 )}
@@ -9626,7 +9818,100 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </div>
                         </div>
 
-                        {/* SECTION C : IMAGE DE FOND / AMBIANCE */}
+                        {/* SECTION C : EXTRAIT AUDIO DU MORCEAU (MP3 / WAV / LIEN DIRECT) */}
+                        <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-black text-[#00ff66] uppercase tracking-widest flex items-center gap-1.5">
+                                    <Music className="w-3.5 h-3.5 text-[#00ff66]" /> Extrait Audio (Track {activeTrackIdx + 1})
+                                </label>
+                                {activeTrack.audio && (
+                                    <button
+                                        type="button"
+                                        onClick={() => updateMusicTrack(activeTrackIdx, { audio: '' })}
+                                        className="text-[9px] font-bold text-red-400 hover:text-red-300 transition-colors uppercase"
+                                    >
+                                        Retirer l'audio
+                                    </button>
+                                )}
+                            </div>
+
+                            <input
+                                type="file"
+                                ref={musicAudioInputRef}
+                                onChange={handleMusicAudioChange}
+                                accept="audio/*"
+                                className="hidden"
+                            />
+
+                            {/* Saisie URL directe */}
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-between text-[9px] font-bold uppercase text-gray-400">
+                                    <span>Lien de l'extrait audio</span>
+                                    <span className="text-[8px] text-gray-500 font-normal">MP3, WAV, R2, Soundcloud...</span>
+                                </div>
+                                <input
+                                    type="url"
+                                    placeholder="https://.../extrait.mp3 (ou importer un fichier ci-dessous)"
+                                    value={activeTrack.audio?.startsWith('blob:') ? '' : (activeTrack.audio || '')}
+                                    onChange={e => updateMusicTrack(activeTrackIdx, { audio: e.target.value })}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all"
+                                />
+                            </div>
+
+                            {/* Boutons d'import Audio Local & Cloud R2 */}
+                            <div className="grid grid-cols-2 gap-2 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => musicAudioInputRef.current?.click()}
+                                    className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                                >
+                                    <Upload className="w-3.5 h-3.5 text-[#00ff66]" /> Fichier Audio Local
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setR2TargetType('musicAudio');
+                                        setR2TargetIdx(activeTrackIdx);
+                                        setIsR2ModalOpen(true);
+                                    }}
+                                    className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                                >
+                                    <Volume2 className="w-3.5 h-3.5 text-neon-cyan" /> Audio Cloud R2
+                                </button>
+                            </div>
+
+                            {/* Lecteur de prévisualisation interactif */}
+                            {activeTrack.audio ? (
+                                <div className="p-3 bg-black/50 border border-[#00ff66]/30 rounded-xl space-y-2">
+                                    <div className="flex items-center justify-between text-[8.5px] font-black uppercase">
+                                        <span className="text-[#00ff66] flex items-center gap-1">
+                                            <span>🔊</span> Extrait Audio Chargé
+                                        </span>
+                                        <span className="text-gray-400 font-mono text-[7.5px]">
+                                            {activeTrack.audio.startsWith('blob:') ? 'Fichier local' : 'Lien Web / R2'}
+                                        </span>
+                                    </div>
+                                    <audio
+                                        key={`audio-track-${activeTrackIdx}`}
+                                        controls
+                                        src={activeTrack.audio}
+                                        className="w-full h-8 rounded-lg"
+                                        preload="metadata"
+                                    />
+                                    <p className="text-[8px] text-gray-400 italic">
+                                        Cet extrait audio sera joué automatiquement pendant le défilement de la Slide {editorialSlide} lors de l'export vidéo.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="p-2.5 bg-white/5 rounded-xl border border-dashed border-white/10 text-center">
+                                    <p className="text-[8.5px] text-gray-400">
+                                        Ajoutez l'extrait audio (MP3 ou WAV) de ce morceau pour l'export vidéo animé.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* SECTION D : IMAGE DE FOND / AMBIANCE */}
                         <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
                             <div className="flex items-center justify-between">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
@@ -9657,7 +9942,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </div>
                         </div>
 
-                        {/* SECTION D : SWIPE DROPSIDERS */}
+                        {/* SECTION E : SWIPE DROPSIDERS */}
                         <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
                             <div>
                                 <span className="text-[9px] font-black text-white uppercase block">Swipe Studio</span>
@@ -11287,6 +11572,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         if (r2TargetIdx !== null) {
                             updateMusicTrack(r2TargetIdx, { cover: finalUrl });
                         }
+                    } else if (r2TargetType === 'musicAudio') {
+                        if (r2TargetIdx !== null) {
+                            updateMusicTrack(r2TargetIdx, { audio: finalUrl });
+                        }
+                    } else if (r2TargetType === 'musicIntroAudio') {
+                        setMusicIntroAudio(finalUrl);
                     }
                     setR2TargetIdx(null);
                     setR2TargetType(null);
