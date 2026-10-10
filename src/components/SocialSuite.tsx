@@ -393,7 +393,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         p.onended = () => setActiveAudioPreviewSrc(null);
     };
 
-    const [singleSlideVideoDuration, setSingleSlideVideoDuration] = useState<number>(10);
+    // Durée strictement fixe à 30 secondes pour l'export vidéo de morceau (impossible à modifier)
+    const singleSlideVideoDuration = 30;
     const musicAudioInputRef = useRef<HTMLInputElement>(null);
     const musicIntroAudioInputRef = useRef<HTMLInputElement>(null);
     const musicCoverImgsRef = useRef<Record<string, HTMLImageElement>>({});
@@ -3590,12 +3591,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 drawTopCapsuleBadge('MUSIQUE', '#39ff14', '57, 255, 20');
 
                 // 3. Dimensions et proportions de la pochette carrée 1:1
-                const baseCardSize = isStory ? 780 : 540;
+                const baseCardSize = isStory ? 780 : 510;
                 const scale = (afficheScale || 100) / 100;
                 const cardW = Math.round(baseCardSize * scale);
                 const cardH = cardW; // Format 1:1
                 const cardX = Math.round((canvas.width - cardW) / 2);
-                const baseCardY = isStory ? 340 : 175;
+                const baseCardY = isStory ? 340 : 235;
                 const cardY = Math.round(baseCardY + (afficheOffsetY || 0));
                 const rad = isStory ? 34 : 26;
 
@@ -3721,7 +3722,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const centerX = canvas.width / 2;
 
                 // A) Track Number Pill (ex: "TRACK 01")
-                const pillY = isStory ? 1170 : 750;
+                const pillY = isStory ? 1180 : 790;
                 const trackNumText = `TRACK ${String(trackIdx + 1).padStart(2, '0')}`;
                 ctx.save();
                 ctx.font = '900 italic 15px "Montserrat", sans-serif';
@@ -3743,7 +3744,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
                 // B) TITRE DU MORCEAU (Gros, blanc avec highlights)
-                const titleY = isStory ? 1265 : 810;
+                const titleY = isStory ? 1275 : 850;
                 const titleText = currentTrack.title?.trim() || (trackIdx === 0 && conseilsTitle && conseilsTitle !== 'LE TITRE ICI' ? conseilsTitle : `TITRE DU MORCEAU`);
                 ctx.save();
                 let titleFontSize = isStory ? 52 : 38;
@@ -3758,7 +3759,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
                 // C) ARTISTE (En vert néon gras italique)
-                const artistY = isStory ? 1355 : 868;
+                const artistY = isStory ? 1370 : 910;
                 const artistText = currentTrack.artist?.trim() || (trackIdx === 0 && artistNameText ? artistNameText : 'NOM DE L\'ARTISTE');
                 ctx.save();
                 let artistFontSize = isStory ? 36 : 26;
@@ -3778,7 +3779,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // D) LABEL DISCOGRAPHIQUE (Badge capsule élégant si renseigné)
                 const labelRaw = currentTrack.label?.trim();
                 if (labelRaw) {
-                    const labelY = isStory ? 1445 : 930;
+                    const labelY = isStory ? 1465 : 970;
                     const labelDisplay = `LABEL : ${labelRaw.toUpperCase()}`;
                     ctx.save();
                     const labelFontSize = isStory ? 20 : 15;
@@ -5031,9 +5032,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else if (theme === 'TOP 10 FESTIVAL') {
             totalDuration = 4 * (16800 + 1200); // 4 slides (Cover + 3 Grid pages)
         } else {
-            // Pour MUSIQUE slide unique (Cover + Son), régler sur la durée choisie (10s par défaut) au lieu de 60s
+            // Pour MUSIQUE slide unique (Cover + Son), durée strictement FIXE à 30 secondes (impossible à modifier)
             if (theme === 'MUSIQUE') {
-                totalDuration = Math.round((singleSlideVideoDuration || 10) * 1000);
+                totalDuration = 30000;
             } else {
                 totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
                     ? bgVideo.duration * 1000
@@ -9045,27 +9046,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </button>
                 </div>
 
-                {/* Ligne 2 : Vidéo MP4 (avec Cover et Musique) */}
+                {/* Ligne 2 : Vidéo MP4 (avec Cover et Musique - 30s Fixe) */}
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         type="button"
                         onClick={() => exportCurrentSlideVideo('PUBLICATION')}
                         disabled={isDownloading || isVideoRecording}
                         className="py-2.5 px-3 bg-gradient-to-r from-[#00ff66]/20 to-[#00cc88]/20 hover:from-[#00ff66]/30 hover:to-[#00cc88]/30 border border-[#00ff66]/50 hover:border-[#00ff66] text-[#00ff66] rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-40"
-                        title="Exporter ce visuel en vidéo MP4 Post 1:1 avec la musique et la cover"
+                        title="Exporter ce visuel en vidéo MP4 Post 1:1 avec la musique et la cover (durée fixe : 30 secondes)"
                     >
                         <Video className="w-3.5 h-3.5 text-[#00ff66]" />
-                        {isVideoRecording ? 'CAPTURE...' : '🎬 MP4 POST (SON)'}
+                        {isVideoRecording ? 'CAPTURE 30s...' : '🎬 MP4 POST (30s)'}
                     </button>
                     <button
                         type="button"
                         onClick={() => exportCurrentSlideVideo('REEL')}
                         disabled={isDownloading || isVideoRecording}
                         className="py-2.5 px-3 bg-gradient-to-r from-neon-purple/20 to-pink-500/20 hover:from-neon-purple/30 hover:to-pink-500/30 border border-neon-purple/50 hover:border-neon-purple text-white rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-40"
-                        title="Exporter ce visuel en vidéo MP4 Story 9:16 avec la musique et la cover"
+                        title="Exporter ce visuel en vidéo MP4 Story 9:16 avec la musique et la cover (durée fixe : 30 secondes)"
                     >
                         <Video className="w-3.5 h-3.5 text-neon-purple" />
-                        {isVideoRecording ? 'CAPTURE...' : '🎬 MP4 STORY (SON)'}
+                        {isVideoRecording ? 'CAPTURE 30s...' : '🎬 MP4 STORY (30s)'}
                     </button>
                 </div>
             </div>
@@ -9141,32 +9142,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </button>
                 ) : ['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) ? (
                     <div className="space-y-2">
-                        {/* Option Dédiée pour thème MUSIQUE : Exporter le morceau actif seul */}
+                        {/* Option Dédiée pour thème MUSIQUE : Exporter le morceau actif seul (30s fixe) */}
                         {theme === 'MUSIQUE' && (
                             <div className="p-3 bg-gradient-to-r from-[#00ff66]/15 via-black/80 to-black/80 border border-[#00ff66]/40 rounded-2xl space-y-2 shadow-lg">
                                 <div className="flex items-center justify-between">
                                     <span className="text-[9px] font-black uppercase text-[#00ff66] flex items-center gap-1.5">
                                         🎵 Ce Morceau Seul (Cover + Son) • MP4
                                     </span>
-                                    <div className="flex items-center gap-1">
-                                        {[5, 10, 15, 30].map(s => (
-                                            <button
-                                                key={s}
-                                                type="button"
-                                                onClick={() => setSingleSlideVideoDuration(s)}
-                                                className={`px-1.5 py-0.5 rounded text-[7.5px] font-black border transition-all ${
-                                                    singleSlideVideoDuration === s
-                                                        ? 'bg-[#00ff66] text-black border-[#00ff66]'
-                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
-                                                }`}
-                                            >
-                                                {s}s
-                                            </button>
-                                        ))}
-                                    </div>
+                                    <span className="text-[8px] font-black text-black bg-[#00ff66] px-2 py-0.5 rounded-full font-mono">
+                                        30s Fixe
+                                    </span>
                                 </div>
                                 <p className="text-[7.5px] text-gray-400">
-                                    Exporte uniquement ce morceau avec sa pochette carrée 1:1 et son extrait audio synchronisé ({singleSlideVideoDuration}s).
+                                    Exporte uniquement ce morceau avec sa pochette carrée 1:1 et son extrait audio synchronisé (durée fixe de 30 secondes).
                                 </p>
                                 <div className="grid grid-cols-2 gap-2">
                                     <button
@@ -9175,7 +9163,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         disabled={isDownloading || isVideoRecording}
                                         className="py-2.5 px-2 bg-[#00ff66] hover:bg-[#33ff85] text-black rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow active:scale-95 disabled:opacity-40"
                                     >
-                                        <Video className="w-3.5 h-3.5" /> MP4 POST 1:1
+                                        <Video className="w-3.5 h-3.5" /> MP4 POST (30s)
                                     </button>
                                     <button
                                         type="button"
@@ -9183,7 +9171,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         disabled={isDownloading || isVideoRecording}
                                         className="py-2.5 px-2 bg-neon-purple hover:bg-purple-500 text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow active:scale-95 disabled:opacity-40"
                                     >
-                                        <Video className="w-3.5 h-3.5" /> MP4 STORY 9:16
+                                        <Video className="w-3.5 h-3.5" /> MP4 STORY (30s)
                                     </button>
                                 </div>
                             </div>
@@ -10001,10 +9989,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     onClick={() => exportCurrentSlideVideo()}
                                     disabled={isDownloading || isVideoRecording}
                                     className="px-2.5 py-1 bg-[#00ff66]/15 hover:bg-[#00ff66]/25 border border-[#00ff66]/40 text-[#00ff66] rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 active:scale-95 disabled:opacity-40"
-                                    title="Exporter ce morceau en vidéo MP4 avec sa pochette 1:1 et son extrait sonore"
+                                    title="Exporter ce morceau en vidéo MP4 de 30 secondes avec sa pochette 1:1 et son extrait sonore"
                                 >
                                     <Video className="w-3 h-3 text-[#00ff66]" />
-                                    {isVideoRecording ? 'Capture...' : '🎬 Exporter MP4'}
+                                    {isVideoRecording ? 'Capture 30s...' : '🎬 Exporter MP4 (30s)'}
                                 </button>
                                 {musicTracks.length > 1 && (
                                     <button
@@ -10519,7 +10507,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             )}
                         </div>
 
-                        {/* EXPORT VIDÉO RAPIDE DE CE MORCEAU (COVER + AUDIO) */}
+                        {/* EXPORT VIDÉO RAPIDE DE CE MORCEAU (COVER + AUDIO - 30s FIXE) */}
                         <div className="p-3 bg-gradient-to-r from-[#00ff66]/15 via-emerald-950/40 to-black/80 border border-[#00ff66]/50 rounded-2xl space-y-2.5 shadow-lg">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
@@ -10528,36 +10516,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         Exporter ce Morceau en MP4 (Cover + Son)
                                     </span>
                                 </div>
-                                <span className="text-[8px] font-bold text-white/80 bg-white/10 px-2 py-0.5 rounded-full">
-                                    {singleSlideVideoDuration}s
+                                <span className="text-[8px] font-black text-black bg-[#00ff66] px-2 py-0.5 rounded-full font-mono">
+                                    30s Fixe
                                 </span>
                             </div>
 
                             <p className="text-[7.5px] text-gray-300">
-                                Génère la vidéo MP4 avec la pochette carrée 1:1, les informations de la track et l'extrait musical synchronisé ({singleSlideVideoDuration}s).
+                                Génère la vidéo MP4 (durée fixe de 30 secondes) avec la pochette carrée 1:1, les informations de la track et l'extrait musical synchronisé depuis le point de départ choisi.
                             </p>
 
-                            <div className="flex items-center justify-between gap-2 text-[8px] text-gray-300 pt-0.5">
-                                <span className="font-bold">⏱️ Durée de l'extrait :</span>
-                                <div className="flex gap-1">
-                                    {[5, 10, 15, 30].map(s => (
-                                        <button
-                                            key={s}
-                                            type="button"
-                                            onClick={() => setSingleSlideVideoDuration(s)}
-                                            className={`px-2 py-0.5 rounded-lg font-black transition-all border ${
-                                                singleSlideVideoDuration === s
-                                                    ? 'bg-[#00ff66] text-black border-[#00ff66] shadow-[0_0_8px_rgba(0,255,102,0.5)]'
-                                                    : 'bg-white/5 border-white/15 text-gray-400 hover:text-white'
-                                            }`}
-                                        >
-                                            {s}s
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2 pt-1">
+                            <div className="grid grid-cols-2 gap-2 pt-0.5">
                                 <button
                                     type="button"
                                     onClick={() => exportCurrentSlideVideo('PUBLICATION')}
@@ -10565,7 +10533,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     className="py-2.5 px-2 bg-gradient-to-r from-[#00ff66] to-[#00cc88] hover:from-[#33ff85] hover:to-[#00e699] text-black rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-40"
                                 >
                                     <Video className="w-3.5 h-3.5 text-black" />
-                                    {isVideoRecording ? 'CAPTURE...' : '🎬 MP4 POST (1:1)'}
+                                    {isVideoRecording ? 'CAPTURE 30s...' : '🎬 MP4 POST (30s)'}
                                 </button>
                                 <button
                                     type="button"
@@ -10574,7 +10542,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     className="py-2.5 px-2 bg-gradient-to-r from-neon-purple to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-40"
                                 >
                                     <Video className="w-3.5 h-3.5 text-white" />
-                                    {isVideoRecording ? 'CAPTURE...' : '🎬 MP4 STORY (9:16)'}
+                                    {isVideoRecording ? 'CAPTURE 30s...' : '🎬 MP4 STORY (30s)'}
                                 </button>
                             </div>
                         </div>
