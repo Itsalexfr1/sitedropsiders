@@ -141,6 +141,63 @@ const AccordionChevron = ({ open }: { open: boolean }) => (
     <span className={`text-[10px] text-gray-400 group-hover:text-white transition-transform duration-300 ${open ? 'rotate-180' : ''}`}>▾</span>
 );
 
+// Helpers géométriques pour le Player CDJ (bague de progression circulaire/carrée arrondie)
+function drawRoundRectPathFromTopCenter(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+    ctx.beginPath();
+    ctx.moveTo(x + w / 2, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.arcTo(x + w, y, x + w, y + r, r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+    ctx.lineTo(x + r, y + h);
+    ctx.arcTo(x, y + h, x, y + h - r, r);
+    ctx.lineTo(x, y + r);
+    ctx.arcTo(x, y, x + r, y, r);
+    ctx.closePath();
+}
+
+function getRoundRectPerimeterPoint(x: number, y: number, w: number, h: number, r: number, progress: number) {
+    const p = Math.max(0, Math.min(1, progress));
+    const arcLen = (Math.PI / 2) * r;
+    const top1 = (w / 2) - r;
+    const rightStraight = h - 2 * r;
+    const bottomStraight = w - 2 * r;
+    const leftStraight = h - 2 * r;
+    const top2 = (w / 2) - r;
+    const total = top1 + arcLen + rightStraight + arcLen + bottomStraight + arcLen + leftStraight + arcLen + top2;
+    let d = p * total;
+
+    if (d <= top1) return { x: x + w / 2 + d, y };
+    d -= top1;
+    if (d <= arcLen) {
+        const ang = -Math.PI / 2 + (d / r);
+        return { x: (x + w - r) + r * Math.cos(ang), y: (y + r) + r * Math.sin(ang) };
+    }
+    d -= arcLen;
+    if (d <= rightStraight) return { x: x + w, y: y + r + d };
+    d -= rightStraight;
+    if (d <= arcLen) {
+        const ang = 0 + (d / r);
+        return { x: (x + w - r) + r * Math.cos(ang), y: (y + h - r) + r * Math.sin(ang) };
+    }
+    d -= arcLen;
+    if (d <= bottomStraight) return { x: (x + w - r) - d, y: y + h };
+    d -= bottomStraight;
+    if (d <= arcLen) {
+        const ang = Math.PI / 2 + (d / r);
+        return { x: (x + r) + r * Math.cos(ang), y: (y + h - r) + r * Math.sin(ang) };
+    }
+    d -= arcLen;
+    if (d <= leftStraight) return { x, y: (y + h - r) - d };
+    d -= leftStraight;
+    if (d <= arcLen) {
+        const ang = Math.PI + (d / r);
+        return { x: (x + r) + r * Math.cos(ang), y: (y + r) + r * Math.sin(ang) };
+    }
+    d -= arcLen;
+    return { x: (x + r) + d, y };
+}
+
 export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab, onGeneratePromo, isGeneratingPromo }: SocialSuiteProps) {
     const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'PUBLICATION');
     const [theme, setTheme] = useState<ThemeType>(() => {
@@ -360,6 +417,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [audioDurations, setAudioDurations] = useState<Record<string, number>>({});
     const previewAudioPlayerRef = useRef<HTMLAudioElement | null>(null);
     const [activeAudioPreviewSrc, setActiveAudioPreviewSrc] = useState<string | null>(null);
+    const [cdjPlayerRing, setCdjPlayerRing] = useState<boolean>(true); // Bague de progression 30s style Player CDJ Pioneer
+    const [musicBgMotion, setMusicBgMotion] = useState<boolean>(true); // Mouvement organique doux en arrière-plan
 
     const formatAudioTime = (seconds: number) => {
         const s = Math.max(0, Math.floor(seconds || 0));
@@ -1056,8 +1115,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const effectiveImg = img || (isMusiqueTrackSlide ? musiqueCoverImg : null);
 
             const isAnyAnimationActive = (textAnimation !== 'NONE' || bgAnimation !== 'NONE');
-            // Animation d'entrée jouée une seule fois au début, puis reste 100% fixe (aucun re-bouclage intempestif)
-            const animElapsed = (isVideoRecording || (bgVideo && !isDownloading) || isAnyAnimationActive)
+            const animElapsed = (isVideoRecording || (bgVideo && !isDownloading) || isAnyAnimationActive || (theme === 'MUSIQUE' && !isDownloading && (cdjPlayerRing || musicBgMotion)))
                 ? (Date.now() - animStartTimeRef.current) / 1000
                 : 99.0;
 
@@ -1147,6 +1205,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             let bgAnimScale = 1.0;
             let bgAnimX = 0;
             let bgAnimY = 0;
+
+            // En mode MUSIQUE : mouvement organique doux et cinématique de fond (dérive lente + respiration)
+            if (theme === 'MUSIQUE' && musicBgMotion && bgAnimation === 'NONE') {
+                const mTime = animElapsed;
+                bgAnimScale = 1.06 + Math.sin(mTime * 0.55) * 0.035;
+                bgAnimX = Math.sin(mTime * 0.40) * 22;
+                bgAnimY = Math.cos(mTime * 0.30) * 16;
+            }
 
             if (bgAnimation !== 'NONE' && (effectiveImg || bgVideo)) {
                 const loopDuration = 6.0;
@@ -1245,19 +1311,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2)) {
                         ctx.save();
-                        const blurBleed = 60;
+                        const blurBleed = 80;
                         const targetW = Math.round(iw + blurBleed * 2);
                         const targetH = Math.round(ih + blurBleed * 2);
-                        const cacheKey = `${effectiveImg.src || 'img'}_${targetW}_${targetH}`;
+                        const cacheKey = `${effectiveImg.src || 'img'}_base_blur`;
                         let cachedBlur = blurredBgCacheRef.current.get(cacheKey);
                         if (!cachedBlur) {
                             const off = document.createElement('canvas');
-                            off.width = Math.max(1, Math.round(targetW * 0.5));
-                            off.height = Math.max(1, Math.round(targetH * 0.5));
+                            off.width = Math.max(1, Math.round(canvas.width * 0.5));
+                            off.height = Math.max(1, Math.round(canvas.height * 0.5));
                             const offCtx = off.getContext('2d');
                             if (offCtx) {
                                 offCtx.filter = 'blur(16px) brightness(0.60)';
-                                offCtx.drawImage(effectiveImg, 0, 0, off.width, off.height);
+                                const s = Math.max(off.width / effectiveImg.width, off.height / effectiveImg.height);
+                                const dw = effectiveImg.width * s;
+                                const dh = effectiveImg.height * s;
+                                offCtx.drawImage(effectiveImg, (off.width - dw) / 2, (off.height - dh) / 2, dw, dh);
                             }
                             if (blurredBgCacheRef.current.size > 8) blurredBgCacheRef.current.clear();
                             blurredBgCacheRef.current.set(cacheKey, off);
@@ -3585,11 +3654,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillStyle = vig;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Halo lumineux néon vert centré derrière la pochette
+                // Halo lumineux néon vert centré derrière la pochette avec respiration douce cinématique
                 const haloY = isStory ? 730 : 555;
+                const haloBreath = musicBgMotion ? (1.0 + Math.sin(animElapsed * 1.2) * 0.12) : 1.0;
                 const haloGrad = ctx.createRadialGradient(
-                    canvas.width / 2, haloY, 80,
-                    canvas.width / 2, haloY, isStory ? 560 : 460
+                    canvas.width / 2, haloY, 80 * haloBreath,
+                    canvas.width / 2, haloY, (isStory ? 560 : 460) * haloBreath
                 );
                 haloGrad.addColorStop(0, 'rgba(57, 255, 20, 0.18)');
                 haloGrad.addColorStop(0.55, 'rgba(57, 255, 20, 0.04)');
@@ -3718,14 +3788,119 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillRect(cardX, cardY, cardW, cardH * 0.38);
                 ctx.restore();
 
-                // 6. Contour bordure vert néon élégant
-                ctx.save();
-                ctx.beginPath();
-                ctx.roundRect(cardX, cardY, cardW, cardH, rad);
-                ctx.strokeStyle = afficheBorderColor || 'rgba(57, 255, 20, 0.40)';
-                ctx.lineWidth = 2.5;
-                ctx.stroke();
-                ctx.restore();
+                // 6. Bague de lecture Pioneer CDJ Rouge (Remplissage 30s) ou bordure classique
+                if (cdjPlayerRing) {
+                    // A) Rainure / rail de fond CDJ métallique avec repère
+                    ctx.save();
+                    ctx.beginPath();
+                    drawRoundRectPathFromTopCenter(ctx, cardX, cardY, cardW, cardH, rad);
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+
+                    // Repère 12h au sommet (notch cue CDJ)
+                    ctx.beginPath();
+                    ctx.moveTo(cardX + cardW / 2, cardY - 4);
+                    ctx.lineTo(cardX + cardW / 2, cardY + 4);
+                    ctx.strokeStyle = '#ff0033';
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // B) Progression du player sur les 30 secondes
+                    let playerProgress = 0;
+                    if (isDownloading) {
+                        playerProgress = 1.0;
+                    } else if (isVideoRecording) {
+                        playerProgress = Math.min(1.0, Math.max(0, animElapsed / 30.0));
+                    } else if (activeAudioPreviewSrc && previewAudioPlayerRef.current && !previewAudioPlayerRef.current.paused) {
+                        const curTime = Math.max(0, previewAudioPlayerRef.current.currentTime - (currentTrack.audioStartTime || 0));
+                        playerProgress = Math.min(1.0, curTime / 30.0);
+                    } else {
+                        playerProgress = (animElapsed % 30.0) / 30.0;
+                    }
+
+                    const perimeter = 2 * (cardW + cardH) - (8 - 2 * Math.PI) * rad;
+                    const fillLength = Math.max(0.1, playerProgress * perimeter);
+
+                    // C) Laser rouge néon CDJ (#ff0033) avec lueur incandescente
+                    ctx.save();
+                    ctx.shadowColor = '#ff0033';
+                    ctx.shadowBlur = 14;
+                    ctx.strokeStyle = '#ff0033';
+                    ctx.lineWidth = 4.5;
+                    ctx.lineCap = 'round';
+                    ctx.setLineDash([fillLength, perimeter]);
+                    drawRoundRectPathFromTopCenter(ctx, cardX, cardY, cardW, cardH, rad);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.restore();
+
+                    // D) Tête de lecture LED Cue / Jog Head luminescente
+                    if (playerProgress > 0 && playerProgress < 1.0) {
+                        const pt = getRoundRectPerimeterPoint(cardX, cardY, cardW, cardH, rad, playerProgress);
+                        ctx.save();
+                        ctx.shadowColor = '#ff0033';
+                        ctx.shadowBlur = 18;
+                        ctx.fillStyle = '#ff0033';
+                        ctx.beginPath();
+                        ctx.arc(pt.x, pt.y, 6.5, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Point blanc cœur de diode
+                        ctx.fillStyle = '#ffffff';
+                        ctx.beginPath();
+                        ctx.arc(pt.x, pt.y, 2.5, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+
+                    // E) Badge digital CDJ "30S ON AIR" chic dans l'angle supérieur droit de la pochette
+                    ctx.save();
+                    const secondsDisplay = Math.min(30, Math.floor(playerProgress * 30));
+                    const badgeText = `${secondsDisplay}s / 30s`;
+                    ctx.font = '900 italic 11px "Montserrat", sans-serif';
+                    const bPadX = 10;
+                    const bH = 22;
+                    const bW = ctx.measureText(badgeText).width + (bPadX * 2) + 12;
+                    const bX = cardX + cardW - bW - 12;
+                    const bY = cardY + 14;
+
+                    ctx.fillStyle = 'rgba(10, 14, 12, 0.85)';
+                    ctx.strokeStyle = 'rgba(255, 0, 51, 0.45)';
+                    ctx.lineWidth = 1;
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                    ctx.shadowBlur = 8;
+                    ctx.beginPath();
+                    ctx.roundRect(bX, bY, bW, bH, 6);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Voyant rouge pulsant (Rec / On-Air)
+                    const dotAlpha = 0.6 + 0.4 * Math.sin(animElapsed * 6);
+                    ctx.fillStyle = `rgba(255, 0, 51, ${dotAlpha})`;
+                    ctx.shadowColor = '#ff0033';
+                    ctx.shadowBlur = 6;
+                    ctx.beginPath();
+                    ctx.arc(bX + 10, bY + bH / 2, 3, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowBlur = 0;
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(badgeText, bX + 18, bY + bH / 2);
+                    ctx.restore();
+                } else {
+                    // Contour bordure classique vert néon si option désactivée
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.roundRect(cardX, cardY, cardW, cardH, rad);
+                    ctx.strokeStyle = afficheBorderColor || 'rgba(57, 255, 20, 0.40)';
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+                    ctx.restore();
+                }
 
                 // 7. ZONE TEXTES EN DESSOUS : TITRE + ARTISTE + LABEL + LECTEUR 30S
                 const contentWidth = canvas.width - (isStory ? 160 : 120);
@@ -4566,12 +4741,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (isVideoRecording) {
             return;
         }
-        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || transitionProgress > 0) {
+        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || (theme === 'MUSIQUE' && (cdjPlayerRing || musicBgMotion)) || transitionProgress > 0) {
             const loop = () => { generateImage(); anim = requestAnimationFrame(loop); };
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, showTitleOnSlide2, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoCategory, showPromoHook, showPromoHeadline]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, showTitleOnSlide2, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoCategory, showPromoHook, showPromoHeadline]);
 
     // Pre-charger les pochettes des tracks du thème MUSIQUE
     useEffect(() => {
@@ -10274,6 +10449,51 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         }}
                                         className="w-full accent-[#00ff66] bg-white/10 rounded-lg h-1.5 cursor-pointer"
                                     />
+                                </div>
+
+                                {/* Animations CDJ Player & Fond Animé */}
+                                <div className="pt-2.5 border-t border-white/10 space-y-2">
+                                    <div className="text-[9px] font-black uppercase text-gray-400 flex items-center justify-between">
+                                        <span>Animations CDJ & Ambiance</span>
+                                        <span className="text-[8px] text-[#ff0033] font-bold">● LIVE 60 FPS</span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setCdjPlayerRing(prev => !prev)}
+                                            className={`px-2.5 py-2 rounded-xl text-[8.5px] font-black uppercase transition-all flex items-center justify-between border cursor-pointer ${
+                                                cdjPlayerRing
+                                                    ? 'bg-[#ff0033]/20 border-[#ff0033]/60 text-white shadow-[0_0_12px_rgba(255,0,51,0.3)]'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            <span className="flex items-center gap-1.5">
+                                                <span className={`w-2 h-2 rounded-full ${cdjPlayerRing ? 'bg-[#ff0033] animate-pulse shadow-[0_0_6px_#ff0033]' : 'bg-gray-600'}`} />
+                                                <span>Player CDJ Rouge</span>
+                                            </span>
+                                            <span className={`text-[8px] font-mono ${cdjPlayerRing ? 'text-[#ff0033]' : 'text-gray-500'}`}>
+                                                {cdjPlayerRing ? 'ON' : 'OFF'}
+                                            </span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setMusicBgMotion(prev => !prev)}
+                                            className={`px-2.5 py-2 rounded-xl text-[8.5px] font-black uppercase transition-all flex items-center justify-between border cursor-pointer ${
+                                                musicBgMotion
+                                                    ? 'bg-[#00ff66]/20 border-[#00ff66]/60 text-white shadow-[0_0_12px_rgba(0,255,102,0.3)]'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            <span className="flex items-center gap-1.5">
+                                                <span className={`w-2 h-2 rounded-full ${musicBgMotion ? 'bg-[#00ff66] animate-pulse shadow-[0_0_6px_#00ff66]' : 'bg-gray-600'}`} />
+                                                <span>Fond Organique</span>
+                                            </span>
+                                            <span className={`text-[8px] font-mono ${musicBgMotion ? 'text-[#00ff66]' : 'text-gray-500'}`}>
+                                                {musicBgMotion ? 'ON' : 'OFF'}
+                                            </span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
