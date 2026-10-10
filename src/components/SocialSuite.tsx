@@ -38,6 +38,7 @@ import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
 import { ImageUploadModal } from './ImageUploadModal';
 import { resolveImageUrl } from '../utils/image';
+import { resolveMusicSnippet } from '../utils/musicResolver';
 import recapsData from '../data/recaps.json';
 // @ts-ignore
 import { FFmpeg } from '@ffmpeg/ffmpeg';
@@ -402,6 +403,66 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const url = URL.createObjectURL(file);
         setMusicIntroAudio(url);
         e.target.value = '';
+    };
+
+    const [isResolvingAudio, setIsResolvingAudio] = useState(false);
+    const [musicResolveInfo, setMusicResolveInfo] = useState<{
+        trackIdx: number;
+        title: string;
+        artist: string;
+        coverUrl?: string;
+        platform: string;
+    } | null>(null);
+
+    const handleResolveMusicAudio = async (trackIdx: number, inputVal: string) => {
+        const tr = musicTracks[trackIdx];
+        if (!inputVal.trim() && !tr?.title && !tr?.artist) return;
+        setIsResolvingAudio(true);
+        setErrorMessage('');
+        try {
+            const res = await resolveMusicSnippet(inputVal, {
+                title: tr?.title,
+                artist: tr?.artist
+            });
+            if (res && res.audioUrl) {
+                updateMusicTrack(trackIdx, { audio: res.audioUrl });
+                setMusicResolveInfo({
+                    trackIdx,
+                    title: res.title || tr?.title || '',
+                    artist: res.artist || tr?.artist || '',
+                    coverUrl: res.coverUrl,
+                    platform: res.platform
+                });
+            } else {
+                setErrorMessage("Impossible d'extraire l'extrait audio à partir de ce lien. Vérifiez le lien ou utilisez un fichier MP3 local.");
+            }
+        } catch (e: any) {
+            console.warn("Erreur résolution audio :", e);
+            setErrorMessage("Erreur lors de la récupération de l'extrait musical.");
+        } finally {
+            setIsResolvingAudio(false);
+        }
+    };
+
+    const handleResolveIntroAudio = async (inputVal: string) => {
+        if (!inputVal.trim() && !conseilsTitle && !artistNameText) return;
+        setIsResolvingAudio(true);
+        try {
+            const res = await resolveMusicSnippet(inputVal, {
+                title: conseilsTitle,
+                artist: artistNameText
+            });
+            if (res && res.audioUrl) {
+                setMusicIntroAudio(res.audioUrl);
+            } else {
+                setErrorMessage("Impossible d'extraire l'extrait audio pour l'intro.");
+            }
+        } catch (e) {
+            console.warn("Erreur résolution intro :", e);
+            setErrorMessage("Erreur lors de la récupération de l'extrait musical.");
+        } finally {
+            setIsResolvingAudio(false);
+        }
     };
 
     // Text animation states for Reels
@@ -9548,16 +9609,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                             <div className="space-y-1">
                                 <div className="flex items-center justify-between text-[9px] font-bold uppercase text-gray-400">
-                                    <span>Lien direct vers l'audio</span>
-                                    <span className="text-[8px] text-gray-500 font-normal">MP3, WAV, R2, CDN...</span>
+                                    <span>Lien Streaming ou Fichier Audio</span>
+                                    <span className="text-[8px] text-[#00ff66] font-normal">Extraction 30s auto</span>
                                 </div>
-                                <input
-                                    type="url"
-                                    placeholder="https://.../intro.mp3 (ou importer un fichier ci-dessous)"
-                                    value={musicIntroAudio.startsWith('blob:') ? '' : musicIntroAudio}
-                                    onChange={e => setMusicIntroAudio(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all"
-                                />
+                                <div className="flex gap-1.5">
+                                    <input
+                                        type="url"
+                                        placeholder="Coller un lien Spotify, Beatport, Soundcloud ou MP3..."
+                                        value={musicIntroAudio.startsWith('blob:') ? '' : musicIntroAudio}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            setMusicIntroAudio(val);
+                                            if (val.match(/(spotify|beatport|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
+                                                handleResolveIntroAudio(val);
+                                            }
+                                        }}
+                                        className="flex-1 bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleResolveIntroAudio(musicIntroAudio)}
+                                        disabled={isResolvingAudio}
+                                        className="px-3 py-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 disabled:opacity-50 shadow-md active:scale-95 whitespace-nowrap"
+                                        title="Extraire l'extrait audio"
+                                    >
+                                        {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>⚡ Extraire</span>}
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-2 pt-1">
@@ -9843,23 +9921,95 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 className="hidden"
                             />
 
-                            {/* Saisie URL directe */}
-                            <div className="space-y-1">
-                                <div className="flex items-center justify-between text-[9px] font-bold uppercase text-gray-400">
-                                    <span>Lien de l'extrait audio</span>
-                                    <span className="text-[8px] text-gray-500 font-normal">MP3, WAV, R2, Soundcloud...</span>
-                                </div>
-                                <input
-                                    type="url"
-                                    placeholder="https://.../extrait.mp3 (ou importer un fichier ci-dessous)"
-                                    value={activeTrack.audio?.startsWith('blob:') ? '' : (activeTrack.audio || '')}
-                                    onChange={e => updateMusicTrack(activeTrackIdx, { audio: e.target.value })}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all"
-                                />
+                            {/* Badges des plateformes compatibles */}
+                            <div className="flex flex-wrap items-center gap-1 text-[7.5px] font-bold text-gray-400">
+                                <span className="text-[#00ff66] font-black uppercase">Auto-extraction :</span>
+                                <span className="px-1.5 py-0.5 rounded bg-[#1db954]/20 text-[#1db954] border border-[#1db954]/30">Spotify</span>
+                                <span className="px-1.5 py-0.5 rounded bg-[#00ff66]/20 text-[#00ff66] border border-[#00ff66]/30">Beatport</span>
+                                <span className="px-1.5 py-0.5 rounded bg-[#ff5500]/20 text-[#ff5500] border border-[#ff5500]/30">Soundcloud</span>
+                                <span className="px-1.5 py-0.5 rounded bg-[#fa243c]/20 text-[#fa243c] border border-[#fa243c]/30">Apple Music</span>
+                                <span className="px-1.5 py-0.5 rounded bg-[#a238ff]/20 text-[#a238ff] border border-[#a238ff]/30">Deezer</span>
+                                <span className="px-1.5 py-0.5 rounded bg-[#ff0000]/20 text-[#ff0000] border border-[#ff0000]/30">YouTube</span>
+                                <span className="px-1.5 py-0.5 rounded bg-white/10 text-gray-300">MP3 / WAV</span>
                             </div>
 
+                            {/* Saisie URL avec bouton d'extraction automatique */}
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-between text-[9px] font-bold uppercase text-gray-400">
+                                    <span>Lien Streaming ou Fichier Audio</span>
+                                    <span className="text-[8px] text-[#00ff66] font-normal">Extraction 30s auto</span>
+                                </div>
+                                <div className="flex gap-1.5">
+                                    <input
+                                        type="url"
+                                        placeholder="Coller un lien Spotify, Beatport, Soundcloud, Apple Music, Deezer, YouTube ou MP3..."
+                                        value={activeTrack.audio?.startsWith('blob:') ? '' : (activeTrack.audio || '')}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            updateMusicTrack(activeTrackIdx, { audio: val });
+                                            if (val.match(/(spotify|beatport|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
+                                                handleResolveMusicAudio(activeTrackIdx, val);
+                                            }
+                                        }}
+                                        className="flex-1 bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleResolveMusicAudio(activeTrackIdx, activeTrack.audio || '')}
+                                        disabled={isResolvingAudio}
+                                        className="px-3 py-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 disabled:opacity-50 shadow-md active:scale-95 whitespace-nowrap"
+                                        title="Extraire automatiquement l'extrait 30s de ce morceau"
+                                    >
+                                        {isResolvingAudio ? (
+                                            <span className="animate-spin">⏳</span>
+                                        ) : (
+                                            <span>⚡ Extraire</span>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Recherche directe par Titre & Artiste si déjà renseignés */}
+                            {(activeTrack.title || activeTrack.artist) && !activeTrack.audio && (
+                                <button
+                                    type="button"
+                                    onClick={() => handleResolveMusicAudio(activeTrackIdx, '')}
+                                    disabled={isResolvingAudio}
+                                    className="w-full py-2 bg-[#00ff66]/10 hover:bg-[#00ff66]/20 border border-[#00ff66]/30 text-[#00ff66] font-bold text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                                >
+                                    <span>🔍</span> Trouver l'extrait pour "{activeTrack.artist || ''} - {activeTrack.title || ''}"
+                                </button>
+                            )}
+
+                            {/* Résultat d'extraction avec proposition de pochette HD */}
+                            {musicResolveInfo && musicResolveInfo.trackIdx === activeTrackIdx && (
+                                <div className="p-3 bg-[#00ff66]/10 border border-[#00ff66]/30 rounded-xl space-y-2">
+                                    <div className="flex items-center justify-between text-[9px]">
+                                        <span className="font-black text-[#00ff66] uppercase flex items-center gap-1">
+                                            <span>✅</span> Extrait 30s extrait avec succès ({musicResolveInfo.platform.toUpperCase()})
+                                        </span>
+                                    </div>
+                                    <div className="text-[8.5px] text-gray-300">
+                                        Morceau : <strong>{musicResolveInfo.title}</strong> • Artiste : <strong>{musicResolveInfo.artist}</strong>
+                                    </div>
+                                    {musicResolveInfo.coverUrl && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                updateMusicTrack(activeTrackIdx, { cover: musicResolveInfo.coverUrl });
+                                                if (activeTrackIdx === 0) setAfficheImage(musicResolveInfo.coverUrl!);
+                                                setTimeout(() => generateImage(), 50);
+                                            }}
+                                            className="w-full py-1.5 bg-[#00ff66]/20 hover:bg-[#00ff66]/30 border border-[#00ff66]/40 text-[#00ff66] rounded-lg text-[8px] font-black uppercase transition-all flex items-center justify-center gap-1.5"
+                                        >
+                                            <span>🖼️</span> Appliquer la Pochette Officielle HD (1000x1000)
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+
                             {/* Boutons d'import Audio Local & Cloud R2 */}
-                            <div className="grid grid-cols-2 gap-2 pt-1">
+                            <div className="grid grid-cols-2 gap-2 pt-0.5">
                                 <button
                                     type="button"
                                     onClick={() => musicAudioInputRef.current?.click()}
@@ -9885,27 +10035,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <div className="p-3 bg-black/50 border border-[#00ff66]/30 rounded-xl space-y-2">
                                     <div className="flex items-center justify-between text-[8.5px] font-black uppercase">
                                         <span className="text-[#00ff66] flex items-center gap-1">
-                                            <span>🔊</span> Extrait Audio Chargé
+                                            <span>🔊</span> Extrait Audio Prêt
                                         </span>
                                         <span className="text-gray-400 font-mono text-[7.5px]">
-                                            {activeTrack.audio.startsWith('blob:') ? 'Fichier local' : 'Lien Web / R2'}
+                                            {activeTrack.audio.startsWith('blob:') ? 'Fichier local' : 'Extrait streaming HD'}
                                         </span>
                                     </div>
                                     <audio
                                         key={`audio-track-${activeTrackIdx}`}
                                         controls
                                         src={activeTrack.audio}
-                                        className="w-full h-8 rounded-lg"
+                                        className="w-full h-8 rounded-lg accent-[#00ff66]"
                                         preload="metadata"
                                     />
                                     <p className="text-[8px] text-gray-400 italic">
-                                        Cet extrait audio sera joué automatiquement pendant le défilement de la Slide {editorialSlide} lors de l'export vidéo.
+                                        Cet extrait sera joué automatiquement pendant le défilement de la Slide {editorialSlide} lors de l'export vidéo.
                                     </p>
                                 </div>
                             ) : (
                                 <div className="p-2.5 bg-white/5 rounded-xl border border-dashed border-white/10 text-center">
                                     <p className="text-[8.5px] text-gray-400">
-                                        Ajoutez l'extrait audio (MP3 ou WAV) de ce morceau pour l'export vidéo animé.
+                                        Collez un lien Spotify, Beatport, Soundcloud ou importez un MP3 pour activer l'extrait sonore sur cette slide.
                                     </p>
                                 </div>
                             )}
