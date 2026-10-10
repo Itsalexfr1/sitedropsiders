@@ -9788,22 +9788,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="p-3 bg-gradient-to-r from-black/80 via-[#00ff66]/10 to-black/80 border border-[#00ff66]/40 rounded-2xl space-y-2 shadow-xl">
                             <div className="flex items-center justify-between">
                                 <label className="text-[9.5px] font-black text-[#00ff66] uppercase tracking-wider flex items-center gap-1.5">
-                                    ⚡ Extraire Cover & Audio (Lien Streaming)
+                                    ⚡ Recherche Directe Beatport (Cover 1400x1400 + Audio 120s)
                                 </label>
                                 <span className="text-[7.5px] font-bold text-gray-400 bg-white/5 px-2 py-0.5 rounded-full border border-white/10 uppercase">
-                                    Spotify • Beatport • Soundcloud
+                                    <span className="text-[#00ff66] font-black">Beatport Direct (120s Drop)</span> • Spotify • Soundcloud
                                 </span>
                             </div>
                             <div className="flex gap-1.5">
                                 <input
-                                    type="url"
-                                    placeholder="Coller un lien Spotify, Beatport, Soundcloud ou Apple Music..."
+                                    type="text"
+                                    placeholder="Recherche Beatport (ex: Dimension Frequency) ou lien direct..."
                                     value={smartImportUrl}
                                     onChange={(e) => {
                                         const val = e.target.value;
                                         setSmartImportUrl(val);
                                         if (val.match(/(spotify|beatport|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
                                             handleResolveIntroAudio(val);
+                                        }
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            handleResolveIntroAudio(smartImportUrl);
                                         }
                                     }}
                                     className="flex-1 bg-black/60 border border-white/15 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66] transition-all"
@@ -9814,11 +9819,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     disabled={isResolvingAudio}
                                     className="px-3.5 py-2 bg-gradient-to-r from-[#00ff66] to-[#00cc88] hover:from-[#33ff85] hover:to-[#00e699] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-md active:scale-95 whitespace-nowrap"
                                 >
-                                    {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>⚡ Extraire Cover</span>}
+                                    {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>⚡ Chercher Beatport</span>}
                                 </button>
                             </div>
                             <p className="text-[7.5px] text-gray-400">
-                                🖼️ Extrait la <strong>Cover HD (1000x1000)</strong> en fond de la slide + l'<strong>Audio 30s teaser</strong>.
+                                🖼️ Recherche directement sur <strong>Beatport</strong> la <strong>Cover Ultra-HD (1400x1400)</strong> et l'extrait de <strong>120 secondes</strong> centré sur le Drop.
                             </p>
                         </div>
 
@@ -9849,19 +9854,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                             <div className="space-y-1">
                                 <div className="flex items-center justify-between text-[9px] font-bold uppercase text-gray-400">
-                                    <span>Lien Streaming ou Fichier Audio</span>
-                                    <span className="text-[8px] text-[#00ff66] font-normal">Extraction 30s auto</span>
+                                    <span>Recherche Beatport ou Lien Direct</span>
+                                    <span className="text-[8px] text-[#00ff66] font-bold">Extrait 120s Drop direct</span>
                                 </div>
                                 <div className="flex gap-1.5">
                                     <input
-                                        type="url"
-                                        placeholder="Coller un lien Spotify, Beatport, Soundcloud ou MP3..."
+                                        type="text"
+                                        placeholder="Recherche Beatport (ex: Dimension Frequency) ou lien direct..."
                                         value={musicIntroAudio.startsWith('blob:') ? '' : musicIntroAudio}
                                         onChange={e => {
                                             const val = e.target.value;
                                             setMusicIntroAudio(val);
                                             if (val.match(/(spotify|beatport|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
                                                 handleResolveIntroAudio(val);
+                                            }
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                handleResolveIntroAudio(musicIntroAudio);
                                             }
                                         }}
                                         className="flex-1 bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all"
@@ -9871,9 +9881,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         onClick={() => handleResolveIntroAudio(musicIntroAudio)}
                                         disabled={isResolvingAudio}
                                         className="px-3 py-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 disabled:opacity-50 shadow-md active:scale-95 whitespace-nowrap"
-                                        title="Extraire l'extrait audio"
+                                        title="Chercher directement sur Beatport"
                                     >
-                                        {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>⚡ Extraire</span>}
+                                        {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>⚡ Chercher Beatport</span>}
                                     </button>
                                 </div>
                             </div>
@@ -10046,22 +10056,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="p-3 bg-gradient-to-r from-black/80 via-[#00ff66]/10 to-black/80 border border-[#00ff66]/40 rounded-2xl space-y-2 shadow-xl">
                             <div className="flex items-center justify-between">
                                 <label className="text-[9.5px] font-black text-[#00ff66] uppercase tracking-wider flex items-center gap-1.5">
-                                    ⚡ Import Auto (Cover + Son + Titres)
+                                    ⚡ Recherche Directe Beatport (Cover 1400x1400 + Audio 120s Drop + Titres)
                                 </label>
                                 <span className="text-[7.5px] font-bold text-gray-400 bg-white/5 px-2 py-0.5 rounded-full border border-white/10 uppercase">
-                                    Spotify • Beatport • Soundcloud
+                                    <span className="text-[#00ff66] font-black">Beatport Direct (120s Drop)</span> • Spotify • Soundcloud
                                 </span>
                             </div>
                             <div className="flex gap-1.5">
                                 <input
-                                    type="url"
-                                    placeholder="Coller un lien Spotify, Beatport, Soundcloud ou Apple Music..."
+                                    type="text"
+                                    placeholder="Recherche Beatport (ex: Dimension Frequency) ou lien direct..."
                                     value={smartImportUrl}
                                     onChange={(e) => {
                                         const val = e.target.value;
                                         setSmartImportUrl(val);
                                         if (val.match(/(spotify|beatport|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
                                             handleExtractTrackData(activeTrackIdx, val);
+                                        }
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            handleExtractTrackData(activeTrackIdx, smartImportUrl);
                                         }
                                     }}
                                     className="flex-1 bg-black/60 border border-white/15 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66] transition-all"
@@ -10072,11 +10087,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     disabled={isResolvingAudio}
                                     className="px-3.5 py-2 bg-gradient-to-r from-[#00ff66] to-[#00cc88] hover:from-[#33ff85] hover:to-[#00e699] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-md active:scale-95 whitespace-nowrap"
                                 >
-                                    {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>⚡ Tout Extraire</span>}
+                                    {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>⚡ Chercher Beatport</span>}
                                 </button>
                             </div>
                             <div className="flex items-center justify-between text-[7.5px] text-gray-400">
-                                <span>Extrait la <strong>Pochette HD (1000x1000)</strong> + l'<strong>Audio 30s</strong></span>
+                                <span>Extrait la <strong>Pochette Ultra-HD (1400x1400)</strong> + l'<strong>Audio 120s Drop</strong></span>
                                 {(activeTrack.title || activeTrack.artist) && (
                                     <button
                                         type="button"
@@ -10084,7 +10099,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         disabled={isResolvingAudio}
                                         className="text-[#00ff66] hover:underline font-bold"
                                     >
-                                        🔍 Extraire par Titre & Artiste
+                                        🎧 Chercher sur Beatport "{activeTrack.artist || ''} - {activeTrack.title || ''}"
                                     </button>
                                 )}
                             </div>
@@ -10174,12 +10189,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <div className="space-y-1 pt-1">
                                 <div className="flex items-center justify-between text-[8.5px] font-bold uppercase text-gray-400">
                                     <span>Lien de la Cover ou Lien Streaming</span>
-                                    <span className="text-[7.5px] text-[#00ff66]">Spotify, Beatport, Apple, Image URL...</span>
+                                    <span className="text-[7.5px] text-[#00ff66]">Beatport (1400x1400), Spotify, Image URL...</span>
                                 </div>
                                 <div className="flex gap-1.5">
                                     <input
                                         type="url"
-                                        placeholder="Coller lien Spotify, Beatport, Apple Music ou URL d'image..."
+                                        placeholder="Coller lien Beatport, Spotify, Apple Music ou URL d'image..."
                                         value={activeCoverUrl.startsWith('blob:') ? '' : activeCoverUrl}
                                         onChange={e => {
                                             const val = e.target.value;
@@ -10197,7 +10212,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         onClick={() => handleExtractTrackData(activeTrackIdx, activeCoverUrl || smartImportUrl || activeTrack.audio || '')}
                                         disabled={isResolvingAudio}
                                         className="px-3 py-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 disabled:opacity-50 shadow-md active:scale-95 whitespace-nowrap"
-                                        title="Extraire la pochette officielle 1000x1000"
+                                        title="Extraire la pochette officielle 1400x1400"
                                     >
                                         {isResolvingAudio ? (
                                             <span className="animate-spin">⏳</span>
@@ -10336,32 +10351,35 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                             {/* Badges des plateformes compatibles */}
                             <div className="flex flex-wrap items-center gap-1 text-[7.5px] font-bold text-gray-400">
-                                <span className="text-[#00ff66] font-black uppercase">Auto-extraction :</span>
+                                <span className="text-[#00ff66] font-black uppercase">Source directe prioritaire :</span>
+                                <span className="px-1.5 py-0.5 rounded bg-[#00ff66]/20 text-[#00ff66] border border-[#00ff66]/40 font-black">🎧 Beatport (120s Drop)</span>
                                 <span className="px-1.5 py-0.5 rounded bg-[#1db954]/20 text-[#1db954] border border-[#1db954]/30">Spotify</span>
-                                <span className="px-1.5 py-0.5 rounded bg-[#00ff66]/20 text-[#00ff66] border border-[#00ff66]/30">Beatport</span>
                                 <span className="px-1.5 py-0.5 rounded bg-[#ff5500]/20 text-[#ff5500] border border-[#ff5500]/30">Soundcloud</span>
                                 <span className="px-1.5 py-0.5 rounded bg-[#fa243c]/20 text-[#fa243c] border border-[#fa243c]/30">Apple Music</span>
-                                <span className="px-1.5 py-0.5 rounded bg-[#a238ff]/20 text-[#a238ff] border border-[#a238ff]/30">Deezer</span>
-                                <span className="px-1.5 py-0.5 rounded bg-[#ff0000]/20 text-[#ff0000] border border-[#ff0000]/30">YouTube</span>
                                 <span className="px-1.5 py-0.5 rounded bg-white/10 text-gray-300">MP3 / WAV</span>
                             </div>
 
                             {/* Saisie URL avec bouton d'extraction automatique */}
                             <div className="space-y-1">
                                 <div className="flex items-center justify-between text-[9px] font-bold uppercase text-gray-400">
-                                    <span>Lien Streaming ou Fichier Audio</span>
-                                    <span className="text-[8px] text-[#00ff66] font-normal">Extraction 30s auto</span>
+                                    <span>Recherche Beatport ou Lien Direct</span>
+                                    <span className="text-[8px] text-[#00ff66] font-bold">Extrait 120s centré sur le Drop</span>
                                 </div>
                                 <div className="flex gap-1.5">
                                     <input
-                                        type="url"
-                                        placeholder="Coller un lien Spotify, Beatport, Soundcloud, Apple Music, Deezer, YouTube ou MP3..."
+                                        type="text"
+                                        placeholder="Recherche Beatport (ex: Dimension Frequency) ou lien direct..."
                                         value={activeTrack.audio?.startsWith('blob:') ? '' : (activeTrack.audio || '')}
                                         onChange={e => {
                                             const val = e.target.value;
                                             updateMusicTrack(activeTrackIdx, { audio: val });
                                             if (val.match(/(spotify|beatport|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
                                                 handleResolveMusicAudio(activeTrackIdx, val);
+                                            }
+                                        }}
+                                        onKeyDown={e => {
+                                            if (e.key === 'Enter') {
+                                                handleResolveMusicAudio(activeTrackIdx, activeTrack.audio || '');
                                             }
                                         }}
                                         className="flex-1 bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all"
@@ -10371,12 +10389,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         onClick={() => handleResolveMusicAudio(activeTrackIdx, activeTrack.audio || '')}
                                         disabled={isResolvingAudio}
                                         className="px-3 py-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 disabled:opacity-50 shadow-md active:scale-95 whitespace-nowrap"
-                                        title="Extraire automatiquement l'extrait 30s de ce morceau"
+                                        title="Chercher directement sur Beatport l'extrait 120s avec le drop"
                                     >
                                         {isResolvingAudio ? (
                                             <span className="animate-spin">⏳</span>
                                         ) : (
-                                            <span>⚡ Extraire</span>
+                                            <span>⚡ Chercher Beatport</span>
                                         )}
                                     </button>
                                 </div>
@@ -10388,9 +10406,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => handleResolveMusicAudio(activeTrackIdx, '')}
                                     disabled={isResolvingAudio}
-                                    className="w-full py-2 bg-[#00ff66]/10 hover:bg-[#00ff66]/20 border border-[#00ff66]/30 text-[#00ff66] font-bold text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                                    className="w-full py-2 bg-[#00ff66]/10 hover:bg-[#00ff66]/20 border border-[#00ff66]/30 text-[#00ff66] font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-1.5 active:scale-95"
                                 >
-                                    <span>🔍</span> Trouver l'extrait pour "{activeTrack.artist || ''} - {activeTrack.title || ''}"
+                                    <span>🎧</span> Chercher sur Beatport (120s Drop) pour "{activeTrack.artist || ''} - {activeTrack.title || ''}"
                                 </button>
                             )}
 
@@ -10399,7 +10417,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <div className="p-3 bg-[#00ff66]/10 border border-[#00ff66]/30 rounded-xl space-y-2">
                                     <div className="flex items-center justify-between text-[9px]">
                                         <span className="font-black text-[#00ff66] uppercase flex items-center gap-1">
-                                            <span>✅</span> Extrait 30s extrait avec succès ({musicResolveInfo.platform.toUpperCase()})
+                                            <span>✅</span> Extrait {musicResolveInfo.platform === 'beatport' ? '120s Drop' : 'officiel'} trouvé ({musicResolveInfo.platform.toUpperCase()})
                                         </span>
                                     </div>
                                     <div className="text-[8.5px] text-gray-300">
@@ -10415,7 +10433,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             }}
                                             className="w-full py-1.5 bg-[#00ff66]/20 hover:bg-[#00ff66]/30 border border-[#00ff66]/40 text-[#00ff66] rounded-lg text-[8px] font-black uppercase transition-all flex items-center justify-center gap-1.5"
                                         >
-                                            <span>🖼️</span> Appliquer la Pochette Officielle HD (1000x1000)
+                                            <span>🖼️</span> Appliquer la Pochette Officielle HD ({musicResolveInfo.platform === 'beatport' ? '1400x1400' : '1000x1000'})
                                         </button>
                                     )}
                                 </div>

@@ -503,15 +503,26 @@ export async function resolveMusicSnippet(
         }
     }
 
-    // 8. Recherche directe de la chaîne saisie (Titre, Artiste...)
-    const fallbackTerm = [trimmed, fallback?.artist, fallback?.title].filter(Boolean).join(' ');
-    // Essayer Beatport en priorité !
-    const bpResult = await searchBeatportSnippet(fallbackTerm, 'beatport');
-    if (bpResult) return bpResult;
+    // 8. Recherche directe de la chaîne saisie (Titre, Artiste...) sur Beatport en priorité
+    let query = trimmed;
+    if (!query) {
+        query = [fallback?.artist, fallback?.title].filter(Boolean).join(' ');
+    } else {
+        const lower = query.toLowerCase();
+        if (fallback?.artist && !lower.includes(fallback.artist.toLowerCase())) {
+            query = `${fallback.artist} ${query}`;
+        }
+    }
 
-    // Fallback iTunes
-    const searchResult = await searchItunesSnippet(fallbackTerm, 'search');
-    if (searchResult) return searchResult;
+    if (query) {
+        // Recherche prioritaire directe sur Beatport (extrait 120s centré sur le Drop)
+        const bpResult = await searchBeatportSnippet(query, 'beatport');
+        if (bpResult) return bpResult;
+
+        // Fallback iTunes si introuvable sur Beatport
+        const searchResult = await searchItunesSnippet(query, 'search');
+        if (searchResult) return searchResult;
+    }
 
     return null;
 }
