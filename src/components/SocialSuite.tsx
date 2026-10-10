@@ -3533,7 +3533,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const centerX = canvas.width / 2;
 
                 // A) Track Number Pill (ex: "TRACK 01")
-                const pillY = isStory ? 1140 : 925;
+                const pillY = isStory ? 1170 : 935;
                 const trackNumText = `TRACK ${String(trackIdx + 1).padStart(2, '0')}`;
                 ctx.save();
                 ctx.font = '900 italic 15px "Montserrat", sans-serif';
@@ -3555,7 +3555,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
                 // B) TITRE DU MORCEAU (Gros, blanc avec highlights)
-                const titleY = isStory ? 1215 : 985;
+                const titleY = isStory ? 1270 : 1010;
                 const titleText = currentTrack.title?.trim() || (trackIdx === 0 && conseilsTitle && conseilsTitle !== 'LE TITRE ICI' ? conseilsTitle : `TITRE DU MORCEAU`);
                 ctx.save();
                 let titleFontSize = isStory ? 52 : 44;
@@ -3570,7 +3570,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
                 // C) ARTISTE (En vert néon gras italique)
-                const artistY = isStory ? 1290 : 1050;
+                const artistY = isStory ? 1365 : 1085;
                 const artistText = currentTrack.artist?.trim() || (trackIdx === 0 && artistNameText ? artistNameText : 'NOM DE L\'ARTISTE');
                 ctx.save();
                 let artistFontSize = isStory ? 36 : 28;
@@ -3587,79 +3587,35 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(artistText.toUpperCase(), centerX, artistY);
                 ctx.restore();
 
-                // D) LABEL DISCOGRAPHIQUE (Badge capsule élégant)
-                const labelY = isStory ? 1370 : 1115;
+                // D) LABEL DISCOGRAPHIQUE (Badge capsule élégant si renseigné)
                 const labelRaw = currentTrack.label?.trim();
-                const labelDisplay = labelRaw ? `LABEL : ${labelRaw.toUpperCase()}` : 'LABEL : DROPSIDERS RECORDS';
-                ctx.save();
-                const labelFontSize = isStory ? 20 : 16;
-                ctx.font = `800 ${labelFontSize}px "Montserrat", sans-serif`;
-                const lPadX = 20;
-                const lH = isStory ? 40 : 34;
-                const lW = ctx.measureText(labelDisplay).width + (lPadX * 2);
+                if (labelRaw) {
+                    const labelY = isStory ? 1460 : 1160;
+                    const labelDisplay = `LABEL : ${labelRaw.toUpperCase()}`;
+                    ctx.save();
+                    const labelFontSize = isStory ? 20 : 16;
+                    ctx.font = `800 ${labelFontSize}px "Montserrat", sans-serif`;
+                    const lPadX = 20;
+                    const lH = isStory ? 42 : 36;
+                    const lW = ctx.measureText(labelDisplay).width + (lPadX * 2);
 
-                ctx.fillStyle = 'rgba(18, 22, 19, 0.85)';
-                ctx.strokeStyle = labelRaw ? 'rgba(57, 255, 20, 0.35)' : 'rgba(255, 255, 255, 0.20)';
-                ctx.lineWidth = 1.5;
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-                ctx.shadowBlur = 12;
-                ctx.beginPath();
-                ctx.roundRect(centerX - lW / 2, labelY - lH / 2, lW, lH, 10);
-                ctx.fill();
-                ctx.stroke();
-
-                ctx.fillStyle = labelRaw ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.60)';
-                ctx.shadowBlur = 0;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(labelDisplay, centerX, labelY);
-                ctx.restore();
-
-                // E) AUDIO WAVEFORM PROGRESS BAR (Extrait sonore 30s)
-                const waveY = isStory ? 1465 : 1180;
-                const waveW = isStory ? 600 : 480;
-                const waveStartX = centerX - waveW / 2;
-                ctx.save();
-                // Time Left (0:15)
-                ctx.font = '800 13px "Montserrat", sans-serif';
-                ctx.fillStyle = '#39ff14';
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('0:15', waveStartX, waveY);
-
-                // Time Right (0:30)
-                ctx.font = '700 13px "Montserrat", sans-serif';
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.50)';
-                ctx.textAlign = 'right';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('0:30', waveStartX + waveW, waveY);
-
-                // Bars in center
-                const barsStartX = waveStartX + 42;
-                const barsEndX = waveStartX + waveW - 42;
-                const barsWidth = barsEndX - barsStartX;
-                const numBars = isStory ? 28 : 24;
-                const barGap = 4;
-                const barWidth = (barsWidth - (numBars - 1) * barGap) / numBars;
-                const wavePatterns = [8, 14, 20, 12, 26, 18, 10, 22, 28, 16, 24, 12, 18, 26, 14, 22, 10, 16, 24, 18, 12, 20, 14, 8, 12, 18, 22, 14];
-
-                for (let b = 0; b < numBars; b++) {
-                    const barH = wavePatterns[b % wavePatterns.length] * (isStory ? 1.2 : 0.9);
-                    const bx = barsStartX + b * (barWidth + barGap);
-                    const by = waveY - barH / 2;
-                    const isActive = b < (numBars / 2); // 0:15 / 0:30 is 50%
-                    ctx.fillStyle = isActive ? '#39ff14' : 'rgba(255, 255, 255, 0.22)';
-                    if (isActive) {
-                        ctx.shadowColor = 'rgba(57, 255, 20, 0.6)';
-                        ctx.shadowBlur = 6;
-                    } else {
-                        ctx.shadowBlur = 0;
-                    }
+                    ctx.fillStyle = 'rgba(18, 22, 19, 0.85)';
+                    ctx.strokeStyle = 'rgba(57, 255, 20, 0.35)';
+                    ctx.lineWidth = 1.5;
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+                    ctx.shadowBlur = 12;
                     ctx.beginPath();
-                    ctx.roundRect(bx, by, barWidth, barH, barWidth / 2);
+                    ctx.roundRect(centerX - lW / 2, labelY - lH / 2, lW, lH, 10);
                     ctx.fill();
+                    ctx.stroke();
+
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                    ctx.shadowBlur = 0;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(labelDisplay, centerX, labelY);
+                    ctx.restore();
                 }
-                ctx.restore();
 
                 // F) FOOTER & SWIPE
                 const footerY = canvas.height - (isStory ? 80 : 50);
