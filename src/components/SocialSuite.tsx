@@ -3516,7 +3516,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
                 glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
                 ctx.fillStyle = glossGrad;
-                ctx.fillRect(cardX, cardY, cardH * 0.38);
+                ctx.fillRect(cardX, cardY, cardW, cardH * 0.38);
                 ctx.restore();
 
                 // 6. Contour bordure vert néon élégant
