@@ -31,7 +31,8 @@ import {
     Square,
     Play,
     Volume2,
-    Music
+    Music,
+    Scissors
 } from 'lucide-react';
 import { ExportSuccessModal } from './ExportSuccessModal';
 import { fixEncoding } from '../utils/standardizer';
@@ -346,11 +347,48 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const afficheFileInputRef = useRef<HTMLInputElement>(null);
 
     // MUSIQUE : Slide 1 = Annonce, Slides 2 à 19 = Tracks (pochette + titre + artiste + label + extrait audio), Slide 20 = Promo
-    type MusicTrackSlide = { cover: string; title: string; artist: string; label: string; audio?: string };
+    type MusicTrackSlide = { cover: string; title: string; artist: string; label: string; audio?: string; audioStartTime?: number };
     const MAX_MUSIC_TRACKS = 18; // 1 intro + 18 tracks + 1 promo = 20 slides max (limite carrousel Instagram)
-    const createEmptyMusicTrack = (): MusicTrackSlide => ({ cover: '', title: '', artist: '', label: '', audio: '' });
+    const createEmptyMusicTrack = (): MusicTrackSlide => ({ cover: '', title: '', artist: '', label: '', audio: '', audioStartTime: 0 });
     const [musicTracks, setMusicTracks] = useState<MusicTrackSlide[]>(() => [createEmptyMusicTrack()]);
     const [musicIntroAudio, setMusicIntroAudio] = useState<string>('');
+    const [musicIntroAudioStartTime, setMusicIntroAudioStartTime] = useState<number>(0);
+    const [audioDurations, setAudioDurations] = useState<Record<string, number>>({});
+    const previewAudioPlayerRef = useRef<HTMLAudioElement | null>(null);
+    const [activeAudioPreviewSrc, setActiveAudioPreviewSrc] = useState<string | null>(null);
+
+    const formatAudioTime = (seconds: number) => {
+        const s = Math.max(0, Math.floor(seconds || 0));
+        const mins = Math.floor(s / 60);
+        const secs = s % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const handleAudioLoadedMetadata = (src: string, dur: number) => {
+        if (dur && isFinite(dur) && dur > 0) {
+            setAudioDurations(prev => ({ ...prev, [src]: dur }));
+        }
+    };
+
+    const playAudioPreviewFrom = (src: string, startTime: number) => {
+        if (!src) return;
+        if (!previewAudioPlayerRef.current) {
+            previewAudioPlayerRef.current = new Audio();
+        }
+        const p = previewAudioPlayerRef.current;
+        if (activeAudioPreviewSrc === src && !p.paused) {
+            p.pause();
+            setActiveAudioPreviewSrc(null);
+            return;
+        }
+        p.src = src;
+        p.currentTime = startTime;
+        p.play().then(() => {
+            setActiveAudioPreviewSrc(src);
+        }).catch(err => console.warn("Erreur lecture preview :", err));
+        p.onended = () => setActiveAudioPreviewSrc(null);
+    };
+
     const musicAudioInputRef = useRef<HTMLInputElement>(null);
     const musicIntroAudioInputRef = useRef<HTMLInputElement>(null);
     const musicCoverImgsRef = useRef<Record<string, HTMLImageElement>>({});
@@ -5038,16 +5076,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // Déclenchement synchronisé de l'extrait audio pour cette slide en mode MUSIQUE
                 if (isMusicTheme && musicAudioEl) {
                     let slideAudioUrl = '';
+                    let slideAudioStartTime = 0;
                     if (s === 1) {
                         slideAudioUrl = musicIntroAudio || '';
+                        slideAudioStartTime = musicIntroAudioStartTime || 0;
                     } else if (s >= 2) {
                         const trIdx = s - 2;
                         slideAudioUrl = musicTracks[trIdx]?.audio || '';
+                        slideAudioStartTime = musicTracks[trIdx]?.audioStartTime || 0;
                     }
                     if (slideAudioUrl) {
                         try {
                             musicAudioEl.src = slideAudioUrl;
-                            musicAudioEl.currentTime = 0;
+                            musicAudioEl.currentTime = slideAudioStartTime;
                             musicAudioEl.play().catch(e => console.warn("Lecture extrait audio bloquée :", e));
                         } catch (e) {
                             console.warn("Erreur assignation audio :", e);
@@ -5159,16 +5200,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else {
             if (theme === 'MUSIQUE' && musicAudioEl) {
                 let singleAudioUrl = '';
+                let singleAudioStartTime = 0;
                 if (editorialSlide === 1) {
                     singleAudioUrl = musicIntroAudio || '';
+                    singleAudioStartTime = musicIntroAudioStartTime || 0;
                 } else if (editorialSlide >= 2) {
                     const trIdx = editorialSlide - 2;
                     singleAudioUrl = musicTracks[trIdx]?.audio || '';
+                    singleAudioStartTime = musicTracks[trIdx]?.audioStartTime || 0;
                 }
                 if (singleAudioUrl) {
                     try {
                         musicAudioEl.src = singleAudioUrl;
-                        musicAudioEl.currentTime = 0;
+                        musicAudioEl.currentTime = singleAudioStartTime;
                         musicAudioEl.play().catch(e => console.warn("Lecture extrait audio :", e));
                     } catch (e) {
                         console.warn("Erreur assignation audio :", e);
@@ -9756,7 +9800,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </div>
 
                             {musicIntroAudio && (
-                                <div className="p-3 bg-black/50 border border-[#00ff66]/30 rounded-xl space-y-1.5">
+                                <div className="p-3 bg-black/50 border border-[#00ff66]/30 rounded-xl space-y-2.5">
                                     <div className="flex items-center justify-between text-[8.5px] font-black uppercase">
                                         <span className="text-[#00ff66] flex items-center gap-1">
                                             <span>🔊</span> Audio Intro Chargé
@@ -9769,9 +9813,74 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         key="preview-audio-intro"
                                         controls
                                         src={musicIntroAudio}
-                                        className="w-full h-8 rounded-lg"
+                                        className="w-full h-8 rounded-lg accent-[#00ff66]"
                                         preload="metadata"
+                                        onLoadedMetadata={(e) => handleAudioLoadedMetadata(musicIntroAudio, e.currentTarget.duration)}
                                     />
+
+                                    {/* Réglage du point de départ (Milieu / Drop) */}
+                                    <div className="pt-2 border-t border-white/10 space-y-2">
+                                        <div className="flex items-center justify-between text-[8.5px] font-black uppercase">
+                                            <span className="text-[#00ff66] flex items-center gap-1">
+                                                <Scissors className="w-3.5 h-3.5 text-[#00ff66]" /> Point de départ (Milieu / Drop) :
+                                            </span>
+                                            <span className="font-mono text-white bg-white/10 px-2 py-0.5 rounded border border-white/10 text-[9px] font-bold">
+                                                {formatAudioTime(musicIntroAudioStartTime)}
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-3 gap-1.5">
+                                            <button
+                                                type="button"
+                                                onClick={() => setMusicIntroAudioStartTime(0)}
+                                                className={`py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${
+                                                    musicIntroAudioStartTime === 0
+                                                        ? 'bg-white/20 border-white text-white shadow-sm'
+                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                }`}
+                                            >
+                                                ⏮️ Début (0:00)
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const dur = audioDurations[musicIntroAudio] || 30;
+                                                    setMusicIntroAudioStartTime(Math.round(dur / 2));
+                                                }}
+                                                className={`py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${
+                                                    musicIntroAudioStartTime > 0
+                                                        ? 'bg-[#00ff66] text-black border-[#00ff66] font-black shadow-sm'
+                                                        : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
+                                                }`}
+                                            >
+                                                ⚡ Milieu / Drop
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => playAudioPreviewFrom(musicIntroAudio, musicIntroAudioStartTime)}
+                                                className="py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white rounded-lg text-[8px] font-black uppercase transition-all flex items-center justify-center gap-1"
+                                            >
+                                                {activeAudioPreviewSrc === musicIntroAudio ? '⏸️ Stop' : '▶️ Tester'}
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-1 pt-0.5">
+                                            <div className="flex items-center justify-between text-[7.5px] text-gray-400 font-mono">
+                                                <span>0:00</span>
+                                                <span className="text-[#00ff66]">Démarre à {formatAudioTime(musicIntroAudioStartTime)}</span>
+                                                <span>{formatAudioTime(audioDurations[musicIntroAudio] || 30)}</span>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min="0"
+                                                max={Math.max(30, Math.round(audioDurations[musicIntroAudio] || 30))}
+                                                step="1"
+                                                value={musicIntroAudioStartTime}
+                                                onChange={(e) => setMusicIntroAudioStartTime(Number(e.target.value))}
+                                                className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#00ff66]"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -10200,9 +10309,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </button>
                             </div>
 
-                            {/* Lecteur de prévisualisation interactif */}
+                            {/* Lecteur de prévisualisation interactif & Réglage Drop / Milieu */}
                             {activeTrack.audio ? (
-                                <div className="p-3 bg-black/50 border border-[#00ff66]/30 rounded-xl space-y-2">
+                                <div className="p-3 bg-black/50 border border-[#00ff66]/30 rounded-xl space-y-2.5">
                                     <div className="flex items-center justify-between text-[8.5px] font-black uppercase">
                                         <span className="text-[#00ff66] flex items-center gap-1">
                                             <span>🔊</span> Extrait Audio Prêt
@@ -10217,9 +10326,78 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         src={activeTrack.audio}
                                         className="w-full h-8 rounded-lg accent-[#00ff66]"
                                         preload="metadata"
+                                        onLoadedMetadata={(e) => handleAudioLoadedMetadata(activeTrack.audio!, e.currentTarget.duration)}
                                     />
-                                    <p className="text-[8px] text-gray-400 italic">
-                                        Cet extrait sera joué automatiquement pendant le défilement de la Slide {editorialSlide} lors de l'export vidéo.
+
+                                    {/* Réglage du point de départ (Milieu / Drop du son) */}
+                                    <div className="pt-2 border-t border-white/10 space-y-2">
+                                        <div className="flex items-center justify-between text-[8.5px] font-black uppercase">
+                                            <span className="text-[#00ff66] flex items-center gap-1">
+                                                <Scissors className="w-3.5 h-3.5 text-[#00ff66]" /> Point de départ (Milieu / Drop) :
+                                            </span>
+                                            <span className="font-mono text-white bg-white/10 px-2 py-0.5 rounded border border-white/10 text-[9px] font-bold">
+                                                {formatAudioTime(activeTrack.audioStartTime || 0)}
+                                            </span>
+                                        </div>
+
+                                        {/* Boutons de raccourcis rapides */}
+                                        <div className="grid grid-cols-3 gap-1.5">
+                                            <button
+                                                type="button"
+                                                onClick={() => updateMusicTrack(activeTrackIdx, { audioStartTime: 0 })}
+                                                className={`py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${
+                                                    (activeTrack.audioStartTime || 0) === 0
+                                                        ? 'bg-white/20 border-white text-white shadow-sm'
+                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                }`}
+                                            >
+                                                ⏮️ Début (0:00)
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const dur = audioDurations[activeTrack.audio!] || 30;
+                                                    const mid = Math.round(dur / 2);
+                                                    updateMusicTrack(activeTrackIdx, { audioStartTime: mid });
+                                                }}
+                                                className={`py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${
+                                                    (activeTrack.audioStartTime || 0) > 0
+                                                        ? 'bg-[#00ff66] text-black border-[#00ff66] font-black shadow-sm'
+                                                        : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
+                                                }`}
+                                            >
+                                                ⚡ Milieu / Drop
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => playAudioPreviewFrom(activeTrack.audio!, activeTrack.audioStartTime || 0)}
+                                                className="py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white rounded-lg text-[8px] font-black uppercase transition-all flex items-center justify-center gap-1"
+                                            >
+                                                {activeAudioPreviewSrc === activeTrack.audio ? '⏸️ Stop' : '▶️ Tester'}
+                                            </button>
+                                        </div>
+
+                                        {/* Slider précis */}
+                                        <div className="space-y-1 pt-0.5">
+                                            <div className="flex items-center justify-between text-[7.5px] text-gray-400 font-mono">
+                                                <span>0:00</span>
+                                                <span className="text-[#00ff66]">Démarre à {formatAudioTime(activeTrack.audioStartTime || 0)}</span>
+                                                <span>{formatAudioTime(audioDurations[activeTrack.audio!] || 30)}</span>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min="0"
+                                                max={Math.max(30, Math.round(audioDurations[activeTrack.audio!] || 30))}
+                                                step="1"
+                                                value={activeTrack.audioStartTime || 0}
+                                                onChange={(e) => updateMusicTrack(activeTrackIdx, { audioStartTime: Number(e.target.value) })}
+                                                className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#00ff66]"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <p className="text-[7.5px] text-gray-400 italic">
+                                        ⏱️ Lors de l'export vidéo MP4, la musique démarrera exactement à <strong>{formatAudioTime(activeTrack.audioStartTime || 0)}</strong>.
                                     </p>
                                 </div>
                             ) : (
