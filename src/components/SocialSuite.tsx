@@ -863,6 +863,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const effectiveEditorialSlide = editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide;
             const effectiveTransitionProgress = transitionProgressRef.current !== null ? transitionProgressRef.current : transitionProgress;
 
+            // Pour MUSIQUE slide >= 2 : récupérer la cover active si aucun fond personnalisé n'a été chargé
+            const isMusiqueTrackSlide = (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2);
+            const musiqueTrackIdx = isMusiqueTrackSlide ? Math.max(0, effectiveEditorialSlide - 2) : 0;
+            const musiqueActiveTrack = isMusiqueTrackSlide ? musicTracks[musiqueTrackIdx] : null;
+            const musiqueCoverUrl = musiqueActiveTrack?.cover || (musiqueTrackIdx === 0 ? afficheImage : '');
+            const musiqueCoverImg = (musiqueCoverUrl && musicCoverImgsRef.current[musiqueCoverUrl]) || (musiqueTrackIdx === 0 ? afficheImageRef.current : null);
+
+            const effectiveImg = img || (isMusiqueTrackSlide ? musiqueCoverImg : null);
+
             const isAnyAnimationActive = (textAnimation !== 'NONE' || bgAnimation !== 'NONE');
             // Animation d'entrée jouée une seule fois au début, puis reste 100% fixe (aucun re-bouclage intempestif)
             const animElapsed = (isVideoRecording || (bgVideo && !isDownloading) || isAnyAnimationActive)
@@ -956,7 +965,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             let bgAnimX = 0;
             let bgAnimY = 0;
 
-            if (bgAnimation !== 'NONE' && (img || bgVideo)) {
+            if (bgAnimation !== 'NONE' && (effectiveImg || bgVideo)) {
                 const loopDuration = 6.0;
                 const tLinear = isVideoRecording 
                     ? Math.min(1, animElapsed / loopDuration) 
@@ -1027,21 +1036,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else {
                     ctx.drawImage(bgVideo, x, y, vw, vh);
                 }
-            } else if (img) {
+            } else if (effectiveImg) {
                 if (theme === 'SPOTLIGHT') {
-                    const baseScale = Math.max(canvas.width / img.width, canvas.height / img.height);
+                    const baseScale = Math.max(canvas.width / effectiveImg.width, canvas.height / effectiveImg.height);
                     const scale = baseScale * bgAnimScale;
-                    const iw = img.width * scale;
-                    const ih = img.height * scale;
+                    const iw = effectiveImg.width * scale;
+                    const ih = effectiveImg.height * scale;
                     // Position photo on the right with manual offset
                     const x = (canvas.width - iw) + bgOffsetX + bgAnimX;
                     const y = ((canvas.height - ih) / 2) + bgOffsetY + bgAnimY;
-                    ctx.drawImage(img, x, y, iw, ih);
+                    ctx.drawImage(effectiveImg, x, y, iw, ih);
                 } else {
-                    const baseScale = Math.max(canvas.width / img.width, canvas.height / img.height);
+                    const baseScale = Math.max(canvas.width / effectiveImg.width, canvas.height / effectiveImg.height);
                     const scale = baseScale * bgAnimScale;
-                    const iw = img.width * scale;
-                    const ih = img.height * scale;
+                    const iw = effectiveImg.width * scale;
+                    const ih = effectiveImg.height * scale;
                     let x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
                     let y = ((canvas.height - ih) / 2) + bgOffsetY + bgAnimY;
                     if (imgLayoutMode === 'PAR_LIGNES') {
@@ -1053,18 +1062,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2)) {
                         ctx.save();
-                        ctx.filter = 'blur(14px)';
-                        const blurBleed = 28;
-                        ctx.drawImage(img, x - blurBleed, y - blurBleed, iw + blurBleed * 2, ih + blurBleed * 2);
+                        ctx.filter = 'blur(28px) brightness(0.60)';
+                        const blurBleed = 60;
+                        ctx.drawImage(effectiveImg, x - blurBleed, y - blurBleed, iw + blurBleed * 2, ih + blurBleed * 2);
                         ctx.restore();
                     } else {
-                        ctx.drawImage(img, x, y, iw, ih);
+                        ctx.drawImage(effectiveImg, x, y, iw, ih);
                     }
                 }
             } else {
                 if (!isTransparent) {
-                    ctx.fillStyle = '#111';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    if (theme === 'MUSIQUE') {
+                        const bgGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height * 0.35, 60, canvas.width / 2, canvas.height / 2, canvas.height * 0.75);
+                        bgGrad.addColorStop(0, '#101712');
+                        bgGrad.addColorStop(0.5, '#090d0a');
+                        bgGrad.addColorStop(1, '#040504');
+                        ctx.fillStyle = bgGrad;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    } else {
+                        ctx.fillStyle = '#111';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
                 } else {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                 }
@@ -3357,29 +3375,41 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const currentCoverUrl = currentTrack.cover || (trackIdx === 0 ? afficheImage : '');
                 const currentCoverImg = (currentCoverUrl && musicCoverImgsRef.current[currentCoverUrl]) || (trackIdx === 0 ? afficheImageRef.current : null);
 
-                // 1. Dark Vignette overlay (Atmosphère sombre et immersive Dropsiders)
+                // 1. Ambiance sombre & immersive avec halo néon vert Dropsiders
                 const vig = ctx.createRadialGradient(
                     canvas.width / 2, canvas.height / 2, canvas.width * 0.15,
                     canvas.width / 2, canvas.height / 2, canvas.height * 0.72
                 );
-                vig.addColorStop(0, 'rgba(0, 0, 0, 0.25)');
-                vig.addColorStop(0.60, 'rgba(0, 0, 0, 0.65)');
-                vig.addColorStop(1, 'rgba(0, 0, 0, 0.92)');
+                vig.addColorStop(0, 'rgba(0, 0, 0, 0.20)');
+                vig.addColorStop(0.60, 'rgba(0, 0, 0, 0.55)');
+                vig.addColorStop(1, 'rgba(0, 0, 0, 0.86)');
                 ctx.fillStyle = vig;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Halo lumineux néon vert centré derrière la pochette
+                const haloY = isStory ? 680 : 525;
+                const haloGrad = ctx.createRadialGradient(
+                    canvas.width / 2, haloY, 80,
+                    canvas.width / 2, haloY, isStory ? 560 : 460
+                );
+                haloGrad.addColorStop(0, 'rgba(57, 255, 20, 0.18)');
+                haloGrad.addColorStop(0.55, 'rgba(57, 255, 20, 0.04)');
+                haloGrad.addColorStop(1, 'rgba(57, 255, 20, 0)');
+                ctx.fillStyle = haloGrad;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 // 2. Top Capsule Badge MUSIQUE (vert néon #39ff14)
                 drawTopCapsuleBadge('MUSIQUE', '#39ff14', '57, 255, 20');
 
-                // 3. Dimensions de la carte cover carrée 1:1
-                const baseCardSize = isStory ? 720 : 600;
+                // 3. Dimensions et proportions de la pochette carrée 1:1
+                const baseCardSize = isStory ? 820 : 700;
                 const scale = (afficheScale || 100) / 100;
                 const cardW = Math.round(baseCardSize * scale);
-                const cardH = cardW; // Format carré 1:1
+                const cardH = cardW; // Format 1:1
                 const cardX = Math.round((canvas.width - cardW) / 2);
-                const baseCardY = isStory ? 300 : 170;
+                const baseCardY = isStory ? 270 : 175;
                 const cardY = Math.round(baseCardY + (afficheOffsetY || 0));
-                const rad = isStory ? 30 : 24;
+                const rad = isStory ? 34 : 28;
 
                 // 4. Ombre portée 3D et halo ambiant néon vert
                 ctx.save();
@@ -3394,17 +3424,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fill();
                 }
 
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.90)';
-                ctx.shadowBlur = 55;
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                ctx.shadowBlur = 60;
                 ctx.shadowOffsetX = 0;
                 ctx.shadowOffsetY = 24;
                 ctx.beginPath();
                 ctx.roundRect(cardX, cardY, cardW, cardH, rad);
-                ctx.fillStyle = '#08090a';
+                ctx.fillStyle = '#080a08';
                 ctx.fill();
                 ctx.restore();
 
-                // 5. Rendu de l'image de la pochette
+                // 5. Rendu de l'image de la pochette ou vinyle stylisé Dropsiders
                 ctx.save();
                 ctx.beginPath();
                 ctx.roundRect(cardX, cardY, cardW, cardH, rad);
@@ -3436,147 +3466,222 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.drawImage(poster, sx, sy, sw, sh, cardX, cardY, cardW, cardH);
                     }
                 } else {
-                    // Carte placeholder stylisée pour la pochette
+                    // Placeholder vinyle / music art élégant et épuré
                     const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
-                    phGrad.addColorStop(0, 'rgba(20, 24, 20, 0.96)');
-                    phGrad.addColorStop(1, 'rgba(10, 12, 10, 0.98)');
+                    phGrad.addColorStop(0, '#151b16');
+                    phGrad.addColorStop(0.5, '#0e120f');
+                    phGrad.addColorStop(1, '#070908');
                     ctx.fillStyle = phGrad;
                     ctx.fillRect(cardX, cardY, cardW, cardH);
 
+                    // Sillons de disque vinyle
+                    const cCenterX = cardX + cardW / 2;
+                    const cCenterY = cardY + cardH * 0.44;
+                    [0.34, 0.28, 0.22, 0.16].forEach(rRatio => {
+                        ctx.beginPath();
+                        ctx.arc(cCenterX, cCenterY, cardW * rRatio, 0, Math.PI * 2);
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                        ctx.lineWidth = 1.5;
+                        ctx.stroke();
+                    });
+
+                    // Centre du vinyle avec pastille néon vert
+                    ctx.beginPath();
+                    ctx.arc(cCenterX, cCenterY, 34, 0, Math.PI * 2);
+                    ctx.fillStyle = '#0a0e0b';
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(57, 255, 20, 0.45)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.arc(cCenterX, cCenterY, 8, 0, Math.PI * 2);
+                    ctx.fillStyle = '#39ff14';
+                    ctx.fill();
+
+                    // Textes de consignes épurés
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.fillStyle = '#39ff14';
-                    ctx.font = '900 italic 28px "Orbitron", sans-serif';
-                    ctx.fillText(`TRACK ${String(trackIdx + 1).padStart(2, '0')}`, cardX + cardW / 2, cardY + cardH / 2 - 30);
-
-                    ctx.font = '900 32px "Montserrat", sans-serif';
+                    ctx.font = '800 24px "Montserrat", sans-serif';
                     ctx.fillStyle = '#ffffff';
-                    ctx.fillText("POCHETTE 1:1", cardX + cardW / 2, cardY + cardH / 2 + 10);
+                    ctx.fillText("POCHETTE DU MORCEAU", cCenterX, cardY + cardH * 0.77);
 
-                    ctx.font = '700 15px "Montserrat", sans-serif';
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.50)';
-                    ctx.fillText("Importez la cover du son dans le panneau", cardX + cardW / 2, cardY + cardH / 2 + 50);
+                    ctx.font = '600 14px "Montserrat", sans-serif';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+                    ctx.fillText("Format carré 1:1 • Importer dans le panneau", cCenterX, cardY + cardH * 0.84);
                 }
 
-                // Reflet subtil en dégradé sur le haut
-                const glossGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH * 0.35);
+                // Reflet gloss sur le haut de la pochette
+                const glossGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH * 0.38);
                 glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
                 glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
                 ctx.fillStyle = glossGrad;
-                ctx.fillRect(cardX, cardY, cardW, cardH * 0.35);
+                ctx.fillRect(cardX, cardY, cardH * 0.38);
                 ctx.restore();
 
                 // 6. Contour bordure vert néon élégant
                 ctx.save();
                 ctx.beginPath();
                 ctx.roundRect(cardX, cardY, cardW, cardH, rad);
-                ctx.strokeStyle = afficheBorderColor || 'rgba(57, 255, 20, 0.45)';
+                ctx.strokeStyle = afficheBorderColor || 'rgba(57, 255, 20, 0.40)';
                 ctx.lineWidth = 2.5;
                 ctx.stroke();
                 ctx.restore();
 
-                // 7. ZONE TEXTES EN DESSOUS : TITRE + ARTISTE + LABEL
+                // 7. ZONE TEXTES EN DESSOUS : TITRE + ARTISTE + LABEL + LECTEUR 30S
                 const contentWidth = canvas.width - (isStory ? 160 : 120);
                 const centerX = canvas.width / 2;
-                let textY = cardY + cardH + (isStory ? 70 : 50);
 
                 // A) Track Number Pill (ex: "TRACK 01")
+                const pillY = isStory ? 1140 : 925;
                 const trackNumText = `TRACK ${String(trackIdx + 1).padStart(2, '0')}`;
                 ctx.save();
-                ctx.font = '900 italic 16px "Montserrat", sans-serif';
-                const pillPaddingX = 14;
-                const pillH = 30;
+                ctx.font = '900 italic 15px "Montserrat", sans-serif';
+                ctx.letterSpacing = '1.5px';
+                const pillPaddingX = 16;
+                const pillH = isStory ? 32 : 28;
                 const pillW = ctx.measureText(trackNumText).width + (pillPaddingX * 2);
-                ctx.fillStyle = 'rgba(57, 255, 20, 0.15)';
+                ctx.fillStyle = 'rgba(57, 255, 20, 0.14)';
                 ctx.strokeStyle = 'rgba(57, 255, 20, 0.45)';
                 ctx.lineWidth = 1.5;
                 ctx.beginPath();
-                ctx.roundRect(centerX - pillW / 2, textY - pillH / 2, pillW, pillH, pillH / 2);
+                ctx.roundRect(centerX - pillW / 2, pillY - pillH / 2, pillW, pillH, pillH / 2);
                 ctx.fill();
                 ctx.stroke();
                 ctx.fillStyle = '#39ff14';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(trackNumText, centerX, textY);
+                ctx.fillText(trackNumText, centerX, pillY);
                 ctx.restore();
 
-                textY += (isStory ? 48 : 36);
-
                 // B) TITRE DU MORCEAU (Gros, blanc avec highlights)
+                const titleY = isStory ? 1215 : 985;
                 const titleText = currentTrack.title?.trim() || (trackIdx === 0 && conseilsTitle && conseilsTitle !== 'LE TITRE ICI' ? conseilsTitle : `TITRE DU MORCEAU`);
                 ctx.save();
-                let titleFontSize = isStory ? 48 : 40;
+                let titleFontSize = isStory ? 52 : 44;
                 ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                 while (ctx.measureText(stripTags(titleText).toUpperCase()).width > contentWidth && titleFontSize > 24) {
                     titleFontSize -= 2;
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                 }
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                ctx.shadowBlur = 12;
-                drawRichText(ctx, titleText.toUpperCase(), centerX, textY, '#ffffff', 'center');
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                ctx.shadowBlur = 14;
+                drawRichText(ctx, titleText.toUpperCase(), centerX, titleY, '#ffffff', 'center');
                 ctx.restore();
 
-                textY += (isStory ? 48 : 40);
-
-                // C) ARTISTE (En vert néon ou blanc gras italique)
+                // C) ARTISTE (En vert néon gras italique)
+                const artistY = isStory ? 1290 : 1050;
                 const artistText = currentTrack.artist?.trim() || (trackIdx === 0 && artistNameText ? artistNameText : 'NOM DE L\'ARTISTE');
                 ctx.save();
-                let artistFontSize = isStory ? 34 : 28;
+                let artistFontSize = isStory ? 36 : 28;
                 ctx.font = `800 italic ${artistFontSize}px "Montserrat", sans-serif`;
                 while (ctx.measureText(artistText.toUpperCase()).width > contentWidth && artistFontSize > 20) {
                     artistFontSize -= 2;
                     ctx.font = `800 italic ${artistFontSize}px "Montserrat", sans-serif`;
                 }
                 ctx.fillStyle = '#39ff14';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-                ctx.shadowBlur = 10;
+                ctx.shadowColor = 'rgba(57, 255, 20, 0.55)';
+                ctx.shadowBlur = 12;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(artistText.toUpperCase(), centerX, textY);
+                ctx.fillText(artistText.toUpperCase(), centerX, artistY);
                 ctx.restore();
 
-                textY += (isStory ? 52 : 44);
-
                 // D) LABEL DISCOGRAPHIQUE (Badge capsule élégant)
-                const labelText = currentTrack.label?.trim() || (trackIdx === 0 ? '' : '');
-                if (labelText) {
-                    ctx.save();
-                    const labelFontSize = isStory ? 20 : 17;
-                    ctx.font = `800 ${labelFontSize}px "Montserrat", sans-serif`;
-                    const labelDisplay = `LABEL : ${labelText.toUpperCase()}`;
-                    const lPadX = 18;
-                    const lH = isStory ? 38 : 34;
-                    const lW = ctx.measureText(labelDisplay).width + (lPadX * 2);
+                const labelY = isStory ? 1370 : 1115;
+                const labelRaw = currentTrack.label?.trim();
+                const labelDisplay = labelRaw ? `LABEL : ${labelRaw.toUpperCase()}` : 'LABEL : DROPSIDERS RECORDS';
+                ctx.save();
+                const labelFontSize = isStory ? 20 : 16;
+                ctx.font = `800 ${labelFontSize}px "Montserrat", sans-serif`;
+                const lPadX = 20;
+                const lH = isStory ? 40 : 34;
+                const lW = ctx.measureText(labelDisplay).width + (lPadX * 2);
 
-                    ctx.fillStyle = 'rgba(12, 14, 18, 0.85)';
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
-                    ctx.lineWidth = 1.5;
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-                    ctx.shadowBlur = 12;
+                ctx.fillStyle = 'rgba(18, 22, 19, 0.85)';
+                ctx.strokeStyle = labelRaw ? 'rgba(57, 255, 20, 0.35)' : 'rgba(255, 255, 255, 0.20)';
+                ctx.lineWidth = 1.5;
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.roundRect(centerX - lW / 2, labelY - lH / 2, lW, lH, 10);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = labelRaw ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.60)';
+                ctx.shadowBlur = 0;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(labelDisplay, centerX, labelY);
+                ctx.restore();
+
+                // E) AUDIO WAVEFORM PROGRESS BAR (Extrait sonore 30s)
+                const waveY = isStory ? 1465 : 1180;
+                const waveW = isStory ? 600 : 480;
+                const waveStartX = centerX - waveW / 2;
+                ctx.save();
+                // Time Left (0:15)
+                ctx.font = '800 13px "Montserrat", sans-serif';
+                ctx.fillStyle = '#39ff14';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('0:15', waveStartX, waveY);
+
+                // Time Right (0:30)
+                ctx.font = '700 13px "Montserrat", sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.50)';
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('0:30', waveStartX + waveW, waveY);
+
+                // Bars in center
+                const barsStartX = waveStartX + 42;
+                const barsEndX = waveStartX + waveW - 42;
+                const barsWidth = barsEndX - barsStartX;
+                const numBars = isStory ? 28 : 24;
+                const barGap = 4;
+                const barWidth = (barsWidth - (numBars - 1) * barGap) / numBars;
+                const wavePatterns = [8, 14, 20, 12, 26, 18, 10, 22, 28, 16, 24, 12, 18, 26, 14, 22, 10, 16, 24, 18, 12, 20, 14, 8, 12, 18, 22, 14];
+
+                for (let b = 0; b < numBars; b++) {
+                    const barH = wavePatterns[b % wavePatterns.length] * (isStory ? 1.2 : 0.9);
+                    const bx = barsStartX + b * (barWidth + barGap);
+                    const by = waveY - barH / 2;
+                    const isActive = b < (numBars / 2); // 0:15 / 0:30 is 50%
+                    ctx.fillStyle = isActive ? '#39ff14' : 'rgba(255, 255, 255, 0.22)';
+                    if (isActive) {
+                        ctx.shadowColor = 'rgba(57, 255, 20, 0.6)';
+                        ctx.shadowBlur = 6;
+                    } else {
+                        ctx.shadowBlur = 0;
+                    }
                     ctx.beginPath();
-                    ctx.roundRect(centerX - lW / 2, textY - lH / 2, lW, lH, 10);
+                    ctx.roundRect(bx, by, barWidth, barH, barWidth / 2);
                     ctx.fill();
-                    ctx.stroke();
-
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-                    ctx.shadowBlur = 0;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(labelDisplay, centerX, textY);
-                    ctx.restore();
                 }
+                ctx.restore();
 
-                // E) Mention Swipe
+                // F) FOOTER & SWIPE
+                const footerY = canvas.height - (isStory ? 80 : 50);
+                // Left branding
+                ctx.save();
+                ctx.font = '800 15px "Montserrat", sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.40)';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('DROPSIDERS.FR', isStory ? 80 : 60, footerY);
+                ctx.restore();
+
+                // Right Swipe
                 if (showSwipe) {
                     ctx.save();
-                    const swipeY = canvas.height - (isStory ? 80 : 50);
                     ctx.font = '800 24px "Montserrat", sans-serif';
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0,0,0,0.85)';
                     ctx.shadowBlur = 8;
                     ctx.textAlign = 'right';
                     ctx.textBaseline = 'middle';
-                    ctx.fillText('Swipe ──>', canvas.width - (isStory ? 80 : 60), swipeY);
+                    ctx.fillText('Swipe ──>', canvas.width - (isStory ? 80 : 60), footerY);
                     ctx.restore();
                 }
 
