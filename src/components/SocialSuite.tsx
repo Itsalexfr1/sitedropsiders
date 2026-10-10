@@ -257,7 +257,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [skipEditorialSlide2, setSkipEditorialSlide2] = useState<boolean>(false); // Masquer Slide 2 dans l'export Reel (Slide 1 + Promo uniquement)
     const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(5); // Durée Slide 1 (en secondes, min 2s, max 15s)
     const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(3.5); // Durée Promo (en secondes, min 2s, max 8s)
-    const [exportFps, setExportFps] = useState<number>(60); // Fluidité vidéo : 60 FPS ultra-fluide par défaut (ou 30 FPS standard)
+    const [exportFps, setExportFps] = useState<number>(30); // Fluidité vidéo : 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
     const [promoCategory, setPromoCategory] = useState<string>(() => {
         if (initialTheme && initialTheme !== 'PROMO') return initialTheme;
         return 'NEWS';
@@ -497,6 +497,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const fileInputRef = useRef<HTMLInputElement>(null);
     const logoRef = useRef<HTMLImageElement | null>(null);
     const imageCacheRef = useRef<Record<string, HTMLImageElement>>({});
+    const blurredBgCacheRef = useRef<Map<string, HTMLCanvasElement>>(new Map());
     const offCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
     const [selection, setSelection] = useState({ start: 0, end: 0 });
@@ -1062,9 +1063,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2)) {
                         ctx.save();
-                        ctx.filter = 'blur(28px) brightness(0.60)';
                         const blurBleed = 60;
-                        ctx.drawImage(effectiveImg, x - blurBleed, y - blurBleed, iw + blurBleed * 2, ih + blurBleed * 2);
+                        const targetW = Math.round(iw + blurBleed * 2);
+                        const targetH = Math.round(ih + blurBleed * 2);
+                        const cacheKey = `${effectiveImg.src || 'img'}_${targetW}_${targetH}`;
+                        let cachedBlur = blurredBgCacheRef.current.get(cacheKey);
+                        if (!cachedBlur) {
+                            const off = document.createElement('canvas');
+                            off.width = Math.max(1, Math.round(targetW * 0.5));
+                            off.height = Math.max(1, Math.round(targetH * 0.5));
+                            const offCtx = off.getContext('2d');
+                            if (offCtx) {
+                                offCtx.filter = 'blur(16px) brightness(0.60)';
+                                offCtx.drawImage(effectiveImg, 0, 0, off.width, off.height);
+                            }
+                            if (blurredBgCacheRef.current.size > 8) blurredBgCacheRef.current.clear();
+                            blurredBgCacheRef.current.set(cacheKey, off);
+                            cachedBlur = off;
+                        }
+                        ctx.drawImage(cachedBlur, x - blurBleed, y - blurBleed, targetW, targetH);
                         ctx.restore();
                     } else {
                         ctx.drawImage(effectiveImg, x, y, iw, ih);
@@ -4458,13 +4475,38 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const prevAgendaSlide = agendaSlide;
         const prevEditorialSlide = editorialSlide;
 
-        // Helper pour animer frame-par-frame avec timing fluide
+        const fps = exportFps || 30; // 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
+        const frameInterval = 1000 / fps;
+
+        // Helper pour animer frame-par-frame avec timing fluide cadencé au framerate cible
         const renderDuration = async (durationMs: number) => {
-            const t0 = Date.now();
-            while (Date.now() - t0 < durationMs) {
-                await generateImage();
+            const t0 = performance.now();
+            let nextFrameTime = t0;
+            while (performance.now() - t0 < durationMs) {
+                const now = performance.now();
+                if (now >= nextFrameTime) {
+                    await generateImage();
+                    nextFrameTime = now + frameInterval;
+                }
                 await new Promise(r => requestAnimationFrame(r));
             }
+        };
+
+        const renderTransition = async (durationMs: number, onProgress: (p: number) => void) => {
+            const t0 = performance.now();
+            let nextFrameTime = t0;
+            while (performance.now() - t0 < durationMs) {
+                const now = performance.now();
+                if (now >= nextFrameTime) {
+                    const progress = Math.min(1, (now - t0) / durationMs);
+                    onProgress(progress);
+                    await generateImage();
+                    nextFrameTime = now + frameInterval;
+                }
+                await new Promise(r => requestAnimationFrame(r));
+            }
+            onProgress(1);
+            await generateImage();
         };
 
         isVideoRecordingRef.current = true;
@@ -4498,7 +4540,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         const mimeType = formats.find(f => MediaRecorder.isTypeSupported(f)) || 'video/webm';
 
-        const fps = exportFps || 60; // 60 FPS Studio
         const canvasStream = (canvas as any).captureStream ? (canvas as any).captureStream(fps) : (canvas as any).mozCaptureStream ? (canvas as any).mozCaptureStream(fps) : null;
 
         if (!canvasStream) {
@@ -4617,7 +4658,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
 
         // Bitrate fluide équilibré pour éviter toute saturation CPU/mémoire et zéro drop de frame
-        const bitrate = isMobile ? 8000000 : (fps === 60 ? 12000000 : 8000000);
+        const bitrate = isMobile ? 6000000 : (fps === 60 ? 10000000 : 7000000);
 
         const recorder = new MediaRecorder(combinedStream, {
             mimeType,
@@ -4651,7 +4692,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 return;
             }
 
-            // Sur PC : conversion rapide MP4 H.264 et téléchargement automatique immédiat
+            // Sur PC : téléchargement direct immédiat si le format est déjà MP4 natif (Chrome/Edge/Safari récents)
+            if (initialBlob.type.includes('mp4')) {
+                isVideoRecordingRef.current = false;
+                setIsVideoRecording(false);
+                const url = URL.createObjectURL(initialBlob);
+                setReadyVideoBlob(initialBlob);
+                setReadyVideoUrl(url);
+                setActivePanel(null);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                return;
+            }
+
+            // Sinon (Firefox / WebM) : conversion rapide MP4 H.264 via FFmpeg en mode ultrafast pour ne jamais figer
             try {
                 isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
@@ -4678,8 +4737,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const ffmpegArgs = [
                     '-i', 'input.webm',
                     '-c:v', 'libx264',
-                    '-preset', 'fast',
-                    '-crf', '19',
+                    '-preset', 'ultrafast',
+                    '-crf', '22',
                     '-pix_fmt', 'yuv420p',
                     '-r', String(fps),
                     '-movflags', '+faststart'
@@ -4790,19 +4849,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             for (let i = 0; i < contentSlideNumbers.length; i++) {
                 const s = contentSlideNumbers[i];
                 if (i > 0) {
-                    const startT = Date.now();
                     let switched = false;
-                    while (Date.now() - startT < transitionDuration) {
-                        const progress = Math.min(1, (Date.now() - startT) / transitionDuration);
+                    await renderTransition(transitionDuration, (progress) => {
                         transitionProgressRef.current = progress;
                         if (progress >= 0.5 && !switched) {
                             editorialSlideOverrideRef.current = s;
                             animStartTimeRef.current = Date.now();
                             switched = true;
                         }
-                        await generateImage();
-                        await new Promise(r => requestAnimationFrame(r));
-                    }
+                    });
                     transitionProgressRef.current = 0;
                     editorialSlideOverrideRef.current = s;
                 } else {
@@ -4815,19 +4870,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // 2. Transition vers le visuel PROMO outro à la fin du Reel
-            const startPromoT = Date.now();
             let switchedPromo = false;
-            while (Date.now() - startPromoT < transitionDuration) {
-                const progress = Math.min(1, (Date.now() - startPromoT) / transitionDuration);
+            await renderTransition(transitionDuration, (progress) => {
                 transitionProgressRef.current = progress;
                 if (progress >= 0.5 && !switchedPromo) {
                     promoOutroOverrideRef.current = true;
                     animStartTimeRef.current = Date.now();
                     switchedPromo = true;
                 }
-                await generateImage();
-                await new Promise(r => requestAnimationFrame(r));
-            }
+            });
             transitionProgressRef.current = 0;
 
             // 3. Affichage du visuel promo final pendant promoDuration
@@ -4845,19 +4896,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             await renderDuration(slideDuration);
 
             // 2. Transition carrousel vers Slide 2
-            const startT = Date.now();
             let switched = false;
-            while (Date.now() - startT < transitionDuration) {
-                const progress = Math.min(1, (Date.now() - startT) / transitionDuration);
+            await renderTransition(transitionDuration, (progress) => {
                 transitionProgressRef.current = progress;
                 if (progress >= 0.5 && !switched) {
                     agendaSlideOverrideRef.current = 2;
                     animStartTimeRef.current = Date.now();
                     switched = true;
                 }
-                await generateImage();
-                await new Promise(r => requestAnimationFrame(r));
-            }
+            });
             transitionProgressRef.current = 0;
             agendaSlideOverrideRef.current = 2;
 
@@ -4865,19 +4912,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             await renderDuration(slideDuration);
 
             // 4. Transition vers le visuel PROMO outro à la fin du Reel
-            const startPromoT = Date.now();
             let switchedPromo = false;
-            while (Date.now() - startPromoT < transitionDuration) {
-                const progress = Math.min(1, (Date.now() - startPromoT) / transitionDuration);
+            await renderTransition(transitionDuration, (progress) => {
                 transitionProgressRef.current = progress;
                 if (progress >= 0.5 && !switchedPromo) {
                     promoOutroOverrideRef.current = true;
                     animStartTimeRef.current = Date.now();
                     switchedPromo = true;
                 }
-                await generateImage();
-                await new Promise(r => requestAnimationFrame(r));
-            }
+            });
             transitionProgressRef.current = 0;
 
             // 5. Affichage du visuel promo final pendant promoDuration
@@ -4888,18 +4931,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             for (let i = 0; i < 5; i++) {
                 if (i > 0) {
                     const durationTransition = 1200;
-                    const startT = Date.now();
                     let switched = false;
-                    while (Date.now() - startT < durationTransition) {
-                        const progress = (Date.now() - startT) / durationTransition;
+                    await renderTransition(durationTransition, (progress) => {
                         transitionProgressRef.current = progress;
                         if (progress > 0.5 && !switched) {
                             setCurrentPreviewIndex(i);
                             switched = true;
                         }
-                        await generateImage();
-                        await new Promise(r => requestAnimationFrame(r));
-                    }
+                    });
                     transitionProgressRef.current = 0;
                 } else {
                     setCurrentPreviewIndex(i);
@@ -4910,18 +4949,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             for (let i = 0; i < 11; i++) {
                 if (i > 0) {
                     const durationTransition = 1200;
-                    const startT = Date.now();
                     let switched = false;
-                    while (Date.now() - startT < durationTransition) {
-                        const progress = (Date.now() - startT) / durationTransition;
+                    await renderTransition(durationTransition, (progress) => {
                         transitionProgressRef.current = progress;
                         if (progress > 0.5 && !switched) {
                             setCurrentPreviewIndex(i);
                             switched = true;
                         }
-                        await generateImage();
-                        await new Promise(r => requestAnimationFrame(r));
-                    }
+                    });
                     transitionProgressRef.current = 0;
                 } else {
                     setCurrentPreviewIndex(i);
