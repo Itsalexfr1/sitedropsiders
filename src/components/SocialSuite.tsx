@@ -482,7 +482,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             });
             if (res) {
                 const patch: Partial<MusicTrackSlide> = {};
-                if (res.audioUrl) patch.audio = res.audioUrl;
+                if (res.audioUrl) {
+                    patch.audio = res.audioUrl;
+                    if (res.duration) {
+                        setAudioDurations(prev => ({ ...prev, [res.audioUrl]: res.duration! }));
+                    }
+                }
                 if (res.coverUrl) {
                     patch.cover = res.coverUrl;
                     if (trackIdx === 0) setAfficheImage(res.coverUrl);
@@ -529,7 +534,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 artist: artistNameText
             });
             if (res) {
-                if (res.audioUrl) setMusicIntroAudio(res.audioUrl);
+                if (res.audioUrl) {
+                    setMusicIntroAudio(res.audioUrl);
+                    if (res.duration) {
+                        setAudioDurations(prev => ({ ...prev, [res.audioUrl]: res.duration! }));
+                    }
+                }
                 if (res.coverUrl) {
                     setBgImage(res.coverUrl);
                     if (!afficheImage) setAfficheImage(res.coverUrl);
@@ -4845,7 +4855,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     musicAudioDest = musicAudioCtx.createMediaStreamDestination();
                     musicAudioEl = document.createElement('audio');
                     musicAudioEl.crossOrigin = 'anonymous';
-                    musicAudioEl.loop = true;
+                    musicAudioEl.loop = false;
                     const musicSourceNode = musicAudioCtx.createMediaElementSource(musicAudioEl);
                     musicSourceNode.connect(musicAudioDest);
                     musicSourceNode.connect(musicAudioCtx.destination);
@@ -5224,13 +5234,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     try {
                         musicAudioEl.src = singleAudioUrl;
                         musicAudioEl.currentTime = singleAudioStartTime;
-                        musicAudioEl.loop = true;
-                        musicAudioEl.onended = () => {
-                            try {
-                                musicAudioEl!.currentTime = singleAudioStartTime || 0;
-                                musicAudioEl!.play().catch(() => {});
-                            } catch (_) {}
-                        };
+                        musicAudioEl.loop = false;
+                        musicAudioEl.onended = null;
                         musicAudioEl.play().catch(e => console.warn("Lecture extrait audio :", e));
                     } catch (e) {
                         console.warn("Erreur assignation audio :", e);
@@ -9938,8 +9943,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             <button
                                                 type="button"
                                                 onClick={() => {
-                                                    const dur = audioDurations[musicIntroAudio] || 30;
-                                                    setMusicIntroAudioStartTime(Math.round(dur / 2));
+                                                    const dur = audioDurations[musicIntroAudio] || 120;
+                                                    if (dur <= 35) {
+                                                        setMusicIntroAudioStartTime(0);
+                                                    } else {
+                                                        const maxStart = Math.max(0, Math.floor(dur - 30));
+                                                        const targetDrop = dur >= 90 ? 30 : Math.min(30, maxStart);
+                                                        setMusicIntroAudioStartTime(targetDrop);
+                                                    }
                                                 }}
                                                 className={`py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${
                                                     musicIntroAudioStartTime > 0
@@ -9947,7 +9958,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                         : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
                                                 }`}
                                             >
-                                                ⚡ Milieu / Drop
+                                                ⚡ Drop (30s)
                                             </button>
                                             <button
                                                 type="button"
@@ -9958,22 +9969,39 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             </button>
                                         </div>
 
-                                        <div className="space-y-1 pt-0.5">
-                                            <div className="flex items-center justify-between text-[7.5px] text-gray-400 font-mono">
-                                                <span>0:00</span>
-                                                <span className="text-[#00ff66]">Démarre à {formatAudioTime(musicIntroAudioStartTime)}</span>
-                                                <span>{formatAudioTime(audioDurations[musicIntroAudio] || 30)}</span>
-                                            </div>
-                                            <input
-                                                type="range"
-                                                min="0"
-                                                max={Math.max(30, Math.round(audioDurations[musicIntroAudio] || 30))}
-                                                step="1"
-                                                value={musicIntroAudioStartTime}
-                                                onChange={(e) => setMusicIntroAudioStartTime(Number(e.target.value))}
-                                                className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#00ff66]"
-                                            />
-                                        </div>
+                                        {(() => {
+                                            const dur = audioDurations[musicIntroAudio] || 120;
+                                            const maxStart = Math.max(0, Math.floor(dur - 30));
+                                            const isShortSnippet = dur <= 35;
+                                            return (
+                                                <div className="space-y-1 pt-0.5">
+                                                    <div className="flex items-center justify-between text-[7.5px] text-gray-400 font-mono">
+                                                        <span>0:00</span>
+                                                        <span className="text-[#00ff66]">
+                                                            {isShortSnippet
+                                                                ? '30s complètes (Déjà au Drop)'
+                                                                : `Démarre à ${formatAudioTime(musicIntroAudioStartTime)} (30s continues sans boucle)`}
+                                                        </span>
+                                                        <span>{formatAudioTime(maxStart)}</span>
+                                                    </div>
+                                                    {!isShortSnippet ? (
+                                                        <input
+                                                            type="range"
+                                                            min="0"
+                                                            max={maxStart}
+                                                            step="1"
+                                                            value={Math.min(musicIntroAudioStartTime, maxStart)}
+                                                            onChange={(e) => setMusicIntroAudioStartTime(Number(e.target.value))}
+                                                            className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#00ff66]"
+                                                        />
+                                                    ) : (
+                                                        <div className="text-[7.5px] text-gray-400 italic bg-white/5 px-2 py-1 rounded border border-white/10">
+                                                            ℹ️ Extrait 30s officiel complet déjà centré sur le Drop.
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                             )}
@@ -10462,13 +10490,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             <button
                                                 type="button"
                                                 onClick={() => {
-                                                    const dur = audioDurations[activeTrack.audio!] || 30;
-                                                    // Si l'extrait fait déjà 30s ou moins, il est déjà au drop : début à 0:00 pour 30s complètes
+                                                    const dur = audioDurations[activeTrack.audio!] || 120;
                                                     if (dur <= 35) {
                                                         updateMusicTrack(activeTrackIdx, { audioStartTime: 0 });
                                                     } else {
-                                                        const mid = Math.round(dur / 2);
-                                                        updateMusicTrack(activeTrackIdx, { audioStartTime: mid });
+                                                        const maxStart = Math.max(0, Math.floor(dur - 30));
+                                                        const targetDrop = dur >= 90 ? 30 : Math.min(30, maxStart);
+                                                        updateMusicTrack(activeTrackIdx, { audioStartTime: targetDrop });
                                                     }
                                                 }}
                                                 className={`py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${
@@ -10488,27 +10516,43 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             </button>
                                         </div>
 
-                                        {/* Slider précis */}
-                                        <div className="space-y-1 pt-0.5">
-                                            <div className="flex items-center justify-between text-[7.5px] text-gray-400 font-mono">
-                                                <span>0:00</span>
-                                                <span className="text-[#00ff66]">Démarre à {formatAudioTime(activeTrack.audioStartTime || 0)}</span>
-                                                <span>{formatAudioTime(audioDurations[activeTrack.audio!] || 30)}</span>
-                                            </div>
-                                            <input
-                                                type="range"
-                                                min="0"
-                                                max={Math.max(30, Math.round(audioDurations[activeTrack.audio!] || 30))}
-                                                step="1"
-                                                value={activeTrack.audioStartTime || 0}
-                                                onChange={(e) => updateMusicTrack(activeTrackIdx, { audioStartTime: Number(e.target.value) })}
-                                                className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#00ff66]"
-                                            />
-                                        </div>
+                                        {(() => {
+                                            const dur = audioDurations[activeTrack.audio!] || 120;
+                                            const maxStart = Math.max(0, Math.floor(dur - 30));
+                                            const isShortSnippet = dur <= 35;
+                                            return (
+                                                <div className="space-y-1 pt-0.5">
+                                                    <div className="flex items-center justify-between text-[7.5px] text-gray-400 font-mono">
+                                                        <span>0:00</span>
+                                                        <span className="text-[#00ff66]">
+                                                            {isShortSnippet
+                                                                ? '30s complètes (Déjà au Drop)'
+                                                                : `Démarre à ${formatAudioTime(activeTrack.audioStartTime || 0)} (30s continues sans boucle)`}
+                                                        </span>
+                                                        <span>{formatAudioTime(maxStart)}</span>
+                                                    </div>
+                                                    {!isShortSnippet ? (
+                                                        <input
+                                                            type="range"
+                                                            min="0"
+                                                            max={maxStart}
+                                                            step="1"
+                                                            value={Math.min(activeTrack.audioStartTime || 0, maxStart)}
+                                                            onChange={(e) => updateMusicTrack(activeTrackIdx, { audioStartTime: Number(e.target.value) })}
+                                                            className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#00ff66]"
+                                                        />
+                                                    ) : (
+                                                        <div className="text-[7.5px] text-gray-400 italic bg-white/5 px-2 py-1 rounded border border-white/10">
+                                                            ℹ️ Extrait 30s officiel complet déjà centré sur le Drop.
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
 
                                     <p className="text-[7.5px] text-gray-400 italic">
-                                        ⏱️ Lors de l'export vidéo MP4, la musique démarrera exactement à <strong>{formatAudioTime(activeTrack.audioStartTime || 0)}</strong>.
+                                        ⏱️ Lors de l'export vidéo MP4, la musique démarrera exactement à <strong>{formatAudioTime(activeTrack.audioStartTime || 0)}</strong> et jouera 30 secondes en continu sans boucler.
                                     </p>
                                 </div>
                             ) : (
