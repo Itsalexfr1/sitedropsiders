@@ -433,23 +433,90 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    const playAudioPreviewFrom = (src: string, startTime: number) => {
+    // Cache mémoire vive (RAM) des fichiers audio complets sous forme de Blob
+    // Élimine 100% des micro-coupures réseau, latences de requêtes partielles HTTP et dropouts
+    const audioBlobCacheRef = useRef<Map<string, string>>(new Map());
+
+    const getPreloadedAudioBlobUrl = async (url: string): Promise<string> => {
+        if (!url) return '';
+        if (url.startsWith('blob:') || url.startsWith('data:')) return url;
+        if (audioBlobCacheRef.current.has(url)) {
+            return audioBlobCacheRef.current.get(url)!;
+        }
+        try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const blob = await res.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            audioBlobCacheRef.current.set(url, blobUrl);
+            return blobUrl;
+        } catch (e) {
+            console.warn("Préchargement audio direct impossible (repli streaming direct) :", e);
+            return url;
+        }
+    };
+
+    const playAudioPreviewFrom = async (src: string, startTime: number) => {
         if (!src) return;
         if (!previewAudioPlayerRef.current) {
             previewAudioPlayerRef.current = new Audio();
         }
         const p = previewAudioPlayerRef.current;
-        if (activeAudioPreviewSrc === src && !p.paused) {
+        if ((activeAudioPreviewSrc === src || (activeAudioPreviewSrc && p.src === activeAudioPreviewSrc)) && !p.paused) {
             p.pause();
             setActiveAudioPreviewSrc(null);
             return;
         }
-        p.src = src;
-        p.currentTime = startTime;
-        p.play().then(() => {
+
+        try {
+            // 1. Obtenir la source audio chargée à 100% dans la RAM
+            const readyUrl = await getPreloadedAudioBlobUrl(src);
+
+            p.pause();
+            if (p.src !== readyUrl) {
+                p.src = readyUrl;
+                p.preload = 'auto';
+                await new Promise<void>((resolve) => {
+                    if (p.readyState >= 2) return resolve();
+                    const onLoaded = () => {
+                        p.removeEventListener('loadedmetadata', onLoaded);
+                        p.removeEventListener('canplay', onLoaded);
+                        resolve();
+                    };
+                    p.addEventListener('loadedmetadata', onLoaded, { once: true });
+                    p.addEventListener('canplay', onLoaded, { once: true });
+                    p.load();
+                    setTimeout(resolve, 350);
+                });
+            }
+
+            // 2. Caler précisément la tête de lecture à startTime
+            const safeStart = Math.max(0, startTime || 0);
+            if (isFinite(safeStart)) {
+                try {
+                    p.currentTime = safeStart;
+                } catch (_) {}
+            }
+
+            // Attendre la validation du seek pour éviter tout clic ou micro-pause
+            await new Promise<void>((resolve) => {
+                if (!p.seeking) return resolve();
+                const onSeeked = () => {
+                    p.removeEventListener('seeked', onSeeked);
+                    resolve();
+                };
+                p.addEventListener('seeked', onSeeked, { once: true });
+                setTimeout(resolve, 200);
+            });
+
+            // 3. Lancer la lecture fluide
+            await p.play();
             setActiveAudioPreviewSrc(src);
-        }).catch(err => console.warn("Erreur lecture preview :", err));
-        p.onended = () => setActiveAudioPreviewSrc(null);
+            p.onended = () => setActiveAudioPreviewSrc(null);
+        } catch (err) {
+            console.warn("Erreur lecture preview :", err);
+            setActiveAudioPreviewSrc(null);
+        }
     };
 
     // Durée strictement fixe à 30 secondes pour l'export vidéo de morceau (impossible à modifier)
@@ -546,6 +613,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (res.duration) {
                         setAudioDurations(prev => ({ ...prev, [res.audioUrl]: res.duration! }));
                     }
+                    // Préchargement immédiat en mémoire vive (RAM) pour éliminer les micro-coupures
+                    getPreloadedAudioBlobUrl(res.audioUrl).then(blobUrl => {
+                        if (blobUrl && blobUrl !== res.audioUrl) {
+                            updateMusicTrack(trackIdx, { audio: blobUrl });
+                        }
+                    });
                 }
                 if (res.coverUrl) {
                     patch.cover = res.coverUrl;
@@ -598,6 +671,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (res.duration) {
                         setAudioDurations(prev => ({ ...prev, [res.audioUrl]: res.duration! }));
                     }
+                    getPreloadedAudioBlobUrl(res.audioUrl).then(blobUrl => {
+                        if (blobUrl && blobUrl !== res.audioUrl) {
+                            setMusicIntroAudio(blobUrl);
+                        }
+                    });
                 }
                 if (res.coverUrl) {
                     setBgImage(res.coverUrl);
@@ -4766,6 +4844,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         });
     }, [musicTracks]);
 
+    // Pre-charger tous les extraits audio en mémoire RAM (zéro buffering, zéro micro-coupure)
+    useEffect(() => {
+        if (theme === 'MUSIQUE') {
+            if (musicIntroAudio && !musicIntroAudio.startsWith('blob:')) {
+                getPreloadedAudioBlobUrl(musicIntroAudio);
+            }
+            musicTracks.forEach(t => {
+                if (t.audio && !t.audio.startsWith('blob:')) {
+                    getPreloadedAudioBlobUrl(t.audio);
+                }
+            });
+        }
+    }, [theme, musicIntroAudio, musicTracks]);
+
     // Pre-charger l'affiche de l'événement dès que son URL change
     useEffect(() => {
         if (!afficheImage) {
@@ -5054,7 +5146,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         const recorder = new MediaRecorder(combinedStream, {
             mimeType,
-            videoBitsPerSecond: bitrate
+            videoBitsPerSecond: bitrate,
+            audioBitsPerSecond: 192000
         });
 
         const chunks: Blob[] = [];
@@ -5283,9 +5376,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     if (slideAudioUrl) {
                         try {
-                            musicAudioEl.src = slideAudioUrl;
-                            musicAudioEl.currentTime = slideAudioStartTime;
-                            musicAudioEl.play().catch(e => console.warn("Lecture extrait audio bloquée :", e));
+                            const readyAudioUrl = await getPreloadedAudioBlobUrl(slideAudioUrl);
+                            musicAudioEl.src = readyAudioUrl;
+                            musicAudioEl.preload = 'auto';
+                            await new Promise<void>((resolve) => {
+                                if (musicAudioEl.readyState >= 2) return resolve();
+                                const onReady = () => {
+                                    musicAudioEl.removeEventListener('loadedmetadata', onReady);
+                                    musicAudioEl.removeEventListener('canplay', onReady);
+                                    resolve();
+                                };
+                                musicAudioEl.addEventListener('loadedmetadata', onReady, { once: true });
+                                musicAudioEl.addEventListener('canplay', onReady, { once: true });
+                                musicAudioEl.load();
+                                setTimeout(resolve, 350);
+                            });
+                            musicAudioEl.currentTime = Math.max(0, slideAudioStartTime || 0);
+                            await new Promise<void>((resolve) => {
+                                if (!musicAudioEl.seeking) return resolve();
+                                const onSeeked = () => {
+                                    musicAudioEl.removeEventListener('seeked', onSeeked);
+                                    resolve();
+                                };
+                                musicAudioEl.addEventListener('seeked', onSeeked, { once: true });
+                                setTimeout(resolve, 150);
+                            });
+                            await musicAudioEl.play().catch(e => console.warn("Lecture extrait audio bloquée :", e));
                         } catch (e) {
                             console.warn("Erreur assignation audio :", e);
                         }
@@ -5407,11 +5523,34 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
                 if (singleAudioUrl) {
                     try {
-                        musicAudioEl.src = singleAudioUrl;
-                        musicAudioEl.currentTime = singleAudioStartTime;
+                        const readyAudioUrl = await getPreloadedAudioBlobUrl(singleAudioUrl);
+                        musicAudioEl.src = readyAudioUrl;
+                        musicAudioEl.preload = 'auto';
+                        await new Promise<void>((resolve) => {
+                            if (musicAudioEl.readyState >= 2) return resolve();
+                            const onReady = () => {
+                                musicAudioEl.removeEventListener('loadedmetadata', onReady);
+                                musicAudioEl.removeEventListener('canplay', onReady);
+                                resolve();
+                            };
+                            musicAudioEl.addEventListener('loadedmetadata', onReady, { once: true });
+                            musicAudioEl.addEventListener('canplay', onReady, { once: true });
+                            musicAudioEl.load();
+                            setTimeout(resolve, 350);
+                        });
+                        musicAudioEl.currentTime = Math.max(0, singleAudioStartTime || 0);
+                        await new Promise<void>((resolve) => {
+                            if (!musicAudioEl.seeking) return resolve();
+                            const onSeeked = () => {
+                                musicAudioEl.removeEventListener('seeked', onSeeked);
+                                resolve();
+                            };
+                            musicAudioEl.addEventListener('seeked', onSeeked, { once: true });
+                            setTimeout(resolve, 200);
+                        });
                         musicAudioEl.loop = false;
                         musicAudioEl.onended = null;
-                        musicAudioEl.play().catch(e => console.warn("Lecture extrait audio :", e));
+                        await musicAudioEl.play().catch(e => console.warn("Lecture extrait audio :", e));
                     } catch (e) {
                         console.warn("Erreur assignation audio :", e);
                     }
@@ -10096,9 +10235,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <audio
                                         key="preview-audio-intro"
                                         controls
-                                        src={musicIntroAudio}
+                                        src={audioBlobCacheRef.current.get(musicIntroAudio) || musicIntroAudio}
                                         className="w-full h-8 rounded-lg accent-[#00ff66]"
-                                        preload="metadata"
+                                        preload="auto"
                                         onLoadedMetadata={(e) => handleAudioLoadedMetadata(musicIntroAudio, e.currentTarget.duration)}
                                     />
 
@@ -10695,9 +10834,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <audio
                                         key={`audio-track-${activeTrackIdx}`}
                                         controls
-                                        src={activeTrack.audio}
+                                        src={audioBlobCacheRef.current.get(activeTrack.audio) || activeTrack.audio}
                                         className="w-full h-8 rounded-lg accent-[#00ff66]"
-                                        preload="metadata"
+                                        preload="auto"
                                         onLoadedMetadata={(e) => handleAudioLoadedMetadata(activeTrack.audio!, e.currentTarget.duration)}
                                     />
 
