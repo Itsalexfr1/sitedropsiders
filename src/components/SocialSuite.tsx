@@ -143,6 +143,10 @@ const AccordionChevron = ({ open }: { open: boolean }) => (
 
 export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab, onGeneratePromo, isGeneratingPromo }: SocialSuiteProps) {
     const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'PUBLICATION');
+    const [theme, setTheme] = useState<ThemeType>(() => {
+        if (initialTheme) return initialTheme;
+        return 'NEWS';
+    });
     // Accordéons rétractables : fermés par défaut sur POST, ouverts sur REEL
     const isInitialReel = (initialTab || 'PUBLICATION') === 'REEL';
     const [animOptionsOpen, setAnimOptionsOpen] = useState<boolean>(isInitialReel);
@@ -160,10 +164,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setSlideTransOptionsOpen(isReel);
         setBgPositionOptionsOpen(isReel);
     }, [activeTab, theme]);
-    const [theme, setTheme] = useState<ThemeType>(() => {
-        if (initialTheme) return initialTheme;
-        return 'NEWS';
-    });
     const [showSwipe, setShowSwipe] = useState(false);
     const [showArticleLink, setShowArticleLink] = useState(false);
     const [showVoteLink, setShowVoteLink] = useState(false);
