@@ -414,18 +414,45 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         platform: string;
     } | null>(null);
 
-    const handleResolveMusicAudio = async (trackIdx: number, inputVal: string) => {
+    const [smartImportUrl, setSmartImportUrl] = useState<string>('');
+
+    const handleExtractTrackData = async (trackIdx: number, urlOrQuery: string) => {
         const tr = musicTracks[trackIdx];
-        if (!inputVal.trim() && !tr?.title && !tr?.artist) return;
+        const inputVal = urlOrQuery.trim();
+        if (!inputVal && !tr?.title && !tr?.artist) return;
         setIsResolvingAudio(true);
         setErrorMessage('');
         try {
+            // Si c'est directement une image (jpg, png, webp)
+            if (/\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(inputVal)) {
+                updateMusicTrack(trackIdx, { cover: inputVal });
+                if (trackIdx === 0) setAfficheImage(inputVal);
+                setTimeout(() => generateImage(), 50);
+                setIsResolvingAudio(false);
+                return;
+            }
+
             const res = await resolveMusicSnippet(inputVal, {
                 title: tr?.title,
                 artist: tr?.artist
             });
-            if (res && res.audioUrl) {
-                updateMusicTrack(trackIdx, { audio: res.audioUrl });
+            if (res) {
+                const patch: Partial<MusicTrackSlide> = {};
+                if (res.audioUrl) patch.audio = res.audioUrl;
+                if (res.coverUrl) {
+                    patch.cover = res.coverUrl;
+                    if (trackIdx === 0) setAfficheImage(res.coverUrl);
+                }
+                if (res.title && (!tr?.title || tr.title === `Track ${trackIdx + 1}`)) {
+                    patch.title = res.title;
+                }
+                if (res.artist && !tr?.artist) {
+                    patch.artist = res.artist;
+                }
+                if (res.album && !tr?.label) {
+                    patch.label = res.album;
+                }
+                updateMusicTrack(trackIdx, patch);
                 setMusicResolveInfo({
                     trackIdx,
                     title: res.title || tr?.title || '',
@@ -433,15 +460,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     coverUrl: res.coverUrl,
                     platform: res.platform
                 });
+                setTimeout(() => generateImage(), 50);
             } else {
-                setErrorMessage("Impossible d'extraire l'extrait audio à partir de ce lien. Vérifiez le lien ou utilisez un fichier MP3 local.");
+                setErrorMessage("Impossible d'extraire les informations du morceau. Vérifiez le lien ou utilisez un fichier local.");
             }
         } catch (e: any) {
-            console.warn("Erreur résolution audio :", e);
-            setErrorMessage("Erreur lors de la récupération de l'extrait musical.");
+            console.warn("Erreur extraction track data :", e);
+            setErrorMessage("Erreur lors de l'extraction des données.");
         } finally {
             setIsResolvingAudio(false);
         }
+    };
+
+    const handleResolveMusicAudio = async (trackIdx: number, inputVal: string) => {
+        return handleExtractTrackData(trackIdx, inputVal);
     };
 
     const handleResolveIntroAudio = async (inputVal: string) => {
@@ -452,14 +484,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 title: conseilsTitle,
                 artist: artistNameText
             });
-            if (res && res.audioUrl) {
-                setMusicIntroAudio(res.audioUrl);
+            if (res) {
+                if (res.audioUrl) setMusicIntroAudio(res.audioUrl);
+                if (res.coverUrl) {
+                    setBgImage(res.coverUrl);
+                    if (!afficheImage) setAfficheImage(res.coverUrl);
+                    if (musicTracks.length > 0 && !musicTracks[0].cover) {
+                        updateMusicTrack(0, { cover: res.coverUrl, audio: res.audioUrl || musicTracks[0].audio });
+                    }
+                }
+                if (res.title && (!conseilsTitle || conseilsTitle === 'TITRE PRINCIPAL')) {
+                    setConseilsTitle(res.title);
+                }
+                if (res.artist && (!conseilsSubtext || conseilsSubtext === 'SOUS-TITRE / CATÉGORIE')) {
+                    setConseilsSubtext(res.artist);
+                }
+                setTimeout(() => generateImage(), 50);
             } else {
-                setErrorMessage("Impossible d'extraire l'extrait audio pour l'intro.");
+                setErrorMessage("Impossible d'extraire les données (cover/audio). Vérifiez le lien ou utilisez un fichier local.");
             }
         } catch (e) {
             console.warn("Erreur résolution intro :", e);
-            setErrorMessage("Erreur lors de la récupération de l'extrait musical.");
+            setErrorMessage("Erreur lors de la récupération de la musique et de la cover.");
         } finally {
             setIsResolvingAudio(false);
         }
@@ -9437,8 +9483,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {showSwipe ? 'ACTIF' : 'MASQUÉ'}
                     </button>
                 </div>
-
-                {exportButtons}
             </div>
         );
     })();
@@ -9582,6 +9626,59 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <span className="text-[#00ff66]">Slide 1 (Intro)</span>
                         </div>
 
+                        {/* Navigation rapide vers Track 1 pour les fiches morceaux */}
+                        <div className="p-2.5 bg-black/60 border border-[#00ff66]/30 rounded-xl flex items-center justify-between shadow-md">
+                            <div className="text-[8.5px] text-gray-300">
+                                <span className="text-white font-black block">Slide 1 = Visuel Annonce Générale</span>
+                                <span className="text-[7.5px] text-gray-400">Pour éditer les fiches morceaux avec pochette carrée 1:1 :</span>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(2); }}
+                                className="px-3 py-1.5 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-lg transition-all active:scale-95 flex items-center gap-1 shadow-sm whitespace-nowrap"
+                            >
+                                💿 Aller sur Track 1
+                            </button>
+                        </div>
+
+                        {/* MODULE EXTRACTION SLIDE 1 (COVER HD EN FOND + EXTRAIT AUDIO INTRO) */}
+                        <div className="p-3 bg-gradient-to-r from-black/80 via-[#00ff66]/10 to-black/80 border border-[#00ff66]/40 rounded-2xl space-y-2 shadow-xl">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[9.5px] font-black text-[#00ff66] uppercase tracking-wider flex items-center gap-1.5">
+                                    ⚡ Extraire Cover & Audio (Lien Streaming)
+                                </label>
+                                <span className="text-[7.5px] font-bold text-gray-400 bg-white/5 px-2 py-0.5 rounded-full border border-white/10 uppercase">
+                                    Spotify • Beatport • Soundcloud
+                                </span>
+                            </div>
+                            <div className="flex gap-1.5">
+                                <input
+                                    type="url"
+                                    placeholder="Coller un lien Spotify, Beatport, Soundcloud ou Apple Music..."
+                                    value={smartImportUrl}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSmartImportUrl(val);
+                                        if (val.match(/(spotify|beatport|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
+                                            handleResolveIntroAudio(val);
+                                        }
+                                    }}
+                                    className="flex-1 bg-black/60 border border-white/15 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66] transition-all"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => handleResolveIntroAudio(smartImportUrl || musicIntroAudio || '')}
+                                    disabled={isResolvingAudio}
+                                    className="px-3.5 py-2 bg-gradient-to-r from-[#00ff66] to-[#00cc88] hover:from-[#33ff85] hover:to-[#00e699] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-md active:scale-95 whitespace-nowrap"
+                                >
+                                    {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>⚡ Extraire Cover</span>}
+                                </button>
+                            </div>
+                            <p className="text-[7.5px] text-gray-400">
+                                🖼️ Extrait la <strong>Cover HD (1000x1000)</strong> en fond de la slide + l'<strong>Audio 30s teaser</strong>.
+                            </p>
+                        </div>
+
                         {/* Extrait Audio Intro Optionnel */}
                         <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
                             <div className="flex items-center justify-between">
@@ -9702,6 +9799,54 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             )}
                         </div>
 
+                        {/* MODULE 1-CLIC IMPORT MORCEAU (COVER + AUDIO + TITRES) */}
+                        <div className="p-3 bg-gradient-to-r from-black/80 via-[#00ff66]/10 to-black/80 border border-[#00ff66]/40 rounded-2xl space-y-2 shadow-xl">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[9.5px] font-black text-[#00ff66] uppercase tracking-wider flex items-center gap-1.5">
+                                    ⚡ Import Auto (Cover + Son + Titres)
+                                </label>
+                                <span className="text-[7.5px] font-bold text-gray-400 bg-white/5 px-2 py-0.5 rounded-full border border-white/10 uppercase">
+                                    Spotify • Beatport • Soundcloud
+                                </span>
+                            </div>
+                            <div className="flex gap-1.5">
+                                <input
+                                    type="url"
+                                    placeholder="Coller un lien Spotify, Beatport, Soundcloud ou Apple Music..."
+                                    value={smartImportUrl}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSmartImportUrl(val);
+                                        if (val.match(/(spotify|beatport|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
+                                            handleExtractTrackData(activeTrackIdx, val);
+                                        }
+                                    }}
+                                    className="flex-1 bg-black/60 border border-white/15 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66] transition-all"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => handleExtractTrackData(activeTrackIdx, smartImportUrl || activeCoverUrl || activeTrack.audio || '')}
+                                    disabled={isResolvingAudio}
+                                    className="px-3.5 py-2 bg-gradient-to-r from-[#00ff66] to-[#00cc88] hover:from-[#33ff85] hover:to-[#00e699] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-md active:scale-95 whitespace-nowrap"
+                                >
+                                    {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>⚡ Tout Extraire</span>}
+                                </button>
+                            </div>
+                            <div className="flex items-center justify-between text-[7.5px] text-gray-400">
+                                <span>Extrait la <strong>Pochette HD (1000x1000)</strong> + l'<strong>Audio 30s</strong></span>
+                                {(activeTrack.title || activeTrack.artist) && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleExtractTrackData(activeTrackIdx, '')}
+                                        disabled={isResolvingAudio}
+                                        className="text-[#00ff66] hover:underline font-bold"
+                                    >
+                                        🔍 Extraire par Titre & Artiste
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
                         {/* SECTION A : POCHETTE CARREE 1:1 */}
                         <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
                             <div className="flex items-center justify-between">
@@ -9782,17 +9927,42 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </button>
                             </div>
 
-                            <div className="pt-1">
-                                <input
-                                    type="url"
-                                    placeholder="OU COLLER LE LIEN DIRECT DE LA COVER..."
-                                    value={activeCoverUrl.startsWith('blob:') ? '' : activeCoverUrl}
-                                    onChange={e => {
-                                        updateMusicTrack(activeTrackIdx, { cover: e.target.value });
-                                        if (activeTrackIdx === 0) setAfficheImage(e.target.value);
-                                    }}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-medium placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all"
-                                />
+                            {/* Saisie URL de la cover avec bouton d'extraction automatique */}
+                            <div className="space-y-1 pt-1">
+                                <div className="flex items-center justify-between text-[8.5px] font-bold uppercase text-gray-400">
+                                    <span>Lien de la Cover ou Lien Streaming</span>
+                                    <span className="text-[7.5px] text-[#00ff66]">Spotify, Beatport, Apple, Image URL...</span>
+                                </div>
+                                <div className="flex gap-1.5">
+                                    <input
+                                        type="url"
+                                        placeholder="Coller lien Spotify, Beatport, Apple Music ou URL d'image..."
+                                        value={activeCoverUrl.startsWith('blob:') ? '' : activeCoverUrl}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            updateMusicTrack(activeTrackIdx, { cover: val });
+                                            if (activeTrackIdx === 0) setAfficheImage(val);
+                                            // Si c'est un lien streaming, auto-extraction de la cover HD et du son
+                                            if (val.match(/(spotify|beatport|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
+                                                handleExtractTrackData(activeTrackIdx, val);
+                                            }
+                                        }}
+                                        className="flex-1 bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleExtractTrackData(activeTrackIdx, activeCoverUrl || smartImportUrl || activeTrack.audio || '')}
+                                        disabled={isResolvingAudio}
+                                        className="px-3 py-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 disabled:opacity-50 shadow-md active:scale-95 whitespace-nowrap"
+                                        title="Extraire la pochette officielle 1000x1000"
+                                    >
+                                        {isResolvingAudio ? (
+                                            <span className="animate-spin">⏳</span>
+                                        ) : (
+                                            <span>⚡ Extraire Cover</span>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Réglages précis de taille et position de la cover */}
@@ -10109,8 +10279,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {showSwipe ? 'ACTIF' : 'MASQUÉ'}
                             </button>
                         </div>
-
-                        {exportButtons}
                     </div>
                 )}
             </div>

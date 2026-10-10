@@ -91,7 +91,19 @@ export async function resolveMusicSnippet(
         };
     }
 
-    // 2. Lien Spotify (ex: https://open.spotify.com/track/...)
+    // 1b. Déjà une URL d'image directe (JPG, PNG, WEBP, GIF)
+    if (
+        trimmed.startsWith('data:image/') ||
+        /\.(jpe?g|png|webp|gif|svg)(\?.*)?$/i.test(trimmed)
+    ) {
+        return {
+            audioUrl: '',
+            coverUrl: trimmed,
+            platform: 'direct'
+        };
+    }
+
+    // 2. Lien Spotify (ex: https://open.spotify.com/track/... ou /album/...)
     if (trimmed.includes('spotify.com/track/') || trimmed.includes('open.spotify.com/')) {
         try {
             const oembedUrl = `https://open.spotify.com/oembed?url=${encodeURIComponent(trimmed)}`;
@@ -105,6 +117,15 @@ export async function resolveMusicSnippet(
                         result.coverUrl = oembed.thumbnail_url;
                     }
                     return result;
+                }
+                // Si iTunes n'a pas l'audio preview, on renvoie quand même la cover HD Spotify et le titre !
+                if (oembed.thumbnail_url || songTitle) {
+                    return {
+                        audioUrl: '',
+                        coverUrl: oembed.thumbnail_url,
+                        title: songTitle,
+                        platform: 'spotify'
+                    };
                 }
             }
         } catch (e) {
@@ -163,13 +184,34 @@ export async function resolveMusicSnippet(
     // 5. Lien Soundcloud (ex: https://soundcloud.com/dimension_uk/eli-brown-dimension-frequency)
     if (trimmed.includes('soundcloud.com/')) {
         try {
+            let scTitle = '';
+            let scThumbnail = '';
+            try {
+                const scRes = await fetch(`https://soundcloud.com/oembed?url=${encodeURIComponent(trimmed)}&format=json`);
+                if (scRes.ok) {
+                    const scData = await scRes.json();
+                    scTitle = scData.title || '';
+                    scThumbnail = scData.thumbnail_url || '';
+                }
+            } catch (_) {}
+
             const match = trimmed.match(/soundcloud\.com\/([^/?#]+)\/([^/?#]+)/i);
-            if (match) {
-                const artistSlug = match[1].replace(/[-_]+/g, ' ');
-                const trackSlug = match[2].replace(/[-_]+/g, ' ');
-                const query = `${artistSlug} ${trackSlug}`;
-                const result = await searchItunesSnippet(query, 'soundcloud');
-                if (result) return result;
+            const artistSlug = match ? match[1].replace(/[-_]+/g, ' ') : '';
+            const trackSlug = match ? match[2].replace(/[-_]+/g, ' ') : '';
+            const query = scTitle || `${artistSlug} ${trackSlug}`;
+            const result = await searchItunesSnippet(query, 'soundcloud');
+            if (result) {
+                if (!result.coverUrl && scThumbnail) result.coverUrl = scThumbnail;
+                return result;
+            }
+            if (scThumbnail || scTitle) {
+                return {
+                    audioUrl: '',
+                    coverUrl: scThumbnail,
+                    title: scTitle || trackSlug,
+                    artist: artistSlug,
+                    platform: 'soundcloud'
+                };
             }
         } catch (e) {
             console.warn("Erreur résolution Soundcloud :", e);
@@ -181,7 +223,6 @@ export async function resolveMusicSnippet(
         try {
             const match = trimmed.match(/track\/(\d+)/i);
             if (match && match[1]) {
-                // Tente Deezer API directe
                 try {
                     const dzRes = await fetch(`https://api.deezer.com/track/${match[1]}`);
                     if (dzRes.ok) {
@@ -218,6 +259,12 @@ export async function resolveMusicSnippet(
                 if (data.title) {
                     const result = await searchItunesSnippet(data.title, 'youtube');
                     if (result) return result;
+                    return {
+                        audioUrl: '',
+                        coverUrl: data.thumbnail_url,
+                        title: cleanQuery(data.title),
+                        platform: 'youtube'
+                    };
                 }
             }
         } catch (e) {
