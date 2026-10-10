@@ -3805,38 +3805,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-                // E) Visualiseur audio / Barres equalizer animées néon vert
-                const eqY = isStory ? (labelRaw ? 1530 : 1450) : (labelRaw ? 985 : 940);
-                const isPlayingOrRec = isVideoRecording || (activeAudioPreviewSrc !== null);
-                const animT = (Date.now() - animStartTimeRef.current) / 1000;
-                const barCount = 18;
-                const totalEqW = isStory ? 220 : 170;
-                const barW = isStory ? 5.5 : 4.5;
-                const barGap = (totalEqW - (barCount * barW)) / (barCount - 1);
-                const startEqX = centerX - totalEqW / 2;
-
-                ctx.save();
-                for (let bi = 0; bi < barCount; bi++) {
-                    const bx = startEqX + bi * (barW + barGap);
-                    const waveFactor = isPlayingOrRec
-                        ? (Math.sin(animT * 6 + bi * 0.7) * 0.4 + Math.cos(animT * 10 + bi * 1.3) * 0.3 + 0.5)
-                        : (Math.sin(bi * 0.8) * 0.25 + 0.35);
-                    const barH = Math.max(4, Math.round((isStory ? 28 : 20) * Math.min(1, Math.max(0.15, waveFactor))));
-                    const by = eqY - barH / 2;
-
-                    const barGrad = ctx.createLinearGradient(bx, by, bx, by + barH);
-                    barGrad.addColorStop(0, '#39ff14');
-                    barGrad.addColorStop(1, '#00cc66');
-                    ctx.fillStyle = barGrad;
-                    ctx.shadowColor = 'rgba(57, 255, 20, 0.35)';
-                    ctx.shadowBlur = 5;
-                    ctx.beginPath();
-                    ctx.roundRect(bx, by, barW, barH, barW / 2);
-                    ctx.fill();
-                }
-                ctx.restore();
-
-                // F) FOOTER & SWIPE
+                // E) FOOTER & SWIPE
                 const footerY = canvas.height - (isStory ? 80 : 50);
                 // Left branding
                 ctx.save();
@@ -10565,7 +10534,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </div>
 
                             <p className="text-[7.5px] text-gray-300">
-                                Génère la vidéo MP4 avec la pochette carrée 1:1, les informations de la track, le visualiseur audio et l'extrait musical synchronisé ({singleSlideVideoDuration}s).
+                                Génère la vidéo MP4 avec la pochette carrée 1:1, les informations de la track et l'extrait musical synchronisé ({singleSlideVideoDuration}s).
                             </p>
 
                             <div className="flex items-center justify-between gap-2 text-[8px] text-gray-300 pt-0.5">
