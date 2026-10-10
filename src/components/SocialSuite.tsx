@@ -4845,6 +4845,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     musicAudioDest = musicAudioCtx.createMediaStreamDestination();
                     musicAudioEl = document.createElement('audio');
                     musicAudioEl.crossOrigin = 'anonymous';
+                    musicAudioEl.loop = true;
                     const musicSourceNode = musicAudioCtx.createMediaElementSource(musicAudioEl);
                     musicSourceNode.connect(musicAudioDest);
                     musicSourceNode.connect(musicAudioCtx.destination);
@@ -5223,6 +5224,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     try {
                         musicAudioEl.src = singleAudioUrl;
                         musicAudioEl.currentTime = singleAudioStartTime;
+                        musicAudioEl.loop = true;
+                        musicAudioEl.onended = () => {
+                            try {
+                                musicAudioEl!.currentTime = singleAudioStartTime || 0;
+                                musicAudioEl!.play().catch(() => {});
+                            } catch (_) {}
+                        };
                         musicAudioEl.play().catch(e => console.warn("Lecture extrait audio :", e));
                     } catch (e) {
                         console.warn("Erreur assignation audio :", e);
@@ -10455,8 +10463,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 type="button"
                                                 onClick={() => {
                                                     const dur = audioDurations[activeTrack.audio!] || 30;
-                                                    const mid = Math.round(dur / 2);
-                                                    updateMusicTrack(activeTrackIdx, { audioStartTime: mid });
+                                                    // Si l'extrait fait déjà 30s ou moins, il est déjà au drop : début à 0:00 pour 30s complètes
+                                                    if (dur <= 35) {
+                                                        updateMusicTrack(activeTrackIdx, { audioStartTime: 0 });
+                                                    } else {
+                                                        const mid = Math.round(dur / 2);
+                                                        updateMusicTrack(activeTrackIdx, { audioStartTime: mid });
+                                                    }
                                                 }}
                                                 className={`py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${
                                                     (activeTrack.audioStartTime || 0) > 0
@@ -10464,7 +10477,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                         : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
                                                 }`}
                                             >
-                                                ⚡ Milieu / Drop
+                                                ⚡ Drop (30s)
                                             </button>
                                             <button
                                                 type="button"
