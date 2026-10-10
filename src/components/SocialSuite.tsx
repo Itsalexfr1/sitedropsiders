@@ -3387,7 +3387,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 // Halo lumineux néon vert centré derrière la pochette
-                const haloY = isStory ? 680 : 525;
+                const haloY = isStory ? 730 : 555;
                 const haloGrad = ctx.createRadialGradient(
                     canvas.width / 2, haloY, 80,
                     canvas.width / 2, haloY, isStory ? 560 : 460
@@ -3402,12 +3402,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 drawTopCapsuleBadge('MUSIQUE', '#39ff14', '57, 255, 20');
 
                 // 3. Dimensions et proportions de la pochette carrée 1:1
-                const baseCardSize = isStory ? 820 : 700;
+                const baseCardSize = isStory ? 780 : 640;
                 const scale = (afficheScale || 100) / 100;
                 const cardW = Math.round(baseCardSize * scale);
                 const cardH = cardW; // Format 1:1
                 const cardX = Math.round((canvas.width - cardW) / 2);
-                const baseCardY = isStory ? 270 : 175;
+                const baseCardY = isStory ? 340 : 235;
                 const cardY = Math.round(baseCardY + (afficheOffsetY || 0));
                 const rad = isStory ? 34 : 28;
 
@@ -3533,7 +3533,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const centerX = canvas.width / 2;
 
                 // A) Track Number Pill (ex: "TRACK 01")
-                const pillY = isStory ? 1170 : 935;
+                const pillY = isStory ? 1180 : 925;
                 const trackNumText = `TRACK ${String(trackIdx + 1).padStart(2, '0')}`;
                 ctx.save();
                 ctx.font = '900 italic 15px "Montserrat", sans-serif';
@@ -3555,7 +3555,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
                 // B) TITRE DU MORCEAU (Gros, blanc avec highlights)
-                const titleY = isStory ? 1270 : 1010;
+                const titleY = isStory ? 1275 : 995;
                 const titleText = currentTrack.title?.trim() || (trackIdx === 0 && conseilsTitle && conseilsTitle !== 'LE TITRE ICI' ? conseilsTitle : `TITRE DU MORCEAU`);
                 ctx.save();
                 let titleFontSize = isStory ? 52 : 44;
@@ -3570,7 +3570,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
                 // C) ARTISTE (En vert néon gras italique)
-                const artistY = isStory ? 1365 : 1085;
+                const artistY = isStory ? 1370 : 1070;
                 const artistText = currentTrack.artist?.trim() || (trackIdx === 0 && artistNameText ? artistNameText : 'NOM DE L\'ARTISTE');
                 ctx.save();
                 let artistFontSize = isStory ? 36 : 28;
@@ -3590,7 +3590,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // D) LABEL DISCOGRAPHIQUE (Badge capsule élégant si renseigné)
                 const labelRaw = currentTrack.label?.trim();
                 if (labelRaw) {
-                    const labelY = isStory ? 1460 : 1160;
+                    const labelY = isStory ? 1465 : 1150;
                     const labelDisplay = `LABEL : ${labelRaw.toUpperCase()}`;
                     ctx.save();
                     const labelFontSize = isStory ? 20 : 16;
@@ -9533,6 +9533,60 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     }}
                                     className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-medium placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all"
                                 />
+                            </div>
+
+                            {/* Réglages précis de taille et position de la cover */}
+                            <div className="space-y-2.5 pt-2.5 border-t border-white/10">
+                                <div className="space-y-1">
+                                    <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
+                                        <span>Taille de la Pochette</span>
+                                        <span className="text-[#00ff66] font-mono">{afficheScale}%</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="60"
+                                        max="120"
+                                        value={afficheScale}
+                                        onChange={(e) => {
+                                            setAfficheScale(Number(e.target.value));
+                                            setTimeout(() => generateImage(), 30);
+                                        }}
+                                        className="w-full accent-[#00ff66] bg-white/10 rounded-lg h-1.5 cursor-pointer"
+                                    />
+                                </div>
+
+                                <div className="space-y-1">
+                                    <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
+                                        <span>Position Verticale (Haut / Bas)</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-gray-300 font-mono text-[8px]">{afficheOffsetY > 0 ? `+${afficheOffsetY}` : afficheOffsetY}px</span>
+                                            {(afficheOffsetY !== 0 || afficheScale !== 100) && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setAfficheScale(100);
+                                                        setAfficheOffsetY(0);
+                                                        setTimeout(() => generateImage(), 30);
+                                                    }}
+                                                    className="text-[8px] text-[#00ff66] hover:underline cursor-pointer uppercase font-bold"
+                                                >
+                                                    Reset
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="-100"
+                                        max="150"
+                                        value={afficheOffsetY}
+                                        onChange={(e) => {
+                                            setAfficheOffsetY(Number(e.target.value));
+                                            setTimeout(() => generateImage(), 30);
+                                        }}
+                                        className="w-full accent-[#00ff66] bg-white/10 rounded-lg h-1.5 cursor-pointer"
+                                    />
+                                </div>
                             </div>
                         </div>
 
