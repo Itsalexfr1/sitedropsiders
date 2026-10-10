@@ -4207,22 +4207,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
             }
 
-            // Swipe & links legacy fallback (uniquement pour les thèmes non modernisés et non exports PROMO)
+            // Links legacy fallback (uniquement pour les thèmes non modernisés et non exports PROMO)
             const isPromoExport = exportMode === 'PROMO';
+            const isCustomLayoutTheme = ['MUSIQUE', 'EVENTS', 'AFFICHE'].includes(theme);
 
-            if (showSwipe && !isPromoExport && theme !== 'CONSEILS' && theme !== 'REELS' && !isModernEditorialTheme) {
-                ctx.save();
-                ctx.textAlign = 'right';
-                ctx.textBaseline = 'bottom';
-                ctx.font = '900 italic 45px "Montserrat", sans-serif';
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                ctx.shadowBlur = 10;
-                ctx.fillText('>>', canvas.width - 40, canvas.height - 10);
-                ctx.restore();
-            }
-
-            if (showArticleLink && !isPromoExport && !isModernEditorialTheme) {
+            if (showArticleLink && !isPromoExport && !isModernEditorialTheme && !isCustomLayoutTheme) {
                 ctx.save();
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'bottom';
@@ -4234,7 +4223,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
             }
 
-            if (showVoteLink && !isPromoExport && !isModernEditorialTheme) {
+            if (showVoteLink && !isPromoExport && !isModernEditorialTheme && !isCustomLayoutTheme) {
                 ctx.save();
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'bottom';
@@ -9151,7 +9140,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 {/* 3. SWIPE DROPSIDERS >> */}
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
                     <div>
-                        <span className="text-[9px] font-black text-white uppercase block">Swipe Studio ({'>>'})</span>
+                        <span className="text-[9px] font-black text-white uppercase block">Swipe Studio</span>
                         <span className="text-[8px] text-gray-500 font-medium">Afficher la mention swipe en bas à droite</span>
                     </div>
                     <button
@@ -9566,7 +9555,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {/* SECTION D : SWIPE DROPSIDERS */}
                         <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
                             <div>
-                                <span className="text-[9px] font-black text-white uppercase block">Swipe Studio ({'>>'})</span>
+                                <span className="text-[9px] font-black text-white uppercase block">Swipe Studio</span>
                                 <span className="text-[8px] text-gray-500 font-medium">Afficher la mention Swipe en bas</span>
                             </div>
                             <button
