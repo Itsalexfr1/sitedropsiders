@@ -330,7 +330,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const audioSourceVideoRef = useRef<HTMLVideoElement | null>(null); // pour détecter si bgVideo a changé
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
     const [r2TargetIdx, setR2TargetIdx] = useState<number | null>(null);
-    const [r2TargetType, setR2TargetType] = useState<'top5' | 'top10' | 'background' | 'logo' | 'affiche' | null>(null);
+    const [r2TargetType, setR2TargetType] = useState<'top5' | 'top10' | 'background' | 'logo' | 'affiche' | 'musicCover' | null>(null);
 
     // AFFICHE Theme States (Poster Événement Flottant)
     const [afficheImage, setAfficheImage] = useState<string>('');
@@ -342,11 +342,45 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [afficheOffsetY, setAfficheOffsetY] = useState<number>(0);
     const afficheFileInputRef = useRef<HTMLInputElement>(null);
 
+    // MUSIQUE : Slide 1 = Annonce, Slides 2 à 19 = Tracks (pochette + titre + artiste + label), Slide 20 = Promo
+    type MusicTrackSlide = { cover: string; title: string; artist: string; label: string };
+    const MAX_MUSIC_TRACKS = 18; // 1 intro + 18 tracks + 1 promo = 20 slides max (limite carrousel Instagram)
+    const createEmptyMusicTrack = (): MusicTrackSlide => ({ cover: '', title: '', artist: '', label: '' });
+    const [musicTracks, setMusicTracks] = useState<MusicTrackSlide[]>(() => [createEmptyMusicTrack()]);
+    const musicCoverImgsRef = useRef<Record<string, HTMLImageElement>>({});
+
+    const updateMusicTrack = (idx: number, patch: Partial<MusicTrackSlide>) => {
+        setMusicTracks(prev => prev.map((t, i) => (i === idx ? { ...t, ...patch } : t)));
+    };
+
+    const addMusicTrack = () => {
+        if (musicTracks.length >= MAX_MUSIC_TRACKS) return;
+        const newSlideNum = musicTracks.length + 2; // Slide 1 = annonce, tracks à partir de la slide 2
+        setMusicTracks(prev => [...prev, createEmptyMusicTrack()]);
+        setIsCarouselPromoActive(false);
+        setEditorialSlide(newSlideNum);
+    };
+
+    const removeMusicTrack = (idx: number) => {
+        if (musicTracks.length <= 1) return; // Au moins 1 track (slide 2) indispensable
+        const removedSlideNum = idx + 2;
+        setMusicTracks(prev => prev.filter((_, i) => i !== idx));
+        if (editorialSlide >= removedSlideNum && editorialSlide > 2) {
+            setEditorialSlide(editorialSlide - 1);
+        }
+    };
+
     const handleAfficheImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
         const url = URL.createObjectURL(file);
-        setAfficheImage(url);
+        if (theme === 'MUSIQUE') {
+            // Pochette propre à la slide track active
+            updateMusicTrack(Math.max(0, editorialSlide - 2), { cover: url });
+        } else {
+            setAfficheImage(url);
+        }
+        e.target.value = '';
     };
 
     // Text animation states for Reels
@@ -984,7 +1018,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else if (imgLayoutMode === 'BAS_LIGNE') {
                     y = ((canvas.height * 0.85 - vh) / 2) + bgOffsetY + bgAnimY;
                 }
-                if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide === 2)) {
+                if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2)) {
                     ctx.save();
                     ctx.filter = 'blur(14px)';
                     const blurBleed = 28;
@@ -1017,7 +1051,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     } else if (imgLayoutMode === 'BAS_LIGNE') {
                         y = ((canvas.height * 0.85 - ih) / 2) + bgOffsetY + bgAnimY;
                     }
-                    if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide === 2)) {
+                    if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2)) {
                         ctx.save();
                         ctx.filter = 'blur(14px)';
                         const blurBleed = 28;
@@ -1230,7 +1264,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, canvas.height * 0.82, canvas.width, canvas.height * 0.18);
                 }
             } else {
-                if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && eventsSlide === 2) && !(theme === 'MUSIQUE' && effectiveEditorialSlide === 2) && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
+                if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && eventsSlide === 2) && !(theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
                     const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                         ? canvas.height * 0.8
                         : canvas.height * 0.4;
@@ -3183,6 +3217,369 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(ctaText, centerX, ctaY);
                 ctx.restore();
 
+            } else if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2)) {
+                const isStory = canvas.height > 1500;
+
+                // 1. Dark Vignette overlay (Atmosphère sombre et immersive Dropsiders)
+                const vig = ctx.createRadialGradient(
+                    canvas.width / 2, canvas.height / 2, canvas.width * 0.15,
+                    canvas.width / 2, canvas.height / 2, canvas.height * 0.72
+                );
+                vig.addColorStop(0, 'rgba(0, 0, 0, 0.20)');
+                vig.addColorStop(0.65, 'rgba(0, 0, 0, 0.60)');
+                vig.addColorStop(1, 'rgba(0, 0, 0, 0.88)');
+                ctx.fillStyle = vig;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 2. Top Capsule Badge EVENTS
+                drawTopCapsuleBadge(theme === 'EVENTS' ? 'EVENTS' : 'AFFICHE', '#ff007f', '255, 0, 127');
+
+                // 3. Dimensions de la carte d'affiche
+                const baseCardW = 800;
+                const baseCardH = isStory ? 1380 : 980;
+                const baseCardY = isStory ? (bgVideo ? 250 : 220) : (bgVideo ? 230 : 195);
+
+                const scale = (afficheScale || 100) / 100;
+                const cardW = Math.round(baseCardW * scale);
+                const cardH = Math.round(baseCardH * scale);
+                const cardX = Math.round((canvas.width - cardW) / 2);
+                const cardY = Math.round(baseCardY + ((baseCardH - cardH) / 2) + (afficheOffsetY || 0));
+                const rad = isStory ? 28 : 24;
+
+                // 4. Ombre portée 3D et halo ambiant néon
+                ctx.save();
+                if (afficheGlow) {
+                    ctx.shadowColor = `rgba(${activeColor.grad || '255, 0, 127'}, 0.35)`;
+                    ctx.shadowBlur = 45;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 0;
+                    ctx.beginPath();
+                    ctx.roundRect(cardX, cardY, cardW, cardH, rad);
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                    ctx.fill();
+                }
+
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                ctx.shadowBlur = 55;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 22;
+                ctx.beginPath();
+                ctx.roundRect(cardX, cardY, cardW, cardH, rad);
+                ctx.fillStyle = '#0a0a0c';
+                ctx.fill();
+                ctx.restore();
+
+                // 5. Rendu de l'affiche de l'événement dans le rectangle arrondi clippé
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(cardX, cardY, cardW, cardH, rad);
+                ctx.clip();
+
+                if (afficheImageRef.current) {
+                    const poster = afficheImageRef.current;
+                    if (afficheMode === 'contain') {
+                        ctx.fillStyle = '#0a0a0e';
+                        ctx.fillRect(cardX, cardY, cardW, cardH);
+                        const fitScale = Math.min(cardW / poster.width, cardH / poster.height);
+                        const dw = poster.width * fitScale;
+                        const dh = poster.height * fitScale;
+                        const dx = cardX + (cardW - dw) / 2;
+                        const dy = cardY + (cardH - dh) / 2;
+                        ctx.drawImage(poster, dx, dy, dw, dh);
+                    } else {
+                        // Mode Cover
+                        const posterRatio = poster.width / poster.height;
+                        const cardRatio = cardW / cardH;
+                        let sx = 0, sy = 0, sw = poster.width, sh = poster.height;
+                        if (posterRatio > cardRatio) {
+                            sw = poster.height * cardRatio;
+                            sx = (poster.width - sw) / 2;
+                        } else {
+                            sh = poster.width / cardRatio;
+                            sy = (poster.height - sh) / 2;
+                        }
+                        ctx.drawImage(poster, sx, sy, sw, sh, cardX, cardY, cardW, cardH);
+                    }
+                } else {
+                    // Carte placeholder élégante en attente d'image
+                    const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
+                    phGrad.addColorStop(0, 'rgba(26, 26, 32, 0.95)');
+                    phGrad.addColorStop(1, 'rgba(12, 12, 16, 0.98)');
+                    ctx.fillStyle = phGrad;
+                    ctx.fillRect(cardX, cardY, cardW, cardH);
+
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '900 italic 30px "Orbitron", sans-serif';
+                    ctx.fillText("AFFICHE DE L'ÉVÉNEMENT", cardX + cardW / 2, cardY + cardH / 2 - 25);
+
+                    ctx.font = '700 16px "Montserrat", sans-serif';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+                    ctx.fillText("Importez l'affiche dans le panneau latéral", cardX + cardW / 2, cardY + cardH / 2 + 25);
+                }
+
+                // Reflet subtil en dégradé sur le haut de la carte
+                const glossGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH * 0.35);
+                glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
+                glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = glossGrad;
+                ctx.fillRect(cardX, cardY, cardW, cardH * 0.35);
+                ctx.restore();
+
+                // 6. Contour bordure élégant
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(cardX, cardY, cardW, cardH, rad);
+                ctx.strokeStyle = afficheBorderColor || 'rgba(255, 255, 255, 0.22)';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+                ctx.restore();
+
+                // 7. Mention Swipe
+                if (showSwipe) {
+                    ctx.save();
+                    const swipeY = canvas.height - (isStory ? 80 : 50);
+                    ctx.font = '800 24px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'rgba(0,0,0,0.85)';
+                    ctx.shadowBlur = 8;
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('Swipe ──>', canvas.width - (isStory ? 80 : 60), swipeY);
+                    ctx.restore();
+                }
+
+            } else if (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) {
+                const isStory = canvas.height > 1500;
+                const trackIdx = Math.max(0, effectiveEditorialSlide - 2);
+                const currentTrack = musicTracks[trackIdx] || { cover: '', title: '', artist: '', label: '' };
+                const currentCoverUrl = currentTrack.cover || (trackIdx === 0 ? afficheImage : '');
+                const currentCoverImg = (currentCoverUrl && musicCoverImgsRef.current[currentCoverUrl]) || (trackIdx === 0 ? afficheImageRef.current : null);
+
+                // 1. Dark Vignette overlay (Atmosphère sombre et immersive Dropsiders)
+                const vig = ctx.createRadialGradient(
+                    canvas.width / 2, canvas.height / 2, canvas.width * 0.15,
+                    canvas.width / 2, canvas.height / 2, canvas.height * 0.72
+                );
+                vig.addColorStop(0, 'rgba(0, 0, 0, 0.25)');
+                vig.addColorStop(0.60, 'rgba(0, 0, 0, 0.65)');
+                vig.addColorStop(1, 'rgba(0, 0, 0, 0.92)');
+                ctx.fillStyle = vig;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 2. Top Capsule Badge MUSIQUE (vert néon #39ff14)
+                drawTopCapsuleBadge('MUSIQUE', '#39ff14', '57, 255, 20');
+
+                // 3. Dimensions de la carte cover carrée 1:1
+                const baseCardSize = isStory ? 720 : 600;
+                const scale = (afficheScale || 100) / 100;
+                const cardW = Math.round(baseCardSize * scale);
+                const cardH = cardW; // Format carré 1:1
+                const cardX = Math.round((canvas.width - cardW) / 2);
+                const baseCardY = isStory ? 300 : 170;
+                const cardY = Math.round(baseCardY + (afficheOffsetY || 0));
+                const rad = isStory ? 30 : 24;
+
+                // 4. Ombre portée 3D et halo ambiant néon vert
+                ctx.save();
+                if (afficheGlow) {
+                    ctx.shadowColor = 'rgba(57, 255, 20, 0.40)';
+                    ctx.shadowBlur = 50;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 0;
+                    ctx.beginPath();
+                    ctx.roundRect(cardX, cardY, cardW, cardH, rad);
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+                    ctx.fill();
+                }
+
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.90)';
+                ctx.shadowBlur = 55;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 24;
+                ctx.beginPath();
+                ctx.roundRect(cardX, cardY, cardW, cardH, rad);
+                ctx.fillStyle = '#08090a';
+                ctx.fill();
+                ctx.restore();
+
+                // 5. Rendu de l'image de la pochette
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(cardX, cardY, cardW, cardH, rad);
+                ctx.clip();
+
+                if (currentCoverImg) {
+                    const poster = currentCoverImg;
+                    if (afficheMode === 'contain') {
+                        ctx.fillStyle = '#0a0a0e';
+                        ctx.fillRect(cardX, cardY, cardW, cardH);
+                        const fitScale = Math.min(cardW / poster.width, cardH / poster.height);
+                        const dw = poster.width * fitScale;
+                        const dh = poster.height * fitScale;
+                        const dx = cardX + (cardW - dw) / 2;
+                        const dy = cardY + (cardH - dh) / 2;
+                        ctx.drawImage(poster, dx, dy, dw, dh);
+                    } else {
+                        // Mode Cover 1:1
+                        const posterRatio = poster.width / poster.height;
+                        const cardRatio = cardW / cardH;
+                        let sx = 0, sy = 0, sw = poster.width, sh = poster.height;
+                        if (posterRatio > cardRatio) {
+                            sw = poster.height * cardRatio;
+                            sx = (poster.width - sw) / 2;
+                        } else {
+                            sh = poster.width / cardRatio;
+                            sy = (poster.height - sh) / 2;
+                        }
+                        ctx.drawImage(poster, sx, sy, sw, sh, cardX, cardY, cardW, cardH);
+                    }
+                } else {
+                    // Carte placeholder stylisée pour la pochette
+                    const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
+                    phGrad.addColorStop(0, 'rgba(20, 24, 20, 0.96)');
+                    phGrad.addColorStop(1, 'rgba(10, 12, 10, 0.98)');
+                    ctx.fillStyle = phGrad;
+                    ctx.fillRect(cardX, cardY, cardW, cardH);
+
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#39ff14';
+                    ctx.font = '900 italic 28px "Orbitron", sans-serif';
+                    ctx.fillText(`TRACK ${String(trackIdx + 1).padStart(2, '0')}`, cardX + cardW / 2, cardY + cardH / 2 - 30);
+
+                    ctx.font = '900 32px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText("POCHETTE 1:1", cardX + cardW / 2, cardY + cardH / 2 + 10);
+
+                    ctx.font = '700 15px "Montserrat", sans-serif';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.50)';
+                    ctx.fillText("Importez la cover du son dans le panneau", cardX + cardW / 2, cardY + cardH / 2 + 50);
+                }
+
+                // Reflet subtil en dégradé sur le haut
+                const glossGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH * 0.35);
+                glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
+                glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = glossGrad;
+                ctx.fillRect(cardX, cardY, cardW, cardH * 0.35);
+                ctx.restore();
+
+                // 6. Contour bordure vert néon élégant
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(cardX, cardY, cardW, cardH, rad);
+                ctx.strokeStyle = afficheBorderColor || 'rgba(57, 255, 20, 0.45)';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+                ctx.restore();
+
+                // 7. ZONE TEXTES EN DESSOUS : TITRE + ARTISTE + LABEL
+                const contentWidth = canvas.width - (isStory ? 160 : 120);
+                const centerX = canvas.width / 2;
+                let textY = cardY + cardH + (isStory ? 70 : 50);
+
+                // A) Track Number Pill (ex: "TRACK 01")
+                const trackNumText = `TRACK ${String(trackIdx + 1).padStart(2, '0')}`;
+                ctx.save();
+                ctx.font = '900 italic 16px "Montserrat", sans-serif';
+                const pillPaddingX = 14;
+                const pillH = 30;
+                const pillW = ctx.measureText(trackNumText).width + (pillPaddingX * 2);
+                ctx.fillStyle = 'rgba(57, 255, 20, 0.15)';
+                ctx.strokeStyle = 'rgba(57, 255, 20, 0.45)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.roundRect(centerX - pillW / 2, textY - pillH / 2, pillW, pillH, pillH / 2);
+                ctx.fill();
+                ctx.stroke();
+                ctx.fillStyle = '#39ff14';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(trackNumText, centerX, textY);
+                ctx.restore();
+
+                textY += (isStory ? 48 : 36);
+
+                // B) TITRE DU MORCEAU (Gros, blanc avec highlights)
+                const titleText = currentTrack.title?.trim() || (trackIdx === 0 && conseilsTitle && conseilsTitle !== 'LE TITRE ICI' ? conseilsTitle : `TITRE DU MORCEAU`);
+                ctx.save();
+                let titleFontSize = isStory ? 48 : 40;
+                ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
+                while (ctx.measureText(stripTags(titleText).toUpperCase()).width > contentWidth && titleFontSize > 24) {
+                    titleFontSize -= 2;
+                    ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
+                }
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                ctx.shadowBlur = 12;
+                drawRichText(ctx, titleText.toUpperCase(), centerX, textY, '#ffffff', 'center');
+                ctx.restore();
+
+                textY += (isStory ? 48 : 40);
+
+                // C) ARTISTE (En vert néon ou blanc gras italique)
+                const artistText = currentTrack.artist?.trim() || (trackIdx === 0 && artistNameText ? artistNameText : 'NOM DE L\'ARTISTE');
+                ctx.save();
+                let artistFontSize = isStory ? 34 : 28;
+                ctx.font = `800 italic ${artistFontSize}px "Montserrat", sans-serif`;
+                while (ctx.measureText(artistText.toUpperCase()).width > contentWidth && artistFontSize > 20) {
+                    artistFontSize -= 2;
+                    ctx.font = `800 italic ${artistFontSize}px "Montserrat", sans-serif`;
+                }
+                ctx.fillStyle = '#39ff14';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                ctx.shadowBlur = 10;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(artistText.toUpperCase(), centerX, textY);
+                ctx.restore();
+
+                textY += (isStory ? 52 : 44);
+
+                // D) LABEL DISCOGRAPHIQUE (Badge capsule élégant)
+                const labelText = currentTrack.label?.trim() || (trackIdx === 0 ? '' : '');
+                if (labelText) {
+                    ctx.save();
+                    const labelFontSize = isStory ? 20 : 17;
+                    ctx.font = `800 ${labelFontSize}px "Montserrat", sans-serif`;
+                    const labelDisplay = `LABEL : ${labelText.toUpperCase()}`;
+                    const lPadX = 18;
+                    const lH = isStory ? 38 : 34;
+                    const lW = ctx.measureText(labelDisplay).width + (lPadX * 2);
+
+                    ctx.fillStyle = 'rgba(12, 14, 18, 0.85)';
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+                    ctx.lineWidth = 1.5;
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+                    ctx.shadowBlur = 12;
+                    ctx.beginPath();
+                    ctx.roundRect(centerX - lW / 2, textY - lH / 2, lW, lH, 10);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                    ctx.shadowBlur = 0;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(labelDisplay, centerX, textY);
+                    ctx.restore();
+                }
+
+                // E) Mention Swipe
+                if (showSwipe) {
+                    ctx.save();
+                    const swipeY = canvas.height - (isStory ? 80 : 50);
+                    ctx.font = '800 24px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'rgba(0,0,0,0.85)';
+                    ctx.shadowBlur = 8;
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('Swipe ──>', canvas.width - (isStory ? 80 : 60), swipeY);
+                    ctx.restore();
+                }
+
             } else if (theme === 'PROMO') {
                 renderPromoOutro(ctx, 0, 1.0);
 
@@ -3925,7 +4322,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, showTitleOnSlide2, extraEditorialSlides, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoCategory, showPromoHook, showPromoHeadline]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, showTitleOnSlide2, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoCategory, showPromoHook, showPromoHeadline]);
+
+    // Pre-charger les pochettes des tracks du thème MUSIQUE
+    useEffect(() => {
+        musicTracks.forEach(t => {
+            if (t.cover && !musicCoverImgsRef.current[t.cover]) {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    musicCoverImgsRef.current[t.cover] = img;
+                    generateImage();
+                };
+                img.onerror = () => {
+                    console.warn("Erreur de chargement de la cover track:", t.cover);
+                };
+                img.src = t.cover;
+            }
+        });
+    }, [musicTracks]);
 
     // Pre-charger l'affiche de l'événement dès que son URL change
     useEffect(() => {
@@ -4272,10 +4687,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         let totalDuration = 0;
         const currentTransitionDuration = getTransitionDuration(slideTransition);
         if (combinedMode === 'EDITORIAL') {
+            const isMusicTheme = (theme === 'MUSIQUE');
             const shouldSkipSlide2 = skipEditorialSlide2;
-            const contentSlideNumbers: number[] = shouldSkipSlide2
-                ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
-                : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)];
+            const contentSlideNumbers: number[] = isMusicTheme
+                ? [1, ...musicTracks.map((_, i) => i + 2)]
+                : (shouldSkipSlide2
+                    ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
+                    : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
             const numContentSlides = contentSlideNumbers.length;
             const promoDuration = Math.round(editorialPromoDuration * 1000);
             const transitionDuration = currentTransitionDuration;
@@ -4307,10 +4725,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }, 400);
 
         if (combinedMode === 'EDITORIAL') {
+            const isMusicTheme = (theme === 'MUSIQUE');
             const shouldSkipSlide2 = skipEditorialSlide2;
-            const contentSlideNumbers: number[] = shouldSkipSlide2
-                ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
-                : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)];
+            const contentSlideNumbers: number[] = isMusicTheme
+                ? [1, ...musicTracks.map((_, i) => i + 2)]
+                : (shouldSkipSlide2
+                    ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
+                    : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
             const promoDuration = Math.round(editorialPromoDuration * 1000);
             const transitionDuration = currentTransitionDuration;
             const slideDuration = Math.round(editorialSlide1Duration * 1000);
@@ -4909,7 +5330,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setIsDownloading(true);
         const prevSlide = editorialSlide;
         const isMusicTheme = (theme === 'MUSIQUE');
-        const numSlides = 2 + extraEditorialSlides.length;
+        const numSlides = isMusicTheme ? (1 + musicTracks.length) : (2 + extraEditorialSlides.length);
         try {
             for (let s = 1; s <= numSlides; s++) {
                 if (s > 1) await new Promise(r => setTimeout(r, 350));
@@ -4919,7 +5340,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const dataUrl = canvasRef.current.toDataURL('image/png');
                 const a = document.createElement('a');
                 a.href = dataUrl;
-                const suffix = s === 1 ? (isMusicTheme ? 'annonce' : 'cover') : (isMusicTheme ? 'track-cover' : `detail-slide${s}`);
+                const suffix = s === 1 ? (isMusicTheme ? 'annonce' : 'cover') : (isMusicTheme ? `track-${s - 1}-cover` : `detail-slide${s}`);
                 a.download = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide${s}-${suffix}.png`;
                 document.body.appendChild(a);
                 a.click();
@@ -8836,91 +9257,336 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
-    const musiqueEditor = (
-        <div className="space-y-4">
-            {/* CARROUSEL SLIDE SWITCHER */}
-            <div className="p-1.5 bg-black/60 border border-[#00ff66]/30 rounded-2xl flex gap-1 shadow-xl">
-                <button
-                    type="button"
-                    onClick={() => setEditorialSlide(1)}
-                    className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
-                        editorialSlide === 1
-                            ? 'bg-[#00ff66] text-black shadow-[0_0_15px_rgba(0,255,102,0.5)] scale-[1.02]'
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                >
-                    <span className="text-xs">🎵</span> Slide 1 : Annonce Track
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setEditorialSlide(2)}
-                    className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
-                        editorialSlide === 2
-                            ? 'bg-[#00ff66] text-black shadow-[0_0_15px_rgba(0,255,102,0.5)] scale-[1.02]'
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                >
-                    <span className="text-xs">💿</span> Slide 2 : Cover Artwork
-                </button>
-            </div>
+    const musiqueEditor = (() => {
+        const totalSlides = 1 + musicTracks.length; // Slide 1 (annonce) + Tracks
+        const activeTrackIdx = Math.max(0, editorialSlide - 2);
+        const activeTrack = musicTracks[activeTrackIdx] || createEmptyMusicTrack();
+        const activeCoverUrl = activeTrack.cover || (activeTrackIdx === 0 ? afficheImage : '');
 
-            {/* Quick Carousel Download Bar */}
-            <div className="p-2.5 bg-white/5 border border-white/10 rounded-xl space-y-2">
-                <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
-                    <span>Export Carrousel Musique</span>
-                    <span className="text-[#00ff66]">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
+        return (
+            <div className="space-y-4">
+                {/* 1. CARROUSEL SLIDE SWITCHER (JUSQU'À 20 SLIDES EN TOUT) */}
+                <div className="p-2.5 bg-black/60 border border-[#00ff66]/30 rounded-2xl space-y-2.5 shadow-xl">
+                    <div className="flex items-center justify-between text-[8.5px] font-bold text-gray-400 uppercase px-1">
+                        <span className="flex items-center gap-1.5">
+                            <span className="text-[#00ff66] font-black">CARROUSEL MUSIQUE</span>
+                            <span>({totalSlides}/20 max)</span>
+                        </span>
+                        {musicTracks.length < MAX_MUSIC_TRACKS && (
+                            <button
+                                type="button"
+                                onClick={addMusicTrack}
+                                className="px-2.5 py-1 bg-[#00ff66]/20 hover:bg-[#00ff66]/30 text-[#00ff66] border border-[#00ff66]/40 rounded-lg text-[9px] font-black uppercase transition-all flex items-center gap-1 shadow-sm active:scale-95"
+                            >
+                                <span>➕</span> Ajouter Track
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto custom-scrollbar p-0.5">
+                        <button
+                            type="button"
+                            onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(1); }}
+                            className={`flex-1 min-w-[110px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                                !isCarouselPromoActive && editorialSlide === 1
+                                    ? 'bg-[#00ff66] text-black shadow-[0_0_15px_rgba(0,255,102,0.5)] scale-[1.02]'
+                                    : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                            }`}
+                        >
+                            <span className="text-xs">📢</span> Slide 1 : Annonce
+                        </button>
+
+                        {musicTracks.map((tr, idx) => {
+                            const sNum = idx + 2;
+                            const isSelected = !isCarouselPromoActive && editorialSlide === sNum;
+                            return (
+                                <button
+                                    key={sNum}
+                                    type="button"
+                                    onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(sNum); }}
+                                    className={`flex-1 min-w-[110px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                                        isSelected
+                                            ? 'bg-[#00ff66] text-black shadow-[0_0_15px_rgba(0,255,102,0.5)] scale-[1.02]'
+                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    <span className="text-xs">💿</span> S{sNum} : {tr.title ? (tr.title.length > 10 ? tr.title.substring(0, 10) + '...' : tr.title) : `Track ${idx + 1}`}
+                                </button>
+                            );
+                        })}
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsCarouselPromoActive(true);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className={`flex-1 min-w-[110px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                                isCarouselPromoActive
+                                    ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
+                                    : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'
+                            }`}
+                            title="Slide de fin d'outro promo Dropsiders"
+                        >
+                            <span className="text-xs">🔥</span> Slide PROMO
+                        </button>
+                    </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+
+                {/* 2. Quick Carousel Download Bar */}
+                <div className="p-2.5 bg-white/5 border border-white/10 rounded-xl space-y-2">
+                    <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
+                        <span>Export Carrousel Rapide ({totalSlides} Slides)</span>
+                        <span className="text-[#00ff66]">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                        {Array.from({ length: totalSlides }).map((_, i) => (
+                            <button
+                                key={i + 1}
+                                type="button"
+                                onClick={() => downloadEditorialSlide(i + 1)}
+                                disabled={isDownloading}
+                                className="flex-1 min-w-[55px] py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1"
+                            >
+                                <Download className="w-3 h-3 text-[#00ff66]" /> S{i + 1}
+                            </button>
+                        ))}
+                    </div>
                     <button
                         type="button"
-                        onClick={() => downloadEditorialSlide(1)}
+                        onClick={() => downloadEditorialCarousel()}
                         disabled={isDownloading}
-                        className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                        className="w-full py-2.5 bg-gradient-to-r from-[#00ff66] to-[#00cc88] hover:from-[#33ff85] hover:to-[#00e699] text-black font-black text-[10px] uppercase rounded-lg shadow-lg shadow-green-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95"
                     >
-                        <Download className="w-3.5 h-3.5 text-[#00ff66]" /> Slide 1 (PNG)
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => downloadEditorialSlide(2)}
-                        disabled={isDownloading}
-                        className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
-                    >
-                        <Download className="w-3.5 h-3.5 text-[#00ff66]" /> Slide 2 (PNG)
+                        <Download className="w-4 h-4 text-black" /> Télécharger Carrousel Musique ({totalSlides} Slides)
                     </button>
                 </div>
-                <button
-                    type="button"
-                    onClick={() => downloadEditorialCarousel()}
-                    disabled={isDownloading}
-                    className="w-full py-2.5 bg-gradient-to-r from-[#00ff66] to-[#00cc88] hover:from-[#33ff85] hover:to-[#00e699] text-black font-black text-[10px] uppercase rounded-lg shadow-lg shadow-green-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95"
-                >
-                    <Download className="w-4 h-4 text-black" /> Télécharger Carrousel (1 + 2)
-                </button>
+
+                {/* 3. Slide 1 Content (Annonce) */}
+                {editorialSlide === 1 && (
+                    <div className="space-y-3 pt-2">
+                        <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
+                            <span>Édition Annonce Sortie Track</span>
+                            <span className="text-[#00ff66]">Slide 1 (Intro)</span>
+                        </div>
+                        {conseilsEditor}
+                    </div>
+                )}
+
+                {/* 4. Slide 2..19 Content (Fiche Track avec Pochette + Titre + Artiste + Label) */}
+                {editorialSlide >= 2 && (
+                    <div className="space-y-4 pt-2">
+                        <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between border-b border-white/10 pb-2">
+                            <span className="flex items-center gap-2">
+                                <span className="text-white font-black">TRACK {String(activeTrackIdx + 1).padStart(2, '0')}</span>
+                                <span className="text-[#00ff66]">Slide {editorialSlide}</span>
+                            </span>
+                            {musicTracks.length > 1 && (
+                                <button
+                                    type="button"
+                                    onClick={() => removeMusicTrack(activeTrackIdx)}
+                                    className="text-[9px] font-bold text-red-400 hover:text-red-300 transition-colors uppercase flex items-center gap-1"
+                                >
+                                    🗑️ Supprimer cette slide
+                                </button>
+                            )}
+                        </div>
+
+                        {/* SECTION A : POCHETTE CARREE 1:1 */}
+                        <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-black text-[#00ff66] uppercase tracking-widest flex items-center gap-1.5">
+                                    💿 Pochette du Son (Cover 1:1)
+                                </label>
+                                {activeCoverUrl && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            updateMusicTrack(activeTrackIdx, { cover: '' });
+                                            if (activeTrackIdx === 0) {
+                                                setAfficheImage('');
+                                                afficheImageRef.current = null;
+                                            }
+                                            setTimeout(() => generateImage(), 50);
+                                        }}
+                                        className="text-[9px] font-bold text-red-400 hover:text-red-300 transition-colors uppercase"
+                                    >
+                                        Retirer
+                                    </button>
+                                )}
+                            </div>
+
+                            <input
+                                type="file"
+                                ref={afficheFileInputRef}
+                                onChange={handleAfficheImageChange}
+                                accept="image/*"
+                                className="hidden"
+                            />
+
+                            {activeCoverUrl ? (
+                                <div className="relative group rounded-xl overflow-hidden border border-[#00ff66]/30 bg-black/40 aspect-square max-h-48 mx-auto flex items-center justify-center shadow-lg">
+                                    <img src={activeCoverUrl} alt="Cover Track" className="w-full h-full object-contain" />
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => afficheFileInputRef.current?.click()}
+                                            className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-white text-[10px] font-black uppercase backdrop-blur-md"
+                                        >
+                                            Changer
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => afficheFileInputRef.current?.click()}
+                                    className="w-full py-6 border-2 border-dashed border-white/15 hover:border-[#00ff66]/50 hover:bg-[#00ff66]/5 rounded-2xl flex flex-col items-center justify-center gap-2 bg-black/20 transition-all group"
+                                >
+                                    <Upload className="w-6 h-6 text-gray-500 group-hover:text-[#00ff66] transition-colors" />
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider group-hover:text-white transition-colors">
+                                        Importer la pochette (Carré 1:1)
+                                    </span>
+                                    <span className="text-[8px] text-gray-500">PNG, JPG, WEBP • Pochette officielle</span>
+                                </button>
+                            )}
+
+                            <div className="grid grid-cols-2 gap-2 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => afficheFileInputRef.current?.click()}
+                                    className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                                >
+                                    <Upload className="w-3.5 h-3.5 text-[#00ff66]" /> Fichier Local
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setR2TargetType('musicCover');
+                                        setR2TargetIdx(activeTrackIdx);
+                                        setIsR2ModalOpen(true);
+                                    }}
+                                    className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                                >
+                                    <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" /> Cloud R2
+                                </button>
+                            </div>
+
+                            <div className="pt-1">
+                                <input
+                                    type="url"
+                                    placeholder="OU COLLER LE LIEN DIRECT DE LA COVER..."
+                                    value={activeCoverUrl.startsWith('blob:') ? '' : activeCoverUrl}
+                                    onChange={e => {
+                                        updateMusicTrack(activeTrackIdx, { cover: e.target.value });
+                                        if (activeTrackIdx === 0) setAfficheImage(e.target.value);
+                                    }}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-medium placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all"
+                                />
+                            </div>
+                        </div>
+
+                        {/* SECTION B : TEXTES DU SON (TITRE + ARTISTE + LABEL) */}
+                        <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
+                            <label className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-1.5">
+                                ✍️ Informations du Morceau (Slide {editorialSlide})
+                            </label>
+
+                            {/* 1. Titre du Morceau */}
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-between text-[9px] font-bold uppercase text-gray-400">
+                                    <span>Titre du Morceau</span>
+                                    <span className="text-[8px] text-[#00ff66] font-normal">*mot* en vert</span>
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: STROBE (DIMENSION REMIX)..."
+                                    value={activeTrack.title}
+                                    onChange={e => updateMusicTrack(activeTrackIdx, { title: e.target.value })}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[10px] font-black placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all uppercase"
+                                />
+                            </div>
+
+                            {/* 2. Nom de l'Artiste */}
+                            <div className="space-y-1">
+                                <span className="text-[9px] font-bold uppercase text-gray-400 block">Artiste(s)</span>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: DEADMAU5, DIMENSION..."
+                                    value={activeTrack.artist}
+                                    onChange={e => updateMusicTrack(activeTrackIdx, { artist: e.target.value })}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-[#00ff66] text-[10px] font-bold placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all uppercase"
+                                />
+                            </div>
+
+                            {/* 3. Label Discographique */}
+                            <div className="space-y-1">
+                                <span className="text-[9px] font-bold uppercase text-gray-400 block">Label Discographique</span>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: MAU5TRAP, SPINNIN' RECORDS, STMPD..."
+                                    value={activeTrack.label}
+                                    onChange={e => updateMusicTrack(activeTrackIdx, { label: e.target.value })}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-medium placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all uppercase"
+                                />
+                            </div>
+                        </div>
+
+                        {/* SECTION C : IMAGE DE FOND / AMBIANCE */}
+                        <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                                    🎆 Image de Fond (Ambiance Floutée)
+                                </label>
+                                <span className="text-[8px] font-bold text-[#00ff66] uppercase bg-[#00ff66]/10 px-2 py-0.5 rounded-full border border-[#00ff66]/20">
+                                    Flou auto DropSiders
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                                >
+                                    <Upload className="w-3.5 h-3.5 text-[#00ff66]" /> Importer Fond
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setR2TargetType('background');
+                                        setIsR2ModalOpen(true);
+                                    }}
+                                    className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                                >
+                                    <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" /> Fond Cloud R2
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* SECTION D : SWIPE DROPSIDERS */}
+                        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
+                            <div>
+                                <span className="text-[9px] font-black text-white uppercase block">Swipe Studio ({'>>'})</span>
+                                <span className="text-[8px] text-gray-500 font-medium">Afficher la mention Swipe en bas</span>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowSwipe(!showSwipe);
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase transition-all ${showSwipe ? 'border-[#00ff66]/40 text-[#00ff66] bg-[#00ff66]/20' : 'bg-white/5 text-gray-500 border border-white/10'}`}
+                            >
+                                {showSwipe ? 'ACTIF' : 'MASQUÉ'}
+                            </button>
+                        </div>
+
+                        {exportButtons}
+                    </div>
+                )}
             </div>
-
-            {/* Slide 1 Content */}
-            {editorialSlide === 1 && (
-                <div className="space-y-3 pt-2">
-                    <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
-                        <span>Édition Annonce Sortie Track</span>
-                        <span className="text-[#00ff66]">Slide 1</span>
-                    </div>
-                    {conseilsEditor}
-                </div>
-            )}
-
-            {/* Slide 2 Content (Cover Track) */}
-            {editorialSlide === 2 && (
-                <div className="space-y-3 pt-2">
-                    <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
-                        <span>Édition Cover du Track (Style Affiche 1:1)</span>
-                        <span className="text-[#00ff66]">Slide 2</span>
-                    </div>
-                    {afficheEditor}
-                </div>
-            )}
-        </div>
-    );
+        );
+    })();
 
     // Shared downloader modal
     const downloaderModal = (
@@ -9685,17 +10351,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     🎵 Slide 1 (Annonce)
                                 </button>
-                                <button
-                                    type="button"
-                                    onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(2); }}
-                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        !isCarouselPromoActive && editorialSlide === 2
-                                            ? 'bg-[#00ff66] text-black shadow-[0_0_12px_rgba(0,255,102,0.6)]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
-                                    }`}
-                                >
-                                    💿 Slide 2 (Cover Track)
-                                </button>
+                                {musicTracks.map((_, tIdx) => {
+                                    const sNum = tIdx + 2;
+                                    return (
+                                        <button
+                                            key={sNum}
+                                            type="button"
+                                            onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(sNum); }}
+                                            className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                                !isCarouselPromoActive && editorialSlide === sNum
+                                                    ? 'bg-[#00ff66] text-black shadow-[0_0_12px_rgba(0,255,102,0.6)]'
+                                                    : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                            }`}
+                                        >
+                                            💿 S{sNum} (Track {tIdx + 1})
+                                        </button>
+                                    );
+                                })}
+                                {musicTracks.length < MAX_MUSIC_TRACKS && (
+                                    <button
+                                        type="button"
+                                        onClick={addMusicTrack}
+                                        className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/30 hover:bg-[#00ff66]/25 flex items-center gap-1"
+                                        title="Ajouter une track"
+                                    >
+                                        ➕ Track
+                                    </button>
+                                )}
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -10007,15 +10689,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     Slide 1 (Annonce)
                                 </button>
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEditorialSlide(2); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        !isCarouselPromoActive && editorialSlide === 2 ? 'bg-[#00ff66] text-black shadow-md' : 'text-gray-400'
-                                    }`}
-                                >
-                                    Slide 2 (Cover Track)
-                                </button>
+                                {musicTracks.map((_, tIdx) => {
+                                    const sNum = tIdx + 2;
+                                    return (
+                                        <button
+                                            key={sNum}
+                                            type="button"
+                                            onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEditorialSlide(sNum); }}
+                                            className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
+                                                !isCarouselPromoActive && editorialSlide === sNum ? 'bg-[#00ff66] text-black shadow-md' : 'text-gray-400'
+                                            }`}
+                                        >
+                                            S{sNum} (Track {tIdx + 1})
+                                        </button>
+                                    );
+                                })}
+                                {musicTracks.length < MAX_MUSIC_TRACKS && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); addMusicTrack(); }}
+                                        className="px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/30"
+                                    >
+                                        ➕ Track
+                                    </button>
+                                )}
                                 <button
                                     type="button"
                                     onClick={(e) => {
@@ -10025,7 +10722,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
                                         isCarouselPromoActive
-                                            ? 'bg-[#00ff66] text-black shadow-md'
+                                            ? 'bg-neon-red text-white shadow-md'
                                             : 'text-gray-400'
                                     }`}
                                 >
@@ -10492,6 +11189,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         };
                     } else if (r2TargetType === 'affiche') {
                         setAfficheImage(finalUrl);
+                    } else if (r2TargetType === 'musicCover') {
+                        if (r2TargetIdx !== null) {
+                            updateMusicTrack(r2TargetIdx, { cover: finalUrl });
+                        }
                     }
                     setR2TargetIdx(null);
                     setR2TargetType(null);
