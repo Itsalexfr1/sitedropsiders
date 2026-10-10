@@ -8748,6 +8748,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             </div>
 
+            {/* Section Carrousel Événements (Slide 1 + 2) */}
+            {(theme === 'EVENTS' || theme === 'AFFICHE') && (
+                <div className="space-y-1.5 pt-1 border-t border-white/10">
+                    <span className="text-[8px] font-black text-[#ff007f] uppercase tracking-wider block">🎨 Carrousel Événement (Post + Affiche)</span>
+                    <button
+                        type="button"
+                        onClick={() => downloadEventsCarousel()}
+                        disabled={isDownloading}
+                        className="w-full py-2.5 bg-gradient-to-r from-[#ff007f] to-[#ff4400] hover:from-[#ff1a8c] hover:to-[#ff551a] text-white font-black text-[10px] uppercase rounded-xl shadow-lg shadow-pink-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-95 disabled:opacity-40"
+                    >
+                        <Download className="w-4 h-4" /> Télécharger Carrousel (Slide 1 + 2)
+                    </button>
+                </div>
+            )}
+
             {/* Section 3 : Vidéo Animée (MP4) */}
             <div className="space-y-1.5 pt-1 border-t border-white/10">
                 <button
@@ -9223,69 +9238,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const eventsEditor = (
         <div className="space-y-4">
-            {/* CARROUSEL SLIDE SWITCHER */}
-            <div className="p-1.5 bg-black/60 border border-[#ff007f]/30 rounded-2xl flex gap-1 shadow-xl">
-                <button
-                    type="button"
-                    onClick={() => setEventsSlide(1)}
-                    className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
-                        eventsSlide === 1
-                            ? 'bg-[#ff007f] text-white shadow-[0_0_15px_rgba(255,0,127,0.5)] scale-[1.02]'
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                >
-                    <span className="text-xs">📢</span> Slide 1 : Post Event
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setEventsSlide(2)}
-                    className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
-                        eventsSlide === 2
-                            ? 'bg-[#ff007f] text-white shadow-[0_0_15px_rgba(255,0,127,0.5)] scale-[1.02]'
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                >
-                    <span className="text-xs">🎨</span> Slide 2 : Affiche
-                </button>
-            </div>
-
-            {/* Quick Carousel Download Bar */}
-            <div className="p-2.5 bg-white/5 border border-white/10 rounded-xl space-y-2">
-                <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
-                    <span>Export Carrousel Rapide</span>
-                    <span className="text-[#ff007f]">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                    <button
-                        type="button"
-                        onClick={() => downloadEventsSlide(1)}
-                        disabled={isDownloading}
-                        className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
-                    >
-                        <Download className="w-3.5 h-3.5 text-[#ff007f]" /> Slide 1 (PNG)
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => downloadEventsSlide(2)}
-                        disabled={isDownloading}
-                        className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
-                    >
-                        <Download className="w-3.5 h-3.5 text-[#ff007f]" /> Slide 2 (PNG)
-                    </button>
-                </div>
-                <button
-                    type="button"
-                    onClick={() => downloadEventsCarousel()}
-                    disabled={isDownloading}
-                    className="w-full py-2.5 bg-gradient-to-r from-[#ff007f] to-[#ff4400] hover:from-[#ff1a8c] hover:to-[#ff551a] text-white font-black text-[10px] uppercase rounded-lg shadow-lg shadow-pink-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95"
-                >
-                    <Download className="w-4 h-4" /> Télécharger Carrousel (1 + 2)
-                </button>
-            </div>
-
             {/* Slide 1 Content */}
             {eventsSlide === 1 && (
-                <div className="space-y-3 pt-2">
+                <div className="space-y-3">
                     <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
                         <span>Édition Post Événement</span>
                         <span className="text-[#ff007f]">Slide 1</span>
@@ -9296,7 +9251,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             {/* Slide 2 Content (Affiche) */}
             {eventsSlide === 2 && (
-                <div className="space-y-3 pt-2">
+                <div className="space-y-3">
                     <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
                         <span>Édition Affiche de l'Événement</span>
                         <span className="text-[#ff007f]">Slide 2</span>
