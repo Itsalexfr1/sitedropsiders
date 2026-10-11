@@ -5261,25 +5261,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 return;
             }
 
-            // Sur PC : téléchargement direct immédiat si le format est déjà MP4 natif (Chrome/Edge/Safari récents)
-            if (initialBlob.type.includes('mp4')) {
-                isVideoRecordingRef.current = false;
-                setIsVideoRecording(false);
-                const url = URL.createObjectURL(initialBlob);
-                setReadyVideoBlob(initialBlob);
-                setReadyVideoUrl(url);
-                setActivePanel(null);
+            // Sur PC : même pour le MP4 natif Chrome (fMP4 fragmenté), on passe par FFmpeg -c copy
+            // pour remuxer en MP4 monolithique propre → élimine les micro-coupures audio aux boundary de fragments
 
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                return;
-            }
-
-            // Sinon (Firefox / WebM) : conversion rapide MP4 H.264 via FFmpeg en mode ultrafast pour ne jamais figer
+            // FFmpeg : remux MP4 (-c copy ultra-rapide) ou transcode WebM → MP4 H.264 (Firefox)
             try {
                 isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
@@ -5301,27 +5286,38 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setConversionProgress(Math.min(99, Math.round(progress * 100)));
                 });
 
-                await ffmpeg.writeFile('input.webm', await fetchFile(initialBlob));
-                
-                const ffmpegArgs = [
-                    '-i', 'input.webm',
-                    '-c:v', 'libx264',
-                    '-preset', 'ultrafast',
-                    '-crf', '22',
-                    '-pix_fmt', 'yuv420p',
-                    '-r', String(fps),
-                    '-movflags', '+faststart'
-                ];
-                if (hasAudioTrack) {
-                    ffmpegArgs.push(
-                        '-c:a', 'aac',
-                        '-b:a', '192k',
-                        '-ar', '48000'
-                    );
+                const isNativeMP4 = initialBlob.type.includes('mp4');
+                const inputFileName = isNativeMP4 ? 'input.mp4' : 'input.webm';
+                await ffmpeg.writeFile(inputFileName, await fetchFile(initialBlob));
+
+                let ffmpegArgs: string[];
+                if (isNativeMP4) {
+                    // fMP4 Chrome → remux en MP4 monolithique propre (stream copy, quasi instantané)
+                    // -c copy : zéro ré-encodage → préserve qualité, fixe les boundaries de fragments audio
+                    ffmpegArgs = [
+                        '-i', inputFileName,
+                        '-c', 'copy',
+                        '-movflags', '+faststart',
+                        'output.mp4'
+                    ];
                 } else {
-                    ffmpegArgs.push('-an');
+                    // WebM Firefox → transcode H.264
+                    ffmpegArgs = [
+                        '-i', inputFileName,
+                        '-c:v', 'libx264',
+                        '-preset', 'ultrafast',
+                        '-crf', '22',
+                        '-pix_fmt', 'yuv420p',
+                        '-r', String(fps),
+                        '-movflags', '+faststart'
+                    ];
+                    if (hasAudioTrack) {
+                        ffmpegArgs.push('-c:a', 'aac', '-b:a', '192k', '-ar', '48000');
+                    } else {
+                        ffmpegArgs.push('-an');
+                    }
+                    ffmpegArgs.push('output.mp4');
                 }
-                ffmpegArgs.push('output.mp4');
 
                 await ffmpeg.exec(ffmpegArgs);
 
@@ -5360,8 +5356,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         };
 
-        // timeslice=100ms : force MediaRecorder à émettre des chunks réguliers → buffer audio stable, zéro micro-coupure
-        recorder.start(100);
+        // timeslice=500ms : chunks plus larges → moins de fragment boundaries dans le fMP4 → zéro micro-coupure audio
+        recorder.start(500);
 
         let totalDuration = 0;
         const currentTransitionDuration = getTransitionDuration(slideTransition);
