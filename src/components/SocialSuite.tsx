@@ -5286,38 +5286,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setConversionProgress(Math.min(99, Math.round(progress * 100)));
                 });
 
-                const isNativeMP4 = initialBlob.type.includes('mp4');
-                const inputFileName = isNativeMP4 ? 'input.mp4' : 'input.webm';
+                const inputFileName = initialBlob.type.includes('mp4') ? 'input.mp4' : 'input.webm';
                 await ffmpeg.writeFile(inputFileName, await fetchFile(initialBlob));
 
-                let ffmpegArgs: string[];
-                if (isNativeMP4) {
-                    // fMP4 Chrome → remux en MP4 monolithique propre (stream copy, quasi instantané)
-                    // -c copy : zéro ré-encodage → préserve qualité, fixe les boundaries de fragments audio
-                    ffmpegArgs = [
-                        '-i', inputFileName,
-                        '-c', 'copy',
-                        '-movflags', '+faststart',
-                        'output.mp4'
-                    ];
+                // Encodage Instagram-ready : libx264 Main profile, keyframe toutes les 2s, yuv420p
+                // Valable pour Chrome (fMP4) ET Firefox (WebM) — garantit fluidité sur Instagram/TikTok
+                const keyframeInterval = String(fps * 2); // ex: 60 à 30fps = keyframe toutes les 2s
+                const ffmpegArgs: string[] = [
+                    '-i', inputFileName,
+                    '-c:v', 'libx264',
+                    '-preset', 'fast',          // meilleur compromis qualité/vitesse vs ultrafast
+                    '-profile:v', 'main',        // H.264 Main profile (Instagram requis)
+                    '-level', '4.0',             // compatible smartphones et plateformes sociales
+                    '-crf', '20',                // qualité légèrement supérieure (22 → 20)
+                    '-g', keyframeInterval,      // keyframe toutes les 2s → fluidité Instagram garantie
+                    '-bf', '2',                  // B-frames pour meilleure compression
+                    '-pix_fmt', 'yuv420p',       // couleur 4:2:0 obligatoire Instagram
+                    '-r', String(fps),
+                    '-movflags', '+faststart'    // métadonnées en tête → lecture immédiate
+                ];
+                // Audio : AAC 128kbps 44100Hz (spec Instagram recommandée)
+                if (hasAudioTrack) {
+                    ffmpegArgs.push('-c:a', 'aac', '-b:a', '128k', '-ar', '44100');
                 } else {
-                    // WebM Firefox → transcode H.264
-                    ffmpegArgs = [
-                        '-i', inputFileName,
-                        '-c:v', 'libx264',
-                        '-preset', 'ultrafast',
-                        '-crf', '22',
-                        '-pix_fmt', 'yuv420p',
-                        '-r', String(fps),
-                        '-movflags', '+faststart'
-                    ];
-                    if (hasAudioTrack) {
-                        ffmpegArgs.push('-c:a', 'aac', '-b:a', '192k', '-ar', '48000');
-                    } else {
-                        ffmpegArgs.push('-an');
-                    }
-                    ffmpegArgs.push('output.mp4');
+                    ffmpegArgs.push('-an');
                 }
+                ffmpegArgs.push('output.mp4');
 
                 await ffmpeg.exec(ffmpegArgs);
 
