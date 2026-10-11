@@ -5060,15 +5060,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             return;
         }
 
-        // ── SOLUTION A : AUDIO 100% OFFLINE ──────────────────────────────────────────
-        // On enregistre la VIDÉO SEULE via MediaRecorder (aucune piste audio dans le stream).
-        // L'audio est rendu séparément via OfflineAudioContext (thread audio dédié, hors main JS thread)
-        // puis muxé par FFmpeg → zéro micro-coupure garantie, indépendamment de la charge CPU canvas.
+        // ── APPROCHE HYBRIDE ──────────────────────────────────────────────────────────
+        // • bgVideo        → audio natif captureStream() dans MediaRecorder
+        //                    (thread OS, totalement découplé du canvas JS → zéro glitch)
+        // • MUSIQUE        → vidéo seule + OfflineAudioContext WAV après enregistrement
+        //                    (timing mathématique parfait, zéro dépendance temps réel)
+        // • Autres thèmes  → vidéo seule (pas de source audio)
         // ─────────────────────────────────────────────────────────────────────────────
 
-        const combinedStream = canvasStream; // vidéo seule, pas d'audio dans MediaRecorder
+        let combinedStream: MediaStream = canvasStream;
+        let hasAudioTrack = false;
 
-        // Si bgVideo : on le lance muet (affichage canvas uniquement, l'audio sera reconstruit offline)
+        // Pré-décodage PCM MUSIQUE (avant le start pour ne pas bloquer pendant l'enregistrement)
+        const hasAnyMusicAudio = (theme === 'MUSIQUE') && (!!musicIntroAudio || musicTracks.some(t => !!t.audio));
+        if (hasAnyMusicAudio) {
+            stopPreviewPlayer();
+            setActiveAudioPreviewSrc(null);
+            const allUrls = [musicIntroAudio, ...musicTracks.map(t => t.audio || '')].filter(Boolean) as string[];
+            await Promise.all(allUrls.map(u => getDecodedAudioBuffer(u)));
+        }
+
+        const stopMusicSegment = () => {};
+        const playMusicSegment = async (_url: string, _startTime: number) => {};
+        const musicAudioEl: { active: boolean } | null = hasAnyMusicAudio ? { active: true } : null;
+
+        // bgVideo : rembobinage + audio natif via captureStream (thread séparé du JS)
         if (bgVideo) {
             try {
                 bgVideo.pause();
@@ -5078,36 +5094,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     bgVideo.addEventListener('seeked', onSeeked);
                     setTimeout(resolve, 200);
                 });
-                bgVideo.muted = true; // muet — l'audio bgVideo sera extrait offline via FFmpeg directement
                 bgVideo.loop = true;
-                await bgVideo.play().catch(e => console.error('Échec play() vidéo :', e));
+                try { bgVideo.muted = false; await bgVideo.play(); }
+                catch { bgVideo.muted = true; await bgVideo.play().catch(() => {}); }
+
+                if (!bgVideo.muted) {
+                    // Piste audio native du flux vidéo (zéro CPU JS, zéro jitter)
+                    const vidStream = (bgVideo as any).captureStream?.() ?? (bgVideo as any).mozCaptureStream?.() ?? null;
+                    if (vidStream?.getAudioTracks().length > 0) {
+                        hasAudioTrack = true;
+                        combinedStream = new MediaStream([...canvasStream.getTracks(), vidStream.getAudioTracks()[0]]);
+                    }
+                }
             } catch (e) {
-                console.error('Erreur initialisation vidéo de fond :', e);
+                console.error('Erreur init bgVideo :', e);
+                bgVideo.muted = true;
+                bgVideo.loop = true;
+                await bgVideo.play().catch(() => {});
             }
         }
 
-        // Pré-décodage PCM de tous les extraits audio (MUSIQUE) avant l'enregistrement
-        const hasAnyMusicAudio = (theme === 'MUSIQUE') && (!!musicIntroAudio || musicTracks.some(t => !!t.audio));
-        if (hasAnyMusicAudio) {
-            stopPreviewPlayer();
-            setActiveAudioPreviewSrc(null);
-            const allUrls = [musicIntroAudio, ...musicTracks.map(t => t.audio || '')].filter(Boolean) as string[];
-            await Promise.all(allUrls.map(u => getDecodedAudioBuffer(u)));
-        }
-
-        // Stubs compatibilité (plus utilisés en mode offline mais référencés plus bas)
-        const musicAudioEl: { active: boolean } | null = hasAnyMusicAudio ? { active: true } : null;
-        const musicAudioCtx: AudioContext | null = null;
-        const stopMusicSegment = () => {};
-        const playMusicSegment = async (_url: string, _startTime: number) => {}; // no-op, rendu offline
-        const hasAudioTrack = false; // pas d'audio dans MediaRecorder
-
-        // Vidéo seule — aucun audio dans MediaRecorder (audio reconstruit offline après)
+        // MediaRecorder : vidéo (+ audio bgVideo si dispo), MUSIQUE audio sera ajouté offline après
         const bitrate = isMobile ? 6000000 : (fps === 60 ? 10000000 : 7000000);
         const recorder = new MediaRecorder(combinedStream, {
             mimeType,
-            videoBitsPerSecond: bitrate
-            // audioBitsPerSecond : pas d'audio track dans le stream
+            videoBitsPerSecond: bitrate,
+            ...(hasAudioTrack ? { audioBitsPerSecond: 192000 } : {})
         });
 
         const chunks: Blob[] = [];
@@ -5269,43 +5281,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await ffmpeg.writeFile(inputFileName, await fetchFile(videoBlob));
 
                 const keyframeInterval = String(fps * 2);
+                const videoArgs = [
+                    '-c:v', 'libx264', '-preset', 'fast', '-profile:v', 'main', '-level', '4.0',
+                    '-crf', '20', '-g', keyframeInterval, '-bf', '2', '-pix_fmt', 'yuv420p',
+                    '-r', String(fps), '-movflags', '+faststart'
+                ];
                 const ffmpegArgs: string[] = [];
 
                 if (offlineWavBlob) {
-                    // Cas MUSIQUE : vidéo + WAV offline → mux parfait
+                    // MUSIQUE : vidéo seule + WAV offline → mux parfait, zéro glitch
                     await ffmpeg.writeFile('audio.wav', await fetchFile(offlineWavBlob));
-                    ffmpegArgs.push(
-                        '-i', inputFileName,
-                        '-i', 'audio.wav',
-                        '-c:v', 'libx264', '-preset', 'fast', '-profile:v', 'main', '-level', '4.0',
-                        '-crf', '20', '-g', keyframeInterval, '-bf', '2', '-pix_fmt', 'yuv420p',
-                        '-r', String(fps),
-                        '-c:a', 'aac', '-b:a', '128k', '-ar', '44100',
-                        '-movflags', '+faststart',
-                        'output.mp4'
-                    );
-                } else if (bgVideo && bgVideo.src && !bgVideo.src.startsWith('blob:')) {
-                    // bgVideo HTTP : FFmpeg extrait l'audio directement du fichier source
-                    ffmpegArgs.push(
-                        '-i', inputFileName,
-                        '-c:v', 'libx264', '-preset', 'fast', '-profile:v', 'main', '-level', '4.0',
-                        '-crf', '20', '-g', keyframeInterval, '-bf', '2', '-pix_fmt', 'yuv420p',
-                        '-r', String(fps),
-                        '-an', // pas d'audio pour bgVideo blob (impossible à lire depuis ffmpeg.wasm)
-                        '-movflags', '+faststart',
-                        'output.mp4'
-                    );
+                    ffmpegArgs.push('-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
+                        '-c:a', 'aac', '-b:a', '128k', '-ar', '44100', 'output.mp4');
+                } else if (hasAudioTrack) {
+                    // bgVideo audio capturé dans le stream MediaRecorder → encoder l'audio existant
+                    ffmpegArgs.push('-i', inputFileName, ...videoArgs,
+                        '-c:a', 'aac', '-b:a', '128k', '-ar', '44100', 'output.mp4');
                 } else {
-                    // Pas d'audio : vidéo seule
-                    ffmpegArgs.push(
-                        '-i', inputFileName,
-                        '-c:v', 'libx264', '-preset', 'fast', '-profile:v', 'main', '-level', '4.0',
-                        '-crf', '20', '-g', keyframeInterval, '-bf', '2', '-pix_fmt', 'yuv420p',
-                        '-r', String(fps),
-                        '-an',
-                        '-movflags', '+faststart',
-                        'output.mp4'
-                    );
+                    // Pas de source audio : vidéo seule
+                    ffmpegArgs.push('-i', inputFileName, ...videoArgs, '-an', 'output.mp4');
                 }
 
                 await ffmpeg.exec(ffmpegArgs);
