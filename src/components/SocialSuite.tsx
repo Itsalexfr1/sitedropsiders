@@ -5253,6 +5253,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (canvas.width !== targetWidth) canvas.width = targetWidth;
         if (canvas.height !== targetHeight) canvas.height = targetHeight;
 
+        // ── Compteur de chunks muxés (détection d'échec encodeur silencieux) ──
+        let chunksAddedToMuxer = 0;
+        let webEncoderErrored = false;
+
         if (webCodecsSupported) {
             // ── MODE WEBCODECS ──────────────────────────────────────────────────────
             muxerTarget = new ArrayBufferTarget();
@@ -5272,21 +5276,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     try {
                         const data = new Uint8Array(chunk.byteLength);
                         chunk.copyTo(data);
-                        // Dans WebCodecs, chunk.duration peut être null/non-défini. mp4-muxer exige un nombre fini >= 0.
+                        // Dans WebCodecs, chunk.duration peut être null. mp4-muxer exige un nombre fini >= 0.
                         const dur = (chunk.duration != null && Number.isFinite(chunk.duration) && chunk.duration > 0)
                             ? chunk.duration
                             : frameDurationUs;
                         muxer.addVideoChunkRaw(data, chunk.type, chunk.timestamp, dur, meta);
-                    } catch (muxErr) {
+                        chunksAddedToMuxer++;
+                    } catch (muxErr: any) {
                         console.error('Muxer addVideoChunkRaw error:', muxErr);
                     }
                 },
-                error: (e: any) => console.error('VideoEncoder error:', e),
+                error: (e: any) => {
+                    console.error('VideoEncoder error:', e);
+                    webEncoderErrored = true;
+                },
             });
 
-            let chosenCodec = 'avc1.64002a'; // High Profile 4.2 standard 1080p
+            // Codec H.264 : on part du profil Main 4.0 (safe) et on tente le High si dispo
+            let chosenCodec = 'avc1.4d4028'; // Main Profile 4.0 – safe par défaut
             if (typeof (window as any).VideoEncoder.isConfigSupported === 'function') {
-                const candidates = ['avc1.64002a', 'avc1.640028', 'avc1.4d402a', 'avc1.4d4028', 'avc1.420028', 'avc1.42001f'];
+                const candidates = ['avc1.640028', 'avc1.4d402a', 'avc1.4d4028', 'avc1.42E028', 'avc1.42001f'];
                 for (const cand of candidates) {
                     try {
                         const check = await (window as any).VideoEncoder.isConfigSupported({
@@ -5304,21 +5313,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            videoEncoder.configure({
-                codec: chosenCodec,
-                width: targetWidth,
-                height: targetHeight,
-                bitrate,
-                framerate: fps,
-                hardwareAcceleration: 'prefer-hardware', // GPU si dispo
-                avc: { format: 'avc' },      // format annexé pour mp4-muxer
-            });
+            try {
+                videoEncoder.configure({
+                    codec: chosenCodec,
+                    width: targetWidth,
+                    height: targetHeight,
+                    bitrate,
+                    framerate: fps,
+                    hardwareAcceleration: 'prefer-hardware',
+                    avc: { format: 'avc' },
+                });
+            } catch (configErr: any) {
+                console.error('VideoEncoder.configure() error:', configErr);
+                webEncoderErrored = true;
+            }
 
             // captureFrame : appelé après chaque generateImage() dans les render loops
             captureFrame = async () => {
+                if (webEncoderErrored) return;
                 try {
                     if (!videoEncoder || videoEncoder.state !== 'configured') return;
-                    // Back-pressure préventive : on attend que l'encodeur absorbe la file sans jamais jeter de frame
+                    // Back-pressure : on attend que l'encodeur absorbe la file sans jeter de frame
                     while (videoEncoder.encodeQueueSize > 12) {
                         await new Promise(r => setTimeout(r, 4));
                     }
@@ -5363,6 +5378,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 try {
                     if (videoEncoder.state === 'configured') {
                         await videoEncoder.flush();
+                    }
+                    // Si aucune frame n'a été muxée (encodeur silencieusement en erreur),
+                    // on détecte le problème AVANT finalize() pour éviter le crash colorSpace.
+                    if (chunksAddedToMuxer === 0) {
+                        throw new Error(
+                            webEncoderErrored
+                                ? 'Encodeur H.264 (WebCodecs) non fonctionnel sur ce GPU — essayez Firefox ou un autre navigateur.'
+                                : 'Aucune frame vidéo capturée. Réessayez l\'export.'
+                        );
                     }
                     muxer.finalize();
                     videoBlob = new Blob([muxerTarget.buffer], { type: 'video/mp4' });
