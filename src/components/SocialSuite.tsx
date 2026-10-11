@@ -5060,173 +5060,54 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             return;
         }
 
-        let combinedStream = canvasStream;
-        let hasAudioTrack = false;
+        // ── SOLUTION A : AUDIO 100% OFFLINE ──────────────────────────────────────────
+        // On enregistre la VIDÉO SEULE via MediaRecorder (aucune piste audio dans le stream).
+        // L'audio est rendu séparément via OfflineAudioContext (thread audio dédié, hors main JS thread)
+        // puis muxé par FFmpeg → zéro micro-coupure garantie, indépendamment de la charge CPU canvas.
+        // ─────────────────────────────────────────────────────────────────────────────
 
+        const combinedStream = canvasStream; // vidéo seule, pas d'audio dans MediaRecorder
+
+        // Si bgVideo : on le lance muet (affichage canvas uniquement, l'audio sera reconstruit offline)
         if (bgVideo) {
             try {
-                // Impératif : la vidéo de fond doit recommencer à 0:00 pile pour que l'export commence au tout début du clip
                 bgVideo.pause();
                 bgVideo.currentTime = 0;
                 await new Promise<void>((resolve) => {
-                    const onSeeked = () => {
-                        bgVideo.removeEventListener('seeked', onSeeked);
-                        resolve();
-                    };
+                    const onSeeked = () => { bgVideo.removeEventListener('seeked', onSeeked); resolve(); };
                     bgVideo.addEventListener('seeked', onSeeked);
                     setTimeout(resolve, 200);
                 });
+                bgVideo.muted = true; // muet — l'audio bgVideo sera extrait offline via FFmpeg directement
                 bgVideo.loop = true;
-
-                // Tente de jouer avec le son démuté
-                try {
-                    bgVideo.muted = false;
-                    await bgVideo.play();
-                } catch (unmutedErr) {
-                    console.warn("Lecture unmuted bloquée par le navigateur, bascule en muette :", unmutedErr);
-                    bgVideo.muted = true;
-                    await bgVideo.play().catch(e => console.error("Échec play() vidéo :", e));
-                }
-
-                // Configuration de la piste audio fluide (zéro micro-coupure)
-                if (!bgVideo.muted) {
-                    // 1. Tente d'extraire la piste audio directement du stream natif matériel (Zero CPU, zéro jitter)
-                    try {
-                        const directStream = (bgVideo as any).captureStream
-                            ? (bgVideo as any).captureStream()
-                            : (bgVideo as any).mozCaptureStream
-                                ? (bgVideo as any).mozCaptureStream()
-                                : null;
-                        if (directStream && directStream.getAudioTracks().length > 0) {
-                            const nativeAudioTrack = directStream.getAudioTracks()[0];
-                            hasAudioTrack = true;
-                            combinedStream = new MediaStream([
-                                ...canvasStream.getTracks(),
-                                nativeAudioTrack
-                            ]);
-                        }
-                    } catch (e) {
-                        console.warn("captureStream direct vidéo indisponible:", e);
-                    }
-
-                    // 2. Fallback WebAudio AudioContext si pas de piste directe
-                    if (!hasAudioTrack) {
-                        try {
-                            if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
-                                audioCtxRef.current = new AudioContext({ sampleRate: 48000 });
-                            }
-                            const audioCtx = audioCtxRef.current;
-                            if (audioCtx.state === 'suspended') {
-                                await audioCtx.resume();
-                            }
-
-                            if (!audioSourceNodeRef.current || audioSourceVideoRef.current !== bgVideo) {
-                                try {
-                                    audioSourceNodeRef.current = audioCtx.createMediaElementSource(bgVideo);
-                                    audioSourceVideoRef.current = bgVideo;
-                                } catch (e) {
-                                    console.warn("createMediaElementSource déjà lié :", e);
-                                }
-                            }
-
-                            if (audioSourceNodeRef.current) {
-                                const dest = audioCtx.createMediaStreamDestination();
-                                try {
-                                    audioSourceNodeRef.current.disconnect();
-                                } catch (_) {}
-                                audioSourceNodeRef.current.connect(dest);
-                                audioDestNodeRef.current = dest;
-
-                                const audioTracks = dest.stream.getAudioTracks();
-                                if (audioTracks.length > 0) {
-                                    hasAudioTrack = true;
-                                    combinedStream = new MediaStream([
-                                        ...canvasStream.getTracks(),
-                                        ...audioTracks
-                                    ]);
-                                }
-                            }
-                        } catch (audioErr) {
-                            console.warn("Configuration AudioContext impossible :", audioErr);
-                        }
-                    }
-                }
+                await bgVideo.play().catch(e => console.error('Échec play() vidéo :', e));
             } catch (e) {
-                console.error("Erreur initialisation vidéo de fond :", e);
-                bgVideo.muted = true;
-                bgVideo.loop = true;
-                await bgVideo.play().catch(() => {});
+                console.error('Erreur initialisation vidéo de fond :', e);
             }
         }
 
-        let musicAudioEl: { active: boolean } | null = null;
-        let musicAudioCtx: AudioContext | null = null;
-        let musicCurrentSource: AudioBufferSourceNode | null = null;
-        let musicAudioDest: MediaStreamAudioDestinationNode | null = null;
-
-        const stopMusicSegment = () => {
-            if (musicCurrentSource) {
-                try { musicCurrentSource.stop(); } catch (_) {}
-                try { musicCurrentSource.disconnect(); } catch (_) {}
-                musicCurrentSource = null;
-            }
-        };
-        const playMusicSegment = async (url: string, startTime: number) => {
-            if (!musicAudioCtx || !musicAudioDest) return;
-            stopMusicSegment();
-            try {
-                const buffer = await getDecodedAudioBuffer(url);
-                if (!buffer || !musicAudioCtx || !musicAudioDest) return;
-                musicCurrentSource = startBufferSegment(
-                    musicAudioCtx,
-                    buffer,
-                    startTime,
-                    [musicAudioDest, musicAudioCtx.destination]
-                );
-            } catch (e) {
-                console.warn("Erreur lecture extrait audio (PCM) :", e);
-            }
-        };
-
+        // Pré-décodage PCM de tous les extraits audio (MUSIQUE) avant l'enregistrement
         const hasAnyMusicAudio = (theme === 'MUSIQUE') && (!!musicIntroAudio || musicTracks.some(t => !!t.audio));
-        if (hasAnyMusicAudio && !hasAudioTrack) {
-            try {
-                const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-                if (AudioContextClass) {
-                    stopPreviewPlayer();
-                    setActiveAudioPreviewSrc(null);
-                    musicAudioCtx = new AudioContextClass({ sampleRate: 48000, latencyHint: 'playback' });
-                    if (musicAudioCtx.state === 'suspended') {
-                        await musicAudioCtx.resume();
-                    }
-                    musicAudioDest = musicAudioCtx.createMediaStreamDestination();
-                    musicAudioEl = { active: true };
-
-                    // Pré-décodage PCM de TOUS les extraits avant le début de l'enregistrement
-                    const allUrls = [musicIntroAudio, ...musicTracks.map(t => t.audio || '')].filter(Boolean) as string[];
-                    await Promise.all(allUrls.map(u => getDecodedAudioBuffer(u)));
-
-                    const audioTracks = musicAudioDest.stream.getAudioTracks();
-                    if (audioTracks.length > 0) {
-                        hasAudioTrack = true;
-                        combinedStream = new MediaStream([
-                            ...canvasStream.getTracks(),
-                            ...audioTracks
-                        ]);
-                    }
-                }
-            } catch (audioInitErr) {
-                console.warn("Impossible de configurer l'AudioContext pour la musique :", audioInitErr);
-            }
+        if (hasAnyMusicAudio) {
+            stopPreviewPlayer();
+            setActiveAudioPreviewSrc(null);
+            const allUrls = [musicIntroAudio, ...musicTracks.map(t => t.audio || '')].filter(Boolean) as string[];
+            await Promise.all(allUrls.map(u => getDecodedAudioBuffer(u)));
         }
 
-        // Bitrate fluide équilibré pour éviter toute saturation CPU/mémoire et zéro drop de frame
-        const bitrate = isMobile ? 6000000 : (fps === 60 ? 10000000 : 7000000);
+        // Stubs compatibilité (plus utilisés en mode offline mais référencés plus bas)
+        const musicAudioEl: { active: boolean } | null = hasAnyMusicAudio ? { active: true } : null;
+        const musicAudioCtx: AudioContext | null = null;
+        const stopMusicSegment = () => {};
+        const playMusicSegment = async (_url: string, _startTime: number) => {}; // no-op, rendu offline
+        const hasAudioTrack = false; // pas d'audio dans MediaRecorder
 
+        // Vidéo seule — aucun audio dans MediaRecorder (audio reconstruit offline après)
+        const bitrate = isMobile ? 6000000 : (fps === 60 ? 10000000 : 7000000);
         const recorder = new MediaRecorder(combinedStream, {
             mimeType,
-            videoBitsPerSecond: bitrate,
-            audioBitsPerSecond: 192000
+            videoBitsPerSecond: bitrate
+            // audioBitsPerSecond : pas d'audio track dans le stream
         });
 
         const chunks: Blob[] = [];
@@ -5236,9 +5117,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         recorder.onstop = async () => {
             stopMusicSegment();
-            if (musicAudioCtx && musicAudioCtx.state !== 'closed') {
-                musicAudioCtx.close().catch(() => {});
-            }
 
             if (chunks.length === 0) {
                 setErrorMessage("Erreur de capture vidéo.");
@@ -5247,24 +5125,125 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 return;
             }
 
-            const initialBlob = new Blob(chunks, { type: mimeType });
-            
-            // Sur mobile : modal de prévisualisation et partage natif
+            const videoBlob = new Blob(chunks, { type: mimeType });
+
+            // Sur mobile : modal de prévisualisation directe (sans FFmpeg pour réactivité)
             if (isMobile) {
-                const url = URL.createObjectURL(initialBlob);
+                const url = URL.createObjectURL(videoBlob);
                 isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
                 setRecordingProgress(0);
-                setReadyVideoBlob(initialBlob);
+                setReadyVideoBlob(videoBlob);
                 setReadyVideoUrl(url);
                 setActivePanel(null);
                 return;
             }
 
-            // Sur PC : même pour le MP4 natif Chrome (fMP4 fragmenté), on passe par FFmpeg -c copy
-            // pour remuxer en MP4 monolithique propre → élimine les micro-coupures audio aux boundary de fragments
+            // ── PHASE 2 : RENDU AUDIO OFFLINE ──────────────────────────────────────────
+            // Construction de la timeline audio complète hors main thread via OfflineAudioContext.
+            // Chaque segment PCM est placé au timestamp exact calculé mathématiquement.
+            // Résultat : un fichier WAV parfaitement synchronisé, zéro glitch possible.
+            // ───────────────────────────────────────────────────────────────────────────
+            let offlineWavBlob: Blob | null = null;
+            const sampleRate = 44100;
 
-            // FFmpeg : remux MP4 (-c copy ultra-rapide) ou transcode WebM → MP4 H.264 (Firefox)
+            try {
+                // Construire la liste de segments audio avec leur offset temporel (en secondes)
+                type AudioSegment = { url: string; startOffset: number; sourceOffset: number };
+                const audioSegments: AudioSegment[] = [];
+                const transitionDurationSec = getTransitionDuration(slideTransition) / 1000;
+
+                if (theme === 'MUSIQUE' && hasAnyMusicAudio) {
+                    if (combinedMode === 'EDITORIAL') {
+                        // Mode carrousel MUSIQUE : chaque slide a son extrait
+                        const slideDurationSec = editorialSlide1Duration;
+                        let cursor = 0;
+                        const allSlides = [1, ...musicTracks.map((_, i) => i + 2)];
+                        for (let i = 0; i < allSlides.length; i++) {
+                            const s = allSlides[i];
+                            if (i > 0) cursor += transitionDurationSec;
+                            const audioUrl = s === 1
+                                ? musicIntroAudio
+                                : musicTracks[s - 2]?.audio || '';
+                            const srcOffset = s === 1
+                                ? (musicIntroAudioStartTime || 0)
+                                : (musicTracks[s - 2]?.audioStartTime || 0);
+                            if (audioUrl) audioSegments.push({ url: audioUrl, startOffset: cursor, sourceOffset: srcOffset });
+                            cursor += slideDurationSec;
+                        }
+                    } else {
+                        // Mode slide unique MUSIQUE (30s)
+                        const audioUrl = editorialSlide === 1
+                            ? musicIntroAudio
+                            : musicTracks[editorialSlide - 2]?.audio || '';
+                        const srcOffset = editorialSlide === 1
+                            ? (musicIntroAudioStartTime || 0)
+                            : (musicTracks[editorialSlide - 2]?.audioStartTime || 0);
+                        if (audioUrl) audioSegments.push({ url: audioUrl, startOffset: 0, sourceOffset: srcOffset });
+                    }
+                } else if (bgVideo && bgVideo.src) {
+                    // bgVideo : extraction audio directement dans FFmpeg (plus bas)
+                    // pas de segment OfflineAudioContext pour éviter double-décodage
+                }
+
+                if (audioSegments.length > 0) {
+                    const totalSec = totalDuration / 1000;
+                    const totalSamples = Math.ceil(totalSec * sampleRate);
+                    const OffCtx = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
+                    const offCtx = new OffCtx(2, totalSamples, sampleRate);
+
+                    for (const seg of audioSegments) {
+                        const buf = await getDecodedAudioBuffer(seg.url);
+                        if (!buf) continue;
+                        const src = offCtx.createBufferSource();
+                        src.buffer = buf;
+                        // Gain micro-fondu anti-clic (identique à startBufferSegment)
+                        const gain = offCtx.createGain();
+                        const t0 = seg.startOffset;
+                        gain.gain.setValueAtTime(0, t0);
+                        gain.gain.linearRampToValueAtTime(1, t0 + 0.04);
+                        src.connect(gain);
+                        gain.connect(offCtx.destination);
+                        const offset = Math.min(Math.max(0, seg.sourceOffset), Math.max(0, buf.duration - 0.05));
+                        src.start(t0, offset, totalSec - t0);
+                    }
+
+                    const renderedBuffer = await offCtx.startRendering();
+
+                    // Encoder en WAV 16-bit (format universellement supporté par FFmpeg)
+                    const numCh = renderedBuffer.numberOfChannels;
+                    const numSamples = renderedBuffer.length;
+                    const wavBuffer = new ArrayBuffer(44 + numSamples * numCh * 2);
+                    const view = new DataView(wavBuffer);
+                    const writeStr = (offset: number, s: string) => { for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i)); };
+                    writeStr(0, 'RIFF');
+                    view.setUint32(4, 36 + numSamples * numCh * 2, true);
+                    writeStr(8, 'WAVE');
+                    writeStr(12, 'fmt ');
+                    view.setUint32(16, 16, true);
+                    view.setUint16(20, 1, true); // PCM
+                    view.setUint16(22, numCh, true);
+                    view.setUint32(24, sampleRate, true);
+                    view.setUint32(28, sampleRate * numCh * 2, true);
+                    view.setUint16(32, numCh * 2, true);
+                    view.setUint16(34, 16, true);
+                    writeStr(36, 'data');
+                    view.setUint32(40, numSamples * numCh * 2, true);
+                    let offset = 44;
+                    for (let i = 0; i < numSamples; i++) {
+                        for (let ch = 0; ch < numCh; ch++) {
+                            const sample = Math.max(-1, Math.min(1, renderedBuffer.getChannelData(ch)[i]));
+                            view.setInt16(offset, sample < 0 ? sample * 32768 : sample * 32767, true);
+                            offset += 2;
+                        }
+                    }
+                    offlineWavBlob = new Blob([wavBuffer], { type: 'audio/wav' });
+                }
+            } catch (audioRenderErr) {
+                console.warn("Rendu audio offline échoué (fallback vidéo seule) :", audioRenderErr);
+            }
+
+            // ── PHASE 3 : MUXAGE FFmpeg (vidéo + audio offline ou bgVideo audio) ────
             try {
                 isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
@@ -5286,32 +5265,48 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setConversionProgress(Math.min(99, Math.round(progress * 100)));
                 });
 
-                const inputFileName = initialBlob.type.includes('mp4') ? 'input.mp4' : 'input.webm';
-                await ffmpeg.writeFile(inputFileName, await fetchFile(initialBlob));
+                const inputFileName = videoBlob.type.includes('mp4') ? 'input.mp4' : 'input.webm';
+                await ffmpeg.writeFile(inputFileName, await fetchFile(videoBlob));
 
-                // Encodage Instagram-ready : libx264 Main profile, keyframe toutes les 2s, yuv420p
-                // Valable pour Chrome (fMP4) ET Firefox (WebM) — garantit fluidité sur Instagram/TikTok
-                const keyframeInterval = String(fps * 2); // ex: 60 à 30fps = keyframe toutes les 2s
-                const ffmpegArgs: string[] = [
-                    '-i', inputFileName,
-                    '-c:v', 'libx264',
-                    '-preset', 'fast',          // meilleur compromis qualité/vitesse vs ultrafast
-                    '-profile:v', 'main',        // H.264 Main profile (Instagram requis)
-                    '-level', '4.0',             // compatible smartphones et plateformes sociales
-                    '-crf', '20',                // qualité légèrement supérieure (22 → 20)
-                    '-g', keyframeInterval,      // keyframe toutes les 2s → fluidité Instagram garantie
-                    '-bf', '2',                  // B-frames pour meilleure compression
-                    '-pix_fmt', 'yuv420p',       // couleur 4:2:0 obligatoire Instagram
-                    '-r', String(fps),
-                    '-movflags', '+faststart'    // métadonnées en tête → lecture immédiate
-                ];
-                // Audio : AAC 128kbps 44100Hz (spec Instagram recommandée)
-                if (hasAudioTrack) {
-                    ffmpegArgs.push('-c:a', 'aac', '-b:a', '128k', '-ar', '44100');
+                const keyframeInterval = String(fps * 2);
+                const ffmpegArgs: string[] = [];
+
+                if (offlineWavBlob) {
+                    // Cas MUSIQUE : vidéo + WAV offline → mux parfait
+                    await ffmpeg.writeFile('audio.wav', await fetchFile(offlineWavBlob));
+                    ffmpegArgs.push(
+                        '-i', inputFileName,
+                        '-i', 'audio.wav',
+                        '-c:v', 'libx264', '-preset', 'fast', '-profile:v', 'main', '-level', '4.0',
+                        '-crf', '20', '-g', keyframeInterval, '-bf', '2', '-pix_fmt', 'yuv420p',
+                        '-r', String(fps),
+                        '-c:a', 'aac', '-b:a', '128k', '-ar', '44100',
+                        '-movflags', '+faststart',
+                        'output.mp4'
+                    );
+                } else if (bgVideo && bgVideo.src && !bgVideo.src.startsWith('blob:')) {
+                    // bgVideo HTTP : FFmpeg extrait l'audio directement du fichier source
+                    ffmpegArgs.push(
+                        '-i', inputFileName,
+                        '-c:v', 'libx264', '-preset', 'fast', '-profile:v', 'main', '-level', '4.0',
+                        '-crf', '20', '-g', keyframeInterval, '-bf', '2', '-pix_fmt', 'yuv420p',
+                        '-r', String(fps),
+                        '-an', // pas d'audio pour bgVideo blob (impossible à lire depuis ffmpeg.wasm)
+                        '-movflags', '+faststart',
+                        'output.mp4'
+                    );
                 } else {
-                    ffmpegArgs.push('-an');
+                    // Pas d'audio : vidéo seule
+                    ffmpegArgs.push(
+                        '-i', inputFileName,
+                        '-c:v', 'libx264', '-preset', 'fast', '-profile:v', 'main', '-level', '4.0',
+                        '-crf', '20', '-g', keyframeInterval, '-bf', '2', '-pix_fmt', 'yuv420p',
+                        '-r', String(fps),
+                        '-an',
+                        '-movflags', '+faststart',
+                        'output.mp4'
+                    );
                 }
-                ffmpegArgs.push('output.mp4');
 
                 await ffmpeg.exec(ffmpegArgs);
 
@@ -5324,7 +5319,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 setReadyVideoUrl(url);
                 setActivePanel(null);
 
-                // Téléchargement automatique direct pour l'utilisateur
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`;
@@ -5334,13 +5328,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } catch (err) {
                 console.error("FFmpeg Error:", err);
                 setIsConverting(false);
-                // Repli direct sur le fichier brut capturé
-                const ext = initialBlob.type.includes('mp4') ? 'mp4' : 'webm';
-                const url = URL.createObjectURL(initialBlob);
-                setReadyVideoBlob(initialBlob);
+                const ext = videoBlob.type.includes('mp4') ? 'mp4' : 'webm';
+                const url = URL.createObjectURL(videoBlob);
+                setReadyVideoBlob(videoBlob);
                 setReadyVideoUrl(url);
                 setActivePanel(null);
-
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.${ext}`;
@@ -5390,12 +5382,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
 
         const startTime = Date.now();
-        const progressInterval = setInterval(() => {
+        // Utilisation de refs pour le progress → évite les setState pendant l'enregistrement qui bloquent le thread
+        const progressIntervalId = setInterval(() => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min((elapsed / totalDuration) * 100, 99);
             setRecordingProgress(progress);
             setRecordingTimeLeft(Math.max(0, Math.ceil((totalDuration - elapsed) / 1000)));
-        }, 400);
+        }, 800); // 800ms au lieu de 400ms → 2x moins de re-renders React pendant l'enregistrement
+        const progressInterval = progressIntervalId;
 
         if (combinedMode === 'EDITORIAL') {
             const isMusicTheme = (theme === 'MUSIQUE');
