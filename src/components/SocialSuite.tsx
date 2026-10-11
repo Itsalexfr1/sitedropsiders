@@ -45,6 +45,8 @@ import recapsData from '../data/recaps.json';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 // @ts-ignore
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
+// @ts-ignore
+import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 
 const FESTIVAL_TIMEZONES = [
     { group: "🌍 Europe (Aucun décalage)", options: [{ label: "🇫🇷 Heure Française", offset: 0 }] },
@@ -4987,36 +4989,151 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         const fps = exportFps || 30; // 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
         const frameInterval = 1000 / fps;
+        const frameDurationUs = Math.round(1_000_000 / fps); // durée d'un frame en microsecondes
 
-        // Helper pour animer frame-par-frame avec timing fluide cadencé au framerate cible
+        // ── CALCUL PRÉALABLE DE LA DURÉE TOTALE ET DES FRAMES ATTENDUES ─────────────
+        const currentTransitionDuration = getTransitionDuration(slideTransition);
+        let totalDuration = 0;
+        if (combinedMode === 'EDITORIAL') {
+            const isMusicTheme = (theme === 'MUSIQUE');
+            const shouldSkipSlide2 = skipEditorialSlide2;
+            const contentSlideNumbers: number[] = isMusicTheme
+                ? [1, ...musicTracks.map((_, i) => i + 2)]
+                : (shouldSkipSlide2
+                    ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
+                    : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
+            const numContentSlides = contentSlideNumbers.length;
+            const promoDuration = Math.round(editorialPromoDuration * 1000);
+            const transitionDuration = currentTransitionDuration;
+            const slideDuration = Math.round(editorialSlide1Duration * 1000);
+            totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
+        } else if (combinedMode === 'PLANNING') {
+            const promoDuration = 4800;
+            const transitionDuration = currentTransitionDuration;
+            const slideDuration = 5200;
+            totalDuration = (2 * slideDuration) + (2 * transitionDuration) + promoDuration;
+        } else if (theme.startsWith('TOP 5')) {
+            totalDuration = 5 * (16800 + 1200); // 5 slides + transitions
+        } else if (theme === 'TOP 10 FESTIVAL') {
+            totalDuration = 4 * (16800 + 1200); // 4 slides (Cover + 3 Grid pages)
+        } else {
+            if (theme === 'MUSIQUE') {
+                totalDuration = 30000;
+            } else {
+                totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
+                    ? bgVideo.duration * 1000
+                    : ((activeTab === 'REEL' || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST') ? 15000 : 60000);
+                if (totalDuration > 600000) totalDuration = 600000;
+            }
+        }
+
+        const totalExpectedFrames = Math.max(1, Math.round((totalDuration / 1000) * fps));
+        let totalFramesEncoded = 0;
+
+        // Mise à jour visuelle du progress (DOM direct = zéro re-render React)
+        const updateProgressUI = () => {
+            const progress = Math.min((totalFramesEncoded / totalExpectedFrames) * 100, 99);
+            const remainingFrames = Math.max(0, totalExpectedFrames - totalFramesEncoded);
+            const timeLeft = Math.ceil(remainingFrames / fps);
+            const dashoffset1 = 364.4 - (364.4 * progress) / 100;
+            const dashoffset2 = 565 - (565 * progress) / 100;
+            if (recordingCircleRef.current) recordingCircleRef.current.style.strokeDashoffset = String(dashoffset1);
+            if (recordingCircle2Ref.current) recordingCircle2Ref.current.style.strokeDashoffset = String(dashoffset2);
+            if (recordingPercentRef.current) recordingPercentRef.current.textContent = `${Math.round(progress)}%`;
+            if (recordingPercent2Ref.current) recordingPercent2Ref.current.textContent = `${Math.round(progress)}%`;
+            if (recordingTimeRef.current) recordingTimeRef.current.textContent = `${timeLeft}S`;
+            if (recordingTimeLeft2Ref.current) recordingTimeLeft2Ref.current.textContent = `${timeLeft}s restantes`;
+        };
+
+        // ── WebCodecs : état partagé entre renderDuration/renderTransition et finalisation ──
+        let captureFrame: () => void = () => {};
+        let videoEncoder: any = null;
+        let muxerTarget: any = null;
+        let muxer: any = null;
+        const webCodecsSupported = typeof window !== 'undefined'
+            && typeof (window as any).VideoEncoder !== 'undefined'
+            && typeof (window as any).VideoFrame !== 'undefined';
+
+        // Helper pour animer FRAME-PAR-FRAME DÉTERMINISTE (zéro dépendance horloge système)
         const renderDuration = async (durationMs: number) => {
-            const t0 = performance.now();
-            let nextFrameTime = t0;
-            while (performance.now() - t0 < durationMs) {
-                const now = performance.now();
-                if (now >= nextFrameTime) {
+            if (webCodecsSupported) {
+                // RENDU DÉTERMINISTE : On calcule le nombre EXACT de frames à encoder
+                const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
+                for (let f = 0; f < numFrames; f++) {
+                    const slideElapsedSec = f / fps;
+                    animStartTimeRef.current = Date.now() - (slideElapsedSec * 1000);
+                    recordingStartTimeRef.current = Date.now() - ((totalFramesEncoded / fps) * 1000);
+
+                    if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
+                        const targetTime = (totalFramesEncoded / fps) % bgVideo.duration;
+                        bgVideo.currentTime = targetTime;
+                    }
+
                     await generateImage();
-                    nextFrameTime = now + frameInterval;
+                    captureFrame();
+
+                    if (f % 2 === 0) {
+                        updateProgressUI();
+                        // Libération du thread JS pour rafraîchir l'UI
+                        await new Promise(r => setTimeout(r, 0));
+                    }
                 }
-                await new Promise(r => requestAnimationFrame(r));
+            } else {
+                // Fallback temps réel pour MediaRecorder
+                const t0 = performance.now();
+                let nextFrameTime = t0;
+                while (performance.now() - t0 < durationMs) {
+                    const now = performance.now();
+                    if (now >= nextFrameTime) {
+                        await generateImage();
+                        nextFrameTime = now + frameInterval;
+                    }
+                    await new Promise(r => requestAnimationFrame(r));
+                }
             }
         };
 
         const renderTransition = async (durationMs: number, onProgress: (p: number) => void) => {
-            const t0 = performance.now();
-            let nextFrameTime = t0;
-            while (performance.now() - t0 < durationMs) {
-                const now = performance.now();
-                if (now >= nextFrameTime) {
-                    const progress = Math.min(1, (now - t0) / durationMs);
+            if (webCodecsSupported) {
+                const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
+                for (let f = 0; f < numFrames; f++) {
+                    const progress = numFrames <= 1 ? 1 : f / (numFrames - 1);
                     onProgress(progress);
+
+                    const slideElapsedSec = f / fps;
+                    animStartTimeRef.current = Date.now() - (slideElapsedSec * 1000);
+                    recordingStartTimeRef.current = Date.now() - ((totalFramesEncoded / fps) * 1000);
+
+                    if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
+                        const targetTime = (totalFramesEncoded / fps) % bgVideo.duration;
+                        bgVideo.currentTime = targetTime;
+                    }
+
                     await generateImage();
-                    nextFrameTime = now + frameInterval;
+                    captureFrame();
+
+                    if (f % 2 === 0) {
+                        updateProgressUI();
+                        await new Promise(r => setTimeout(r, 0));
+                    }
                 }
-                await new Promise(r => requestAnimationFrame(r));
+                onProgress(1);
+            } else {
+                const t0 = performance.now();
+                let nextFrameTime = t0;
+                while (performance.now() - t0 < durationMs) {
+                    const now = performance.now();
+                    if (now >= nextFrameTime) {
+                        const progress = Math.min(1, (now - t0) / durationMs);
+                        onProgress(progress);
+                        await generateImage();
+                        nextFrameTime = now + frameInterval;
+                    }
+                    await new Promise(r => requestAnimationFrame(r));
+                }
+                onProgress(1);
+                await generateImage();
             }
-            onProgress(1);
-            await generateImage();
         };
 
         isVideoRecordingRef.current = true;
@@ -5122,20 +5239,93 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         }
 
-        // Bitrate 10Mbps PC (assez pour absorption des pics lors des transitions sans artefacts)
+        // Bitrate 10Mbps PC
         const bitrate = isMobile ? 6000000 : 10000000;
-        const recorder = new MediaRecorder(combinedStream, {
-            mimeType,
-            videoBitsPerSecond: bitrate,
-            ...(hasAudioTrack ? { audioBitsPerSecond: 192000 } : {})
-        });
 
+        // ── PIPELINE VIDÉO ────────────────────────────────────────────────────────────
+        // WebCodecs (Chrome/Edge/Safari) : timestamps mathématiques exacts → zéro frame dupliquée
+        // MediaRecorder (Firefox / fallback) : comportement standard
+        // ─────────────────────────────────────────────────────────────────────────────
         const chunks: Blob[] = [];
-        recorder.ondataavailable = (e) => {
-            if (e.data && e.data.size > 0) chunks.push(e.data);
-        };
+        let recorder: MediaRecorder | null = null;
 
-        recorder.onstop = async () => {
+        if (webCodecsSupported) {
+            // ── MODE WEBCODECS ──────────────────────────────────────────────────────
+            muxerTarget = new ArrayBufferTarget();
+            muxer = new Muxer({
+                target: muxerTarget,
+                video: {
+                    codec: 'avc',
+                    width: canvas.width,
+                    height: canvas.height,
+                },
+                fastStart: 'in-memory',
+            });
+
+            videoEncoder = new (window as any).VideoEncoder({
+                output: (chunk: any, meta: any) => muxer.addVideoChunk(chunk, meta),
+                error: (e: any) => console.error('VideoEncoder error:', e),
+            });
+
+            let chosenCodec = 'avc1.640028'; // High Profile 4.0
+            if (typeof (window as any).VideoEncoder.isConfigSupported === 'function') {
+                try {
+                    const check = await (window as any).VideoEncoder.isConfigSupported({
+                        codec: 'avc1.640028',
+                        width: canvas.width,
+                        height: canvas.height,
+                        bitrate,
+                        framerate: fps,
+                    });
+                    if (!check || !check.supported) {
+                        chosenCodec = 'avc1.4d4028'; // Main Profile 4.0 fallback
+                    }
+                } catch {
+                    chosenCodec = 'avc1.4d4028';
+                }
+            }
+
+            videoEncoder.configure({
+                codec: chosenCodec,
+                width: canvas.width,
+                height: canvas.height,
+                bitrate,
+                framerate: fps,
+                hardwareAcceleration: 'prefer-hardware', // GPU si dispo
+                avc: { format: 'avc' },      // format annexé pour mp4-muxer
+            });
+
+            // captureFrame : appelé après chaque generateImage() dans les render loops
+            captureFrame = () => {
+                try {
+                    if (!videoEncoder) return;
+                    if (videoEncoder.encodeQueueSize > 25) return; // back-pressure
+                    const timestampUs = Math.round(totalFramesEncoded * frameDurationUs);
+                    const frame = new (window as any).VideoFrame(canvas, {
+                        timestamp: timestampUs,
+                        duration: frameDurationUs
+                    });
+                    const isKeyFrame = (totalFramesEncoded % (fps * 2)) === 0; // keyframe toutes les 2s
+                    videoEncoder.encode(frame, { keyFrame: isKeyFrame });
+                    frame.close();
+                    totalFramesEncoded++;
+                } catch (e) {
+                    console.warn('captureFrame error:', e);
+                }
+            };
+        } else {
+            // ── MODE MEDIARECORDER (fallback Firefox) ───────────────────────────────
+            recorder = new MediaRecorder(combinedStream, {
+                mimeType,
+                videoBitsPerSecond: bitrate,
+                ...(hasAudioTrack ? { audioBitsPerSecond: 192000 } : {}),
+            });
+            recorder.ondataavailable = (e) => {
+                if (e.data && e.data.size > 0) chunks.push(e.data);
+            };
+        }
+
+        const finalizeRecording = async () => {
             // Fin d'enregistrement : sync DOM refs et state React pour la phase FFmpeg
             stopMusicSegment();
             setRecordingProgress(100);
@@ -5144,14 +5334,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (recordingCircle2Ref.current) recordingCircle2Ref.current.style.strokeDashoffset = '0';
             if (recordingPercent2Ref.current) recordingPercent2Ref.current.textContent = '100%';
 
-            if (chunks.length === 0) {
-                setErrorMessage("Erreur de capture vidéo.");
-                isVideoRecordingRef.current = false;
-                setIsVideoRecording(false);
-                return;
-            }
+            let videoBlob: Blob;
 
-            const videoBlob = new Blob(chunks, { type: mimeType });
+            if (webCodecsSupported && videoEncoder && muxer && muxerTarget) {
+                // ── WebCodecs : flush encoder → finalize muxer → Blob MP4
+                try {
+                    await videoEncoder.flush();
+                    muxer.finalize();
+                    videoBlob = new Blob([muxerTarget.buffer], { type: 'video/mp4' });
+                } catch (e) {
+                    console.error('WebCodecs finalize error:', e);
+                    setErrorMessage("Erreur de finalisation vidéo.");
+                    isVideoRecordingRef.current = false;
+                    setIsVideoRecording(false);
+                    return;
+                }
+            } else {
+                // ── MediaRecorder fallback : chunks → Blob
+                if (chunks.length === 0) {
+                    setErrorMessage("Erreur de capture vidéo.");
+                    isVideoRecordingRef.current = false;
+                    setIsVideoRecording(false);
+                    return;
+                }
+                videoBlob = new Blob(chunks, { type: mimeType });
+            }
 
             // Sur mobile : modal de prévisualisation directe (sans FFmpeg pour réactivité)
             if (isMobile) {
@@ -5164,6 +5371,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 setActivePanel(null);
                 return;
             }
+
 
             // ── PHASE 2 : RENDU AUDIO OFFLINE ──────────────────────────────────────────
             // Construction de la timeline audio complète hors main thread via OfflineAudioContext.
@@ -5271,6 +5479,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             // ── PHASE 3 : MUXAGE FFmpeg (vidéo + audio offline ou bgVideo audio) ────
             try {
+                // FAST-PATH : Si WebCodecs a produit un MP4 et qu'il n'y a pas d'audio à ajouter
+                if (!offlineWavBlob && !hasAudioTrack && videoBlob.type.includes('mp4')) {
+                    isVideoRecordingRef.current = false;
+                    setIsVideoRecording(false);
+                    const url = URL.createObjectURL(videoBlob);
+                    setReadyVideoBlob(videoBlob);
+                    setReadyVideoUrl(url);
+                    setActivePanel(null);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    return;
+                }
+
                 isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
                 setIsConverting(true);
@@ -5302,23 +5527,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     '-g', keyframeInterval, '-bf', '2', '-pix_fmt', 'yuv420p',
                     '-r', String(fps), '-movflags', '+faststart'
                 ];
-                const ffmpegArgs: string[] = [];
+                let ffmpegArgs: string[] = [];
 
-                if (offlineWavBlob) {
-                    // MUSIQUE : vidéo seule + WAV offline → mux parfait, zéro glitch
+                if (videoBlob.type.includes('mp4') && offlineWavBlob) {
+                    // FAST STREAM COPY : Muxer l'audio WAV en AAC sans ré-encoder la vidéo H.264 WebCodecs
                     await ffmpeg.writeFile('audio.wav', await fetchFile(offlineWavBlob));
-                    ffmpegArgs.push('-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
-                        '-c:a', 'aac', '-b:a', '128k', '-ar', '44100', 'output.mp4');
+                    ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav',
+                        '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', '-movflags', '+faststart', 'output.mp4'];
+                } else if (offlineWavBlob) {
+                    await ffmpeg.writeFile('audio.wav', await fetchFile(offlineWavBlob));
+                    ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
+                        '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
                 } else if (hasAudioTrack) {
-                    // bgVideo audio capturé dans le stream MediaRecorder → encoder l'audio existant
-                    ffmpegArgs.push('-i', inputFileName, ...videoArgs,
-                        '-c:a', 'aac', '-b:a', '128k', '-ar', '44100', 'output.mp4');
+                    ffmpegArgs = ['-i', inputFileName, ...videoArgs,
+                        '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', 'output.mp4'];
                 } else {
-                    // Pas de source audio : vidéo seule
-                    ffmpegArgs.push('-i', inputFileName, ...videoArgs, '-an', 'output.mp4');
+                    ffmpegArgs = ['-i', inputFileName, ...videoArgs, '-an', 'output.mp4'];
                 }
 
-                await ffmpeg.exec(ffmpegArgs);
+                try {
+                    await ffmpeg.exec(ffmpegArgs);
+                } catch (execErr) {
+                    if (videoBlob.type.includes('mp4') && offlineWavBlob) {
+                        console.warn("Direct copy mux failed, retrying with libx264 re-encode:", execErr);
+                        ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
+                            '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
+                        await ffmpeg.exec(ffmpegArgs);
+                    } else {
+                        throw execErr;
+                    }
+                }
 
                 const data: any = await ffmpeg.readFile('output.mp4');
                 const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
@@ -5352,62 +5590,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         };
 
-        // timeslice=500ms : chunks plus larges → moins de fragment boundaries dans le fMP4 → zéro micro-coupure audio
-        recorder.start(500);
-
-        let totalDuration = 0;
-        const currentTransitionDuration = getTransitionDuration(slideTransition);
-        if (combinedMode === 'EDITORIAL') {
-            const isMusicTheme = (theme === 'MUSIQUE');
-            const shouldSkipSlide2 = skipEditorialSlide2;
-            const contentSlideNumbers: number[] = isMusicTheme
-                ? [1, ...musicTracks.map((_, i) => i + 2)]
-                : (shouldSkipSlide2
-                    ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
-                    : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
-            const numContentSlides = contentSlideNumbers.length;
-            const promoDuration = Math.round(editorialPromoDuration * 1000);
-            const transitionDuration = currentTransitionDuration;
-            const slideDuration = Math.round(editorialSlide1Duration * 1000);
-            totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
-        } else if (combinedMode === 'PLANNING') {
-            const promoDuration = 4800;
-            const transitionDuration = currentTransitionDuration;
-            const slideDuration = 5200;
-            totalDuration = (2 * slideDuration) + (2 * transitionDuration) + promoDuration;
-        } else if (theme.startsWith('TOP 5')) {
-            totalDuration = 5 * (16800 + 1200); // 5 slides + transitions
-        } else if (theme === 'TOP 10 FESTIVAL') {
-            totalDuration = 4 * (16800 + 1200); // 4 slides (Cover + 3 Grid pages)
-        } else {
-            // Pour MUSIQUE slide unique (Cover + Son), durée strictement FIXE à 30 secondes (impossible à modifier)
-            if (theme === 'MUSIQUE') {
-                totalDuration = 30000;
-            } else {
-                totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
-                    ? bgVideo.duration * 1000
-                    : ((activeTab === 'REEL' || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST') ? 15000 : 60000);
-                if (totalDuration > 600000) totalDuration = 600000; // Limit to 10 minutes
-            }
+        // Si fallback MediaRecorder : écoute de onstop et démarrage avec timeslice
+        if (recorder) {
+            recorder.onstop = finalizeRecording;
+            recorder.start(500);
         }
 
-        const startTime = Date.now();
-        // Mise à jour du progress via refs DOM directes → zéro re-render React pendant la capture
-        const progressIntervalId = setInterval(() => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min((elapsed / totalDuration) * 100, 99);
-            const timeLeft = Math.max(0, Math.ceil((totalDuration - elapsed) / 1000));
-            const dashoffset1 = 364.4 - (364.4 * progress) / 100;
-            const dashoffset2 = 565 - (565 * progress) / 100;
-            // Mise à jour directe DOM — bypass React complètement
-            if (recordingCircleRef.current) recordingCircleRef.current.style.strokeDashoffset = String(dashoffset1);
-            if (recordingCircle2Ref.current) recordingCircle2Ref.current.style.strokeDashoffset = String(dashoffset2);
-            if (recordingPercentRef.current) recordingPercentRef.current.textContent = `${Math.round(progress)}%`;
-            if (recordingPercent2Ref.current) recordingPercent2Ref.current.textContent = `${Math.round(progress)}%`;
-            if (recordingTimeRef.current) recordingTimeRef.current.textContent = `${timeLeft}S`;
-            if (recordingTimeLeft2Ref.current) recordingTimeLeft2Ref.current.textContent = `${timeLeft}s restantes`;
-        }, 250); // 250ms : assez fluide visuellement, inoffensif (zéro re-render)
-        const progressInterval = progressIntervalId;
+        // Intervalle de mise à jour pour le mode fallback MediaRecorder
+        let progressInterval: any = null;
+        if (!webCodecsSupported) {
+            const startTime = Date.now();
+            progressInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min((elapsed / totalDuration) * 100, 99);
+                const timeLeft = Math.max(0, Math.ceil((totalDuration - elapsed) / 1000));
+                const dashoffset1 = 364.4 - (364.4 * progress) / 100;
+                const dashoffset2 = 565 - (565 * progress) / 100;
+                if (recordingCircleRef.current) recordingCircleRef.current.style.strokeDashoffset = String(dashoffset1);
+                if (recordingCircle2Ref.current) recordingCircle2Ref.current.style.strokeDashoffset = String(dashoffset2);
+                if (recordingPercentRef.current) recordingPercentRef.current.textContent = `${Math.round(progress)}%`;
+                if (recordingPercent2Ref.current) recordingPercent2Ref.current.textContent = `${Math.round(progress)}%`;
+                if (recordingTimeRef.current) recordingTimeRef.current.textContent = `${timeLeft}S`;
+                if (recordingTimeLeft2Ref.current) recordingTimeLeft2Ref.current.textContent = `${timeLeft}s restantes`;
+            }, 250);
+        }
 
         if (combinedMode === 'EDITORIAL') {
             const isMusicTheme = (theme === 'MUSIQUE');
@@ -5577,7 +5783,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             await renderDuration(totalDuration);
         }
 
-        clearInterval(progressInterval);
+        if (progressInterval) clearInterval(progressInterval);
         setRecordingProgress(100);
         setRecordingTimeLeft(0);
         isVideoRecordingRef.current = false;
@@ -5601,7 +5807,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         stopMusicSegment();
 
-        if (recorder.state !== 'inactive') recorder.stop();
+        if (recorder && recorder.state !== 'inactive') {
+            recorder.stop();
+        } else if (webCodecsSupported) {
+            await finalizeRecording();
+        }
     };
 
     const exportCurrentSlideVideo = async (formatTab?: 'PUBLICATION' | 'REEL') => {
