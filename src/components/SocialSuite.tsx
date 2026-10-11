@@ -393,6 +393,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const audioSourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
     const audioDestNodeRef = useRef<MediaStreamAudioDestinationNode | null>(null);
     const audioSourceVideoRef = useRef<HTMLVideoElement | null>(null); // pour détecter si bgVideo a changé
+    // Refs DOM pour le progress bar d'enregistrement — évite tout re-render React pendant la capture
+    const recordingCircleRef = useRef<SVGCircleElement | null>(null);
+    const recordingPercentRef = useRef<HTMLSpanElement | null>(null);
+    const recordingTimeRef = useRef<HTMLSpanElement | null>(null);
+    const recordingTimeLeftTextRef = useRef<HTMLParagraphElement | null>(null);
+    const recordingCircle2Ref = useRef<SVGCircleElement | null>(null);
+    const recordingPercent2Ref = useRef<HTMLSpanElement | null>(null);
+    const recordingTimeLeft2Ref = useRef<HTMLSpanElement | null>(null);
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
     const [r2TargetIdx, setR2TargetIdx] = useState<number | null>(null);
     const [r2TargetType, setR2TargetType] = useState<'top5' | 'top10' | 'background' | 'logo' | 'affiche' | 'musicCover' | 'musicAudio' | 'musicIntroAudio' | null>(null);
@@ -5114,8 +5122,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         }
 
-        // MediaRecorder : vidéo (+ audio bgVideo si dispo), MUSIQUE audio sera ajouté offline après
-        const bitrate = isMobile ? 6000000 : (fps === 60 ? 10000000 : 7000000);
+        // Bitrate 10Mbps PC (assez pour absorption des pics lors des transitions sans artefacts)
+        const bitrate = isMobile ? 6000000 : 10000000;
         const recorder = new MediaRecorder(combinedStream, {
             mimeType,
             videoBitsPerSecond: bitrate,
@@ -5128,7 +5136,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         };
 
         recorder.onstop = async () => {
+            // Fin d'enregistrement : sync DOM refs et state React pour la phase FFmpeg
             stopMusicSegment();
+            setRecordingProgress(100);
+            setRecordingTimeLeft(0);
+            if (recordingCircleRef.current) recordingCircleRef.current.style.strokeDashoffset = '0';
+            if (recordingCircle2Ref.current) recordingCircle2Ref.current.style.strokeDashoffset = '0';
+            if (recordingPercent2Ref.current) recordingPercent2Ref.current.textContent = '100%';
 
             if (chunks.length === 0) {
                 setErrorMessage("Erreur de capture vidéo.");
@@ -5283,7 +5297,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const keyframeInterval = String(fps * 2);
                 const videoArgs = [
                     '-c:v', 'libx264', '-preset', 'fast', '-profile:v', 'main', '-level', '4.0',
-                    '-crf', '20', '-g', keyframeInterval, '-bf', '2', '-pix_fmt', 'yuv420p',
+                    '-tune', 'film',       // meilleure qualité pour contenu mixte texte+image+vidéo
+                    '-crf', '18',          // CRF 18 → qualité supérieure (vs 20 avant) sans glitch
+                    '-g', keyframeInterval, '-bf', '2', '-pix_fmt', 'yuv420p',
                     '-r', String(fps), '-movflags', '+faststart'
                 ];
                 const ffmpegArgs: string[] = [];
@@ -5376,13 +5392,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
 
         const startTime = Date.now();
-        // Utilisation de refs pour le progress → évite les setState pendant l'enregistrement qui bloquent le thread
+        // Mise à jour du progress via refs DOM directes → zéro re-render React pendant la capture
         const progressIntervalId = setInterval(() => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min((elapsed / totalDuration) * 100, 99);
-            setRecordingProgress(progress);
-            setRecordingTimeLeft(Math.max(0, Math.ceil((totalDuration - elapsed) / 1000)));
-        }, 800); // 800ms au lieu de 400ms → 2x moins de re-renders React pendant l'enregistrement
+            const timeLeft = Math.max(0, Math.ceil((totalDuration - elapsed) / 1000));
+            const dashoffset1 = 364.4 - (364.4 * progress) / 100;
+            const dashoffset2 = 565 - (565 * progress) / 100;
+            // Mise à jour directe DOM — bypass React complètement
+            if (recordingCircleRef.current) recordingCircleRef.current.style.strokeDashoffset = String(dashoffset1);
+            if (recordingCircle2Ref.current) recordingCircle2Ref.current.style.strokeDashoffset = String(dashoffset2);
+            if (recordingPercentRef.current) recordingPercentRef.current.textContent = `${Math.round(progress)}%`;
+            if (recordingPercent2Ref.current) recordingPercent2Ref.current.textContent = `${Math.round(progress)}%`;
+            if (recordingTimeRef.current) recordingTimeRef.current.textContent = `${timeLeft}S`;
+            if (recordingTimeLeft2Ref.current) recordingTimeLeft2Ref.current.textContent = `${timeLeft}s restantes`;
+        }, 250); // 250ms : assez fluide visuellement, inoffensif (zéro re-render)
         const progressInterval = progressIntervalId;
 
         if (combinedMode === 'EDITORIAL') {
@@ -12245,11 +12269,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent"
                                                     className="text-neon-red"
                                                     strokeDasharray={364.4}
-                                                    strokeDashoffset={364.4 - (364.4 * recordingProgress) / 100}
+                                                    ref={recordingCircleRef}
+                                                    style={{ strokeDashoffset: 364.4 }}
                                                 />
                                             </svg>
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                <span className="text-2xl font-black italic text-white">{recordingTimeLeft}S</span>
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                    <span ref={recordingTimeRef} className="text-2xl font-black italic text-white">{recordingTimeLeft}S</span>
                                                 <span className="text-[8px] font-black text-white/50 uppercase tracking-widest">Restant</span>
                                             </div>
                                         </div>
@@ -12521,14 +12546,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <circle 
                                     cx="96" cy="96" r="90" stroke="#FF0033" strokeWidth="8" fill="transparent"
                                     strokeDasharray={565}
-                                    strokeDashoffset={565 - (565 * (isVideoRecording ? recordingProgress : conversionProgress)) / 100}
+                                    strokeDashoffset={565}
+                                    ref={recordingCircle2Ref}
                                     strokeLinecap="round"
                                     className="transition-all duration-300 shadow-[0_0_15px_rgba(255,0,51,0.5)]"
                                 />
                             </svg>
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-5xl font-black text-white leading-none tracking-tighter">
-                                    {(isVideoRecording ? recordingProgress : conversionProgress).toFixed(0)}%
+                                <span ref={recordingPercent2Ref} className="text-5xl font-black text-white leading-none tracking-tighter">
+                                    0%
                                 </span>
                             </div>
                         </div>
@@ -12541,7 +12567,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ? "Conversion en format MOV (H.264) compatible iPhone. Merci de patienter." 
                                 : isTransparent && !(bgImage || bgVideo)
                                     ? `Capture avec transparence activée. Finalisation...`
-                                    : `Capture du réel (${recordingTimeLeft}s restantes). Ne pas quitter.`}
+                                    : <><span ref={recordingTimeLeft2Ref}>0s restantes</span>. Ne pas quitter.</>}
                         </p>
                     </motion.div>
                 )}
