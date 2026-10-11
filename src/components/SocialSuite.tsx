@@ -5027,14 +5027,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         }
 
-        const totalExpectedFrames = Math.max(1, Math.round((totalDuration / 1000) * fps));
-        let totalFramesEncoded = 0;
-
-        // Mise à jour visuelle du progress (DOM direct = zéro re-render React)
+        // Mise à jour visuelle du progress basée sur le temps réel (DOM direct = zéro re-render React)
+        const startTime = Date.now();
         const updateProgressUI = () => {
-            const progress = Math.min((totalFramesEncoded / totalExpectedFrames) * 100, 99);
-            const remainingFrames = Math.max(0, totalExpectedFrames - totalFramesEncoded);
-            const timeLeft = Math.ceil(remainingFrames / fps);
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min((elapsed / totalDuration) * 100, 99);
+            const timeLeft = Math.max(0, Math.ceil((totalDuration - elapsed) / 1000));
             const dashoffset1 = 364.4 - (364.4 * progress) / 100;
             const dashoffset2 = 565 - (565 * progress) / 100;
             if (recordingCircleRef.current) recordingCircleRef.current.style.strokeDashoffset = String(dashoffset1);
@@ -5045,133 +5043,52 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (recordingTimeLeft2Ref.current) recordingTimeLeft2Ref.current.textContent = `${timeLeft}s restantes`;
         };
 
-        // ── WebCodecs : état partagé entre renderDuration/renderTransition et finalisation ──
-        let captureFrame: () => Promise<void> = async () => {};
-        let videoEncoder: any = null;
-        let muxerTarget: any = null;
-        let muxer: any = null;
-        const webCodecsAvailable = typeof window !== 'undefined'
-            && typeof (window as any).VideoEncoder !== 'undefined'
-            && typeof (window as any).VideoFrame !== 'undefined';
 
-        // ── PREFLIGHT WebCodecs : test réel avant de s'engager dans le mode déterministe ──
-        // Si le GPU/driver refuse l'encodeur H.264, on bascule en mode MediaRecorder automatiquement.
-        let useWebCodecs = webCodecsAvailable;
-        if (webCodecsAvailable) {
-            useWebCodecs = await new Promise<boolean>((resolve) => {
-                let settled = false;
-                const done = (ok: boolean) => { if (!settled) { settled = true; resolve(ok); } };
-                try {
-                    const te = new (window as any).VideoEncoder({
-                        output: () => { try { te.close(); } catch {} done(true); },
-                        error: () => { try { te.close(); } catch {} done(false); },
-                    });
-                    // Teste avec la VRAIE résolution + mêmes options que l'encodeur réel
-                    // pour détecter les GPU qui refusent le 1080p même s'ils acceptent le 64×64
-                    te.configure({
-                        codec: 'avc1.4d4028',
-                        width: targetWidth,
-                        height: targetHeight,
-                        bitrate: Math.min(bitrate, 4000000),
-                        framerate: fps,
-                        hardwareAcceleration: 'no-preference',
-                        avc: { format: 'avc' },
-                    });
-                    const tc = document.createElement('canvas');
-                    tc.width = targetWidth; tc.height = targetHeight;
-                    const tf = new (window as any).VideoFrame(tc, { timestamp: 0 });
-                    te.encode(tf, { keyFrame: true });
-                    tf.close();
-                    te.flush().catch(() => done(false));
-                } catch { done(false); }
-                // Timeout de sécurité 5 s (résolution plus grande = plus lent)
-                setTimeout(() => done(false), 5000);
-            });
-        }
-        // Alias pour rétrocompatibilité du reste du code
-        const webCodecsSupported = useWebCodecs;
-
-        // Helper pour animer FRAME-PAR-FRAME DÉTERMINISTE (zéro dépendance horloge système)
-        const renderDuration = async (durationMs: number) => {
-            if (webCodecsSupported) {
-                // RENDU DÉTERMINISTE : On calcule le nombre EXACT de frames à encoder
-                const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
-                for (let f = 0; f < numFrames; f++) {
-                    const slideElapsedSec = f / fps;
-                    animStartTimeRef.current = Date.now() - (slideElapsedSec * 1000);
-                    recordingStartTimeRef.current = Date.now() - ((totalFramesEncoded / fps) * 1000);
-
-                    if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
-                        const targetTime = (totalFramesEncoded / fps) % bgVideo.duration;
-                        bgVideo.currentTime = targetTime;
-                    }
-
-                    await generateImage();
-                    await captureFrame();
-
-                    if (f % 2 === 0) {
-                        updateProgressUI();
-                        // Libération du thread JS pour rafraîchir l'UI
-                        await new Promise(r => setTimeout(r, 0));
-                    }
+        // ── renderDuration : rendu canvas temps réel via requestAnimationFrame ─────────────────
+        // On force chaque génération d'image à être synchronisée avec le vsync du navigateur
+        // pour un flux canvas parfaitement fluide → MediaRecorder capture des frames nettes.
+        const renderDuration = (durationMs: number): Promise<void> => new Promise((resolve) => {
+            const start = performance.now();
+            let lastRender = 0;
+            const step = (now: number) => {
+                const elapsed = now - start;
+                if (elapsed >= durationMs) { resolve(); return; }
+                // Mise à jour horloge anim (l'UI de la slide utilise Date.now() - animStartTimeRef)
+                animStartTimeRef.current = Date.now() - elapsed;
+                recordingStartTimeRef.current = Date.now() - elapsed;
+                // Seek vidéo fond si présent (temps réel via bgVideo.play())
+                // bgVideo est déjà en train de jouer : pas besoin de seek manuel
+                // Mise à jour UI progression
+                if (now - lastRender >= frameInterval) {
+                    updateProgressUI();
+                    lastRender = now;
                 }
-            } else {
-                // Fallback temps réel pour MediaRecorder
-                const t0 = performance.now();
-                let nextFrameTime = t0;
-                while (performance.now() - t0 < durationMs) {
-                    const now = performance.now();
-                    if (now >= nextFrameTime) {
-                        await generateImage();
-                        nextFrameTime = now + frameInterval;
-                    }
-                    await new Promise(r => requestAnimationFrame(r));
+                generateImage();
+                requestAnimationFrame(step);
+            };
+            requestAnimationFrame(step);
+        });
+
+        const renderTransition = (durationMs: number, onProgress: (p: number) => void): Promise<void> => new Promise((resolve) => {
+            const start = performance.now();
+            const step = (now: number) => {
+                const elapsed = now - start;
+                const progress = Math.min(1, elapsed / durationMs);
+                onProgress(progress);
+                animStartTimeRef.current = Date.now() - elapsed;
+                recordingStartTimeRef.current = Date.now() - elapsed;
+                generateImage();
+                if (elapsed < durationMs) {
+                    requestAnimationFrame(step);
+                } else {
+                    onProgress(1);
+                    generateImage();
+                    resolve();
                 }
-            }
-        };
+            };
+            requestAnimationFrame(step);
+        });
 
-        const renderTransition = async (durationMs: number, onProgress: (p: number) => void) => {
-            if (webCodecsSupported) {
-                const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
-                for (let f = 0; f < numFrames; f++) {
-                    const progress = numFrames <= 1 ? 1 : f / (numFrames - 1);
-                    onProgress(progress);
-
-                    const slideElapsedSec = f / fps;
-                    animStartTimeRef.current = Date.now() - (slideElapsedSec * 1000);
-                    recordingStartTimeRef.current = Date.now() - ((totalFramesEncoded / fps) * 1000);
-
-                    if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
-                        const targetTime = (totalFramesEncoded / fps) % bgVideo.duration;
-                        bgVideo.currentTime = targetTime;
-                    }
-
-                    await generateImage();
-                    await captureFrame();
-
-                    if (f % 2 === 0) {
-                        updateProgressUI();
-                        await new Promise(r => setTimeout(r, 0));
-                    }
-                }
-                onProgress(1);
-            } else {
-                const t0 = performance.now();
-                let nextFrameTime = t0;
-                while (performance.now() - t0 < durationMs) {
-                    const now = performance.now();
-                    if (now >= nextFrameTime) {
-                        const progress = Math.min(1, (now - t0) / durationMs);
-                        onProgress(progress);
-                        await generateImage();
-                        nextFrameTime = now + frameInterval;
-                    }
-                    await new Promise(r => requestAnimationFrame(r));
-                }
-                onProgress(1);
-                await generateImage();
-            }
-        };
 
         isVideoRecordingRef.current = true;
         promoOutroOverrideRef.current = false;
@@ -5279,125 +5196,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         // Bitrate 10Mbps PC
         const bitrate = isMobile ? 6000000 : 10000000;
 
-        // ── PIPELINE VIDÉO ────────────────────────────────────────────────────────────
-        // WebCodecs (Chrome/Edge/Safari) : timestamps mathématiques exacts → zéro frame dupliquée
-        // MediaRecorder (Firefox / fallback) : comportement standard
-        // ─────────────────────────────────────────────────────────────────────────────
+        // ── PIPELINE VIDÉO : MediaRecorder pur ──────────────────────────────────────────
+        // combinedStream contient : piste vidéo (canvas) + piste audio (bgVideo si dispo)
+        // L'audio est automatiquement inclus dans l'enregistrement.
         const chunks: Blob[] = [];
-        let recorder: MediaRecorder | null = null;
         const targetWidth = 1080;
         const targetHeight = activeTab === 'REEL' ? 1920 : 1350;
         if (canvas.width !== targetWidth) canvas.width = targetWidth;
         if (canvas.height !== targetHeight) canvas.height = targetHeight;
 
-        // ── Compteur de chunks muxés (détection d'échec encodeur silencieux) ──
-        let chunksAddedToMuxer = 0;
-        let webEncoderErrored = false;
+        const recorder = new MediaRecorder(combinedStream, {
+            mimeType,
+            videoBitsPerSecond: bitrate,
+            ...(hasAudioTrack ? { audioBitsPerSecond: 192000 } : {}),
+        });
+        recorder.ondataavailable = (e: any) => {
+            if (e.data && e.data.size > 0) chunks.push(e.data);
+        };
 
-        if (webCodecsSupported) {
-            // ── MODE WEBCODECS ──────────────────────────────────────────────────────
-            muxerTarget = new ArrayBufferTarget();
-            muxer = new Muxer({
-                target: muxerTarget,
-                video: {
-                    codec: 'avc',
-                    width: targetWidth,
-                    height: targetHeight,
-                },
-                fastStart: 'in-memory',
-                firstTimestampBehavior: 'offset',
-            });
-
-            videoEncoder = new (window as any).VideoEncoder({
-                output: (chunk: any, meta: any) => {
-                    try {
-                        const data = new Uint8Array(chunk.byteLength);
-                        chunk.copyTo(data);
-                        // Dans WebCodecs, chunk.duration peut être null. mp4-muxer exige un nombre fini >= 0.
-                        const dur = (chunk.duration != null && Number.isFinite(chunk.duration) && chunk.duration > 0)
-                            ? chunk.duration
-                            : frameDurationUs;
-                        muxer.addVideoChunkRaw(data, chunk.type, chunk.timestamp, dur, meta);
-                        chunksAddedToMuxer++;
-                    } catch (muxErr: any) {
-                        console.error('Muxer addVideoChunkRaw error:', muxErr);
-                    }
-                },
-                error: (e: any) => {
-                    console.error('VideoEncoder error:', e);
-                    webEncoderErrored = true;
-                },
-            });
-
-            // Codec H.264 : on part du profil Main 4.0 (safe) et on tente le High si dispo
-            let chosenCodec = 'avc1.4d4028'; // Main Profile 4.0 – safe par défaut
-            if (typeof (window as any).VideoEncoder.isConfigSupported === 'function') {
-                const candidates = ['avc1.640028', 'avc1.4d402a', 'avc1.4d4028', 'avc1.42E028', 'avc1.42001f'];
-                for (const cand of candidates) {
-                    try {
-                        const check = await (window as any).VideoEncoder.isConfigSupported({
-                            codec: cand,
-                            width: targetWidth,
-                            height: targetHeight,
-                            bitrate,
-                            framerate: fps,
-                        });
-                        if (check && check.supported) {
-                            chosenCodec = cand;
-                            break;
-                        }
-                    } catch {}
-                }
-            }
-
-            try {
-                videoEncoder.configure({
-                    codec: chosenCodec,
-                    width: targetWidth,
-                    height: targetHeight,
-                    bitrate,
-                    framerate: fps,
-                    hardwareAcceleration: 'no-preference', // 'prefer-hardware' échoue sur certains GPU à 1080p
-                    avc: { format: 'avc' },
-                });
-            } catch (configErr: any) {
-                console.error('VideoEncoder.configure() error:', configErr);
-                webEncoderErrored = true;
-            }
-
-            // captureFrame : appelé après chaque generateImage() dans les render loops
-            captureFrame = async () => {
-                if (webEncoderErrored) return;
-                try {
-                    if (!videoEncoder || videoEncoder.state !== 'configured') return;
-                    // Back-pressure : on attend que l'encodeur absorbe la file sans jeter de frame
-                    while (videoEncoder.encodeQueueSize > 12) {
-                        await new Promise(r => setTimeout(r, 4));
-                    }
-                    const timestampUs = Math.round(totalFramesEncoded * frameDurationUs);
-                    const frame = new (window as any).VideoFrame(canvas, {
-                        timestamp: timestampUs,
-                        duration: frameDurationUs
-                    });
-                    const isKeyFrame = (totalFramesEncoded % (fps * 2)) === 0; // keyframe toutes les 2s
-                    videoEncoder.encode(frame, { keyFrame: isKeyFrame });
-                    frame.close();
-                    totalFramesEncoded++;
-                } catch (e) {
-                    console.warn('captureFrame error:', e);
-                }
-            };
-        } else {
-            // ── MODE MEDIARECORDER (fallback Firefox) ───────────────────────────────
-            recorder = new MediaRecorder(combinedStream, {
-                mimeType,
-                videoBitsPerSecond: bitrate,
-                ...(hasAudioTrack ? { audioBitsPerSecond: 192000 } : {}),
-            });
-            recorder.ondataavailable = (e: any) => {
-                if (e.data && e.data.size > 0) chunks.push(e.data);
-            };
-        }
 
         const finalizeRecording = async () => {
             // Fin d'enregistrement : sync DOM refs et state React pour la phase FFmpeg
@@ -5410,40 +5226,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             let videoBlob: Blob;
 
-            if (webCodecsSupported && videoEncoder && muxer && muxerTarget) {
-                // ── WebCodecs : flush encoder → finalize muxer → Blob MP4
-                try {
-                    if (videoEncoder.state === 'configured') {
-                        await videoEncoder.flush();
-                    }
-                    // Si aucune frame n'a été muxée (encodeur silencieusement en erreur),
-                    // on détecte le problème AVANT finalize() pour éviter le crash colorSpace.
-                    if (chunksAddedToMuxer === 0) {
-                        throw new Error(
-                            webEncoderErrored
-                                ? 'Encodeur H.264 (WebCodecs) non fonctionnel sur ce GPU — essayez Firefox ou un autre navigateur.'
-                                : 'Aucune frame vidéo capturée. Réessayez l\'export.'
-                        );
-                    }
-                    muxer.finalize();
-                    videoBlob = new Blob([muxerTarget.buffer], { type: 'video/mp4' });
-                } catch (e: any) {
-                    console.error('WebCodecs finalize error:', e);
-                    setErrorMessage(`Erreur de finalisation vidéo : ${e?.message || 'Erreur codec'}`);
-                    isVideoRecordingRef.current = false;
-                    setIsVideoRecording(false);
-                    return;
-                }
-            } else {
-                // ── MediaRecorder fallback : chunks → Blob
-                if (chunks.length === 0) {
-                    setErrorMessage("Erreur de capture vidéo.");
-                    isVideoRecordingRef.current = false;
-                    setIsVideoRecording(false);
-                    return;
-                }
-                videoBlob = new Blob(chunks, { type: mimeType });
+            // ── MediaRecorder : chunks → Blob
+            if (chunks.length === 0) {
+                setErrorMessage("Erreur de capture vidéo : aucune donnée reçue. Recharge la page et réessaie.");
+                isVideoRecordingRef.current = false;
+                setIsVideoRecording(false);
+                return;
             }
+            videoBlob = new Blob(chunks, { type: mimeType });
+
 
             // Sur mobile : modal de prévisualisation directe (sans FFmpeg pour réactivité)
             if (isMobile) {
@@ -5675,30 +5466,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         };
 
-        // Si fallback MediaRecorder : écoute de onstop et démarrage avec timeslice
-        if (recorder) {
-            recorder.onstop = finalizeRecording;
-            recorder.start(500);
-        }
+        // Démarrage du MediaRecorder
+        recorder.onstop = finalizeRecording;
+        recorder.start(500);
 
-        // Intervalle de mise à jour pour le mode fallback MediaRecorder
-        let progressInterval: any = null;
-        if (!useWebCodecs) {
-            const startTime = Date.now();
-            progressInterval = setInterval(() => {
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min((elapsed / totalDuration) * 100, 99);
-                const timeLeft = Math.max(0, Math.ceil((totalDuration - elapsed) / 1000));
-                const dashoffset1 = 364.4 - (364.4 * progress) / 100;
-                const dashoffset2 = 565 - (565 * progress) / 100;
-                if (recordingCircleRef.current) recordingCircleRef.current.style.strokeDashoffset = String(dashoffset1);
-                if (recordingCircle2Ref.current) recordingCircle2Ref.current.style.strokeDashoffset = String(dashoffset2);
-                if (recordingPercentRef.current) recordingPercentRef.current.textContent = `${Math.round(progress)}%`;
-                if (recordingPercent2Ref.current) recordingPercent2Ref.current.textContent = `${Math.round(progress)}%`;
-                if (recordingTimeRef.current) recordingTimeRef.current.textContent = `${timeLeft}S`;
-                if (recordingTimeLeft2Ref.current) recordingTimeLeft2Ref.current.textContent = `${timeLeft}s restantes`;
-            }, 250);
-        }
+        // Mise à jour de la barre de progression toutes les 250ms
+        const progressInterval = setInterval(updateProgressUI, 250);
+
 
         if (combinedMode === 'EDITORIAL') {
             const isMusicTheme = (theme === 'MUSIQUE');
@@ -5892,10 +5666,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         stopMusicSegment();
 
-        if (recorder && recorder.state !== 'inactive') {
+        if (recorder.state !== 'inactive') {
             recorder.stop();
-        } else if (useWebCodecs) {
-            await finalizeRecording();
         }
     };
 
