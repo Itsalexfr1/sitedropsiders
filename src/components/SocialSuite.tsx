@@ -5582,9 +5582,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             bgVideo.play().catch(() => { });
         }
         stopMusicSegment();
-        if (musicAudioCtx && musicAudioCtx.state !== 'closed') {
-            musicAudioCtx.close().catch(() => {});
-        }
 
         if (recorder.state !== 'inactive') recorder.stop();
     };
