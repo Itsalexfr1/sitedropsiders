@@ -415,7 +415,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [musicIntroAudio, setMusicIntroAudio] = useState<string>('');
     const [musicIntroAudioStartTime, setMusicIntroAudioStartTime] = useState<number>(0);
     const [audioDurations, setAudioDurations] = useState<Record<string, number>>({});
-    const previewAudioPlayerRef = useRef<HTMLAudioElement | null>(null);
+    // Lecteur preview basé sur WebAudio (AudioBuffer décodé en PCM, joué sur le thread audio dédié => zéro micro-coupure)
+    const previewAudioPlayerRef = useRef<{
+        ctx: AudioContext;
+        source: AudioBufferSourceNode | null;
+        startedAtCtx: number;
+        offset: number;
+        paused: boolean;
+        src: string;
+        readonly currentTime: number;
+    } | null>(null);
     const [activeAudioPreviewSrc, setActiveAudioPreviewSrc] = useState<string | null>(null);
     const [cdjPlayerRing, setCdjPlayerRing] = useState<boolean>(true); // Bague de progression 30s style Player CDJ Pioneer
     const [musicBgMotion, setMusicBgMotion] = useState<boolean>(true); // Mouvement organique doux en arrière-plan
@@ -456,72 +465,138 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             return blobUrl;
         } catch (e) {
             console.warn("Préchargement audio direct impossible (repli streaming direct) :", e);
+            // On marque l'URL comme "prête" en repli streaming pour ne pas bloquer le lecteur
+            setAudioBlobUrls(prev => (prev[url] ? prev : { ...prev, [url]: url }));
             return url;
         }
+    };
+
+    // Cache des pistes entièrement décodées en PCM (AudioBuffer). Une fois décodé, le son est joué
+    // par le moteur audio natif sur son propre thread temps-réel : le rendu canvas, React ou le
+    // MediaRecorder ne peuvent plus provoquer de micro-coupures.
+    const audioBufferCacheRef = useRef<Map<string, AudioBuffer>>(new Map());
+    const audioBufferPendingRef = useRef<Map<string, Promise<AudioBuffer | null>>>(new Map());
+
+    const getDecodedAudioBuffer = (url: string): Promise<AudioBuffer | null> => {
+        if (!url) return Promise.resolve(null);
+        const cached = audioBufferCacheRef.current.get(url);
+        if (cached) return Promise.resolve(cached);
+        const pending = audioBufferPendingRef.current.get(url);
+        if (pending) return pending;
+        const job = (async () => {
+            try {
+                const readyUrl = await getPreloadedAudioBlobUrl(url);
+                const res = await fetch(readyUrl);
+                const arr = await res.arrayBuffer();
+                const OfflineCtx = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
+                const decoder: BaseAudioContext = new OfflineCtx(2, 1, 48000);
+                const buf: AudioBuffer = await new Promise((resolve, reject) => {
+                    const p = decoder.decodeAudioData(arr, resolve, reject);
+                    if (p && typeof (p as any).then === 'function') (p as Promise<AudioBuffer>).then(resolve, reject);
+                });
+                audioBufferCacheRef.current.set(url, buf);
+                if (buf.duration && isFinite(buf.duration)) {
+                    setAudioDurations(prev => (prev[url] ? prev : { ...prev, [url]: buf.duration }));
+                }
+                return buf;
+            } catch (e) {
+                console.warn("Décodage PCM impossible pour", url, e);
+                return null;
+            } finally {
+                audioBufferPendingRef.current.delete(url);
+            }
+        })();
+        audioBufferPendingRef.current.set(url, job);
+        return job;
+    };
+
+    /** Joue un AudioBuffer dans un contexte donné avec micro fondu (anti-clic). Retourne la source. */
+    const startBufferSegment = (
+        ctx: AudioContext,
+        buffer: AudioBuffer,
+        startTime: number,
+        outputs: AudioNode[],
+        maxDuration?: number
+    ): AudioBufferSourceNode => {
+        const src = ctx.createBufferSource();
+        src.buffer = buffer;
+        const gain = ctx.createGain();
+        const t0 = ctx.currentTime + 0.03;
+        gain.gain.setValueAtTime(0, t0);
+        gain.gain.linearRampToValueAtTime(1, t0 + 0.04);
+        src.connect(gain);
+        outputs.forEach(o => gain.connect(o));
+        const offset = Math.min(Math.max(0, startTime || 0), Math.max(0, buffer.duration - 0.05));
+        if (maxDuration && maxDuration > 0) {
+            src.start(t0, offset, maxDuration);
+        } else {
+            src.start(t0, offset);
+        }
+        return src;
+    };
+
+    const stopPreviewPlayer = () => {
+        const p = previewAudioPlayerRef.current;
+        if (!p) return;
+        if (p.source) {
+            p.source.onended = null;
+            try { p.source.stop(); } catch (_) {}
+            try { p.source.disconnect(); } catch (_) {}
+            p.source = null;
+        }
+        p.paused = true;
     };
 
     const playAudioPreviewFrom = async (src: string, startTime: number) => {
         if (!src) return;
         if (!previewAudioPlayerRef.current) {
-            previewAudioPlayerRef.current = new Audio();
+            const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+            const player = {
+                ctx: new Ctx({ latencyHint: 'playback' }) as AudioContext,
+                source: null as AudioBufferSourceNode | null,
+                startedAtCtx: 0,
+                offset: 0,
+                paused: true,
+                src: '',
+                get currentTime() {
+                    if (this.paused) return this.offset;
+                    return this.offset + Math.max(0, this.ctx.currentTime - this.startedAtCtx);
+                }
+            };
+            previewAudioPlayerRef.current = player;
         }
         const p = previewAudioPlayerRef.current;
-        if ((activeAudioPreviewSrc === src || (activeAudioPreviewSrc && p.src === activeAudioPreviewSrc)) && !p.paused) {
-            p.pause();
+        if (activeAudioPreviewSrc === src && !p.paused) {
+            stopPreviewPlayer();
             setActiveAudioPreviewSrc(null);
             return;
         }
 
         try {
-            // 1. Obtenir la source audio chargée à 100% dans la RAM
-            const readyUrl = await getPreloadedAudioBlobUrl(src);
-
-            p.pause();
-            if (p.src !== readyUrl) {
-                p.src = readyUrl;
-                p.preload = 'auto';
-                await new Promise<void>((resolve) => {
-                    if (p.readyState >= 2) return resolve();
-                    const onLoaded = () => {
-                        p.removeEventListener('loadedmetadata', onLoaded);
-                        p.removeEventListener('canplay', onLoaded);
-                        resolve();
-                    };
-                    p.addEventListener('loadedmetadata', onLoaded, { once: true });
-                    p.addEventListener('canplay', onLoaded, { once: true });
-                    p.load();
-                    setTimeout(resolve, 350);
-                });
-            }
-
-            // 2. Caler précisément la tête de lecture à startTime
-            const safeStart = Math.max(0, startTime || 0);
-            if (isFinite(safeStart)) {
-                try {
-                    p.currentTime = safeStart;
-                } catch (_) {}
-            }
-
-            // Attendre la validation du seek pour éviter tout clic ou micro-pause
-            await new Promise<void>((resolve) => {
-                if (!p.seeking) return resolve();
-                const onSeeked = () => {
-                    p.removeEventListener('seeked', onSeeked);
-                    resolve();
-                };
-                p.addEventListener('seeked', onSeeked, { once: true });
-                setTimeout(resolve, 200);
-            });
-
-            // 3. Lancer la lecture fluide
-            await p.play();
+            stopPreviewPlayer();
+            if (p.ctx.state === 'suspended') await p.ctx.resume();
+            const buffer = await getDecodedAudioBuffer(src);
+            if (!buffer) throw new Error('Audio non décodable');
+            const source = startBufferSegment(p.ctx, buffer, startTime, [p.ctx.destination]);
+            p.source = source;
+            p.src = src;
+            p.offset = Math.max(0, startTime || 0);
+            p.startedAtCtx = p.ctx.currentTime + 0.03;
+            p.paused = false;
+            source.onended = () => {
+                if (p.source === source) {
+                    p.source = null;
+                    p.paused = true;
+                    setActiveAudioPreviewSrc(null);
+                }
+            };
             setActiveAudioPreviewSrc(src);
-            p.onended = () => setActiveAudioPreviewSrc(null);
         } catch (err) {
             console.warn("Erreur lecture preview :", err);
             setActiveAudioPreviewSrc(null);
         }
     };
+
 
     // Durée strictement fixe à 30 secondes pour l'export vidéo de morceau (impossible à modifier)
     const singleSlideVideoDuration = 30;
@@ -5087,26 +5162,52 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         }
 
-        let musicAudioEl: HTMLAudioElement | null = null;
+        let musicAudioEl: { active: boolean } | null = null;
         let musicAudioCtx: AudioContext | null = null;
+        let musicCurrentSource: AudioBufferSourceNode | null = null;
         let musicAudioDest: MediaStreamAudioDestinationNode | null = null;
+
+        const stopMusicSegment = () => {
+            if (musicCurrentSource) {
+                try { musicCurrentSource.stop(); } catch (_) {}
+                try { musicCurrentSource.disconnect(); } catch (_) {}
+                musicCurrentSource = null;
+            }
+        };
+        const playMusicSegment = async (url: string, startTime: number) => {
+            if (!musicAudioCtx || !musicAudioDest) return;
+            stopMusicSegment();
+            try {
+                const buffer = await getDecodedAudioBuffer(url);
+                if (!buffer || !musicAudioCtx || !musicAudioDest) return;
+                musicCurrentSource = startBufferSegment(
+                    musicAudioCtx,
+                    buffer,
+                    startTime,
+                    [musicAudioDest, musicAudioCtx.destination]
+                );
+            } catch (e) {
+                console.warn("Erreur lecture extrait audio (PCM) :", e);
+            }
+        };
 
         const hasAnyMusicAudio = (theme === 'MUSIQUE') && (!!musicIntroAudio || musicTracks.some(t => !!t.audio));
         if (hasAnyMusicAudio && !hasAudioTrack) {
             try {
                 const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
                 if (AudioContextClass) {
-                    musicAudioCtx = new AudioContextClass({ sampleRate: 48000 });
+                    stopPreviewPlayer();
+                    setActiveAudioPreviewSrc(null);
+                    musicAudioCtx = new AudioContextClass({ sampleRate: 48000, latencyHint: 'playback' });
                     if (musicAudioCtx.state === 'suspended') {
                         await musicAudioCtx.resume();
                     }
                     musicAudioDest = musicAudioCtx.createMediaStreamDestination();
-                    musicAudioEl = document.createElement('audio');
-                    musicAudioEl.crossOrigin = 'anonymous';
-                    musicAudioEl.loop = false;
-                    const musicSourceNode = musicAudioCtx.createMediaElementSource(musicAudioEl);
-                    musicSourceNode.connect(musicAudioDest);
-                    musicSourceNode.connect(musicAudioCtx.destination);
+                    musicAudioEl = { active: true };
+
+                    // Pré-décodage PCM de TOUS les extraits avant le début de l'enregistrement
+                    const allUrls = [musicIntroAudio, ...musicTracks.map(t => t.audio || '')].filter(Boolean) as string[];
+                    await Promise.all(allUrls.map(u => getDecodedAudioBuffer(u)));
 
                     const audioTracks = musicAudioDest.stream.getAudioTracks();
                     if (audioTracks.length > 0) {
@@ -5137,10 +5238,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         };
 
         recorder.onstop = async () => {
-            if (musicAudioEl) {
-                musicAudioEl.pause();
-                musicAudioEl.src = '';
-            }
+            stopMusicSegment();
             if (musicAudioCtx && musicAudioCtx.state !== 'closed') {
                 musicAudioCtx.close().catch(() => {});
             }
@@ -5265,7 +5363,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         };
 
-        recorder.start();
+        // timeslice=100ms : force MediaRecorder à émettre des chunks réguliers → buffer audio stable, zéro micro-coupure
+        recorder.start(100);
 
         let totalDuration = 0;
         const currentTransitionDuration = getTransitionDuration(slideTransition);
@@ -5356,39 +5455,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         slideAudioStartTime = musicTracks[trIdx]?.audioStartTime || 0;
                     }
                     if (slideAudioUrl) {
-                        try {
-                            const readyAudioUrl = await getPreloadedAudioBlobUrl(slideAudioUrl);
-                            musicAudioEl.src = readyAudioUrl;
-                            musicAudioEl.preload = 'auto';
-                            await new Promise<void>((resolve) => {
-                                if (musicAudioEl.readyState >= 2) return resolve();
-                                const onReady = () => {
-                                    musicAudioEl.removeEventListener('loadedmetadata', onReady);
-                                    musicAudioEl.removeEventListener('canplay', onReady);
-                                    resolve();
-                                };
-                                musicAudioEl.addEventListener('loadedmetadata', onReady, { once: true });
-                                musicAudioEl.addEventListener('canplay', onReady, { once: true });
-                                musicAudioEl.load();
-                                setTimeout(resolve, 350);
-                            });
-                            musicAudioEl.currentTime = Math.max(0, slideAudioStartTime || 0);
-                            await new Promise<void>((resolve) => {
-                                if (!musicAudioEl.seeking) return resolve();
-                                const onSeeked = () => {
-                                    musicAudioEl.removeEventListener('seeked', onSeeked);
-                                    resolve();
-                                };
-                                musicAudioEl.addEventListener('seeked', onSeeked, { once: true });
-                                setTimeout(resolve, 150);
-                            });
-                            await musicAudioEl.play().catch(e => console.warn("Lecture extrait audio bloquée :", e));
-                        } catch (e) {
-                            console.warn("Erreur assignation audio :", e);
-                        }
+                        await playMusicSegment(slideAudioUrl, slideAudioStartTime);
                     } else {
-                        musicAudioEl.pause();
-                        musicAudioEl.src = '';
+                        stopMusicSegment();
                     }
                 }
 
@@ -5503,38 +5572,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     singleAudioStartTime = musicTracks[trIdx]?.audioStartTime || 0;
                 }
                 if (singleAudioUrl) {
-                    try {
-                        const readyAudioUrl = await getPreloadedAudioBlobUrl(singleAudioUrl);
-                        musicAudioEl.src = readyAudioUrl;
-                        musicAudioEl.preload = 'auto';
-                        await new Promise<void>((resolve) => {
-                            if (musicAudioEl.readyState >= 2) return resolve();
-                            const onReady = () => {
-                                musicAudioEl.removeEventListener('loadedmetadata', onReady);
-                                musicAudioEl.removeEventListener('canplay', onReady);
-                                resolve();
-                            };
-                            musicAudioEl.addEventListener('loadedmetadata', onReady, { once: true });
-                            musicAudioEl.addEventListener('canplay', onReady, { once: true });
-                            musicAudioEl.load();
-                            setTimeout(resolve, 350);
-                        });
-                        musicAudioEl.currentTime = Math.max(0, singleAudioStartTime || 0);
-                        await new Promise<void>((resolve) => {
-                            if (!musicAudioEl.seeking) return resolve();
-                            const onSeeked = () => {
-                                musicAudioEl.removeEventListener('seeked', onSeeked);
-                                resolve();
-                            };
-                            musicAudioEl.addEventListener('seeked', onSeeked, { once: true });
-                            setTimeout(resolve, 200);
-                        });
-                        musicAudioEl.loop = false;
-                        musicAudioEl.onended = null;
-                        await musicAudioEl.play().catch(e => console.warn("Lecture extrait audio :", e));
-                    } catch (e) {
-                        console.warn("Erreur assignation audio :", e);
-                    }
+                    await playMusicSegment(singleAudioUrl, singleAudioStartTime);
                 }
             }
             await renderDuration(totalDuration);
@@ -5562,10 +5600,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             bgVideo.loop = true;
             bgVideo.play().catch(() => { });
         }
-        if (musicAudioEl) {
-            musicAudioEl.pause();
-            musicAudioEl.src = '';
-        }
+        stopMusicSegment();
         if (musicAudioCtx && musicAudioCtx.state !== 'closed') {
             musicAudioCtx.close().catch(() => {});
         }
@@ -10213,14 +10248,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             {musicIntroAudio.startsWith('blob:') ? 'Fichier local' : 'Lien Web / R2'}
                                         </span>
                                     </div>
+                                    {(musicIntroAudio.startsWith('blob:') || musicIntroAudio.startsWith('data:') || audioBlobUrls[musicIntroAudio]) ? (
                                     <audio
-                                        key="preview-audio-intro"
+                                        key={`preview-audio-intro-${audioBlobUrls[musicIntroAudio] ? 'ram' : 'local'}`}
                                         controls
-                                        src={audioBlobUrls[musicIntroAudio] || audioBlobCacheRef.current.get(musicIntroAudio) || musicIntroAudio}
+                                        src={musicIntroAudio.startsWith('blob:') || musicIntroAudio.startsWith('data:') ? musicIntroAudio : audioBlobUrls[musicIntroAudio]}
                                         className="w-full h-8 rounded-lg accent-[#00ff66]"
                                         preload="auto"
                                         onLoadedMetadata={(e) => handleAudioLoadedMetadata(musicIntroAudio, e.currentTarget.duration)}
                                     />
+                                    ) : (
+                                        <div className="w-full h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[8.5px] font-black uppercase text-gray-400 animate-pulse">
+                                            Chargement du son en mémoire…
+                                        </div>
+                                    )}
 
                                     {/* Réglage du point de départ (Milieu / Drop) */}
                                     <div className="pt-2 border-t border-white/10 space-y-2">
@@ -10812,14 +10853,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             {activeTrack.audio.startsWith('blob:') ? 'Fichier local' : 'Extrait streaming HD'}
                                         </span>
                                     </div>
+                                    {(activeTrack.audio.startsWith('blob:') || activeTrack.audio.startsWith('data:') || audioBlobUrls[activeTrack.audio]) ? (
                                     <audio
-                                        key={`audio-track-${activeTrackIdx}`}
+                                        key={`audio-track-${activeTrackIdx}-${audioBlobUrls[activeTrack.audio] ? 'ram' : 'local'}`}
                                         controls
-                                        src={audioBlobUrls[activeTrack.audio!] || audioBlobCacheRef.current.get(activeTrack.audio!) || activeTrack.audio}
+                                        src={activeTrack.audio.startsWith('blob:') || activeTrack.audio.startsWith('data:') ? activeTrack.audio : audioBlobUrls[activeTrack.audio]}
                                         className="w-full h-8 rounded-lg accent-[#00ff66]"
                                         preload="auto"
                                         onLoadedMetadata={(e) => handleAudioLoadedMetadata(activeTrack.audio!, e.currentTarget.duration)}
                                     />
+                                    ) : (
+                                        <div className="w-full h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[8.5px] font-black uppercase text-gray-400 animate-pulse">
+                                            Chargement du son en mémoire…
+                                        </div>
+                                    )}
 
                                     {/* Réglage du point de départ (Milieu / Drop du son) */}
                                     <div className="pt-2 border-t border-white/10 space-y-2">
