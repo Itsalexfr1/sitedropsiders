@@ -1889,11 +1889,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ...(effectiveSubphrase ? [effectiveSubphrase] : [])
                 ] : [];
 
-                const rawQuestion = (customText && customText.trim()) 
-                    ? customText.trim().replace(/^["']|["']$/g, '') 
-                    : "ET TOI, QU'EN PENSES-TU ?";
-                
-                const cleanQuestion = rawQuestion.toUpperCase();
+                // Question fixe sur la slide promo — ne reprend plus le texte de la slide 1
+                const cleanQuestion = "ET TOI, QU'EN PENSES-TU ?";
 
                 const qLines: string[] = [];
                 let questionFontSize = isReel ? 62 : 54;
