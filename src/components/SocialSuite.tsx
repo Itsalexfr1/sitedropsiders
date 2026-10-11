@@ -5050,9 +5050,41 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         let videoEncoder: any = null;
         let muxerTarget: any = null;
         let muxer: any = null;
-        const webCodecsSupported = typeof window !== 'undefined'
+        const webCodecsAvailable = typeof window !== 'undefined'
             && typeof (window as any).VideoEncoder !== 'undefined'
             && typeof (window as any).VideoFrame !== 'undefined';
+
+        // ── PREFLIGHT WebCodecs : test réel avant de s'engager dans le mode déterministe ──
+        // Si le GPU/driver refuse l'encodeur H.264, on bascule en mode MediaRecorder automatiquement.
+        let useWebCodecs = webCodecsAvailable;
+        if (webCodecsAvailable) {
+            useWebCodecs = await new Promise<boolean>((resolve) => {
+                let settled = false;
+                const done = (ok: boolean) => { if (!settled) { settled = true; resolve(ok); } };
+                try {
+                    const te = new (window as any).VideoEncoder({
+                        output: () => { try { te.close(); } catch {} done(true); },
+                        error: () => { try { te.close(); } catch {} done(false); },
+                    });
+                    te.configure({
+                        codec: 'avc1.4d4028',
+                        width: 64, height: 64,
+                        bitrate: 200000, framerate: 30,
+                        avc: { format: 'avc' },
+                    });
+                    const tc = document.createElement('canvas');
+                    tc.width = 64; tc.height = 64;
+                    const tf = new (window as any).VideoFrame(tc, { timestamp: 0 });
+                    te.encode(tf, { keyFrame: true });
+                    tf.close();
+                    te.flush().catch(() => done(false));
+                } catch { done(false); }
+                // Timeout de sécurité 3 s
+                setTimeout(() => done(false), 3000);
+            });
+        }
+        // Alias pour rétrocompatibilité du reste du code
+        const webCodecsSupported = useWebCodecs;
 
         // Helper pour animer FRAME-PAR-FRAME DÉTERMINISTE (zéro dépendance horloge système)
         const renderDuration = async (durationMs: number) => {
@@ -5646,7 +5678,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         // Intervalle de mise à jour pour le mode fallback MediaRecorder
         let progressInterval: any = null;
-        if (!webCodecsSupported) {
+        if (!useWebCodecs) {
             const startTime = Date.now();
             progressInterval = setInterval(() => {
                 const elapsed = Date.now() - startTime;
@@ -5857,7 +5889,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         if (recorder && recorder.state !== 'inactive') {
             recorder.stop();
-        } else if (webCodecsSupported) {
+        } else if (useWebCodecs) {
             await finalizeRecording();
         }
     };
