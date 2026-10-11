@@ -436,12 +436,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     // Cache mémoire vive (RAM) des fichiers audio complets sous forme de Blob
     // Élimine 100% des micro-coupures réseau, latences de requêtes partielles HTTP et dropouts
     const audioBlobCacheRef = useRef<Map<string, string>>(new Map());
+    const [audioBlobUrls, setAudioBlobUrls] = useState<Record<string, string>>({});
 
     const getPreloadedAudioBlobUrl = async (url: string): Promise<string> => {
         if (!url) return '';
         if (url.startsWith('blob:') || url.startsWith('data:')) return url;
         if (audioBlobCacheRef.current.has(url)) {
-            return audioBlobCacheRef.current.get(url)!;
+            const cached = audioBlobCacheRef.current.get(url)!;
+            setAudioBlobUrls(prev => (prev[url] === cached ? prev : { ...prev, [url]: cached }));
+            return cached;
         }
         try {
             const res = await fetch(url);
@@ -449,6 +452,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const blob = await res.blob();
             const blobUrl = URL.createObjectURL(blob);
             audioBlobCacheRef.current.set(url, blobUrl);
+            setAudioBlobUrls(prev => (prev[url] === blobUrl ? prev : { ...prev, [url]: blobUrl }));
             return blobUrl;
         } catch (e) {
             console.warn("Préchargement audio direct impossible (repli streaming direct) :", e);
@@ -3880,7 +3884,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.beginPath();
                     ctx.moveTo(cardX + cardW / 2, cardY - 4);
                     ctx.lineTo(cardX + cardW / 2, cardY + 4);
-                    ctx.strokeStyle = '#ff0033';
+                    ctx.strokeStyle = '#00ff66';
                     ctx.lineWidth = 2.5;
                     ctx.stroke();
                     ctx.restore();
@@ -3901,11 +3905,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const perimeter = 2 * (cardW + cardH) - (8 - 2 * Math.PI) * rad;
                     const fillLength = Math.max(0.1, playerProgress * perimeter);
 
-                    // C) Laser rouge néon CDJ (#ff0033) avec lueur incandescente
+                    // C) Laser vert néon CDJ (#00ff66) avec lueur incandescente
                     ctx.save();
-                    ctx.shadowColor = '#ff0033';
+                    ctx.shadowColor = '#00ff66';
                     ctx.shadowBlur = 14;
-                    ctx.strokeStyle = '#ff0033';
+                    ctx.strokeStyle = '#00ff66';
                     ctx.lineWidth = 4.5;
                     ctx.lineCap = 'round';
                     ctx.setLineDash([fillLength, perimeter]);
@@ -3914,13 +3918,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.setLineDash([]);
                     ctx.restore();
 
-                    // D) Tête de lecture LED Cue / Jog Head luminescente
+                    // D) Tête de lecture LED Cue / Jog Head luminescente vert néon
                     if (playerProgress > 0 && playerProgress < 1.0) {
                         const pt = getRoundRectPerimeterPoint(cardX, cardY, cardW, cardH, rad, playerProgress);
                         ctx.save();
-                        ctx.shadowColor = '#ff0033';
+                        ctx.shadowColor = '#00ff66';
                         ctx.shadowBlur = 18;
-                        ctx.fillStyle = '#ff0033';
+                        ctx.fillStyle = '#00ff66';
                         ctx.beginPath();
                         ctx.arc(pt.x, pt.y, 6.5, 0, Math.PI * 2);
                         ctx.fill();
@@ -3932,43 +3936,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fill();
                         ctx.restore();
                     }
-
-                    // E) Badge digital CDJ "30S ON AIR" chic dans l'angle supérieur droit de la pochette
-                    ctx.save();
-                    const secondsDisplay = Math.min(30, Math.floor(playerProgress * 30));
-                    const badgeText = `${secondsDisplay}s / 30s`;
-                    ctx.font = '900 italic 11px "Montserrat", sans-serif';
-                    const bPadX = 10;
-                    const bH = 22;
-                    const bW = ctx.measureText(badgeText).width + (bPadX * 2) + 12;
-                    const bX = cardX + cardW - bW - 12;
-                    const bY = cardY + 14;
-
-                    ctx.fillStyle = 'rgba(10, 14, 12, 0.85)';
-                    ctx.strokeStyle = 'rgba(255, 0, 51, 0.45)';
-                    ctx.lineWidth = 1;
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-                    ctx.shadowBlur = 8;
-                    ctx.beginPath();
-                    ctx.roundRect(bX, bY, bW, bH, 6);
-                    ctx.fill();
-                    ctx.stroke();
-
-                    // Voyant rouge pulsant (Rec / On-Air)
-                    const dotAlpha = 0.6 + 0.4 * Math.sin(animElapsed * 6);
-                    ctx.fillStyle = `rgba(255, 0, 51, ${dotAlpha})`;
-                    ctx.shadowColor = '#ff0033';
-                    ctx.shadowBlur = 6;
-                    ctx.beginPath();
-                    ctx.arc(bX + 10, bY + bH / 2, 3, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowBlur = 0;
-                    ctx.textAlign = 'left';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(badgeText, bX + 18, bY + bH / 2);
-                    ctx.restore();
                 } else {
                     // Contour bordure classique vert néon si option désactivée
                     ctx.save();
@@ -4820,7 +4787,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             return;
         }
         if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || (theme === 'MUSIQUE' && (cdjPlayerRing || musicBgMotion)) || transitionProgress > 0) {
-            const loop = () => { generateImage(); anim = requestAnimationFrame(loop); };
+            let lastRender = 0;
+            let isRendering = false;
+            const loop = (timestamp: number) => {
+                // Throttle fluide à ~30 FPS pour préserver 100% des ressources CPU pour l'audio et éliminer tout micro-lag
+                if (timestamp - lastRender >= 30) {
+                    if (!isRendering) {
+                        isRendering = true;
+                        generateImage().finally(() => {
+                            isRendering = false;
+                        });
+                        lastRender = timestamp;
+                    }
+                }
+                anim = requestAnimationFrame(loop);
+            };
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
@@ -10195,9 +10176,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         onClick={() => handleResolveIntroAudio(musicIntroAudio)}
                                         disabled={isResolvingAudio}
                                         className="px-3 py-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 disabled:opacity-50 shadow-md active:scale-95 whitespace-nowrap"
-                                        title="Chercher directement sur Beatport"
+                                        title="Rechercher le son sur Beatport"
                                     >
-                                        {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>⚡ Chercher Beatport</span>}
+                                        {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>🔍 Chercher le Son (Beatport)</span>}
                                     </button>
                                 </div>
                             </div>
@@ -10235,7 +10216,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <audio
                                         key="preview-audio-intro"
                                         controls
-                                        src={audioBlobCacheRef.current.get(musicIntroAudio) || musicIntroAudio}
+                                        src={audioBlobUrls[musicIntroAudio] || audioBlobCacheRef.current.get(musicIntroAudio) || musicIntroAudio}
                                         className="w-full h-8 rounded-lg accent-[#00ff66]"
                                         preload="auto"
                                         onLoadedMetadata={(e) => handleAudioLoadedMetadata(musicIntroAudio, e.currentTarget.duration)}
@@ -10401,7 +10382,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     disabled={isResolvingAudio}
                                     className="px-3.5 py-2 bg-gradient-to-r from-[#00ff66] to-[#00cc88] hover:from-[#33ff85] hover:to-[#00e699] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-md active:scale-95 whitespace-nowrap"
                                 >
-                                    {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>⚡ Chercher Beatport</span>}
+                                    {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>🔍 Chercher le Son (Beatport)</span>}
                                 </button>
                             </div>
                             <div className="flex items-center justify-between text-[7.5px] text-gray-400">
@@ -10753,7 +10734,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         {isResolvingAudio ? (
                                             <span className="animate-spin">⏳</span>
                                         ) : (
-                                            <span>⚡ Chercher Beatport</span>
+                                            <span>🔍 Chercher le Son (Beatport)</span>
                                         )}
                                     </button>
                                 </div>
@@ -10834,7 +10815,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <audio
                                         key={`audio-track-${activeTrackIdx}`}
                                         controls
-                                        src={audioBlobCacheRef.current.get(activeTrack.audio) || activeTrack.audio}
+                                        src={audioBlobUrls[activeTrack.audio!] || audioBlobCacheRef.current.get(activeTrack.audio!) || activeTrack.audio}
                                         className="w-full h-8 rounded-lg accent-[#00ff66]"
                                         preload="auto"
                                         onLoadedMetadata={(e) => handleAudioLoadedMetadata(activeTrack.audio!, e.currentTarget.duration)}
@@ -10941,45 +10922,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             )}
                         </div>
 
-                        {/* EXPORT VIDÉO RAPIDE DE CE MORCEAU (COVER + AUDIO - 30s FIXE) */}
-                        <div className="p-3 bg-gradient-to-r from-[#00ff66]/15 via-emerald-950/40 to-black/80 border border-[#00ff66]/50 rounded-2xl space-y-2.5 shadow-lg">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1.5">
-                                    <span className="text-[10px]">🎬</span>
-                                    <span className="text-[9.5px] font-black text-[#00ff66] uppercase tracking-wide">
-                                        Exporter ce Morceau en MP4 (Cover + Son)
-                                    </span>
-                                </div>
-                                <span className="text-[8px] font-black text-black bg-[#00ff66] px-2 py-0.5 rounded-full font-mono">
-                                    30s Fixe
-                                </span>
-                            </div>
-
-                            <p className="text-[7.5px] text-gray-300">
-                                Génère la vidéo MP4 (durée fixe de 30 secondes) avec la pochette carrée 1:1, les informations de la track et l'extrait musical synchronisé depuis le point de départ choisi.
-                            </p>
-
-                            <div className="grid grid-cols-2 gap-2 pt-0.5">
-                                <button
-                                    type="button"
-                                    onClick={() => exportCurrentSlideVideo('PUBLICATION')}
-                                    disabled={isDownloading || isVideoRecording}
-                                    className="py-2.5 px-2 bg-gradient-to-r from-[#00ff66] to-[#00cc88] hover:from-[#33ff85] hover:to-[#00e699] text-black rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-40"
-                                >
-                                    <Video className="w-3.5 h-3.5 text-black" />
-                                    {isVideoRecording ? 'CAPTURE 30s...' : '🎬 MP4 POST (30s)'}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => exportCurrentSlideVideo('REEL')}
-                                    disabled={isDownloading || isVideoRecording}
-                                    className="py-2.5 px-2 bg-gradient-to-r from-neon-purple to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-40"
-                                >
-                                    <Video className="w-3.5 h-3.5 text-white" />
-                                    {isVideoRecording ? 'CAPTURE 30s...' : '🎬 MP4 STORY (30s)'}
-                                </button>
-                            </div>
-                        </div>
 
                         {/* SECTION D : IMAGE DE FOND / AMBIANCE */}
                         <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
