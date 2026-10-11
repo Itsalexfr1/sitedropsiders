@@ -1686,6 +1686,14 @@
           "blockTitle": "Day Time",
           "blockColor": "#10b981",
           "blockEmoji": "☀️"
+        },
+        {
+          "id": "bv_1791727126453",
+          "title": "&ME vs Rampa - Live from Circoloco DC-10 Ibiza",
+          "description": "Diffusé sur Dropsiders TV · Day Time",
+          "youtubeId": "iK48YGF0hFE",
+          "duration": 3600,
+          "category": "liveset"
         }
       ]
     },
