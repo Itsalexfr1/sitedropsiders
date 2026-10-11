@@ -5066,21 +5066,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         output: () => { try { te.close(); } catch {} done(true); },
                         error: () => { try { te.close(); } catch {} done(false); },
                     });
+                    // Teste avec la VRAIE résolution + mêmes options que l'encodeur réel
+                    // pour détecter les GPU qui refusent le 1080p même s'ils acceptent le 64×64
                     te.configure({
                         codec: 'avc1.4d4028',
-                        width: 64, height: 64,
-                        bitrate: 200000, framerate: 30,
+                        width: targetWidth,
+                        height: targetHeight,
+                        bitrate: Math.min(bitrate, 4000000),
+                        framerate: fps,
+                        hardwareAcceleration: 'no-preference',
                         avc: { format: 'avc' },
                     });
                     const tc = document.createElement('canvas');
-                    tc.width = 64; tc.height = 64;
+                    tc.width = targetWidth; tc.height = targetHeight;
                     const tf = new (window as any).VideoFrame(tc, { timestamp: 0 });
                     te.encode(tf, { keyFrame: true });
                     tf.close();
                     te.flush().catch(() => done(false));
                 } catch { done(false); }
-                // Timeout de sécurité 3 s
-                setTimeout(() => done(false), 3000);
+                // Timeout de sécurité 5 s (résolution plus grande = plus lent)
+                setTimeout(() => done(false), 5000);
             });
         }
         // Alias pour rétrocompatibilité du reste du code
@@ -5352,7 +5357,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     height: targetHeight,
                     bitrate,
                     framerate: fps,
-                    hardwareAcceleration: 'prefer-hardware',
+                    hardwareAcceleration: 'no-preference', // 'prefer-hardware' échoue sur certains GPU à 1080p
                     avc: { format: 'avc' },
                 });
             } catch (configErr: any) {
