@@ -5046,7 +5046,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         };
 
         // ── WebCodecs : état partagé entre renderDuration/renderTransition et finalisation ──
-        let captureFrame: () => void = () => {};
+        let captureFrame: () => Promise<void> = async () => {};
         let videoEncoder: any = null;
         let muxerTarget: any = null;
         let muxer: any = null;
@@ -5070,7 +5070,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     await generateImage();
-                    captureFrame();
+                    await captureFrame();
 
                     if (f % 2 === 0) {
                         updateProgressUI();
@@ -5110,7 +5110,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     await generateImage();
-                    captureFrame();
+                    await captureFrame();
 
                     if (f % 2 === 0) {
                         updateProgressUI();
@@ -5247,7 +5247,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         // MediaRecorder (Firefox / fallback) : comportement standard
         // ─────────────────────────────────────────────────────────────────────────────
         const chunks: Blob[] = [];
-        let recorder: MediaRecorder | null = null;
+        const targetWidth = 1080;
+        const targetHeight = activeTab === 'REEL' ? 1920 : 1350;
+        if (canvas.width !== targetWidth) canvas.width = targetWidth;
+        if (canvas.height !== targetHeight) canvas.height = targetHeight;
 
         if (webCodecsSupported) {
             // ── MODE WEBCODECS ──────────────────────────────────────────────────────
@@ -5256,39 +5259,54 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 target: muxerTarget,
                 video: {
                     codec: 'avc',
-                    width: canvas.width,
-                    height: canvas.height,
+                    width: targetWidth,
+                    height: targetHeight,
                 },
                 fastStart: 'in-memory',
+                firstTimestampBehavior: 'offset',
             });
 
             videoEncoder = new (window as any).VideoEncoder({
-                output: (chunk: any, meta: any) => muxer.addVideoChunk(chunk, meta),
+                output: (chunk: any, meta: any) => {
+                    try {
+                        const data = new Uint8Array(chunk.byteLength);
+                        chunk.copyTo(data);
+                        // Dans WebCodecs, chunk.duration peut être null/non-défini. mp4-muxer exige un nombre fini >= 0.
+                        const dur = (chunk.duration != null && Number.isFinite(chunk.duration) && chunk.duration > 0)
+                            ? chunk.duration
+                            : frameDurationUs;
+                        muxer.addVideoChunkRaw(data, chunk.type, chunk.timestamp, dur, meta);
+                    } catch (muxErr) {
+                        console.error('Muxer addVideoChunkRaw error:', muxErr);
+                    }
+                },
                 error: (e: any) => console.error('VideoEncoder error:', e),
             });
 
-            let chosenCodec = 'avc1.640028'; // High Profile 4.0
+            let chosenCodec = 'avc1.64002a'; // High Profile 4.2 standard 1080p
             if (typeof (window as any).VideoEncoder.isConfigSupported === 'function') {
-                try {
-                    const check = await (window as any).VideoEncoder.isConfigSupported({
-                        codec: 'avc1.640028',
-                        width: canvas.width,
-                        height: canvas.height,
-                        bitrate,
-                        framerate: fps,
-                    });
-                    if (!check || !check.supported) {
-                        chosenCodec = 'avc1.4d4028'; // Main Profile 4.0 fallback
-                    }
-                } catch {
-                    chosenCodec = 'avc1.4d4028';
+                const candidates = ['avc1.64002a', 'avc1.640028', 'avc1.4d402a', 'avc1.4d4028', 'avc1.420028', 'avc1.42001f'];
+                for (const cand of candidates) {
+                    try {
+                        const check = await (window as any).VideoEncoder.isConfigSupported({
+                            codec: cand,
+                            width: targetWidth,
+                            height: targetHeight,
+                            bitrate,
+                            framerate: fps,
+                        });
+                        if (check && check.supported) {
+                            chosenCodec = cand;
+                            break;
+                        }
+                    } catch {}
                 }
             }
 
             videoEncoder.configure({
                 codec: chosenCodec,
-                width: canvas.width,
-                height: canvas.height,
+                width: targetWidth,
+                height: targetHeight,
                 bitrate,
                 framerate: fps,
                 hardwareAcceleration: 'prefer-hardware', // GPU si dispo
@@ -5296,10 +5314,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             });
 
             // captureFrame : appelé après chaque generateImage() dans les render loops
-            captureFrame = () => {
+            captureFrame = async () => {
                 try {
-                    if (!videoEncoder) return;
-                    if (videoEncoder.encodeQueueSize > 25) return; // back-pressure
+                    if (!videoEncoder || videoEncoder.state !== 'configured') return;
+                    // Back-pressure préventive : on attend que l'encodeur absorbe la file sans jamais jeter de frame
+                    while (videoEncoder.encodeQueueSize > 12) {
+                        await new Promise(r => setTimeout(r, 4));
+                    }
                     const timestampUs = Math.round(totalFramesEncoded * frameDurationUs);
                     const frame = new (window as any).VideoFrame(canvas, {
                         timestamp: timestampUs,
@@ -5339,12 +5360,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (webCodecsSupported && videoEncoder && muxer && muxerTarget) {
                 // ── WebCodecs : flush encoder → finalize muxer → Blob MP4
                 try {
-                    await videoEncoder.flush();
+                    if (videoEncoder.state === 'configured') {
+                        await videoEncoder.flush();
+                    }
                     muxer.finalize();
                     videoBlob = new Blob([muxerTarget.buffer], { type: 'video/mp4' });
-                } catch (e) {
+                } catch (e: any) {
                     console.error('WebCodecs finalize error:', e);
-                    setErrorMessage("Erreur de finalisation vidéo.");
+                    setErrorMessage(`Erreur de finalisation vidéo : ${e?.message || 'Erreur codec'}`);
                     isVideoRecordingRef.current = false;
                     setIsVideoRecording(false);
                     return;
