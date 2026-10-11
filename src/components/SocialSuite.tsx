@@ -5247,6 +5247,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         // MediaRecorder (Firefox / fallback) : comportement standard
         // ─────────────────────────────────────────────────────────────────────────────
         const chunks: Blob[] = [];
+        let recorder: MediaRecorder | null = null;
         const targetWidth = 1080;
         const targetHeight = activeTab === 'REEL' ? 1920 : 1350;
         if (canvas.width !== targetWidth) canvas.width = targetWidth;
@@ -5341,7 +5342,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 videoBitsPerSecond: bitrate,
                 ...(hasAudioTrack ? { audioBitsPerSecond: 192000 } : {}),
             });
-            recorder.ondataavailable = (e) => {
+            recorder.ondataavailable = (e: any) => {
                 if (e.data && e.data.size > 0) chunks.push(e.data);
             };
         }
