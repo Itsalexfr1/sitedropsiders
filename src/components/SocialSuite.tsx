@@ -527,17 +527,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         try {
             const arr = await blob.arrayBuffer();
             const OfflineCtx = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
-            if (!OfflineCtx) return null;
-            const decoder: BaseAudioContext = new OfflineCtx(2, 1, 44100);
+            const AudioCtxClass = (window as any).AudioContext || (window as any).webkitAudioContext || OfflineCtx;
+            if (!AudioCtxClass) return null;
+            const decoder: BaseAudioContext = new AudioCtxClass();
             let buf: AudioBuffer | null = null;
             try {
                 buf = await new Promise<AudioBuffer>((resolve, reject) => {
-                    const p = decoder.decodeAudioData(arr, resolve, reject);
-                    if (p && typeof (p as any).then === 'function') (p as Promise<AudioBuffer>).then(resolve, reject);
+                    let resolved = false;
+                    const onSucc = (b: AudioBuffer) => { if (!resolved) { resolved = true; resolve(b); } };
+                    const onErr = (e: any) => { if (!resolved) { resolved = true; reject(e); } };
+                    try {
+                        // slice(0) pour ne pas détacher l'ArrayBuffer original
+                        const p = decoder.decodeAudioData(arr.slice(0), onSucc, onErr);
+                        if (p && typeof (p as any).then === 'function') (p as Promise<AudioBuffer>).then(onSucc, onErr).catch(onErr);
+                    } catch (syncErr) {
+                        onErr(syncErr);
+                    }
                 });
             } catch (decErr) {
                 console.warn("[Audio] Décodage audio de la vidéo impossible ou vidéo muette :", decErr);
                 return null;
+            } finally {
+                if ((decoder as any).close && typeof (decoder as any).close === 'function') {
+                    (decoder as any).close().catch(() => {});
+                }
             }
 
             if (!buf || buf.numberOfChannels === 0 || buf.length === 0) {
@@ -5484,13 +5497,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     isExportRenderingRef.current = true;
                     try { await generateImage(); } finally { isExportRenderingRef.current = false; }
 
-                    // Composite : slide sortante (fixe) fondu vers slide entrante
+                    // Composite : slide sortante fondu vers slide entrante
                     if (ctx && outCtx && inSnapCtx) {
                         // Mise à jour du snapshot de la frame entrante (réutilise le canvas pré-alloué)
                         inSnapCtx.clearRect(0, 0, incomingSnap.width, incomingSnap.height);
                         inSnapCtx.drawImage(canvas, 0, 0);
 
-                        switch (slideTransition) {
+                        // Pour la transition vers l'outro Promo, toujours un FADE direct et propre
+                        const isTransitionToPromo = promoOutroOverrideRef.current;
+                        const effectiveTrans = isTransitionToPromo ? 'FADE' : slideTransition;
+
+                        switch (effectiveTrans) {
                             case 'SLIDE': {
                                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                                 ctx.drawImage(outgoingCanvas, -ease * canvas.width, 0);
@@ -5558,42 +5575,61 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (onProgress) onProgress(1);
                 return (numFrames / fps);
             } else {
-                // Mode preview temps réel
+                // Mode preview temps réel / MediaRecorder (Mobile) :
+                // Snapshot unique de la slide entrante (GPU 2D) pour zéro lag et fluidité 60 FPS garantie
+                await generateImage();
+                const incomingCanvas = document.createElement('canvas');
+                incomingCanvas.width = canvas.width;
+                incomingCanvas.height = canvas.height;
+                const inCtx = incomingCanvas.getContext('2d');
+                if (inCtx) inCtx.drawImage(canvas, 0, 0);
+
+                const isTransitionToPromo = promoOutroOverrideRef.current;
+                const effectiveTrans = isTransitionToPromo ? 'FADE' : slideTransition;
+
                 const start = performance.now();
                 let lastRender = 0;
-                let isRendering = false;
                 await new Promise<void>((resolve) => {
-                    const step = async (now: number) => {
+                    const step = (now: number) => {
                         const elapsed = now - start;
                         if (elapsed >= durationMs) {
                             if (onProgress) onProgress(1);
-                            try { await generateImage(); } catch {}
                             resolve();
                             return;
                         }
-                        if (now - lastRender >= frameInterval - 1 && !isRendering) {
-                            isRendering = true;
+                        if (now - lastRender >= frameInterval - 2) {
                             lastRender = now;
                             const progress = Math.min(1, elapsed / durationMs);
                             if (onProgress) onProgress(progress);
-                            animStartTimeRef.current = Date.now() - elapsed;
-                            recordingStartTimeRef.current = Date.now() - elapsed;
                             const ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-                            try {
-                                await generateImage();
-                                if (ctx && outCtx) {
+
+                            if (ctx && outCtx && inCtx) {
+                                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                                if (effectiveTrans === 'SLIDE') {
+                                    ctx.drawImage(outgoingCanvas, -ease * canvas.width, 0);
+                                    ctx.drawImage(incomingCanvas, (1 - ease) * canvas.width, 0);
+                                } else if (effectiveTrans === 'ZOOM') {
+                                    const cx = canvas.width / 2, cy = canvas.height / 2;
+                                    ctx.save(); ctx.globalAlpha = Math.max(0, 1 - ease);
+                                    ctx.translate(cx, cy); ctx.scale(1 + ease * 0.12, 1 + ease * 0.12); ctx.translate(-cx, -cy);
+                                    ctx.drawImage(outgoingCanvas, 0, 0); ctx.restore();
+                                    ctx.save(); ctx.globalAlpha = Math.min(1, ease);
+                                    ctx.translate(cx, cy); ctx.scale(0.88 + ease * 0.12, 0.88 + ease * 0.12); ctx.translate(-cx, -cy);
+                                    ctx.drawImage(incomingCanvas, 0, 0); ctx.restore();
+                                } else if (effectiveTrans === 'CUT') {
+                                    ctx.drawImage(progress < 0.5 ? outgoingCanvas : incomingCanvas, 0, 0);
+                                } else {
+                                    // FADE : Pur fondu croisé ultra-fluide à 60 FPS
                                     ctx.save(); ctx.globalAlpha = Math.max(0, 1 - ease); ctx.drawImage(outgoingCanvas, 0, 0); ctx.restore();
+                                    ctx.save(); ctx.globalAlpha = Math.min(1, ease); ctx.drawImage(incomingCanvas, 0, 0); ctx.restore();
                                 }
-                            } catch (e) {
-                                console.warn("generateImage transition error", e);
-                            } finally {
-                                isRendering = false;
                             }
                         }
                         requestAnimationFrame(step);
                     };
                     requestAnimationFrame(step);
                 });
+                try { await generateImage(); } catch {}
                 return durationMs / 1000;
             }
         };
@@ -5759,10 +5795,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
 
-            // Sur mobile natif sans WebCodecs : modal de prévisualisation directe WebM
+            // S'assurer que le blob vidéo est bien disponible pour l'extraction audio
+            if (!bgVideoBlob && bgVideo) {
+                const bgUrl = bgVideo.currentSrc || bgVideo.src || '';
+                if (bgUrl) {
+                    try {
+                        const res = await fetch(bgUrl);
+                        if (res.ok) bgVideoBlob = await res.blob();
+                    } catch (e) {
+                        console.warn("Préchargement bgVideoBlob échoué :", e);
+                    }
+                }
+            }
+
+            // Détection de présence de son dans le projet
+            const hasAnyAudioSource = Boolean(bgVideoBlob || hasAnyMusicAudio || (bgVideo && (bgVideo.currentSrc || bgVideo.src)));
+
+            // Sur mobile natif sans WebCodecs : modal de prévisualisation directe WebM UNIQUEMENT s'il n'y a STRICTEMENT aucun son
             const isActualMobileDevice = typeof navigator !== 'undefined' && (/iPad|iPhone|iPod|Android/.test(navigator.userAgent) || ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 2 && window.innerWidth < 1024));
-            if (isActualMobileDevice && !useWebCodecs && videoBlob.type.includes('webm')) {
-                // Fix WebM duration pour eviter le lag
+            if (!hasAnyAudioSource && isActualMobileDevice && !useWebCodecs && videoBlob.type.includes('webm')) {
+                // Fix WebM duration pour éviter le lag (projet muet sans piste audio)
                 const durationMs = totalDuration || 30000;
                 const fixedBlob = await fixWebmDuration(videoBlob, durationMs);
                 const url = URL.createObjectURL(fixedBlob);
