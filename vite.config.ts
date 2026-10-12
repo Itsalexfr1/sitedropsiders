@@ -96,7 +96,43 @@ export default defineConfig({
           }
         ]
       }
-    })
+    }),
+    {
+      name: 'media-proxy-dev',
+      configureServer(server) {
+        server.middlewares.use(async (req, res, next) => {
+          if (req.url && req.url.startsWith('/api/proxy-media')) {
+            try {
+              const reqUrl = new URL(req.url, 'http://localhost:5173');
+              const target = reqUrl.searchParams.get('url');
+              if (!target) {
+                res.statusCode = 400;
+                res.end('Missing url parameter');
+                return;
+              }
+              const upstream = await fetch(target, {
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                  'Referer': target
+                }
+              });
+              res.writeHead(upstream.status, {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+                'Content-Type': upstream.headers.get('content-type') || 'application/octet-stream',
+              });
+              const arrayBuf = await upstream.arrayBuffer();
+              res.end(Buffer.from(arrayBuf));
+            } catch (err: any) {
+              res.statusCode = 502;
+              res.end(`Media proxy error: ${err.message}`);
+            }
+            return;
+          }
+          next();
+        });
+      }
+    }
   ],
   server: {
     watch: {

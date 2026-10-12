@@ -1,4 +1,4 @@
-﻿// @ts-nocheck
+// @ts-nocheck
 import webpush from 'web-push';
 import PostalMime from 'postal-mime';
 
@@ -2178,6 +2178,29 @@ ${urls.map(u => `  <url>
                 return new Response(JSON.stringify(results), { headers });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        // --- API: MEDIA PROXY (CORS bypass for video/audio assets) ---
+        if (path === '/api/proxy-media') {
+            const target = url.searchParams.get('url');
+            if (!target) return new Response('URL requise', { status: 400 });
+            try {
+                const upstream = await fetch(target, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                        'Referer': target
+                    }
+                });
+                const respHeaders = new Headers(upstream.headers);
+                respHeaders.set('Access-Control-Allow-Origin', '*');
+                respHeaders.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+                return new Response(upstream.body, {
+                    status: upstream.status,
+                    headers: respHeaders
+                });
+            } catch (err: any) {
+                return new Response(`Proxy error: ${err.message}`, { status: 502, headers: { 'Access-Control-Allow-Origin': '*' } });
             }
         }
 

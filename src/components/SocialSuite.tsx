@@ -396,6 +396,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const audioSourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
     const audioDestNodeRef = useRef<MediaStreamAudioDestinationNode | null>(null);
     const audioSourceVideoRef = useRef<HTMLVideoElement | null>(null); // pour détecter si bgVideo a changé
+    const bgVideoBlobRef = useRef<Blob | null>(null);
     // Refs DOM pour le progress bar d'enregistrement — évite tout re-render React pendant la capture
     const recordingCircleRef = useRef<SVGCircleElement | null>(null);
     const recordingPercentRef = useRef<HTMLSpanElement | null>(null);
@@ -519,6 +520,77 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         })();
         audioBufferPendingRef.current.set(url, job);
         return job;
+    };
+
+    /** Extrait la piste audio d'une vidéo en WAV 16-bit uncompressed offline via Web Audio API */
+    const extractAudioFromBlob = async (blob: Blob, targetDurationMs: number): Promise<Blob | null> => {
+        try {
+            const arr = await blob.arrayBuffer();
+            const OfflineCtx = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
+            if (!OfflineCtx) return null;
+            const decoder: BaseAudioContext = new OfflineCtx(2, 1, 44100);
+            let buf: AudioBuffer | null = null;
+            try {
+                buf = await new Promise<AudioBuffer>((resolve, reject) => {
+                    const p = decoder.decodeAudioData(arr, resolve, reject);
+                    if (p && typeof (p as any).then === 'function') (p as Promise<AudioBuffer>).then(resolve, reject);
+                });
+            } catch (decErr) {
+                console.warn("[Audio] Décodage audio de la vidéo impossible ou vidéo muette :", decErr);
+                return null;
+            }
+
+            if (!buf || buf.numberOfChannels === 0 || buf.length === 0) {
+                console.warn('[Audio] Aucune donnée audio dans la vidéo.');
+                return null;
+            }
+
+            console.log(`[Audio] ✅ Piste audio de la vidéo détectée : ${buf.numberOfChannels} canaux, ${buf.duration.toFixed(2)}s @ ${buf.sampleRate}Hz`);
+
+            const sampleRate = 44100;
+            const totalSec = Math.max(1, targetDurationMs / 1000);
+            const totalSamples = Math.ceil(totalSec * sampleRate);
+            const renderCtx = new OfflineCtx(Math.min(2, buf.numberOfChannels), totalSamples, sampleRate);
+
+            const src = renderCtx.createBufferSource();
+            src.buffer = buf;
+            src.loop = true; // Répétition fluide si la vidéo est plus courte que le reel/slide
+            src.connect(renderCtx.destination);
+            src.start(0);
+
+            const renderedBuffer = await renderCtx.startRendering();
+
+            const numCh = renderedBuffer.numberOfChannels;
+            const numSamples = renderedBuffer.length;
+            const wavBuffer = new ArrayBuffer(44 + numSamples * numCh * 2);
+            const view = new DataView(wavBuffer);
+            const writeStr = (offset: number, s: string) => { for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i)); };
+            writeStr(0, 'RIFF');
+            view.setUint32(4, 36 + numSamples * numCh * 2, true);
+            writeStr(8, 'WAVE');
+            writeStr(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); // PCM
+            view.setUint16(22, numCh, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * numCh * 2, true);
+            view.setUint16(32, numCh * 2, true);
+            view.setUint16(34, 16, true);
+            writeStr(36, 'data');
+            view.setUint32(40, numSamples * numCh * 2, true);
+            let offset2 = 44;
+            for (let i = 0; i < numSamples; i++) {
+                for (let ch = 0; ch < numCh; ch++) {
+                    const sample = Math.max(-1, Math.min(1, renderedBuffer.getChannelData(ch)[i]));
+                    view.setInt16(offset2, sample < 0 ? sample * 32768 : sample * 32767, true);
+                    offset2 += 2;
+                }
+            }
+            return new Blob([wavBuffer], { type: 'audio/wav' });
+        } catch (err) {
+            console.warn('[Audio] Erreur extractAudioFromBlob :', err);
+            return null;
+        }
     };
 
     /** Joue un AudioBuffer dans un contexte donné avec micro fondu (anti-clic). Retourne la source. */
@@ -5036,11 +5108,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!file) return;
         const url = URL.createObjectURL(file);
         if (file.type.startsWith('video/')) {
+            bgVideoBlobRef.current = file;
             const video = document.createElement('video');
+            video.crossOrigin = "anonymous";
             video.src = url;
             video.loop = true;
             video.playsInline = true; // Important for mobile preview
-            video.crossOrigin = "anonymous";
             video.currentTime = 0;
             const onLoaded = () => {
                 video.currentTime = 0;
@@ -5066,8 +5139,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        let bgVideoBlob: Blob | null = null;
-        if (bgVideo) {
+        let bgVideoBlob: Blob | null = bgVideoBlobRef.current;
+        if (!bgVideoBlob && bgVideo) {
             const bgUrl = bgVideo.currentSrc || bgVideo.src;
             if (bgUrl) {
                 try {
@@ -5078,7 +5151,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } catch (e) {
                     console.warn("Préchargement bgVideoBlob échoué :", e);
                 }
+                if (!bgVideoBlob && !bgUrl.startsWith('blob:')) {
+                    try {
+                        const proxyRes = await fetch(`/api/proxy-media?url=${encodeURIComponent(bgUrl)}`);
+                        if (proxyRes.ok) {
+                            bgVideoBlob = await proxyRes.blob();
+                        }
+                    } catch (pe) {
+                        console.warn("Préchargement bgVideoBlob via proxy échoué :", pe);
+                    }
+                }
             }
+        }
+        if (bgVideoBlob) {
+            bgVideoBlobRef.current = bgVideoBlob;
         }
 
         const prevAgendaSlide = agendaSlide;
@@ -5237,84 +5323,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     : ((activeTab === 'REEL' || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST') ? 15000 : 60000);
                 if (totalDuration > 600000) totalDuration = 600000;
             }
-        }
-
-        // ── CAPTURE AUDIO bgVideo EN PARALLÈLE (ici, après totalDuration calculé) ────────────────────
-        // La capture démarre maintenant (totalDuration est désormais connu) pendant que WebCodecs encode.
-        // bgVideo.play() est appelé ici, proche du geste user (autoplay policy encore actif).
-        let bgAudioCapturePromise: Promise<Blob | null> = Promise.resolve(null);
-        if (bgVideo && useWebCodecs) {
-            bgAudioCapturePromise = (async (): Promise<Blob | null> => {
-                try {
-                    const audioVideo = document.createElement('video');
-                    audioVideo.src = bgVideo.currentSrc || bgVideo.src;
-                    audioVideo.crossOrigin = 'anonymous';
-                    audioVideo.muted = false;
-                    audioVideo.volume = 0.001;
-                    audioVideo.loop = true;
-                    audioVideo.preload = 'auto';
-                    document.body.appendChild(audioVideo);
-
-                    await new Promise<void>(res => {
-                        audioVideo.oncanplay = () => res();
-                        audioVideo.load();
-                        setTimeout(res, 2000);
-                    });
-
-                    await audioVideo.play().catch(() => {});
-
-                    const vidStream = (audioVideo as any).captureStream?.() ?? (audioVideo as any).mozCaptureStream?.() ?? null;
-                    if (!vidStream) {
-                        audioVideo.pause();
-                        document.body.removeChild(audioVideo);
-                        console.warn('[Audio] captureStream() non disponible.');
-                        return null;
-                    }
-
-                    const audioTracks = vidStream.getAudioTracks();
-                    console.log('[Audio] Pistes audio sur clone bgVideo:', audioTracks.length);
-                    if (audioTracks.length === 0) {
-                        audioVideo.pause();
-                        document.body.removeChild(audioVideo);
-                        console.warn('[Audio] bgVideo sans piste audio.');
-                        return null;
-                    }
-
-                    const audioStream = new MediaStream(audioTracks);
-                    const audioMime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus']
-                        .find(m => MediaRecorder.isTypeSupported(m)) || '';
-                    if (!audioMime) {
-                        audioVideo.pause();
-                        document.body.removeChild(audioVideo);
-                        console.warn('[Audio] Aucun format audio supporté.');
-                        return null;
-                    }
-
-                    const audioChunks: Blob[] = [];
-                    const audioRec = new MediaRecorder(audioStream, { mimeType: audioMime });
-                    audioRec.ondataavailable = (e: any) => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
-                    audioRec.start(200);
-                    console.log('[Audio] Capture démarrée :', Math.round(totalDuration / 1000), 's');
-
-                    await new Promise(res => setTimeout(res, totalDuration + 500));
-
-                    audioRec.stop();
-                    audioVideo.pause();
-                    document.body.removeChild(audioVideo);
-                    await new Promise<void>(res => { audioRec.onstop = () => res(); });
-
-                    if (audioChunks.length === 0) {
-                        console.warn('[Audio] Aucun chunk audio capturé.');
-                        return null;
-                    }
-                    const blob = new Blob(audioChunks, { type: audioMime });
-                    console.log('[Audio] ✅ Audio capturé :', Math.round(blob.size / 1024), 'KB');
-                    return blob;
-                } catch (err) {
-                    console.warn('[Audio] Capture échouée:', err);
-                    return null;
-                }
-            })();
         }
 
         // Mise à jour visuelle du progress basée sur le temps réel (DOM direct = zéro re-render React)
@@ -5793,18 +5801,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 console.warn('Rendu audio offline échoué (fallback vidéo seule) :', audioRenderErr);
             }
 
-            // ── PHASE 2b : ATTENTE DU RESULTAT DE LA CAPTURE AUDIO bgVideo (lancée en parallèle) ────
-            let bgAudioBlob: Blob | null = null;
-            if (!offlineWavBlob && bgVideo && useWebCodecs) {
-                console.log('[Audio] En attente de bgAudioCapturePromise...');
-                bgAudioBlob = await bgAudioCapturePromise;
-                console.log('[Audio] bgAudioBlob résolu:', bgAudioBlob ? Math.round(bgAudioBlob.size / 1024) + 'KB' : 'null');
+            // ── PHASE 2b : EXTRACTION AUDIO DEPUIS bgVideo (si pas de thème MUSIQUE) ────
+            if (!offlineWavBlob && bgVideoBlob) {
+                console.log('[Audio] Extraction haute-fidélité de la piste audio de bgVideo via Web Audio API...');
+                try {
+                    offlineWavBlob = await extractAudioFromBlob(bgVideoBlob, totalDuration);
+                    if (offlineWavBlob) {
+                        console.log(`[Audio] ✅ Audio de bgVideo extrait avec succès en WAV (${Math.round(offlineWavBlob.size / 1024)} KB)`);
+                    } else {
+                        console.log('[Audio] bgVideo ne contient aucune piste audio détectable.');
+                    }
+                } catch (e) {
+                    console.warn('[Audio] Échec de l\'extraction Web Audio :', e);
+                }
             }
 
-            // ── PHASE 3 : MUXAGE FFmpeg (vidéo + audio offline ou bgVideo audio) ────
+            // ── PHASE 3 : MUXAGE FFmpeg (vidéo + audio offline WAV ou fallback direct) ────
             try {
                 // FAST-PATH : UNIQUEMENT s'il n'y a STRICTEMENT AUCUN AUDIO dans le projet
-                const hasAudioSource = Boolean(offlineWavBlob || bgVideoBlob || bgAudioBlob);
+                const hasAudioSource = Boolean(offlineWavBlob || bgVideoBlob);
                 if (!hasAudioSource && !hasAudioTrack && videoBlob.type.includes('mp4')) {
                     isVideoRecordingRef.current = false;
                     setIsVideoRecording(false);
@@ -5837,6 +5852,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 const ffmpeg = ffmpegRef.current;
+                ffmpeg.on('log', ({ message }: any) => {
+                    console.log('[FFmpeg]', message);
+                });
                 ffmpeg.on('progress', ({ progress }: any) => {
                     setConversionProgress(Math.min(99, Math.round(progress * 100)));
                 });
@@ -5853,47 +5871,38 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ];
                 let ffmpegArgs: string[] = [];
 
-                if (videoBlob.type.includes('mp4') && offlineWavBlob) {
-                    // FAST STREAM COPY : Muxer l'audio WAV (MUSIQUE) en AAC sans ré-encoder la vidéo H.264
+                if (offlineWavBlob) {
+                    // Muxer l'audio WAV (MUSIQUE ou bgVideo) en AAC universel
                     await ffmpeg.writeFile('audio.wav', await fetchFile(offlineWavBlob));
-                    ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav',
-                        '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', '-movflags', '+faststart', 'output.mp4'];
-                } else if (videoBlob.type.includes('mp4') && bgAudioBlob) {
-                    // Audio capturé en temps réel depuis bgVideo (WebM opus) → mux avec la vidéo
-                    const bgAudioExt = bgAudioBlob.type.includes('ogg') ? 'bg_audio.ogg' : 'bg_audio.webm';
-                    await ffmpeg.writeFile(bgAudioExt, await fetchFile(bgAudioBlob));
-                    ffmpegArgs = ['-i', inputFileName, '-i', bgAudioExt,
-                        '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', '-movflags', '+faststart', 'output.mp4'];
-                } else if (videoBlob.type.includes('mp4') && bgVideoBlob) {
-                    // FAST STREAM COPY depuis fichier vidéo source (si disponible)
-                    await ffmpeg.writeFile('bg_source.mp4', await fetchFile(bgVideoBlob));
-                    ffmpegArgs = [
-                        '-i', inputFileName,
-                        '-stream_loop', '-1',
-                        '-i', 'bg_source.mp4',
-                        '-c:v', 'copy',
-                        '-c:a', 'aac',
-                        '-b:a', '192k',
-                        '-ar', '44100',
-                        '-map', '0:v:0',
-                        '-map', '1:a:0',
-                        '-shortest',
-                        '-movflags', '+faststart',
-                        'output.mp4'
-                    ];
-                } else if (offlineWavBlob) {
-                    await ffmpeg.writeFile('audio.wav', await fetchFile(offlineWavBlob));
-                    ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
-                        '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
-                } else if (bgAudioBlob) {
-                    const bgAudioExt = bgAudioBlob.type.includes('ogg') ? 'bg_audio.ogg' : 'bg_audio.webm';
-                    await ffmpeg.writeFile(bgAudioExt, await fetchFile(bgAudioBlob));
-                    ffmpegArgs = ['-i', inputFileName, '-i', bgAudioExt, ...videoArgs,
-                        '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
+                    if (videoBlob.type.includes('mp4')) {
+                        ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav',
+                            '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', '-movflags', '+faststart', 'output.mp4'];
+                    } else {
+                        ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
+                            '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
+                    }
                 } else if (bgVideoBlob) {
-                    await ffmpeg.writeFile('bg_source.mp4', await fetchFile(bgVideoBlob));
-                    ffmpegArgs = ['-i', inputFileName, '-stream_loop', '-1', '-i', 'bg_source.mp4', ...videoArgs,
-                        '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-map', '0:v:0', '-map', '1:a:0', '-shortest', 'output.mp4'];
+                    // Fallback FFmpeg audio extraction si decodeAudioData natif a échoué
+                    await ffmpeg.writeFile('bg_source', await fetchFile(bgVideoBlob));
+                    let hasExtracted = false;
+                    try {
+                        await ffmpeg.exec(['-i', 'bg_source', '-vn', '-c:a', 'pcm_s16le', '-ar', '44100', '-ac', '2', 'audio.wav']);
+                        hasExtracted = true;
+                    } catch (e) {
+                        console.warn('[Audio] Extraction FFmpeg échouée, bg_source sans piste audio :', e);
+                    }
+                    if (hasExtracted) {
+                        const targetSec = (totalDuration / 1000).toFixed(2);
+                        if (videoBlob.type.includes('mp4')) {
+                            ffmpegArgs = ['-i', inputFileName, '-stream_loop', '-1', '-i', 'audio.wav',
+                                '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-t', targetSec, '-movflags', '+faststart', 'output.mp4'];
+                        } else {
+                            ffmpegArgs = ['-i', inputFileName, '-stream_loop', '-1', '-i', 'audio.wav', ...videoArgs,
+                                '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-t', targetSec, 'output.mp4'];
+                        }
+                    } else {
+                        ffmpegArgs = ['-i', inputFileName, '-c:v', 'copy', '-an', '-movflags', '+faststart', 'output.mp4'];
+                    }
                 } else if (hasAudioTrack) {
                     ffmpegArgs = ['-i', inputFileName, ...videoArgs,
                         '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', 'output.mp4'];
@@ -5904,28 +5913,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 try {
                     await ffmpeg.exec(ffmpegArgs);
                 } catch (execErr) {
-                    if ((offlineWavBlob || bgAudioBlob) && videoBlob.type.includes('mp4')) {
-                        // Fallback : ré-encoder la vidéo avec libx264 si le stream copy a échoué
+                    if (offlineWavBlob && videoBlob.type.includes('mp4')) {
                         console.warn('Direct copy mux failed, retrying with libx264 re-encode:', execErr);
-                        const audioInput = offlineWavBlob ? 'audio.wav'
-                            : (bgAudioBlob!.type.includes('ogg') ? 'bg_audio.ogg' : 'bg_audio.webm');
-                        ffmpegArgs = ['-i', inputFileName, '-i', audioInput, ...videoArgs,
+                        ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
                             '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
                         await ffmpeg.exec(ffmpegArgs);
-                    } else if (videoBlob.type.includes('mp4') && bgVideoBlob) {
-                        // Fallback bgVideoBlob : ré-encoder aussi
-                        console.warn('Muxing audio bgVideo échoué, repli libx264 re-encode :', execErr);
-                        ffmpegArgs = ['-i', inputFileName, '-stream_loop', '-1', '-i', 'bg_source.mp4', ...videoArgs,
-                            '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-map', '0:v:0', '-map', '1:a:0', '-shortest', 'output.mp4'];
-                        try {
-                            await ffmpeg.exec(ffmpegArgs);
-                        } catch {
-                            console.warn('Re-encode bgVideo aussi échoué, export vidéo sans son.');
-                            ffmpegArgs = ['-i', inputFileName, '-c:v', 'copy', '-an', '-movflags', '+faststart', 'output.mp4'];
-                            await ffmpeg.exec(ffmpegArgs);
-                        }
                     } else {
-                        throw execErr;
+                        console.warn('FFmpeg mux failed, falling back to video only:', execErr);
+                        ffmpegArgs = ['-i', inputFileName, '-c:v', 'copy', '-an', '-movflags', '+faststart', 'output.mp4'];
+                        await ffmpeg.exec(ffmpegArgs);
                     }
                 }
 
@@ -11477,9 +11473,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 const isVideo = url.includes('.mp4') || url.includes('.mov') || url.includes('.webm') || url.includes('video') || url.includes('googlevideo') || url.includes('play') || url.includes('tiktok');
                                 if (isVideo) {
                                     const video = document.createElement('video');
-                                    video.src = url; video.crossOrigin = "anonymous";
+                                    video.crossOrigin = "anonymous";
+                                    video.src = url;
                                     video.onloadeddata = () => { setBgVideo(video); setBgImage(''); };
                                     video.onerror = () => { setBgImage(url); setBgVideo(null); };
+                                    // Pré-chargement automatique du Blob pour un export audio 100% garanti
+                                    fetch(url)
+                                        .then(res => res.ok ? res.blob() : null)
+                                        .then(blob => {
+                                            if (blob) {
+                                                bgVideoBlobRef.current = blob;
+                                                const blobUrl = URL.createObjectURL(blob);
+                                                video.src = blobUrl;
+                                            }
+                                        })
+                                        .catch(() => {
+                                            fetch(`/api/proxy-media?url=${encodeURIComponent(url)}`)
+                                                .then(res => res.ok ? res.blob() : null)
+                                                .then(blob => {
+                                                    if (blob) {
+                                                        bgVideoBlobRef.current = blob;
+                                                        const blobUrl = URL.createObjectURL(blob);
+                                                        video.src = blobUrl;
+                                                    }
+                                                })
+                                                .catch(() => {});
+                                        });
                                 } else { setBgImage(url); setBgVideo(null); }
                                 setIsDownloaderOpen(false);
                             }} />
@@ -13036,12 +13055,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const isVid = finalUrl.match(/\.(mp4|webm|mov|ogg)$/i) || finalUrl.includes('/video/upload/');
                         if (isVid) {
                             const video = document.createElement('video');
+                            video.crossOrigin = "anonymous";
                             video.src = finalUrl;
                             video.muted = true;
                             video.loop = true;
                             video.playsInline = true;
-                            video.crossOrigin = "anonymous";
                             video.play().catch(e => console.warn("Auto-preview play failed", e));
+                            fetch(finalUrl)
+                                .then(r => r.ok ? r.blob() : null)
+                                .then(b => { if (b) bgVideoBlobRef.current = b; })
+                                .catch(() => {});
                             setBgVideo(video);
                             setBgImage('');
                         } else {
