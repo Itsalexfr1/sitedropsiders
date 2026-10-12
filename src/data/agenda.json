@@ -572,5 +572,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1136,
+    "title": "Tomorrowland Thailande ",
+    "date": "2026-12-11",
+    "startDate": "2026-12-11",
+    "endDate": "2026-12-13",
+    "venue": "Wisdom Valley",
+    "location": "PATTAYA",
+    "country": "THAILANDE",
+    "type": "Festival",
+    "image": "/uploads/uploads/54bbb5027bdae086-tl26th_marketing_announcement_.png",
+    "url": "https://thailand.tomorrowland.com/en/passes-packages/",
+    "genre": "Multi Styles",
+    "month": "DÉCEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
