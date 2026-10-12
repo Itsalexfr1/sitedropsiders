@@ -5428,13 +5428,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         };
 
-        const renderTransition = async (durationMs: number, onProgress?: (p: number) => void): Promise<number> => {
+        const renderTransition = async (durationMs: number, onProgress?: (p: number) => void, onSwitch?: () => void): Promise<number> => {
             // Snapshot haute-fidélité de la slide sortante (actuellement affichée sur le canvas principal)
             const outgoingCanvas = document.createElement('canvas');
             outgoingCanvas.width = canvas.width;
             outgoingCanvas.height = canvas.height;
             const outCtx = outgoingCanvas.getContext('2d');
+            // Snapshot de la slide sortante AVANT de basculer vers la nouvelle slide
             if (outCtx) outCtx.drawImage(canvas, 0, 0);
+            // Basculement d'état vers la slide entrante (après snapshot, avant premier generateImage)
+            if (onSwitch) onSwitch();
 
             const incomingCanvas = document.createElement('canvas');
             incomingCanvas.width = canvas.width;
@@ -6091,9 +6094,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const s = contentSlideNumbers[i];
                 let slideStartOffsetSec = 0;
                 if (i > 0) {
-                    editorialSlideOverrideRef.current = s;
-                    animStartTimeRef.current = Date.now();
-                    slideStartOffsetSec = await renderTransition(transitionDuration);
+                    slideStartOffsetSec = await renderTransition(transitionDuration, undefined, () => {
+                        editorialSlideOverrideRef.current = s;
+                        animStartTimeRef.current = Date.now();
+                    });
                     transitionProgressRef.current = 0;
                 } else {
                     editorialSlideOverrideRef.current = s;
@@ -6124,9 +6128,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // 2. Transition vers le visuel PROMO outro à la fin du Reel (composite fluide)
-            promoOutroOverrideRef.current = true;
-            animStartTimeRef.current = Date.now();
-            const promoOffsetSec = await renderTransition(transitionDuration);
+            const promoOffsetSec = await renderTransition(transitionDuration, undefined, () => {
+                promoOutroOverrideRef.current = true;
+                animStartTimeRef.current = Date.now();
+            });
             transitionProgressRef.current = 0;
 
             // 3. Affichage du visuel promo final pendant promoDuration avec continuité (zéro relance de texte)
@@ -6143,18 +6148,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             await renderDuration(slideDuration);
 
             // 2. Transition carrousel vers Slide 2 (composite fluide)
-            agendaSlideOverrideRef.current = 2;
-            animStartTimeRef.current = Date.now();
-            const slide2OffsetSec = await renderTransition(transitionDuration);
+            const slide2OffsetSec = await renderTransition(transitionDuration, undefined, () => {
+                agendaSlideOverrideRef.current = 2;
+                animStartTimeRef.current = Date.now();
+            });
             transitionProgressRef.current = 0;
 
             // 3. Slide 2 (Lineup)
             await renderDuration(slideDuration, slide2OffsetSec);
 
             // 4. Transition vers le visuel PROMO outro à la fin du Reel (composite fluide)
-            promoOutroOverrideRef.current = true;
-            animStartTimeRef.current = Date.now();
-            const promoOffsetSec = await renderTransition(transitionDuration);
+            const promoOffsetSec = await renderTransition(transitionDuration, undefined, () => {
+                promoOutroOverrideRef.current = true;
+                animStartTimeRef.current = Date.now();
+            });
             transitionProgressRef.current = 0;
 
             // 5. Affichage du visuel promo final pendant promoDuration avec continuité (zéro relance de texte)
@@ -6165,8 +6172,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 let startOffset = 0;
                 if (i > 0) {
                     const durationTransition = 1200;
-                    setCurrentPreviewIndex(i);
-                    startOffset = await renderTransition(durationTransition);
+                    startOffset = await renderTransition(durationTransition, undefined, () => {
+                        setCurrentPreviewIndex(i);
+                    });
                     transitionProgressRef.current = 0;
                 } else {
                     setCurrentPreviewIndex(i);
@@ -6178,8 +6186,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 let startOffset = 0;
                 if (i > 0) {
                     const durationTransition = 1200;
-                    setCurrentPreviewIndex(i);
-                    startOffset = await renderTransition(durationTransition);
+                    startOffset = await renderTransition(durationTransition, undefined, () => {
+                        setCurrentPreviewIndex(i);
+                    });
                     transitionProgressRef.current = 0;
                 } else {
                     setCurrentPreviewIndex(i);
