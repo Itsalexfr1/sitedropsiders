@@ -797,6 +797,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [textAnimation, setTextAnimation] = useState<TextAnimType>('NONE');
     const [animReplayKey, setAnimReplayKey] = useState<number>(0);
     const animStartTimeRef = useRef<number>(Date.now());
+    const deterministicAnimTimeRef = useRef<number>(0);
+    const deterministicTotalTimeRef = useRef<number>(0);
 
     // Background animation states for Reels / Posts
     type BgAnimType = 'NONE' | 'ZOOM_IN' | 'ZOOM_OUT' | 'PAN_LEFT' | 'PAN_RIGHT' | 'PULSE' | 'BREATHE' | 'GLITCH';
@@ -1283,9 +1285,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const effectiveImg = img || (isMusiqueTrackSlide ? musiqueCoverImg : null);
 
             const isAnyAnimationActive = (textAnimation !== 'NONE' || bgAnimation !== 'NONE');
-            const animElapsed = (isVideoRecording || (bgVideo && !isDownloading) || isAnyAnimationActive || (theme === 'MUSIQUE' && !isDownloading && (cdjPlayerRing || musicBgMotion)))
-                ? (Date.now() - animStartTimeRef.current) / 1000
-                : 99.0;
+            const animElapsed = isVideoRecordingRef.current
+                ? deterministicAnimTimeRef.current
+                : ((bgVideo && !isDownloading) || isAnyAnimationActive || (theme === 'MUSIQUE' && !isDownloading && (cdjPlayerRing || musicBgMotion))
+                    ? (Date.now() - animStartTimeRef.current) / 1000
+                    : 99.0);
 
             const getTextAnimTransform = (delay: number = 0) => {
                 if (textAnimation === 'NONE') {
@@ -1384,12 +1388,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             if (bgAnimation !== 'NONE' && (effectiveImg || bgVideo)) {
                 const loopDuration = 6.0;
-                const tLinear = isVideoRecording 
-                    ? Math.min(1, animElapsed / loopDuration) 
-                    : ((animElapsed % loopDuration) / loopDuration);
-                const tSmooth = isVideoRecording 
-                    ? Math.min(1, animElapsed / loopDuration) 
-                    : (0.5 - 0.5 * Math.cos(tLinear * 2 * Math.PI));
+                const tLinear = (animElapsed % loopDuration) / loopDuration;
+                const tSmooth = 0.5 - 0.5 * Math.cos(tLinear * 2 * Math.PI);
 
                 switch (bgAnimation) {
                     case 'ZOOM_IN':
@@ -2269,7 +2269,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.save();
                 const badgeY = effectiveTab === 'PUBLICATION' ? 140 : 280;
 
-                const pulse = (Math.sin(Date.now() / 400) + 1) / 2;
+                const pulse = isVideoRecordingRef.current
+                    ? (Math.sin((deterministicAnimTimeRef.current * 1000) / 400) + 1) / 2
+                    : (Math.sin(Date.now() / 400) + 1) / 2;
 
                 // Red glowing dot
                 ctx.beginPath();
@@ -3124,9 +3126,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.textAlign = 'center';
                     
                     // Animation logic: Entrée au début puis reste fixe
-                    const elapsed = (isVideoRecording || (bgVideo && !isDownloading))
-                        ? (Date.now() - animStartTimeRef.current) / 1000
-                        : 99.0;
+                    const elapsed = isVideoRecordingRef.current
+                        ? deterministicAnimTimeRef.current
+                        : ((bgVideo && !isDownloading)
+                            ? (Date.now() - animStartTimeRef.current) / 1000
+                            : 99.0);
                     
                     let currY = 1480; 
 
@@ -3165,7 +3169,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     // FOOTER LOGO (Hidden in Insta Grid)
                     if (showBottomLogo && logoRef.current) {
-                        const elapsed = isVideoRecording ? (Date.now() - recordingStartTimeRef.current) / 1000 : 1.5;
+                        const elapsed = isVideoRecordingRef.current ? deterministicTotalTimeRef.current : 1.5;
                         const duration = 0.8;
                         const delay = 0.6; // Last to arrive
                         const t = Math.max(0, Math.min(1, (elapsed - delay) / duration));
@@ -4173,7 +4177,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 ctx.shadowBlur = 0;
 
-                const dotPulse = (Math.sin(Date.now() / 300) + 1) / 2;
+                const dotPulse = isVideoRecordingRef.current
+                    ? (Math.sin((deterministicAnimTimeRef.current * 1000) / 300) + 1) / 2
+                    : (Math.sin(Date.now() / 300) + 1) / 2;
                 ctx.beginPath();
                 ctx.arc(frameX + 45, frameY + 50, 8 + (dotPulse * 2.5), 0, Math.PI * 2);
                 ctx.fillStyle = '#ff0033';
@@ -4303,9 +4309,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const lineRightX = canvas.width - lineMarginX - swipeSpaceRight;
 
                 // Animation temporelle pour les textes (jouée une seule fois au début, puis le texte reste 100% fixe)
-                const animElapsed = (isVideoRecording || (bgVideo && !isDownloading) || textAnimation !== 'NONE')
-                    ? (Date.now() - animStartTimeRef.current) / 1000
-                    : 99.0;
+                const animElapsed = isVideoRecordingRef.current
+                    ? deterministicAnimTimeRef.current
+                    : ((bgVideo && !isDownloading) || textAnimation !== 'NONE'
+                        ? (Date.now() - animStartTimeRef.current) / 1000
+                        : 99.0);
 
                 // Date automatique centrée dans la barre blanche (avec un segment de barre blanche de chaque côté)
                 const showEditorialDate = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'CONCOURS', 'REELS', 'CONSEILS'].includes(theme);
@@ -5005,8 +5013,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             && typeof (window as any).VideoFrame !== 'undefined';
 
         let chosenCodec: string | null = null;
-        if (webCodecsAvailable && !isMobile) {
-            const candidates = ['avc1.640028', 'avc1.4d4028', 'avc1.420028', 'avc1.42E01E'];
+        if (webCodecsAvailable) {
+            const candidates = [
+                // High Profile (Levels 5.2, 5.1, 5.0, 4.2, 4.1, 4.0) - requis pour 1080x1920 @ 60 FPS
+                'avc1.640034', 'avc1.640033', 'avc1.640032', 'avc1.64002a', 'avc1.640029', 'avc1.640028',
+                // Main Profile
+                'avc1.4d4034', 'avc1.4d4033', 'avc1.4d4032', 'avc1.4d402a', 'avc1.4d4029', 'avc1.4d4028',
+                // Baseline Profile
+                'avc1.420034', 'avc1.420033', 'avc1.420032', 'avc1.42002a', 'avc1.420029', 'avc1.420028',
+                'avc1.42E01E'
+            ];
             for (const cand of candidates) {
                 try {
                     const check = await (window as any).VideoEncoder.isConfigSupported({
@@ -5081,17 +5097,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const captureFrame = async () => {
             if (!useWebCodecs || !videoEncoder || videoEncoder.state !== 'configured' || webEncoderErrored) return;
             try {
-                while (videoEncoder.encodeQueueSize > 12) {
+                while (videoEncoder.encodeQueueSize > 6) {
                     await new Promise(r => setTimeout(r, 4));
                 }
-                const timestampUs = Math.round(totalFramesEncoded * frameDurationUs);
-                const frame = new (window as any).VideoFrame(canvas, {
+                const timestampUs = Math.round((totalFramesEncoded * 1_000_000) / fps);
+                // Utiliser createImageBitmap pour forcer le flush GPU du canvas
+                const bitmap = await createImageBitmap(canvas);
+                const frame = new (window as any).VideoFrame(bitmap, {
                     timestamp: timestampUs,
                     duration: frameDurationUs,
                 });
                 const isKeyFrame = (totalFramesEncoded % (fps * 2)) === 0;
                 videoEncoder.encode(frame, { keyFrame: isKeyFrame });
                 frame.close();
+                bitmap.close();
                 totalFramesEncoded++;
             } catch (e) {
                 console.warn('captureFrame error:', e);
@@ -5156,17 +5175,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
                 for (let f = 0; f < numFrames; f++) {
                     const slideElapsedSec = f / fps;
+                    deterministicAnimTimeRef.current = slideElapsedSec;
+                    deterministicTotalTimeRef.current = totalFramesEncoded / fps;
                     animStartTimeRef.current = Date.now() - (slideElapsedSec * 1000);
                     recordingStartTimeRef.current = Date.now() - ((totalFramesEncoded / fps) * 1000);
 
                     if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
-                        const targetTime = ((totalFramesEncoded / fps) % bgVideo.duration);
-                        if (Math.abs(bgVideo.currentTime - targetTime) > 0.03) {
+                        const targetTime = (totalFramesEncoded / fps) % bgVideo.duration;
+                        if (Math.abs(bgVideo.currentTime - targetTime) > 0.001) {
                             bgVideo.currentTime = targetTime;
                             await new Promise<void>((res) => {
-                                const onSeek = () => { bgVideo.removeEventListener('seeked', onSeek); res(); };
-                                bgVideo.addEventListener('seeked', onSeek);
-                                setTimeout(res, 40);
+                                let done = false;
+                                const onSeek = () => {
+                                    if (done) return;
+                                    done = true;
+                                    bgVideo.removeEventListener('seeked', onSeek);
+                                    res();
+                                };
+                                bgVideo.addEventListener('seeked', onSeek, { once: true });
+                                setTimeout(onSeek, 60);
                             });
                         }
                     }
@@ -5177,13 +5204,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const overallElapsed = (totalFramesEncoded / fps) * 1000;
                     const progress = Math.min((overallElapsed / totalDuration) * 100, 99);
                     const timeLeft = Math.max(0, Math.ceil((totalDuration - overallElapsed) / 1000));
-                    if (f % 2 === 0) {
-                        if (recordingCircleRef.current) recordingCircleRef.current.style.strokeDashoffset = String(364.4 - (364.4 * progress) / 100);
-                        if (recordingCircle2Ref.current) recordingCircle2Ref.current.style.strokeDashoffset = String(565 - (565 * progress) / 100);
-                        if (recordingPercentRef.current) recordingPercentRef.current.textContent = `${Math.round(progress)}%`;
-                        if (recordingPercent2Ref.current) recordingPercent2Ref.current.textContent = `${Math.round(progress)}%`;
-                        if (recordingTimeRef.current) recordingTimeRef.current.textContent = `${timeLeft}S`;
-                        if (recordingTimeLeft2Ref.current) recordingTimeLeft2Ref.current.textContent = `${timeLeft}s restantes`;
+                    if (recordingCircleRef.current) recordingCircleRef.current.style.strokeDashoffset = String(364.4 - (364.4 * progress) / 100);
+                    if (recordingCircle2Ref.current) recordingCircle2Ref.current.style.strokeDashoffset = String(565 - (565 * progress) / 100);
+                    if (recordingPercentRef.current) recordingPercentRef.current.textContent = `${Math.round(progress)}%`;
+                    if (recordingPercent2Ref.current) recordingPercent2Ref.current.textContent = `${Math.round(progress)}%`;
+                    if (recordingTimeRef.current) recordingTimeRef.current.textContent = `${timeLeft}S`;
+                    if (recordingTimeLeft2Ref.current) recordingTimeLeft2Ref.current.textContent = `${timeLeft}s restantes`;
+
+                    if ((globalThis as any).scheduler?.yield) {
+                        await (globalThis as any).scheduler.yield();
+                    } else {
                         await new Promise(r => setTimeout(r, 0));
                     }
                 }
@@ -5224,17 +5254,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     onProgress(progress);
 
                     const slideElapsedSec = f / fps;
+                    deterministicAnimTimeRef.current = slideElapsedSec;
+                    deterministicTotalTimeRef.current = totalFramesEncoded / fps;
                     animStartTimeRef.current = Date.now() - (slideElapsedSec * 1000);
                     recordingStartTimeRef.current = Date.now() - ((totalFramesEncoded / fps) * 1000);
 
                     if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
-                        const targetTime = ((totalFramesEncoded / fps) % bgVideo.duration);
-                        if (Math.abs(bgVideo.currentTime - targetTime) > 0.03) {
+                        const targetTime = (totalFramesEncoded / fps) % bgVideo.duration;
+                        if (Math.abs(bgVideo.currentTime - targetTime) > 0.001) {
                             bgVideo.currentTime = targetTime;
                             await new Promise<void>((res) => {
-                                const onSeek = () => { bgVideo.removeEventListener('seeked', onSeek); res(); };
-                                bgVideo.addEventListener('seeked', onSeek);
-                                setTimeout(res, 40);
+                                let done = false;
+                                const onSeek = () => {
+                                    if (done) return;
+                                    done = true;
+                                    bgVideo.removeEventListener('seeked', onSeek);
+                                    res();
+                                };
+                                bgVideo.addEventListener('seeked', onSeek, { once: true });
+                                setTimeout(onSeek, 60);
                             });
                         }
                     }
@@ -5245,13 +5283,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const overallElapsed = (totalFramesEncoded / fps) * 1000;
                     const uiProgress = Math.min((overallElapsed / totalDuration) * 100, 99);
                     const timeLeft = Math.max(0, Math.ceil((totalDuration - overallElapsed) / 1000));
-                    if (f % 2 === 0) {
-                        if (recordingCircleRef.current) recordingCircleRef.current.style.strokeDashoffset = String(364.4 - (364.4 * uiProgress) / 100);
-                        if (recordingCircle2Ref.current) recordingCircle2Ref.current.style.strokeDashoffset = String(565 - (565 * uiProgress) / 100);
-                        if (recordingPercentRef.current) recordingPercentRef.current.textContent = `${Math.round(uiProgress)}%`;
-                        if (recordingPercent2Ref.current) recordingPercent2Ref.current.textContent = `${Math.round(uiProgress)}%`;
-                        if (recordingTimeRef.current) recordingTimeRef.current.textContent = `${timeLeft}S`;
-                        if (recordingTimeLeft2Ref.current) recordingTimeLeft2Ref.current.textContent = `${timeLeft}s restantes`;
+                    if (recordingCircleRef.current) recordingCircleRef.current.style.strokeDashoffset = String(364.4 - (364.4 * uiProgress) / 100);
+                    if (recordingCircle2Ref.current) recordingCircle2Ref.current.style.strokeDashoffset = String(565 - (565 * uiProgress) / 100);
+                    if (recordingPercentRef.current) recordingPercentRef.current.textContent = `${Math.round(uiProgress)}%`;
+                    if (recordingPercent2Ref.current) recordingPercent2Ref.current.textContent = `${Math.round(uiProgress)}%`;
+                    if (recordingTimeRef.current) recordingTimeRef.current.textContent = `${timeLeft}S`;
+                    if (recordingTimeLeft2Ref.current) recordingTimeLeft2Ref.current.textContent = `${timeLeft}s restantes`;
+
+                    if ((globalThis as any).scheduler?.yield) {
+                        await (globalThis as any).scheduler.yield();
+                    } else {
                         await new Promise(r => setTimeout(r, 0));
                     }
                 }
@@ -5367,26 +5408,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 bgVideo.pause();
                 bgVideo.currentTime = 0;
                 await new Promise<void>((resolve) => {
-                    const onSeeked = () => { bgVideo.removeEventListener('seeked', onSeeked); resolve(); };
-                    bgVideo.addEventListener('seeked', onSeeked);
-                    setTimeout(resolve, 200);
+                    let done = false;
+                    const onSeeked = () => {
+                        if (done) return;
+                        done = true;
+                        bgVideo.removeEventListener('seeked', onSeeked);
+                        resolve();
+                    };
+                    bgVideo.addEventListener('seeked', onSeeked, { once: true });
+                    setTimeout(onSeeked, 200);
                 });
                 bgVideo.loop = true;
-                try { bgVideo.muted = false; await bgVideo.play(); }
-                catch { bgVideo.muted = true; await bgVideo.play().catch(() => {}); }
 
-                if (!bgVideo.muted && !useWebCodecs && canvasStream) {
-                    const vidStream = (bgVideo as any).captureStream?.() ?? (bgVideo as any).mozCaptureStream?.() ?? null;
-                    if (vidStream?.getAudioTracks().length > 0) {
-                        hasAudioTrack = true;
-                        combinedStream = new MediaStream([...canvasStream.getTracks(), vidStream.getAudioTracks()[0]]);
+                // En mode WebCodecs déterministe, bgVideo DOIT RESTER PAUSED pour que le seek frame-par-frame soit parfait !
+                // On ne play() bgVideo que si useWebCodecs est faux (MediaRecorder temps réel).
+                if (!useWebCodecs) {
+                    try { bgVideo.muted = false; await bgVideo.play(); }
+                    catch { bgVideo.muted = true; await bgVideo.play().catch(() => {}); }
+
+                    if (!bgVideo.muted && canvasStream) {
+                        const vidStream = (bgVideo as any).captureStream?.() ?? (bgVideo as any).mozCaptureStream?.() ?? null;
+                        if (vidStream?.getAudioTracks().length > 0) {
+                            hasAudioTrack = true;
+                            combinedStream = new MediaStream([...canvasStream.getTracks(), vidStream.getAudioTracks()[0]]);
+                        }
                     }
                 }
             } catch (e) {
                 console.error('Erreur init bgVideo :', e);
                 bgVideo.muted = true;
                 bgVideo.loop = true;
-                await bgVideo.play().catch(() => {});
             }
         }
 
@@ -5441,8 +5492,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
 
-            // Sur mobile : modal de prévisualisation directe (sans FFmpeg pour réactivité)
-            if (isMobile) {
+            // Sur mobile natif sans WebCodecs : modal de prévisualisation directe WebM
+            const isActualMobileDevice = typeof navigator !== 'undefined' && (/iPad|iPhone|iPod|Android/.test(navigator.userAgent) || ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 2 && window.innerWidth < 1024));
+            if (isActualMobileDevice && !useWebCodecs && videoBlob.type.includes('webm')) {
                 // Fix WebM duration pour eviter le lag
                 const durationMs = totalDuration || 30000;
                 const fixedBlob = await fixWebmDuration(videoBlob, durationMs);
