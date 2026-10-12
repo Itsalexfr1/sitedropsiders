@@ -23,7 +23,8 @@
 		"GITHUB_FILE_PATH": "src/data/subscribers.json",
 		"TWITCH_CLIENT_ID": "dvqq2ycivd22zlm43giy7liklktvqo",
 		"TWITCH_EVENTSUB_SECRET": "Drop_Bot_Twitch",
-		"TWITCH_CHANNEL": "dropsiders_live"
+		"TWITCH_CHANNEL": "dropsiders_live",
+		"CF_ACCOUNT_ID": "86ded1790b5d94788eb7e6dd436521cd"
 	},
 	"kv_namespaces": [
 		{
