@@ -4991,6 +4991,112 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const fps = exportFps || 30; // 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
         const frameInterval = 1000 / fps;
         const frameDurationUs = Math.round(1_000_000 / fps); // durée d'un frame en microsecondes
+        const targetWidth = 1080;
+        const targetHeight = activeTab === 'REEL' ? 1920 : 1350;
+        if (canvas.width !== targetWidth) canvas.width = targetWidth;
+        if (canvas.height !== targetHeight) canvas.height = targetHeight;
+        const bitrate = isMobile ? 6000000 : (fps === 60 ? 14000000 : 10000000);
+
+        // ── DÉTECTION WEBCODECS (EXPORT FRAME-PAR-FRAME DÉTERMINISTE) ───────────────
+        // WebCodecs élimine à 100% les saccades et baisses de FPS : chaque frame est
+        // calculée et encodée mathématiquement au timestamp exact (0 drop, 0 doublon).
+        const webCodecsAvailable = typeof window !== 'undefined'
+            && typeof (window as any).VideoEncoder !== 'undefined'
+            && typeof (window as any).VideoFrame !== 'undefined';
+
+        let chosenCodec: string | null = null;
+        if (webCodecsAvailable && !isMobile) {
+            const candidates = ['avc1.640028', 'avc1.4d4028', 'avc1.420028', 'avc1.42E01E'];
+            for (const cand of candidates) {
+                try {
+                    const check = await (window as any).VideoEncoder.isConfigSupported({
+                        codec: cand,
+                        width: targetWidth,
+                        height: targetHeight,
+                        bitrate,
+                        framerate: fps,
+                        hardwareAcceleration: 'no-preference',
+                        avc: { format: 'avc' },
+                    });
+                    if (check && check.supported) {
+                        chosenCodec = cand;
+                        break;
+                    }
+                } catch {}
+            }
+        }
+        const useWebCodecs = Boolean(chosenCodec);
+
+        let videoEncoder: any = null;
+        let muxerTarget: any = null;
+        let muxer: any = null;
+        let totalFramesEncoded = 0;
+        let webEncoderErrored = false;
+
+        if (useWebCodecs && chosenCodec) {
+            muxerTarget = new ArrayBufferTarget();
+            muxer = new Muxer({
+                target: muxerTarget,
+                video: {
+                    codec: 'avc',
+                    width: targetWidth,
+                    height: targetHeight,
+                    frameRate: fps,
+                },
+                fastStart: 'in-memory',
+                firstTimestampBehavior: 'offset',
+            });
+
+            videoEncoder = new (window as any).VideoEncoder({
+                output: (chunk: any, meta: any) => {
+                    try {
+                        muxer.addVideoChunk(chunk, meta);
+                    } catch (e: any) {
+                        console.error('Muxer addVideoChunk error:', e);
+                    }
+                },
+                error: (e: any) => {
+                    console.error('VideoEncoder error:', e);
+                    webEncoderErrored = true;
+                },
+            });
+
+            try {
+                videoEncoder.configure({
+                    codec: chosenCodec,
+                    width: targetWidth,
+                    height: targetHeight,
+                    bitrate,
+                    framerate: fps,
+                    hardwareAcceleration: 'no-preference',
+                    avc: { format: 'avc' },
+                });
+            } catch (err) {
+                console.error("VideoEncoder configure error:", err);
+                webEncoderErrored = true;
+            }
+        }
+
+        // ── captureFrame : encode un frame deterministe dans WebCodecs ──────────────
+        const captureFrame = async () => {
+            if (!useWebCodecs || !videoEncoder || videoEncoder.state !== 'configured' || webEncoderErrored) return;
+            try {
+                while (videoEncoder.encodeQueueSize > 12) {
+                    await new Promise(r => setTimeout(r, 4));
+                }
+                const timestampUs = Math.round(totalFramesEncoded * frameDurationUs);
+                const frame = new (window as any).VideoFrame(canvas, {
+                    timestamp: timestampUs,
+                    duration: frameDurationUs,
+                });
+                const isKeyFrame = (totalFramesEncoded % (fps * 2)) === 0;
+                videoEncoder.encode(frame, { keyFrame: isKeyFrame });
+                frame.close();
+                totalFramesEncoded++;
+            } catch (e) {
+                console.warn('captureFrame error:', e);
+            }
+        };
 
         // ── CALCUL PRÉALABLE DE LA DURÉE TOTALE ET DES FRAMES ATTENDUES ─────────────
         const currentTransitionDuration = getTransitionDuration(slideTransition);
@@ -5044,68 +5150,146 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (recordingTimeLeft2Ref.current) recordingTimeLeft2Ref.current.textContent = `${timeLeft}s restantes`;
         };
 
+        // ── renderDuration : rendu déterministe (WebCodecs) ou temps réel (MediaRecorder) ───
+        const renderDuration = async (durationMs: number): Promise<void> => {
+            if (useWebCodecs) {
+                const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
+                for (let f = 0; f < numFrames; f++) {
+                    const slideElapsedSec = f / fps;
+                    animStartTimeRef.current = Date.now() - (slideElapsedSec * 1000);
+                    recordingStartTimeRef.current = Date.now() - ((totalFramesEncoded / fps) * 1000);
 
-        // ── renderDuration : rendu canvas temps réel synchronisé et cadencé ─────────────────
-        // On cadence strictement chaque génération d'image au rythme frameInterval (30 ou 60 FPS)
-        // et on attend la fin du dessin pour éviter toute surcharge CPU / désynchronisation.
-        const renderDuration = (durationMs: number): Promise<void> => new Promise((resolve) => {
-            const start = performance.now();
-            let lastRender = 0;
-            let isRendering = false;
-            const step = async (now: number) => {
-                const elapsed = now - start;
-                if (elapsed >= durationMs) { resolve(); return; }
-                if (now - lastRender >= frameInterval - 1 && !isRendering) {
-                    isRendering = true;
-                    lastRender = now;
-                    animStartTimeRef.current = Date.now() - elapsed;
-                    recordingStartTimeRef.current = Date.now() - elapsed;
-                    updateProgressUI();
-                    try {
-                        await generateImage();
-                    } catch (e) {
-                        console.warn("generateImage render error", e);
-                    } finally {
-                        isRendering = false;
+                    if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
+                        const targetTime = ((totalFramesEncoded / fps) % bgVideo.duration);
+                        if (Math.abs(bgVideo.currentTime - targetTime) > 0.03) {
+                            bgVideo.currentTime = targetTime;
+                            await new Promise<void>((res) => {
+                                const onSeek = () => { bgVideo.removeEventListener('seeked', onSeek); res(); };
+                                bgVideo.addEventListener('seeked', onSeek);
+                                setTimeout(res, 40);
+                            });
+                        }
+                    }
+
+                    await generateImage();
+                    await captureFrame();
+
+                    const overallElapsed = (totalFramesEncoded / fps) * 1000;
+                    const progress = Math.min((overallElapsed / totalDuration) * 100, 99);
+                    const timeLeft = Math.max(0, Math.ceil((totalDuration - overallElapsed) / 1000));
+                    if (f % 2 === 0) {
+                        if (recordingCircleRef.current) recordingCircleRef.current.style.strokeDashoffset = String(364.4 - (364.4 * progress) / 100);
+                        if (recordingCircle2Ref.current) recordingCircle2Ref.current.style.strokeDashoffset = String(565 - (565 * progress) / 100);
+                        if (recordingPercentRef.current) recordingPercentRef.current.textContent = `${Math.round(progress)}%`;
+                        if (recordingPercent2Ref.current) recordingPercent2Ref.current.textContent = `${Math.round(progress)}%`;
+                        if (recordingTimeRef.current) recordingTimeRef.current.textContent = `${timeLeft}S`;
+                        if (recordingTimeLeft2Ref.current) recordingTimeLeft2Ref.current.textContent = `${timeLeft}s restantes`;
+                        await new Promise(r => setTimeout(r, 0));
                     }
                 }
-                requestAnimationFrame(step);
-            };
-            requestAnimationFrame(step);
-        });
+            } else {
+                const start = performance.now();
+                let lastRender = 0;
+                let isRendering = false;
+                await new Promise<void>((resolve) => {
+                    const step = async (now: number) => {
+                        const elapsed = now - start;
+                        if (elapsed >= durationMs) { resolve(); return; }
+                        if (now - lastRender >= frameInterval - 1 && !isRendering) {
+                            isRendering = true;
+                            lastRender = now;
+                            animStartTimeRef.current = Date.now() - elapsed;
+                            recordingStartTimeRef.current = Date.now() - elapsed;
+                            updateProgressUI();
+                            try {
+                                await generateImage();
+                            } catch (e) {
+                                console.warn("generateImage render error", e);
+                            } finally {
+                                isRendering = false;
+                            }
+                        }
+                        requestAnimationFrame(step);
+                    };
+                    requestAnimationFrame(step);
+                });
+            }
+        };
 
-        const renderTransition = (durationMs: number, onProgress: (p: number) => void): Promise<void> => new Promise((resolve) => {
-            const start = performance.now();
-            let lastRender = 0;
-            let isRendering = false;
-            const step = async (now: number) => {
-                const elapsed = now - start;
-                if (elapsed >= durationMs) {
-                    onProgress(1);
-                    try { await generateImage(); } catch {}
-                    resolve();
-                    return;
-                }
-                if (now - lastRender >= frameInterval - 1 && !isRendering) {
-                    isRendering = true;
-                    lastRender = now;
-                    const progress = Math.min(1, elapsed / durationMs);
+        const renderTransition = async (durationMs: number, onProgress: (p: number) => void): Promise<void> => {
+            if (useWebCodecs) {
+                const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
+                for (let f = 0; f < numFrames; f++) {
+                    const progress = numFrames <= 1 ? 1 : f / (numFrames - 1);
                     onProgress(progress);
-                    animStartTimeRef.current = Date.now() - elapsed;
-                    recordingStartTimeRef.current = Date.now() - elapsed;
-                    try {
-                        await generateImage();
-                    } catch (e) {
-                        console.warn("generateImage transition error", e);
-                    } finally {
-                        isRendering = false;
+
+                    const slideElapsedSec = f / fps;
+                    animStartTimeRef.current = Date.now() - (slideElapsedSec * 1000);
+                    recordingStartTimeRef.current = Date.now() - ((totalFramesEncoded / fps) * 1000);
+
+                    if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
+                        const targetTime = ((totalFramesEncoded / fps) % bgVideo.duration);
+                        if (Math.abs(bgVideo.currentTime - targetTime) > 0.03) {
+                            bgVideo.currentTime = targetTime;
+                            await new Promise<void>((res) => {
+                                const onSeek = () => { bgVideo.removeEventListener('seeked', onSeek); res(); };
+                                bgVideo.addEventListener('seeked', onSeek);
+                                setTimeout(res, 40);
+                            });
+                        }
+                    }
+
+                    await generateImage();
+                    await captureFrame();
+
+                    const overallElapsed = (totalFramesEncoded / fps) * 1000;
+                    const uiProgress = Math.min((overallElapsed / totalDuration) * 100, 99);
+                    const timeLeft = Math.max(0, Math.ceil((totalDuration - overallElapsed) / 1000));
+                    if (f % 2 === 0) {
+                        if (recordingCircleRef.current) recordingCircleRef.current.style.strokeDashoffset = String(364.4 - (364.4 * uiProgress) / 100);
+                        if (recordingCircle2Ref.current) recordingCircle2Ref.current.style.strokeDashoffset = String(565 - (565 * uiProgress) / 100);
+                        if (recordingPercentRef.current) recordingPercentRef.current.textContent = `${Math.round(uiProgress)}%`;
+                        if (recordingPercent2Ref.current) recordingPercent2Ref.current.textContent = `${Math.round(uiProgress)}%`;
+                        if (recordingTimeRef.current) recordingTimeRef.current.textContent = `${timeLeft}S`;
+                        if (recordingTimeLeft2Ref.current) recordingTimeLeft2Ref.current.textContent = `${timeLeft}s restantes`;
+                        await new Promise(r => setTimeout(r, 0));
                     }
                 }
-                requestAnimationFrame(step);
-            };
-            requestAnimationFrame(step);
-        });
-
+                onProgress(1);
+            } else {
+                const start = performance.now();
+                let lastRender = 0;
+                let isRendering = false;
+                await new Promise<void>((resolve) => {
+                    const step = async (now: number) => {
+                        const elapsed = now - start;
+                        if (elapsed >= durationMs) {
+                            onProgress(1);
+                            try { await generateImage(); } catch {}
+                            resolve();
+                            return;
+                        }
+                        if (now - lastRender >= frameInterval - 1 && !isRendering) {
+                            isRendering = true;
+                            lastRender = now;
+                            const progress = Math.min(1, elapsed / durationMs);
+                            onProgress(progress);
+                            animStartTimeRef.current = Date.now() - elapsed;
+                            recordingStartTimeRef.current = Date.now() - elapsed;
+                            try {
+                                await generateImage();
+                            } catch (e) {
+                                console.warn("generateImage transition error", e);
+                            } finally {
+                                isRendering = false;
+                            }
+                        }
+                        requestAnimationFrame(step);
+                    };
+                    requestAnimationFrame(step);
+                });
+            }
+        };
 
         isVideoRecordingRef.current = true;
         promoOutroOverrideRef.current = false;
@@ -5127,45 +5311,42 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         recordingStartTimeRef.current = Date.now();
         animStartTimeRef.current = Date.now();
 
-        const formats = [
-            'video/mp4;codecs=h264',
-            'video/mp4',
-            'video/quicktime',
-            'video/webm;codecs=h264',
-            'video/webm;codecs=vp9',
-            'video/webm'
-        ];
-
-        const mimeType = formats.find(f => MediaRecorder.isTypeSupported(f)) || 'video/webm';
-
-        const canvasStream = (canvas as any).captureStream ? (canvas as any).captureStream(fps) : (canvas as any).mozCaptureStream ? (canvas as any).mozCaptureStream(fps) : null;
-
-        if (!canvasStream) {
-            setErrorMessage("Votre navigateur ne supporte pas la capture vidéo.");
-            isVideoRecordingRef.current = false;
-            setIsVideoRecording(false);
-            if (combinedMode === 'PLANNING') {
-                agendaSlideOverrideRef.current = null;
-                setAgendaSlide(prevAgendaSlide);
-                setIsCarouselPromoActive(prevWasCarouselPromoActive);
-            } else if (combinedMode === 'EDITORIAL') {
-                editorialSlideOverrideRef.current = null;
-                setEditorialSlide(prevEditorialSlide);
-                setIsCarouselPromoActive(prevWasCarouselPromoActive);
-            }
-            return;
-        }
-
-        // ── APPROCHE HYBRIDE ──────────────────────────────────────────────────────────
-        // • bgVideo        → audio natif captureStream() dans MediaRecorder
-        //                    (thread OS, totalement découplé du canvas JS → zéro glitch)
-        // • MUSIQUE        → vidéo seule + OfflineAudioContext WAV après enregistrement
-        //                    (timing mathématique parfait, zéro dépendance temps réel)
-        // • Autres thèmes  → vidéo seule (pas de source audio)
-        // ─────────────────────────────────────────────────────────────────────────────
-
-        let combinedStream: MediaStream = canvasStream;
+        let canvasStream: MediaStream | null = null;
+        let combinedStream: MediaStream | null = null;
         let hasAudioTrack = false;
+        let recorder: MediaRecorder | null = null;
+        const chunks: Blob[] = [];
+        let mimeType = 'video/webm';
+
+        if (!useWebCodecs) {
+            const formats = [
+                'video/mp4;codecs=h264',
+                'video/mp4',
+                'video/quicktime',
+                'video/webm;codecs=h264',
+                'video/webm;codecs=vp9',
+                'video/webm'
+            ];
+            mimeType = formats.find(f => MediaRecorder.isTypeSupported(f)) || 'video/webm';
+            canvasStream = (canvas as any).captureStream ? (canvas as any).captureStream(fps) : (canvas as any).mozCaptureStream ? (canvas as any).mozCaptureStream(fps) : null;
+
+            if (!canvasStream) {
+                setErrorMessage("Votre navigateur ne supporte pas la capture vidéo.");
+                isVideoRecordingRef.current = false;
+                setIsVideoRecording(false);
+                if (combinedMode === 'PLANNING') {
+                    agendaSlideOverrideRef.current = null;
+                    setAgendaSlide(prevAgendaSlide);
+                    setIsCarouselPromoActive(prevWasCarouselPromoActive);
+                } else if (combinedMode === 'EDITORIAL') {
+                    editorialSlideOverrideRef.current = null;
+                    setEditorialSlide(prevEditorialSlide);
+                    setIsCarouselPromoActive(prevWasCarouselPromoActive);
+                }
+                return;
+            }
+            combinedStream = canvasStream;
+        }
 
         // Pré-décodage PCM MUSIQUE (avant le start pour ne pas bloquer pendant l'enregistrement)
         const hasAnyMusicAudio = (theme === 'MUSIQUE') && (!!musicIntroAudio || musicTracks.some(t => !!t.audio));
@@ -5180,7 +5361,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const playMusicSegment = async (_url: string, _startTime: number) => {};
         const musicAudioEl: { active: boolean } | null = hasAnyMusicAudio ? { active: true } : null;
 
-        // bgVideo : rembobinage + audio natif via captureStream (thread séparé du JS)
+        // bgVideo : rembobinage + audio
         if (bgVideo) {
             try {
                 bgVideo.pause();
@@ -5194,8 +5375,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 try { bgVideo.muted = false; await bgVideo.play(); }
                 catch { bgVideo.muted = true; await bgVideo.play().catch(() => {}); }
 
-                if (!bgVideo.muted) {
-                    // Piste audio native du flux vidéo (zéro CPU JS, zéro jitter)
+                if (!bgVideo.muted && !useWebCodecs && canvasStream) {
                     const vidStream = (bgVideo as any).captureStream?.() ?? (bgVideo as any).mozCaptureStream?.() ?? null;
                     if (vidStream?.getAudioTracks().length > 0) {
                         hasAudioTrack = true;
@@ -5210,26 +5390,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         }
 
-        // Bitrate 10Mbps PC
-        const bitrate = isMobile ? 6000000 : 10000000;
-
-        // ── PIPELINE VIDÉO : MediaRecorder pur ──────────────────────────────────────────
-        // combinedStream contient : piste vidéo (canvas) + piste audio (bgVideo si dispo)
-        // L'audio est automatiquement inclus dans l'enregistrement.
-        const chunks: Blob[] = [];
-        const targetWidth = 1080;
-        const targetHeight = activeTab === 'REEL' ? 1920 : 1350;
-        if (canvas.width !== targetWidth) canvas.width = targetWidth;
-        if (canvas.height !== targetHeight) canvas.height = targetHeight;
-
-        const recorder = new MediaRecorder(combinedStream, {
-            mimeType,
-            videoBitsPerSecond: bitrate,
-            ...(hasAudioTrack ? { audioBitsPerSecond: 192000 } : {}),
-        });
-        recorder.ondataavailable = (e: any) => {
-            if (e.data && e.data.size > 0) chunks.push(e.data);
-        };
+        if (!useWebCodecs && combinedStream) {
+            recorder = new MediaRecorder(combinedStream, {
+                mimeType,
+                videoBitsPerSecond: bitrate,
+                ...(hasAudioTrack ? { audioBitsPerSecond: 192000 } : {}),
+            });
+            recorder.ondataavailable = (e: any) => {
+                if (e.data && e.data.size > 0) chunks.push(e.data);
+            };
+        }
 
 
         const finalizeRecording = async () => {
@@ -5243,14 +5413,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             let videoBlob: Blob;
 
-            // ── MediaRecorder : chunks → Blob
-            if (chunks.length === 0) {
-                setErrorMessage("Erreur de capture vidéo : aucune donnée reçue. Recharge la page et réessaie.");
-                isVideoRecordingRef.current = false;
-                setIsVideoRecording(false);
-                return;
+            if (useWebCodecs && videoEncoder && muxer && muxerTarget) {
+                try {
+                    if (videoEncoder.state === 'configured') {
+                        await videoEncoder.flush();
+                    }
+                    if (totalFramesEncoded === 0 || webEncoderErrored) {
+                        throw new Error(webEncoderErrored ? "Encodeur H.264 WebCodecs en erreur sur ce GPU." : "Aucune frame vidéo encodée.");
+                    }
+                    muxer.finalize();
+                    videoBlob = new Blob([muxerTarget.buffer], { type: 'video/mp4' });
+                } catch (e: any) {
+                    console.error('WebCodecs finalize error:', e);
+                    setErrorMessage(`Erreur d'encodage vidéo : ${e?.message || 'Erreur codec'}`);
+                    isVideoRecordingRef.current = false;
+                    setIsVideoRecording(false);
+                    return;
+                }
+            } else {
+                if (chunks.length === 0) {
+                    setErrorMessage("Erreur de capture vidéo : aucune donnée reçue. Recharge la page et réessaie.");
+                    isVideoRecordingRef.current = false;
+                    setIsVideoRecording(false);
+                    return;
+                }
+                videoBlob = new Blob(chunks, { type: mimeType });
             }
-            videoBlob = new Blob(chunks, { type: mimeType });
 
 
             // Sur mobile : modal de prévisualisation directe (sans FFmpeg pour réactivité)
@@ -5312,8 +5500,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         if (audioUrl) audioSegments.push({ url: audioUrl, startOffset: 0, sourceOffset: srcOffset });
                     }
                 } else if (bgVideo && bgVideo.src) {
-                    // bgVideo : extraction audio directement dans FFmpeg (plus bas)
-                    // pas de segment OfflineAudioContext pour éviter double-décodage
+                    try {
+                        const buf = await getDecodedAudioBuffer(bgVideo.src);
+                        if (buf && buf.duration > 0) {
+                            audioSegments.push({ url: bgVideo.src, startOffset: 0, sourceOffset: 0 });
+                        }
+                    } catch (e) {
+                        console.warn("Extraction audio bgVideo impossible :", e);
+                    }
                 }
 
                 if (audioSegments.length > 0) {
@@ -5485,12 +5679,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         };
 
-        // Démarrage du MediaRecorder
-        recorder.onstop = finalizeRecording;
-        recorder.start(500);
-
-        // Mise à jour de la barre de progression toutes les 250ms
-        const progressInterval = setInterval(updateProgressUI, 250);
+        // Démarrage du MediaRecorder uniquement en mode fallback
+        let progressInterval: any = null;
+        if (!useWebCodecs && recorder) {
+            recorder.onstop = finalizeRecording;
+            recorder.start(500);
+            progressInterval = setInterval(updateProgressUI, 250);
+        }
 
 
         if (combinedMode === 'EDITORIAL') {
@@ -5685,8 +5880,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         stopMusicSegment();
 
-        if (recorder.state !== 'inactive') {
+        if (!useWebCodecs && recorder && recorder.state !== 'inactive') {
             recorder.stop();
+        } else if (useWebCodecs) {
+            await finalizeRecording();
         }
     };
 
