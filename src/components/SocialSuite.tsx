@@ -5785,7 +5785,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     view.setUint16(32, numCh * 2, true);
                     view.setUint16(34, 16, true);
                     writeStr(36, 'data');
-                         // ── PHASE 2b : ATTENTE DU RESULTAT DE LA CAPTURE AUDIO bgVideo (lancée en parallèle) ────
+                    view.setUint32(40, numSamples * numCh * 2, true);
+                    let offset2 = 44;
+                    for (let i = 0; i < numSamples; i++) {
+                        for (let ch = 0; ch < numCh; ch++) {
+                            const sample = Math.max(-1, Math.min(1, renderedBuffer.getChannelData(ch)[i]));
+                            view.setInt16(offset2, sample < 0 ? sample * 32768 : sample * 32767, true);
+                            offset2 += 2;
+                        }
+                    }
+                    offlineWavBlob = new Blob([wavBuffer], { type: 'audio/wav' });
+                }
+            } catch (audioRenderErr) {
+                console.warn('Rendu audio offline échoué (fallback vidéo seule) :', audioRenderErr);
+            }
+
+            // ── PHASE 2b : ATTENTE DU RESULTAT DE LA CAPTURE AUDIO bgVideo (lancée en parallèle) ────
             let bgAudioBlob: Blob | null = null;
             if (!offlineWavBlob && bgVideo && useWebCodecs) {
                 console.log('[Audio] En attente de bgAudioCapturePromise...');
