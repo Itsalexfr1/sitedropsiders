@@ -5180,91 +5180,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         }
 
-        // ── CAPTURE AUDIO bgVideo EN PARALLÈLE (démarrée ICI, proche du geste user) ─────────────────────────────
-        // La capture démarre MAINTENANT, pendant que WebCodecs encode les frames.
-        // On attend le résultat dans finalizeRecording via bgAudioCapturePromise.
-        // Raison : bgVideo.play() échoue si appelé trop tard (autoplay policy expirée après tous les await).
-        let bgAudioCapturePromise: Promise<Blob | null> = Promise.resolve(null);
-        if (bgVideo && useWebCodecs) {
-            bgAudioCapturePromise = (async (): Promise<Blob | null> => {
-                try {
-                    // Cloner la src pour ne pas interférer avec le seek frame-par-frame de bgVideo
-                    const audioVideo = document.createElement('video');
-                    audioVideo.src = bgVideo.currentSrc || bgVideo.src;
-                    audioVideo.crossOrigin = 'anonymous';
-                    audioVideo.muted = false;
-                    audioVideo.volume = 0.001; // quasi-silencieux mais suffisant pour déclencher le décodage audio
-                    audioVideo.loop = true;
-                    audioVideo.preload = 'auto';
-                    document.body.appendChild(audioVideo);
-
-                    // Attendre que l'audio soit chargé
-                    await new Promise<void>(res => {
-                        audioVideo.oncanplay = () => res();
-                        audioVideo.load();
-                        setTimeout(res, 2000); // max 2s d'attente
-                    });
-
-                    await audioVideo.play().catch(() => {});
-
-                    // Vérifier qu'il y a bien des pistes audio via captureStream
-                    const vidStream = (audioVideo as any).captureStream?.() ?? (audioVideo as any).mozCaptureStream?.() ?? null;
-                    if (!vidStream) {
-                        audioVideo.pause();
-                        document.body.removeChild(audioVideo);
-                        console.warn('[Audio] captureStream() non disponible sur ce navigateur.');
-                        return null;
-                    }
-
-                    const audioTracks = vidStream.getAudioTracks();
-                    console.log('[Audio] Pistes audio détectées sur bgVideo clone:', audioTracks.length);
-                    if (audioTracks.length === 0) {
-                        audioVideo.pause();
-                        document.body.removeChild(audioVideo);
-                        console.warn('[Audio] bgVideo n\'a pas de piste audio.');
-                        return null;
-                    }
-
-                    const audioStream = new MediaStream(audioTracks);
-                    const audioMime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus']
-                        .find(m => MediaRecorder.isTypeSupported(m)) || '';
-                    if (!audioMime) {
-                        audioVideo.pause();
-                        document.body.removeChild(audioVideo);
-                        console.warn('[Audio] Aucun format audio MediaRecorder supporté.');
-                        return null;
-                    }
-
-                    const audioChunks: Blob[] = [];
-                    const audioRec = new MediaRecorder(audioStream, { mimeType: audioMime });
-                    audioRec.ondataavailable = (e: any) => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
-                    audioRec.start(200);
-                    console.log('[Audio] Enregistrement audio démarré (durée:', Math.round(totalDuration / 1000), 's)');
-
-                    // Attendre la durée totale d'export
-                    await new Promise(res => setTimeout(res, totalDuration + 500));
-
-                    audioRec.stop();
-                    audioVideo.pause();
-                    document.body.removeChild(audioVideo);
-
-                    await new Promise<void>(res => { audioRec.onstop = () => res(); });
-
-                    if (audioChunks.length === 0) {
-                        console.warn('[Audio] Aucun chunk audio capturé.');
-                        return null;
-                    }
-
-                    const blob = new Blob(audioChunks, { type: audioMime });
-                    console.log('[Audio] ✅ Audio capturé:', Math.round(blob.size / 1024), 'KB, format:', audioMime);
-                    return blob;
-                } catch (err) {
-                    console.warn('[Audio] Capture audio échouée:', err);
-                    return null;
-                }
-            })();
-        }
-
         const captureFrame = async () => {
             if (!useWebCodecs || !videoEncoder || videoEncoder.state !== 'configured' || webEncoderErrored) return;
             try {
@@ -5322,6 +5237,84 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     : ((activeTab === 'REEL' || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST') ? 15000 : 60000);
                 if (totalDuration > 600000) totalDuration = 600000;
             }
+        }
+
+        // ── CAPTURE AUDIO bgVideo EN PARALLÈLE (ici, après totalDuration calculé) ────────────────────
+        // La capture démarre maintenant (totalDuration est désormais connu) pendant que WebCodecs encode.
+        // bgVideo.play() est appelé ici, proche du geste user (autoplay policy encore actif).
+        let bgAudioCapturePromise: Promise<Blob | null> = Promise.resolve(null);
+        if (bgVideo && useWebCodecs) {
+            bgAudioCapturePromise = (async (): Promise<Blob | null> => {
+                try {
+                    const audioVideo = document.createElement('video');
+                    audioVideo.src = bgVideo.currentSrc || bgVideo.src;
+                    audioVideo.crossOrigin = 'anonymous';
+                    audioVideo.muted = false;
+                    audioVideo.volume = 0.001;
+                    audioVideo.loop = true;
+                    audioVideo.preload = 'auto';
+                    document.body.appendChild(audioVideo);
+
+                    await new Promise<void>(res => {
+                        audioVideo.oncanplay = () => res();
+                        audioVideo.load();
+                        setTimeout(res, 2000);
+                    });
+
+                    await audioVideo.play().catch(() => {});
+
+                    const vidStream = (audioVideo as any).captureStream?.() ?? (audioVideo as any).mozCaptureStream?.() ?? null;
+                    if (!vidStream) {
+                        audioVideo.pause();
+                        document.body.removeChild(audioVideo);
+                        console.warn('[Audio] captureStream() non disponible.');
+                        return null;
+                    }
+
+                    const audioTracks = vidStream.getAudioTracks();
+                    console.log('[Audio] Pistes audio sur clone bgVideo:', audioTracks.length);
+                    if (audioTracks.length === 0) {
+                        audioVideo.pause();
+                        document.body.removeChild(audioVideo);
+                        console.warn('[Audio] bgVideo sans piste audio.');
+                        return null;
+                    }
+
+                    const audioStream = new MediaStream(audioTracks);
+                    const audioMime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus']
+                        .find(m => MediaRecorder.isTypeSupported(m)) || '';
+                    if (!audioMime) {
+                        audioVideo.pause();
+                        document.body.removeChild(audioVideo);
+                        console.warn('[Audio] Aucun format audio supporté.');
+                        return null;
+                    }
+
+                    const audioChunks: Blob[] = [];
+                    const audioRec = new MediaRecorder(audioStream, { mimeType: audioMime });
+                    audioRec.ondataavailable = (e: any) => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
+                    audioRec.start(200);
+                    console.log('[Audio] Capture démarrée :', Math.round(totalDuration / 1000), 's');
+
+                    await new Promise(res => setTimeout(res, totalDuration + 500));
+
+                    audioRec.stop();
+                    audioVideo.pause();
+                    document.body.removeChild(audioVideo);
+                    await new Promise<void>(res => { audioRec.onstop = () => res(); });
+
+                    if (audioChunks.length === 0) {
+                        console.warn('[Audio] Aucun chunk audio capturé.');
+                        return null;
+                    }
+                    const blob = new Blob(audioChunks, { type: audioMime });
+                    console.log('[Audio] ✅ Audio capturé :', Math.round(blob.size / 1024), 'KB');
+                    return blob;
+                } catch (err) {
+                    console.warn('[Audio] Capture échouée:', err);
+                    return null;
+                }
+            })();
         }
 
         // Mise à jour visuelle du progress basée sur le temps réel (DOM direct = zéro re-render React)
