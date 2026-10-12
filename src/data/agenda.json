@@ -553,5 +553,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1135,
+    "title": "Berlin Calling 2027 By Paul Kalkbrenner ",
+    "date": "2027-06-26",
+    "startDate": "2027-06-26",
+    "endDate": "2027-06-26",
+    "venue": "Parkbühne Wuhlheide",
+    "location": "BERLIN",
+    "country": "ALLEMAGNE",
+    "type": "Concert",
+    "image": "/uploads/uploads/2f5aa76f1d3f90ed-saveclip_app_843839831_1862758.jpg",
+    "url": "https://www.paulkalkbrenner.net/",
+    "genre": "Techno",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
