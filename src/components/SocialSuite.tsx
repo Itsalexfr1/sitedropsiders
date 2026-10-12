@@ -5439,8 +5439,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     '-r', String(fps), '-movflags', '+faststart'
                 ];
 
-                // Audio offline (MUSIQUE) → WAV
-
+                // Audio offline (MUSIQUE) -> WAV
+                if (offlineWavBlob) {
                     await ffmpeg.writeFile('audio.wav', await fetchFile(offlineWavBlob));
                     ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
                         '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
