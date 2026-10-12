@@ -224,11 +224,11 @@
     "type": "facture",
     "id": 1790591665594,
     "sentDate": "2026-09-28T10:34:25.594Z",
-    "paid": false,
+    "paid": true,
     "emailTo": "Archive",
     "pdfUrl": "",
     "number": "INV-2026-073",
-    "paidAmount": 0
+    "paidAmount": 1260
   },
   {
     "number": "INV-2026-072",
