@@ -109,9 +109,10 @@
     "id": 1791829708606,
     "number": "INV-2026-076",
     "sentDate": "2026-10-12T18:28:28.606Z",
-    "paid": false,
+    "paid": true,
     "emailTo": "Archive",
-    "pdfUrl": ""
+    "pdfUrl": "",
+    "paidAmount": 150
   },
   {
     "invoiceNumber": "INV-2026-074",
