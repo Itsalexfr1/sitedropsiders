@@ -799,6 +799,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const animStartTimeRef = useRef<number>(Date.now());
     const deterministicAnimTimeRef = useRef<number>(0);
     const deterministicTotalTimeRef = useRef<number>(0);
+    const isExportRenderingRef = useRef<boolean>(false);
 
     // Background animation states for Reels / Posts
     type BgAnimType = 'NONE' | 'ZOOM_IN' | 'ZOOM_OUT' | 'PAN_LEFT' | 'PAN_RIGHT' | 'PULSE' | 'BREATHE' | 'GLITCH';
@@ -1228,6 +1229,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
+        // Pendant l'export vidéo déterministe, seul l'encodeur exportateur a le droit de dessiner sur le canvas
+        if (isVideoRecordingRef.current && !isExportRenderingRef.current) return;
+
         const effectiveTab = targetTab || activeTab;
         const forceTheme = typeof exportMode === 'string' ? (exportMode as ThemeType) : forceThemeParam;
         const isPromoRequested = isVideoRecordingRef.current
@@ -1632,35 +1636,100 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const textStartX = dotCenterX + dotRadius + dotGap;
                 const badgeW = Math.ceil(badgePadLeft + (dotRadius * 2) + dotGap + textWidth + italicSlantBuffer + badgePadRight);
 
-                // Fond capsule verre fumé
-                ctx.fillStyle = 'rgba(12, 14, 20, 0.78)';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
-                ctx.shadowBlur = 16;
-                ctx.shadowOffsetY = 4;
+                // Temps déterministe pour animation fluide continue sans à-coup
+                const badgeTime = isVideoRecordingRef.current 
+                    ? deterministicTotalTimeRef.current 
+                    : (animElapsed !== 99.0 ? animElapsed : (Date.now() / 1000));
+
+                const dotPulse = 0.5 + 0.5 * Math.sin(badgeTime * 4.2);
+                const haloPulse = 0.5 + 0.5 * Math.sin(badgeTime * 3.0);
+
+                // 1. Aura néon externe diffuse derrière la capsule
+                ctx.save();
+                ctx.shadowColor = `rgba(${gradStr}, ${0.40 + 0.25 * haloPulse})`;
+                ctx.shadowBlur = 18 + 8 * haloPulse;
+                ctx.shadowOffsetY = 2;
+                ctx.fillStyle = 'rgba(12, 14, 20, 0.82)';
                 ctx.beginPath();
                 ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
                 ctx.fill();
+                ctx.restore();
 
-                // Bordure fine avec accent du thème
-                ctx.shadowColor = 'transparent';
-                ctx.strokeStyle = `rgba(${gradStr}, 0.55)`;
+                // 2. Fond capsule verre fumé avec clip pour effet de brillance / glare balayant
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
+                ctx.clip();
+
+                // Fond teinté très sombre
+                ctx.fillStyle = 'rgba(10, 12, 18, 0.88)';
+                ctx.fill();
+
+                // Balayage lumineux diagonal (Cyber glare sweep toutes les ~2.4 secondes)
+                const sweepCycle = (badgeTime * 0.42) % 1.0;
+                const sweepX = badgeX - 80 + sweepCycle * (badgeW + 200);
+                const glareGrad = ctx.createLinearGradient(sweepX - 35, badgeY, sweepX + 35, badgeY + badgeH);
+                glareGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                glareGrad.addColorStop(0.35, `rgba(${gradStr}, 0.18)`);
+                glareGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.35)');
+                glareGrad.addColorStop(0.65, `rgba(${gradStr}, 0.18)`);
+                glareGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = glareGrad;
+                ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
+
+                ctx.restore();
+
+                // 3. Bordure dynamique avec gradient animé respirant
+                ctx.save();
+                const borderPulseAlpha = 0.55 + 0.35 * dotPulse;
+                const borderGrad = ctx.createLinearGradient(badgeX, badgeY, badgeX + badgeW, badgeY + badgeH);
+                borderGrad.addColorStop(0, `rgba(${gradStr}, ${borderPulseAlpha})`);
+                borderGrad.addColorStop(0.5, `rgba(255, 255, 255, ${0.45 * dotPulse})`);
+                borderGrad.addColorStop(1, `rgba(${gradStr}, ${borderPulseAlpha * 0.7})`);
+                ctx.strokeStyle = borderGrad;
                 ctx.lineWidth = 1.8;
                 ctx.beginPath();
                 ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
                 ctx.stroke();
+                ctx.restore();
 
-                // Point lumineux néon
+                // 4. Onde radar / ripple néon qui pulse autour du point
+                const radarCycle = (badgeTime * 1.25) % 1.0;
+                const radarRadius = dotRadius + radarCycle * 14;
+                const radarAlpha = Math.max(0, (1 - radarCycle) * 0.85);
                 ctx.save();
+                ctx.strokeStyle = `rgba(${gradStr}, ${radarAlpha})`;
+                ctx.lineWidth = 1.5;
+                ctx.shadowColor = `rgba(${gradStr}, ${radarAlpha * 0.9})`;
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.arc(dotCenterX, dotCenterY, radarRadius, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+
+                // 5. Point lumineux néon battant
+                ctx.save();
+                const currentDotRadius = dotRadius * (0.92 + 0.18 * dotPulse);
                 ctx.fillStyle = dotColor;
                 ctx.shadowColor = dotColor;
-                ctx.shadowBlur = 12;
+                ctx.shadowBlur = 12 + 6 * dotPulse;
                 ctx.beginPath();
-                ctx.arc(dotCenterX, dotCenterY, dotRadius, 0, Math.PI * 2);
+                ctx.arc(dotCenterX, dotCenterY, currentDotRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Centre blanc hyper-lumineux (effet diode LED / laser vif)
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowBlur = 4;
+                ctx.beginPath();
+                ctx.arc(dotCenterX, dotCenterY, currentDotRadius * 0.45, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
 
-                // Texte de la capsule en blanc gras italique
+                // 6. Texte de la capsule en blanc gras italique avec reflet du thème
+                ctx.save();
                 ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = `rgba(${gradStr}, ${0.55 * haloPulse})`;
+                ctx.shadowBlur = 8;
                 if ('letterSpacing' in ctx) {
                     (ctx as any).letterSpacing = `${badgeLetterSpacing}px`;
                 }
@@ -1676,6 +1745,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 ctx.fillText(label, textStartX, textY);
+                ctx.restore();
+
                 ctx.restore();
             };
 
@@ -4877,10 +4948,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (isVideoRecording) {
             return;
         }
-        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || (theme === 'MUSIQUE' && (cdjPlayerRing || musicBgMotion)) || transitionProgress > 0) {
+        const isBadgeTheme = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'AFFICHE'].includes(theme);
+        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || (theme === 'MUSIQUE' && (cdjPlayerRing || musicBgMotion)) || transitionProgress > 0 || isBadgeTheme) {
             let lastRender = 0;
             let isRendering = false;
             const loop = (timestamp: number) => {
+                if (isVideoRecordingRef.current) return;
                 // Throttle fluide à ~30 FPS pour préserver 100% des ressources CPU pour l'audio et éliminer tout micro-lag
                 if (timestamp - lastRender >= 30) {
                     if (!isRendering) {
@@ -5057,7 +5130,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     codec: 'avc',
                     width: targetWidth,
                     height: targetHeight,
-                    frameRate: fps,
                 },
                 fastStart: 'in-memory',
                 firstTimestampBehavior: 'offset',
@@ -5183,7 +5255,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
                         const targetTime = (totalFramesEncoded / fps) % bgVideo.duration;
                         if (Math.abs(bgVideo.currentTime - targetTime) > 0.001) {
-                            bgVideo.currentTime = targetTime;
                             await new Promise<void>((res) => {
                                 let done = false;
                                 const onSeek = () => {
@@ -5193,12 +5264,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     res();
                                 };
                                 bgVideo.addEventListener('seeked', onSeek, { once: true });
-                                setTimeout(onSeek, 60);
+                                try {
+                                    bgVideo.currentTime = targetTime;
+                                } catch {
+                                    onSeek();
+                                }
+                                setTimeout(onSeek, 400);
                             });
                         }
                     }
 
-                    await generateImage();
+                    isExportRenderingRef.current = true;
+                    try {
+                        await generateImage();
+                    } finally {
+                        isExportRenderingRef.current = false;
+                    }
                     await captureFrame();
 
                     const overallElapsed = (totalFramesEncoded / fps) * 1000;
@@ -5262,7 +5343,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
                         const targetTime = (totalFramesEncoded / fps) % bgVideo.duration;
                         if (Math.abs(bgVideo.currentTime - targetTime) > 0.001) {
-                            bgVideo.currentTime = targetTime;
                             await new Promise<void>((res) => {
                                 let done = false;
                                 const onSeek = () => {
@@ -5272,12 +5352,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     res();
                                 };
                                 bgVideo.addEventListener('seeked', onSeek, { once: true });
-                                setTimeout(onSeek, 60);
+                                try {
+                                    bgVideo.currentTime = targetTime;
+                                } catch {
+                                    onSeek();
+                                }
+                                setTimeout(onSeek, 400);
                             });
                         }
                     }
 
-                    await generateImage();
+                    isExportRenderingRef.current = true;
+                    try {
+                        await generateImage();
+                    } finally {
+                        isExportRenderingRef.current = false;
+                    }
                     await captureFrame();
 
                     const overallElapsed = (totalFramesEncoded / fps) * 1000;
