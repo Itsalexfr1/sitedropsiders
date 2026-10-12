@@ -5843,7 +5843,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 if (!ffmpegRef.current) {
                     const ffmpeg = new FFmpeg();
-                    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+                    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
                     await ffmpeg.load({
                         coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
                         wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
@@ -5876,17 +5876,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     await ffmpeg.writeFile('audio.wav', await fetchFile(offlineWavBlob));
                     if (videoBlob.type.includes('mp4')) {
                         ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav',
+                            '-map', '0:v:0', '-map', '1:a:0',
                             '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', '-movflags', '+faststart', 'output.mp4'];
                     } else {
                         ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
+                            '-map', '0:v:0', '-map', '1:a:0',
                             '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
                     }
                 } else if (bgVideoBlob) {
                     // Fallback FFmpeg audio extraction si decodeAudioData natif a échoué
-                    await ffmpeg.writeFile('bg_source', await fetchFile(bgVideoBlob));
+                    const bgExt = bgVideoBlob.type.includes('webm') ? 'webm' : (bgVideoBlob.type.includes('quicktime') ? 'mov' : 'mp4');
+                    const bgFilename = `bg_source.${bgExt}`;
+                    await ffmpeg.writeFile(bgFilename, await fetchFile(bgVideoBlob));
                     let hasExtracted = false;
                     try {
-                        await ffmpeg.exec(['-i', 'bg_source', '-vn', '-c:a', 'pcm_s16le', '-ar', '44100', '-ac', '2', 'audio.wav']);
+                        await ffmpeg.exec(['-i', bgFilename, '-vn', '-c:a', 'pcm_s16le', '-ar', '44100', '-ac', '2', 'audio.wav']);
                         hasExtracted = true;
                     } catch (e) {
                         console.warn('[Audio] Extraction FFmpeg échouée, bg_source sans piste audio :', e);
@@ -5895,9 +5899,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const targetSec = (totalDuration / 1000).toFixed(2);
                         if (videoBlob.type.includes('mp4')) {
                             ffmpegArgs = ['-i', inputFileName, '-stream_loop', '-1', '-i', 'audio.wav',
+                                '-map', '0:v:0', '-map', '1:a:0',
                                 '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-t', targetSec, '-movflags', '+faststart', 'output.mp4'];
                         } else {
                             ffmpegArgs = ['-i', inputFileName, '-stream_loop', '-1', '-i', 'audio.wav', ...videoArgs,
+                                '-map', '0:v:0', '-map', '1:a:0',
                                 '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-t', targetSec, 'output.mp4'];
                         }
                     } else {
@@ -5943,6 +5949,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } catch (err) {
                 console.error("FFmpeg Error:", err);
                 setIsConverting(false);
+                setErrorMessage("Erreur intégration audio : " + (err instanceof Error ? err.message : String(err)));
                 const ext = videoBlob.type.includes('mp4') ? 'mp4' : 'webm';
                 const url = URL.createObjectURL(videoBlob);
                 setReadyVideoBlob(videoBlob);
