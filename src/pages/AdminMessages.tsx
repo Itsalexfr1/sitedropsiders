@@ -230,6 +230,8 @@ export function AdminMessages() {
     const [festivalName, setFestivalName] = useState('');
     const [festivalDates, setFestivalDates] = useState('');
     const [accreditationLang, setAccreditationLang] = useState<'FR' | 'EN'>('FR');
+    const [eventType, setEventType] = useState<'Festival' | 'Événement'>('Festival');
+    const [includeContest, setIncludeContest] = useState(true);
 
     // Photo Accreditation States
     const [isPhotoAccreditationMode, setIsPhotoAccreditationMode] = useState(false);
@@ -719,7 +721,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         }
     };
 
-    const getAccreditationTemplate = (lang: 'FR' | 'EN', festival: string, dates: string, name: string) => {
+    const getAccreditationTemplate = (lang: 'FR' | 'EN', festival: string, dates: string, name: string, evtType: 'Festival' | 'Événement' = 'Festival', withContest: boolean = true) => {
         const festivalUpper = (festival || '[NOM DU FESTIVAL]').toUpperCase();
         const datesUpper = (dates || '[DATES]').toUpperCase();
         const year = new Date().getFullYear();
@@ -727,51 +729,61 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         const isSingleDay = !datesUpper.includes(' AU ') && !datesUpper.includes('-') && !datesUpper.includes(' ET ') && !datesUpper.includes('&') && datesUpper !== '[DATES]';
         const prepositionFR = isSingleDay ? 'le' : 'du';
         const prepositionEN = isSingleDay ? 'on' : 'from';
+        const isFestival = evtType === 'Festival';
 
         if (lang === 'FR') {
+            const evtWordFR = isFestival ? 'festival' : 'événement';
+            const evtWordFRCap = isFestival ? 'Festival' : 'Événement';
+            const contestSection = withContest ? `
+
+${withContest ? (isFestival ? '2' : '2') : ''}. Le Concours Blind Test (Levier de Viralité) : Pour booster l'engagement, nos lecteurs participent à un quiz dédié à votre programmation et partagent obligatoirement leur score en Story Instagram en identifiant votre compte officiel et @dropsiders.fr. Cela génère un flux massif de mentions organiques authentiques.` : '';
+            const partnerNum = withContest ? '3' : '2';
+            const contestGiveaway = withContest ? `
+   - Organisation du jeu concours pour faire gagner des invitations à notre communauté.` : '';
             return `Bonjour,
 
-Je me permets de vous contacter au nom de DROPSIDERS, média de référence dédié à la culture électronique, afin de solliciter une accréditation presse pour l'édition ${year} de **${festivalUpper}**.
+Je me permets de vous contacter au nom de DROPSIDERS, média de référence dédié à la culture électronique, afin de solliciter une accréditation presse pour l'édition ${year} de ${festivalUpper}.
 
-Après avoir couvert des événements mondiaux comme Tomorrowland, EDC Las Vegas ou l'Ultra Europe, nous souhaiterions cette année mettre notre expertise et nos nouveaux outils interactifs au service de **${festivalUpper}** prévu ${prepositionFR} **${datesUpper}**.
+Après avoir couvert des événements mondiaux comme Tomorrowland, EDC Las Vegas ou l'Ultra Europe, nous souhaiterions cette année mettre notre expertise et nos nouveaux outils interactifs au service de ${festivalUpper} prévu ${prepositionFR} ${datesUpper}.
 
-Pourquoi collaborer avec nous ? Nous activons un dispositif digital global et carré pour maximiser la visibilité de votre événement :
+Pourquoi collaborer avec nous ? Nous activons un dispositif digital global et carré pour maximiser la visibilité de votre ${evtWordFR} :
 
-1. Visibilité Multi-Plateforme (Agenda & Communauté) : Votre festival bénéficie déjà d'une mise en avant sur notre Agenda (https://dropsiders.fr/agenda). De plus, nous avons intégré **${festivalUpper}** dans notre nouvel espace "Communauté" : nos utilisateurs peuvent désormais voter, partager leurs photos et laisser des avis détaillés, créant ainsi une base de données sociale précieuse pour votre promotion.
+1. Visibilité Multi-Plateforme (Agenda & Communauté) : Votre ${evtWordFR} bénéficie déjà d'une mise en avant sur notre Agenda (https://dropsiders.fr/agenda). De plus, nous avons intégré ${festivalUpper} dans notre espace Communauté : nos utilisateurs peuvent désormais voter, partager leurs photos et laisser des avis détaillés, créant ainsi une base de données sociale précieuse pour votre promotion.${contestSection}
 
-2. Le Concours Blind Test (Levier de Viralité) : Pour booster l'engagement, nos lecteurs participent à un quiz dédié à votre programmation et partagent obligatoirement leur score en Story Instagram en identifiant **votre compte officiel** et @dropsiders.fr. Cela génère un flux massif de mentions organiques authentiques.
-
-3. Proposition de Partenariat & Échange : En échange de 1 ou 2 pass presse, nous vous proposons un pack de couverture complet :
-   - Organisation du jeu concours pour faire gagner des invitations à notre communauté.
+${partnerNum}. Proposition de Partenariat & Échange : En échange de 1 ou 2 pass presse, nous vous proposons un pack de couverture complet :${contestGiveaway}
    - Relais massifs en Stories (Teasing & Live-report sur place).
    - Articles dédiés et interviews exclusifs sur notre plateforme.
    - Posts permanents sur nos réseaux sociaux pour une visibilité sur le long terme.
 
-Nous serions ravis d'activer ce dispositif "carré" pour mettre en lumière l'édition ${year} de **${festivalUpper}**.
+Nous serions ravis d'activer ce dispositif pour mettre en lumière l'édition ${year} de ${festivalUpper}.
 
 Dans l'attente de votre retour pour en discuter,
 
 ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
         } else {
+            const evtWordEN = isFestival ? 'festival' : 'event';
+            const contestSectionEN = withContest ? `
+
+2. Blind Test Contest (Virality Lever): To boost engagement, our readers complete a quiz dedicated to your lineup and must share their score on Instagram Story, tagging your official account and @dropsiders.fr. This generates a massive flow of authentic organic mentions.` : '';
+            const partnerNumEN = withContest ? '3' : '2';
+            const contestGiveawayEN = withContest ? `
+   - Hosting a giveaway contest for our community.` : '';
             return `Hello,
 
-I am contacting you on behalf of DROPSIDERS, a leading media dedicated to electronic culture, to request press accreditation for the ${year} edition of **${festivalUpper}**.
+I am contacting you on behalf of DROPSIDERS, a leading media dedicated to electronic culture, to request press accreditation for the ${year} edition of ${festivalUpper}.
 
-Having covered global events such as Tomorrowland, EDC Las Vegas, and Ultra Europe, we would like to bring our expertise and new interactive tools to **${festivalUpper}** scheduled ${prepositionEN} **${datesUpper}**.
+Having covered global events such as Tomorrowland, EDC Las Vegas, and Ultra Europe, we would like to bring our expertise and new interactive tools to ${festivalUpper} scheduled ${prepositionEN} ${datesUpper}.
 
-Why collaborate with us? We activate a comprehensive and professional digital package to maximize your event's visibility:
+Why collaborate with us? We activate a comprehensive and professional digital package to maximize your ${evtWordEN}'s visibility:
 
-1. Multi-Platform Visibility (Agenda & Community): Your festival is already featured on our Agenda (https://dropsiders.fr/agenda). Additionally, we have integrated **${festivalUpper}** into our new "Community" hub: our users can now vote, share their photos, and leave detailed reviews, creating a valuable social proof database for your promotion.
+1. Multi-Platform Visibility (Agenda & Community): Your ${evtWordEN} is already featured on our Agenda (https://dropsiders.fr/agenda). Additionally, we have integrated ${festivalUpper} into our Community hub: our users can now vote, share their photos, and leave detailed reviews, creating a valuable social proof database for your promotion.${contestSectionEN}
 
-2. Blind Test Contest (Virality Lever): To boost engagement, our readers complete a quiz dedicated to your lineup and must share their score on Instagram Story, tagging your official account and @dropsiders.fr. This generates a massive flow of authentic organic mentions.
-
-3. Partnership & Exchange Proposal: In exchange for 1 or 2 press passes, we offer a full coverage pack:
-   - Hosting a giveaway contest for our community.
+${partnerNumEN}. Partnership & Exchange Proposal: In exchange for 1 or 2 press passes, we offer a full coverage pack:${contestGiveawayEN}
    - Massive Story coverage (Pre-event teasing & On-site live reporting).
    - Dedicated articles and exclusive interviews on our platform.
    - Permanent posts on our social networks for long-term visibility.
 
-We would be delighted to activate this professional package to highlight the ${year} edition of **${festivalUpper}**.
+We would be delighted to activate this professional package to highlight the ${year} edition of ${festivalUpper}.
 
 Looking forward to hearing from you to discuss this,
 
@@ -779,7 +791,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         }
     };
 
-    const getPhotoAccreditationTemplate = (lang: 'FR' | 'EN', festival: string, dates: string, firstName: string, lastName: string, portfolio: string, name: string) => {
+    const getPhotoAccreditationTemplate = (lang: 'FR' | 'EN', festival: string, dates: string, firstName: string, lastName: string, portfolio: string, name: string, evtType: 'Festival' | 'Événement' = 'Festival', withContest: boolean = true) => {
         const festivalUpper = (festival || '[NOM DU FESTIVAL]').toUpperCase();
         const datesUpper = (dates || '[DATES]').toUpperCase();
         const year = new Date().getFullYear();
@@ -789,32 +801,32 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         const prepositionEN = isSingleDay ? 'on' : 'from';
 
         if (lang === 'FR') {
+            const contestLine = withContest ? '\n- Organisation d\'un Concours Blind Test (invitations à gagner pour notre communauté via Story Instagram).' : '';
             return `Bonjour,
 
-Dropsiders souhaite solliciter une accréditation photo pour l'édition ${year} de **${festivalUpper}** prévue ${prepositionFR} **${datesUpper}**.
+Dropsiders souhaite solliciter une accréditation photo pour l'édition ${year} de ${festivalUpper} prévue ${prepositionFR} ${datesUpper}.
 
 Photographe délégué : ${firstName || '[PRÉNOM]'} ${lastName || '[NOM]'}
 Portfolio : ${portfolio || '[LIEN PORTFOLIO]'}
 
-En échange de nos accès, nous proposons un pack de visibilité "carré" incluant :
-- Mise en avant sur notre Agenda et espace Communauté (Votes, Avis, Photos).
-- Organisation d'un Concours Blind Test (invitations à gagner pour notre communauté via Story Instagram).
+En échange de nos accès, nous proposons un pack de visibilité incluant :
+- Mise en avant sur notre Agenda et espace Communauté (Votes, Avis, Photos).${contestLine}
 - Couverture complète en Stories, Articles et Posts permanents.
 - Mentions organiques massives pour votre compte via le partage des scores.
 
 Dans l'attente de votre retour,
 ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
         } else {
+            const contestLineEN = withContest ? '\n- Blind Test Contest hosting (ticket giveaways for our community via Instagram Story).' : '';
             return `Hello,
 
-Dropsiders would like to request photo accreditation for the ${year} edition of **${festivalUpper}** scheduled ${prepositionEN} **${datesUpper}**.
+Dropsiders would like to request photo accreditation for the ${year} edition of ${festivalUpper} scheduled ${prepositionEN} ${datesUpper}.
 
 Delegated Photographer: ${firstName || '[FIRST NAME]'} ${lastName || '[LAST NAME]'}
 Portfolio: ${portfolio || '[PORTFOLIO LINK]'}
 
 In exchange for our access, we propose a professional visibility package including:
-- Featured placement on our Agenda and Community hub (Votes, Reviews, Photos).
-- Blind Test Contest hosting (ticket giveaways for our community via Instagram Story).
+- Featured placement on our Agenda and Community hub (Votes, Reviews, Photos).${contestLineEN}
 - Full coverage in Stories, Articles and permanent Posts.
 - Massive organic mentions for your account via score sharing.
 
@@ -935,7 +947,7 @@ Alex (Dropsiders)`;
         const currentName = signatureName;
 
         if (isAccreditationMode) {
-            setReplyBody(getAccreditationTemplate(accreditationLang, festivalName, festivalDates, currentName));
+            setReplyBody(getAccreditationTemplate(accreditationLang, festivalName, festivalDates, currentName, eventType, includeContest));
             const festivalPart = festivalName ? ` - ${festivalName.toUpperCase()}` : '';
             if (accreditationLang === 'FR') {
                 setMailSubject(`DEMANDE ACCRÉDITATION MÉDIA${festivalPart} - DROPSIDERS`);
@@ -943,7 +955,7 @@ Alex (Dropsiders)`;
                 setMailSubject(`MEDIA ACCREDITATION REQUEST${festivalPart} - DROPSIDERS`);
             }
         } else if (isPhotoAccreditationMode) {
-            setReplyBody(getPhotoAccreditationTemplate(accreditationLang, festivalName, festivalDates, photoFirstName, photoLastName, photoPortfolio, currentName));
+            setReplyBody(getPhotoAccreditationTemplate(accreditationLang, festivalName, festivalDates, photoFirstName, photoLastName, photoPortfolio, currentName, eventType, includeContest));
             const festivalPart = festivalName ? ` - ${festivalName.toUpperCase()}` : '';
             if (accreditationLang === 'FR') {
                 setMailSubject(`DEMANDE ACCRÉDITATION PHOTO${festivalPart} - DROPSIDERS`);
@@ -969,7 +981,7 @@ Alex (Dropsiders)`;
                 setMailSubject('Dropsiders V2: New media platform & interactive agenda! 🎙️');
             }
         }
-    }, [isAccreditationMode, isPhotoAccreditationMode, isInterviewMode, festivalName, festivalDates, photoFirstName, photoLastName, photoPortfolio, djName, interviewType, interviewGender, interviewDate, interviewFestival, accreditationLang, isNewMail, signatureName]);
+    }, [isAccreditationMode, isPhotoAccreditationMode, isInterviewMode, festivalName, festivalDates, photoFirstName, photoLastName, photoPortfolio, djName, interviewType, interviewGender, interviewDate, interviewFestival, accreditationLang, isNewMail, signatureName, eventType, includeContest]);
 
     const filteredMessages = useMemo(() => {
         const inbox = messages.filter(m => !m.archived);
@@ -1983,11 +1995,26 @@ Alex (Dropsiders)`;
                                                 <>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                         <div className="space-y-1">
-                                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Festival</label>
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{eventType === 'Festival' ? 'Festival' : 'Événement'}</label>
+                                                                <div className="flex bg-black/40 rounded-lg p-0.5 border border-white/5">
+                                                                    {(['Festival', 'Événement'] as const).map((t) => (
+                                                                        <button
+                                                                            key={t}
+                                                                            type="button"
+                                                                            onClick={() => setEventType(t)}
+                                                                            className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider transition-all ${eventType === t ? (isPhotoAccreditationMode ? 'bg-neon-blue text-white' : 'bg-neon-purple text-white') : 'text-gray-500 hover:text-white'}`}
+                                                                        >
+                                                                            {t === 'Événement' ? 'Event' : t}
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
                                                             <input
                                                                 type="text"
                                                                 value={festivalName}
                                                                 onChange={(e) => setFestivalName(e.target.value)}
+                                                                placeholder={eventType === 'Festival' ? 'Tomorrowland, EDC...' : 'Nom de l\'événement...'}
                                                                 className={`w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none ${isPhotoAccreditationMode ? 'focus:border-neon-blue' : 'focus:border-neon-purple'}`}
                                                             />
                                                         </div>
@@ -2039,6 +2066,33 @@ Alex (Dropsiders)`;
                                                             />
                                                         </div>
                                                     </div>
+                                                    {/* Concours checkbox - only for accreditation (not photo) */}
+                                                    {isAccreditationMode && (
+                                                        <label className="flex items-center gap-2.5 cursor-pointer group">
+                                                            <div
+                                                                onClick={() => setIncludeContest(v => !v)}
+                                                                className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${includeContest ? 'bg-neon-purple border-neon-purple' : 'border-white/20 bg-black/40'}`}
+                                                            >
+                                                                {includeContest && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+                                                            </div>
+                                                            <span className="text-[10px] text-gray-400 group-hover:text-white transition-colors">
+                                                                Inclure le Concours Blind Test (point 2)
+                                                            </span>
+                                                        </label>
+                                                    )}
+                                                    {isPhotoAccreditationMode && (
+                                                        <label className="flex items-center gap-2.5 cursor-pointer group">
+                                                            <div
+                                                                onClick={() => setIncludeContest(v => !v)}
+                                                                className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${includeContest ? 'bg-neon-blue border-neon-blue' : 'border-white/20 bg-black/40'}`}
+                                                            >
+                                                                {includeContest && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+                                                            </div>
+                                                            <span className="text-[10px] text-gray-400 group-hover:text-white transition-colors">
+                                                                Inclure le Concours Blind Test
+                                                            </span>
+                                                        </label>
+                                                    )}
                                                     {isPhotoAccreditationMode && (
                                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
                                                             <div className="space-y-1">
