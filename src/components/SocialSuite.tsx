@@ -5716,6 +5716,87 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 console.warn("Rendu audio offline échoué (fallback vidéo seule) :", audioRenderErr);
             }
 
+            // ── PHASE 2b : EXTRACTION AUDIO bgVideo via AudioContext (si pas de MUSIQUE tracks) ─────────────────
+            // Si bgVideo est présent mais bgVideoBlob a échoué (CORS), on décode l'audio de la vidéo
+            // directement via AudioContext + OfflineAudioContext et on génère un WAV loopé.
+            if (!offlineWavBlob && bgVideo) {
+                try {
+                    const bgUrl = bgVideo.currentSrc || bgVideo.src;
+                    if (bgUrl) {
+                        // Utiliser le cache blob si disponible, sinon fetch direct
+                        let readyUrl = bgUrl;
+                        if (!bgUrl.startsWith('blob:') && !bgUrl.startsWith('data:')) {
+                            readyUrl = await getPreloadedAudioBlobUrl(bgUrl).catch(() => bgUrl);
+                        }
+                        const bgAudioRes = await fetch(readyUrl);
+                        if (bgAudioRes.ok) {
+                            const arr = await bgAudioRes.arrayBuffer();
+                            // Décoder via AudioContext standard (OfflineAudioContext.decodeAudioData peut bloquer)
+                            const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+                            const decodeCtx = new AC();
+                            const srcBuf: AudioBuffer = await new Promise((resolve, reject) => {
+                                const p = decodeCtx.decodeAudioData(arr, resolve, reject);
+                                if (p && typeof (p as any).then === 'function') (p as Promise<AudioBuffer>).then(resolve, reject);
+                            });
+                            decodeCtx.close().catch(() => {});
+
+                            // Render dans un OfflineAudioContext sur toute la durée de l'export (loopé)
+                            const totalSec = totalDuration / 1000;
+                            const totalSamples = Math.ceil(totalSec * sampleRate);
+                            const OffCtx = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
+                            const offCtx = new OffCtx(2, Math.max(1, totalSamples), sampleRate);
+
+                            const srcDuration = srcBuf.duration;
+                            let cursor = 0;
+                            while (cursor < totalSec) {
+                                const node = offCtx.createBufferSource();
+                                node.buffer = srcBuf;
+                                const gain = offCtx.createGain();
+                                node.connect(gain);
+                                gain.connect(offCtx.destination);
+                                const segDuration = Math.min(srcDuration, totalSec - cursor);
+                                node.start(cursor, 0, segDuration);
+                                cursor += srcDuration;
+                            }
+
+                            const renderedBuffer = await offCtx.startRendering();
+
+                            // Encoder en WAV 16-bit PCM
+                            const numCh = renderedBuffer.numberOfChannels;
+                            const numSamples = renderedBuffer.length;
+                            const wavBuffer = new ArrayBuffer(44 + numSamples * numCh * 2);
+                            const view = new DataView(wavBuffer);
+                            const writeStr = (off: number, s: string) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+                            writeStr(0, 'RIFF');
+                            view.setUint32(4, 36 + numSamples * numCh * 2, true);
+                            writeStr(8, 'WAVE');
+                            writeStr(12, 'fmt ');
+                            view.setUint32(16, 16, true);
+                            view.setUint16(20, 1, true);
+                            view.setUint16(22, numCh, true);
+                            view.setUint32(24, sampleRate, true);
+                            view.setUint32(28, sampleRate * numCh * 2, true);
+                            view.setUint16(32, numCh * 2, true);
+                            view.setUint16(34, 16, true);
+                            writeStr(36, 'data');
+                            view.setUint32(40, numSamples * numCh * 2, true);
+                            let wavOff = 44;
+                            for (let i = 0; i < numSamples; i++) {
+                                for (let ch = 0; ch < numCh; ch++) {
+                                    const sample = Math.max(-1, Math.min(1, renderedBuffer.getChannelData(ch)[i]));
+                                    view.setInt16(wavOff, sample < 0 ? sample * 32768 : sample * 32767, true);
+                                    wavOff += 2;
+                                }
+                            }
+                            offlineWavBlob = new Blob([wavBuffer], { type: 'audio/wav' });
+                            console.log('[Audio] bgVideo audio extrait via AudioContext :', Math.round(totalSec), 's, WAV:', Math.round(wavBuffer.byteLength / 1024), 'KB');
+                        }
+                    }
+                } catch (bgAudioErr) {
+                    console.warn('[Audio] Extraction audio bgVideo via AudioContext échouée (vidéo sera silencieuse) :', bgAudioErr);
+                }
+            }
+
             // ── PHASE 3 : MUXAGE FFmpeg (vidéo + audio offline ou bgVideo audio) ────
             try {
                 // FAST-PATH : UNIQUEMENT s'il n'y a STRICTEMENT AUCUN AUDIO dans le projet (pas de musique et pas de vidéo avec son)
@@ -5808,15 +5889,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 try {
                     await ffmpeg.exec(ffmpegArgs);
                 } catch (execErr) {
-                    if (videoBlob.type.includes('mp4') && bgVideoBlob) {
-                        console.warn("Muxing audio bgVideo échoué (vidéo sans piste son), repli vidéo seule :", execErr);
-                        ffmpegArgs = ['-i', inputFileName, '-c:v', 'copy', '-an', '-movflags', '+faststart', 'output.mp4'];
-                        await ffmpeg.exec(ffmpegArgs);
-                    } else if (videoBlob.type.includes('mp4') && offlineWavBlob) {
+                    if (videoBlob.type.includes('mp4') && offlineWavBlob) {
+                        // Fallback : ré-encoder la vidéo avec libx264 si le copy stream a échoué
                         console.warn("Direct copy mux failed, retrying with libx264 re-encode:", execErr);
                         ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
                             '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
                         await ffmpeg.exec(ffmpegArgs);
+                    } else if (videoBlob.type.includes('mp4') && bgVideoBlob) {
+                        // Fallback bgVideoBlob : ré-encoder aussi
+                        console.warn("Muxing audio bgVideo échoué, repli libx264 re-encode :", execErr);
+                        ffmpegArgs = ['-i', inputFileName, '-stream_loop', '-1', '-i', 'bg_source.mp4', ...videoArgs,
+                            '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-map', '0:v:0', '-map', '1:a:0', '-shortest', 'output.mp4'];
+                        try {
+                            await ffmpeg.exec(ffmpegArgs);
+                        } catch {
+                            // Dernier recours : vidéo sans audio
+                            console.warn('Re-encode bgVideo aussi échoué, export vidéo sans son.');
+                            ffmpegArgs = ['-i', inputFileName, '-c:v', 'copy', '-an', '-movflags', '+faststart', 'output.mp4'];
+                            await ffmpeg.exec(ffmpegArgs);
+                        }
                     } else {
                         throw execErr;
                     }
