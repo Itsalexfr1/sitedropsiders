@@ -5716,91 +5716,81 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 console.warn("Rendu audio offline échoué (fallback vidéo seule) :", audioRenderErr);
             }
 
-            // ── PHASE 2b : EXTRACTION AUDIO bgVideo via AudioContext (si pas de MUSIQUE tracks) ─────────────────
-            // Si bgVideo est présent mais bgVideoBlob a échoué (CORS), on décode l'audio de la vidéo
-            // directement via AudioContext + OfflineAudioContext et on génère un WAV loopé.
-            if (!offlineWavBlob && bgVideo) {
+            // ── PHASE 2b : CAPTURE AUDIO bgVideo en temps réel via MediaElementAudioSourceNode ──────────────────
+            // AudioContext.decodeAudioData() NE PEUT PAS décoder un fichier MP4 vidéo (H264+AAC ensemble).
+            // On utilise createMediaElementSource pour capturer l'audio directement depuis l'élément <video>
+            // en le jouant silencieusement (volume=0) et en l'enregistrant via MediaRecorder.
+            let bgAudioBlob: Blob | null = null;
+            if (!offlineWavBlob && bgVideo && useWebCodecs) {
                 try {
-                    const bgUrl = bgVideo.currentSrc || bgVideo.src;
-                    if (bgUrl) {
-                        // Utiliser le cache blob si disponible, sinon fetch direct
-                        let readyUrl = bgUrl;
-                        if (!bgUrl.startsWith('blob:') && !bgUrl.startsWith('data:')) {
-                            readyUrl = await getPreloadedAudioBlobUrl(bgUrl).catch(() => bgUrl);
+                    const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+                    const bgAudioCtx: AudioContext = new AC();
+
+                    // createMediaElementSource ne peut être appelé qu'une fois par élément.
+                    // On vérifie si un nœud source existe déjà pour bgVideo (depuis le preview).
+                    let sourceNode: MediaElementAudioSourceNode;
+                    if (audioSourceVideoRef.current === bgVideo && audioSourceNodeRef.current) {
+                        sourceNode = audioSourceNodeRef.current;
+                    } else {
+                        sourceNode = bgAudioCtx.createMediaElementSource(bgVideo);
+                        audioSourceNodeRef.current = sourceNode;
+                        audioSourceVideoRef.current = bgVideo;
+                    }
+
+                    const destNode = bgAudioCtx.createMediaStreamDestination();
+                    sourceNode.connect(destNode);
+                    // Ne PAS connecter à bgAudioCtx.destination → silencieux pour l'utilisateur
+
+                    // Choisir le meilleur format audio supporté
+                    const audioMime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus']
+                        .find(m => MediaRecorder.isTypeSupported(m)) || '';
+
+                    if (audioMime) {
+                        const audioChunks: Blob[] = [];
+                        const audioRec = new MediaRecorder(destNode.stream, { mimeType: audioMime });
+                        audioRec.ondataavailable = (e: any) => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
+
+                        // Rembobiner bgVideo et le jouer silencieusement pour la capture
+                        bgVideo.currentTime = 0;
+                        await new Promise<void>(res => { setTimeout(res, 150); });
+                        bgVideo.volume = 0;
+                        bgVideo.muted = false;
+                        bgVideo.loop = true;
+                        await bgVideo.play().catch(() => {});
+
+                        audioRec.start(200);
+                        console.log('[Audio] Capture audio bgVideo démarrée :', Math.round(totalDuration / 1000), 's...');
+
+                        // Attendre la durée totale de la vidéo + marge
+                        await new Promise(res => setTimeout(res, totalDuration + 300));
+
+                        audioRec.stop();
+                        bgVideo.pause();
+                        bgVideo.muted = true;
+                        bgVideo.volume = 1;
+                        bgVideo.currentTime = 0;
+
+                        await new Promise<void>(res => { audioRec.onstop = () => res(); });
+                        sourceNode.disconnect(destNode);
+                        bgAudioCtx.close().catch(() => {});
+
+                        if (audioChunks.length > 0) {
+                            bgAudioBlob = new Blob(audioChunks, { type: audioMime });
+                            console.log('[Audio] bgVideo audio capturé :', Math.round(bgAudioBlob.size / 1024), 'KB, format:', audioMime);
                         }
-                        const bgAudioRes = await fetch(readyUrl);
-                        if (bgAudioRes.ok) {
-                            const arr = await bgAudioRes.arrayBuffer();
-                            // Décoder via AudioContext standard (OfflineAudioContext.decodeAudioData peut bloquer)
-                            const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
-                            const decodeCtx = new AC();
-                            const srcBuf: AudioBuffer = await new Promise((resolve, reject) => {
-                                const p = decodeCtx.decodeAudioData(arr, resolve, reject);
-                                if (p && typeof (p as any).then === 'function') (p as Promise<AudioBuffer>).then(resolve, reject);
-                            });
-                            decodeCtx.close().catch(() => {});
-
-                            // Render dans un OfflineAudioContext sur toute la durée de l'export (loopé)
-                            const totalSec = totalDuration / 1000;
-                            const totalSamples = Math.ceil(totalSec * sampleRate);
-                            const OffCtx = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
-                            const offCtx = new OffCtx(2, Math.max(1, totalSamples), sampleRate);
-
-                            const srcDuration = srcBuf.duration;
-                            let cursor = 0;
-                            while (cursor < totalSec) {
-                                const node = offCtx.createBufferSource();
-                                node.buffer = srcBuf;
-                                const gain = offCtx.createGain();
-                                node.connect(gain);
-                                gain.connect(offCtx.destination);
-                                const segDuration = Math.min(srcDuration, totalSec - cursor);
-                                node.start(cursor, 0, segDuration);
-                                cursor += srcDuration;
-                            }
-
-                            const renderedBuffer = await offCtx.startRendering();
-
-                            // Encoder en WAV 16-bit PCM
-                            const numCh = renderedBuffer.numberOfChannels;
-                            const numSamples = renderedBuffer.length;
-                            const wavBuffer = new ArrayBuffer(44 + numSamples * numCh * 2);
-                            const view = new DataView(wavBuffer);
-                            const writeStr = (off: number, s: string) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
-                            writeStr(0, 'RIFF');
-                            view.setUint32(4, 36 + numSamples * numCh * 2, true);
-                            writeStr(8, 'WAVE');
-                            writeStr(12, 'fmt ');
-                            view.setUint32(16, 16, true);
-                            view.setUint16(20, 1, true);
-                            view.setUint16(22, numCh, true);
-                            view.setUint32(24, sampleRate, true);
-                            view.setUint32(28, sampleRate * numCh * 2, true);
-                            view.setUint16(32, numCh * 2, true);
-                            view.setUint16(34, 16, true);
-                            writeStr(36, 'data');
-                            view.setUint32(40, numSamples * numCh * 2, true);
-                            let wavOff = 44;
-                            for (let i = 0; i < numSamples; i++) {
-                                for (let ch = 0; ch < numCh; ch++) {
-                                    const sample = Math.max(-1, Math.min(1, renderedBuffer.getChannelData(ch)[i]));
-                                    view.setInt16(wavOff, sample < 0 ? sample * 32768 : sample * 32767, true);
-                                    wavOff += 2;
-                                }
-                            }
-                            offlineWavBlob = new Blob([wavBuffer], { type: 'audio/wav' });
-                            console.log('[Audio] bgVideo audio extrait via AudioContext :', Math.round(totalSec), 's, WAV:', Math.round(wavBuffer.byteLength / 1024), 'KB');
-                        }
+                    } else {
+                        bgAudioCtx.close().catch(() => {});
+                        console.warn('[Audio] Aucun format MediaRecorder audio supporté.');
                     }
                 } catch (bgAudioErr) {
-                    console.warn('[Audio] Extraction audio bgVideo via AudioContext échouée (vidéo sera silencieuse) :', bgAudioErr);
+                    console.warn('[Audio] Capture audio bgVideo échouée :', bgAudioErr);
                 }
             }
 
             // ── PHASE 3 : MUXAGE FFmpeg (vidéo + audio offline ou bgVideo audio) ────
             try {
-                // FAST-PATH : UNIQUEMENT s'il n'y a STRICTEMENT AUCUN AUDIO dans le projet (pas de musique et pas de vidéo avec son)
-                const hasAudioSource = Boolean(offlineWavBlob || bgVideoBlob);
+                // FAST-PATH : UNIQUEMENT s'il n'y a STRICTEMENT AUCUN AUDIO dans le projet
+                const hasAudioSource = Boolean(offlineWavBlob || bgVideoBlob || bgAudioBlob);
                 if (!hasAudioSource && !hasAudioTrack && videoBlob.type.includes('mp4')) {
                     isVideoRecordingRef.current = false;
                     setIsVideoRecording(false);
@@ -5850,12 +5840,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 let ffmpegArgs: string[] = [];
 
                 if (videoBlob.type.includes('mp4') && offlineWavBlob) {
-                    // FAST STREAM COPY : Muxer l'audio WAV en AAC sans ré-encoder la vidéo H.264 WebCodecs
+                    // FAST STREAM COPY : Muxer l'audio WAV (MUSIQUE) en AAC sans ré-encoder la vidéo H.264
                     await ffmpeg.writeFile('audio.wav', await fetchFile(offlineWavBlob));
                     ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav',
                         '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', '-movflags', '+faststart', 'output.mp4'];
+                } else if (videoBlob.type.includes('mp4') && bgAudioBlob) {
+                    // Audio capturé en temps réel depuis bgVideo (WebM opus) → mux avec la vidéo
+                    const bgAudioExt = bgAudioBlob.type.includes('ogg') ? 'bg_audio.ogg' : 'bg_audio.webm';
+                    await ffmpeg.writeFile(bgAudioExt, await fetchFile(bgAudioBlob));
+                    ffmpegArgs = ['-i', inputFileName, '-i', bgAudioExt,
+                        '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', '-movflags', '+faststart', 'output.mp4'];
                 } else if (videoBlob.type.includes('mp4') && bgVideoBlob) {
-                    // FAST STREAM COPY : Muxer l'audio de bgVideo sans ré-encoder la vidéo H.264 WebCodecs
+                    // FAST STREAM COPY depuis fichier vidéo source (si disponible)
                     await ffmpeg.writeFile('bg_source.mp4', await fetchFile(bgVideoBlob));
                     ffmpegArgs = [
                         '-i', inputFileName,
@@ -5875,6 +5871,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     await ffmpeg.writeFile('audio.wav', await fetchFile(offlineWavBlob));
                     ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
                         '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
+                } else if (bgAudioBlob) {
+                    const bgAudioExt = bgAudioBlob.type.includes('ogg') ? 'bg_audio.ogg' : 'bg_audio.webm';
+                    await ffmpeg.writeFile(bgAudioExt, await fetchFile(bgAudioBlob));
+                    ffmpegArgs = ['-i', inputFileName, '-i', bgAudioExt, ...videoArgs,
+                        '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
                 } else if (bgVideoBlob) {
                     await ffmpeg.writeFile('bg_source.mp4', await fetchFile(bgVideoBlob));
                     ffmpegArgs = ['-i', inputFileName, '-stream_loop', '-1', '-i', 'bg_source.mp4', ...videoArgs,
@@ -5889,21 +5890,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 try {
                     await ffmpeg.exec(ffmpegArgs);
                 } catch (execErr) {
-                    if (videoBlob.type.includes('mp4') && offlineWavBlob) {
-                        // Fallback : ré-encoder la vidéo avec libx264 si le copy stream a échoué
-                        console.warn("Direct copy mux failed, retrying with libx264 re-encode:", execErr);
-                        ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
+                    if ((offlineWavBlob || bgAudioBlob) && videoBlob.type.includes('mp4')) {
+                        // Fallback : ré-encoder la vidéo avec libx264 si le stream copy a échoué
+                        console.warn('Direct copy mux failed, retrying with libx264 re-encode:', execErr);
+                        const audioInput = offlineWavBlob ? 'audio.wav'
+                            : (bgAudioBlob!.type.includes('ogg') ? 'bg_audio.ogg' : 'bg_audio.webm');
+                        ffmpegArgs = ['-i', inputFileName, '-i', audioInput, ...videoArgs,
                             '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
                         await ffmpeg.exec(ffmpegArgs);
                     } else if (videoBlob.type.includes('mp4') && bgVideoBlob) {
                         // Fallback bgVideoBlob : ré-encoder aussi
-                        console.warn("Muxing audio bgVideo échoué, repli libx264 re-encode :", execErr);
+                        console.warn('Muxing audio bgVideo échoué, repli libx264 re-encode :', execErr);
                         ffmpegArgs = ['-i', inputFileName, '-stream_loop', '-1', '-i', 'bg_source.mp4', ...videoArgs,
                             '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-map', '0:v:0', '-map', '1:a:0', '-shortest', 'output.mp4'];
                         try {
                             await ffmpeg.exec(ffmpegArgs);
                         } catch {
-                            // Dernier recours : vidéo sans audio
                             console.warn('Re-encode bgVideo aussi échoué, export vidéo sans son.');
                             ffmpegArgs = ['-i', inputFileName, '-c:v', 'copy', '-an', '-movflags', '+faststart', 'output.mp4'];
                             await ffmpeg.exec(ffmpegArgs);
