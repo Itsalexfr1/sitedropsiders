@@ -1887,7 +1887,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // Universal Slide Transition Engine (SLIDE, FADE, ZOOM, GLITCH, CUT)
             let slideX = 0;
             const applySlideTransitionCtx = (targetCtx: CanvasRenderingContext2D, centerX: number, centerY: number) => {
-                if (effectiveTransitionProgress <= 0) return;
+                if (effectiveTransitionProgress <= 0 || isVideoRecordingRef.current) return;
                 const p = effectiveTransitionProgress;
 
                 switch (slideTransition) {
@@ -4832,7 +4832,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // 5. Apply Transition Effects (Glitch / Zoom)
-            if (effectiveTransitionProgress > 0) {
+            if (effectiveTransitionProgress > 0 && !isVideoRecordingRef.current && slideTransition === 'GLITCH') {
                 const glitchIntensity = Math.sin(effectiveTransitionProgress * Math.PI);
 
                 // Zoom Blur effect
@@ -5428,17 +5428,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         };
 
-        const renderTransition = async (durationMs: number, onProgress: (p: number) => void): Promise<number> => {
+        const renderTransition = async (durationMs: number, onProgress?: (p: number) => void): Promise<number> => {
+            // Snapshot haute-fidélité de la slide sortante (actuellement affichée sur le canvas principal)
+            const outgoingCanvas = document.createElement('canvas');
+            outgoingCanvas.width = canvas.width;
+            outgoingCanvas.height = canvas.height;
+            const outCtx = outgoingCanvas.getContext('2d');
+            if (outCtx) outCtx.drawImage(canvas, 0, 0);
+
+            const incomingCanvas = document.createElement('canvas');
+            incomingCanvas.width = canvas.width;
+            incomingCanvas.height = canvas.height;
+            const inCtx = incomingCanvas.getContext('2d');
+
+            const ctx = canvas.getContext('2d');
+
             if (useWebCodecs) {
                 const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
-                const halfFrames = Math.floor(numFrames / 2);
                 for (let f = 0; f < numFrames; f++) {
                     const progress = numFrames <= 1 ? 1 : f / (numFrames - 1);
-                    onProgress(progress);
+                    if (onProgress) onProgress(progress);
 
-                    // Pendant la 1ère moitié (f < halfFrames), l'ancienne slide sort : son animation reste à son état final complet (99.0s).
-                    // Pendant la 2nde moitié (f >= halfFrames), la nouvelle slide entre : son animation démarre à 0 et progresse en continu.
-                    const incomingElapsedSec = f >= halfFrames ? (f - halfFrames) / fps : 99.0;
+                    // Temps d'animation pour la slide entrante (progresse de 0 à durée de transition)
+                    const incomingElapsedSec = f / fps;
                     deterministicAnimTimeRef.current = incomingElapsedSec;
                     deterministicTotalTimeRef.current = totalFramesEncoded / fps;
                     animStartTimeRef.current = Date.now() - (incomingElapsedSec * 1000);
@@ -5466,12 +5478,78 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                     }
 
+                    // 1. Dessiner la nouvelle slide entrante dans le canvas principal
                     isExportRenderingRef.current = true;
                     try {
                         await generateImage();
                     } finally {
                         isExportRenderingRef.current = false;
                     }
+
+                    // 2. Copier la nouvelle slide dans incomingCanvas et faire le composite sans vide
+                    if (inCtx && ctx && outCtx) {
+                        inCtx.clearRect(0, 0, incomingCanvas.width, incomingCanvas.height);
+                        inCtx.drawImage(canvas, 0, 0);
+
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        const ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+                        const centerX = canvas.width / 2;
+                        const centerY = canvas.height / 2;
+
+                        switch (slideTransition) {
+                            case 'SLIDE': {
+                                ctx.drawImage(outgoingCanvas, -ease * canvas.width, 0);
+                                ctx.drawImage(incomingCanvas, (1 - ease) * canvas.width, 0);
+                                break;
+                            }
+                            case 'FADE': {
+                                ctx.save();
+                                ctx.globalAlpha = Math.max(0, 1 - ease);
+                                ctx.drawImage(outgoingCanvas, 0, 0);
+                                ctx.globalAlpha = Math.min(1, ease);
+                                ctx.drawImage(incomingCanvas, 0, 0);
+                                ctx.restore();
+                                break;
+                            }
+                            case 'ZOOM': {
+                                ctx.save();
+                                const s1 = 1 + ease * 0.12;
+                                ctx.translate(centerX, centerY);
+                                ctx.scale(s1, s1);
+                                ctx.translate(-centerX, -centerY);
+                                ctx.globalAlpha = Math.max(0, 1 - ease);
+                                ctx.drawImage(outgoingCanvas, 0, 0);
+                                ctx.restore();
+
+                                ctx.save();
+                                const s2 = 0.88 + ease * 0.12;
+                                ctx.translate(centerX, centerY);
+                                ctx.scale(s2, s2);
+                                ctx.translate(-centerX, -centerY);
+                                ctx.globalAlpha = Math.min(1, ease);
+                                ctx.drawImage(incomingCanvas, 0, 0);
+                                ctx.restore();
+                                break;
+                            }
+                            case 'GLITCH': {
+                                const shake1 = Math.sin(progress * 45) * (1 - progress) * 28;
+                                const shake2 = Math.sin(progress * 45) * progress * 28;
+                                ctx.save();
+                                ctx.globalAlpha = Math.max(0, 1 - ease);
+                                ctx.drawImage(outgoingCanvas, shake1, 0);
+                                ctx.globalAlpha = Math.min(1, ease);
+                                ctx.drawImage(incomingCanvas, shake2, 0);
+                                ctx.restore();
+                                break;
+                            }
+                            case 'CUT':
+                            default: {
+                                ctx.drawImage(progress < 0.5 ? outgoingCanvas : incomingCanvas, 0, 0);
+                                break;
+                            }
+                        }
+                    }
+
                     await captureFrame();
 
                     const overallElapsed = (totalFramesEncoded / fps) * 1000;
@@ -5490,8 +5568,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         await new Promise(r => setTimeout(r, 0));
                     }
                 }
-                onProgress(1);
-                return (numFrames - halfFrames) / fps;
+                if (onProgress) onProgress(1);
+                return (numFrames / fps);
             } else {
                 const start = performance.now();
                 let lastRender = 0;
@@ -5500,7 +5578,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const step = async (now: number) => {
                         const elapsed = now - start;
                         if (elapsed >= durationMs) {
-                            onProgress(1);
+                            if (onProgress) onProgress(1);
                             try { await generateImage(); } catch {}
                             resolve();
                             return;
@@ -5509,12 +5587,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             isRendering = true;
                             lastRender = now;
                             const progress = Math.min(1, elapsed / durationMs);
-                            onProgress(progress);
-                            const incomingElapsedSec = progress >= 0.5 ? ((elapsed - (durationMs / 2)) / 1000) : 99.0;
-                            animStartTimeRef.current = Date.now() - (incomingElapsedSec * 1000);
+                            if (onProgress) onProgress(progress);
+                            animStartTimeRef.current = Date.now() - elapsed;
                             recordingStartTimeRef.current = Date.now() - elapsed;
                             try {
                                 await generateImage();
+                                if (inCtx && ctx && outCtx) {
+                                    inCtx.clearRect(0, 0, incomingCanvas.width, incomingCanvas.height);
+                                    inCtx.drawImage(canvas, 0, 0);
+                                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                                    const ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+                                    if (slideTransition === 'SLIDE') {
+                                        ctx.drawImage(outgoingCanvas, -ease * canvas.width, 0);
+                                        ctx.drawImage(incomingCanvas, (1 - ease) * canvas.width, 0);
+                                    } else {
+                                        ctx.save();
+                                        ctx.globalAlpha = Math.max(0, 1 - ease);
+                                        ctx.drawImage(outgoingCanvas, 0, 0);
+                                        ctx.globalAlpha = Math.min(1, ease);
+                                        ctx.drawImage(incomingCanvas, 0, 0);
+                                        ctx.restore();
+                                    }
+                                }
                             } catch (e) {
                                 console.warn("generateImage transition error", e);
                             } finally {
@@ -5525,7 +5619,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
                     requestAnimationFrame(step);
                 });
-                return (durationMs / 2) / 1000;
+                return durationMs / 1000;
             }
         };
 
@@ -5884,11 +5978,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (videoBlob.type.includes('mp4')) {
                         ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav',
                             '-map', '0:v:0', '-map', '1:a:0',
-                            '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', '-movflags', '+faststart', 'output.mp4'];
+                            '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-avoid_negative_ts', 'make_zero', '-shortest', '-movflags', '+faststart', 'output.mp4'];
                     } else {
                         ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
                             '-map', '0:v:0', '-map', '1:a:0',
-                            '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
+                            '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-avoid_negative_ts', 'make_zero', '-shortest', 'output.mp4'];
                     }
                 } else if (bgVideoBlob) {
                     // Fallback FFmpeg audio extraction si decodeAudioData natif a échoué
@@ -5907,11 +6001,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         if (videoBlob.type.includes('mp4')) {
                             ffmpegArgs = ['-i', inputFileName, '-stream_loop', '-1', '-i', 'audio.wav',
                                 '-map', '0:v:0', '-map', '1:a:0',
-                                '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-t', targetSec, '-movflags', '+faststart', 'output.mp4'];
+                                '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-avoid_negative_ts', 'make_zero', '-t', targetSec, '-movflags', '+faststart', 'output.mp4'];
                         } else {
                             ffmpegArgs = ['-i', inputFileName, '-stream_loop', '-1', '-i', 'audio.wav', ...videoArgs,
                                 '-map', '0:v:0', '-map', '1:a:0',
-                                '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-t', targetSec, 'output.mp4'];
+                                '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-avoid_negative_ts', 'make_zero', '-t', targetSec, 'output.mp4'];
                         }
                     } else {
                         ffmpegArgs = ['-i', inputFileName, '-c:v', 'copy', '-an', '-movflags', '+faststart', 'output.mp4'];
@@ -5997,17 +6091,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const s = contentSlideNumbers[i];
                 let slideStartOffsetSec = 0;
                 if (i > 0) {
-                    let switched = false;
-                    slideStartOffsetSec = await renderTransition(transitionDuration, (progress) => {
-                        transitionProgressRef.current = progress;
-                        if (progress >= 0.5 && !switched) {
-                            editorialSlideOverrideRef.current = s;
-                            animStartTimeRef.current = Date.now();
-                            switched = true;
-                        }
-                    });
-                    transitionProgressRef.current = 0;
                     editorialSlideOverrideRef.current = s;
+                    animStartTimeRef.current = Date.now();
+                    slideStartOffsetSec = await renderTransition(transitionDuration);
+                    transitionProgressRef.current = 0;
                 } else {
                     editorialSlideOverrideRef.current = s;
                     animStartTimeRef.current = Date.now();
@@ -6036,16 +6123,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await renderDuration(slideDuration, slideStartOffsetSec);
             }
 
-            // 2. Transition vers le visuel PROMO outro à la fin du Reel
-            let switchedPromo = false;
-            const promoOffsetSec = await renderTransition(transitionDuration, (progress) => {
-                transitionProgressRef.current = progress;
-                if (progress >= 0.5 && !switchedPromo) {
-                    promoOutroOverrideRef.current = true;
-                    animStartTimeRef.current = Date.now();
-                    switchedPromo = true;
-                }
-            });
+            // 2. Transition vers le visuel PROMO outro à la fin du Reel (composite fluide)
+            promoOutroOverrideRef.current = true;
+            animStartTimeRef.current = Date.now();
+            const promoOffsetSec = await renderTransition(transitionDuration);
             transitionProgressRef.current = 0;
 
             // 3. Affichage du visuel promo final pendant promoDuration avec continuité (zéro relance de texte)
@@ -6061,32 +6142,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             animStartTimeRef.current = Date.now();
             await renderDuration(slideDuration);
 
-            // 2. Transition carrousel vers Slide 2
-            let switched = false;
-            const slide2OffsetSec = await renderTransition(transitionDuration, (progress) => {
-                transitionProgressRef.current = progress;
-                if (progress >= 0.5 && !switched) {
-                    agendaSlideOverrideRef.current = 2;
-                    animStartTimeRef.current = Date.now();
-                    switched = true;
-                }
-            });
-            transitionProgressRef.current = 0;
+            // 2. Transition carrousel vers Slide 2 (composite fluide)
             agendaSlideOverrideRef.current = 2;
+            animStartTimeRef.current = Date.now();
+            const slide2OffsetSec = await renderTransition(transitionDuration);
+            transitionProgressRef.current = 0;
 
             // 3. Slide 2 (Lineup)
             await renderDuration(slideDuration, slide2OffsetSec);
 
-            // 4. Transition vers le visuel PROMO outro à la fin du Reel
-            let switchedPromo = false;
-            const promoOffsetSec = await renderTransition(transitionDuration, (progress) => {
-                transitionProgressRef.current = progress;
-                if (progress >= 0.5 && !switchedPromo) {
-                    promoOutroOverrideRef.current = true;
-                    animStartTimeRef.current = Date.now();
-                    switchedPromo = true;
-                }
-            });
+            // 4. Transition vers le visuel PROMO outro à la fin du Reel (composite fluide)
+            promoOutroOverrideRef.current = true;
+            animStartTimeRef.current = Date.now();
+            const promoOffsetSec = await renderTransition(transitionDuration);
             transitionProgressRef.current = 0;
 
             // 5. Affichage du visuel promo final pendant promoDuration avec continuité (zéro relance de texte)
@@ -6097,14 +6165,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 let startOffset = 0;
                 if (i > 0) {
                     const durationTransition = 1200;
-                    let switched = false;
-                    startOffset = await renderTransition(durationTransition, (progress) => {
-                        transitionProgressRef.current = progress;
-                        if (progress > 0.5 && !switched) {
-                            setCurrentPreviewIndex(i);
-                            switched = true;
-                        }
-                    });
+                    setCurrentPreviewIndex(i);
+                    startOffset = await renderTransition(durationTransition);
                     transitionProgressRef.current = 0;
                 } else {
                     setCurrentPreviewIndex(i);
@@ -6116,19 +6178,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 let startOffset = 0;
                 if (i > 0) {
                     const durationTransition = 1200;
-                    let switched = false;
-                    startOffset = await renderTransition(durationTransition, (progress) => {
-                        transitionProgressRef.current = progress;
-                        if (progress > 0.5 && !switched) {
-                            setCurrentPreviewIndex(i);
-                            switched = true;
-                        }
-                    });
+                    setCurrentPreviewIndex(i);
+                    startOffset = await renderTransition(durationTransition);
                     transitionProgressRef.current = 0;
                 } else {
                     setCurrentPreviewIndex(i);
                 }
-                await renderDuration(16800, startOffset);
             }
         } else {
             if (theme === 'MUSIQUE' && musicAudioEl) {
