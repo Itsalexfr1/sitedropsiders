@@ -5342,11 +5342,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         };
 
         // ── renderDuration : rendu déterministe (WebCodecs) ou temps réel (MediaRecorder) ───
-        const renderDuration = async (durationMs: number): Promise<void> => {
+        const renderDuration = async (durationMs: number, startOffsetSec: number = 0): Promise<void> => {
             if (useWebCodecs) {
                 const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
                 for (let f = 0; f < numFrames; f++) {
-                    const slideElapsedSec = f / fps;
+                    const slideElapsedSec = startOffsetSec + (f / fps);
                     deterministicAnimTimeRef.current = slideElapsedSec;
                     deterministicTotalTimeRef.current = totalFramesEncoded / fps;
                     animStartTimeRef.current = Date.now() - (slideElapsedSec * 1000);
@@ -5409,7 +5409,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         if (now - lastRender >= frameInterval - 1 && !isRendering) {
                             isRendering = true;
                             lastRender = now;
-                            animStartTimeRef.current = Date.now() - elapsed;
+                            const currentAnimElapsed = (startOffsetSec * 1000) + elapsed;
+                            animStartTimeRef.current = Date.now() - currentAnimElapsed;
                             recordingStartTimeRef.current = Date.now() - elapsed;
                             updateProgressUI();
                             try {
@@ -5427,17 +5428,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         };
 
-        const renderTransition = async (durationMs: number, onProgress: (p: number) => void): Promise<void> => {
+        const renderTransition = async (durationMs: number, onProgress: (p: number) => void): Promise<number> => {
             if (useWebCodecs) {
                 const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
+                const halfFrames = Math.floor(numFrames / 2);
                 for (let f = 0; f < numFrames; f++) {
                     const progress = numFrames <= 1 ? 1 : f / (numFrames - 1);
                     onProgress(progress);
 
-                    const slideElapsedSec = f / fps;
-                    deterministicAnimTimeRef.current = slideElapsedSec;
+                    // Pendant la 1ère moitié (f < halfFrames), l'ancienne slide sort : son animation reste à son état final complet (99.0s).
+                    // Pendant la 2nde moitié (f >= halfFrames), la nouvelle slide entre : son animation démarre à 0 et progresse en continu.
+                    const incomingElapsedSec = f >= halfFrames ? (f - halfFrames) / fps : 99.0;
+                    deterministicAnimTimeRef.current = incomingElapsedSec;
                     deterministicTotalTimeRef.current = totalFramesEncoded / fps;
-                    animStartTimeRef.current = Date.now() - (slideElapsedSec * 1000);
+                    animStartTimeRef.current = Date.now() - (incomingElapsedSec * 1000);
                     recordingStartTimeRef.current = Date.now() - ((totalFramesEncoded / fps) * 1000);
 
                     if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
@@ -5487,6 +5491,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
                 onProgress(1);
+                return (numFrames - halfFrames) / fps;
             } else {
                 const start = performance.now();
                 let lastRender = 0;
@@ -5505,7 +5510,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             lastRender = now;
                             const progress = Math.min(1, elapsed / durationMs);
                             onProgress(progress);
-                            animStartTimeRef.current = Date.now() - elapsed;
+                            const incomingElapsedSec = progress >= 0.5 ? ((elapsed - (durationMs / 2)) / 1000) : 99.0;
+                            animStartTimeRef.current = Date.now() - (incomingElapsedSec * 1000);
                             recordingStartTimeRef.current = Date.now() - elapsed;
                             try {
                                 await generateImage();
@@ -5519,6 +5525,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
                     requestAnimationFrame(step);
                 });
+                return (durationMs / 2) / 1000;
             }
         };
 
@@ -5988,9 +5995,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // 1. Déroulement des slides de contenu (selon contentSlideNumbers)
             for (let i = 0; i < contentSlideNumbers.length; i++) {
                 const s = contentSlideNumbers[i];
+                let slideStartOffsetSec = 0;
                 if (i > 0) {
                     let switched = false;
-                    await renderTransition(transitionDuration, (progress) => {
+                    slideStartOffsetSec = await renderTransition(transitionDuration, (progress) => {
                         transitionProgressRef.current = progress;
                         if (progress >= 0.5 && !switched) {
                             editorialSlideOverrideRef.current = s;
@@ -6024,13 +6032,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
 
-                // Rendu actif frame-par-frame
-                await renderDuration(slideDuration);
+                // Rendu actif frame-par-frame avec continuité d'animation (zéro reset de texte)
+                await renderDuration(slideDuration, slideStartOffsetSec);
             }
 
             // 2. Transition vers le visuel PROMO outro à la fin du Reel
             let switchedPromo = false;
-            await renderTransition(transitionDuration, (progress) => {
+            const promoOffsetSec = await renderTransition(transitionDuration, (progress) => {
                 transitionProgressRef.current = progress;
                 if (progress >= 0.5 && !switchedPromo) {
                     promoOutroOverrideRef.current = true;
@@ -6040,9 +6048,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             });
             transitionProgressRef.current = 0;
 
-            // 3. Affichage du visuel promo final pendant promoDuration
-            await renderDuration(promoDuration);
-            promoOutroOverrideRef.current = false;
+            // 3. Affichage du visuel promo final pendant promoDuration avec continuité (zéro relance de texte)
+            await renderDuration(promoDuration, promoOffsetSec);
 
         } else if (combinedMode === 'PLANNING') {
             const promoDuration = 4800; // 4.8s pour avoir tout le temps de lire le message
@@ -6056,7 +6063,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             // 2. Transition carrousel vers Slide 2
             let switched = false;
-            await renderTransition(transitionDuration, (progress) => {
+            const slide2OffsetSec = await renderTransition(transitionDuration, (progress) => {
                 transitionProgressRef.current = progress;
                 if (progress >= 0.5 && !switched) {
                     agendaSlideOverrideRef.current = 2;
@@ -6068,11 +6075,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             agendaSlideOverrideRef.current = 2;
 
             // 3. Slide 2 (Lineup)
-            await renderDuration(slideDuration);
+            await renderDuration(slideDuration, slide2OffsetSec);
 
             // 4. Transition vers le visuel PROMO outro à la fin du Reel
             let switchedPromo = false;
-            await renderTransition(transitionDuration, (progress) => {
+            const promoOffsetSec = await renderTransition(transitionDuration, (progress) => {
                 transitionProgressRef.current = progress;
                 if (progress >= 0.5 && !switchedPromo) {
                     promoOutroOverrideRef.current = true;
@@ -6082,16 +6089,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             });
             transitionProgressRef.current = 0;
 
-            // 5. Affichage du visuel promo final pendant promoDuration
-            await renderDuration(promoDuration);
-            promoOutroOverrideRef.current = false;
+            // 5. Affichage du visuel promo final pendant promoDuration avec continuité (zéro relance de texte)
+            await renderDuration(promoDuration, promoOffsetSec);
 
         } else if (theme.startsWith('TOP 5')) {
             for (let i = 0; i < 5; i++) {
+                let startOffset = 0;
                 if (i > 0) {
                     const durationTransition = 1200;
                     let switched = false;
-                    await renderTransition(durationTransition, (progress) => {
+                    startOffset = await renderTransition(durationTransition, (progress) => {
                         transitionProgressRef.current = progress;
                         if (progress > 0.5 && !switched) {
                             setCurrentPreviewIndex(i);
@@ -6102,14 +6109,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else {
                     setCurrentPreviewIndex(i);
                 }
-                await renderDuration(16800);
+                await renderDuration(16800, startOffset);
             }
         } else if (theme === 'TOP 10 FESTIVAL') {
             for (let i = 0; i < 11; i++) {
+                let startOffset = 0;
                 if (i > 0) {
                     const durationTransition = 1200;
                     let switched = false;
-                    await renderTransition(durationTransition, (progress) => {
+                    startOffset = await renderTransition(durationTransition, (progress) => {
                         transitionProgressRef.current = progress;
                         if (progress > 0.5 && !switched) {
                             setCurrentPreviewIndex(i);
@@ -6120,7 +6128,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else {
                     setCurrentPreviewIndex(i);
                 }
-                await renderDuration(16800);
+                await renderDuration(16800, startOffset);
             }
         } else {
             if (theme === 'MUSIQUE' && musicAudioEl) {
@@ -6145,19 +6153,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setRecordingProgress(100);
         setRecordingTimeLeft(0);
         isVideoRecordingRef.current = false;
-        promoOutroOverrideRef.current = false;
         transitionProgressRef.current = null;
         transitionTargetRef.current = null;
         setTransitionProgress(0);
-        if (combinedMode === 'PLANNING') {
-            agendaSlideOverrideRef.current = null;
-            setAgendaSlide(prevAgendaSlide);
-            setIsCarouselPromoActive(prevWasCarouselPromoActive);
-        } else if (combinedMode === 'EDITORIAL') {
-            editorialSlideOverrideRef.current = null;
-            setEditorialSlide(prevEditorialSlide);
-            setIsCarouselPromoActive(prevWasCarouselPromoActive);
-        }
         if (bgVideo) {
             bgVideo.muted = true; // remet en silencieux pour le preview
             bgVideo.loop = true;
@@ -6169,6 +6167,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             recorder.stop();
         } else if (useWebCodecs) {
             await finalizeRecording();
+        }
+
+        // Nettoyage des états promo et overrides UNIQUEMENT après l'arrêt total de l'enregistrement
+        promoOutroOverrideRef.current = false;
+        if (combinedMode === 'PLANNING') {
+            agendaSlideOverrideRef.current = null;
+            setAgendaSlide(prevAgendaSlide);
+            setIsCarouselPromoActive(prevWasCarouselPromoActive);
+        } else if (combinedMode === 'EDITORIAL') {
+            editorialSlideOverrideRef.current = null;
+            setEditorialSlide(prevEditorialSlide);
+            setIsCarouselPromoActive(prevWasCarouselPromoActive);
         }
     };
 
