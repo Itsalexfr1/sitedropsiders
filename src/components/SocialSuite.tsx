@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { 
@@ -40,6 +40,7 @@ import { Downloader } from '../pages/Downloader';
 import { ImageUploadModal } from './ImageUploadModal';
 import { resolveImageUrl } from '../utils/image';
 import { resolveMusicSnippet } from '../utils/musicResolver';
+import { fixWebmDuration } from '../utils/fixWebm';
 import recapsData from '../data/recaps.json';
 // @ts-ignore
 import { FFmpeg } from '@ffmpeg/ffmpeg';
@@ -5044,50 +5045,77 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         };
 
 
-        // ── renderDuration : rendu canvas temps réel via requestAnimationFrame ─────────────────
-        // On force chaque génération d'image à être synchronisée avec le vsync du navigateur
-        // pour un flux canvas parfaitement fluide → MediaRecorder capture des frames nettes.
-        const renderDuration = (durationMs: number): Promise<void> => new Promise((resolve) => {
-            const start = performance.now();
-            let lastRender = 0;
-            const step = (now: number) => {
-                const elapsed = now - start;
-                if (elapsed >= durationMs) { resolve(); return; }
-                // Mise à jour horloge anim (l'UI de la slide utilise Date.now() - animStartTimeRef)
-                animStartTimeRef.current = Date.now() - elapsed;
-                recordingStartTimeRef.current = Date.now() - elapsed;
-                // Seek vidéo fond si présent (temps réel via bgVideo.play())
-                // bgVideo est déjà en train de jouer : pas besoin de seek manuel
-                // Mise à jour UI progression
-                if (now - lastRender >= frameInterval) {
-                    updateProgressUI();
-                    lastRender = now;
-                }
-                generateImage();
-                requestAnimationFrame(step);
-            };
-            requestAnimationFrame(step);
-        });
+        // Tableau accumulé de frames JPEG (format: Uint8Array)
+        // Chaque élément correspond à une frame à encoder avec FFmpeg
+        const capturedFrames: Uint8Array[] = [];
+        let totalFramesEncoded = 0;
+        const totalExpectedFrames = Math.max(1, Math.round((totalDuration / 1000) * fps));
 
-        const renderTransition = (durationMs: number, onProgress: (p: number) => void): Promise<void> => new Promise((resolve) => {
-            const start = performance.now();
-            const step = (now: number) => {
-                const elapsed = now - start;
-                const progress = Math.min(1, elapsed / durationMs);
-                onProgress(progress);
-                animStartTimeRef.current = Date.now() - elapsed;
-                recordingStartTimeRef.current = Date.now() - elapsed;
-                generateImage();
-                if (elapsed < durationMs) {
-                    requestAnimationFrame(step);
+        // Capture une frame JPEG depuis le canvas
+        const captureJpegFrame = (): Promise<void> => new Promise((resolve) => {
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    blob.arrayBuffer().then((buf) => {
+                        capturedFrames.push(new Uint8Array(buf));
+                        totalFramesEncoded++;
+                        resolve();
+                    });
                 } else {
-                    onProgress(1);
-                    generateImage();
                     resolve();
                 }
-            };
-            requestAnimationFrame(step);
+            }, 'image/jpeg', 0.90);
         });
+
+        // ── renderDuration : rendu déterministe frame-par-frame ───────────────────────
+        // Chaque frame est rendu à son timestamp exact, puis capturé en JPEG.
+        // Aucune dépendance au temps réel = zéro lag possible dans la vidéo finale.
+        const renderDuration = async (durationMs: number) => {
+            const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
+            for (let f = 0; f < numFrames; f++) {
+                const elapsedSec = f / fps;
+                animStartTimeRef.current = Date.now() - (elapsedSec * 1000);
+                recordingStartTimeRef.current = Date.now() - ((totalFramesEncoded / fps) * 1000);
+                if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
+                    bgVideo.currentTime = (totalFramesEncoded / fps) % bgVideo.duration;
+                }
+                generateImage();
+                await captureJpegFrame();
+                // Progression
+                if (f % 5 === 0) {
+                    const progress = Math.min((totalFramesEncoded / totalExpectedFrames) * 100, 99);
+                    const timeLeft = Math.max(0, Math.ceil(((totalExpectedFrames - totalFramesEncoded) / fps)));
+                    const dashoffset1 = 364.4 - (364.4 * progress) / 100;
+                    const dashoffset2 = 565 - (565 * progress) / 100;
+                    if (recordingCircleRef.current) recordingCircleRef.current.style.strokeDashoffset = String(dashoffset1);
+                    if (recordingCircle2Ref.current) recordingCircle2Ref.current.style.strokeDashoffset = String(dashoffset2);
+                    if (recordingPercentRef.current) recordingPercentRef.current.textContent = `${Math.round(progress)}%`;
+                    if (recordingPercent2Ref.current) recordingPercent2Ref.current.textContent = `${Math.round(progress)}%`;
+                    if (recordingTimeRef.current) recordingTimeRef.current.textContent = `${timeLeft}S`;
+                    if (recordingTimeLeft2Ref.current) recordingTimeLeft2Ref.current.textContent = `${timeLeft}s restantes`;
+                    // Yield au browser pour rafraîchir l'UI
+                    await new Promise(r => setTimeout(r, 0));
+                }
+            }
+        };
+
+        const renderTransition = async (durationMs: number, onProgress: (p: number) => void) => {
+            const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
+            for (let f = 0; f < numFrames; f++) {
+                const progress = numFrames <= 1 ? 1 : f / (numFrames - 1);
+                onProgress(progress);
+                const elapsedSec = f / fps;
+                animStartTimeRef.current = Date.now() - (elapsedSec * 1000);
+                recordingStartTimeRef.current = Date.now() - ((totalFramesEncoded / fps) * 1000);
+                if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
+                    bgVideo.currentTime = (totalFramesEncoded / fps) % bgVideo.duration;
+                }
+                generateImage();
+                await captureJpegFrame();
+                if (f % 5 === 0) await new Promise(r => setTimeout(r, 0));
+            }
+            onProgress(1);
+        };
+
 
 
         isVideoRecordingRef.current = true;
@@ -5196,27 +5224,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         // Bitrate 10Mbps PC
         const bitrate = isMobile ? 6000000 : 10000000;
 
-        // ── PIPELINE VIDÉO : MediaRecorder pur ──────────────────────────────────────────
-        // combinedStream contient : piste vidéo (canvas) + piste audio (bgVideo si dispo)
-        // L'audio est automatiquement inclus dans l'enregistrement.
-        const chunks: Blob[] = [];
-        const targetWidth = 1080;
-        const targetHeight = activeTab === 'REEL' ? 1920 : 1350;
-        if (canvas.width !== targetWidth) canvas.width = targetWidth;
-        if (canvas.height !== targetHeight) canvas.height = targetHeight;
+        // ── PIPELINE VIDÉO : MediaRecorder pur ──────────�        const finalizeRecording = async () => {
+            stopMusicSegment();
+            setRecordingProgress(100);
+            setRecordingTimeLeft(0);
+            if (recordingCircleRef.current) recordingCircleRef.current.style.strokeDashoffset = '0';
+            if (recordingCircle2Ref.current) recordingCircle2Ref.current.style.strokeDashoffset = '0';
+            if (recordingPercent2Ref.current) recordingPercent2Ref.current.textContent = '100%';
 
-        const recorder = new MediaRecorder(combinedStream, {
-            mimeType,
-            videoBitsPerSecond: bitrate,
-            ...(hasAudioTrack ? { audioBitsPerSecond: 192000 } : {}),
-        });
-        recorder.ondataavailable = (e: any) => {
-            if (e.data && e.data.size > 0) chunks.push(e.data);
-        };
+            if (capturedFrames.length === 0) {
+                setErrorMessage("Aucune frame capturée. Recharge la page et réessaie.");
+                isVideoRecordingRef.current = false;
+                setIsVideoRecording(false);
+                return;
+            }
 
+            isVideoRecordingRef.current = false;
+            setIsVideoRecording(false);
+            setIsConverting(true);
+            setConversionProgress(0);
 
-        const finalizeRecording = async () => {
-            // Fin d'enregistrement : sync DOM refs et state React pour la phase FFmpeg
+eact pour la phase FFmpeg
             stopMusicSegment();
             setRecordingProgress(100);
             setRecordingTimeLeft(0);
@@ -5238,11 +5266,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             // Sur mobile : modal de prévisualisation directe (sans FFmpeg pour réactivité)
             if (isMobile) {
-                const url = URL.createObjectURL(videoBlob);
+                // Fix WebM duration pour eviter le lag (header EBML sans duree)
+                const durationMs = totalDuration || 30000;
+                const fixedBlob = await fixWebmDuration(videoBlob, durationMs);
+                const url = URL.createObjectURL(fixedBlob);
                 isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
                 setRecordingProgress(0);
-                setReadyVideoBlob(videoBlob);
+                setReadyVideoBlob(fixedBlob);
                 setReadyVideoUrl(url);
                 setActivePanel(null);
                 return;
@@ -5353,32 +5384,37 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 console.warn("Rendu audio offline échoué (fallback vidéo seule) :", audioRenderErr);
             }
 
-            // ── PHASE 3 : MUXAGE FFmpeg (vidéo + audio offline ou bgVideo audio) ────
             try {
-                // FAST-PATH : Si WebCodecs a produit un MP4 et qu'il n'y a pas d'audio à ajouter
-                if (!offlineWavBlob && !hasAudioTrack && videoBlob.type.includes('mp4')) {
-                    isVideoRecordingRef.current = false;
-                    setIsVideoRecording(false);
-                    const url = URL.createObjectURL(videoBlob);
-                    setReadyVideoBlob(videoBlob);
-                    setReadyVideoUrl(url);
-                    setActivePanel(null);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    return;
-                }
-
-                isVideoRecordingRef.current = false;
-                setIsVideoRecording(false);
-                setIsConverting(true);
-                setConversionProgress(0);
-
+                // Charger FFmpeg si pas encore fait
                 if (!ffmpegRef.current) {
                     const ffmpeg = new FFmpeg();
+                    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+                    await ffmpeg.load({
+                        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+                        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+                    });
+                    ffmpegRef.current = ffmpeg;
+                }
+                const ffmpeg = ffmpegRef.current;
+                ffmpeg.on('progress', ({ progress }: any) => {
+                    setConversionProgress(35 + Math.min(60, Math.round(progress * 60)));
+                });
+
+                // Écriture des frames JPEG dans le FS FFmpeg
+                setConversionProgress(5);
+                for (let i = 0; i < capturedFrames.length; i++) {
+                    await ffmpeg.writeFile(`f${String(i).padStart(5, '0')}.jpg`, capturedFrames[i]);
+                    if (i % 30 === 0) {
+                        setConversionProgress(5 + Math.round((i / capturedFrames.length) * 30));
+                        await new Promise(r => setTimeout(r, 0));
+                    }
+                }
+
+                // Arrêt de l'audio recorder bgVideo si actif
+                if (audioRecorder && audioRecorder.state !== 'inactive') audioRecorder.stop();
+                const audioBlob = await audioReadyPromise;
+
+
                     const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
                     await ffmpeg.load({
                         coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
@@ -5397,20 +5433,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const keyframeInterval = String(fps * 2);
                 const videoArgs = [
+                    '-framerate', String(fps), '-i', 'f%05d.jpg',
                     '-c:v', 'libx264', '-preset', 'fast', '-profile:v', 'main', '-level', '4.0',
-                    '-tune', 'film',       // meilleure qualité pour contenu mixte texte+image+vidéo
-                    '-crf', '18',          // CRF 18 → qualité supérieure (vs 20 avant) sans glitch
+                    '-tune', 'film', '-crf', '18',
                     '-g', keyframeInterval, '-bf', '2', '-pix_fmt', 'yuv420p',
                     '-r', String(fps), '-movflags', '+faststart'
                 ];
-                let ffmpegArgs: string[] = [];
 
-                if (videoBlob.type.includes('mp4') && offlineWavBlob) {
-                    // FAST STREAM COPY : Muxer l'audio WAV en AAC sans ré-encoder la vidéo H.264 WebCodecs
-                    await ffmpeg.writeFile('audio.wav', await fetchFile(offlineWavBlob));
-                    ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav',
-                        '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', '-movflags', '+faststart', 'output.mp4'];
-                } else if (offlineWavBlob) {
+                // Audio offline (MUSIQUE) → WAV
+
                     await ffmpeg.writeFile('audio.wav', await fetchFile(offlineWavBlob));
                     ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
                         '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
@@ -5421,18 +5452,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ffmpegArgs = ['-i', inputFileName, ...videoArgs, '-an', 'output.mp4'];
                 }
 
-                try {
-                    await ffmpeg.exec(ffmpegArgs);
-                } catch (execErr) {
-                    if (videoBlob.type.includes('mp4') && offlineWavBlob) {
-                        console.warn("Direct copy mux failed, retrying with libx264 re-encode:", execErr);
-                        ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
-                            '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
-                        await ffmpeg.exec(ffmpegArgs);
-                    } else {
-                        throw execErr;
-                    }
-                }
+                await ffmpeg.exec(ffmpegArgs);
 
                 const data: any = await ffmpeg.readFile('output.mp4');
                 const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
@@ -5466,9 +5486,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         };
 
-        // Démarrage du MediaRecorder
-        recorder.onstop = finalizeRecording;
-        recorder.start(500);
+        // Pas de MediaRecorder — on lance directement la finalisation après les render loops
+        // (recorder.onstop = finalizeRecording est remplacé par l'appel direct ci-dessous)
 
         // Mise à jour de la barre de progression toutes les 250ms
         const progressInterval = setInterval(updateProgressUI, 250);
