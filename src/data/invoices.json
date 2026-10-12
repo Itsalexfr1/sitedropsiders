@@ -226,7 +226,8 @@
     "paid": false,
     "emailTo": "Archive",
     "pdfUrl": "",
-    "number": "INV-2026-073"
+    "number": "INV-2026-073",
+    "paidAmount": 0
   },
   {
     "number": "INV-2026-072",
