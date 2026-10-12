@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Download, X, Eye, Instagram, Loader2, Wifi, WifiOff } from 'lucide-react';
@@ -65,27 +65,49 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
         setStreamStatus('uploading');
         setUploadProgress(0);
         try {
-            const progressInterval = setInterval(() => {
-                setUploadProgress(prev => Math.min(prev + Math.random() * 15, 85));
-            }, 300);
-            const res = await fetch('/api/stream/upload', {
+            // 1. Obtenir une URL d'upload direct Cloudflare Stream
+            const createRes = await fetch('/api/stream/create-upload', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': readyBlob.type || 'video/webm',
-                    'X-File-Name': filename,
-                },
-                body: readyBlob,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    filename,
+                    fileSize: readyBlob.size,
+                    maxDuration: 600,
+                }),
             });
-            clearInterval(progressInterval);
-            setUploadProgress(95);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json() as any;
+            if (!createRes.ok) throw new Error(`Create upload status: ${createRes.status}`);
+            const data = await createRes.json() as any;
+            if (!data.uploadURL || !data.uid) throw new Error('Invalid Stream response');
+
+            // 2. Upload direct vers Cloudflare via FormData (bypass Worker)
+            const formData = new FormData();
+            formData.append('file', readyBlob, filename);
+
+            await new Promise<void>((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        setUploadProgress(Math.round((e.loaded / e.total) * 100));
+                    }
+                };
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve();
+                    } else {
+                        reject(new Error(`Direct upload failed: ${xhr.status}`));
+                    }
+                };
+                xhr.onerror = () => reject(new Error('Network error during direct upload'));
+                xhr.open('POST', data.uploadURL);
+                xhr.send(formData);
+            });
+
             setUploadProgress(100);
             setStreamEmbedUrl(data.embedUrl);
             setStreamStatus('processing');
             startPolling(data.uid);
         } catch (e: any) {
-            console.error('Stream upload failed:', e);
+            console.warn('Stream direct upload unavailable, using local playback:', e);
             setStreamStatus('error');
         }
     };
@@ -157,7 +179,7 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
 
     if (!isOpen) return null;
 
-    const isVideoReady = type === 'video' && (streamStatus === 'ready' || streamStatus === 'processing') && streamEmbedUrl;
+    const isVideoReady = type === 'video' && streamStatus === 'ready' && !!streamEmbedUrl;
     const isUploading = streamStatus === 'uploading';
 
     return createPortal(
@@ -175,31 +197,10 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
                         {/* Preview */}
                         <div className="w-full aspect-[9/16] max-h-[280px] mb-4 rounded-2xl overflow-hidden bg-black border border-white/10 relative shadow-inner">
 
-                            {/* Upload progress overlay */}
-                            {isUploading && (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/85 z-10">
-                                    <Loader2 className="w-8 h-8 text-[#00d4ff] animate-spin" />
-                                    <p className="text-[9px] font-black text-[#00d4ff] uppercase tracking-widest">Optimisation HD...</p>
-                                    <div className="w-40 h-1 bg-white/10 rounded-full overflow-hidden">
-                                        <motion.div className="h-full bg-[#00d4ff] rounded-full" animate={{ width: `${uploadProgress}%` }} transition={{ duration: 0.3 }} />
-                                    </div>
-                                    <p className="text-[8px] font-bold text-gray-500">{Math.round(uploadProgress)}%</p>
-                                    <video src={readyUrl} className="absolute inset-0 w-full h-full object-cover opacity-10" autoPlay loop muted playsInline />
-                                </div>
-                            )}
-
-                            {/* Processing badge */}
-                            {streamStatus === 'processing' && (
-                                <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/20 border border-amber-500/30 rounded-lg">
-                                    <Loader2 className="w-3 h-3 text-amber-400 animate-spin" />
-                                    <span className="text-[8px] font-black text-amber-400 uppercase">Encodage...</span>
-                                </div>
-                            )}
-
                             {/* Stream ready badge + iframe */}
-                            {isVideoReady && (
+                            {isVideoReady ? (
                                 <>
-                                    <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-neon-green/20 border border-neon-green/30 rounded-lg">
+                                    <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-neon-green/20 border border-neon-green/30 rounded-lg backdrop-blur-md">
                                         <Wifi className="w-3 h-3 text-neon-green" />
                                         <span className="text-[8px] font-black text-neon-green uppercase">Stream HD</span>
                                     </div>
@@ -211,20 +212,37 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
                                         style={{ border: 'none' }}
                                     />
                                 </>
-                            )}
+                            ) : (
+                                <>
+                                    {/* Local preview (available immediately) */}
+                                    {type === 'video' ? (
+                                        <video src={readyUrl} className="w-full h-full object-cover" autoPlay loop muted playsInline controls />
+                                    ) : (
+                                        <img src={readyUrl} className="w-full h-full object-cover" alt="Preview" />
+                                    )}
 
-                            {/* Fallback local */}
-                            {!isVideoReady && !isUploading && (
-                                type === 'video'
-                                    ? <video src={readyUrl} className="w-full h-full object-cover" autoPlay loop muted playsInline controls />
-                                    : <img src={readyUrl} className="w-full h-full object-cover" alt="Preview" />
-                            )}
+                                    {/* Upload progress chip */}
+                                    {isUploading && (
+                                        <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-black/60 border border-[#00d4ff]/40 rounded-lg backdrop-blur-md">
+                                            <Loader2 className="w-3 h-3 text-[#00d4ff] animate-spin" />
+                                            <span className="text-[8px] font-black text-[#00d4ff] uppercase">Sync Cloud {uploadProgress}%</span>
+                                        </div>
+                                    )}
 
-                            {streamStatus === 'error' && (
-                                <div className="absolute bottom-2 left-2 right-2 z-20 flex items-center gap-1.5 px-2 py-1 bg-red-500/20 border border-red-500/30 rounded-lg">
-                                    <WifiOff className="w-3 h-3 text-red-400 flex-shrink-0" />
-                                    <span className="text-[7px] font-black text-red-400 uppercase">Lecture locale</span>
-                                </div>
+                                    {/* Processing badge */}
+                                    {streamStatus === 'processing' && (
+                                        <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/20 border border-amber-500/30 rounded-lg backdrop-blur-md">
+                                            <Loader2 className="w-3 h-3 text-amber-400 animate-spin" />
+                                            <span className="text-[8px] font-black text-amber-400 uppercase">Encodage HD...</span>
+                                        </div>
+                                    )}
+
+                                    {streamStatus === 'error' && (
+                                        <div className="absolute bottom-2 left-2 right-2 z-20 flex items-center gap-1.5 px-2 py-1 bg-white/10 border border-white/10 rounded-lg backdrop-blur-md">
+                                            <span className="text-[7px] font-black text-gray-400 uppercase">Lecture locale fluide</span>
+                                        </div>
+                                    )}
+                                </>
                             )}
 
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />

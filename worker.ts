@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 import webpush from 'web-push';
 import PostalMime from 'postal-mime';
 
@@ -4961,10 +4961,11 @@ ${urls.map(u => `  <url>
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
-        // --- API: CLOUDFLARE STREAM UPLOAD ---
-        // Reçoit un blob vidéo (WebM/MP4), l'uploade vers Cloudflare Stream,
-        // retourne { uid, hlsUrl, dashUrl, embedUrl } pour un playback HLS sans lag.
-        if (path === '/api/stream/upload' && request.method === 'POST') {
+        // --- API: CLOUDFLARE STREAM - CREER UNE URL D'UPLOAD DIRECT ---
+        // Le Worker cree une URL TUS directe (Direct Creator Upload).
+        // Le navigateur uploade ensuite DIRECTEMENT vers Cloudflare Stream
+        // sans transiter par le Worker → pas de timeout, pas de limite de taille.
+        if (path === '/api/stream/create-upload' && request.method === 'POST') {
             try {
                 const CF_ACCOUNT_ID = (env as any).CF_ACCOUNT_ID || '86ded1790b5d94788eb7e6dd436521cd';
                 const CF_STREAM_TOKEN = (env as any).CF_STREAM_TOKEN;
@@ -4972,92 +4973,56 @@ ${urls.map(u => `  <url>
                     return new Response(JSON.stringify({ error: 'CF_STREAM_TOKEN manquant' }), { status: 500, headers });
                 }
 
-                // Récupérer le blob vidéo en binaire
-                const videoBuffer = await request.arrayBuffer();
-                if (!videoBuffer || videoBuffer.byteLength === 0) {
-                    return new Response(JSON.stringify({ error: 'Fichier vidéo vide' }), { status: 400, headers });
-                }
+                const body = await request.json() as any;
+                const fileSize = body?.fileSize || 0;
+                const filename = body?.filename || 'dropsiders-export.mp4';
+                const maxDuration = body?.maxDuration || 600;
 
-                const contentType = request.headers.get('Content-Type') || 'video/webm';
-                const filename = request.headers.get('X-File-Name') || 'dropsiders-export.webm';
-                const fileSize = videoBuffer.byteLength;
-
-                // Upload direct vers Cloudflare Stream API (simple upload pour fichiers < 200MB)
-                const streamRes = await fetch(
-                    `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/stream`,
+                // Creer une URL d'upload direct via l'API Cloudflare Stream
+                const createRes = await fetch(
+                    `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/stream/direct_upload`,
                     {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${CF_STREAM_TOKEN}`,
-                            'Content-Type': contentType,
-                            'Content-Length': String(fileSize),
-                            'Tus-Resumable': '1.0.0',
-                            'Upload-Length': String(fileSize),
-                            'Upload-Metadata': `name ${btoa(filename)}`,
+                            'Content-Type': 'application/json',
                         },
-                        body: videoBuffer,
+                        body: JSON.stringify({
+                            maxDurationSeconds: maxDuration,
+                            meta: { name: filename },
+                            requireSignedURLs: false,
+                        }),
                     }
                 );
 
-                if (!streamRes.ok) {
-                    // Fallback: essai via form-data multipart
-                    const formData = new FormData();
-                    formData.append('file', new Blob([videoBuffer], { type: contentType }), filename);
-
-                    const formRes = await fetch(
-                        `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/stream`,
-                        {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${CF_STREAM_TOKEN}`,
-                            },
-                            body: formData,
-                        }
-                    );
-
-                    if (!formRes.ok) {
-                        const errText = await formRes.text();
-                        return new Response(JSON.stringify({ error: `Cloudflare Stream error: ${formRes.status} - ${errText}` }), { status: 502, headers });
-                    }
-
-                    const formData2 = await formRes.json() as any;
-                    const uid = formData2?.result?.uid;
-                    if (!uid) {
-                        return new Response(JSON.stringify({ error: 'UID Stream manquant dans la réponse', raw: formData2 }), { status: 502, headers });
-                    }
-
-                    return new Response(JSON.stringify({
-                        success: true,
-                        uid,
-                        hlsUrl: `https://customer-${uid}.cloudflarestream.com/${uid}/manifest/video.m3u8`,
-                        dashUrl: `https://customer-${uid}.cloudflarestream.com/${uid}/manifest/video.mpd`,
-                        embedUrl: `https://iframe.cloudflarestream.com/${uid}`,
-                        thumbnailUrl: `https://customer-${uid}.cloudflarestream.com/${uid}/thumbnails/thumbnail.jpg`,
-                        status: 'processing',
-                    }), { headers });
+                if (!createRes.ok) {
+                    const errText = await createRes.text();
+                    return new Response(JSON.stringify({ error: `Stream API error: ${createRes.status} - ${errText}` }), { status: 502, headers });
                 }
 
-                const streamData = await streamRes.json() as any;
-                const uid = streamData?.result?.uid;
-                if (!uid) {
-                    return new Response(JSON.stringify({ error: 'UID Stream manquant', raw: streamData }), { status: 502, headers });
+                const createData = await createRes.json() as any;
+                const uid = createData?.result?.uid;
+                const uploadURL = createData?.result?.uploadURL;
+
+                if (!uid || !uploadURL) {
+                    return new Response(JSON.stringify({ error: 'Reponse Stream invalide', raw: createData }), { status: 502, headers });
                 }
 
                 return new Response(JSON.stringify({
                     success: true,
                     uid,
-                    hlsUrl: `https://customer-${uid}.cloudflarestream.com/${uid}/manifest/video.m3u8`,
-                    dashUrl: `https://customer-${uid}.cloudflarestream.com/${uid}/manifest/video.mpd`,
+                    uploadURL,
                     embedUrl: `https://iframe.cloudflarestream.com/${uid}`,
+                    hlsUrl: `https://customer-${uid}.cloudflarestream.com/${uid}/manifest/video.m3u8`,
                     thumbnailUrl: `https://customer-${uid}.cloudflarestream.com/${uid}/thumbnails/thumbnail.jpg`,
-                    status: 'processing',
                 }), { headers });
 
             } catch (e: any) {
-                console.error('Stream upload error:', e);
+                console.error('Stream create-upload error:', e);
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
         }
+
 
         // --- API: STREAM STATUS (polling jusqu'à ce que la vidéo soit prête) ---
         if (path.startsWith('/api/stream/status/') && request.method === 'GET') {

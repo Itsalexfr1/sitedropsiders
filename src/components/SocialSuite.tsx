@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { 
@@ -5045,26 +5045,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         };
 
 
-        // ── renderDuration : rendu canvas temps réel via requestAnimationFrame ─────────────────
-        // On force chaque génération d'image à être synchronisée avec le vsync du navigateur
-        // pour un flux canvas parfaitement fluide → MediaRecorder capture des frames nettes.
+        // ── renderDuration : rendu canvas temps réel synchronisé et cadencé ─────────────────
+        // On cadence strictement chaque génération d'image au rythme frameInterval (30 ou 60 FPS)
+        // et on attend la fin du dessin pour éviter toute surcharge CPU / désynchronisation.
         const renderDuration = (durationMs: number): Promise<void> => new Promise((resolve) => {
             const start = performance.now();
             let lastRender = 0;
-            const step = (now: number) => {
+            let isRendering = false;
+            const step = async (now: number) => {
                 const elapsed = now - start;
                 if (elapsed >= durationMs) { resolve(); return; }
-                // Mise à jour horloge anim (l'UI de la slide utilise Date.now() - animStartTimeRef)
-                animStartTimeRef.current = Date.now() - elapsed;
-                recordingStartTimeRef.current = Date.now() - elapsed;
-                // Seek vidéo fond si présent (temps réel via bgVideo.play())
-                // bgVideo est déjà en train de jouer : pas besoin de seek manuel
-                // Mise à jour UI progression
-                if (now - lastRender >= frameInterval) {
-                    updateProgressUI();
+                if (now - lastRender >= frameInterval - 1 && !isRendering) {
+                    isRendering = true;
                     lastRender = now;
+                    animStartTimeRef.current = Date.now() - elapsed;
+                    recordingStartTimeRef.current = Date.now() - elapsed;
+                    updateProgressUI();
+                    try {
+                        await generateImage();
+                    } catch (e) {
+                        console.warn("generateImage render error", e);
+                    } finally {
+                        isRendering = false;
+                    }
                 }
-                generateImage();
                 requestAnimationFrame(step);
             };
             requestAnimationFrame(step);
@@ -5072,20 +5076,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         const renderTransition = (durationMs: number, onProgress: (p: number) => void): Promise<void> => new Promise((resolve) => {
             const start = performance.now();
-            const step = (now: number) => {
+            let lastRender = 0;
+            let isRendering = false;
+            const step = async (now: number) => {
                 const elapsed = now - start;
-                const progress = Math.min(1, elapsed / durationMs);
-                onProgress(progress);
-                animStartTimeRef.current = Date.now() - elapsed;
-                recordingStartTimeRef.current = Date.now() - elapsed;
-                generateImage();
-                if (elapsed < durationMs) {
-                    requestAnimationFrame(step);
-                } else {
+                if (elapsed >= durationMs) {
                     onProgress(1);
-                    generateImage();
+                    try { await generateImage(); } catch {}
                     resolve();
+                    return;
                 }
+                if (now - lastRender >= frameInterval - 1 && !isRendering) {
+                    isRendering = true;
+                    lastRender = now;
+                    const progress = Math.min(1, elapsed / durationMs);
+                    onProgress(progress);
+                    animStartTimeRef.current = Date.now() - elapsed;
+                    recordingStartTimeRef.current = Date.now() - elapsed;
+                    try {
+                        await generateImage();
+                    } catch (e) {
+                        console.warn("generateImage transition error", e);
+                    } finally {
+                        isRendering = false;
+                    }
+                }
+                requestAnimationFrame(step);
             };
             requestAnimationFrame(step);
         });
@@ -5401,10 +5417,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const keyframeInterval = String(fps * 2);
                 const videoArgs = [
-                    '-c:v', 'libx264', '-preset', 'fast', '-profile:v', 'main', '-level', '4.0',
-                    '-tune', 'film',       // meilleure qualité pour contenu mixte texte+image+vidéo
-                    '-crf', '18',          // CRF 18 → qualité supérieure (vs 20 avant) sans glitch
-                    '-g', keyframeInterval, '-bf', '2', '-pix_fmt', 'yuv420p',
+                    '-c:v', 'libx264', '-preset', 'veryfast', '-profile:v', 'main', '-level', '4.0',
+                    '-crf', '19',
+                    '-g', keyframeInterval, '-pix_fmt', 'yuv420p',
                     '-r', String(fps), '-movflags', '+faststart'
                 ];
                 let ffmpegArgs: string[] = [];
