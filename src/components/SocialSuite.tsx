@@ -5244,7 +5244,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setIsConverting(true);
             setConversionProgress(0);
 
-eact pour la phase FFmpeg
             stopMusicSegment();
             setRecordingProgress(100);
             setRecordingTimeLeft(0);
