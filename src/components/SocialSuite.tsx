@@ -5066,6 +5066,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const canvas = canvasRef.current;
         if (!canvas) return;
 
+        let bgVideoBlob: Blob | null = null;
+        if (bgVideo) {
+            const bgUrl = bgVideo.currentSrc || bgVideo.src;
+            if (bgUrl) {
+                try {
+                    const res = await fetch(bgUrl);
+                    if (res.ok) {
+                        bgVideoBlob = await res.blob();
+                    }
+                } catch (e) {
+                    console.warn("Préchargement bgVideoBlob échoué :", e);
+                }
+            }
+        }
+
         const prevAgendaSlide = agendaSlide;
         const prevEditorialSlide = editorialSlide;
 
@@ -5623,32 +5638,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const s = allSlides[i];
                             if (i > 0) cursor += transitionDurationSec;
                             const audioUrl = s === 1
-                                ? musicIntroAudio
-                                : musicTracks[s - 2]?.audio || '';
+                                ? (musicIntroAudio || musicTracks[0]?.audio || '')
+                                : (musicTracks[s - 2]?.audio || '');
                             const srcOffset = s === 1
-                                ? (musicIntroAudioStartTime || 0)
+                                ? (musicIntroAudio ? (musicIntroAudioStartTime || 0) : (musicTracks[0]?.audioStartTime || 0))
                                 : (musicTracks[s - 2]?.audioStartTime || 0);
                             if (audioUrl) audioSegments.push({ url: audioUrl, startOffset: cursor, sourceOffset: srcOffset });
                             cursor += slideDurationSec;
                         }
                     } else {
                         // Mode slide unique MUSIQUE (30s)
+                        const currentTrIdx = Math.max(0, editorialSlide - 2);
                         const audioUrl = editorialSlide === 1
-                            ? musicIntroAudio
-                            : musicTracks[editorialSlide - 2]?.audio || '';
+                            ? (musicIntroAudio || musicTracks[0]?.audio || '')
+                            : (musicTracks[currentTrIdx]?.audio || musicIntroAudio || '');
                         const srcOffset = editorialSlide === 1
-                            ? (musicIntroAudioStartTime || 0)
-                            : (musicTracks[editorialSlide - 2]?.audioStartTime || 0);
+                            ? (musicIntroAudio ? (musicIntroAudioStartTime || 0) : (musicTracks[0]?.audioStartTime || 0))
+                            : (musicTracks[currentTrIdx]?.audioStartTime || 0);
                         if (audioUrl) audioSegments.push({ url: audioUrl, startOffset: 0, sourceOffset: srcOffset });
-                    }
-                } else if (bgVideo && bgVideo.src) {
-                    try {
-                        const buf = await getDecodedAudioBuffer(bgVideo.src);
-                        if (buf && buf.duration > 0) {
-                            audioSegments.push({ url: bgVideo.src, startOffset: 0, sourceOffset: 0 });
-                        }
-                    } catch (e) {
-                        console.warn("Extraction audio bgVideo impossible :", e);
                     }
                 }
 
@@ -5711,8 +5718,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             // ── PHASE 3 : MUXAGE FFmpeg (vidéo + audio offline ou bgVideo audio) ────
             try {
-                // FAST-PATH : Si WebCodecs a produit un MP4 et qu'il n'y a pas d'audio à ajouter
-                if (!offlineWavBlob && !hasAudioTrack && videoBlob.type.includes('mp4')) {
+                // FAST-PATH : UNIQUEMENT s'il n'y a STRICTEMENT AUCUN AUDIO dans le projet (pas de musique et pas de vidéo avec son)
+                const hasAudioSource = Boolean(offlineWavBlob || bgVideoBlob);
+                if (!hasAudioSource && !hasAudioTrack && videoBlob.type.includes('mp4')) {
                     isVideoRecordingRef.current = false;
                     setIsVideoRecording(false);
                     const url = URL.createObjectURL(videoBlob);
@@ -5765,10 +5773,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     await ffmpeg.writeFile('audio.wav', await fetchFile(offlineWavBlob));
                     ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav',
                         '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', '-movflags', '+faststart', 'output.mp4'];
+                } else if (videoBlob.type.includes('mp4') && bgVideoBlob) {
+                    // FAST STREAM COPY : Muxer l'audio de bgVideo sans ré-encoder la vidéo H.264 WebCodecs
+                    await ffmpeg.writeFile('bg_source.mp4', await fetchFile(bgVideoBlob));
+                    ffmpegArgs = [
+                        '-i', inputFileName,
+                        '-stream_loop', '-1',
+                        '-i', 'bg_source.mp4',
+                        '-c:v', 'copy',
+                        '-c:a', 'aac',
+                        '-b:a', '192k',
+                        '-ar', '44100',
+                        '-map', '0:v:0',
+                        '-map', '1:a:0',
+                        '-shortest',
+                        '-movflags', '+faststart',
+                        'output.mp4'
+                    ];
                 } else if (offlineWavBlob) {
                     await ffmpeg.writeFile('audio.wav', await fetchFile(offlineWavBlob));
                     ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
                         '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
+                } else if (bgVideoBlob) {
+                    await ffmpeg.writeFile('bg_source.mp4', await fetchFile(bgVideoBlob));
+                    ffmpegArgs = ['-i', inputFileName, '-stream_loop', '-1', '-i', 'bg_source.mp4', ...videoArgs,
+                        '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-map', '0:v:0', '-map', '1:a:0', '-shortest', 'output.mp4'];
                 } else if (hasAudioTrack) {
                     ffmpegArgs = ['-i', inputFileName, ...videoArgs,
                         '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', 'output.mp4'];
@@ -5779,7 +5808,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 try {
                     await ffmpeg.exec(ffmpegArgs);
                 } catch (execErr) {
-                    if (videoBlob.type.includes('mp4') && offlineWavBlob) {
+                    if (videoBlob.type.includes('mp4') && bgVideoBlob) {
+                        console.warn("Muxing audio bgVideo échoué (vidéo sans piste son), repli vidéo seule :", execErr);
+                        ffmpegArgs = ['-i', inputFileName, '-c:v', 'copy', '-an', '-movflags', '+faststart', 'output.mp4'];
+                        await ffmpeg.exec(ffmpegArgs);
+                    } else if (videoBlob.type.includes('mp4') && offlineWavBlob) {
                         console.warn("Direct copy mux failed, retrying with libx264 re-encode:", execErr);
                         ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
                             '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
