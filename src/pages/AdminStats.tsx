@@ -8,13 +8,11 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { twMerge } from 'tailwind-merge';
 
 import { Badge } from '../components/ui/Badge';
 import { isSuperAdmin, hasPermission } from '../utils/auth';
-
-const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+import { WorldAudienceMap } from '../components/admin/WorldAudienceMap';
 
 // --- CUSTOM UI COMPONENTS ---
 
@@ -91,14 +89,30 @@ function AreaChart({ data, forecast = [] }: { data: { label: string; value: numb
                     </linearGradient>
                 </defs>
                 
-                {[0, 0.25, 0.5, 0.75, 1].map((p, i) => (
-                    <line 
-                        key={i} 
-                        x1={padding} y1={height - (p * (height - padding * 2) + padding)} 
-                        x2={width - padding} y2={height - (p * (height - padding * 2) + padding)} 
-                        stroke="white" strokeOpacity="0.05" strokeDasharray="4"
-                    />
-                ))}
+                {[0, 0.25, 0.5, 0.75, 1].map((p, i) => {
+                    const y = height - (p * (height - padding * 2) + padding);
+                    const val = Math.round(max * p);
+                    return (
+                        <g key={i}>
+                            <line 
+                                x1={padding} y1={y} 
+                                x2={width - padding} y2={y} 
+                                stroke="white" strokeOpacity={i === 0 ? 0.15 : 0.05} strokeDasharray={i === 0 ? "0" : "4"}
+                            />
+                            <text 
+                                x={padding - 8} 
+                                y={y + 3} 
+                                fill="#888" 
+                                fontSize="9" 
+                                fontWeight="800" 
+                                textAnchor="end"
+                                className="font-mono select-none"
+                            >
+                                {val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val}
+                            </text>
+                        </g>
+                    );
+                })}
 
                 <motion.path d={fillPath} fill="url(#areaGradient)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} />
                 <motion.path d={pathData} fill="none" stroke="url(#lineGradient)" strokeWidth="4" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.5 }} />
@@ -632,6 +646,12 @@ export function AdminStats() {
                                 </GlassCard>
                             </div>
                         </div>
+
+                        {/* AUDIENCE MONDIALE GÉOLOCALISÉE */}
+                        <WorldAudienceMap 
+                            countries={stats.countries || []} 
+                            totalVisits={stats.totalVisits || 0} 
+                        />
 
                         {/* HOURLY ACTIVITY HEATMAP */}
                         <GlassCard className="p-10">
