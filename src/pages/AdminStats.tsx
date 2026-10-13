@@ -1,10 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { 
-    BarChart3, Users, FileText, ArrowLeft, Activity, Globe, 
-    Plus, X, Newspaper, Mic, Calendar, Image, Mail, 
-    ExternalLink, Smartphone, Monitor, Download, Share2,
-    TrendingUp, Zap, Map as MapIcon, MousePointer2,
-    Eye, Clock, Target, ChevronRight
+    ArrowLeft, Globe, Newspaper, X, Smartphone, Monitor,
+    TrendingUp, MousePointer2, ChevronRight, RefreshCcw,
+    Activity, Users, Eye, Clock, Ticket, Flame, Compass,
+    CheckCircle2, Laptop
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
@@ -14,99 +13,121 @@ import { Badge } from '../components/ui/Badge';
 import { isSuperAdmin, hasPermission } from '../utils/auth';
 import { WorldAudienceMap } from '../components/admin/WorldAudienceMap';
 
-// --- CUSTOM UI COMPONENTS ---
-
-const GlassCard = ({ children, className, delay = 0 }: { children: React.ReactNode, className?: string, delay?: number }) => (
+// --- GLASS CARD CONTAINER ---
+const BentoCard = ({ 
+    children, 
+    className, 
+    delay = 0 
+}: { 
+    children: React.ReactNode; 
+    className?: string; 
+    delay?: number;
+}) => (
     <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay }}
+        transition={{ duration: 0.4, delay }}
         className={twMerge(
-            "bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/10 rounded-[2.5rem] overflow-hidden group relative",
+            "bg-[#0a0a0f]/80 backdrop-blur-2xl border border-white/[0.08] hover:border-white/[0.14] rounded-3xl p-6 transition-all duration-300 relative overflow-hidden group shadow-[0_8px_32px_rgba(0,0,0,0.4)]",
             className
         )}
     >
-        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
         {children}
     </motion.div>
 );
 
-// --- ADVANCED SVG CHARTS WITH FORECASTING ---
-
-function AreaChart({ data, forecast = [] }: { data: { label: string; value: number }[], forecast?: { label: string; value: number }[] }) {
-    const [hoveredPoint, setHoveredPoint] = useState<{ x: number, y: number, label: string, value: number, isForecast: boolean } | null>(null);
-    const allData = [...data, ...forecast];
-    const max = Math.max(...allData.map(d => d.value), 1);
+// --- REFINED SVG TRAFFIC CHART ---
+function TrafficChart({ 
+    data 
+}: { 
+    data: { label: string; value: number; fullDate?: string }[] 
+}) {
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+    const max = Math.max(...data.map(d => d.value), 5);
     const width = 1000;
-    const height = 300;
-    const padding = 40;
+    const height = 280;
+    const paddingLeft = 50;
+    const paddingRight = 30;
+    const paddingTop = 25;
+    const paddingBottom = 40;
 
-    const getPoints = (subset: any[], startIndex: number) => subset.map((d, i) => {
-        const globalIndex = i + startIndex;
-        const x = (allData.length > 1) 
-            ? (globalIndex / (allData.length - 1)) * (width - padding * 2) + padding
-            : width / 2;
-        const y = height - ((d.value / max) * (height - padding * 2) + padding);
-        return { x, y };
-    });
+    const chartWidth = width - paddingLeft - paddingRight;
+    const chartHeight = height - paddingTop - paddingBottom;
 
-    const points = getPoints(data, 0);
-    const forecastPoints = forecast.length > 0 ? getPoints(forecast, data.length - 1) : [];
+    const points = useMemo(() => {
+        if (!data || data.length === 0) return [];
+        return data.map((d, i) => {
+            const x = data.length > 1
+                ? paddingLeft + (i / (data.length - 1)) * chartWidth
+                : width / 2;
+            const y = paddingTop + chartHeight - (d.value / max) * chartHeight;
+            return { x, y, label: d.label, value: d.value, fullDate: d.fullDate };
+        });
+    }, [data, max, chartWidth, chartHeight]);
 
-    const allCoords = [
-        ...points.map((p, idx) => ({ ...p, label: data[idx].label, value: data[idx].value, isForecast: false })),
-        ...forecastPoints.map((p, idx) => ({ ...p, label: forecast[idx].label, value: forecast[idx].value, isForecast: true }))
-    ];
+    const pathData = useMemo(() => {
+        if (points.length === 0) return '';
+        if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+        return points.reduce((acc, p, i, a) => {
+            if (i === 0) return `M ${p.x} ${p.y}`;
+            const prev = a[i - 1];
+            const cp1x = prev.x + (p.x - prev.x) / 2;
+            return `${acc} C ${cp1x} ${prev.y}, ${cp1x} ${p.y}, ${p.x} ${p.y}`;
+        }, '');
+    }, [points]);
 
-    const barWidth = allData.length > 1 ? (width - padding * 2) / (allData.length - 1) : width;
+    const fillPath = useMemo(() => {
+        if (points.length === 0) return '';
+        const last = points[points.length - 1];
+        const first = points[0];
+        return `${pathData} L ${last.x} ${paddingTop + chartHeight} L ${first.x} ${paddingTop + chartHeight} Z`;
+    }, [pathData, points, chartHeight]);
 
-    const getPath = (pts: any[]) => pts.reduce((acc, p, i, a) => {
-        if (i === 0) return `M ${p.x} ${p.y}`;
-        const prev = a[i - 1];
-        const cp1x = prev.x + (p.x - prev.x) / 2;
-        return `${acc} C ${cp1x} ${prev.y}, ${cp1x} ${p.y}, ${p.x} ${p.y}`;
-    }, "");
+    const hoveredPoint = hoveredIndex !== null ? points[hoveredIndex] : null;
 
-    const pathData = getPath(points);
-    const forecastPathData = forecastPoints.length > 0 ? getPath(forecastPoints) : "";
-    const fillPath = `${pathData} L ${points[points.length - 1].x} ${height} L ${points[0].x} ${height} Z`;
+    // Y ticks (4 levels)
+    const yTicks = [0, 0.33, 0.66, 1];
 
     return (
-        <div className="w-full h-full relative group">
+        <div className="w-full h-full relative select-none">
             <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
                 <defs>
-                    <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#ff1241" stopOpacity="0.4" />
+                    <linearGradient id="trafficGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#ff1241" stopOpacity="0.35" />
+                        <stop offset="70%" stopColor="#ff1241" stopOpacity="0.05" />
                         <stop offset="100%" stopColor="#ff1241" stopOpacity="0" />
                     </linearGradient>
-                    <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                    <linearGradient id="trafficLine" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor="#ff1241" />
-                        <stop offset="100%" stopColor="#ff6700" />
-                    </linearGradient>
-                    <linearGradient id="forecastGradient" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#ff6700" stopOpacity="0.5" />
-                        <stop offset="100%" stopColor="#0066ff" stopOpacity="0.5" />
+                        <stop offset="50%" stopColor="#ff3366" />
+                        <stop offset="100%" stopColor="#ff7700" />
                     </linearGradient>
                 </defs>
-                
-                {[0, 0.25, 0.5, 0.75, 1].map((p, i) => {
-                    const y = height - (p * (height - padding * 2) + padding);
-                    const val = Math.round(max * p);
+
+                {/* Y-axis grid lines & labels */}
+                {yTicks.map((ratio, i) => {
+                    const y = paddingTop + chartHeight - ratio * chartHeight;
+                    const val = Math.round(max * ratio);
                     return (
                         <g key={i}>
-                            <line 
-                                x1={padding} y1={y} 
-                                x2={width - padding} y2={y} 
-                                stroke="white" strokeOpacity={i === 0 ? 0.15 : 0.05} strokeDasharray={i === 0 ? "0" : "4"}
+                            <line
+                                x1={paddingLeft}
+                                y1={y}
+                                x2={width - paddingRight}
+                                y2={y}
+                                stroke="white"
+                                strokeOpacity={ratio === 0 ? 0.12 : 0.04}
+                                strokeDasharray={ratio === 0 ? '0' : '4'}
                             />
-                            <text 
-                                x={padding - 8} 
-                                y={y + 3} 
-                                fill="#888" 
-                                fontSize="9" 
-                                fontWeight="800" 
+                            <text
+                                x={paddingLeft - 10}
+                                y={y + 3.5}
+                                fill="#71717a"
+                                fontSize="10"
+                                fontWeight="700"
                                 textAnchor="end"
-                                className="font-mono select-none"
+                                className="font-mono"
                             >
                                 {val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val}
                             </text>
@@ -114,222 +135,205 @@ function AreaChart({ data, forecast = [] }: { data: { label: string; value: numb
                     );
                 })}
 
-                <motion.path d={fillPath} fill="url(#areaGradient)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} />
-                <motion.path d={pathData} fill="none" stroke="url(#lineGradient)" strokeWidth="4" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.5 }} />
-                
-                {forecastPathData && (
-                    <motion.path 
-                        d={forecastPathData} 
-                        fill="none" 
-                        stroke="url(#forecastGradient)" 
-                        strokeWidth="4" 
-                        strokeDasharray="8,8"
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} 
+                {/* Area fill */}
+                {fillPath && (
+                    <motion.path
+                        d={fillPath}
+                        fill="url(#trafficGradient)"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.8 }}
                     />
                 )}
 
-                <g transform={`translate(${width - 150}, 20)`}>
-                    <line x1="0" y1="0" x2="20" y2="0" stroke="url(#forecastGradient)" strokeWidth="3" strokeDasharray="4,4" />
-                    <text x="25" y="4" fill="#666" fontSize="10" fontWeight="900" className="uppercase italic tracking-widest">Prédiction IA</text>
-                </g>
+                {/* Line stroke */}
+                {pathData && (
+                    <motion.path
+                        d={pathData}
+                        fill="none"
+                        stroke="url(#trafficLine)"
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        initial={{ pathLength: 0 }}
+                        animate={{ pathLength: 1 }}
+                        transition={{ duration: 1.2, ease: "easeOut" }}
+                    />
+                )}
 
-                {/* Vertical lines and circles on hover */}
+                {/* X-axis date milestones */}
+                {points.filter((_, idx) => {
+                    if (points.length <= 8) return true;
+                    if (points.length <= 15) return idx % 2 === 0 || idx === points.length - 1;
+                    return idx === 0 || idx === Math.floor(points.length / 2) || idx === points.length - 1;
+                }).map((p, i) => (
+                    <text
+                        key={i}
+                        x={p.x}
+                        y={height - 12}
+                        fill="#71717a"
+                        fontSize="10"
+                        fontWeight="700"
+                        textAnchor="middle"
+                        className="font-mono"
+                    >
+                        {p.label}
+                    </text>
+                ))}
+
+                {/* Hover vertical crosshair & glowing dot */}
                 {hoveredPoint && (
                     <>
                         <line
                             x1={hoveredPoint.x}
-                            y1={padding}
+                            y1={paddingTop}
                             x2={hoveredPoint.x}
-                            y2={height - padding}
+                            y2={paddingTop + chartHeight}
                             stroke="#ff1241"
-                            strokeOpacity="0.3"
-                            strokeDasharray="4,4"
-                            strokeWidth="2"
+                            strokeOpacity="0.4"
+                            strokeWidth="1.5"
+                            strokeDasharray="3 3"
                         />
                         <circle
                             cx={hoveredPoint.x}
                             cy={hoveredPoint.y}
-                            r="8"
-                            fill={hoveredPoint.isForecast ? "#0066ff" : "#ff1241"}
-                            stroke="white"
-                            strokeWidth="2"
+                            r="6"
+                            fill="#ffffff"
+                            stroke="#ff1241"
+                            strokeWidth="3"
                         />
                         <circle
                             cx={hoveredPoint.x}
                             cy={hoveredPoint.y}
-                            r="16"
-                            fill={hoveredPoint.isForecast ? "#0066ff" : "#ff1241"}
-                            fillOpacity="0.2"
+                            r="12"
+                            fill="#ff1241"
+                            fillOpacity="0.25"
+                            className="animate-pulse"
                         />
                     </>
                 )}
 
-                {/* Invisible hover trigger columns */}
-                {allCoords.map((p, i) => (
-                    <rect
-                        key={i}
-                        x={p.x - barWidth / 2}
-                        y={padding}
-                        width={barWidth}
-                        height={height - padding * 2}
-                        fill="transparent"
-                        className="cursor-pointer"
-                        onMouseEnter={() => setHoveredPoint(p)}
-                        onMouseMove={() => setHoveredPoint(p)}
-                        onMouseLeave={() => setHoveredPoint(null)}
-                    />
-                ))}
+                {/* Invisible hover capture zones */}
+                {points.map((p, i) => {
+                    const colWidth = chartWidth / (points.length || 1);
+                    return (
+                        <rect
+                            key={i}
+                            x={p.x - colWidth / 2}
+                            y={paddingTop}
+                            width={colWidth}
+                            height={chartHeight}
+                            fill="transparent"
+                            className="cursor-pointer"
+                            onMouseEnter={() => setHoveredIndex(i)}
+                            onMouseLeave={() => setHoveredIndex(null)}
+                        />
+                    );
+                })}
             </svg>
 
-            {/* Tooltip floating card */}
-            {hoveredPoint && (
-                <div 
-                    className="absolute z-30 pointer-events-none bg-[#0a0a0a]/95 backdrop-blur-md border border-white/10 px-4 py-3 rounded-2xl flex flex-col gap-1 shadow-2xl transition-all duration-75"
-                    style={{
-                        left: `${(hoveredPoint.x / width) * 100}%`,
-                        top: `${(hoveredPoint.y / height) * 100 - 15}%`,
-                        transform: 'translate(-50%, -100%)'
-                    }}
-                >
-                    <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest whitespace-nowrap">{hoveredPoint.label}</span>
-                    <span className="text-xs font-display font-black text-white italic whitespace-nowrap">
-                        {hoveredPoint.value.toLocaleString()} <span className="text-[8px] font-bold text-gray-400 not-italic">visites</span>
-                    </span>
-                    {hoveredPoint.isForecast && (
-                        <span className="text-[7px] font-black text-neon-blue uppercase tracking-widest mt-0.5 whitespace-nowrap">Prédiction IA</span>
-                    )}
-                </div>
-            )}
-        </div>
-    );
-}
-
-function DonutChart({ data, centerLabel, centerSub }: { data: any[], centerLabel: string | number, centerSub: string }) {
-    const total = data.reduce((s, d) => s + d.value, 0);
-    let currentAngle = -90;
-
-    return (
-        <div className="flex items-center gap-8">
-            <div className="relative w-40 h-40">
-                <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                    {data.map((d, i) => {
-                        const angle = (d.value / (total || 1)) * 360;
-                        const x1 = 50 + 40 * Math.cos((currentAngle * Math.PI) / 180);
-                        const y1 = 50 + 40 * Math.sin((currentAngle * Math.PI) / 180);
-                        currentAngle += angle;
-                        const x2 = 50 + 40 * Math.cos((currentAngle * Math.PI) / 180);
-                        const y2 = 50 + 40 * Math.sin((currentAngle * Math.PI) / 180);
-                        const largeArc = angle > 180 ? 1 : 0;
-
-                        return (
-                            <motion.path
-                                key={i}
-                                d={`M ${x1} ${y1} A 40 40 0 ${largeArc} 1 ${x2} ${y2}`}
-                                fill="none"
-                                stroke={d.hex}
-                                strokeWidth="12"
-                                strokeLinecap="round"
-                                initial={{ pathLength: 0 }}
-                                animate={{ pathLength: 1 }}
-                                transition={{ duration: 1, delay: i * 0.2 }}
-                            />
-                        );
-                    })}
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span className="text-2xl font-display font-black text-white italic leading-none">{centerLabel}</span>
-                    <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest mt-1">{centerSub}</span>
-                </div>
-            </div>
-            <div className="flex-1 space-y-3">
-                {data.map((d, i) => (
-                    <div key={i} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: d.hex }} />
-                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{d.label}</span>
+            {/* Floating Glass Tooltip */}
+            <AnimatePresence>
+                {hoveredPoint && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.1 }}
+                        className="absolute pointer-events-none z-30 bg-[#0d0e14]/95 backdrop-blur-xl border border-white/15 px-3.5 py-2.5 rounded-xl shadow-2xl flex flex-col gap-0.5"
+                        style={{
+                            left: `${(hoveredPoint.x / width) * 100}%`,
+                            top: `${(hoveredPoint.y / height) * 100 - 12}%`,
+                            transform: 'translate(-50%, -100%)'
+                        }}
+                    >
+                        <span className="text-[9px] font-mono font-bold text-gray-400">
+                            {hoveredPoint.fullDate || hoveredPoint.label}
+                        </span>
+                        <div className="flex items-baseline gap-1.5">
+                            <span className="text-base font-display font-black text-white italic">
+                                {hoveredPoint.value.toLocaleString()}
+                            </span>
+                            <span className="text-[9px] font-bold text-neon-red uppercase">
+                                {hoveredPoint.value > 1 ? 'visites' : 'visite'}
+                            </span>
                         </div>
-                        <span className="text-xs font-black text-white">{Math.round((d.value / (total || 1)) * 100)}%</span>
-                    </div>
-                ))}
-            </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
 
-// --- ADVANCED SVG COMPONENTS ---
-
-function ActivityHeatmap({ totalVisits }: { totalVisits: number }) {
+// --- HOURLY HEATMAP COMPONENT ---
+function HourlyHeatmap({ totalVisits }: { totalVisits: number }) {
     const [hoveredHour, setHoveredHour] = useState<number | null>(null);
     const hours = Array.from({ length: 24 }, (_, i) => i);
-    
-    // Bell curve distribution (percentages that sum to 100%)
+
+    // Distribution horaire typique du public électro
     const hourlyDistribution = [
-        0.03, 0.02, 0.01, 0.005, 0.005, 0.01,  // 00h - 05h
-        0.02, 0.03, 0.04, 0.05, 0.05, 0.06,   // 06h - 11h
-        0.07, 0.06, 0.05, 0.05, 0.06, 0.07,   // 12h - 17h
-        0.08, 0.09, 0.10, 0.07, 0.05, 0.03    // 18h - 23h
+        0.02, 0.015, 0.01, 0.005, 0.005, 0.01,
+        0.015, 0.025, 0.035, 0.045, 0.05, 0.055,
+        0.065, 0.06, 0.055, 0.06, 0.065, 0.075,
+        0.085, 0.095, 0.10, 0.08, 0.055, 0.03
     ];
 
     return (
-        <div className="grid grid-cols-12 gap-1.5 md:gap-3">
-            {hours.map(h => {
-                const percent = hourlyDistribution[h];
-                const visits = Math.max(1, Math.round(totalVisits * percent));
-                const opacity = 0.1 + (percent / 0.10) * 0.9;
-                const isHovered = hoveredHour === h;
+        <div>
+            <div className="grid grid-cols-12 md:grid-cols-24 gap-1 md:gap-1.5 items-end h-16">
+                {hours.map(h => {
+                    const percent = hourlyDistribution[h];
+                    const visits = Math.max(1, Math.round(totalVisits * percent));
+                    const heightPercent = 20 + (percent / 0.10) * 80;
+                    const isHovered = hoveredHour === h;
+                    const isPeak = percent >= 0.09;
 
-                return (
-                    <div 
-                        key={h} 
-                        className="relative flex flex-col items-center"
-                        onMouseEnter={() => setHoveredHour(h)}
-                        onMouseLeave={() => setHoveredHour(null)}
-                    >
-                        <div 
-                            className={`h-10 w-full rounded-xl bg-neon-red transition-all duration-300 cursor-pointer ${isHovered ? 'scale-105 shadow-[0_0_15px_rgba(255,18,65,0.6)]' : ''}`}
-                            style={{ opacity }}
-                        />
-                        
-                        {/* Floating glassmorphic tooltip card */}
-                        {isHovered && (
-                            <div className="absolute bottom-full mb-3 pointer-events-none bg-[#0a0a0a]/95 backdrop-blur-md border border-white/10 px-3 py-2 rounded-xl flex flex-col gap-0.5 shadow-2xl z-30 transform -translate-y-1 animate-in fade-in zoom-in-95 duration-150">
-                                <span className="text-[7px] font-black text-gray-500 uppercase tracking-widest whitespace-nowrap">{h}h00 - {h}h59</span>
-                                <span className="text-[10px] font-display font-black text-white italic whitespace-nowrap">
-                                    {visits.toLocaleString()} <span className="text-[8px] font-bold text-gray-400 not-italic">visites</span>
-                                </span>
-                                <span className="text-[7px] font-black text-neon-blue uppercase tracking-widest whitespace-nowrap">
-                                    {Math.round(percent * 1000) / 10}% du trafic
-                                </span>
-                            </div>
-                        )}
-                    </div>
-                );
-            })}
+                    return (
+                        <div
+                            key={h}
+                            className="relative h-full flex flex-col justify-end group cursor-pointer"
+                            onMouseEnter={() => setHoveredHour(h)}
+                            onMouseLeave={() => setHoveredHour(null)}
+                        >
+                            <div
+                                style={{ height: `${heightPercent}%` }}
+                                className={`w-full rounded-md transition-all duration-200 ${
+                                    isHovered
+                                        ? 'bg-white shadow-[0_0_12px_rgba(255,255,255,0.8)]'
+                                        : isPeak
+                                        ? 'bg-neon-red shadow-[0_0_10px_rgba(255,18,65,0.4)]'
+                                        : 'bg-white/10 hover:bg-white/30'
+                                }`}
+                            />
+
+                            {/* Floating Tooltip */}
+                            {isHovered && (
+                                <div className="absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 pointer-events-none bg-[#0e0e14]/95 backdrop-blur-md border border-white/15 px-2.5 py-1.5 rounded-lg shadow-2xl z-30 whitespace-nowrap flex flex-col items-center">
+                                    <span className="text-[8px] font-mono text-gray-400 font-bold">{h}h00 - {h}h59</span>
+                                    <span className="text-xs font-display font-black text-white italic">{visits} visites</span>
+                                    <span className="text-[7px] font-bold text-neon-red uppercase">{(percent * 100).toFixed(1)}% du trafic</span>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+            <div className="flex justify-between items-center mt-3 text-[9px] font-mono text-gray-500 font-bold uppercase">
+                <span>00:00 (Nuit)</span>
+                <span>06:00 (Matin)</span>
+                <span>12:00 (Midi)</span>
+                <span>18:00 (Soirée)</span>
+                <span>23:59 (Pic)</span>
+            </div>
         </div>
     );
 }
 
-function ServerPulse() {
-    return (
-        <div className="flex items-end gap-0.5 h-12">
-            {Array.from({ length: 20 }).map((_, i) => (
-                <motion.div
-                    key={i}
-                    animate={{ height: [10, Math.random() * 40 + 10, 10] }}
-                    transition={{ repeat: Infinity, duration: 1, delay: i * 0.05 }}
-                    className="w-1 bg-neon-blue rounded-full"
-                />
-            ))}
-        </div>
-    );
-}
-
-// --- MAIN PAGE ---
-
+// --- MAIN ANALYTICS DASHBOARD ---
 export function AdminStats() {
     const navigate = useNavigate();
-    
-    // Permission check
+
+    // Permissions check
     const storedPermissions = useMemo(() => JSON.parse(localStorage.getItem('admin_permissions') || '[]'), []);
     const adminUser = localStorage.getItem('admin_user');
     const isAlex = isSuperAdmin(adminUser);
@@ -344,68 +348,78 @@ export function AdminStats() {
     const [period, setPeriod] = useState<7 | 30 | 90>(7);
     const [serverStats, setServerStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [lastRefreshTime, setLastRefreshTime] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
-    const [onlineUsers, setOnlineUsers] = useState(0);
     const [newsData, setNewsData] = useState<any[]>([]);
     const [recapsData, setRecapsData] = useState<any[]>([]);
-    const [agendaData, setAgendaData] = useState<any[]>([]);
-    const [subscribersData, setSubscribersData] = useState<any[]>([]);
+    const [selectedModal, setSelectedModal] = useState<'articles' | null>(null);
 
-    const fetchAll = async () => {
+    const fetchAll = async (isManual = false) => {
         try {
+            if (isManual) setRefreshing(true);
             setError(null);
             const res = await fetch('/api/analytics/stats');
             if (!res.ok) {
-                let msg = `Erreur lors du chargement des statistiques (${res.status})`;
+                let msg = `Erreur (${res.status})`;
                 try {
                     const errData = await res.json();
-                    if (errData && errData.details) {
-                        msg = errData.details;
-                    }
-                } catch (e) {}
+                    if (errData?.details) msg = errData.details;
+                } catch {}
                 throw new Error(msg);
             }
             const data = await res.json();
             setServerStats(data);
-            setOnlineUsers(data.onlineUsers || 0);
 
-            const [n, r, a, s] = await Promise.all([
-                fetch('/api/news').then(res => { if (!res.ok) throw new Error('News'); return res.json(); }),
-                fetch('/api/recaps').then(res => { if (!res.ok) throw new Error('Recaps'); return res.json(); }),
-                fetch('/api/agenda').then(res => { if (!res.ok) throw new Error('Agenda'); return res.json(); }),
-                fetch('/api/subscribers').then(res => { if (!res.ok) throw new Error('Subscribers'); return res.json(); })
+            const [n, r] = await Promise.all([
+                fetch('/api/news').then(res => res.ok ? res.json() : []).catch(() => []),
+                fetch('/api/recaps').then(res => res.ok ? res.json() : []).catch(() => [])
             ]);
-            setNewsData(n); setRecapsData(r); setAgendaData(a); setSubscribersData(s);
+            setNewsData(n);
+            setRecapsData(r);
+            setLastRefreshTime(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
         } catch (e: any) {
             console.error(e);
-            setError(e.message || "Une erreur est survenue lors du chargement.");
+            setError(e.message || "Impossible de charger les données");
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
     useEffect(() => {
         fetchAll();
-        const itv = setInterval(fetchAll, 30000); // 30s instead of 10s for performance
+        const itv = setInterval(() => fetchAll(false), 30000);
         return () => clearInterval(itv);
     }, []);
 
+    // Derived statistics
     const stats = useMemo(() => {
         if (!serverStats) return null;
-        
+
         const total = serverStats.totalVisits || 0;
 
-        // 1. Filter Timeline based on period
-        const filteredTimeline = (serverStats.timeline || []).slice(-period);
-        const periodVisits = filteredTimeline.reduce((sum: number, item: any) => sum + (item.value || 0), 0);
+        // Timeline filtering
+        const rawTimeline = serverStats.timeline || [];
+        const filteredTimeline = rawTimeline.slice(-period).map((item: any) => {
+            const parts = (item.date || '').split('-');
+            const shortDate = parts.length === 3 ? `${parts[2]}/${parts[1]}` : item.date;
+            return {
+                label: shortDate,
+                value: item.value || 0,
+                fullDate: item.date
+            };
+        });
 
-        // 2. Calculate Top Performance from real data
+        const periodVisits = filteredTimeline.reduce((sum: number, it: any) => sum + it.value, 0);
+        const peakDay = filteredTimeline.reduce((max: any, it: any) => it.value > (max?.value || 0) ? it : max, null);
+
+        // Top Content
         const allContent = [
             ...newsData.map((n: any) => ({ ...n, type: 'News' })),
             ...recapsData.map((r: any) => ({ ...r, type: 'Recap' }))
         ];
 
-        // Map views from serverStats.topArticles
         const viewsMap = Object.fromEntries((serverStats.topArticles || []).map((a: any) => [a.id, a.views]));
 
         const topArticles = allContent
@@ -416,329 +430,620 @@ export function AdminStats() {
             .sort((a, b) => b.views - a.views)
             .slice(0, 15)
             .map(article => {
-                // Viral score calculation: views relative to total visits
                 const viralScore = Math.min(100, Math.round((article.views / (total || 1)) * 1000));
-                return {
-                    ...article,
-                    viralScore
-                };
+                return { ...article, viralScore };
             });
 
-        // 3. Tech & Social (Already real from serverStats)
-        const tech = {
-            os: serverStats.os?.length ? serverStats.os : [
-                { label: 'iOS', value: 0, hex: '#ff1241' },
-                { label: 'Android', value: 0, hex: '#ffffff' }
-            ],
-            browsers: serverStats.browsers?.length ? serverStats.browsers : [
-                { label: 'Chrome', value: 0, hex: '#ff1241' },
-                { label: 'Safari', value: 0, hex: '#ffffff' }
-            ]
-        };
-
-        const styles = (serverStats.categories || []).sort((a:any, b:any) => b.value - a.value).slice(0, 5);
-
-        const social = serverStats.sources || [];
+        // Device breakdown
+        const mobileCount = serverStats.devices?.mobile || 0;
+        const desktopCount = serverStats.devices?.desktop || 0;
+        const deviceTotal = mobileCount + desktopCount || 1;
+        const mobilePct = Math.round((mobileCount / deviceTotal) * 100);
+        const desktopPct = 100 - mobilePct;
 
         return {
             ...serverStats,
             timeline: filteredTimeline,
             periodVisits,
+            peakDay,
             topArticles,
-            styles,
-            tech,
-            social,
-            health: { latency: '14ms', uptime: '99.99%', load: 'Normal' }
+            mobilePct,
+            desktopPct,
+            countries: serverStats.countries || [],
+            sources: serverStats.sources || [],
+            os: serverStats.os || [],
+            browsers: serverStats.browsers || [],
+            categories: serverStats.categories || []
         };
     }, [serverStats, newsData, recapsData, period]);
 
-    if (error && !stats) return (
-        <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center text-white px-6">
-            <GlassCard className="p-10 max-w-md text-center border-neon-red/30">
-                <div className="text-neon-red text-4xl mb-4">⚠️</div>
-                <h2 className="text-2xl font-display font-black uppercase italic mb-4">Erreur de connexion</h2>
-                <p className="text-gray-400 text-sm mb-8">
-                    {error === 'News' || error === 'Recaps' || error === 'Agenda' || error === 'Subscribers' 
-                        ? `Impossible de charger les données : ${error}` 
-                        : error}
-                </p>
-                <button 
-                    onClick={() => { setLoading(true); setError(null); fetchAll(); }} 
-                    className="px-8 py-3 bg-neon-red hover:bg-neon-red/80 rounded-full font-black text-xs uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(255,18,65,0.4)]"
-                >
-                    Réessayer
-                </button>
-            </GlassCard>
-        </div>
-    );
+    if (error && !stats) {
+        return (
+            <div className="min-h-screen bg-[#07070a] flex items-center justify-center p-6 text-white">
+                <BentoCard className="p-8 max-w-md text-center border-neon-red/40">
+                    <div className="w-12 h-12 bg-neon-red/10 border border-neon-red/30 rounded-2xl flex items-center justify-center text-neon-red mx-auto mb-4">
+                        <Activity className="w-6 h-6" />
+                    </div>
+                    <h2 className="text-xl font-display font-black uppercase italic mb-2">Erreur de connexion</h2>
+                    <p className="text-gray-400 text-xs mb-6 font-mono">{error}</p>
+                    <button
+                        onClick={() => { setLoading(true); fetchAll(true); }}
+                        className="px-6 py-2.5 bg-neon-red hover:bg-neon-red/80 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                    >
+                        Réessayer
+                    </button>
+                </BentoCard>
+            </div>
+        );
+    }
 
-    if (loading || !stats) return (
-        <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }} className="w-12 h-12 border-4 border-neon-red border-t-transparent rounded-full" />
-        </div>
-    );
+    if (loading || !stats) {
+        return (
+            <div className="min-h-screen bg-[#07070a] flex flex-col items-center justify-center text-white gap-4">
+                <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                    className="w-10 h-10 border-2 border-neon-red border-t-transparent rounded-full"
+                />
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500">
+                    Chargement des statistiques...
+                </span>
+            </div>
+        );
+    }
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden">
-            {/* AMBIENT EFFECTS */}
-            <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-neon-red/5 blur-[200px]" />
-                <div className="absolute bottom-0 right-1/4 w-1/2 h-1/2 bg-neon-blue/5 blur-[200px]" />
+        <div className="min-h-screen bg-[#07070a] text-white selection:bg-neon-red selection:text-white pb-24">
+            
+            {/* AMBIENT LIGHTING BACKGROUND */}
+            <div className="fixed inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-40 left-1/3 w-[600px] h-[600px] bg-neon-red/5 rounded-full blur-[160px]" />
+                <div className="absolute top-1/2 -right-40 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[160px]" />
             </div>
 
-            <div className="max-w-[1800px] mx-auto px-6 py-12 relative z-10">
-                
-                {/* HUD HEADER */}
-                <header className="flex flex-col lg:flex-row items-center justify-between gap-8 mb-12 border-b border-white/5 pb-12">
-                    <div className="flex items-center gap-8">
-                        <Link to="/admin" className="p-4 bg-white/5 border border-white/10 rounded-full hover:bg-neon-red transition-all">
-                            <ArrowLeft className="w-6 h-6" />
+            <div className="max-w-[1700px] mx-auto px-6 lg:px-12 pt-8 relative z-10 space-y-8">
+
+                {/* --- EXECUTIVE HEADER --- */}
+                <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b border-white/[0.08]">
+                    <div className="flex items-center gap-5">
+                        <Link
+                            to="/admin"
+                            className="p-3 bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] hover:border-white/20 rounded-2xl transition-all group"
+                            title="Retour au panneau d'administration"
+                        >
+                            <ArrowLeft className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
                         </Link>
                         <div>
-                            <div className="flex items-center gap-3 mb-2">
-                                <Badge color="red">Mission Control</Badge>
-                                <div className="flex items-center gap-2 text-[8px] font-black text-green-500 uppercase tracking-[0.3em]">
-                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping" />
-                                    Live Stream Active
-                                </div>
+                            <div className="flex items-center gap-2.5">
+                                <h1 className="text-2xl md:text-3xl font-display font-black uppercase italic tracking-tight text-white">
+                                    DROPSIDERS <span className="text-neon-red">ANALYTICS</span>
+                                </h1>
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-green-500/10 text-green-400 border border-green-500/20">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                                    Live Stream
+                                </span>
                             </div>
-                            <h1 className="text-4xl lg:text-7xl font-display font-black uppercase italic tracking-tighter">DROPSIDERS <span className="text-neon-red text-shadow-red">OS</span></h1>
+                            <p className="text-[10px] font-mono text-gray-500 font-bold uppercase tracking-wider mt-1">
+                                Métriques d'audience et trafic en temps réel • Mis à jour à {lastRefreshTime || 'l\'instant'}
+                            </p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-6">
-                        <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10">
+                    {/* Filter controls */}
+                    <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+                        <div className="flex bg-[#0f1017] p-1 rounded-2xl border border-white/[0.08]">
                             {[7, 30, 90].map((d) => (
                                 <button
                                     key={d}
                                     onClick={() => setPeriod(d as any)}
                                     className={twMerge(
-                                        "px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all",
-                                        period === d ? "bg-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.4)]" : "text-gray-500 hover:text-white"
+                                        "px-4 py-2 rounded-xl text-[10px] font-mono font-bold uppercase transition-all",
+                                        period === d
+                                            ? "bg-neon-red text-white shadow-[0_0_15px_rgba(255,18,65,0.4)]"
+                                            : "text-gray-400 hover:text-white"
                                     )}
                                 >
                                     {d}J
                                 </button>
                             ))}
                         </div>
-                        <div className="grid grid-cols-3 gap-4">
-                            {[
-                                { label: 'Visites Période', val: stats.periodVisits.toLocaleString(), color: 'text-neon-blue' },
-                                { label: 'En Ligne', val: stats.onlineUsers, color: 'text-green-500' },
-                                { label: 'Total Global', val: stats.totalVisits.toLocaleString(), color: 'text-white' }
-                            ].map((h, i) => (
-                                <div key={i} className="px-6 py-4 bg-white/5 border border-white/10 rounded-3xl text-center">
-                                    <div className={`text-xl font-display font-black italic ${h.color}`}>{h.val}</div>
-                                    <div className="text-[8px] font-black text-gray-500 uppercase mt-1">{h.label}</div>
-                                </div>
-                            ))}
-                        </div>
+
+                        <button
+                            onClick={() => fetchAll(true)}
+                            disabled={refreshing}
+                            className="p-3 bg-[#0f1017] hover:bg-white/[0.08] border border-white/[0.08] rounded-2xl text-gray-400 hover:text-white transition-all disabled:opacity-50"
+                            title="Rafraîchir les données"
+                        >
+                            <RefreshCcw className={`w-4 h-4 ${refreshing ? 'animate-spin text-neon-red' : ''}`} />
+                        </button>
                     </div>
                 </header>
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    
-                    {/* LEFT SIDEBAR: TECH & HEALTH */}
-                    <div className="lg:col-span-3 space-y-8">
-                        <GlassCard className="p-8">
-                            <h3 className="text-sm font-black uppercase tracking-widest mb-8 text-gray-400 italic">SYSTEM PULSE</h3>
-                            <ServerPulse />
-                            <div className="mt-8 space-y-4">
-                                <div className="flex justify-between text-[10px] font-black uppercase">
-                                    <span className="text-gray-500">CPU Usage</span>
-                                    <span className="text-white">12%</span>
-                                </div>
-                                <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                                    <div className="h-full bg-neon-blue w-[12%]" />
+
+                {/* --- ROW 1: 4 TOP KPI CARDS --- */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    {/* KPI 1: Visites Période */}
+                    <BentoCard delay={0.05}>
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-gray-400">
+                                Visites ({period} Jours)
+                            </span>
+                            <div className="p-2 bg-neon-red/10 rounded-xl text-neon-red">
+                                <TrendingUp className="w-4 h-4" />
+                            </div>
+                        </div>
+                        <div className="text-3xl md:text-4xl font-display font-black text-white italic tracking-tight">
+                            {stats.periodVisits.toLocaleString()}
+                        </div>
+                        <div className="text-[10px] font-mono text-gray-500 font-bold uppercase mt-2 flex items-center gap-1.5">
+                            <span>Moyenne :</span>
+                            <span className="text-white font-bold">{Math.round(stats.periodVisits / period)} / jour</span>
+                        </div>
+                    </BentoCard>
+
+                    {/* KPI 2: Live Online */}
+                    <BentoCard delay={0.1}>
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-gray-400">
+                                En Direct
+                            </span>
+                            <div className="p-2 bg-green-500/10 rounded-xl text-green-400">
+                                <Users className="w-4 h-4" />
+                            </div>
+                        </div>
+                        <div className="text-3xl md:text-4xl font-display font-black text-green-400 italic tracking-tight flex items-baseline gap-2">
+                            {stats.onlineUsers}
+                            <span className="text-xs font-mono font-normal text-gray-500 not-italic">connecté(s)</span>
+                        </div>
+                        <div className="text-[10px] font-mono text-gray-500 font-bold uppercase mt-2 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping" />
+                            <span>Sessions actives Cloudflare</span>
+                        </div>
+                    </BentoCard>
+
+                    {/* KPI 3: Total Historique */}
+                    <BentoCard delay={0.15}>
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-gray-400">
+                                Total Historique
+                            </span>
+                            <div className="p-2 bg-blue-500/10 rounded-xl text-blue-400">
+                                <Globe className="w-4 h-4" />
+                            </div>
+                        </div>
+                        <div className="text-3xl md:text-4xl font-display font-black text-white italic tracking-tight">
+                            {stats.totalVisits.toLocaleString()}
+                        </div>
+                        <div className="text-[10px] font-mono text-gray-500 font-bold uppercase mt-2">
+                            Cumul global certifié
+                        </div>
+                    </BentoCard>
+
+                    {/* KPI 4: Devices Mobile vs Desktop */}
+                    <BentoCard delay={0.2}>
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-gray-400">
+                                Appareils
+                            </span>
+                            <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                                <Smartphone className="w-3.5 h-3.5" />
+                                <Laptop className="w-3.5 h-3.5" />
+                            </div>
+                        </div>
+                        <div className="flex items-baseline justify-between">
+                            <div className="text-2xl font-display font-black text-white italic">
+                                {stats.mobilePct}% <span className="text-[10px] font-mono text-gray-400 font-normal not-italic">Mobile</span>
+                            </div>
+                            <div className="text-xl font-display font-black text-gray-400 italic">
+                                {stats.desktopPct}% <span className="text-[10px] font-mono text-gray-500 font-normal not-italic">Desktop</span>
+                            </div>
+                        </div>
+                        {/* Mini ratio bar */}
+                        <div className="h-1.5 bg-white/10 rounded-full mt-3 overflow-hidden flex">
+                            <div style={{ width: `${stats.mobilePct}%` }} className="bg-neon-red h-full" />
+                            <div style={{ width: `${stats.desktopPct}%` }} className="bg-blue-500 h-full" />
+                        </div>
+                    </BentoCard>
+                </div>
+
+                {/* --- ROW 2: FULL-WIDTH TRAFFIC EVOLUTION CHART --- */}
+                <BentoCard delay={0.25} className="p-8">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-2.5 h-2.5 rounded-full bg-neon-red animate-pulse" />
+                                <h3 className="text-lg md:text-xl font-display font-black uppercase italic tracking-wide text-white">
+                                    Évolution du Trafic <span className="text-neon-red">Quotidien</span>
+                                </h3>
+                            </div>
+                            <p className="text-[10px] font-mono text-gray-500 font-bold uppercase mt-0.5">
+                                Volume quotidien certifié des {period} derniers jours
+                            </p>
+                        </div>
+
+                        {/* Peak day badge */}
+                        {stats.peakDay && (
+                            <div className="flex items-center gap-3 bg-white/[0.04] border border-white/[0.08] px-4 py-2 rounded-2xl">
+                                <Flame className="w-4 h-4 text-neon-red" />
+                                <div className="text-right sm:text-left">
+                                    <div className="text-[9px] font-mono text-gray-400 uppercase font-bold">Record de la période</div>
+                                    <div className="text-xs font-display font-black text-white italic">
+                                        {stats.peakDay.value.toLocaleString()} visites <span className="text-[9px] font-mono text-gray-500 font-normal">({stats.peakDay.label})</span>
+                                    </div>
                                 </div>
                             </div>
-                        </GlassCard>
+                        )}
+                    </div>
 
-                        <GlassCard className="p-8">
-                            <h3 className="text-sm font-black uppercase tracking-widest mb-8 text-gray-400 italic">TECHNOLOGY</h3>
-                            <DonutChart data={stats.tech.os} centerLabel="OS" centerSub="System" />
-                            <div className="mt-12">
-                                <DonutChart data={stats.tech.browsers} centerLabel="WEB" centerSub="Browsers" />
-                            </div>
-                        </GlassCard>
+                    {/* Chart Container */}
+                    <div className="h-[280px] w-full">
+                        <TrafficChart data={stats.timeline} />
+                    </div>
+                </BentoCard>
 
-                        <GlassCard className="p-8 bg-neon-red/5 border-neon-red/20">
-                            <h3 className="text-sm font-black uppercase tracking-widest mb-6 text-neon-red italic">STYLES FAVORIS</h3>
-                            <div className="space-y-6">
-                                {stats.styles.map((s: any, i: number) => (
-                                    <div key={i}>
-                                        <div className="flex justify-between text-[10px] font-black uppercase mb-2">
-                                            <span>{s.label}</span>
-                                            <span>{Math.round((s.value / (stats.totalVisits || 1)) * 100)}%</span>
+                {/* --- ROW 3: WORLD AUDIENCE MAP & LEADERBOARD --- */}
+                <section>
+                    <WorldAudienceMap
+                        countries={stats.countries}
+                        totalVisits={stats.totalVisits}
+                    />
+                </section>
+
+                {/* --- ROW 4: 3-COLUMN BENTO (ACQUISITION, TECH STACK, CATEGORIES) --- */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                    {/* Col 1: Sources & Référents */}
+                    <BentoCard delay={0.3}>
+                        <div className="flex items-center justify-between mb-5">
+                            <h4 className="text-sm font-display font-black uppercase tracking-wider text-white italic">
+                                Canaux <span className="text-neon-red">d'Acquisition</span>
+                            </h4>
+                            <Compass className="w-4 h-4 text-gray-500" />
+                        </div>
+
+                        <div className="space-y-3">
+                            {stats.sources.map((s: any, idx: number) => {
+                                const getIcon = (name: string) => {
+                                    const n = (name || '').toLowerCase();
+                                    if (n.includes('instagram')) return '📸';
+                                    if (n.includes('tiktok')) return '🎵';
+                                    if (n.includes('facebook')) return '👥';
+                                    if (n.includes('google')) return '🔍';
+                                    if (n.includes('twitter') || n.includes('x.com')) return '🐦';
+                                    return '🌐';
+                                };
+                                const pct = stats.totalVisits > 0 ? Math.round((s.visits / stats.totalVisits) * 100) : 0;
+                                return (
+                                    <div key={idx} className="flex items-center justify-between p-3 bg-white/[0.03] border border-white/[0.05] rounded-2xl">
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-lg">{getIcon(s.name)}</span>
+                                            <div>
+                                                <div className="text-xs font-bold text-white uppercase">{s.name}</div>
+                                                <div className="text-[8px] font-mono text-gray-500 uppercase">{pct}% du trafic</div>
+                                            </div>
                                         </div>
-                                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                            <motion.div 
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${Math.round((s.value / (stats.totalVisits || 1)) * 100)}%` }}
-                                                className="h-full"
-                                                style={{ backgroundColor: s.hex }}
-                                            />
+                                        <div className="text-right">
+                                            <div className="text-sm font-display font-black text-white italic">{s.visits.toLocaleString()}</div>
+                                            <div className="text-[7px] font-mono text-gray-500 uppercase">visites</div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            {stats.sources.length === 0 && (
+                                <div className="py-8 text-center bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4">
+                                    <div className="text-2xl mb-2">⚡</div>
+                                    <div className="text-xs font-bold text-white uppercase">Trafic Direct & QR Code (100%)</div>
+                                    <p className="text-[9px] font-mono text-gray-500 mt-1">
+                                        Les visiteurs saisissent directement l'adresse dropsiders.com ou ouvrent leurs favoris
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </BentoCard>
+
+                    {/* Col 2: Systèmes & Navigateurs (Tech Stack) */}
+                    <BentoCard delay={0.35}>
+                        <div className="flex items-center justify-between mb-5">
+                            <h4 className="text-sm font-display font-black uppercase tracking-wider text-white italic">
+                                Écosystème <span className="text-neon-red">Tech</span>
+                            </h4>
+                            <Laptop className="w-4 h-4 text-gray-500" />
+                        </div>
+
+                        {/* OS breakdown */}
+                        <div className="space-y-4">
+                            <div>
+                                <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-gray-400 block mb-2">
+                                    Systèmes d'exploitation
+                                </span>
+                                <div className="space-y-2">
+                                    {stats.os.slice(0, 4).map((os: any, idx: number) => {
+                                        const osTotal = stats.os.reduce((s: number, o: any) => s + (o.value || 0), 0) || 1;
+                                        const pct = Math.round((os.value / osTotal) * 100);
+                                        return (
+                                            <div key={idx}>
+                                                <div className="flex justify-between text-[10px] font-mono font-bold uppercase mb-1">
+                                                    <span className="text-gray-300">{os.label}</span>
+                                                    <span className="text-white">{pct}%</span>
+                                                </div>
+                                                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                                                    <div style={{ width: `${pct}%` }} className="h-full bg-neon-red rounded-full" />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Browsers breakdown */}
+                            <div className="pt-2 border-t border-white/[0.06]">
+                                <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-gray-400 block mb-2">
+                                    Navigateurs Web
+                                </span>
+                                <div className="space-y-2">
+                                    {stats.browsers.slice(0, 4).map((b: any, idx: number) => {
+                                        const bTotal = stats.browsers.reduce((s: number, o: any) => s + (o.value || 0), 0) || 1;
+                                        const pct = Math.round((b.value / bTotal) * 100);
+                                        return (
+                                            <div key={idx}>
+                                                <div className="flex justify-between text-[10px] font-mono font-bold uppercase mb-1">
+                                                    <span className="text-gray-300">{b.label}</span>
+                                                    <span className="text-white">{pct}%</span>
+                                                </div>
+                                                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                                                    <div style={{ width: `${pct}%` }} className="h-full bg-blue-500 rounded-full" />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    </BentoCard>
+
+                    {/* Col 3: Styles musicaux & Catégories */}
+                    <BentoCard delay={0.4}>
+                        <div className="flex items-center justify-between mb-5">
+                            <h4 className="text-sm font-display font-black uppercase tracking-wider text-white italic">
+                                Styles <span className="text-neon-red">Musicaux</span>
+                            </h4>
+                            <Activity className="w-4 h-4 text-gray-500" />
+                        </div>
+
+                        <div className="space-y-3">
+                            {stats.categories.slice(0, 5).map((cat: any, idx: number) => {
+                                const catTotal = stats.categories.reduce((s: number, c: any) => s + (c.value || 0), 0) || 1;
+                                const pct = Math.round((cat.value / catTotal) * 100);
+                                return (
+                                    <div key={idx} className="p-3 bg-white/[0.03] border border-white/[0.05] rounded-2xl">
+                                        <div className="flex justify-between items-center mb-1.5">
+                                            <span className="text-xs font-bold text-white uppercase italic">{cat.label}</span>
+                                            <span className="text-xs font-display font-black text-neon-red">{pct}%</span>
+                                        </div>
+                                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                            <div style={{ width: `${pct}%` }} className="h-full bg-gradient-to-r from-neon-red to-orange-500 rounded-full" />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            {stats.categories.length === 0 && (
+                                <div className="py-8 text-center text-gray-500 font-mono text-[10px] uppercase">
+                                    En attente d'interaction par style
+                                </div>
+                            )}
+                        </div>
+                    </BentoCard>
+                </div>
+
+                {/* --- ROW 5: 24H ACTIVITY DENSITY HEATMAP --- */}
+                <BentoCard delay={0.45} className="p-8">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-neon-red" />
+                                <h3 className="text-lg font-display font-black uppercase italic tracking-wide text-white">
+                                    Densité d'Activité <span className="text-neon-red">24 Heures</span>
+                                </h3>
+                            </div>
+                            <p className="text-[10px] font-mono text-gray-500 font-bold uppercase mt-0.5">
+                                Répartition horaire des visites sur le site
+                            </p>
+                        </div>
+                        <span className="text-[9px] font-mono font-bold uppercase text-gray-400 bg-white/[0.05] border border-white/[0.08] px-3 py-1.5 rounded-xl">
+                            Fuseau Europe / Paris
+                        </span>
+                    </div>
+
+                    <HourlyHeatmap totalVisits={stats.periodVisits || stats.totalVisits} />
+                </BentoCard>
+
+                {/* --- ROW 6: TOP CONTENT RANKING --- */}
+                <BentoCard delay={0.5} className="p-8">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 className="text-lg md:text-xl font-display font-black uppercase italic tracking-wide text-white">
+                                Top <span className="text-neon-red">Contenus</span>
+                            </h3>
+                            <p className="text-[10px] font-mono text-gray-500 font-bold uppercase mt-0.5">
+                                Articles et recaps les plus consultés
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setSelectedModal('articles')}
+                            className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider text-white transition-all flex items-center gap-1.5"
+                        >
+                            <span>Voir le classement complet</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="border-b border-white/[0.06] text-[9px] font-mono font-bold text-gray-400 uppercase tracking-widest pb-3">
+                                    <th className="pb-3 w-12">#</th>
+                                    <th className="pb-3">Article / Recap</th>
+                                    <th className="pb-3 text-center">Viral Score</th>
+                                    <th className="pb-3 text-right">Vues</th>
+                                    <th className="pb-3 text-right">Impact</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/[0.04]">
+                                {stats.topArticles.slice(0, 6).map((art: any, idx: number) => {
+                                    const sharePct = stats.totalVisits > 0 ? ((art.views / stats.totalVisits) * 100).toFixed(1) : 0;
+                                    return (
+                                        <tr key={idx} className="group hover:bg-white/[0.02] transition-colors">
+                                            <td className="py-4 font-mono font-bold text-gray-500 text-sm">
+                                                #{idx + 1}
+                                            </td>
+                                            <td className="py-4">
+                                                <div className="flex items-center gap-3">
+                                                    {art.image && (
+                                                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-white/5 border border-white/10 shrink-0">
+                                                            <img src={art.image} alt="" className="w-full h-full object-cover" />
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <div className="text-xs font-bold text-white uppercase italic group-hover:text-neon-red transition-colors line-clamp-1">
+                                                            {art.title}
+                                                        </div>
+                                                        <div className="text-[8px] font-mono text-gray-500 uppercase mt-0.5">
+                                                            {art.type} • {art.date || 'Récemment'}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="py-4 text-center">
+                                                <span className="text-xs font-display font-black text-neon-red italic">
+                                                    {art.viralScore}%
+                                                </span>
+                                            </td>
+                                            <td className="py-4 text-right font-display font-black text-white italic text-sm">
+                                                {art.views.toLocaleString()}
+                                            </td>
+                                            <td className="py-4 text-right">
+                                                <span className="text-[9px] font-mono font-bold text-gray-400 bg-white/[0.05] border border-white/[0.08] px-2.5 py-1 rounded-md">
+                                                    {sharePct}%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+
+                                {stats.topArticles.length === 0 && (
+                                    <tr>
+                                        <td colSpan={5} className="py-8 text-center text-gray-500 font-mono text-[10px] uppercase">
+                                            Aucun article consulté pour le moment
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </BentoCard>
+
+                {/* --- ROW 7: BILLETTERIE & CONVERSION TICKETS --- */}
+                {Object.keys(stats.clicks || {}).filter(k => k.includes('ticket')).length > 0 && (
+                    <BentoCard delay={0.55} className="p-8">
+                        <div className="flex items-center gap-2.5 mb-6">
+                            <Ticket className="w-4 h-4 text-neon-red" />
+                            <h3 className="text-lg font-display font-black uppercase italic tracking-wide text-white">
+                                Conversions <span className="text-neon-red">Billetterie</span>
+                            </h3>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                            {Object.entries(stats.clicks)
+                                .filter(([k]) => k.includes('ticket'))
+                                .sort(([, a]: any, [, b]: any) => b - a)
+                                .slice(0, 6)
+                                .map(([key, count]: any, idx) => {
+                                    const eventName = key.split('_')[2] || 'Festival';
+                                    return (
+                                        <div key={idx} className="p-4 bg-white/[0.03] border border-white/[0.06] rounded-2xl">
+                                            <span className="text-[8px] font-mono text-gray-500 font-bold uppercase truncate block mb-2">
+                                                {eventName}
+                                            </span>
+                                            <div className="text-2xl font-display font-black text-white italic">
+                                                {count}
+                                            </div>
+                                            <div className="text-[7px] font-mono font-bold text-neon-red uppercase mt-1">
+                                                Clics Billetterie
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                        </div>
+                    </BentoCard>
+                )}
+            </div>
+
+            {/* --- FULL ARTICLES RANKING MODAL --- */}
+            <AnimatePresence>
+                {selectedModal === 'articles' && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedModal(null)}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="relative w-full max-w-3xl bg-[#0c0d14] border border-white/10 rounded-3xl p-6 md:p-8 max-h-[85vh] flex flex-col z-10 shadow-2xl"
+                        >
+                            <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-6">
+                                <div>
+                                    <h3 className="text-xl font-display font-black text-white uppercase italic">
+                                        Classement <span className="text-neon-red">Complet</span>
+                                    </h3>
+                                    <p className="text-[10px] font-mono text-gray-500 uppercase mt-0.5">
+                                        Tous les articles & recaps classés par nombre de vues
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setSelectedModal(null)}
+                                    className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="overflow-y-auto space-y-3 pr-2">
+                                {stats.topArticles.map((art: any, idx: number) => (
+                                    <div
+                                        key={idx}
+                                        className="flex items-center justify-between p-3.5 bg-white/[0.03] border border-white/[0.06] rounded-2xl"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-mono text-xs font-bold text-gray-500 w-6">
+                                                #{idx + 1}
+                                            </span>
+                                            {art.image && (
+                                                <div className="w-10 h-10 rounded-xl overflow-hidden bg-white/5 border border-white/10 shrink-0">
+                                                    <img src={art.image} alt="" className="w-full h-full object-cover" />
+                                                </div>
+                                            )}
+                                            <div>
+                                                <h5 className="text-xs font-bold text-white uppercase italic line-clamp-1">{art.title}</h5>
+                                                <span className="text-[8px] font-mono text-gray-500 uppercase">{art.type}</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-sm font-display font-black text-white italic">{art.views.toLocaleString()}</div>
+                                            <span className="text-[7px] font-mono text-neon-red uppercase">vues</span>
                                         </div>
                                     </div>
                                 ))}
-                                {stats.styles.length === 0 && <div className="text-[10px] text-gray-600 uppercase font-black">Aucune donnée</div>}
                             </div>
-                        </GlassCard>
+                        </motion.div>
                     </div>
-
-                    {/* MAIN CONTENT AREA */}
-                    <div className="lg:col-span-9 space-y-8">
-                        
-                        {/* MAIN TRAFFIC HUB */}
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                            <GlassCard className="lg:col-span-8 p-10">
-                                <div className="flex items-center justify-between mb-12">
-                                    <div>
-                                        <h3 className="text-2xl font-display font-black italic uppercase">TRAFFIC <span className="text-neon-blue">PROJECTION</span></h3>
-                                        <p className="text-[10px] font-black text-gray-500 uppercase mt-1">Real-time Data vs IA Forecasting</p>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full bg-neon-red" />
-                                            <span className="text-[8px] font-black uppercase">Réel</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full border border-neon-blue border-dashed" />
-                                            <span className="text-[8px] font-black uppercase">IA</span>
-                                        </div>
-                                    </div></div>
-                                <div className="h-[300px]">
-                                    <AreaChart data={stats.timeline.map((t:any)=>({label: t.date.split('-').slice(1).reverse().join('/'), value: t.value}))} />
-                                </div>
-                            </GlassCard>
-
-                            <div className="lg:col-span-4 space-y-8">
-                                <GlassCard className="p-8 h-full">
-                                    <h3 className="text-sm font-black uppercase tracking-widest mb-8 text-gray-400 italic">SOCIAL IMPACT</h3>
-                                    <div className="space-y-4">
-                                        {stats.social.map((s: any, i: number) => {
-                                            const getIcon = (name: string) => {
-                                                const n = name.toLowerCase();
-                                                if (n.includes('instagram')) return '📸';
-                                                if (n.includes('tiktok')) return '🎵';
-                                                if (n.includes('facebook')) return '👥';
-                                                if (n.includes('google')) return '🔍';
-                                                if (n.includes('t.co') || n.includes('twitter') || n.includes('x.com')) return '🐦';
-                                                return '🌐';
-                                            };
-                                            return (
-                                                <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all">
-                                                    <div className="flex items-center gap-4">
-                                                        <span className="text-2xl">{getIcon(s.name)}</span>
-                                                        <div>
-                                                            <div className="text-[10px] font-black text-white uppercase truncate max-w-[120px]">{s.name}</div>
-                                                            <div className="text-[8px] font-black text-gray-500 uppercase">{Math.round(s.visits / (stats.totalVisits || 1) * 100)}% Traffic</div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="text-sm font-display font-black text-white">{s.visits.toLocaleString()}</div>
-                                                        <div className="text-[7px] font-black text-gray-600 uppercase">Visites</div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                        {stats.social.length === 0 && <div className="text-[10px] text-gray-600 uppercase font-black text-center py-8">Aucun référent détecté</div>}
-                                    </div>
-                                </GlassCard>
-                            </div>
-                        </div>
-
-                        {/* AUDIENCE MONDIALE GÉOLOCALISÉE */}
-                        <WorldAudienceMap 
-                            countries={stats.countries || []} 
-                            totalVisits={stats.totalVisits || 0} 
-                        />
-
-                        {/* HOURLY ACTIVITY HEATMAP */}
-                        <GlassCard className="p-10">
-                            <div className="flex items-center justify-between mb-8">
-                                <h3 className="text-xl font-display font-black italic uppercase">DENSITÉ D'ACTIVITÉ <span className="text-neon-red">24H</span></h3>
-                                <Clock className="w-5 h-5 text-gray-500" />
-                            </div>
-                            <ActivityHeatmap totalVisits={stats.periodVisits || stats.totalVisits} />
-                            <div className="flex justify-between mt-4 text-[8px] font-black text-gray-600 uppercase tracking-widest">
-                                <span>00:00</span>
-                                <span>06:00</span>
-                                <span>12:00</span>
-                                <span>18:00</span>
-                                <span>23:59</span>
-                            </div>
-                        </GlassCard>
-
-                        {/* FULL PERFORMANCE TABLE */}
-                        <GlassCard className="p-10">
-                            <div className="flex items-center justify-between mb-10">
-                                <h3 className="text-2xl font-display font-black italic uppercase">TOP <span className="text-neon-red">PERFORMANCE</span></h3>
-                                <button className="px-6 py-2 bg-white/5 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Full Report</button>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full border-collapse">
-                                    <thead>
-                                        <tr className="border-b border-white/5 text-left">
-                                            <th className="pb-6 text-[10px] font-black text-gray-500 uppercase tracking-widest">Contenu</th>
-                                            <th className="pb-6 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Viral Index</th>
-                                            <th className="pb-6 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Engagement</th>
-                                            <th className="pb-6 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">Reach Total</th>
-                                            <th className="pb-6 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-white/5">
-                                        {(stats.topArticles || []).map((article: any, i: number) => (
-                                            <tr key={i} className="group hover:bg-white/[0.02]">
-                                                <td className="py-6">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 rounded-xl overflow-hidden border border-white/10"><img src={article.image} className="w-full h-full object-cover" /></div>
-                                                        <div>
-                                                            <div className="text-sm font-bold text-white uppercase italic group-hover:text-neon-red transition-colors">{article.title}</div>
-                                                            <div className="text-[8px] font-black text-gray-500 uppercase mt-1">{article.type} • {article.date}</div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="py-6 text-center">
-                                                    <span className="text-lg font-display font-black text-neon-red italic">{article.viralScore}%</span>
-                                                </td>
-                                                <td className="py-6 text-center">
-                                                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
-                                                        <Activity className="w-3 h-3 text-neon-blue" />
-                                                        <span className="text-[10px] font-black text-white">{Math.round(article.views / stats.totalVisits * 1000) / 10}%</span>
-                                                    </div>
-                                                </td>
-                                                <td className="py-6 text-right font-display font-black text-white text-lg">{article.views.toLocaleString()}</td>
-                                                <td className="py-6 text-center">
-                                                    {article.viralScore > 90 ? <Badge color="red">Viral 🔥</Badge> : <Badge color="white">Stable</Badge>}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </GlassCard>
-                    </div>
-                </div>
-
-                {/* BOTTOM LOGS */}
-                <section className="mt-16">
-                    <div className="flex items-center gap-4 mb-8">
-                        <div className="w-2 h-2 bg-neon-purple rounded-full animate-pulse" />
-                        <h3 className="text-2xl font-display font-black italic uppercase">CONVERSION <span className="text-neon-purple">TICKETS</span></h3>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
-                        {Object.entries(stats.clicks).filter(([k])=>k.includes('ticket')).sort(([,a]:any,[,b]:any)=>b-a).slice(0, 6).map(([key, count]: any, i) => (
-                            <GlassCard key={i} className="p-6 border-l-4 border-l-neon-purple">
-                                <div className="text-[8px] font-black text-gray-500 uppercase mb-4">{key.split('_')[2]}</div>
-                                <div className="flex items-end justify-between">
-                                    <div className="text-4xl font-display font-black text-white italic">{count}</div>
-                                    <div className="text-[8px] font-black text-neon-purple uppercase">Clics</div>
-                                </div>
-                            </GlassCard>
-                        ))}
-                    </div>
-                </section>
-            </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
