@@ -8265,7 +8265,7 @@ ${urls.map(u => `  <url>
                     // usually enough for a photo library
                     let safetyCounter = 0;
                     
-                    while (safetyCounter < 20) { // Max 2000 items (20 * 100)
+                    while (safetyCounter < 60) { // Max 6000 items (60 * 100) - bucket has 5861+ objects
                         const res = await env.R2.list({ cursor: currentCursor, prefix, limit: 100 });
                         allObjects.push(...res.objects);
                         if (!res.truncated) break;

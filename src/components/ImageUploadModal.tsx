@@ -240,8 +240,18 @@ export function ImageUploadModal({
             }
 
             const sortParam = sortBy === 'newest' ? '&sort=date' : '';
-            // Ne pas restreindre au dossier uploads/ pour récupérer aussi les vidéos dans VIDEOS/
-            const url = `/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${sortParam}`;
+            // Ajouter un préfixe selon le filtre media pour éviter de scanner tout le bucket
+            // (le dossier uploads/ est en dernier alphabétiquement - sans préfixe les 2000 premiers objets ne l'atteignent jamais)
+            let prefixParam = '';
+            if (mediaFilter === 'videos') {
+                prefixParam = '&prefix=VIDEOS%2F';
+            } else if (mediaFilter === 'images') {
+                prefixParam = '&prefix=uploads%2F';
+            } else {
+                // 'all' : on liste d'abord les images récentes (uploads/) puis les vidéos (VIDEOS/)
+                prefixParam = '&prefix=uploads%2F';
+            }
+            const url = `/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${sortParam}${prefixParam}`;
             const res = await fetch(url, { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();

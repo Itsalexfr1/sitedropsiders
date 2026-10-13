@@ -386,6 +386,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const recordingStartTimeRef = useRef<number>(0);
     const agendaSlideOverrideRef = useRef<1 | 2 | null>(null);
     const editorialSlideOverrideRef = useRef<number | null>(null);
+    const [isEditorialAfficheActive, setIsEditorialAfficheActive] = useState<boolean>(false);
+    const editorialAfficheOverrideRef = useRef<boolean>(false);
     const transitionProgressRef = useRef<number | null>(null);
     const promoOutroOverrideRef = useRef<boolean>(false);
     const transitionTargetRef = useRef<'SLIDE_1_TO_2' | 'SLIDE_2_TO_PROMO' | null>(null);
@@ -1319,10 +1321,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         const effectiveTab = targetTab || activeTab;
         const forceTheme = typeof exportMode === 'string' ? (exportMode as ThemeType) : forceThemeParam;
-        const isPromoRequested = isVideoRecordingRef.current
-            ? promoOutroOverrideRef.current
-            : (promoOutroOverrideRef.current || (isCarouselPromoActive && isMultiSlideTheme));
+        const isPromoRequested = Boolean(promoOutroOverrideRef.current || (isCarouselPromoActive && isMultiSlideTheme));
         const effectiveTheme = isPromoRequested ? 'PROMO' : (forceTheme || theme);
+        const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(effectiveTheme);
+        const isEditorialAfficheRequested = Boolean(isEditorialCarouselTheme && !isPromoRequested && (editorialAfficheOverrideRef.current || isEditorialAfficheActive));
 
         try {
             await (async (theme: ThemeType) => {
@@ -1533,7 +1535,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else if (imgLayoutMode === 'BAS_LIGNE') {
                     y = ((canvas.height * 0.85 - vh) / 2) + bgOffsetY + bgAnimY;
                 }
-                if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2)) {
+                if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested) {
                     ctx.save();
                     ctx.filter = 'blur(14px)';
                     const blurBleed = 28;
@@ -1566,7 +1568,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     } else if (imgLayoutMode === 'BAS_LIGNE') {
                         y = ((canvas.height * 0.85 - ih) / 2) + bgOffsetY + bgAnimY;
                     }
-                    if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2)) {
+                    if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested) {
                         ctx.save();
                         const blurBleed = 80;
                         const targetW = Math.round(iw + blurBleed * 2);
@@ -1721,116 +1723,186 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const textStartX = dotCenterX + dotRadius + dotGap;
                 const badgeW = Math.ceil(badgePadLeft + (dotRadius * 2) + dotGap + textWidth + italicSlantBuffer + badgePadRight);
 
-                // Temps déterministe pour animation fluide continue sans à-coup
-                const badgeTime = isVideoRecordingRef.current 
-                    ? deterministicTotalTimeRef.current 
-                    : (animElapsed !== 99.0 ? animElapsed : (Date.now() / 1000));
+                // Détection export image (PNG) vs export vidéo (MP4)
+                const isPngExport = isDownloading || Boolean(exportMode);
+                const isMp4Export = isVideoRecordingRef.current;
+                // L'effet animé (balayage glare lumineux, onde radar, pulsations) est strictement réservé à l'export MP4
+                // (et prévisualisation active d'un Reel en mode vidéo). Dans tous les exports PNG, le badge reste 100% net, propre et statique.
+                const hasBadgeEffect = !isPngExport && (isMp4Export || (effectiveTab === 'REEL' && (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE')));
 
-                const dotPulse = 0.5 + 0.5 * Math.sin(badgeTime * 4.2);
-                const haloPulse = 0.5 + 0.5 * Math.sin(badgeTime * 3.0);
+                if (hasBadgeEffect) {
+                    // Temps déterministe pour animation fluide continue sans à-coup
+                    const badgeTime = isVideoRecordingRef.current 
+                        ? deterministicTotalTimeRef.current 
+                        : (animElapsed !== 99.0 ? animElapsed : (Date.now() / 1000));
 
-                // 1. Aura néon externe diffuse derrière la capsule
-                ctx.save();
-                ctx.shadowColor = `rgba(${gradStr}, ${0.40 + 0.25 * haloPulse})`;
-                ctx.shadowBlur = 18 + 8 * haloPulse;
-                ctx.shadowOffsetY = 2;
-                ctx.fillStyle = 'rgba(12, 14, 20, 0.82)';
-                ctx.beginPath();
-                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
-                ctx.fill();
-                ctx.restore();
+                    const dotPulse = 0.5 + 0.5 * Math.sin(badgeTime * 4.2);
+                    const haloPulse = 0.5 + 0.5 * Math.sin(badgeTime * 3.0);
 
-                // 2. Fond capsule verre fumé avec clip pour effet de brillance / glare balayant
-                ctx.save();
-                ctx.beginPath();
-                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
-                ctx.clip();
+                    // 1. Aura néon externe diffuse derrière la capsule
+                    ctx.save();
+                    ctx.shadowColor = `rgba(${gradStr}, ${0.40 + 0.25 * haloPulse})`;
+                    ctx.shadowBlur = 18 + 8 * haloPulse;
+                    ctx.shadowOffsetY = 2;
+                    ctx.fillStyle = 'rgba(12, 14, 20, 0.82)';
+                    ctx.beginPath();
+                    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
+                    ctx.fill();
+                    ctx.restore();
 
-                // Fond teinté très sombre
-                ctx.fillStyle = 'rgba(10, 12, 18, 0.88)';
-                ctx.fill();
+                    // 2. Fond capsule verre fumé avec clip pour effet de brillance / glare balayant
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
+                    ctx.clip();
 
-                // Balayage lumineux diagonal (Cyber glare sweep toutes les ~2.4 secondes)
-                const sweepCycle = (badgeTime * 0.42) % 1.0;
-                const sweepX = badgeX - 80 + sweepCycle * (badgeW + 200);
-                const glareGrad = ctx.createLinearGradient(sweepX - 35, badgeY, sweepX + 35, badgeY + badgeH);
-                glareGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-                glareGrad.addColorStop(0.35, `rgba(${gradStr}, 0.18)`);
-                glareGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.35)');
-                glareGrad.addColorStop(0.65, `rgba(${gradStr}, 0.18)`);
-                glareGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                ctx.fillStyle = glareGrad;
-                ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
+                    // Fond teinté très sombre
+                    ctx.fillStyle = 'rgba(10, 12, 18, 0.88)';
+                    ctx.fill();
 
-                ctx.restore();
+                    // Balayage lumineux diagonal (Cyber glare sweep toutes les ~2.4 secondes)
+                    const sweepCycle = (badgeTime * 0.42) % 1.0;
+                    const sweepX = badgeX - 80 + sweepCycle * (badgeW + 200);
+                    const glareGrad = ctx.createLinearGradient(sweepX - 35, badgeY, sweepX + 35, badgeY + badgeH);
+                    glareGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                    glareGrad.addColorStop(0.35, `rgba(${gradStr}, 0.18)`);
+                    glareGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.35)');
+                    glareGrad.addColorStop(0.65, `rgba(${gradStr}, 0.18)`);
+                    glareGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = glareGrad;
+                    ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
 
-                // 3. Bordure dynamique avec gradient animé respirant
-                ctx.save();
-                const borderPulseAlpha = 0.55 + 0.35 * dotPulse;
-                const borderGrad = ctx.createLinearGradient(badgeX, badgeY, badgeX + badgeW, badgeY + badgeH);
-                borderGrad.addColorStop(0, `rgba(${gradStr}, ${borderPulseAlpha})`);
-                borderGrad.addColorStop(0.5, `rgba(255, 255, 255, ${0.45 * dotPulse})`);
-                borderGrad.addColorStop(1, `rgba(${gradStr}, ${borderPulseAlpha * 0.7})`);
-                ctx.strokeStyle = borderGrad;
-                ctx.lineWidth = 1.8;
-                ctx.beginPath();
-                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
-                ctx.stroke();
-                ctx.restore();
+                    ctx.restore();
 
-                // 4. Onde radar / ripple néon qui pulse autour du point
-                const radarCycle = (badgeTime * 1.25) % 1.0;
-                const radarRadius = dotRadius + radarCycle * 14;
-                const radarAlpha = Math.max(0, (1 - radarCycle) * 0.85);
-                ctx.save();
-                ctx.strokeStyle = `rgba(${gradStr}, ${radarAlpha})`;
-                ctx.lineWidth = 1.5;
-                ctx.shadowColor = `rgba(${gradStr}, ${radarAlpha * 0.9})`;
-                ctx.shadowBlur = 8;
-                ctx.beginPath();
-                ctx.arc(dotCenterX, dotCenterY, radarRadius, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.restore();
+                    // 3. Bordure dynamique avec gradient animé respirant
+                    ctx.save();
+                    const borderPulseAlpha = 0.55 + 0.35 * dotPulse;
+                    const borderGrad = ctx.createLinearGradient(badgeX, badgeY, badgeX + badgeW, badgeY + badgeH);
+                    borderGrad.addColorStop(0, `rgba(${gradStr}, ${borderPulseAlpha})`);
+                    borderGrad.addColorStop(0.5, `rgba(255, 255, 255, ${0.45 * dotPulse})`);
+                    borderGrad.addColorStop(1, `rgba(${gradStr}, ${borderPulseAlpha * 0.7})`);
+                    ctx.strokeStyle = borderGrad;
+                    ctx.lineWidth = 1.8;
+                    ctx.beginPath();
+                    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
+                    ctx.stroke();
+                    ctx.restore();
 
-                // 5. Point lumineux néon battant
-                ctx.save();
-                const currentDotRadius = dotRadius * (0.92 + 0.18 * dotPulse);
-                ctx.fillStyle = dotColor;
-                ctx.shadowColor = dotColor;
-                ctx.shadowBlur = 12 + 6 * dotPulse;
-                ctx.beginPath();
-                ctx.arc(dotCenterX, dotCenterY, currentDotRadius, 0, Math.PI * 2);
-                ctx.fill();
+                    // 4. Onde radar / ripple néon qui pulse autour du point
+                    const radarCycle = (badgeTime * 1.25) % 1.0;
+                    const radarRadius = dotRadius + radarCycle * 14;
+                    const radarAlpha = Math.max(0, (1 - radarCycle) * 0.85);
+                    ctx.save();
+                    ctx.strokeStyle = `rgba(${gradStr}, ${radarAlpha})`;
+                    ctx.lineWidth = 1.5;
+                    ctx.shadowColor = `rgba(${gradStr}, ${radarAlpha * 0.9})`;
+                    ctx.shadowBlur = 8;
+                    ctx.beginPath();
+                    ctx.arc(dotCenterX, dotCenterY, radarRadius, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.restore();
 
-                // Centre blanc hyper-lumineux (effet diode LED / laser vif)
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowBlur = 4;
-                ctx.beginPath();
-                ctx.arc(dotCenterX, dotCenterY, currentDotRadius * 0.45, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
+                    // 5. Point lumineux néon battant
+                    ctx.save();
+                    const currentDotRadius = dotRadius * (0.92 + 0.18 * dotPulse);
+                    ctx.fillStyle = dotColor;
+                    ctx.shadowColor = dotColor;
+                    ctx.shadowBlur = 12 + 6 * dotPulse;
+                    ctx.beginPath();
+                    ctx.arc(dotCenterX, dotCenterY, currentDotRadius, 0, Math.PI * 2);
+                    ctx.fill();
 
-                // 6. Texte de la capsule en blanc gras italique avec reflet du thème
-                ctx.save();
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = `rgba(${gradStr}, ${0.55 * haloPulse})`;
-                ctx.shadowBlur = 8;
-                if ('letterSpacing' in ctx) {
-                    (ctx as any).letterSpacing = `${badgeLetterSpacing}px`;
-                }
-                ctx.textAlign = 'left';
+                    // Centre blanc hyper-lumineux (effet diode LED / laser vif)
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowBlur = 4;
+                    ctx.beginPath();
+                    ctx.arc(dotCenterX, dotCenterY, currentDotRadius * 0.45, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
 
-                let textY = dotCenterY;
-                if (textMetrics.actualBoundingBoxAscent !== undefined && textMetrics.actualBoundingBoxDescent !== undefined) {
-                    ctx.textBaseline = 'alphabetic';
-                    textY = dotCenterY + (textMetrics.actualBoundingBoxAscent - textMetrics.actualBoundingBoxDescent) / 2;
+                    // 6. Texte de la capsule en blanc gras italique avec reflet du thème
+                    ctx.save();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = `rgba(${gradStr}, ${0.55 * haloPulse})`;
+                    ctx.shadowBlur = 8;
+                    if ('letterSpacing' in ctx) {
+                        (ctx as any).letterSpacing = `${badgeLetterSpacing}px`;
+                    }
+                    ctx.textAlign = 'left';
+
+                    let textY = dotCenterY;
+                    if (textMetrics.actualBoundingBoxAscent !== undefined && textMetrics.actualBoundingBoxDescent !== undefined) {
+                        ctx.textBaseline = 'alphabetic';
+                        textY = dotCenterY + (textMetrics.actualBoundingBoxAscent - textMetrics.actualBoundingBoxDescent) / 2;
+                    } else {
+                        ctx.textBaseline = 'middle';
+                        textY = dotCenterY - 0.5;
+                    }
+
+                    ctx.fillText(label, textStartX, textY);
+                    ctx.restore();
+
                 } else {
-                    ctx.textBaseline = 'middle';
-                    textY = dotCenterY - 0.5;
-                }
+                    // RENDU STATIQUE NET POUR EXPORT PNG (AUCUN EFFET FIGÉ, AUCUN BALAYAGE, AUCUNE ONDE RADAR)
+                    // 1. Fond capsule verre fumé sobre et propre
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(12, 14, 20, 0.85)';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+                    ctx.shadowBlur = 14;
+                    ctx.shadowOffsetY = 3;
+                    ctx.beginPath();
+                    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
+                    ctx.fill();
+                    ctx.restore();
 
-                ctx.fillText(label, textStartX, textY);
-                ctx.restore();
+                    // 2. Bordure nette fixe du thème (sans animation ni gradient changeant)
+                    ctx.save();
+                    ctx.strokeStyle = (theme === 'INTERVIEW') ? 'rgba(255, 255, 255, 0.55)' : `rgba(${gradStr}, 0.55)`;
+                    ctx.lineWidth = 1.8;
+                    ctx.beginPath();
+                    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // 3. Point LED net fixe (aucun halo qui déborde, aucun cercle radar)
+                    ctx.save();
+                    ctx.fillStyle = dotColor;
+                    ctx.shadowColor = dotColor;
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.arc(dotCenterX, dotCenterY, dotRadius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Centre blanc lumineux net
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowBlur = 3;
+                    ctx.beginPath();
+                    ctx.arc(dotCenterX, dotCenterY, dotRadius * 0.45, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+
+                    // 4. Texte net blanc sans halo pulsant
+                    ctx.save();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'transparent';
+                    ctx.shadowBlur = 0;
+                    if ('letterSpacing' in ctx) {
+                        (ctx as any).letterSpacing = `${badgeLetterSpacing}px`;
+                    }
+                    ctx.textAlign = 'left';
+
+                    let textY = dotCenterY;
+                    if (textMetrics.actualBoundingBoxAscent !== undefined && textMetrics.actualBoundingBoxDescent !== undefined) {
+                        ctx.textBaseline = 'alphabetic';
+                        textY = dotCenterY + (textMetrics.actualBoundingBoxAscent - textMetrics.actualBoundingBoxDescent) / 2;
+                    } else {
+                        ctx.textBaseline = 'middle';
+                        textY = dotCenterY - 0.5;
+                    }
+
+                    ctx.fillText(label, textStartX, textY);
+                    ctx.restore();
+                }
 
                 ctx.restore();
             };
@@ -1838,7 +1910,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (!showText) return; 
 
             const isModernEditorialTheme = (
-                ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS'].includes(theme) ||
+                (!isEditorialAfficheRequested && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS'].includes(theme)) ||
                 (theme === 'MUSIQUE' && effectiveEditorialSlide === 1) ||
                 (theme === 'EVENTS' && eventsSlide === 1) ||
                 (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1)
@@ -1874,7 +1946,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, canvas.height * 0.82, canvas.width, canvas.height * 0.18);
                 }
             } else {
-                if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && eventsSlide === 2) && !(theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
+                if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && eventsSlide === 2) && !(theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) && !isEditorialAfficheRequested && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
                     const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                         ? canvas.height * 0.8
                         : canvas.height * 0.4;
@@ -3828,7 +3900,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(ctaText, centerX, ctaY);
                 ctx.restore();
 
-            } else if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2)) {
+            } else if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || isEditorialAfficheRequested) {
                 const isStory = canvas.height > 1500;
 
                 // 1. Dark Vignette overlay (Atmosphère sombre et immersive Dropsiders)
@@ -3842,8 +3914,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillStyle = vig;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // 2. Top Capsule Badge EVENTS
-                drawTopCapsuleBadge(theme === 'EVENTS' ? 'EVENTS' : 'AFFICHE', '#ff007f', '255, 0, 127');
+                // 2. Top Capsule Badge
+                const badgeLabel = theme === 'EVENTS' ? 'EVENTS' : (theme === 'AFFICHE' ? 'AFFICHE' : (baseThemeData[theme]?.label || theme));
+                const badgeColor = activeColor.color || '#ff007f';
+                const badgeGrad = activeColor.grad || '255, 0, 127';
+                drawTopCapsuleBadge(badgeLabel, badgeColor, badgeGrad);
 
                 // 3. Dimensions de la carte d'affiche
                 const baseCardW = 800;
@@ -5034,7 +5109,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             return;
         }
         const isBadgeTheme = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'AFFICHE'].includes(theme);
-        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || (theme === 'MUSIQUE' && (cdjPlayerRing || musicBgMotion)) || transitionProgress > 0 || isBadgeTheme) {
+        const shouldAnimateBadge = isBadgeTheme && activeTab === 'REEL';
+        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || (theme === 'MUSIQUE' && (cdjPlayerRing || musicBgMotion)) || transitionProgress > 0 || shouldAnimateBadge) {
             let lastRender = 0;
             let isRendering = false;
             const loop = (timestamp: number) => {
@@ -5054,7 +5130,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, showTitleOnSlide2, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoCategory, showPromoHook, showPromoHeadline]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoCategory, showPromoHook, showPromoHeadline]);
 
     // Pre-charger les pochettes des tracks du thème MUSIQUE
     useEffect(() => {
@@ -5148,7 +5224,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    const startVideoRecording = async (combinedMode: 'NONE' | 'PLANNING' | 'EDITORIAL' = 'NONE') => {
+    const startVideoRecording = async (combinedMode: 'NONE' | 'PLANNING' | 'EDITORIAL' | 'PROMO_ONLY' = 'NONE') => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
@@ -5305,15 +5381,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         // ── CALCUL PRÉALABLE DE LA DURÉE TOTALE ET DES FRAMES ATTENDUES ─────────────
         const currentTransitionDuration = getTransitionDuration(slideTransition);
         let totalDuration = 0;
-        if (combinedMode === 'EDITORIAL') {
+        if (combinedMode === 'PROMO_ONLY') {
+            totalDuration = Math.round(Math.max(3, editorialPromoDuration || 4) * 1000);
+        } else if (combinedMode === 'EDITORIAL') {
             const isMusicTheme = (theme === 'MUSIQUE');
             const shouldSkipSlide2 = skipEditorialSlide2;
+            const hasAfficheSlide = Boolean(afficheImage && !isMusicTheme);
             const contentSlideNumbers: number[] = isMusicTheme
                 ? [1, ...musicTracks.map((_, i) => i + 2)]
                 : (shouldSkipSlide2
                     ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
-            const numContentSlides = contentSlideNumbers.length;
+            const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
             const promoDuration = Math.round(editorialPromoDuration * 1000);
             const transitionDuration = currentTransitionDuration;
             const slideDuration = Math.round(editorialSlide1Duration * 1000);
@@ -5636,18 +5715,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
 
         isVideoRecordingRef.current = true;
-        promoOutroOverrideRef.current = false;
         const prevWasCarouselPromoActive = isCarouselPromoActive;
+        const prevWasEditorialAfficheActive = isEditorialAfficheActive;
         if (combinedMode === 'PLANNING') {
             agendaSlideOverrideRef.current = 1;
             setIsCarouselPromoActive(false);
+            setIsEditorialAfficheActive(false);
+            promoOutroOverrideRef.current = false;
         } else if (combinedMode === 'EDITORIAL') {
             editorialSlideOverrideRef.current = 1;
             setIsCarouselPromoActive(false);
+            setIsEditorialAfficheActive(false);
+            promoOutroOverrideRef.current = false;
+        } else if (combinedMode === 'PROMO_ONLY') {
+            promoOutroOverrideRef.current = true;
+            setIsCarouselPromoActive(true);
+            setIsEditorialAfficheActive(false);
         } else {
             setArtisteFestivalSlide(1);
             setEventsSlide(1);
             setIsCarouselPromoActive(false);
+            setIsEditorialAfficheActive(false);
+            promoOutroOverrideRef.current = false;
         }
         transitionProgressRef.current = 0;
 
@@ -5678,14 +5767,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 setErrorMessage("Votre navigateur ne supporte pas la capture vidéo.");
                 isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
+                promoOutroOverrideRef.current = false;
                 if (combinedMode === 'PLANNING') {
                     agendaSlideOverrideRef.current = null;
                     setAgendaSlide(prevAgendaSlide);
                     setIsCarouselPromoActive(prevWasCarouselPromoActive);
+                    setIsEditorialAfficheActive(prevWasEditorialAfficheActive);
                 } else if (combinedMode === 'EDITORIAL') {
                     editorialSlideOverrideRef.current = null;
                     setEditorialSlide(prevEditorialSlide);
                     setIsCarouselPromoActive(prevWasCarouselPromoActive);
+                    setIsEditorialAfficheActive(prevWasEditorialAfficheActive);
+                } else if (combinedMode === 'PROMO_ONLY') {
+                    setIsCarouselPromoActive(prevWasCarouselPromoActive);
+                    setIsEditorialAfficheActive(prevWasEditorialAfficheActive);
                 }
                 return;
             }
@@ -6069,9 +6164,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 setReadyVideoUrl(url);
                 setActivePanel(null);
 
+                const exportThemeName = combinedMode === 'PROMO_ONLY' ? 'promo' : theme.toLowerCase().replace(/\s+/g, '-');
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`;
+                a.download = `dropsiders-${exportThemeName}-${activeTab.toLowerCase()}-${Date.now()}.mp4`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -6084,9 +6180,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 setReadyVideoBlob(videoBlob);
                 setReadyVideoUrl(url);
                 setActivePanel(null);
+                const exportThemeName = combinedMode === 'PROMO_ONLY' ? 'promo' : theme.toLowerCase().replace(/\s+/g, '-');
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.${ext}`;
+                a.download = `dropsiders-${exportThemeName}-${activeTab.toLowerCase()}-${Date.now()}.${ext}`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -6102,9 +6199,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
 
 
-        if (combinedMode === 'EDITORIAL') {
+        if (combinedMode === 'PROMO_ONLY') {
+            animStartTimeRef.current = Date.now();
+            await renderDuration(totalDuration);
+        } else if (combinedMode === 'EDITORIAL') {
             const isMusicTheme = (theme === 'MUSIQUE');
             const shouldSkipSlide2 = skipEditorialSlide2;
+            const hasAfficheSlide = Boolean(afficheImage && !isMusicTheme);
             const contentSlideNumbers: number[] = isMusicTheme
                 ? [1, ...musicTracks.map((_, i) => i + 2)]
                 : (shouldSkipSlide2
@@ -6150,6 +6251,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // Rendu actif frame-par-frame avec continuité d'animation (zéro reset de texte)
                 await renderDuration(slideDuration, slideStartOffsetSec);
+            }
+
+            // 1b. Transition vers la Slide Affiche si présente
+            if (hasAfficheSlide) {
+                const affStartOffsetSec = await renderTransition(transitionDuration, undefined, () => {
+                    editorialAfficheOverrideRef.current = true;
+                    animStartTimeRef.current = Date.now();
+                });
+                transitionProgressRef.current = 0;
+                await renderDuration(slideDuration, affStartOffsetSec);
+                editorialAfficheOverrideRef.current = false;
             }
 
             // 2. Transition vers le visuel PROMO outro à la fin du Reel (composite fluide)
@@ -6260,18 +6372,39 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         // Nettoyage des états promo et overrides UNIQUEMENT après l'arrêt total de l'enregistrement
         promoOutroOverrideRef.current = false;
+        editorialAfficheOverrideRef.current = false;
         if (combinedMode === 'PLANNING') {
             agendaSlideOverrideRef.current = null;
             setAgendaSlide(prevAgendaSlide);
             setIsCarouselPromoActive(prevWasCarouselPromoActive);
+            setIsEditorialAfficheActive(prevWasEditorialAfficheActive);
         } else if (combinedMode === 'EDITORIAL') {
             editorialSlideOverrideRef.current = null;
             setEditorialSlide(prevEditorialSlide);
             setIsCarouselPromoActive(prevWasCarouselPromoActive);
+            setIsEditorialAfficheActive(prevWasEditorialAfficheActive);
+        } else if (combinedMode === 'PROMO_ONLY') {
+            setIsCarouselPromoActive(prevWasCarouselPromoActive);
+            setIsEditorialAfficheActive(prevWasEditorialAfficheActive);
         }
     };
 
+    const exportPromoSlideVideo = async (formatTab?: 'PUBLICATION' | 'REEL') => {
+        if (formatTab && formatTab !== activeTab) {
+            setActiveTab(formatTab);
+            setTimeout(() => {
+                startVideoRecording('PROMO_ONLY');
+            }, 150);
+            return;
+        }
+        startVideoRecording('PROMO_ONLY');
+    };
+
     const exportCurrentSlideVideo = async (formatTab?: 'PUBLICATION' | 'REEL') => {
+        if (isCarouselPromoActive) {
+            await exportPromoSlideVideo(formatTab);
+            return;
+        }
         if (formatTab && formatTab !== activeTab) {
             setActiveTab(formatTab);
             setTimeout(() => {
@@ -6699,12 +6832,44 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
+    const downloadAfficheSlide = async (format: TabType = (activeTab || 'PUBLICATION')) => {
+        if (!canvasRef.current) return;
+        setIsDownloading(true);
+        const prevAffiche = isEditorialAfficheActive;
+        try {
+            editorialAfficheOverrideRef.current = true;
+            setIsEditorialAfficheActive(true);
+            await new Promise(r => setTimeout(r, 60));
+            await generateImage(format, true);
+            const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide-affiche.png`;
+            const dataUrl = canvasRef.current.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } catch (e) {
+            console.error(e);
+            setErrorMessage("Erreur lors du téléchargement de la slide Affiche.");
+        } finally {
+            setTimeout(() => {
+                editorialAfficheOverrideRef.current = false;
+                setIsEditorialAfficheActive(prevAffiche);
+                setIsDownloading(false);
+                generateImage();
+            }, 400);
+        }
+    };
+
     const downloadEditorialCarousel = async (format: TabType = (activeTab || 'PUBLICATION')) => {
         if (!canvasRef.current) return;
         setIsDownloading(true);
         const prevSlide = editorialSlide;
+        const prevAffiche = isEditorialAfficheActive;
         const isMusicTheme = (theme === 'MUSIQUE');
         const numSlides = isMusicTheme ? (1 + musicTracks.length) : (2 + extraEditorialSlides.length);
+        const includeAffiche = Boolean(!isMusicTheme && (afficheImage || isEditorialAfficheActive));
         try {
             for (let s = 1; s <= numSlides; s++) {
                 if (s > 1) await new Promise(r => setTimeout(r, 350));
@@ -6720,12 +6885,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 a.click();
                 document.body.removeChild(a);
             }
+
+            if (includeAffiche) {
+                await new Promise(r => setTimeout(r, 350));
+                editorialAfficheOverrideRef.current = true;
+                setIsEditorialAfficheActive(true);
+                await new Promise(r => setTimeout(r, 60));
+                await generateImage(format, true);
+                const dataUrl = canvasRef.current.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = dataUrl;
+                a.download = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide-affiche.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                editorialAfficheOverrideRef.current = false;
+            }
         } catch (e) {
             console.error(e);
             setErrorMessage("Erreur lors de l'exportation du carrousel.");
         } finally {
+            editorialAfficheOverrideRef.current = false;
             setTimeout(() => {
                 setEditorialSlide(prevSlide);
+                setIsEditorialAfficheActive(prevAffiche);
                 setIsDownloading(false);
                 generateImage();
             }, 500);
@@ -6780,6 +6963,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const handleSetTheme = (newTheme: ThemeType) => {
         setIsCarouselPromoActive(false);
+        setIsEditorialAfficheActive(false);
         if (newTheme === 'MAP') {
             setActiveTab('REEL');
         }
@@ -8318,6 +8502,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ))}
                 </div>
             </div>
+
+            {/* Boutons d'export direct de la slide Promo Outro (PNG + MP4) */}
+            <div className="p-3 bg-neon-red/10 border border-neon-red/30 rounded-2xl space-y-2 shadow-lg">
+                <div className="flex items-center justify-between">
+                    <span className="text-[9.5px] font-black uppercase text-neon-red tracking-wider flex items-center gap-1.5">
+                        🎬 Exporter Slide Promo Seule
+                    </span>
+                    <span className="text-[8px] font-mono text-gray-400">
+                        {activeTab === 'REEL' ? 'Story (9:16)' : 'Post (1:1)'} • {editorialPromoDuration || 4}s
+                    </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                    <button
+                        type="button"
+                        onClick={() => downloadPromoFormat(activeTab === 'REEL' ? 'REEL' : 'PUBLICATION')}
+                        disabled={isDownloading}
+                        className="py-2.5 px-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-40"
+                    >
+                        <Download className="w-3.5 h-3.5 text-neon-red" /> Image PNG
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => exportPromoSlideVideo(activeTab === 'REEL' ? 'REEL' : 'PUBLICATION')}
+                        disabled={isDownloading || isVideoRecording}
+                        className="py-2.5 px-2 bg-gradient-to-r from-neon-red to-orange-600 hover:from-red-600 hover:to-orange-500 text-white rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 shadow-md shadow-red-500/20 active:scale-95 disabled:opacity-40"
+                    >
+                        <Video className="w-3.5 h-3.5" /> {isVideoRecording ? 'Capture...' : 'Vidéo MP4'}
+                    </button>
+                </div>
+            </div>
         </div>
     );
 
@@ -8935,6 +9149,271 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         );
     })();
 
+    const afficheEditor = (() => {
+        const isMusicTheme = (theme === 'MUSIQUE');
+        const accentTextClass = isMusicTheme ? 'text-[#00ff66]' : 'text-neon-red';
+        const accentGlowBorder = isMusicTheme ? 'border-[#00ff66]/40 text-[#00ff66] bg-[#00ff66]/20' : 'border-neon-red/40 text-neon-red bg-neon-red/20';
+        const accentSlider = isMusicTheme ? 'accent-[#00ff66]' : 'accent-neon-red';
+
+        return (
+            <div className="space-y-4">
+                {/* 1. AFFICHE / COVER DE LA TRACK (CARTE FLOTTANTE) */}
+                <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
+                    <div className="flex items-center justify-between">
+                        <label className={`text-[10px] font-black ${accentTextClass} uppercase tracking-widest flex items-center gap-1.5`}>
+                            {isMusicTheme ? '💿 Cover du Track (1:1 Carré)' : (theme === 'NEWS' ? '🖼️ Affiche / Visuel (NEWS)' : '🖼️ Affiche de l\'Événement')}
+                        </label>
+                        {afficheImage && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setAfficheImage('');
+                                    afficheImageRef.current = null;
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                className="text-[9px] font-bold text-red-400 hover:text-red-300 transition-colors uppercase"
+                            >
+                                Retirer
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Hidden file input */}
+                    <input
+                        type="file"
+                        ref={afficheFileInputRef}
+                        onChange={handleAfficheImageChange}
+                        accept="image/*"
+                        className="hidden"
+                    />
+
+                    {afficheImage ? (
+                        <div className={`relative group rounded-xl overflow-hidden border border-white/20 bg-black/40 ${isMusicTheme ? 'aspect-square max-h-48' : 'aspect-[4/5] max-h-48'} mx-auto flex items-center justify-center`}>
+                            <img src={afficheImage} alt={isMusicTheme ? "Cover Track" : "Affiche Event"} className="w-full h-full object-contain" />
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => afficheFileInputRef.current?.click()}
+                                    className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-white text-[10px] font-black uppercase backdrop-blur-md"
+                                >
+                                    Changer
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => afficheFileInputRef.current?.click()}
+                            className={`w-full py-6 border-2 border-dashed border-white/15 ${isMusicTheme ? 'hover:border-[#00ff66]/50 hover:bg-[#00ff66]/5' : 'hover:border-neon-red/50 hover:bg-neon-red/5'} rounded-2xl flex flex-col items-center justify-center gap-2 bg-black/20 transition-all group`}
+                        >
+                            <Upload className={`w-6 h-6 text-gray-500 ${isMusicTheme ? 'group-hover:text-[#00ff66]' : 'group-hover:text-neon-red'} transition-colors`} />
+                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider group-hover:text-white transition-colors">
+                                {isMusicTheme ? 'Importer la cover (Artwork carré 1:1)' : 'Importer l\'affiche (Photo / Poster)'}
+                            </span>
+                            <span className="text-[8px] text-gray-500">PNG, JPG, WEBP (Format Affiche ou Carré 1:1)</span>
+                        </button>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                        <button
+                            type="button"
+                            onClick={() => afficheFileInputRef.current?.click()}
+                            className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                        >
+                            <Upload className={`w-3.5 h-3.5 ${accentTextClass}`} /> Fichier Local
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setR2TargetType('affiche');
+                                setIsR2ModalOpen(true);
+                            }}
+                            className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                        >
+                            <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" /> Cloud R2
+                        </button>
+                    </div>
+
+                    {/* Direct Image URL input */}
+                    <div className="pt-1">
+                        <input
+                            type="url"
+                            placeholder={isMusicTheme ? "OU COLLER LE LIEN DIRECT DE LA COVER..." : "OU COLLER LE LIEN D'UNE AFFICHE / VISUEL..."}
+                            value={afficheImage.startsWith('blob:') ? '' : afficheImage}
+                            onChange={e => {
+                                setAfficheImage(e.target.value);
+                            }}
+                            className={`w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-medium placeholder-gray-500 outline-none ${isMusicTheme ? 'focus:border-[#00ff66]/50' : 'focus:border-neon-red/50'} transition-all`}
+                        />
+                    </div>
+
+                    {/* Mode Cover vs Contain */}
+                    <div className="grid grid-cols-2 gap-1.5 pt-1">
+                        <button
+                            type="button"
+                            onClick={() => { setAfficheMode('cover'); setTimeout(() => generateImage(), 50); }}
+                            className={`py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${afficheMode === 'cover' ? 'bg-white/15 border-white text-white' : 'bg-black/20 border-white/5 text-gray-500 hover:text-white'}`}
+                        >
+                            Remplir (Cover)
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => { setAfficheMode('contain'); setTimeout(() => generateImage(), 50); }}
+                            className={`py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${afficheMode === 'contain' ? 'bg-white/15 border-white text-white' : 'bg-black/20 border-white/5 text-gray-500 hover:text-white'}`}
+                        >
+                            Entière (Contain)
+                        </button>
+                    </div>
+
+                    {/* Contrôles de taille et position */}
+                    <div className="space-y-2.5 pt-2 border-t border-white/5">
+                        <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
+                                <span>{isMusicTheme ? 'Taille de la Cover' : 'Taille de l\'affiche'}</span>
+                                <span className={`${accentTextClass} font-mono`}>{afficheScale}%</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="60"
+                                max="120"
+                                value={afficheScale}
+                                onChange={(e) => {
+                                    setAfficheScale(Number(e.target.value));
+                                    setTimeout(() => generateImage(), 30);
+                                }}
+                                className={`w-full ${accentSlider} bg-white/10 rounded-lg h-1.5 cursor-pointer`}
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
+                                <span>Position Verticale</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-gray-300 font-mono text-[8px]">{afficheOffsetY > 0 ? `+${afficheOffsetY}` : afficheOffsetY}px</span>
+                                    {(afficheOffsetY !== 0 || afficheScale !== 100) && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setAfficheScale(100);
+                                                setAfficheOffsetY(0);
+                                                setTimeout(() => generateImage(), 30);
+                                            }}
+                                            className={`text-[8px] ${accentTextClass} hover:underline cursor-pointer uppercase font-bold`}
+                                        >
+                                            Reset
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                            <input
+                                type="range"
+                                min="-150"
+                                max="150"
+                                value={afficheOffsetY}
+                                onChange={(e) => {
+                                    setAfficheOffsetY(Number(e.target.value));
+                                    setTimeout(() => generateImage(), 30);
+                                }}
+                                className={`w-full ${accentSlider} bg-white/10 rounded-lg h-1.5 cursor-pointer`}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                        <span className="text-[9px] font-black text-gray-400 uppercase">Lueur 3D & Ombre Portée</span>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setAfficheGlow(!afficheGlow);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className={`px-3 py-1 rounded-full text-[8px] font-black uppercase transition-all ${afficheGlow ? accentGlowBorder : 'bg-white/5 text-gray-500 border border-white/10'}`}
+                        >
+                            {afficheGlow ? 'ACTIVE' : 'DÉSACTIVÉE'}
+                        </button>
+                    </div>
+
+                    {/* Téléchargement direct de l'affiche seule */}
+                    <div className="pt-2 border-t border-white/5">
+                        <button
+                            type="button"
+                            onClick={() => downloadAfficheSlide(activeTab)}
+                            disabled={isDownloading}
+                            className="w-full py-2.5 bg-gradient-to-r from-[#ff007f] to-rose-600 hover:from-[#ff1a8c] hover:to-rose-500 text-white font-black text-[9.5px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-40"
+                        >
+                            <Download className="w-3.5 h-3.5" /> Télécharger Slide Affiche ({activeTab === 'REEL' ? 'Story' : 'Post'})
+                        </button>
+                    </div>
+                </div>
+
+                {/* 2. IMAGE DE FOND (SCÈNE / FESTIVAL / WAREHOUSE) */}
+                <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
+                    <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                            🎆 Image de Fond (Ambiance Floutée)
+                        </label>
+                        <span className="text-[8px] font-bold text-neon-cyan uppercase bg-neon-cyan/10 px-2 py-0.5 rounded-full border border-neon-cyan/20">
+                            Flou auto cohérent
+                        </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                        >
+                            <Upload className={`w-3.5 h-3.5 ${accentTextClass}`} /> Importer Fond
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setR2TargetType('background');
+                                setIsR2ModalOpen(true);
+                            }}
+                            className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                        >
+                            <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" /> Fond Cloud R2
+                        </button>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setIsDownloaderOpen(true)}
+                        className="w-full py-2 bg-white/5 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[9px] font-black uppercase hover:border-white/30 hover:text-white transition-all"
+                    >
+                        <LinkIcon className="w-3.5 h-3.5 text-neon-cyan" /> Télécharger via Lien (URL)
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => downloadBackgroundVisual(activeTab)}
+                        disabled={isDownloading}
+                        className="w-full py-2 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white hover:text-neon-cyan flex items-center justify-center gap-1.5 transition-all"
+                    >
+                        <Download className="w-3.5 h-3.5 text-neon-cyan" /> Exporter le Fond Visuel (PNG)
+                    </button>
+                    {theme !== 'MAP' && bgAnimationControl}
+                </div>
+
+                {/* 3. SWIPE DROPSIDERS >> */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
+                    <div>
+                        <span className="text-[9px] font-black text-white uppercase block">Swipe Studio</span>
+                        <span className="text-[8px] text-gray-500 font-medium">Afficher la mention swipe en bas à droite</span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setShowSwipe(!showSwipe);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase transition-all ${showSwipe ? accentGlowBorder : 'bg-white/5 text-gray-500 border border-white/10'}`}
+                    >
+                        {showSwipe ? 'ACTIF' : 'MASQUÉ'}
+                    </button>
+                </div>
+            </div>
+        );
+    })();
+
     const conseilsEditor = (
         <div className="space-y-4">
 
@@ -8957,9 +9436,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="flex flex-wrap gap-1.5">
                             <button
                                 type="button"
-                                onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(1); }}
+                                onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(1); }}
                                 className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
-                                    !isCarouselPromoActive && editorialSlide === 1
+                                    !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === 1
                                         ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-[1.02]'
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
@@ -8968,9 +9447,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </button>
                             <button
                                 type="button"
-                                onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(2); }}
+                                onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(2); }}
                                 className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
-                                    !isCarouselPromoActive && editorialSlide === 2
+                                    !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === 2
                                         ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-[1.02]'
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 } ${skipEditorialSlide2 ? 'opacity-60' : ''}`}
@@ -8983,9 +9462,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <button
                                         key={sNum}
                                         type="button"
-                                        onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(sNum); }}
+                                        onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(sNum); }}
                                         className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
-                                            !isCarouselPromoActive && editorialSlide === sNum
+                                            !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === sNum
                                                 ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-[1.02]'
                                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
@@ -8997,7 +9476,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <button
                                 type="button"
                                 onClick={() => {
+                                    setIsCarouselPromoActive(false);
+                                    setIsEditorialAfficheActive(true);
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                                    !isCarouselPromoActive && isEditorialAfficheActive
+                                        ? 'bg-[#ff007f] text-white shadow-[0_0_15px_rgba(255,0,127,0.5)] scale-[1.02]'
+                                        : 'bg-[#ff007f]/10 border border-[#ff007f]/30 text-[#ff007f] hover:bg-[#ff007f]/20'
+                                }`}
+                                title="Prévisualiser et modifier la slide Affiche du carrousel"
+                            >
+                                <span className="text-xs">🖼️</span> Slide AFFICHE
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
                                     setIsCarouselPromoActive(true);
+                                    setIsEditorialAfficheActive(false);
                                     setTimeout(() => generateImage(), 50);
                                 }}
                                 className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
@@ -9018,7 +9514,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     {/* Quick Carousel Download Bar */}
                     <div className="p-2.5 bg-white/5 border border-white/10 rounded-xl space-y-2">
                         <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
-                            <span>Export Carrousel Rapide ({2 + extraEditorialSlides.length} Slides)</span>
+                            <span>Export Carrousel Rapide ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)} Slides)</span>
                             <span className="text-white font-mono">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
                         </div>
                         <div className="flex flex-wrap gap-1.5">
@@ -9033,6 +9529,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <Download className="w-3.5 h-3.5 text-neon-cyan" /> S{i + 1}
                                 </button>
                             ))}
+                            {Boolean(afficheImage || isEditorialAfficheActive) && (
+                                <button
+                                    type="button"
+                                    onClick={() => downloadAfficheSlide(activeTab)}
+                                    disabled={isDownloading}
+                                    className="flex-1 min-w-[70px] py-1.5 bg-[#ff007f]/20 hover:bg-[#ff007f]/30 border border-[#ff007f]/40 text-[#ff007f] font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1 shadow-sm"
+                                    title="Télécharger la Slide Affiche isolée"
+                                >
+                                    <Download className="w-3.5 h-3.5 text-[#ff007f]" /> Affiche
+                                </button>
+                            )}
                         </div>
                         <button
                             type="button"
@@ -9040,7 +9547,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             disabled={isDownloading}
                             className="w-full py-2.5 bg-gradient-to-r from-neon-cyan via-blue-500 to-indigo-600 hover:opacity-90 text-black font-black text-[10px] uppercase rounded-lg shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95"
                         >
-                            <Download className="w-4 h-4 text-black" /> Télécharger Carrousel Images ({2 + extraEditorialSlides.length} Slides)
+                            <Download className="w-4 h-4 text-black" /> Télécharger Carrousel Images ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)} Slides)
                         </button>
                     </div>
 
@@ -9095,7 +9602,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </>
             )}
 
-            <div className="space-y-2">
+            {isEditorialAfficheActive ? (
+                afficheEditor
+            ) : (
+                <>
+                    <div className="space-y-2">
                 <div className="flex items-center justify-between pl-1">
                     <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Titre Principal</label>
                     <span className="text-[8px] font-bold text-gray-500">Astuce: entoure un mot avec *étoiles*</span>
@@ -9344,6 +9855,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 );
             })()}
+                </>
+            )}
         </div>
     );
 
@@ -10079,9 +10592,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             </div>
 
-            {/* Section 2 : Slide Promo Outro (PNG) */}
+            {/* Section 2 : Slide Promo Outro (Image & Vidéo MP4) */}
             <div className="space-y-1.5">
-                <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">🔥 Slide Promo Outro (PNG)</span>
+                <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">🔥 Slide Promo Outro (PNG & MP4)</span>
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         type="button"
@@ -10089,7 +10602,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         disabled={isDownloading}
                         className="py-2.5 px-3 bg-neon-red/10 hover:bg-neon-red/20 border border-neon-red/30 hover:border-neon-red text-neon-red rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
                     >
-                        <Download className="w-3.5 h-3.5" /> PROMO POST
+                        <Download className="w-3.5 h-3.5" /> PROMO POST (PNG)
                     </button>
                     <button
                         type="button"
@@ -10097,10 +10610,47 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         disabled={isDownloading}
                         className="py-2.5 px-3 bg-neon-red/10 hover:bg-neon-red/20 border border-neon-red/30 hover:border-neon-red text-neon-red rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
                     >
-                        <Download className="w-3.5 h-3.5" /> PROMO STORY
+                        <Download className="w-3.5 h-3.5" /> PROMO STORY (PNG)
+                    </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2 pt-0.5">
+                    <button
+                        type="button"
+                        onClick={() => exportPromoSlideVideo('PUBLICATION')}
+                        disabled={isDownloading || isVideoRecording}
+                        className="py-2.5 px-3 bg-gradient-to-r from-neon-red/20 to-orange-500/20 hover:from-neon-red/30 hover:to-orange-500/30 border border-neon-red/50 hover:border-neon-red text-white rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
+                        title="Télécharger la Slide Promo Outro seule en vidéo MP4 (Post Carré 1:1)"
+                    >
+                        <Video className="w-3.5 h-3.5 text-neon-red" />
+                        {isVideoRecording ? 'CAPTURE...' : '🎬 PROMO MP4 POST'}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => exportPromoSlideVideo('REEL')}
+                        disabled={isDownloading || isVideoRecording}
+                        className="py-2.5 px-3 bg-gradient-to-r from-neon-red/20 to-pink-500/20 hover:from-neon-red/30 hover:to-pink-500/30 border border-neon-red/50 hover:border-neon-red text-white rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
+                        title="Télécharger la Slide Promo Outro seule en vidéo MP4 (Format Story / Reel 9:16)"
+                    >
+                        <Video className="w-3.5 h-3.5 text-neon-red" />
+                        {isVideoRecording ? 'CAPTURE...' : '🎬 PROMO MP4 STORY'}
                     </button>
                 </div>
             </div>
+
+            {/* Slide Affiche pour carrousels éditoriaux (NEWS, etc.) */}
+            {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && Boolean(afficheImage || isEditorialAfficheActive) && (
+                <div className="space-y-1.5 pt-1 border-t border-white/10">
+                    <span className="text-[8px] font-black text-[#ff007f] uppercase tracking-wider block">🖼️ Slide Affiche ({theme})</span>
+                    <button
+                        type="button"
+                        onClick={() => downloadAfficheSlide(activeTab)}
+                        disabled={isDownloading}
+                        className="w-full py-2.5 bg-gradient-to-r from-[#ff007f] to-rose-600 hover:from-[#ff1a8c] hover:to-rose-500 text-white font-black text-[10px] uppercase rounded-xl shadow-lg shadow-pink-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-95 disabled:opacity-40"
+                    >
+                        <Download className="w-4 h-4" /> Télécharger Slide Affiche ({activeTab === 'REEL' ? 'Story' : 'Post'})
+                    </button>
+                </div>
+            )}
 
             {/* Section Carrousel Événements (Slide 1 + 2) */}
             {(theme === 'EVENTS' || theme === 'AFFICHE') && (
@@ -10245,259 +10795,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             </div>
         </div>
     );
-
-        const afficheEditor = (() => {
-        const isMusicTheme = (theme === 'MUSIQUE');
-        const accentTextClass = isMusicTheme ? 'text-[#00ff66]' : 'text-neon-red';
-        const accentGlowBorder = isMusicTheme ? 'border-[#00ff66]/40 text-[#00ff66] bg-[#00ff66]/20' : 'border-neon-red/40 text-neon-red bg-neon-red/20';
-        const accentSlider = isMusicTheme ? 'accent-[#00ff66]' : 'accent-neon-red';
-
-        return (
-            <div className="space-y-4">
-                {/* 1. AFFICHE / COVER DE LA TRACK (CARTE FLOTTANTE) */}
-                <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
-                    <div className="flex items-center justify-between">
-                        <label className={`text-[10px] font-black ${accentTextClass} uppercase tracking-widest flex items-center gap-1.5`}>
-                            {isMusicTheme ? '💿 Cover du Track (1:1 Carré)' : '🖼️ Affiche de l\'Événement'}
-                        </label>
-                        {afficheImage && (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setAfficheImage('');
-                                    afficheImageRef.current = null;
-                                    setTimeout(() => generateImage(), 50);
-                                }}
-                                className="text-[9px] font-bold text-red-400 hover:text-red-300 transition-colors uppercase"
-                            >
-                                Retirer
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Hidden file input */}
-                    <input
-                        type="file"
-                        ref={afficheFileInputRef}
-                        onChange={handleAfficheImageChange}
-                        accept="image/*"
-                        className="hidden"
-                    />
-
-                    {afficheImage ? (
-                        <div className={`relative group rounded-xl overflow-hidden border border-white/20 bg-black/40 ${isMusicTheme ? 'aspect-square max-h-48' : 'aspect-[4/5] max-h-48'} mx-auto flex items-center justify-center`}>
-                            <img src={afficheImage} alt={isMusicTheme ? "Cover Track" : "Affiche Event"} className="w-full h-full object-contain" />
-                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => afficheFileInputRef.current?.click()}
-                                    className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-white text-[10px] font-black uppercase backdrop-blur-md"
-                                >
-                                    Changer
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <button
-                            type="button"
-                            onClick={() => afficheFileInputRef.current?.click()}
-                            className={`w-full py-6 border-2 border-dashed border-white/15 ${isMusicTheme ? 'hover:border-[#00ff66]/50 hover:bg-[#00ff66]/5' : 'hover:border-neon-red/50 hover:bg-neon-red/5'} rounded-2xl flex flex-col items-center justify-center gap-2 bg-black/20 transition-all group`}
-                        >
-                            <Upload className={`w-6 h-6 text-gray-500 ${isMusicTheme ? 'group-hover:text-[#00ff66]' : 'group-hover:text-neon-red'} transition-colors`} />
-                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider group-hover:text-white transition-colors">
-                                {isMusicTheme ? 'Importer la cover (Artwork carré 1:1)' : 'Importer l\'affiche (Photo / Poster)'}
-                            </span>
-                            <span className="text-[8px] text-gray-500">PNG, JPG, WEBP (Carré 1:1 recommandé)</span>
-                        </button>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-2 pt-1">
-                        <button
-                            type="button"
-                            onClick={() => afficheFileInputRef.current?.click()}
-                            className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
-                        >
-                            <Upload className={`w-3.5 h-3.5 ${accentTextClass}`} /> Fichier Local
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setR2TargetType('affiche');
-                                setIsR2ModalOpen(true);
-                            }}
-                            className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
-                        >
-                            <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" /> Cloud R2
-                        </button>
-                    </div>
-
-                    {/* Direct Image URL input */}
-                    <div className="pt-1">
-                        <input
-                            type="url"
-                            placeholder={isMusicTheme ? "OU COLLER LE LIEN DIRECT DE LA COVER..." : "OU COLLER LE LIEN D'UNE AFFICHE..."}
-                            value={afficheImage.startsWith('blob:') ? '' : afficheImage}
-                            onChange={e => {
-                                setAfficheImage(e.target.value);
-                            }}
-                            className={`w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-medium placeholder-gray-500 outline-none ${isMusicTheme ? 'focus:border-[#00ff66]/50' : 'focus:border-neon-red/50'} transition-all`}
-                        />
-                    </div>
-
-                    {/* Mode Cover vs Contain */}
-                    <div className="grid grid-cols-2 gap-1.5 pt-1">
-                        <button
-                            type="button"
-                            onClick={() => { setAfficheMode('cover'); setTimeout(() => generateImage(), 50); }}
-                            className={`py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${afficheMode === 'cover' ? 'bg-white/15 border-white text-white' : 'bg-black/20 border-white/5 text-gray-500 hover:text-white'}`}
-                        >
-                            Remplir (Cover)
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => { setAfficheMode('contain'); setTimeout(() => generateImage(), 50); }}
-                            className={`py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${afficheMode === 'contain' ? 'bg-white/15 border-white text-white' : 'bg-black/20 border-white/5 text-gray-500 hover:text-white'}`}
-                        >
-                            Entière (Contain)
-                        </button>
-                    </div>
-
-                    {/* Contrôles de taille et position */}
-                    <div className="space-y-2.5 pt-2 border-t border-white/5">
-                        <div className="space-y-1.5">
-                            <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
-                                <span>{isMusicTheme ? 'Taille de la Cover' : 'Taille de l\'affiche'}</span>
-                                <span className={`${accentTextClass} font-mono`}>{afficheScale}%</span>
-                            </div>
-                            <input
-                                type="range"
-                                min="60"
-                                max="120"
-                                value={afficheScale}
-                                onChange={(e) => {
-                                    setAfficheScale(Number(e.target.value));
-                                    setTimeout(() => generateImage(), 30);
-                                }}
-                                className={`w-full ${accentSlider} bg-white/10 rounded-lg h-1.5 cursor-pointer`}
-                            />
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
-                                <span>Position Verticale</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-gray-300 font-mono text-[8px]">{afficheOffsetY > 0 ? `+${afficheOffsetY}` : afficheOffsetY}px</span>
-                                    {(afficheOffsetY !== 0 || afficheScale !== 100) && (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setAfficheScale(100);
-                                                setAfficheOffsetY(0);
-                                                setTimeout(() => generateImage(), 30);
-                                            }}
-                                            className={`text-[8px] ${accentTextClass} hover:underline cursor-pointer uppercase font-bold`}
-                                        >
-                                            Reset
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                            <input
-                                type="range"
-                                min="-150"
-                                max="150"
-                                value={afficheOffsetY}
-                                onChange={(e) => {
-                                    setAfficheOffsetY(Number(e.target.value));
-                                    setTimeout(() => generateImage(), 30);
-                                }}
-                                className={`w-full ${accentSlider} bg-white/10 rounded-lg h-1.5 cursor-pointer`}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                        <span className="text-[9px] font-black text-gray-400 uppercase">Lueur 3D & Ombre Portée</span>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setAfficheGlow(!afficheGlow);
-                                setTimeout(() => generateImage(), 50);
-                            }}
-                            className={`px-3 py-1 rounded-full text-[8px] font-black uppercase transition-all ${afficheGlow ? accentGlowBorder : 'bg-white/5 text-gray-500 border border-white/10'}`}
-                        >
-                            {afficheGlow ? 'ACTIVE' : 'DÉSACTIVÉE'}
-                        </button>
-                    </div>
-                </div>
-
-                {/* 2. IMAGE DE FOND (SCÈNE / FESTIVAL / WAREHOUSE) */}
-                <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
-                    <div className="flex items-center justify-between">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                            🎆 Image de Fond (Ambiance Floutée)
-                        </label>
-                        <span className="text-[8px] font-bold text-neon-cyan uppercase bg-neon-cyan/10 px-2 py-0.5 rounded-full border border-neon-cyan/20">
-                            Flou auto cohérent
-                        </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                        <button
-                            type="button"
-                            onClick={() => fileInputRef.current?.click()}
-                            className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
-                        >
-                            <Upload className={`w-3.5 h-3.5 ${accentTextClass}`} /> Importer Fond
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setR2TargetType('background');
-                                setIsR2ModalOpen(true);
-                            }}
-                            className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
-                        >
-                            <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" /> Fond Cloud R2
-                        </button>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setIsDownloaderOpen(true)}
-                        className="w-full py-2 bg-white/5 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[9px] font-black uppercase hover:border-white/30 hover:text-white transition-all"
-                    >
-                        <LinkIcon className="w-3.5 h-3.5 text-neon-cyan" /> Télécharger via Lien (URL)
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => downloadBackgroundVisual(activeTab)}
-                        disabled={isDownloading}
-                        className="w-full py-2 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white hover:text-neon-cyan flex items-center justify-center gap-1.5 transition-all"
-                    >
-                        <Download className="w-3.5 h-3.5 text-neon-cyan" /> Exporter le Fond Visuel (PNG)
-                    </button>
-                    {theme !== 'MAP' && bgAnimationControl}
-                </div>
-
-                {/* 3. SWIPE DROPSIDERS >> */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
-                    <div>
-                        <span className="text-[9px] font-black text-white uppercase block">Swipe Studio</span>
-                        <span className="text-[8px] text-gray-500 font-medium">Afficher la mention swipe en bas à droite</span>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setShowSwipe(!showSwipe);
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase transition-all ${showSwipe ? accentGlowBorder : 'bg-white/5 text-gray-500 border border-white/10'}`}
-                    >
-                        {showSwipe ? 'ACTIF' : 'MASQUÉ'}
-                    </button>
-                </div>
-            </div>
-        );
-    })();
 
     const eventsEditor = (
         <div className="space-y-4">
@@ -12398,9 +12695,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
                                 <button
                                     type="button"
-                                    onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(1); }}
+                                    onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(1); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        !isCarouselPromoActive && editorialSlide === 1
+                                        !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === 1
                                             ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
@@ -12409,9 +12706,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(2); }}
+                                    onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(2); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        !isCarouselPromoActive && editorialSlide === 2
+                                        !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === 2
                                             ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
@@ -12424,9 +12721,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <button
                                             key={sNum}
                                             type="button"
-                                            onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(sNum); }}
+                                            onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(sNum); }}
                                             className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                                !isCarouselPromoActive && editorialSlide === sNum
+                                                !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === sNum
                                                     ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
                                                     : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                             }`}
@@ -12438,7 +12735,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <button
                                     type="button"
                                     onClick={() => {
+                                        setIsCarouselPromoActive(false);
+                                        setIsEditorialAfficheActive(true);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                        !isCarouselPromoActive && isEditorialAfficheActive
+                                            ? 'bg-[#ff007f] text-white shadow-[0_0_12px_rgba(255,0,127,0.5)]'
+                                            : 'bg-[#ff007f]/10 border border-[#ff007f]/30 text-[#ff007f] hover:bg-[#ff007f]/20'
+                                    }`}
+                                >
+                                    🖼️ Slide AFFICHE
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
                                         setIsCarouselPromoActive(true);
+                                        setIsEditorialAfficheActive(false);
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
@@ -12733,9 +13046,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEditorialSlide(1); }}
+                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(1); }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        !isCarouselPromoActive && editorialSlide === 1 ? 'bg-white text-black shadow-md' : 'text-gray-400'
+                                        !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === 1 ? 'bg-white text-black shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 1 (Titre)
@@ -12743,9 +13056,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <div className="flex items-center shrink-0 rounded-xl overflow-hidden border border-white/10 bg-white/5">
                                     <button
                                         type="button"
-                                        onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEditorialSlide(2); }}
+                                        onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(2); }}
                                         className={`px-2 py-1 text-[8px] font-black uppercase transition-all ${
-                                            !isCarouselPromoActive && editorialSlide === 2 ? 'bg-white text-black shadow-md' : 'text-gray-300 hover:text-white'
+                                            !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === 2 ? 'bg-white text-black shadow-md' : 'text-gray-300 hover:text-white'
                                         } ${skipEditorialSlide2 ? 'opacity-50 line-through' : ''}`}
                                     >
                                         Slide 2 {skipEditorialSlide2 ? '(Masquée)' : '(Détail)'}
@@ -12772,9 +13085,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <button
                                             key={sNum}
                                             type="button"
-                                            onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEditorialSlide(sNum); }}
+                                            onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(sNum); }}
                                             className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                                !isCarouselPromoActive && editorialSlide === sNum ? 'bg-white text-black shadow-md' : 'text-gray-400'
+                                                !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === sNum ? 'bg-white text-black shadow-md' : 'text-gray-400'
                                             }`}
                                         >
                                             Slide {sNum}
@@ -12785,7 +13098,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={(e) => {
                                         e.stopPropagation();
+                                        setIsCarouselPromoActive(false);
+                                        setIsEditorialAfficheActive(true);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
+                                        !isCarouselPromoActive && isEditorialAfficheActive ? 'bg-[#ff007f] text-white shadow-md' : 'text-[#ff007f]'
+                                    }`}
+                                >
+                                    🖼️ Affiche
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
                                         setIsCarouselPromoActive(true);
+                                        setIsEditorialAfficheActive(false);
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
