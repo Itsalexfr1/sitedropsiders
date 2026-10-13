@@ -591,5 +591,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1137,
+    "title": "Tekno Parade ",
+    "date": "2026-10-24",
+    "startDate": "2026-10-24",
+    "endDate": "2026-10-25",
+    "venue": "",
+    "location": "PARIS",
+    "country": "FRANCE",
+    "type": "Events",
+    "image": "/uploads/uploads/bb725f8ef5110fdc-tekno_parade.png",
+    "url": "https://dropsiders.fr/",
+    "genre": "Techno",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
