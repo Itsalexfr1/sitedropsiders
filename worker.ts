@@ -300,7 +300,7 @@ async function saveGitHubFile(filePath, content, message, sha, config, retryCoun
     githubCache.delete(cacheKey);
 
     const putUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}`;
-    const encodedContent = utf8Encode(JSON.stringify(content, null, 2));
+    const encodedContent = utf8Encode(filePath.includes('settings.json') ? JSON.stringify(content) : JSON.stringify(content, null, 2));
     const finalMessage = message;
     
     const response = await fetch(putUrl, {
@@ -4731,12 +4731,27 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/settings' && request.method === 'GET') {
             const SETTINGS_PATH = 'src/data/settings.json';
+
+            let kvOverrides: any = null;
+            if (env.CHAT_KV) {
+                try {
+                    const raw = await env.CHAT_KV.get('site_settings_dynamic');
+                    if (raw) kvOverrides = JSON.parse(raw);
+                } catch (e) {
+                    console.error('KV settings read error:', e);
+                }
+            }
+
             const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig);
-            if (!file) return new Response(JSON.stringify({ shop_enabled: false, takeover: { enabled: false } }), { status: 200, headers });
+            let content = file && file.content ? { ...file.content } : { shop_enabled: true, takeover: { enabled: false } };
+
+            if (kvOverrides) {
+                content = { ...content, ...kvOverrides };
+            }
             
             // Logique Auto-Live
-            if (file.content && file.content.takeover) {
-                const tk = file.content.takeover;
+            if (content && content.takeover) {
+                const tk = content.takeover;
                 // On n'active le live auto QUE si on n'est pas en "off" manuel
                 if (tk.startDate && tk.endDate && tk.status !== 'off') {
                     const now = new Date();
@@ -4753,7 +4768,10 @@ ${urls.map(u => `  <url>
                 }
             }
             
-            return new Response(JSON.stringify(file.content), { status: 200, headers });
+            const respHeaders = new Headers(headers);
+            respHeaders.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+            respHeaders.set('Pragma', 'no-cache');
+            return new Response(JSON.stringify(content), { status: 200, headers: respHeaders });
         }
         if (path === '/api/interview-questions' && request.method === 'GET') {
             const file = await fetchGitHubFile(INTERVIEW_QUESTIONS_PATH, gitConfig);
@@ -4811,17 +4829,40 @@ ${urls.map(u => `  <url>
         if (path === '/api/settings/update' && request.method === 'POST') {
             const SETTINGS_PATH = 'src/data/settings.json';
             const newSettings = await request.json();
-            const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig);
-            if (!file) return new Response(JSON.stringify({ error: 'Could not fetch current settings' }), { status: 500, headers });
-            
-            // Si le takeover est présent dans les nouvelles settings, s'assurer de ne pas écraser les champs critiques
-            const merged = { 
-                ...file.content, 
-                ...newSettings, 
-                master_session_id: file.content.master_session_id || 'initial-session-id' 
-            };
-            const saved = await saveGitHubFile(SETTINGS_PATH, merged, `Update site settings`, file.sha, gitConfig);
-            return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
+
+            // 1. Instant KV edge persistence (0ms propagation across all Cloudflare nodes)
+            if (env.CHAT_KV) {
+                try {
+                    const currentKvRaw = await env.CHAT_KV.get('site_settings_dynamic');
+                    const currentKv = currentKvRaw ? JSON.parse(currentKvRaw) : {};
+                    const updatedKv = { ...currentKv, ...newSettings };
+                    await env.CHAT_KV.put('site_settings_dynamic', JSON.stringify(updatedKv));
+                } catch (kvErr) {
+                    console.error('KV site_settings error:', kvErr);
+                }
+            }
+
+            // 2. Persist to GitHub repo in background / sync
+            let ghSavedOk = true;
+            try {
+                const file = await fetchGitHubFile(SETTINGS_PATH, { ...gitConfig, bypassCache: true });
+                if (file) {
+                    const merged = { 
+                        ...file.content, 
+                        ...newSettings, 
+                        master_session_id: file.content.master_session_id || 'initial-session-id' 
+                    };
+                    const saved = await saveGitHubFile(SETTINGS_PATH, merged, `Update site settings`, file.sha, gitConfig);
+                    ghSavedOk = saved.ok;
+                    if (!saved.ok) {
+                        console.warn('GitHub save settings warning:', saved.error);
+                    }
+                }
+            } catch (ghErr) {
+                console.error('GitHub save settings error:', ghErr);
+            }
+
+            return new Response(JSON.stringify({ success: true, savedToGitHub: ghSavedOk }), { status: 200, headers });
         }
 
         if (path === '/api/pro-order' && request.method === 'POST') {

@@ -1,4 +1,4 @@
-﻿import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Construction, Loader2, ExternalLink, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AVAILABLE_COLORS } from '../data/colors';
@@ -25,18 +25,24 @@ export function Shop() {
     const [activeCategory, setActiveCategory] = useState<'Tous' | 'Vetements' | 'Accessoires'>('Tous');
     const [selectedProductUrl, setSelectedProductUrl] = useState<string | null>(null);
 
+    // Admin detection to allow previewing while shop is offline
+    const [adminBypassOffline, setAdminBypassOffline] = useState(false);
+    const isAdminUser = Boolean(localStorage.getItem('admin_password') || localStorage.getItem('admin_user'));
+
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const [settingsRes, productsRes] = await Promise.all([
-                    fetch('/api/settings'),
-                    fetch('/api/shop')
+                    fetch(`/api/settings?t=${Date.now()}`, { cache: 'no-store' }),
+                    fetch(`/api/shop?t=${Date.now()}`, { cache: 'no-store' })
                 ]);
 
                 if (settingsRes.ok) {
                     const data = await settingsRes.json();
-                    setIsEnabled(data.shop_enabled);
-                    setIsPasswordProtected(data.shop_password_protected || false);
+                    if (data.shop_enabled !== undefined) {
+                        setIsEnabled(Boolean(data.shop_enabled));
+                    }
+                    setIsPasswordProtected(Boolean(data.shop_password_protected));
                     setPasswordImage(data.shop_password_image || '');
                     setShopAuthPassword(data.shop_password || '');
                 }
@@ -183,7 +189,7 @@ export function Shop() {
         );
     }
 
-    if (!isEnabled && !isAuthenticated) {
+    if (!isEnabled && (!isAdminUser || !adminBypassOffline)) {
         return (
             <>
                 <AdminEditBar 
@@ -201,23 +207,36 @@ export function Shop() {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="text-center"
+                        className="text-center max-w-md mx-auto"
                     >
-                        <div className="w-20 h-20 bg-neon-blue/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-neon-blue/20 shadow-[0_0_20px_rgba(0,112,255,0.2)]">
-                            <Construction className="w-10 h-10 text-neon-blue" />
+                        <div className="w-20 h-20 bg-neon-red/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-neon-red/20 shadow-[0_0_20px_rgba(255,0,51,0.2)]">
+                            <Construction className="w-10 h-10 text-neon-red" />
                         </div>
-                    <h1 className="text-5xl md:text-7xl font-display font-black text-white mb-6 uppercase italic tracking-tighter" dangerouslySetInnerHTML={{ __html: t('shop.coming_soon.title') }} />
-                    <p className="text-gray-400 max-w-md mx-auto mb-10 font-bold uppercase tracking-widest text-sm opacity-60">
-                        {t('shop.coming_soon.subtitle')}
-                    </p>
-                    <Link
-                        to="/"
-                        className="px-8 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold hover:bg-white/10 transition-all uppercase tracking-widest text-xs"
-                    >
-                        {t('common.back')}
-                    </Link>
-                </motion.div>
-            </div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon-red/10 border border-neon-red/20 text-neon-red text-[10px] font-black uppercase tracking-widest mb-4">
+                            Boutique Hors Ligne
+                        </div>
+                        <h1 className="text-4xl md:text-6xl font-display font-black text-white mb-6 uppercase italic tracking-tighter" dangerouslySetInnerHTML={{ __html: t('shop.coming_soon.title') }} />
+                        <p className="text-gray-400 max-w-md mx-auto mb-10 font-bold uppercase tracking-widest text-sm opacity-60">
+                            {t('shop.coming_soon.subtitle')}
+                        </p>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                            <Link
+                                to="/"
+                                className="px-8 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold hover:bg-white/10 transition-all uppercase tracking-widest text-xs"
+                            >
+                                {t('common.back')}
+                            </Link>
+                            {isAdminUser && (
+                                <button
+                                    onClick={() => setAdminBypassOffline(true)}
+                                    className="px-6 py-3 bg-neon-red/10 border border-neon-red/30 rounded-xl text-neon-red font-bold hover:bg-neon-red/20 transition-all uppercase tracking-widest text-xs"
+                                >
+                                    👁️ Aperçu Shop (Admin)
+                                </button>
+                            )}
+                        </div>
+                    </motion.div>
+                </div>
             </>
         );
     }
@@ -241,6 +260,18 @@ export function Shop() {
                     }
                 ]}
             />
+            {isAdminUser && !isEnabled && adminBypassOffline && (
+                <div className="bg-neon-red/20 border-b border-neon-red/40 px-4 py-2.5 text-center text-xs font-bold text-white uppercase tracking-wider flex items-center justify-center gap-3 sticky top-0 z-50 backdrop-blur-md">
+                    <span className="w-2 h-2 rounded-full bg-neon-red animate-ping" />
+                    <span>⚠️ Mode Aperçu Admin : La boutique est HORS LIGNE pour les visiteurs</span>
+                    <button
+                        onClick={() => setAdminBypassOffline(false)}
+                        className="ml-2 px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-[10px] text-white font-black tracking-widest uppercase transition-all"
+                    >
+                        Quitter l'aperçu
+                    </button>
+                </div>
+            )}
             <div className={`min-h-screen bg-dark-bg text-white ${isMini ? 'py-8 px-2' : 'py-32 px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24'} overflow-x-hidden relative`}>
             {/* Background Ambient Glows */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">

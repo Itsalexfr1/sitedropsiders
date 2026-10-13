@@ -39,13 +39,29 @@ export function Footer() {
     const [navLabels, setNavLabels] = useState((settings as any).nav_labels || {});
 
     useEffect(() => {
+        const handleSettingsUpdate = () => {
+            const localShop = localStorage.getItem('dropsiders_shop_enabled');
+            if (localShop !== null) {
+                setShopEnabled(localShop === 'true');
+            }
+            const localShopProtected = localStorage.getItem('dropsiders_shop_password_protected');
+            if (localShopProtected !== null) {
+                setShopPasswordProtected(localShopProtected === 'true');
+            }
+        };
+        window.addEventListener('dropsiders_settings_updated', handleSettingsUpdate);
+
         const fetchSettings = async () => {
             try {
-                const response = await fetch('/api/settings');
+                const response = await fetch(`/api/settings?t=${Date.now()}`, { cache: 'no-store' });
                 if (response.ok) {
                     const data = await response.json();
-                    setShopEnabled(data.shop_enabled);
-                    setShopPasswordProtected(data.shop_password_protected || false);
+                    if (data.shop_enabled !== undefined) {
+                        setShopEnabled(Boolean(data.shop_enabled));
+                    }
+                    if (data.shop_password_protected !== undefined) {
+                        setShopPasswordProtected(Boolean(data.shop_password_protected));
+                    }
                     if (data.socials) {
                         setSocials(data.socials);
                     }
@@ -58,6 +74,7 @@ export function Footer() {
             }
         };
         fetchSettings();
+        return () => window.removeEventListener('dropsiders_settings_updated', handleSettingsUpdate);
     }, []);
 
     const ZoomText = ({ text, className = "" }: { text: string, className?: string }) => {

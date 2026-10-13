@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle, Plus, X, Trash2, Image as ImageIcon, Check, Edit2, ChevronUp, ChevronDown, ExternalLink, Lock, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useBlocker } from 'react-router-dom';
-import { getAuthHeaders, isSuperAdmin, hasPermission as checkPerm } from '../utils/auth';
+import { getAuthHeaders, isSuperAdmin, hasPermission as checkPerm, apiFetch } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import initialSettings from '../data/settings.json';
@@ -94,14 +94,16 @@ export function AdminShop() {
         const fetchData = async () => {
             try {
                 const [settingsRes, productsRes] = await Promise.all([
-                    fetch('/api/settings'),
-                    fetch('/api/shop')
+                    fetch(`/api/settings?t=${Date.now()}`, { cache: 'no-store' }),
+                    fetch(`/api/shop?t=${Date.now()}`, { cache: 'no-store' })
                 ]);
 
                 if (settingsRes.ok) {
                     const data = await settingsRes.json();
-                    setShopEnabled(data.shop_enabled);
-                    setShopPasswordProtected(data.shop_password_protected || false);
+                    if (data.shop_enabled !== undefined) {
+                        setShopEnabled(Boolean(data.shop_enabled));
+                    }
+                    setShopPasswordProtected(Boolean(data.shop_password_protected));
                     setShopPasswordImage(data.shop_password_image || '');
                 }
 
@@ -120,7 +122,14 @@ export function AdminShop() {
         setLoading(true);
         setStatus('idle');
         try {
-            const response = await fetch('/api/settings/update', {
+            // Instantly sync local state & notify navbar/footer/shop
+            try {
+                localStorage.setItem('dropsiders_shop_enabled', String(shopEnabled));
+                localStorage.setItem('dropsiders_shop_password_protected', String(shopPasswordProtected));
+                window.dispatchEvent(new Event('dropsiders_settings_updated'));
+            } catch (e) {}
+
+            const response = await apiFetch('/api/settings/update', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({
