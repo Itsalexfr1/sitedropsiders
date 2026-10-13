@@ -1,6 +1,6 @@
 {
   "master_session_id": "initial-session-id",
-  "shop_enabled": true,
+  "shop_enabled": false,
   "radio_messages_enabled": false,
   "gta_contest_menu_visible": true,
   "gta_contest_insta_url": "https://www.instagram.com/p/DeKtf3CoUgs/",
