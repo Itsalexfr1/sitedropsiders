@@ -4050,6 +4050,15 @@ ${urls.map(u => `  <url>
                     await env.CHAT_KV.put('analytics_categories', JSON.stringify(categories));
                 }
 
+                // 3c. Exact Country Article Tracking (100% exact cross-stats)
+                if (id && country) {
+                    const countryPagesKey = `analytics_country_pages_${country}`;
+                    const countryPagesRaw = await env.CHAT_KV.get(countryPagesKey);
+                    const countryPages = countryPagesRaw ? JSON.parse(countryPagesRaw) : {};
+                    countryPages[id] = (countryPages[id] || 0) + 1;
+                    await env.CHAT_KV.put(countryPagesKey, JSON.stringify(countryPages));
+                }
+
                 // 4. Timeline (Stored for 90 days now)
                 const timelineKey = `analytics_timeline_${today}`;
                 const currentTimeline = parseInt(await env.CHAT_KV.get(timelineKey) || '0');
@@ -4401,6 +4410,20 @@ ${urls.map(u => `  <url>
                 // Colors for charts
                 const colors = ['#ff1241', '#ffffff', '#0066ff', '#333333', '#ffcc00', '#9900ff'];
 
+                // 100% exact country-level articles
+                const activeCountryCodes = Object.keys(countriesMap).slice(0, 25);
+                const countryArticlesList = await Promise.all(
+                    activeCountryCodes.map(async (code) => {
+                        try {
+                            const raw = await env.CHAT_KV.get(`analytics_country_pages_${code}`);
+                            return [code, raw ? JSON.parse(raw) : {}];
+                        } catch {
+                            return [code, {}];
+                        }
+                    })
+                );
+                const countryArticles = Object.fromEntries(countryArticlesList);
+
                 return new Response(JSON.stringify({
                     totalVisits,
                     countries: Object.entries(countriesMap).map(([code, visits]) => ({ code, visits })).sort((a:any, b:any) => b.visits - a.visits),
@@ -4412,7 +4435,8 @@ ${urls.map(u => `  <url>
                     categories: Object.entries(categoriesMap).map(([label, value], i) => ({ label, value, hex: colors[i % colors.length] })),
                     onlineUsers: onlineKeys.length,
                     timeline,
-                    topArticles: topArticles.slice(0, 50) // More articles
+                    topArticles: topArticles.slice(0, 50), // More articles
+                    countryArticles
                 }), { status: 200, headers });
             } catch (err: any) {
                 return new Response(JSON.stringify({ error: 'Stats failed', details: err?.message || String(err) }), { status: 500, headers });

@@ -532,7 +532,8 @@ export function AdminStats() {
             sources: serverStats.sources || [],
             os: serverStats.os || [],
             browsers: serverStats.browsers || [],
-            categories: serverStats.categories || []
+            categories: serverStats.categories || [],
+            countryArticles: serverStats.countryArticles || {}
         };
     }, [serverStats, newsData, recapsData, period]);
 
@@ -827,6 +828,7 @@ export function AdminStats() {
                         countries={stats.countries}
                         totalVisits={stats.totalVisits}
                         articles={stats.topArticles}
+                        countryArticles={stats.countryArticles}
                         onCountrySelect={(code) => setSelectedCountryFilter(code)}
                     />
                 </section>

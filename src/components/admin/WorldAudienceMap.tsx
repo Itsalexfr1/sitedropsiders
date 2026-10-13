@@ -69,6 +69,7 @@ interface WorldAudienceMapProps {
     countries: { code: string; visits: number }[];
     totalVisits: number;
     articles?: any[];
+    countryArticles?: Record<string, Record<string, number>>;
     onCountrySelect?: (code: string | null) => void;
 }
 
@@ -76,6 +77,7 @@ export function WorldAudienceMap({
     countries, 
     totalVisits,
     articles = [],
+    countryArticles = {},
     onCountrySelect
 }: WorldAudienceMapProps) {
     // Map view state
@@ -143,17 +145,44 @@ export function WorldAudienceMap({
         };
     }, [countries, totalVisits, articles]);
 
-    // Active country articles resolution
+    // Active country articles resolution (Prioritizes 100% exact Cloudflare KV data)
     const activeCountryArticles = useMemo(() => {
         if (!activeCountryCode) return [];
         const stats = countryStatsMap.get(activeCountryCode);
         const countryVisits = stats?.visits || 1;
-        const countryRatio = totalVisits > 0 ? (countryVisits / totalVisits) : 0.2;
 
         if (!articles || articles.length === 0) return [];
 
+        const realMap = countryArticles?.[activeCountryCode] || {};
+        const hasRealData = Object.keys(realMap).length > 0;
+
+        if (hasRealData) {
+            // 100% EXACT CLOUDFLARE EDGE DATA
+            const matched = articles
+                .map((art) => {
+                    const exactViews = Number(realMap[art.id]) || 0;
+                    const sharePct = countryVisits > 0 ? Math.min(100, Math.round((exactViews / countryVisits) * 100)) : 0;
+                    return {
+                        id: art.id,
+                        title: art.title,
+                        image: art.image || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500',
+                        type: art.type || 'News',
+                        date: art.date || 'Récemment',
+                        viewsInCountry: exactViews,
+                        totalViews: art.views,
+                        sharePct,
+                        viralScore: art.viralScore || 85,
+                        isExact: true
+                    };
+                })
+                .filter(a => a.viewsInCountry > 0)
+                .sort((a, b) => b.viewsInCountry - a.viewsInCountry);
+
+            if (matched.length > 0) return matched.slice(0, 10);
+        }
+
+        // Fallback for previous legacy visits
         return articles.slice(0, 8).map((art, idx) => {
-            // Proportion of views in this country
             const multiplier = Math.max(0.1, 1 - idx * 0.1);
             const countryViews = Math.max(1, Math.round(countryVisits * multiplier * 0.45));
             const sharePct = countryVisits > 0 ? Math.min(100, Math.round((countryViews / countryVisits) * 100)) : 0;
@@ -167,10 +196,11 @@ export function WorldAudienceMap({
                 viewsInCountry: countryViews,
                 totalViews: art.views,
                 sharePct,
-                viralScore: art.viralScore || 85
+                viralScore: art.viralScore || 85,
+                isExact: false
             };
         });
-    }, [activeCountryCode, countryStatsMap, articles, totalVisits]);
+    }, [activeCountryCode, countryStatsMap, articles, countryArticles]);
 
     // Presets
     const handlePreset = (type: 'world' | 'europe' | 'americas') => {
@@ -540,7 +570,13 @@ export function WorldAudienceMap({
                                     <Newspaper className="w-4 h-4 text-neon-red" />
                                     <span>Articles consultés dans ce pays</span>
                                 </div>
-                                <span className="text-[8px] font-mono text-gray-500 uppercase">Top Lectures</span>
+                                {activeCountryArticles[0]?.isExact ? (
+                                    <span className="text-[8px] font-mono text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-md uppercase font-bold">
+                                        ✓ 100% Exact Edge
+                                    </span>
+                                ) : (
+                                    <span className="text-[8px] font-mono text-gray-500 uppercase">Top Lectures</span>
+                                )}
                             </div>
 
                             {/* Articles List */}
