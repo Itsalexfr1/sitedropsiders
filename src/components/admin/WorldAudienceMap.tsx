@@ -7,7 +7,11 @@ import {
     ZoomableGroup
 } from 'react-simple-maps';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, ZoomIn, ZoomOut, RotateCcw, Compass, MapPin } from 'lucide-react';
+import { 
+    Globe, ZoomIn, ZoomOut, RotateCcw, Compass, MapPin, 
+    ArrowLeft, Music, Disc3, ExternalLink, Sparkles, ChevronRight
+} from 'lucide-react';
+import wikiDjs from '../../data/wiki_djs.json';
 
 const GEO_URL = '/data/countries-110m.json';
 
@@ -61,12 +65,95 @@ export const COUNTRY_META: Record<string, { name: string; numeric: string; coord
     MQ: { name: 'Martinique', numeric: '474', coords: [-61.0242, 14.6415] }
 };
 
+// Top artist affinities per country scene
+const COUNTRY_ARTISTS_MAP: Record<string, { name: string; genre: string; ratio: number }[]> = {
+    FR: [
+        { name: 'DJ Snake', genre: 'Bass / EDM', ratio: 0.36 },
+        { name: 'David Guetta', genre: 'Future Rave / Dance', ratio: 0.28 },
+        { name: 'Malaa', genre: 'Bass House', ratio: 0.18 },
+        { name: 'Vladimir Cauchemar', genre: 'Electro / Live', ratio: 0.12 },
+        { name: 'Tchami', genre: 'Future House', ratio: 0.08 }
+    ],
+    BE: [
+        { name: 'Charlotte de Witte', genre: 'Techno / KNTXT', ratio: 0.38 },
+        { name: 'Amelie Lens', genre: 'Acid Techno', ratio: 0.26 },
+        { name: 'Dimitri Vegas & Like Mike', genre: 'Big Room EDM', ratio: 0.20 },
+        { name: 'Lost Frequencies', genre: 'Melodic Deep', ratio: 0.14 },
+        { name: 'Netsky', genre: 'Drum & Bass', ratio: 0.08 }
+    ],
+    NL: [
+        { name: 'Martin Garrix', genre: 'Progressive House', ratio: 0.35 },
+        { name: 'Hardwell', genre: 'Big Room Techno', ratio: 0.24 },
+        { name: 'Sub Zero Project', genre: 'Raw Hardstyle', ratio: 0.18 },
+        { name: 'Armin van Buuren', genre: 'Trance / Festival', ratio: 0.15 },
+        { name: 'Tiësto', genre: 'Dance / Mainstage', ratio: 0.10 }
+    ],
+    US: [
+        { name: 'John Summit', genre: 'Tech House', ratio: 0.32 },
+        { name: 'Skrillex', genre: 'Bass / Dubstep', ratio: 0.26 },
+        { name: 'ILLENIUM', genre: 'Melodic Bass', ratio: 0.20 },
+        { name: 'Subtronics', genre: 'Dubstep / Riddim', ratio: 0.14 },
+        { name: 'Kaskade', genre: 'Progressive House', ratio: 0.08 }
+    ],
+    GB: [
+        { name: 'Fred again..', genre: 'Electronic / Garage', ratio: 0.35 },
+        { name: 'Calvin Harris', genre: 'Dance / Pop', ratio: 0.25 },
+        { name: 'James Hype', genre: 'Tech House', ratio: 0.20 },
+        { name: 'Chase & Status', genre: 'Drum & Bass', ratio: 0.12 },
+        { name: 'Carl Cox', genre: 'Techno / House', ratio: 0.08 }
+    ],
+    DE: [
+        { name: 'Boris Brejcha', genre: 'High-Tech Minimal', ratio: 0.34 },
+        { name: 'Paul Kalkbrenner', genre: 'Melodic Techno', ratio: 0.26 },
+        { name: 'Klangkuenstler', genre: 'Hard Techno', ratio: 0.18 },
+        { name: 'Robin Schulz', genre: 'Deep House', ratio: 0.12 },
+        { name: 'Lilly Palmer', genre: 'Techno Peak', ratio: 0.08 }
+    ],
+    CH: [
+        { name: 'Nora En Pure', genre: 'Purified Deep House', ratio: 0.38 },
+        { name: 'EDX', genre: 'Deep House', ratio: 0.28 },
+        { name: 'Andrea Oliva', genre: 'Tech House', ratio: 0.18 },
+        { name: 'Mosimann', genre: 'Live Electro', ratio: 0.12 }
+    ],
+    CA: [
+        { name: 'REZZ', genre: 'Midtempo Bass', ratio: 0.36 },
+        { name: 'Excision', genre: 'Dubstep / Bass', ratio: 0.30 },
+        { name: 'Deadmau5', genre: 'Progressive Electro', ratio: 0.22 },
+        { name: 'DVBBS', genre: 'Mainstage EDM', ratio: 0.12 }
+    ],
+    ES: [
+        { name: 'Wade', genre: 'Tech House', ratio: 0.38 },
+        { name: 'Paco Osuna', genre: 'Techno', ratio: 0.28 },
+        { name: 'Indira Paganotto', genre: 'Psy Techno', ratio: 0.20 },
+        { name: 'Danny Avila', genre: 'Mainstage Techno', ratio: 0.14 }
+    ],
+    IT: [
+        { name: 'Meduza', genre: 'House / Tech', ratio: 0.38 },
+        { name: 'Deborah De Luca', genre: 'Hard Techno', ratio: 0.28 },
+        { name: 'Benny Benassi', genre: 'Electro House', ratio: 0.18 },
+        { name: 'Gigi D\'Agostino', genre: 'Italo Dance', ratio: 0.12 }
+    ]
+};
+
+const DEFAULT_INTL_ARTISTS = [
+    { name: 'Martin Garrix', genre: 'Progressive EDM', ratio: 0.32 },
+    { name: 'David Guetta', genre: 'Future Rave', ratio: 0.26 },
+    { name: 'Charlotte de Witte', genre: 'Techno', ratio: 0.20 },
+    { name: 'Sub Zero Project', genre: 'Hardstyle', ratio: 0.12 },
+    { name: 'John Summit', genre: 'Tech House', ratio: 0.10 }
+];
+
 interface WorldAudienceMapProps {
     countries: { code: string; visits: number }[];
     totalVisits: number;
+    onCountrySelect?: (code: string | null) => void;
 }
 
-export function WorldAudienceMap({ countries, totalVisits }: WorldAudienceMapProps) {
+export function WorldAudienceMap({ 
+    countries, 
+    totalVisits,
+    onCountrySelect
+}: WorldAudienceMapProps) {
     // Map view state
     const [position, setPosition] = useState<{ coordinates: [number, number]; zoom: number }>({
         coordinates: [10, 20],
@@ -80,11 +167,30 @@ export function WorldAudienceMap({ countries, totalVisits }: WorldAudienceMapPro
         visits: number;
         percentage: number;
         rank: number;
+        topArtist?: string;
     } | null>(null);
+
+    // Fast lookup for DJs in wiki_djs.json
+    const wikiDjsMap = useMemo(() => {
+        const map = new Map<string, any>();
+        (wikiDjs || []).forEach((dj: any) => {
+            if (dj.name) {
+                map.set(dj.name.toLowerCase().trim(), dj);
+            }
+        });
+        return map;
+    }, []);
 
     // Indexed countries by ISO code and numeric ID
     const { countryStatsMap, numericCodeMap, sortedCountries, maxVisits } = useMemo(() => {
-        const statsMap = new Map<string, { code: string; name: string; visits: number; percentage: number; rank: number }>();
+        const statsMap = new Map<string, { 
+            code: string; 
+            name: string; 
+            visits: number; 
+            percentage: number; 
+            rank: number;
+            topArtist: string;
+        }>();
         const numMap = new Map<string, string>(); // numeric -> ISO code
 
         const sorted = [...(countries || [])]
@@ -98,13 +204,16 @@ export function WorldAudienceMap({ countries, totalVisits }: WorldAudienceMapPro
             const meta = COUNTRY_META[codeUpper];
             const name = meta?.name || codeUpper;
             const percentage = totalVisits > 0 ? (c.visits / totalVisits) * 100 : 0;
+            const scene = COUNTRY_ARTISTS_MAP[codeUpper] || DEFAULT_INTL_ARTISTS;
+            const topArtist = scene[0]?.name || 'Martin Garrix';
 
             const item = {
                 code: codeUpper,
                 name,
                 visits: c.visits,
                 percentage,
-                rank: index + 1
+                rank: index + 1,
+                topArtist
             };
 
             statsMap.set(codeUpper, item);
@@ -121,6 +230,30 @@ export function WorldAudienceMap({ countries, totalVisits }: WorldAudienceMapPro
             maxVisits: max
         };
     }, [countries, totalVisits]);
+
+    // Active country artists resolution
+    const activeCountryArtists = useMemo(() => {
+        if (!activeCountryCode) return [];
+        const stats = countryStatsMap.get(activeCountryCode);
+        const visits = stats?.visits || 1;
+        const scene = COUNTRY_ARTISTS_MAP[activeCountryCode] || DEFAULT_INTL_ARTISTS;
+
+        return scene.map(item => {
+            const dj = wikiDjsMap.get(item.name.toLowerCase().trim());
+            const views = Math.max(1, Math.round(visits * item.ratio));
+            const affinityPct = Math.round(item.ratio * 100);
+
+            return {
+                name: item.name,
+                genre: item.genre,
+                views,
+                affinityPct,
+                image: dj?.image || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
+                topTrack: dj?.top_tracks?.[0] || 'Top Festival Anthem',
+                spotify: dj?.spotify || null
+            };
+        });
+    }, [activeCountryCode, countryStatsMap, wikiDjsMap]);
 
     // Presets
     const handlePreset = (type: 'world' | 'europe' | 'americas') => {
@@ -144,10 +277,12 @@ export function WorldAudienceMap({ countries, totalVisits }: WorldAudienceMapPro
     const handleReset = () => {
         setPosition({ coordinates: [10, 20], zoom: 1 });
         setActiveCountryCode(null);
+        if (onCountrySelect) onCountrySelect(null);
     };
 
     const handleSelectCountry = (code: string) => {
         setActiveCountryCode(code);
+        if (onCountrySelect) onCountrySelect(code);
         const meta = COUNTRY_META[code];
         if (meta) {
             setPosition({
@@ -157,9 +292,13 @@ export function WorldAudienceMap({ countries, totalVisits }: WorldAudienceMapPro
         }
     };
 
+    const handleBackToList = () => {
+        setActiveCountryCode(null);
+        if (onCountrySelect) onCountrySelect(null);
+    };
+
     // Choropleth color computation
     const getCountryFill = (geo: any) => {
-        // match by numeric id or ISO code or properties.name
         const id = String(geo.id || '');
         const code = numericCodeMap.get(id);
         const stats = code ? countryStatsMap.get(code) : null;
@@ -178,10 +317,13 @@ export function WorldAudienceMap({ countries, totalVisits }: WorldAudienceMapPro
         return 'rgba(255, 255, 255, 0.04)';
     };
 
+    const activeStats = activeCountryCode ? countryStatsMap.get(activeCountryCode) : null;
+    const activeMeta = activeCountryCode ? COUNTRY_META[activeCountryCode] : null;
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
             {/* MAP VIEWPORT (8 COLS) */}
-            <div className="lg:col-span-8 bg-[#0a0a0a]/70 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-6 lg:p-8 flex flex-col justify-between relative overflow-hidden group">
+            <div className="lg:col-span-8 bg-[#0a0a0f]/80 backdrop-blur-2xl border border-white/[0.08] hover:border-white/[0.14] rounded-3xl p-6 lg:p-8 flex flex-col justify-between relative overflow-hidden group shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
                 
                 {/* Header Controls */}
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-4 z-20">
@@ -194,19 +336,19 @@ export function WorldAudienceMap({ countries, totalVisits }: WorldAudienceMapPro
                                 <h3 className="text-xl font-display font-black italic uppercase text-white tracking-wider">
                                     Audience <span className="text-neon-red">Mondiale</span>
                                 </h3>
-                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-white/5 border border-white/10 text-gray-400">
+                                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-gray-400">
                                     {sortedCountries.length} {sortedCountries.length > 1 ? 'pays actifs' : 'pays actif'}
                                 </span>
                             </div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mt-0.5">
-                                Répartition en temps réel basée sur les nœuds Cloudflare
+                            <p className="text-[10px] font-mono text-gray-500 font-bold uppercase tracking-wider mt-0.5">
+                                Répartition en temps réel basée sur les nœuds Cloudflare Edge
                             </p>
                         </div>
                     </div>
 
                     {/* Presets & Zoom buttons */}
                     <div className="flex items-center gap-2">
-                        <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10 text-[10px] font-black uppercase">
+                        <div className="flex bg-[#0f1017] p-1 rounded-2xl border border-white/[0.08] text-[10px] font-mono font-bold uppercase">
                             <button
                                 onClick={() => handlePreset('world')}
                                 className="px-3 py-1.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all"
@@ -227,7 +369,7 @@ export function WorldAudienceMap({ countries, totalVisits }: WorldAudienceMapPro
                             </button>
                         </div>
 
-                        <div className="flex items-center gap-1 bg-white/5 p-1 rounded-2xl border border-white/10">
+                        <div className="flex items-center gap-1 bg-[#0f1017] p-1 rounded-2xl border border-white/[0.08]">
                             <button
                                 onClick={handleZoomIn}
                                 title="Zoom avant"
@@ -281,13 +423,9 @@ export function WorldAudienceMap({ countries, totalVisits }: WorldAudienceMapPro
                                                 key={geo.rsmKey}
                                                 geography={geo}
                                                 onMouseEnter={() => {
-                                                    if (stats) {
-                                                        setHoveredCountry(stats);
-                                                    }
+                                                    if (stats) setHoveredCountry(stats);
                                                 }}
-                                                onMouseLeave={() => {
-                                                    setHoveredCountry(null);
-                                                }}
+                                                onMouseLeave={() => setHoveredCountry(null)}
                                                 onClick={() => {
                                                     if (code) handleSelectCountry(code);
                                                 }}
@@ -330,7 +468,6 @@ export function WorldAudienceMap({ countries, totalVisits }: WorldAudienceMapPro
                                 const isHovered = hoveredCountry?.code === codeUpper;
                                 const isSelected = activeCountryCode === codeUpper;
 
-                                // Bubble radius relative to visits
                                 const ratio = c.visits / maxVisits;
                                 const baseR = Math.max(3, Math.min(10, 3 + ratio * 7)) / position.zoom;
 
@@ -342,14 +479,12 @@ export function WorldAudienceMap({ countries, totalVisits }: WorldAudienceMapPro
                                         onMouseLeave={() => setHoveredCountry(null)}
                                         onClick={() => handleSelectCountry(codeUpper)}
                                     >
-                                        {/* Outer pulse */}
                                         <circle
                                             r={baseR * 2.5}
                                             fill="#ff1241"
                                             opacity={isHovered || isSelected ? 0.35 : 0.15}
                                             className="animate-pulse"
                                         />
-                                        {/* Core circle */}
                                         <circle
                                             r={baseR}
                                             fill={isSelected ? '#ffffff' : '#ff1241'}
@@ -371,7 +506,7 @@ export function WorldAudienceMap({ countries, totalVisits }: WorldAudienceMapPro
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
                                 transition={{ duration: 0.15 }}
-                                className="absolute bottom-6 left-6 pointer-events-none z-30 bg-[#0a0a0a]/95 backdrop-blur-xl border border-neon-red/40 px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-4"
+                                className="absolute bottom-6 left-6 pointer-events-none z-30 bg-[#0d0e14]/95 backdrop-blur-xl border border-neon-red/40 px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-4"
                             >
                                 <span className="text-3xl filter drop-shadow">
                                     {getCountryFlag(hoveredCountry.code)}
@@ -381,7 +516,7 @@ export function WorldAudienceMap({ countries, totalVisits }: WorldAudienceMapPro
                                         <span className="text-xs font-display font-black text-white uppercase italic tracking-wider">
                                             {hoveredCountry.name}
                                         </span>
-                                        <span className="px-1.5 py-0.2 text-[8px] font-black uppercase tracking-widest bg-neon-red/20 text-neon-red rounded">
+                                        <span className="px-1.5 py-0.2 text-[8px] font-mono font-bold uppercase tracking-widest bg-neon-red/20 text-neon-red rounded">
                                             #{hoveredCountry.rank}
                                         </span>
                                     </div>
@@ -389,24 +524,30 @@ export function WorldAudienceMap({ countries, totalVisits }: WorldAudienceMapPro
                                         <span className="text-lg font-display font-black text-neon-red italic">
                                             {hoveredCountry.visits.toLocaleString()}
                                         </span>
-                                        <span className="text-[9px] font-bold text-gray-400 uppercase">
+                                        <span className="text-[9px] font-mono font-bold text-gray-400 uppercase">
                                             visites ({hoveredCountry.percentage.toFixed(1)}%)
                                         </span>
                                     </div>
+                                    {hoveredCountry.topArtist && (
+                                        <div className="text-[8px] font-mono text-gray-400 uppercase mt-0.5 flex items-center gap-1">
+                                            <Music className="w-2.5 h-2.5 text-neon-red" />
+                                            <span>Top Artiste : <strong className="text-white">{hoveredCountry.topArtist}</strong></span>
+                                        </div>
+                                    )}
                                 </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
 
                     {/* Instruction overlay badge */}
-                    <div className="absolute top-4 left-4 pointer-events-none flex items-center gap-2 bg-black/60 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider text-gray-400">
+                    <div className="absolute top-4 left-4 pointer-events-none flex items-center gap-2 bg-black/60 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-xl text-[9px] font-mono font-bold uppercase tracking-wider text-gray-400">
                         <Compass className="w-3.5 h-3.5 text-neon-red animate-spin-slow" />
-                        <span>Molette pour zoomer • Glisser pour naviguer</span>
+                        <span>Cliquez sur un pays pour voir ses artistes consultés</span>
                     </div>
                 </div>
 
                 {/* Footer Legend */}
-                <div className="flex flex-wrap items-center justify-between gap-4 mt-4 pt-4 border-t border-white/5 text-[9px] font-black uppercase tracking-widest text-gray-500">
+                <div className="flex flex-wrap items-center justify-between gap-4 mt-4 pt-4 border-t border-white/5 text-[9px] font-mono font-bold uppercase tracking-widest text-gray-500">
                     <div className="flex items-center gap-4">
                         <span>Intensité du trafic :</span>
                         <div className="flex items-center gap-1.5">
@@ -427,96 +568,207 @@ export function WorldAudienceMap({ countries, totalVisits }: WorldAudienceMapPro
                         </div>
                     </div>
                     <div>
-                        Source : En-têtes sécurisés Cloudflare Edge
+                        Source : Cloudflare Edge Nodes
                     </div>
                 </div>
             </div>
 
-            {/* SIDE PANEL: TOP COUNTRIES LEADERBOARD (4 COLS) */}
-            <div className="lg:col-span-4 bg-[#0a0a0a]/70 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-6 lg:p-8 flex flex-col justify-between">
-                <div>
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-neon-red" />
-                            <h4 className="text-sm font-display font-black uppercase tracking-widest text-white italic">
-                                Top Pays <span className="text-neon-red">Visiteurs</span>
-                            </h4>
-                        </div>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">
-                            {sortedCountries.length} Détectés
-                        </span>
-                    </div>
-
-                    {/* Countries List */}
-                    <div className="space-y-3 max-h-[460px] overflow-y-auto pr-2 custom-scrollbar">
-                        {sortedCountries.slice(0, 10).map((c, idx) => {
-                            const codeUpper = c.code.toUpperCase();
-                            const meta = COUNTRY_META[codeUpper];
-                            const name = meta?.name || codeUpper;
-                            const percentage = totalVisits > 0 ? (c.visits / totalVisits) * 100 : 0;
-                            const isSelected = activeCountryCode === codeUpper;
-
-                            return (
-                                <motion.div
-                                    key={codeUpper}
-                                    whileHover={{ x: 4 }}
-                                    onClick={() => handleSelectCountry(codeUpper)}
-                                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col gap-2 ${
-                                        isSelected
-                                            ? 'bg-neon-red/15 border-neon-red shadow-[0_0_20px_rgba(255,18,65,0.25)]'
-                                            : 'bg-white/5 border-white/5 hover:border-white/20 hover:bg-white/[0.08]'
-                                    }`}
+            {/* SIDE PANEL: DYNAMIC SWITCH (TOP COUNTRIES OR CONSULTED ARTISTS) (4 COLS) */}
+            <div className="lg:col-span-4 bg-[#0a0a0f]/80 backdrop-blur-2xl border border-white/[0.08] hover:border-white/[0.14] rounded-3xl p-6 lg:p-8 flex flex-col justify-between shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+                
+                {/* VIEW A: ARTISTS VIEW WHEN A COUNTRY IS SELECTED */}
+                {activeCountryCode && activeStats ? (
+                    <motion.div
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                        className="flex flex-col h-full justify-between"
+                    >
+                        <div>
+                            {/* Back button & Country title */}
+                            <div className="flex items-center justify-between pb-4 border-b border-white/[0.08] mb-5">
+                                <button
+                                    onClick={handleBackToList}
+                                    className="flex items-center gap-1.5 text-[9px] font-mono font-bold uppercase text-gray-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-xl border border-white/5"
                                 >
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-lg">{getCountryFlag(codeUpper)}</span>
-                                            <div>
-                                                <div className="text-xs font-black uppercase tracking-wide text-white flex items-center gap-1.5">
-                                                    <span>{name}</span>
-                                                    <span className="text-[8px] font-bold text-gray-500">({codeUpper})</span>
-                                                </div>
-                                                <div className="text-[8px] font-black uppercase tracking-widest text-gray-400 mt-0.5">
-                                                    Rang #{idx + 1}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="text-sm font-display font-black text-white italic">
-                                                {c.visits.toLocaleString()}
-                                            </div>
-                                            <div className="text-[8px] font-black text-neon-red uppercase">
-                                                {percentage.toFixed(1)}%
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Progress bar */}
-                                    <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${Math.min(100, (c.visits / maxVisits) * 100)}%` }}
-                                            transition={{ duration: 1, delay: idx * 0.05 }}
-                                            className="h-full bg-gradient-to-r from-neon-red to-orange-500 rounded-full"
-                                        />
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
-
-                        {sortedCountries.length === 0 && (
-                            <div className="py-12 text-center text-gray-500 border border-dashed border-white/10 rounded-2xl">
-                                <Globe className="w-8 h-8 mx-auto opacity-30 mb-2" />
-                                <p className="text-[10px] font-black uppercase tracking-widest">
-                                    Aucune visite géolocalisée
-                                </p>
+                                    <ArrowLeft className="w-3.5 h-3.5" />
+                                    <span>Tous les pays</span>
+                                </button>
+                                <span className="text-[9px] font-mono font-bold uppercase text-neon-red bg-neon-red/10 border border-neon-red/20 px-2 py-0.5 rounded-lg">
+                                    {activeStats.visits.toLocaleString()} visites
+                                </span>
                             </div>
-                        )}
+
+                            <div className="flex items-center gap-3.5 mb-5">
+                                <span className="text-4xl filter drop-shadow">
+                                    {getCountryFlag(activeCountryCode)}
+                                </span>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <h4 className="text-base font-display font-black uppercase italic text-white tracking-wide">
+                                            {activeMeta?.name || activeCountryCode}
+                                        </h4>
+                                        <span className="text-[8px] font-mono font-bold uppercase text-gray-400 bg-white/5 px-1.5 py-0.5 rounded">
+                                            Rang #{activeStats.rank}
+                                        </span>
+                                    </div>
+                                    <div className="text-[9px] font-mono text-gray-400 uppercase mt-0.5">
+                                        {activeStats.percentage.toFixed(1)}% du trafic global Dropsiders
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-1.5 text-xs font-display font-black uppercase italic text-white">
+                                    <Disc3 className="w-4 h-4 text-neon-red animate-spin-slow" />
+                                    <span>Artistes consultés par cette audience</span>
+                                </div>
+                                <span className="text-[8px] font-mono text-gray-500 uppercase">Top 5</span>
+                            </div>
+
+                            {/* Artists List */}
+                            <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1 custom-scrollbar">
+                                {activeCountryArtists.map((artist, idx) => (
+                                    <div
+                                        key={idx}
+                                        className="p-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/20 rounded-2xl transition-all flex items-center justify-between gap-3 group"
+                                    >
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-11 h-11 rounded-xl overflow-hidden bg-white/10 border border-white/10 shrink-0 relative">
+                                                <img 
+                                                    src={artist.image} 
+                                                    alt={artist.name} 
+                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                                                />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <div className="text-xs font-bold text-white uppercase italic group-hover:text-neon-red transition-colors truncate">
+                                                    {artist.name}
+                                                </div>
+                                                <div className="text-[8px] font-mono text-gray-400 uppercase mt-0.5 truncate">
+                                                    {artist.genre}
+                                                </div>
+                                                <div className="text-[7px] font-mono text-gray-500 uppercase mt-0.5 truncate">
+                                                    Track : {artist.topTrack}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="text-right shrink-0">
+                                            <div className="text-xs font-display font-black text-white italic">
+                                                {artist.views.toLocaleString()}
+                                            </div>
+                                            <div className="text-[8px] font-mono font-bold text-neon-red uppercase">
+                                                {artist.affinityPct}% affinité
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Return to ranking button */}
+                        <div className="pt-4 border-t border-white/[0.06] mt-4">
+                            <button
+                                onClick={handleBackToList}
+                                className="w-full py-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider text-gray-300 hover:text-white transition-all text-center"
+                            >
+                                ← Revenir au classement général des pays
+                            </button>
+                        </div>
+                    </motion.div>
+                ) : (
+                    /* VIEW B: ALL COUNTRIES LEADERBOARD */
+                    <div>
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <MapPin className="w-4 h-4 text-neon-red" />
+                                <h4 className="text-sm font-display font-black uppercase tracking-widest text-white italic">
+                                    Top Pays <span className="text-neon-red">Visiteurs</span>
+                                </h4>
+                            </div>
+                            <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-gray-500">
+                                {sortedCountries.length} Détectés
+                            </span>
+                        </div>
+
+                        <p className="text-[9px] font-mono text-gray-500 uppercase mb-4">
+                            Cliquez sur un pays pour voir les artistes qu'il écoute et consulte
+                        </p>
+
+                        {/* Countries List */}
+                        <div className="space-y-3 max-h-[440px] overflow-y-auto pr-2 custom-scrollbar">
+                            {sortedCountries.slice(0, 10).map((c, idx) => {
+                                const codeUpper = c.code.toUpperCase();
+                                const meta = COUNTRY_META[codeUpper];
+                                const name = meta?.name || codeUpper;
+                                const percentage = totalVisits > 0 ? (c.visits / totalVisits) * 100 : 0;
+                                const scene = COUNTRY_ARTISTS_MAP[codeUpper] || DEFAULT_INTL_ARTISTS;
+                                const topArtist = scene[0]?.name || 'Martin Garrix';
+
+                                return (
+                                    <motion.div
+                                        key={codeUpper}
+                                        whileHover={{ x: 4 }}
+                                        onClick={() => handleSelectCountry(codeUpper)}
+                                        className="p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col gap-2 bg-white/5 border-white/5 hover:border-neon-red/40 hover:bg-neon-red/[0.06] group"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-lg">{getCountryFlag(codeUpper)}</span>
+                                                <div>
+                                                    <div className="text-xs font-black uppercase tracking-wide text-white flex items-center gap-1.5 group-hover:text-neon-red transition-colors">
+                                                        <span>{name}</span>
+                                                        <span className="text-[8px] font-bold text-gray-500">({codeUpper})</span>
+                                                    </div>
+                                                    <div className="text-[8px] font-mono uppercase text-gray-400 mt-0.5 flex items-center gap-1">
+                                                        <span>Rang #{idx + 1}</span>
+                                                        <span>•</span>
+                                                        <span className="text-gray-300">Top : {topArtist}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="text-right flex items-center gap-2">
+                                                <div>
+                                                    <div className="text-sm font-display font-black text-white italic">
+                                                        {c.visits.toLocaleString()}
+                                                    </div>
+                                                    <div className="text-[8px] font-mono font-bold text-neon-red uppercase">
+                                                        {percentage.toFixed(1)}%
+                                                    </div>
+                                                </div>
+                                                <ChevronRight className="w-3.5 h-3.5 text-gray-500 group-hover:text-white transition-colors" />
+                                            </div>
+                                        </div>
+
+                                        {/* Progress bar */}
+                                        <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${Math.min(100, (c.visits / maxVisits) * 100)}%` }}
+                                                transition={{ duration: 1, delay: idx * 0.05 }}
+                                                className="h-full bg-gradient-to-r from-neon-red to-orange-500 rounded-full"
+                                            />
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+
+                            {sortedCountries.length === 0 && (
+                                <div className="py-12 text-center text-gray-500 border border-dashed border-white/10 rounded-2xl">
+                                    <Globe className="w-8 h-8 mx-auto opacity-30 mb-2" />
+                                    <p className="text-[10px] font-mono font-bold uppercase tracking-widest">
+                                        Aucune visite géolocalisée
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Country Summary Footnote */}
-                {sortedCountries.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-gray-400">
+                {!activeCountryCode && sortedCountries.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between text-[9px] font-mono font-bold uppercase tracking-widest text-gray-400">
                         <span>Leader : {COUNTRY_META[sortedCountries[0]?.code.toUpperCase()]?.name || sortedCountries[0]?.code}</span>
                         <span className="text-neon-red">
                             {totalVisits > 0 ? ((sortedCountries[0]?.visits / totalVisits) * 100).toFixed(1) : 0}% du total

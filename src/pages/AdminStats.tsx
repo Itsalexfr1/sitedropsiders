@@ -826,6 +826,7 @@ export function AdminStats() {
                     <WorldAudienceMap
                         countries={stats.countries}
                         totalVisits={stats.totalVisits}
+                        onCountrySelect={(code) => setSelectedCountryFilter(code)}
                     />
                 </section>
 
