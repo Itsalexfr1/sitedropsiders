@@ -72,15 +72,27 @@
     "columns": 1
   },
   {
-    "title": "Messagerie & Newsletter",
-    "description": "Emails, Contact & Newsletter",
-    "icon": "Mail",
-    "category": "SHOP",
+    "title": "Agenda",
+    "description": "Programmation",
+    "icon": "Calendar",
+    "category": "NEWS",
     "link": "#",
-    "color": "border-neon-orange/20 hover:border-neon-orange",
-    "bg": "bg-neon-orange/5",
-    "permission": "messages_contact",
-    "baseColor": "#75ffd1",
+    "color": "border-neon-yellow/20 hover:border-neon-yellow",
+    "bg": "bg-neon-yellow/5",
+    "permission": "agenda_events",
+    "baseColor": "#a8a6f7",
+    "columns": 1
+  },
+  {
+    "title": "Statistiques",
+    "description": "Analyse Audience",
+    "icon": "BarChart3",
+    "category": "STUDIO",
+    "link": "#",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "stats_analytics",
+    "baseColor": "#37ff00",
     "columns": 1
   },
   {
@@ -96,15 +108,15 @@
     "columns": 1
   },
   {
-    "title": "Agenda",
-    "description": "Programmation",
-    "icon": "Calendar",
-    "category": "NEWS",
+    "title": "Messagerie & Newsletter",
+    "description": "Emails, Contact & Newsletter",
+    "icon": "Mail",
+    "category": "SHOP",
     "link": "#",
-    "color": "border-neon-yellow/20 hover:border-neon-yellow",
-    "bg": "bg-neon-yellow/5",
-    "permission": "agenda_events",
-    "baseColor": "#a8a6f7",
+    "color": "border-neon-orange/20 hover:border-neon-orange",
+    "bg": "bg-neon-orange/5",
+    "permission": "messages_contact",
+    "baseColor": "#75ffd1",
     "columns": 1
   },
   {
@@ -129,18 +141,6 @@
     "bg": "bg-neon-purple/5",
     "permission": "community_mod",
     "baseColor": "#ffdd00",
-    "columns": 1
-  },
-  {
-    "title": "Statistiques",
-    "description": "Analyse Audience",
-    "icon": "BarChart3",
-    "category": "STUDIO",
-    "link": "#",
-    "color": "border-neon-cyan/20 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/5",
-    "permission": "stats_analytics",
-    "baseColor": "#37ff00",
     "columns": 1
   },
   {
