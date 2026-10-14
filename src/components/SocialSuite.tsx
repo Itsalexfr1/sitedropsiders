@@ -10124,9 +10124,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-xs">🔥</span> Slide PROMO
                             </button>
                         </div>
-
-                        {/* Contrôle de la durée et du format Vidéo / Reel (Slide 1, Promo, Slide 2) */}
-                        {editorialDurationControls}
                     </div>
 
                     {/* CARTE GESTION DE LA SLIDE ACTIVE (Image & Mode) */}
@@ -11658,7 +11655,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <Video className="w-4 h-4 text-black" />
                         {isVideoRecording ? 'CAPTURE VIDÉO EN COURS...' : '🎬 EXPORTER VIDÉO COMPLÈTE (SLIDE 1 + 2 + PROMO) • MP4'}
                     </button>
-                ) : ['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) ? (
+                ) : ['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
                     <div className="space-y-2">
                         {/* Option Dédiée pour thème MUSIQUE : Exporter le morceau actif seul (30s fixe) */}
                         {theme === 'MUSIQUE' && (
