@@ -7777,6 +7777,45 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                    EDITEUR SLIDE 1 : COVER (ACCROCHE INSTAGRAM)
                    ══════════════════════════════════════════════════════════ */
                 <div className="space-y-3.5 animate-in fade-in duration-200">
+                    {/* Grand Titre d'Accroche */}
+                    <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider">
+                                🔥 Grand Titre d'Accroche (Hook)
+                            </label>
+                            <span className="text-[8px] font-bold text-gray-500 uppercase">Texte principal géant</span>
+                        </div>
+                        <textarea
+                            value={agendaCoverTitle}
+                            onChange={e => setAgendaCoverTitle(e.target.value)}
+                            placeholder="ex: ON VA OÙ CE MOIS-CI ?"
+                            rows={2}
+                            className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black uppercase text-xs focus:border-[#ff3700] focus:outline-none resize-none"
+                        />
+                        <div className="flex flex-wrap gap-1 pt-1">
+                            {[
+                                'ON VA OÙ CE MOIS-CI ?',
+                                'OÙ SORTIR CE MOIS-CI ?',
+                                'TON AGENDA DU MOIS',
+                                'LES INCONTOURNABLES',
+                                'LE GUIDE DES SOIRÉES'
+                            ].map(t => (
+                                <button
+                                    key={t}
+                                    type="button"
+                                    onClick={() => setAgendaCoverTitle(t)}
+                                    className={`px-2 py-0.5 rounded text-[7px] font-black uppercase transition-all border ${
+                                        agendaCoverTitle.toUpperCase() === t
+                                            ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-sm'
+                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                    }`}
+                                >
+                                    {t}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* Mois & Année (Synchronisé) */}
                     <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2.5">
                         <div className="flex items-center justify-between">
@@ -7868,44 +7907,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     </div>
 
-                    {/* Grand Titre d'Accroche */}
-                    <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
-                        <div className="flex items-center justify-between">
-                            <label className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider">
-                                🔥 Grand Titre d'Accroche (Hook)
-                            </label>
-                            <span className="text-[8px] font-bold text-gray-500 uppercase">Texte principal géant</span>
-                        </div>
-                        <textarea
-                            value={agendaCoverTitle}
-                            onChange={e => setAgendaCoverTitle(e.target.value)}
-                            placeholder="ex: ON VA OÙ CE MOIS-CI ?"
-                            rows={2}
-                            className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black uppercase text-xs focus:border-[#ff3700] focus:outline-none resize-none"
-                        />
-                        <div className="flex flex-wrap gap-1 pt-1">
-                            {[
-                                'ON VA OÙ CE MOIS-CI ?',
-                                'OÙ SORTIR CE MOIS-CI ?',
-                                'TON AGENDA DU MOIS',
-                                'LES INCONTOURNABLES',
-                                'LE GUIDE DES SOIRÉES'
-                            ].map(t => (
-                                <button
-                                    key={t}
-                                    type="button"
-                                    onClick={() => setAgendaCoverTitle(t)}
-                                    className={`px-2 py-0.5 rounded text-[7px] font-black uppercase transition-all border ${
-                                        agendaCoverTitle.toUpperCase() === t
-                                            ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-sm'
-                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
-                                    }`}
-                                >
-                                    {t}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
 
                     {/* Styles Musicaux / Genres */}
                     <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
@@ -9649,6 +9650,266 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const conseilsEditor = (
         <div className="space-y-4">
 
+            {/* CADRE TEXTE PRINCIPAL */}
+            <div className="space-y-2 p-3 bg-black/40 border border-white/10 rounded-2xl shadow-lg">
+                <div className="flex items-center justify-between pl-1">
+                    <label className="text-[9px] font-black text-neon-cyan uppercase tracking-widest flex items-center gap-1.5">
+                        <span>Titre Principal</span>
+                        <span className="text-[8px] font-bold text-gray-400">({theme === 'TOP 100 DROPSIDERS' ? 'TOP 100' : theme === 'JEU' ? 'DEVINE LE CLIP' : theme === 'JEU_FESTIVAL' ? 'DEVINE LE FESTIVAL' : theme === 'JEU_DJ' ? 'DEVINE LE DJ' : theme})</span>
+                    </label>
+                    <span className="text-[8px] font-bold text-gray-500">Astuce: entoure un mot avec *étoiles*</span>
+                </div>
+                <textarea 
+                    ref={conseilsTitleInputRef}
+                    rows={2}
+                    value={conseilsTitle === 'LE TITRE ICI' ? (customText || '') : conseilsTitle} 
+                    onChange={e => {
+                        setConseilsTitle(e.target.value);
+                        setCustomText(e.target.value);
+                    }} 
+                    placeholder="EX: 3 *FESTIVALS* INCONTOURNABLES" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-neon-cyan/50 outline-none transition-all shadow-md resize-none" 
+                />
+                {(() => {
+                    const currentTitle = conseilsTitle === 'LE TITRE ICI' ? (customText || '') : conseilsTitle;
+                    const rawWords = currentTitle ? currentTitle.split(/\s+/).filter(Boolean) : [];
+                    if (rawWords.length === 0) return null;
+                    return (
+                        <div className="space-y-1.5 pt-1">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                    <span 
+                                        className="w-2 h-2 rounded-full inline-block animate-pulse" 
+                                        style={{ backgroundColor: activeColor.color, boxShadow: `0 0 8px ${activeColor.color}` }}
+                                    />
+                                    Clique pour colorer un mot :
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const el = conseilsTitleInputRef.current;
+                                        if (!el) return;
+                                        const start = el.selectionStart;
+                                        const end = el.selectionEnd;
+                                        if (start === end) return;
+                                        const sel = currentTitle.substring(start, end);
+                                        const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
+                                        const updated = currentTitle.substring(0, start) + rep + currentTitle.substring(end);
+                                        setConseilsTitle(updated);
+                                        setCustomText(updated);
+                                    }}
+                                    className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
+                                    title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
+                                >
+                                    Colorer sélection
+                                </button>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
+                                {rawWords.map((word, idx) => {
+                                    const isHighlighted = word.startsWith('*') && word.endsWith('*') && word.length >= 2;
+                                    const cleanWord = isHighlighted ? word.slice(1, -1) : word;
+                                    return (
+                                        <button
+                                            key={idx}
+                                            type="button"
+                                            onClick={() => {
+                                                const parts = currentTitle.split(/(\s+)/);
+                                                let curIdx = 0;
+                                                const res = parts.map(p => {
+                                                    if (/^\s+$/.test(p) || !p) return p;
+                                                    if (curIdx === idx) {
+                                                        curIdx++;
+                                                        if (p.startsWith('*') && p.endsWith('*') && p.length >= 2) {
+                                                            return p.slice(1, -1);
+                                                        } else {
+                                                            const clean = p.replace(/^\*+|\*+$/g, '');
+                                                            return `*${clean}*`;
+                                                        }
+                                                    }
+                                                    curIdx++;
+                                                    return p;
+                                                });
+                                                const updated = res.join('');
+                                                setConseilsTitle(updated);
+                                                setCustomText(updated);
+                                            }}
+                                            className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${
+                                                isHighlighted 
+                                                    ? 'shadow-md border-transparent' 
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
+                                            }`}
+                                            style={isHighlighted ? {
+                                                backgroundColor: `${activeColor.color}30`,
+                                                borderColor: activeColor.color,
+                                                color: activeColor.color,
+                                                boxShadow: `0 0 10px ${activeColor.color}50`,
+                                            } : undefined}
+                                            title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer en ${theme}`}
+                                        >
+                                            {cleanWord}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                })()}
+            </div>
+
+            {/* Si Slide >= 2, Cadre texte spécifique à la Slide */}
+            {editorialSlide >= 2 && !isEditorialAfficheActive && (() => {
+                const currentSlideText = editorialSlide === 2 ? conseilsSubtext : (extraEditorialSlides[editorialSlide - 3] || '');
+                return (
+                    <div className="space-y-3 p-3 bg-black/40 border border-white/10 rounded-2xl shadow-lg">
+                        {/* Header Slide info & delete button */}
+                        <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase text-neon-cyan flex items-center gap-1.5">
+                                <span>📄 Contenu de la Slide {editorialSlide}</span>
+                                <span className="text-[8px] font-bold text-gray-400">({editorialSlide}/{2 + extraEditorialSlides.length})</span>
+                            </span>
+                            {editorialSlide >= 3 && (
+                                <button
+                                    type="button"
+                                    onClick={() => removeEditorialSlide(editorialSlide)}
+                                    className="px-2 py-1 text-[8.5px] font-bold text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-all flex items-center gap-1 active:scale-95"
+                                >
+                                    🗑️ Supprimer Slide {editorialSlide}
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Toggle Afficher / Masquer le grand titre sur Slide 2+ */}
+                        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between shadow-sm">
+                            <div className="space-y-0.5">
+                                <div className="text-[10px] font-black uppercase text-white flex items-center gap-1.5">
+                                    <span>Titre principal sur Slide {editorialSlide}</span>
+                                    <span className={`text-[8.5px] px-1.5 py-0.5 rounded font-bold ${showTitleOnSlide2 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30'}`}>
+                                        {showTitleOnSlide2 ? 'Affiché' : 'Masqué (Texte Plein Écran)'}
+                                    </span>
+                                </div>
+                                <p className="text-[8.5px] text-gray-400">
+                                    {showTitleOnSlide2 ? 'Le grand titre reste au-dessus.' : 'Masque le grand titre pour agrandir le texte de l\'article (38px) et libérer tout l\'espace.'}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowTitleOnSlide2(!showTitleOnSlide2)}
+                                className={`px-3 py-1.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center gap-1.5 border ${
+                                    showTitleOnSlide2
+                                        ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
+                                        : 'bg-white/10 border-white/20 text-white hover:bg-white/20 shadow-md'
+                                }`}
+                            >
+                                {showTitleOnSlide2 ? '👁️ Titre Visible' : '🚫 Titre Masqué'}
+                            </button>
+                        </div>
+
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between pl-1">
+                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+                                    <span>Texte de la slide</span>
+                                    <span className="text-[8px] font-bold text-neon-cyan px-1.5 py-0.5 rounded bg-neon-cyan/10 border border-neon-cyan/20">Slide {editorialSlide}</span>
+                                </label>
+                                <span className="text-[8px] font-bold text-gray-500">Astuce: *mot*</span>
+                            </div>
+                            <textarea 
+                                ref={conseilsSubtextInputRef}
+                                rows={3}
+                                value={currentSlideText} 
+                                onChange={e => updateEditorialSlideText(editorialSlide, e.target.value)} 
+                                placeholder={editorialSlide === 2 ? "EX: Halloween 2026\n*Electro* to Techno to Hard Techno" : `Texte pour la Slide ${editorialSlide}...`} 
+                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white italic focus:border-white/40 outline-none transition-all shadow-md resize-none" 
+                            />
+                            {(() => {
+                                const rawWords = currentSlideText ? currentSlideText.split(/\s+/).filter(Boolean) : [];
+                                if (rawWords.length === 0) return null;
+                                return (
+                                    <div className="space-y-1.5 pt-1">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                <span 
+                                                    className="w-2 h-2 rounded-full inline-block animate-pulse" 
+                                                    style={{ backgroundColor: activeColor.color, boxShadow: `0 0 8px ${activeColor.color}` }}
+                                                />
+                                                Clique pour colorer un mot :
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const el = conseilsSubtextInputRef.current;
+                                                    if (!el) return;
+                                                    const start = el.selectionStart;
+                                                    const end = el.selectionEnd;
+                                                    if (start === end) return;
+                                                    const sel = currentSlideText.substring(start, end);
+                                                    const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
+                                                    const updated = currentSlideText.substring(0, start) + rep + currentSlideText.substring(end);
+                                                    updateEditorialSlideText(editorialSlide, updated);
+                                                }}
+                                                className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
+                                                title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
+                                            >
+                                                Colorer sélection
+                                            </button>
+                                        </div>
+                                        <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
+                                            {rawWords.map((word, idx) => {
+                                                const isHighlighted = word.startsWith('*') && word.endsWith('*') && word.length >= 2;
+                                                const cleanWord = isHighlighted ? word.slice(1, -1) : word;
+                                                return (
+                                                    <button
+                                                        key={idx}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const parts = currentSlideText.split(/(\s+)/);
+                                                            let curIdx = 0;
+                                                            const res = parts.map(p => {
+                                                                if (/^\s+$/.test(p) || !p) return p;
+                                                                if (curIdx === idx) {
+                                                                    curIdx++;
+                                                                    if (p.startsWith('*') && p.endsWith('*') && p.length >= 2) {
+                                                                        return p.slice(1, -1);
+                                                                    } else {
+                                                                        const clean = p.replace(/^\*+|\*+$/g, '');
+                                                                        return `*${clean}*`;
+                                                                    }
+                                                                }
+                                                                curIdx++;
+                                                                return p;
+                                                            });
+                                                            updateEditorialSlideText(editorialSlide, res.join(''));
+                                                        }}
+                                                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${
+                                                            isHighlighted 
+                                                                ? 'shadow-md border-transparent' 
+                                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
+                                                        }`}
+                                                        style={isHighlighted ? {
+                                                            backgroundColor: `${activeColor.color}30`,
+                                                            borderColor: activeColor.color,
+                                                            color: activeColor.color,
+                                                            boxShadow: `0 0 10px ${activeColor.color}50`,
+                                                        } : undefined}
+                                                        title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer en ${theme}`}
+                                                    >
+                                                        {cleanWord}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    </div>
+                );
+            })()}
+
+            {/* Slide Affiche dédiée */}
+            {isEditorialAfficheActive && (
+                afficheEditor
+            )}
+
             {/* CARROUSEL SLIDE SWITCHER (POUR NEWS, RÉCAP, FOCUS, ETC.) */}
             {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) && (
                 <>
@@ -10430,262 +10691,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             )}
                         </div>
                     )}
-                </>
-            )}
-
-            {isEditorialAfficheActive ? (
-                afficheEditor
-            ) : (
-                <>
-                    <div className="space-y-2">
-                <div className="flex items-center justify-between pl-1">
-                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Titre Principal</label>
-                    <span className="text-[8px] font-bold text-gray-500">Astuce: entoure un mot avec *étoiles*</span>
-                </div>
-                <textarea 
-                    ref={conseilsTitleInputRef}
-                    rows={2}
-                    value={conseilsTitle === 'LE TITRE ICI' ? (customText || '') : conseilsTitle} 
-                    onChange={e => {
-                        setConseilsTitle(e.target.value);
-                        setCustomText(e.target.value);
-                    }} 
-                    placeholder="EX: 3 *FESTIVALS* INCONTOURNABLES" 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-white/40 outline-none transition-all shadow-md resize-none" 
-                />
-                {(() => {
-                    const currentTitle = conseilsTitle === 'LE TITRE ICI' ? (customText || '') : conseilsTitle;
-                    const rawWords = currentTitle ? currentTitle.split(/\s+/).filter(Boolean) : [];
-                    if (rawWords.length === 0) return null;
-                    return (
-                        <div className="space-y-1.5 pt-1">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                                    <span 
-                                        className="w-2 h-2 rounded-full inline-block animate-pulse" 
-                                        style={{ backgroundColor: activeColor.color, boxShadow: `0 0 8px ${activeColor.color}` }}
-                                    />
-                                    Clique pour colorer un mot :
-                                </span>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        const el = conseilsTitleInputRef.current;
-                                        if (!el) return;
-                                        const start = el.selectionStart;
-                                        const end = el.selectionEnd;
-                                        if (start === end) return;
-                                        const sel = currentTitle.substring(start, end);
-                                        const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
-                                        const updated = currentTitle.substring(0, start) + rep + currentTitle.substring(end);
-                                        setConseilsTitle(updated);
-                                        setCustomText(updated);
-                                    }}
-                                    className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
-                                    title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
-                                >
-                                    Colorer sélection
-                                </button>
-                            </div>
-                            <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
-                                {rawWords.map((word, idx) => {
-                                    const isHighlighted = word.startsWith('*') && word.endsWith('*') && word.length >= 2;
-                                    const cleanWord = isHighlighted ? word.slice(1, -1) : word;
-                                    return (
-                                        <button
-                                            key={idx}
-                                            type="button"
-                                            onClick={() => {
-                                                const parts = currentTitle.split(/(\s+)/);
-                                                let curIdx = 0;
-                                                const res = parts.map(p => {
-                                                    if (/^\s+$/.test(p) || !p) return p;
-                                                    if (curIdx === idx) {
-                                                        curIdx++;
-                                                        if (p.startsWith('*') && p.endsWith('*') && p.length >= 2) {
-                                                            return p.slice(1, -1);
-                                                        } else {
-                                                            const clean = p.replace(/^\*+|\*+$/g, '');
-                                                            return `*${clean}*`;
-                                                        }
-                                                    }
-                                                    curIdx++;
-                                                    return p;
-                                                });
-                                                const updated = res.join('');
-                                                setConseilsTitle(updated);
-                                                setCustomText(updated);
-                                            }}
-                                            className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${
-                                                isHighlighted 
-                                                    ? 'shadow-md border-transparent' 
-                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
-                                            }`}
-                                            style={isHighlighted ? {
-                                                backgroundColor: `${activeColor.color}30`,
-                                                borderColor: activeColor.color,
-                                                color: activeColor.color,
-                                                boxShadow: `0 0 10px ${activeColor.color}50`,
-                                            } : undefined}
-                                            title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer en ${theme}`}
-                                        >
-                                            {cleanWord}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    );
-                })()}
-            </div>
-
-            {editorialSlide >= 2 && (() => {
-                const currentSlideText = editorialSlide === 2 ? conseilsSubtext : (extraEditorialSlides[editorialSlide - 3] || '');
-                return (
-                    <div className="space-y-3">
-                        {/* Header Slide info & delete button */}
-                        <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black uppercase text-neon-cyan flex items-center gap-1.5">
-                                <span>📄 Contenu de la Slide {editorialSlide}</span>
-                                <span className="text-[8px] font-bold text-gray-400">({editorialSlide}/{2 + extraEditorialSlides.length})</span>
-                            </span>
-                            {editorialSlide >= 3 && (
-                                <button
-                                    type="button"
-                                    onClick={() => removeEditorialSlide(editorialSlide)}
-                                    className="px-2 py-1 text-[8.5px] font-bold text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-all flex items-center gap-1 active:scale-95"
-                                >
-                                    🗑️ Supprimer Slide {editorialSlide}
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Toggle Afficher / Masquer le grand titre sur Slide 2+ */}
-                        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between shadow-sm">
-                            <div className="space-y-0.5">
-                                <div className="text-[10px] font-black uppercase text-white flex items-center gap-1.5">
-                                    <span>Titre principal sur Slide {editorialSlide}</span>
-                                    <span className={`text-[8.5px] px-1.5 py-0.5 rounded font-bold ${showTitleOnSlide2 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30'}`}>
-                                        {showTitleOnSlide2 ? 'Affiché' : 'Masqué (Texte Plein Écran)'}
-                                    </span>
-                                </div>
-                                <p className="text-[8.5px] text-gray-400">
-                                    {showTitleOnSlide2 ? 'Le grand titre reste au-dessus.' : 'Masque le grand titre pour agrandir le texte de l\'article (38px) et libérer tout l\'espace.'}
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setShowTitleOnSlide2(!showTitleOnSlide2)}
-                                className={`px-3 py-1.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center gap-1.5 border ${
-                                    showTitleOnSlide2
-                                        ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
-                                        : 'bg-white/10 border-white/20 text-white hover:bg-white/20 shadow-md'
-                                }`}
-                            >
-                                {showTitleOnSlide2 ? '👁️ Titre Visible' : '🚫 Titre Masqué'}
-                            </button>
-                        </div>
-
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between pl-1">
-                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
-                                    <span>Texte de la slide</span>
-                                    <span className="text-[8px] font-bold text-neon-cyan px-1.5 py-0.5 rounded bg-neon-cyan/10 border border-neon-cyan/20">Slide {editorialSlide}</span>
-                                </label>
-                                <span className="text-[8px] font-bold text-gray-500">Astuce: *mot*</span>
-                            </div>
-                            <textarea 
-                                ref={conseilsSubtextInputRef}
-                                rows={3}
-                                value={currentSlideText} 
-                                onChange={e => updateEditorialSlideText(editorialSlide, e.target.value)} 
-                                placeholder={editorialSlide === 2 ? "EX: Halloween 2026\n*Electro* to Techno to Hard Techno" : `Texte pour la Slide ${editorialSlide}...`} 
-                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white italic focus:border-white/40 outline-none transition-all shadow-md resize-none" 
-                            />
-                            {(() => {
-                                const rawWords = currentSlideText ? currentSlideText.split(/\s+/).filter(Boolean) : [];
-                                if (rawWords.length === 0) return null;
-                                return (
-                                    <div className="space-y-1.5 pt-1">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                                                <span 
-                                                    className="w-2 h-2 rounded-full inline-block animate-pulse" 
-                                                    style={{ backgroundColor: activeColor.color, boxShadow: `0 0 8px ${activeColor.color}` }}
-                                                />
-                                                Clique pour colorer un mot :
-                                            </span>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const el = conseilsSubtextInputRef.current;
-                                                    if (!el) return;
-                                                    const start = el.selectionStart;
-                                                    const end = el.selectionEnd;
-                                                    if (start === end) return;
-                                                    const sel = currentSlideText.substring(start, end);
-                                                    const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
-                                                    const updated = currentSlideText.substring(0, start) + rep + currentSlideText.substring(end);
-                                                    updateEditorialSlideText(editorialSlide, updated);
-                                                }}
-                                                className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
-                                                title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
-                                            >
-                                                Colorer sélection
-                                            </button>
-                                        </div>
-                                        <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
-                                            {rawWords.map((word, idx) => {
-                                                const isHighlighted = word.startsWith('*') && word.endsWith('*') && word.length >= 2;
-                                                const cleanWord = isHighlighted ? word.slice(1, -1) : word;
-                                                return (
-                                                    <button
-                                                        key={idx}
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const parts = currentSlideText.split(/(\s+)/);
-                                                            let curIdx = 0;
-                                                            const res = parts.map(p => {
-                                                                if (/^\s+$/.test(p) || !p) return p;
-                                                                if (curIdx === idx) {
-                                                                    curIdx++;
-                                                                    if (p.startsWith('*') && p.endsWith('*') && p.length >= 2) {
-                                                                        return p.slice(1, -1);
-                                                                    } else {
-                                                                        const clean = p.replace(/^\*+|\*+$/g, '');
-                                                                        return `*${clean}*`;
-                                                                    }
-                                                                }
-                                                                curIdx++;
-                                                                return p;
-                                                            });
-                                                            updateEditorialSlideText(editorialSlide, res.join(''));
-                                                        }}
-                                                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${
-                                                            isHighlighted 
-                                                                ? 'shadow-md border-transparent' 
-                                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
-                                                        }`}
-                                                        style={isHighlighted ? {
-                                                            backgroundColor: `${activeColor.color}30`,
-                                                            borderColor: activeColor.color,
-                                                            color: activeColor.color,
-                                                            boxShadow: `0 0 10px ${activeColor.color}50`,
-                                                        } : undefined}
-                                                        title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer en ${theme}`}
-                                                    >
-                                                        {cleanWord}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                );
-                            })()}
-                        </div>
-                    </div>
-                );
-            })()}
                 </>
             )}
         </div>
@@ -11781,6 +11786,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </button>
                         </div>
 
+                        {/* Titre & Sous-titre de l'annonce */}
+                        {conseilsEditor}
+
                         {/* MODULE EXTRACTION SLIDE 1 (COVER HD EN FOND + EXTRAIT AUDIO INTRO) */}
                         <div className="p-3 bg-gradient-to-r from-black/80 via-[#00ff66]/10 to-black/80 border border-[#00ff66]/40 rounded-2xl space-y-2 shadow-xl">
                             <div className="flex items-center justify-between">
@@ -12019,8 +12027,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                             )}
                         </div>
-
-                        {conseilsEditor}
                     </div>
                 )}
 
