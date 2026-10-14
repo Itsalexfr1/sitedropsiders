@@ -7745,41 +7745,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </button>
             </div>
 
-            {/* Quick Carousel Download Bar */}
-            <div className="p-2.5 bg-white/5 border border-white/10 rounded-xl space-y-2">
-                <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
-                    <span>Export Carrousel Rapide</span>
-                    <span className="text-[#ff3700]">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                    <button
-                        type="button"
-                        onClick={() => downloadAgendaSlide(1)}
-                        disabled={isDownloading}
-                        className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
-                    >
-                        <Download className="w-3 h-3 text-[#ff3700]" /> Télécharger Slide 1
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => downloadAgendaSlide(2)}
-                        disabled={isDownloading}
-                        className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
-                    >
-                        <Download className="w-3 h-3 text-[#ff3700]" /> Télécharger Slide 2
-                    </button>
-                </div>
-                <button
-                    type="button"
-                    onClick={() => downloadFullAgendaCarousel()}
-                    disabled={isDownloading}
-                    className="w-full py-2 bg-[#ff3700]/20 hover:bg-[#ff3700]/30 border border-[#ff3700]/40 text-[#ff3700] hover:text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-2"
-                >
-                    <Sparkles className="w-3.5 h-3.5" /> Exporter le Carrousel Images (Slide 1 + 2)
-                </button>
-                
-            </div>
-
             {agendaSlide === 1 ? (
                 /* ══════════════════════════════════════════════════════════
                    EDITEUR SLIDE 1 : COVER (ACCROCHE INSTAGRAM)
@@ -9112,40 +9077,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </button>
             </div>
 
-            {/* Quick Carousel Download Bar */}
-            <div className="p-2.5 bg-white/5 border border-white/10 rounded-xl space-y-2">
-                <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
-                    <span>Export Carrousel Rapide</span>
-                    <span className="text-neon-red">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                    <button
-                        type="button"
-                        onClick={() => downloadArtisteFestivalSlide(1)}
-                        disabled={isDownloading}
-                        className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
-                    >
-                        <Download className="w-3.5 h-3.5 text-neon-red" /> Slide 1 (PNG)
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => downloadArtisteFestivalSlide(2)}
-                        disabled={isDownloading}
-                        className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
-                    >
-                        <Download className="w-3.5 h-3.5 text-neon-red" /> Slide 2 (PNG)
-                    </button>
-                </div>
-                <button
-                    type="button"
-                    onClick={() => downloadArtisteFestivalCarousel()}
-                    disabled={isDownloading}
-                    className="w-full py-2.5 bg-gradient-to-r from-[#ff0033] to-[#ff4400] hover:from-[#ff1a47] hover:to-[#ff551a] text-white font-black text-[10px] uppercase rounded-lg shadow-lg shadow-red-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95"
-                >
-                    <Download className="w-4 h-4" /> Télécharger Carrousel (1 + 2)
-                </button>
-            </div>
-
             {/* Slide 1 Content */}
             {artisteFestivalSlide === 1 && (
                 <div className="space-y-3">
@@ -9775,6 +9706,221 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
+    const slideVisualEditor = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
+        <div className="p-3 bg-black/60 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
+            <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
+                    🖼️ Visuel Slide {editorialSlide} sur {2 + extraEditorialSlides.length}
+                </span>
+                {editorialSlide >= 3 && (
+                    <button
+                        type="button"
+                        onClick={() => removeEditorialSlide(editorialSlide)}
+                        className="px-2 py-0.5 text-[8px] font-black uppercase text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg transition-all"
+                    >
+                        🗑️ Supprimer cette slide
+                    </button>
+                )}
+            </div>
+
+            <div className="flex items-center gap-2">
+                <input
+                    type="file"
+                    ref={slideFileInputRef}
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleSlideImageUpload(file);
+                    }}
+                />
+                <button
+                    type="button"
+                    onClick={() => slideFileInputRef.current?.click()}
+                    className="flex-1 py-2 px-3 border border-dashed border-white/20 hover:border-neon-cyan/50 rounded-xl bg-black/40 hover:bg-white/5 text-gray-300 hover:text-white text-[8.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5"
+                >
+                    <Upload className="w-3.5 h-3.5 text-neon-cyan" />
+                    {editorialSlideImages[editorialSlide] ? `Changer photo Slide ${editorialSlide}` : `Importer photo spécifique (Slide ${editorialSlide})`}
+                </button>
+                {editorialSlideImages[editorialSlide] && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setEditorialSlideImages(prev => {
+                                const next = { ...prev };
+                                delete next[editorialSlide];
+                                return next;
+                            });
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="py-2 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 text-[8px] font-black uppercase border border-white/10"
+                        title="Réutiliser l'image globale"
+                    >
+                        🔄 Réinit
+                    </button>
+                )}
+            </div>
+
+            {/* Mode Silhouette vs Reveal par slide (pour JEU_DJ) */}
+            {theme === 'JEU_DJ' && (
+                <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[8px] font-bold text-gray-300 uppercase">
+                    <span>Rendu Slide {editorialSlide} :</span>
+                    <div className="flex items-center gap-1 bg-black/80 p-0.5 rounded-xl border border-white/15">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setDjSlideModes(prev => ({ ...prev, [editorialSlide]: 'SILHOUETTE' }));
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className={`py-1 px-2.5 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 ${
+                                (djSlideModes[editorialSlide] === 'SILHOUETTE' || (djSlideModes[editorialSlide] === undefined && editorialSlide % 2 === 1))
+                                    ? 'bg-[#bd00ff] text-white shadow-md scale-[1.02]'
+                                    : 'text-gray-400 hover:text-white'
+                            }`}
+                        >
+                            👤 Silhouette
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setDjSlideModes(prev => ({ ...prev, [editorialSlide]: 'REVEAL' }));
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className={`py-1 px-2.5 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 ${
+                                (djSlideModes[editorialSlide] === 'REVEAL' || (djSlideModes[editorialSlide] === undefined && editorialSlide % 2 === 0))
+                                    ? 'bg-emerald-500 text-black font-black shadow-md scale-[1.02]'
+                                    : 'text-gray-400 hover:text-white'
+                            }`}
+                        >
+                            🌈 Reveal Couleur
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    ) : null;
+
+    const quickCarouselDownloadBar = (() => {
+        if (theme === 'PLANNING') {
+            return (
+                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
+                    <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
+                        <span>Export Carrousel Agenda</span>
+                        <span className="text-[#ff3700]">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        <button
+                            type="button"
+                            onClick={() => downloadAgendaSlide(1)}
+                            disabled={isDownloading}
+                            className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                        >
+                            <Download className="w-3.5 h-3.5 text-[#ff3700]" /> Slide 1 (PNG)
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => downloadAgendaSlide(2)}
+                            disabled={isDownloading}
+                            className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                        >
+                            <Download className="w-3.5 h-3.5 text-[#ff3700]" /> Slide 2 (PNG)
+                        </button>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => downloadFullAgendaCarousel()}
+                        disabled={isDownloading}
+                        className="w-full py-2 bg-[#ff3700]/20 hover:bg-[#ff3700]/30 border border-[#ff3700]/40 text-[#ff3700] hover:text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-2"
+                    >
+                        <Sparkles className="w-3.5 h-3.5" /> Exporter le Carrousel Images (Slide 1 + 2)
+                    </button>
+                </div>
+            );
+        }
+
+        if (theme === 'ARTISTE FESTIVAL') {
+            return (
+                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
+                    <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
+                        <span>Export Carrousel Artiste Festival</span>
+                        <span className="text-neon-red">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        <button
+                            type="button"
+                            onClick={() => downloadArtisteFestivalSlide(1)}
+                            disabled={isDownloading}
+                            className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                        >
+                            <Download className="w-3.5 h-3.5 text-neon-red" /> Slide 1 (PNG)
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => downloadArtisteFestivalSlide(2)}
+                            disabled={isDownloading}
+                            className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                        >
+                            <Download className="w-3.5 h-3.5 text-neon-red" /> Slide 2 (PNG)
+                        </button>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => downloadArtisteFestivalCarousel()}
+                        disabled={isDownloading}
+                        className="w-full py-2 bg-neon-red/20 hover:bg-neon-red/30 border border-neon-red/40 text-neon-red hover:text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-2"
+                    >
+                        <Sparkles className="w-3.5 h-3.5" /> Exporter le Carrousel Images (Slide 1 + 2)
+                    </button>
+                </div>
+            );
+        }
+
+        if (['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme)) {
+            return (
+                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
+                    <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
+                        <span>Export Carrousel Rapide ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)} Slides)</span>
+                        <span className="text-white font-mono">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                        {Array.from({ length: 2 + extraEditorialSlides.length }).map((_, i) => (
+                            <button
+                                key={i + 1}
+                                type="button"
+                                onClick={() => downloadEditorialSlide(i + 1)}
+                                disabled={isDownloading}
+                                className="flex-1 min-w-[70px] py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1"
+                            >
+                                <Download className="w-3.5 h-3.5 text-neon-cyan" /> S{i + 1}
+                            </button>
+                        ))}
+                        {Boolean(afficheImage || isEditorialAfficheActive) && (
+                            <button
+                                type="button"
+                                onClick={() => downloadAfficheSlide(activeTab)}
+                                disabled={isDownloading}
+                                className="flex-1 min-w-[70px] py-1.5 bg-[#ff007f]/20 hover:bg-[#ff007f]/30 border border-[#ff007f]/40 text-[#ff007f] font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1 shadow-sm"
+                                title="Télécharger la Slide Affiche isolée"
+                            >
+                                <Download className="w-3.5 h-3.5 text-[#ff007f]" /> Affiche
+                            </button>
+                        )}
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => downloadEditorialCarousel()}
+                        disabled={isDownloading}
+                        className="w-full py-2.5 bg-gradient-to-r from-neon-cyan via-blue-500 to-indigo-600 hover:opacity-90 text-black font-black text-[10px] uppercase rounded-xl shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-95"
+                    >
+                        <Download className="w-4 h-4 text-black" /> Télécharger Carrousel Images ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)} Slides)
+                    </button>
+                </div>
+            );
+        }
+
+        return null;
+    })();
+
     const conseilsEditor = (
         <div className="space-y-4">
 
@@ -10128,139 +10274,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-xs">🔥</span> Slide PROMO
                             </button>
                         </div>
-                    </div>
-
-                    {/* CARTE GESTION DE LA SLIDE ACTIVE (Image & Mode) */}
-                    <div className="p-3 bg-black/60 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
-                        <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
-                                🖼️ Visuel Slide {editorialSlide} sur {2 + extraEditorialSlides.length}
-                            </span>
-                            {editorialSlide >= 3 && (
-                                <button
-                                    type="button"
-                                    onClick={() => removeEditorialSlide(editorialSlide)}
-                                    className="px-2 py-0.5 text-[8px] font-black uppercase text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg transition-all"
-                                >
-                                    🗑️ Supprimer cette slide
-                                </button>
-                            )}
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="file"
-                                ref={slideFileInputRef}
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) handleSlideImageUpload(file);
-                                }}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => slideFileInputRef.current?.click()}
-                                className="flex-1 py-2 px-3 border border-dashed border-white/20 hover:border-neon-cyan/50 rounded-xl bg-black/40 hover:bg-white/5 text-gray-300 hover:text-white text-[8.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5"
-                            >
-                                <Upload className="w-3.5 h-3.5 text-neon-cyan" />
-                                {editorialSlideImages[editorialSlide] ? `Changer photo Slide ${editorialSlide}` : `Importer photo spécifique (Slide ${editorialSlide})`}
-                            </button>
-                            {editorialSlideImages[editorialSlide] && (
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setEditorialSlideImages(prev => {
-                                            const next = { ...prev };
-                                            delete next[editorialSlide];
-                                            return next;
-                                        });
-                                        setTimeout(() => generateImage(), 50);
-                                    }}
-                                    className="py-2 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 text-[8px] font-black uppercase border border-white/10"
-                                    title="Réutiliser l'image globale"
-                                >
-                                    🔄 Réinit
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Mode Silhouette vs Reveal par slide (pour JEU_DJ) */}
-                        {theme === 'JEU_DJ' && (
-                            <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[8px] font-bold text-gray-300 uppercase">
-                                <span>Rendu Slide {editorialSlide} :</span>
-                                <div className="flex items-center gap-1 bg-black/80 p-0.5 rounded-xl border border-white/15">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setDjSlideModes(prev => ({ ...prev, [editorialSlide]: 'SILHOUETTE' }));
-                                            setTimeout(() => generateImage(), 50);
-                                        }}
-                                        className={`py-1 px-2.5 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 ${
-                                            (djSlideModes[editorialSlide] === 'SILHOUETTE' || (djSlideModes[editorialSlide] === undefined && editorialSlide % 2 === 1))
-                                                ? 'bg-[#bd00ff] text-white shadow-md scale-[1.02]'
-                                                : 'text-gray-400 hover:text-white'
-                                        }`}
-                                    >
-                                        👤 Silhouette
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setDjSlideModes(prev => ({ ...prev, [editorialSlide]: 'REVEAL' }));
-                                            setTimeout(() => generateImage(), 50);
-                                        }}
-                                        className={`py-1 px-2.5 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 ${
-                                            (djSlideModes[editorialSlide] === 'REVEAL' || (djSlideModes[editorialSlide] === undefined && editorialSlide % 2 === 0))
-                                                ? 'bg-emerald-500 text-black font-black shadow-md scale-[1.02]'
-                                                : 'text-gray-400 hover:text-white'
-                                        }`}
-                                    >
-                                        🌈 Reveal Couleur
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Quick Carousel Download Bar */}
-                    <div className="p-2.5 bg-white/5 border border-white/10 rounded-xl space-y-2">
-                        <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
-                            <span>Export Carrousel Rapide ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)} Slides)</span>
-                            <span className="text-white font-mono">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-1.5">
-                            {Array.from({ length: 2 + extraEditorialSlides.length }).map((_, i) => (
-                                <button
-                                    key={i + 1}
-                                    type="button"
-                                    onClick={() => downloadEditorialSlide(i + 1)}
-                                    disabled={isDownloading}
-                                    className="flex-1 min-w-[70px] py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1"
-                                >
-                                    <Download className="w-3.5 h-3.5 text-neon-cyan" /> S{i + 1}
-                                </button>
-                            ))}
-                            {Boolean(afficheImage || isEditorialAfficheActive) && (
-                                <button
-                                    type="button"
-                                    onClick={() => downloadAfficheSlide(activeTab)}
-                                    disabled={isDownloading}
-                                    className="flex-1 min-w-[70px] py-1.5 bg-[#ff007f]/20 hover:bg-[#ff007f]/30 border border-[#ff007f]/40 text-[#ff007f] font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1 shadow-sm"
-                                    title="Télécharger la Slide Affiche isolée"
-                                >
-                                    <Download className="w-3.5 h-3.5 text-[#ff007f]" /> Affiche
-                                </button>
-                            )}
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => downloadEditorialCarousel()}
-                            disabled={isDownloading}
-                            className="w-full py-2.5 bg-gradient-to-r from-neon-cyan via-blue-500 to-indigo-600 hover:opacity-90 text-black font-black text-[10px] uppercase rounded-lg shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95"
-                        >
-                            <Download className="w-4 h-4 text-black" /> Télécharger Carrousel Images ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)} Slides)
-                        </button>
                     </div>
 
                     {theme === 'CONCOURS' && (
@@ -13685,6 +13698,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         </button>
                                         {theme !== 'MAP' && bgAnimationControl}
                                     </div>
+
+                                    {/* Visuel spécifique de la Slide active (Photo, Silhouette, etc.) */}
+                                    {slideVisualEditor}
                                 </div>
 
                                 {/* Navigation entre étapes */}
@@ -13776,6 +13792,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
                                         <span>🚀</span> Téléchargement & Export
                                     </span>
+                                    {quickCarouselDownloadBar}
                                     {exportButtons}
                                 </div>
 
@@ -14637,6 +14654,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 <Download className="w-4 h-4 text-neon-cyan" /> Exporter le fond visuel (PNG)
                                             </button>
                                             {theme !== 'MAP' && bgAnimationControl}
+                                            {slideVisualEditor}
                                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                         </div>
                                     </div>
@@ -14656,6 +14674,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <div className="flex justify-center pt-3 pb-2"><div className="w-8 h-1 rounded-full bg-white/20" /></div>
                                 <div className="px-6 pb-8">
                                     <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Exporter</p>
+                                    {quickCarouselDownloadBar}
                                     {exportButtons}
                                 </div>
                             </motion.div>
