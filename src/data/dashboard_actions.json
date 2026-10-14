@@ -12,39 +12,15 @@
     "columns": 1
   },
   {
-    "title": "Dropsiders TV",
-    "description": "Programmation des liens YouTube & Diffusion TV",
-    "icon": "Monitor",
-    "category": "DROPSIDERS_TV",
-    "link": "#DROPSIDERS_TV",
-    "color": "border-neon-red/20 hover:border-neon-red",
-    "bg": "bg-neon-red/5",
-    "permission": "tv_schedule",
-    "baseColor": "#2b734e",
-    "columns": 1
-  },
-  {
-    "title": "Dropsiders Radio",
-    "description": "Radio Active (En Ligne) · 22 Sets & 3 Clips",
+    "title": "Radio & TV",
+    "description": "TV en direct · Radio En Ligne (239 Sets)",
     "icon": "Radio",
     "category": "DROPSIDERS_TV",
-    "link": "#DROPSIDERS_RADIO",
-    "color": "border-neon-cyan/50 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/10",
-    "permission": "radio",
-    "baseColor": "#9670ff",
-    "columns": 1
-  },
-  {
-    "title": "Blind Test",
-    "description": "Thèmes, Playlists Deezer & Sessions",
-    "icon": "Gamepad2",
-    "category": "COMMUNAUTÉ",
-    "link": "#BLINDTEST_ADMIN_MODAL",
-    "color": "border-neon-red/30 hover:border-neon-red",
-    "bg": "bg-neon-red/10",
-    "permission": "all",
-    "baseColor": "#ff0033",
+    "link": "#DROPSIDERS_TV_RADIO",
+    "color": "border-neon-cyan/30 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "tv_schedule",
+    "baseColor": "#00fbff",
     "columns": 1
   },
   {
@@ -69,18 +45,6 @@
     "bg": "bg-neon-cyan/5",
     "permission": "news_focus",
     "baseColor": "#ff8a8a",
-    "columns": 1
-  },
-  {
-    "title": "Agenda",
-    "description": "Programmation",
-    "icon": "Calendar",
-    "category": "NEWS",
-    "link": "#",
-    "color": "border-neon-yellow/20 hover:border-neon-yellow",
-    "bg": "bg-neon-yellow/5",
-    "permission": "agenda_events",
-    "baseColor": "#a8a6f7",
     "columns": 1
   },
   {
@@ -144,18 +108,6 @@
     "columns": 1
   },
   {
-    "title": "Top Dropsiders",
-    "description": "DJs, Clubs & Festivals",
-    "icon": "Trophy",
-    "category": "WIKI",
-    "link": "#TOP_DROPSIDERS_MODAL",
-    "color": "border-neon-yellow/20 hover:border-neon-yellow",
-    "bg": "bg-neon-yellow/5",
-    "permission": "community_mod",
-    "baseColor": "#ff7300",
-    "columns": 1
-  },
-  {
     "title": "Boutique",
     "description": "Ventes & Produits",
     "icon": "ShoppingBag",
@@ -180,18 +132,6 @@
     "columns": 1
   },
   {
-    "title": "MEMBRES DU SITE",
-    "description": "Comptes & Droits",
-    "icon": "UserCheck",
-    "category": "TEAM",
-    "link": "/admin/team?tab=community",
-    "color": "border-neon-cyan/20 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/5",
-    "permission": "all",
-    "baseColor": "#00f0ff",
-    "columns": 1
-  },
-  {
     "title": "Fichiers Cloudflare",
     "description": "Images, Vidéos, MP3",
     "icon": "HardDrive",
@@ -201,18 +141,6 @@
     "bg": "bg-neon-red/5",
     "permission": "studio_upload",
     "baseColor": "#ff99fc",
-    "columns": 1
-  },
-  {
-    "title": "Documents PDF",
-    "description": "Hébergement & Partage",
-    "icon": "Database",
-    "category": "WIKI",
-    "link": "/admin/pdfs",
-    "color": "border-neon-cyan/20 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/5",
-    "permission": "news",
-    "baseColor": "#000000",
     "columns": 1
   }
 ]
