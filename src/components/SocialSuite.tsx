@@ -13333,6 +13333,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ) : (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>{textEditor}</>
                             )}
+                            {/* Animation universelle du texte & éléments (regroupée directement sous le cadre texte) */}
+                            {theme !== 'MAP' && textAnimationControl}
+                            {theme !== 'MAP' && isMultiSlideTheme && slideTransitionControl}
                         </div>
                         {/* Sélection Swipe, Site & Options (en dessous du texte, au-dessus du fond) */}
                         <div className="space-y-2.5">
@@ -13363,9 +13366,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     </div>
                                 </div>
                             </div>
-                            {/* Animation universelle du texte & éléments (tous les thèmes sauf MAP) */}
-                            {theme !== 'MAP' && textAnimationControl}
-                            {theme !== 'MAP' && isMultiSlideTheme && slideTransitionControl}
                         </div>
 
                         {/* Background (Fond Visuel) */}
