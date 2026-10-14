@@ -954,6 +954,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [promoCustomSubphrase, setPromoCustomSubphrase] = useState<string>('');
     const [showPromoHook, setShowPromoHook] = useState<boolean>(true);
     const [showPromoHeadline, setShowPromoHeadline] = useState<boolean>(true);
+    const [showPromoLine1, setShowPromoLine1] = useState<boolean>(true);
+    const [showPromoLine2, setShowPromoLine2] = useState<boolean>(true);
 
     const getTransitionDuration = (t: SlideTransitionType) => {
         switch (t) {
@@ -2440,11 +2442,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? promoCustomSubphrase.trim().toUpperCase()
                     : 'SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,';
 
-                const headlineParts = (showPromoHeadline && effectiveHeadline) ? effectiveHeadline.split('\n').filter(Boolean) : [];
-                const outroLines = showPromoHeadline ? [
+                const headlineParts = (showPromoHeadline && showPromoLine1 && effectiveHeadline) ? effectiveHeadline.split('\n').filter(Boolean) : [];
+                const subphraseParts = (showPromoHeadline && showPromoLine2 && effectiveSubphrase) ? [effectiveSubphrase] : [];
+                const outroLines = [
                     ...headlineParts,
-                    ...(effectiveSubphrase ? [effectiveSubphrase] : [])
-                ] : [];
+                    ...subphraseParts
+                ];
 
                 // Question fixe sur la slide promo — ne reprend plus le texte de la slide 1
                 const cleanQuestion = "ET TOI, QU'EN PENSES-TU ?";
@@ -5250,7 +5253,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoCategory, showPromoHook, showPromoHeadline, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes]);
 
     // Pre-charger les pochettes des tracks du thème MUSIQUE
     useEffect(() => {
@@ -8455,108 +8458,224 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             </div>
 
             {/* 2. Phrase officielle Promo d'information (Pour être informé...) */}
-            <div className="space-y-2.5 bg-white/5 border border-white/10 rounded-2xl p-3.5">
+            <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-3.5">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest flex items-center gap-1.5">
-                            📢 Phrase Promo (Ligne 1 & 2)
+                            📢 Phrase Promo (Lignes 1 & 2)
                         </label>
-                        <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold ${
-                            showPromoHeadline 
+                        <span className={`text-[8.5px] px-1.5 py-0.5 rounded font-bold ${
+                            (showPromoHeadline && (showPromoLine1 || showPromoLine2))
                                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
                                 : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                         }`}>
-                            {showPromoHeadline ? 'Affichée' : 'Masquée (Centré)'}
+                            {(!showPromoHeadline || (!showPromoLine1 && !showPromoLine2))
+                                ? 'Tout Masqué (Centré)'
+                                : (showPromoLine1 && showPromoLine2)
+                                ? 'Lignes 1 & 2 Actives'
+                                : showPromoLine1
+                                ? 'Ligne 1 Seule'
+                                : 'Ligne 2 Seule'}
                         </span>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setShowPromoHeadline(!showPromoHeadline);
-                                setTimeout(() => generateImage(), 50);
-                            }}
-                            className={`px-2 py-1 rounded-lg text-[8.5px] font-bold uppercase transition-all border ${
-                                showPromoHeadline
-                                    ? 'bg-white/10 border-white/20 text-gray-300 hover:text-white'
-                                    : 'bg-amber-500/20 border-amber-500/40 text-amber-300'
-                            }`}
-                        >
-                            {showPromoHeadline ? 'Masquer' : 'Afficher'}
-                        </button>
-                        {promoCustomPhrase && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            const next = !(showPromoHeadline && (showPromoLine1 || showPromoLine2));
+                            setShowPromoHeadline(next);
+                            setShowPromoLine1(next);
+                            setShowPromoLine2(next);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`px-2 py-1 rounded-lg text-[8.5px] font-bold uppercase transition-all border ${
+                            (showPromoHeadline && (showPromoLine1 || showPromoLine2))
+                                ? 'bg-white/10 border-white/20 text-gray-300 hover:text-white'
+                                : 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                        }`}
+                        title="Masquer ou afficher toutes les phrases promo en un clic"
+                    >
+                        {(showPromoHeadline && (showPromoLine1 || showPromoLine2)) ? 'Tout Masquer' : 'Tout Afficher'}
+                    </button>
+                </div>
+
+                {/* Bloc LIGNE 1 : Phrase principale */}
+                <div className={`p-3 rounded-xl border transition-all space-y-2 ${
+                    showPromoHeadline && showPromoLine1 
+                        ? 'bg-black/30 border-white/10' 
+                        : 'bg-black/15 border-white/5 opacity-60'
+                }`}>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[9.5px] font-black uppercase text-white">Ligne 1 (Phrase Principale)</span>
+                            <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold ${
+                                showPromoHeadline && showPromoLine1 
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                                    : 'bg-white/5 text-gray-400 border border-white/10'
+                            }`}>
+                                {showPromoHeadline && showPromoLine1 ? 'Active' : 'Désactivée'}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
                             <button
                                 type="button"
                                 onClick={() => {
-                                    setPromoCustomPhrase('');
+                                    if (!showPromoHeadline) setShowPromoHeadline(true);
+                                    setShowPromoLine1(!showPromoLine1);
                                     setTimeout(() => generateImage(), 50);
                                 }}
-                                className="text-[8.5px] text-gray-400 hover:text-white uppercase font-bold"
+                                className={`px-2 py-1 rounded-lg text-[8.5px] font-bold uppercase transition-all border ${
+                                    showPromoHeadline && showPromoLine1
+                                        ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
+                                        : 'bg-white/10 border-white/20 text-gray-300 hover:text-white'
+                                }`}
                             >
-                                ↺ Par défaut
+                                {showPromoHeadline && showPromoLine1 ? '👁️ Désactiver L1' : '➕ Activer L1'}
                             </button>
-                        )}
+                            {promoCustomPhrase && showPromoLine1 && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setPromoCustomPhrase('');
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className="text-[8.5px] text-gray-400 hover:text-white uppercase font-bold"
+                                >
+                                    ↺ Par défaut
+                                </button>
+                            )}
+                        </div>
                     </div>
+
+                    {showPromoHeadline && showPromoLine1 ? (
+                        <>
+                            <input
+                                value={promoCustomPhrase}
+                                onChange={e => {
+                                    setPromoCustomPhrase(e.target.value);
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                placeholder={
+                                    promoCategory === 'EVENTS' || promoCategory === 'PLANNING'
+                                        ? "POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS"
+                                        : promoCategory === 'MUSIQUE'
+                                        ? "POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES"
+                                        : promoCategory === 'FOCUS'
+                                        ? "POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS"
+                                        : "POUR ÊTRE INFORMÉ DE TOUTES LES NEWS"
+                                }
+                                className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-xs font-bold uppercase focus:border-neon-cyan outline-none transition-all placeholder:text-gray-600"
+                            />
+                            <div className="pt-0.5 space-y-1">
+                                <label className="text-[8px] font-bold text-gray-400 uppercase tracking-wider block">
+                                    💡 Phrases suggérées Ligne 1 :
+                                </label>
+                                <select
+                                    value=""
+                                    onChange={e => {
+                                        if (e.target.value) {
+                                            setPromoCustomPhrase(e.target.value);
+                                            setTimeout(() => generateImage(), 50);
+                                        }
+                                    }}
+                                    className="w-full bg-black/60 border border-white/10 hover:border-neon-cyan/50 focus:border-neon-cyan rounded-xl p-2 text-white text-[11px] font-bold uppercase outline-none transition-all cursor-pointer"
+                                >
+                                    <option value="" disabled>-- Choisir une phrase suggérée --</option>
+                                    <option value="POUR ÊTRE INFORMÉ DE TOUTES LES NEWS">POUR ÊTRE INFORMÉ DE TOUTES LES NEWS</option>
+                                    <option value="POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS">POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS</option>
+                                    <option value="POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES">POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES</option>
+                                    <option value="POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS">POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS</option>
+                                    <option value="POUR REVIVRE TOUS LES MEILLEURS FESTIVALS">POUR REVIVRE TOUS LES MEILLEURS FESTIVALS</option>
+                                </select>
+                            </div>
+                        </>
+                    ) : (
+                        <p className="text-[8.5px] text-gray-400 italic">
+                            Ligne 1 désactivée — elle ne sera pas affichée sur le visuel.
+                        </p>
+                    )}
                 </div>
 
-                {showPromoHeadline && (
-                    <>
-                        <input
-                            value={promoCustomPhrase}
-                            onChange={e => {
-                                setPromoCustomPhrase(e.target.value);
-                                setTimeout(() => generateImage(), 50);
-                            }}
-                            placeholder={
-                                promoCategory === 'EVENTS' || promoCategory === 'PLANNING'
-                                    ? "POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS"
-                                    : promoCategory === 'MUSIQUE'
-                                    ? "POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES"
-                                    : promoCategory === 'FOCUS'
-                                    ? "POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS"
-                                    : "POUR ÊTRE INFORMÉ DE TOUTES LES NEWS"
-                            }
-                            className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-neon-cyan outline-none transition-all placeholder:text-gray-600"
-                        />
-
-                        <div className="pt-1 space-y-1">
-                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                                Ligne 2 (Sous-phrase)
-                            </label>
-                            <input
-                                value={promoCustomSubphrase}
-                                onChange={e => {
-                                    setPromoCustomSubphrase(e.target.value);
+                {/* Bloc LIGNE 2 : Sous-phrase */}
+                <div className={`p-3 rounded-xl border transition-all space-y-2 ${
+                    showPromoHeadline && showPromoLine2 
+                        ? 'bg-black/30 border-white/10' 
+                        : 'bg-black/15 border-white/5 opacity-60'
+                }`}>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[9.5px] font-black uppercase text-white">Ligne 2 (Sous-phrase)</span>
+                            <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold ${
+                                showPromoHeadline && showPromoLine2 
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                                    : 'bg-white/5 text-gray-400 border border-white/10'
+                            }`}>
+                                {showPromoHeadline && showPromoLine2 ? 'Active' : 'Désactivée'}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (!showPromoHeadline) setShowPromoHeadline(true);
+                                    setShowPromoLine2(!showPromoLine2);
                                     setTimeout(() => generateImage(), 50);
                                 }}
-                                placeholder="SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,"
-                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-neon-cyan outline-none transition-all placeholder:text-gray-600"
-                            />
-                        </div>
-
-                        <div className="pt-2 space-y-1">
-                            <label className="text-[8.5px] font-bold text-gray-400 uppercase tracking-wider block">
-                                💡 Phrases suggérées en 1 clic :
-                            </label>
-                            <select
-                                value=""
-                                onChange={e => {
-                                    if (e.target.value) {
-                                        setPromoCustomPhrase(e.target.value);
-                                        setTimeout(() => generateImage(), 50);
-                                    }
-                                }}
-                                className="w-full bg-black/60 border border-white/10 hover:border-neon-cyan/50 focus:border-neon-cyan rounded-xl p-2.5 text-white text-xs font-bold uppercase outline-none transition-all cursor-pointer"
+                                className={`px-2 py-1 rounded-lg text-[8.5px] font-bold uppercase transition-all border ${
+                                    showPromoHeadline && showPromoLine2
+                                        ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
+                                        : 'bg-white/10 border-white/20 text-gray-300 hover:text-white'
+                                }`}
                             >
-                                <option value="" disabled>-- Choisir une phrase suggérée --</option>
-                                <option value="POUR ÊTRE INFORMÉ DE TOUTES LES NEWS">POUR ÊTRE INFORMÉ DE TOUTES LES NEWS</option>
-                                <option value="POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS">POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS</option>
-                                <option value="POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES">POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES</option>
-                                <option value="POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS">POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS</option>
-                                <option value="POUR REVIVRE TOUS LES MEILLEURS FESTIVALS">POUR REVIVRE TOUS LES MEILLEURS FESTIVALS</option>
-                            </select>
+                                {showPromoHeadline && showPromoLine2 ? '👁️ Désactiver L2' : '➕ Activer L2'}
+                            </button>
+                            {promoCustomSubphrase && showPromoLine2 && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setPromoCustomSubphrase('');
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className="text-[8.5px] text-gray-400 hover:text-white uppercase font-bold"
+                                >
+                                    ↺ Par défaut
+                                </button>
+                            )}
                         </div>
-                    </>
+                    </div>
+
+                    {showPromoHeadline && showPromoLine2 ? (
+                        <input
+                            value={promoCustomSubphrase}
+                            onChange={e => {
+                                setPromoCustomSubphrase(e.target.value);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            placeholder="SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,"
+                            className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-xs font-bold uppercase focus:border-neon-cyan outline-none transition-all placeholder:text-gray-600"
+                        />
+                    ) : (
+                        <p className="text-[8.5px] text-gray-400 italic">
+                            Ligne 2 désactivée — seule la ligne 1 ou l'abonnement sera affiché.
+                        </p>
+                    )}
+                </div>
+
+                {(!showPromoHeadline || (!showPromoLine1 && !showPromoLine2)) && (
+                    <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[8.5px] text-amber-300 font-bold flex items-center justify-between">
+                        <span>Lignes 1 & 2 désactivées : Le bloc d'abonnement DROPSIDERS est automatiquement centré.</span>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setShowPromoHeadline(true);
+                                setShowPromoLine1(true);
+                                setShowPromoLine2(true);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="text-[8.5px] underline hover:text-white uppercase font-black shrink-0 ml-2"
+                        >
+                            Tout Réactiver
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -8622,7 +8741,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <div className="p-3 bg-white/5 border border-white/10 rounded-xl space-y-2">
                 <p className="text-[9px] font-black text-neon-cyan uppercase tracking-widest">Aperçu Outro & Bulles :</p>
                 <p className="text-[10px] text-gray-300 font-bold leading-relaxed">
-                    « {promoCustomPhrase || (promoCategory === 'EVENTS' || promoCategory === 'PLANNING' ? "Pour être informé de tous les événements" : "Pour être informé de toutes les news")} {promoCustomSubphrase || "sur la musique électronique et les festivals"}, abonnez-vous à DROPSIDERS »
+                    « {[
+                        (showPromoHeadline && showPromoLine1) ? (promoCustomPhrase || (promoCategory === 'EVENTS' || promoCategory === 'PLANNING' ? "Pour être informé de tous les événements" : "Pour être informé de toutes les news")) : null,
+                        (showPromoHeadline && showPromoLine2) ? (promoCustomSubphrase || "sur la musique électronique et les festivals") : null,
+                        "abonnez-vous à DROPSIDERS"
+                    ].filter(Boolean).join(', ')} »
                 </p>
                 <div className="flex flex-wrap gap-1 pt-1">
                     {['NEWS', 'MUSIQUE', 'FOCUS', 'RECAPS', 'CONCOURS', 'EVENTS', 'INTERVIEWS', 'VIDEOS'].map((tag, i) => (
