@@ -82,7 +82,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'EVENTS' | 'LIVESTREAM' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'REELS' | 'CONCOURS' | 'ARTISTE FESTIVAL' | 'AFFICHE' | 'PROMO' | 'MAP' | 'CALENDRIER' | 'JEU' | 'JEU_FESTIVAL';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'EVENTS' | 'LIVESTREAM' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'REELS' | 'CONCOURS' | 'ARTISTE FESTIVAL' | 'AFFICHE' | 'PROMO' | 'MAP' | 'CALENDRIER' | 'JEU' | 'JEU_FESTIVAL' | 'JEU_DJ';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -310,6 +310,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [quizColor1, setQuizColor1] = useState<string>('#38bdf8');
     const [quizColor2, setQuizColor2] = useState<string>('#a855f7');
     const [showFrame, setShowFrame] = useState<boolean>(false);
+
+    // Devinette Silhouette DJ (Thème JEU_DJ - Options A + B)
+    const [djCutoutImage, setDjCutoutImage] = useState<string | null>(null);
+    const [djOriginalImage, setDjOriginalImage] = useState<string | null>(null);
+    const [djSilhouetteColor, setDjSilhouetteColor] = useState<string>('#bd00ff');
+    const [djGlowIntensity, setDjGlowIntensity] = useState<number>(26);
+    const [djShowQuestionMark, setDjShowQuestionMark] = useState<boolean>(true);
+    const [isIsolatingSilhouette, setIsIsolatingSilhouette] = useState<boolean>(false);
+    const [isolationProgress, setIsolationProgress] = useState<number | null>(null);
+    const [isolationError, setIsolationError] = useState<string | null>(null);
     const [artistNameText, setArtistNameText] = useState('');
     const [festivalNameText, setFestivalNameText] = useState('');
     const [isArtistLogoNegative, setIsArtistLogoNegative] = useState(true);
@@ -1091,6 +1101,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'CALENDRIER': { label: 'CALENDRIER', grad: '255, 103, 0', color: '#ff6700' },
         'JEU': { label: 'DEVINE LE CLIP', grad: '0, 240, 255', color: '#00f0ff' },
         'JEU_FESTIVAL': { label: 'DEVINE LE FESTIVAL', grad: '255, 170, 0', color: '#ffaa00' },
+        'JEU_DJ': { label: 'DEVINE LE DJ', grad: '189, 0, 255', color: '#bd00ff' },
     };
 
     useEffect(() => {
@@ -1323,7 +1334,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const forceTheme = typeof exportMode === 'string' ? (exportMode as ThemeType) : forceThemeParam;
         const isPromoRequested = Boolean(promoOutroOverrideRef.current || (isCarouselPromoActive && isMultiSlideTheme));
         const effectiveTheme = isPromoRequested ? 'PROMO' : (forceTheme || theme);
-        const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL'].includes(effectiveTheme);
+        const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(effectiveTheme);
         const isEditorialAfficheRequested = Boolean(isEditorialCarouselTheme && !isPromoRequested && (editorialAfficheOverrideRef.current || isEditorialAfficheActive));
 
         try {
@@ -1354,6 +1365,38 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
+            // Image détourée IA pour JEU_DJ (Slide 1)
+            let djCutoutImgObj: HTMLImageElement | null = null;
+            if (djCutoutImage) {
+                if (imageCacheRef.current[djCutoutImage]) {
+                    djCutoutImgObj = imageCacheRef.current[djCutoutImage];
+                } else {
+                    const imgObj = new Image();
+                    imgObj.crossOrigin = "anonymous";
+                    imgObj.src = djCutoutImage;
+                    imgObj.onload = () => {
+                        imageCacheRef.current[djCutoutImage] = imgObj;
+                        generateImage();
+                    };
+                }
+            }
+
+            // Image originale sauvegardée pour le reveal en Slide 2
+            let djOriginalImgObj: HTMLImageElement | null = null;
+            if (djOriginalImage) {
+                if (imageCacheRef.current[djOriginalImage]) {
+                    djOriginalImgObj = imageCacheRef.current[djOriginalImage];
+                } else {
+                    const imgObj = new Image();
+                    imgObj.crossOrigin = "anonymous";
+                    imgObj.src = djOriginalImage;
+                    imgObj.onload = () => {
+                        imageCacheRef.current[djOriginalImage] = imgObj;
+                        generateImage();
+                    };
+                }
+            }
+
             const targetHeight = effectiveTab === 'REEL' ? 1920 : 1350;
             if (canvas.width !== 1080) canvas.width = 1080;
             if (canvas.height !== targetHeight) canvas.height = targetHeight;
@@ -1373,7 +1416,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const musiqueCoverUrl = musiqueActiveTrack?.cover || (musiqueTrackIdx === 0 ? afficheImage : '');
             const musiqueCoverImg = (musiqueCoverUrl && musicCoverImgsRef.current[musiqueCoverUrl]) || (musiqueTrackIdx === 0 ? afficheImageRef.current : null);
 
-            const effectiveImg = img || (isMusiqueTrackSlide ? musiqueCoverImg : null);
+            let effectiveImg = img || (isMusiqueTrackSlide ? musiqueCoverImg : null);
+            if (theme === 'JEU_DJ') {
+                if (effectiveEditorialSlide === 1) {
+                    if (djCutoutImgObj) effectiveImg = djCutoutImgObj;
+                } else if (effectiveEditorialSlide >= 2) {
+                    if (djOriginalImgObj) effectiveImg = djOriginalImgObj;
+                }
+            }
 
             const isAnyAnimationActive = (textAnimation !== 'NONE' || bgAnimation !== 'NONE');
             const animElapsed = isVideoRecordingRef.current
@@ -1554,6 +1604,93 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const x = (canvas.width - iw) + bgOffsetX + bgAnimX;
                     const y = ((canvas.height - ih) / 2) + bgOffsetY + bgAnimY;
                     ctx.drawImage(effectiveImg, x, y, iw, ih);
+                } else if (theme === 'JEU_DJ' && effectiveEditorialSlide === 1) {
+                    // SILHOUETTE MYSTÈRE DJ (Slide 1 : Silhouette Noire + Halo / Lueur Néon + Badge Mystère)
+                    const baseScale = Math.min((canvas.width * 0.90) / effectiveImg.width, (canvas.height * 0.70) / effectiveImg.height);
+                    const scale = (baseScale > 1.25 ? baseScale : Math.max(canvas.width / effectiveImg.width, canvas.height / effectiveImg.height) * 0.92) * bgAnimScale;
+                    const iw = effectiveImg.width * scale;
+                    const ih = effectiveImg.height * scale;
+                    const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
+                    const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
+
+                    // 1. Fond scène / club EDM sombre et immersif
+                    if (!isTransparent) {
+                        const bgGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height * 0.42, 40, canvas.width / 2, canvas.height * 0.45, canvas.height * 0.75);
+                        bgGrad.addColorStop(0, '#101322');
+                        bgGrad.addColorStop(0.45, '#070913');
+                        bgGrad.addColorStop(1, '#020306');
+                        ctx.fillStyle = bgGrad;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                        // Lueur d'ambiance scénique derrière la silhouette (couleur néon choisie)
+                        const hexToRgb = (hex: string) => {
+                            const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+                            const fullHex = hex.replace(shorthandRegex, (_, r, g, b) => r + r + g + g + b + b);
+                            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(fullHex);
+                            return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '189, 0, 255';
+                        };
+                        const rgbColor = hexToRgb(djSilhouetteColor);
+                        const haloGrad = ctx.createRadialGradient(canvas.width / 2, y + ih * 0.42, 20, canvas.width / 2, y + ih * 0.42, Math.max(iw, ih) * 0.60);
+                        haloGrad.addColorStop(0, `rgba(${rgbColor}, 0.26)`);
+                        haloGrad.addColorStop(0.5, `rgba(${rgbColor}, 0.08)`);
+                        haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                        ctx.fillStyle = haloGrad;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
+
+                    // 2. Traitement silhouette via canvas hors écran (fond transparent rempli en noir pur)
+                    const off = document.createElement('canvas');
+                    off.width = effectiveImg.width;
+                    off.height = effectiveImg.height;
+                    const offCtx = off.getContext('2d');
+                    if (offCtx) {
+                        offCtx.drawImage(effectiveImg, 0, 0);
+                        offCtx.globalCompositeOperation = 'source-in';
+                        offCtx.fillStyle = '#060810';
+                        offCtx.fillRect(0, 0, off.width, off.height);
+                    }
+
+                    // 3. Dessin du halo / néon rim light
+                    ctx.save();
+                    ctx.shadowColor = djSilhouetteColor;
+                    ctx.shadowBlur = djGlowIntensity;
+                    ctx.drawImage(off, x, y, iw, ih);
+                    ctx.drawImage(off, x, y, iw, ih);
+                    ctx.restore();
+
+                    // 4. Dessin de la silhouette noire pure
+                    ctx.drawImage(off, x, y, iw, ih);
+
+                    // 5. Badge mystère "?" chic sur la silhouette
+                    if (djShowQuestionMark) {
+                        ctx.save();
+                        const qX = x + (iw / 2);
+                        const qY = y + (ih * 0.38);
+                        const qRadius = 42;
+
+                        ctx.shadowColor = djSilhouetteColor;
+                        ctx.shadowBlur = 18;
+                        const discGrad = ctx.createLinearGradient(qX - qRadius, qY - qRadius, qX + qRadius, qY + qRadius);
+                        discGrad.addColorStop(0, 'rgba(15, 20, 35, 0.94)');
+                        discGrad.addColorStop(1, 'rgba(6, 8, 16, 0.98)');
+                        ctx.fillStyle = discGrad;
+                        ctx.beginPath();
+                        ctx.arc(qX, qY, qRadius, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        ctx.strokeStyle = djSilhouetteColor;
+                        ctx.lineWidth = 2.5;
+                        ctx.stroke();
+
+                        ctx.font = '900 italic 50px "Montserrat", sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = '#ffffff';
+                        ctx.shadowColor = djSilhouetteColor;
+                        ctx.shadowBlur = 10;
+                        ctx.fillText('?', qX, qY + 2);
+                        ctx.restore();
+                    }
                 } else {
                     const baseScale = Math.max(canvas.width / effectiveImg.width, canvas.height / effectiveImg.height);
                     const scale = baseScale * bgAnimScale;
@@ -1910,13 +2047,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (!showText) return; 
 
             const isModernEditorialTheme = (
-                (!isEditorialAfficheRequested && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL'].includes(theme)) ||
+                (!isEditorialAfficheRequested && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme)) ||
                 (theme === 'MUSIQUE' && effectiveEditorialSlide === 1) ||
                 (theme === 'EVENTS' && eventsSlide === 1) ||
                 (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1)
             );
 
-            // Modern editorial themes (NEWS, FOCUS, MUSIQUE, RECAP, EVENTS, INTERVIEW, LIVESTREAM, ARTISTE FESTIVAL Slide 1, TOP 100, DEVINE CLIP / FESTIVAL)
+            // Modern editorial themes (NEWS, FOCUS, MUSIQUE, RECAP, EVENTS, INTERVIEW, LIVESTREAM, ARTISTE FESTIVAL Slide 1, TOP 100, DEVINE CLIP / FESTIVAL / DJ)
             // Use smooth cinematic header shadow & continuous dark bottom gradient (no scanlines)
             if (isModernEditorialTheme) {
                 // Top subtle header shadow for clean badge and logo legibility
@@ -1946,7 +2083,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, canvas.height * 0.82, canvas.width, canvas.height * 0.18);
                 }
             } else {
-                if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && eventsSlide === 2) && !(theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) && !isEditorialAfficheRequested && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
+                if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && eventsSlide === 2) && !(theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) && !isEditorialAfficheRequested && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
                     const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                         ? canvas.height * 0.8
                         : canvas.height * 0.4;
@@ -1962,7 +2099,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 // Lignes de scan rétro (uniquement sur les thèmes non modernisés)
-                if (theme !== 'PLANNING' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
+                if (theme !== 'PLANNING' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ') {
                     const scanlineLimitY = canvas.height;
                     ctx.fillStyle = 'rgba(0,0,0,0.1)';
                     for (let i = 0; i < scanlineLimitY; i += 6) ctx.fillRect(0, i, canvas.width, 2);
@@ -4241,8 +4378,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-                // Draw Stylized CTA Banner for Devine le Clip / Devine le Festival (Slide 1)
-                if ((theme === 'JEU' || theme === 'JEU_FESTIVAL') && effectiveEditorialSlide === 1) {
+                // Draw Stylized CTA Banner for Devine le Clip / Devine le Festival / Devine le DJ (Slide 1)
+                if ((theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ') && effectiveEditorialSlide === 1) {
                     ctx.save();
                     const centerX = canvas.width / 2;
                     const ctaY = canvas.height - 60;
@@ -4264,10 +4401,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.roundRect(centerX - ctaW / 2, ctaY - 22, ctaW, 44, 14);
                     ctx.fill();
 
-                    const ctaBorderColor = theme === 'JEU' ? '#00f0ff' : '#ffaa00';
+                    const ctaBorderColor = theme === 'JEU' ? '#00f0ff' : theme === 'JEU_FESTIVAL' ? '#ffaa00' : djSilhouetteColor;
                     const ctaBorder = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
                     ctaBorder.addColorStop(0, ctaBorderColor);
-                    ctaBorder.addColorStop(1, theme === 'JEU' ? '#bd00ff' : '#ff4400');
+                    ctaBorder.addColorStop(1, theme === 'JEU' ? '#bd00ff' : theme === 'JEU_FESTIVAL' ? '#ff4400' : '#00f0ff');
                     ctx.strokeStyle = ctaBorder;
                     ctx.lineWidth = 1.5;
                     ctx.stroke();
@@ -4281,7 +4418,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // 1. TOP-LEFT STYLIZED CAPSULE BADGE (French Crowd / Modern Editorial)
                 const isReel = effectiveTab === 'REEL';
-                const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL'].includes(theme);
+                const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
 
                 ctx.save();
                 if (isEditorialCarouselTheme) {
@@ -4341,7 +4478,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         : 99.0);
 
                 // Date automatique centrée dans la barre blanche (avec un segment de barre blanche de chaque côté)
-                const showEditorialDate = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'CONCOURS', 'REELS', 'CONSEILS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL'].includes(theme);
+                const showEditorialDate = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'CONCOURS', 'REELS', 'CONSEILS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
 
                 ctx.save();
                 ctx.strokeStyle = '#ffffff';
@@ -4791,6 +4928,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.lineWidth = 3.5;
                     ctx.shadowColor = quizColor1;
                     ctx.shadowBlur = 12;
+                } else if (theme === 'JEU_DJ') {
+                    ctx.strokeStyle = djSilhouetteColor;
+                    ctx.lineWidth = 3.5;
+                    ctx.shadowColor = djSilhouetteColor;
+                    ctx.shadowBlur = 14;
                 } else {
                     ctx.strokeStyle = `rgba(${activeData.grad}, 0.7)`;
                     ctx.lineWidth = 3;
@@ -4924,7 +5066,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoCategory, showPromoHook, showPromoHeadline]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoCategory, showPromoHook, showPromoHeadline, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark]);
 
     // Pre-charger les pochettes des tracks du thème MUSIQUE
     useEffect(() => {
@@ -6779,6 +6921,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (!conseilsSubtext) {
                 setConseilsSubtext('RÉPONSE :\n*TOMORROWLAND* (MAINSTAGE)\nBoom, Belgique. Tu y étais ?');
             }
+        } else if (newTheme === 'JEU_DJ') {
+            const defT = 'QUI SE CACHE DERRIÈRE CETTE *SILHOUETTE* ?';
+            setConseilsTitle(defT);
+            setCustomText(defT);
+            if (!conseilsSubtext || conseilsSubtext.includes('TOMORROWLAND') || conseilsSubtext.includes('TITRE DU MORCEAU')) {
+                setConseilsSubtext('RÉPONSE :\n*NOM DU DJ*\nTu avais reconnu sa silhouette ?');
+            }
         } else if (newTheme === 'TOP 100 DROPSIDERS') {
             if (!conseilsTitle || conseilsTitle === 'LE TITRE ICI' || conseilsTitle.includes('CLIP') || conseilsTitle.includes('FESTIVAL')) {
                 const defT = '*TOP 100 DROPSIDERS 2026* : LES VOTES SONT OUVERTS';
@@ -7035,20 +7184,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(1); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1 ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>ARTISTE FESTIVAL</button>
             <button
                 onClick={() => {
-                    if (theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
+                    if (theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ') {
                         handleSetTheme('JEU');
                     }
                 }}
                 className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${
-                    (theme === 'JEU' || theme === 'JEU_FESTIVAL')
+                    (theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ')
                         ? (theme === 'JEU'
                             ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]'
-                            : 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_12px_rgba(255,170,0,0.35)]')
+                            : theme === 'JEU_FESTIVAL'
+                            ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_12px_rgba(255,170,0,0.35)]'
+                            : 'bg-[#bd00ff]/20 border-[#bd00ff] text-[#bd00ff] shadow-[0_0_12px_rgba(189,0,255,0.35)]')
                         : 'bg-white/5 border-white/10 text-gray-400'
                 }`}
-                title="Devine le Clip / Devine le Festival"
+                title="Devinettes (Clip, Festival, Silhouette DJ)"
             >
-                {theme === 'JEU_FESTIVAL' ? '🎪 DEVINE FESTIVAL' : theme === 'JEU' ? '🎬 DEVINE CLIP' : 'DEVINETTE (JEU)'}
+                {theme === 'JEU_FESTIVAL' ? '🎪 DEVINE FESTIVAL' : theme === 'JEU_DJ' ? '👤 DEVINE LE DJ' : theme === 'JEU' ? '🎬 DEVINE CLIP' : 'DEVINETTE (JEU)'}
             </button>
             <button onClick={() => handleSetTheme('TOP 100 DROPSIDERS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 100 DROPSIDERS' ? 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600] shadow-[0_0_12px_rgba(255,230,0,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>TOP 100 DROPSIDERS</button>
             
@@ -7063,29 +7214,40 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
-    const devinetteSwitcher = (theme === 'JEU' || theme === 'JEU_FESTIVAL') ? (
+    const devinetteSwitcher = (theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ') ? (
         <div className="p-1.5 bg-black/60 border border-white/10 rounded-2xl flex items-center gap-1.5 shadow-xl">
             <button
                 type="button"
                 onClick={() => handleSetTheme('JEU')}
-                className={`flex-1 py-2 px-2.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-2 px-2 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1 ${
                     theme === 'JEU'
                         ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,240,255,0.4)] scale-[1.02]'
                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                 }`}
             >
-                🎬 Devine le Clip
+                🎬 Devine Clip
             </button>
             <button
                 type="button"
                 onClick={() => handleSetTheme('JEU_FESTIVAL')}
-                className={`flex-1 py-2 px-2.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-2 px-2 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1 ${
                     theme === 'JEU_FESTIVAL'
                         ? 'bg-[#ffaa00] text-black shadow-[0_0_15px_rgba(255,170,0,0.4)] scale-[1.02]'
                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                 }`}
             >
-                🎪 Devine le Festival
+                🎪 Devine Festival
+            </button>
+            <button
+                type="button"
+                onClick={() => handleSetTheme('JEU_DJ')}
+                className={`flex-1 py-2 px-2 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1 ${
+                    theme === 'JEU_DJ'
+                        ? 'bg-[#bd00ff] text-white shadow-[0_0_15px_rgba(189,0,255,0.5)] scale-[1.02]'
+                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+            >
+                👤 Devine DJ
             </button>
         </div>
     ) : null;
@@ -8778,7 +8940,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
-    const isMultiSlideTheme = ['PLANNING', 'ARTISTE FESTIVAL', 'EVENTS', 'AFFICHE', 'MUSIQUE', 'NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 5 STYLES', 'TOP 5 ARTISTE', 'TOP 10 FESTIVAL', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL'].includes(theme);
+    const isMultiSlideTheme = ['PLANNING', 'ARTISTE FESTIVAL', 'EVENTS', 'AFFICHE', 'MUSIQUE', 'NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 5 STYLES', 'TOP 5 ARTISTE', 'TOP 10 FESTIVAL', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
 
     const slideTransitionQuickBar = (
         <div className="flex items-center gap-1 pl-2 ml-1 border-l border-white/15">
@@ -9258,11 +9420,81 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         );
     })();
 
+    const handleIsolateDjSilhouette = async () => {
+        if (!bgImage) return;
+        setIsIsolatingSilhouette(true);
+        setIsolationProgress(0);
+        setIsolationError(null);
+
+        try {
+            if (!djOriginalImage) {
+                setDjOriginalImage(bgImage);
+            }
+
+            let inputSource: Blob | string = bgImage;
+            const existingImg = imageCacheRef.current[bgImage];
+            if (existingImg && existingImg.complete && existingImg.naturalWidth > 0) {
+                try {
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = existingImg.naturalWidth;
+                    tempCanvas.height = existingImg.naturalHeight;
+                    const tCtx = tempCanvas.getContext('2d');
+                    if (tCtx) {
+                        tCtx.drawImage(existingImg, 0, 0);
+                        const canvasBlob = await new Promise<Blob | null>((resolve) => 
+                            tempCanvas.toBlob(resolve, 'image/png')
+                        );
+                        if (canvasBlob) {
+                            inputSource = canvasBlob;
+                        }
+                    }
+                } catch {
+                    inputSource = bgImage;
+                }
+            }
+
+            const cdnUrl = 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.7/+esm';
+            const imgly: any = await (new Function('url', 'return import(url)')(cdnUrl));
+            const removeBgFn = imgly.removeBackground || imgly.default;
+            const blobResult = await removeBgFn(inputSource, {
+                progress: (_key: string, current: number, total: number) => {
+                    if (total > 0) {
+                        setIsolationProgress(Math.min(99, Math.round((current / total) * 100)));
+                    }
+                }
+            });
+
+            const cutoutUrl = URL.createObjectURL(blobResult);
+            setDjCutoutImage(cutoutUrl);
+
+            const imgObj = new Image();
+            imgObj.crossOrigin = 'anonymous';
+            imgObj.src = cutoutUrl;
+            imgObj.onload = () => {
+                imageCacheRef.current[cutoutUrl] = imgObj;
+                generateImage();
+            };
+        } catch (err: any) {
+            console.error('Erreur détourage silhouette IA:', err);
+            setIsolationError("Le détourage automatique n'a pas pu aboutir sur cette image. Tu peux aussi importer directement un PNG détouré du DJ !");
+        } finally {
+            setIsIsolatingSilhouette(false);
+            setIsolationProgress(null);
+        }
+    };
+
+    const handleResetDjSilhouette = () => {
+        setDjCutoutImage(null);
+        if (djOriginalImage) {
+            setBgImage(djOriginalImage);
+        }
+    };
+
     const conseilsEditor = (
         <div className="space-y-4">
 
             {/* CARROUSEL SLIDE SWITCHER (POUR NEWS, RÉCAP, FOCUS, ETC.) */}
-            {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL'].includes(theme) && (
+            {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) && (
                 <>
                     <div className="p-2 bg-black/60 border border-white/10 rounded-2xl space-y-2 shadow-xl">
                         <div className="flex items-center justify-between text-[8.5px] font-bold text-gray-400 uppercase px-1">
@@ -9493,35 +9725,46 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     )}
 
-                    {(theme === 'JEU' || theme === 'JEU_FESTIVAL') && (
-                        <div className="space-y-2">
-                            {/* Toggle switcher Devine le Clip / Devine le Festival */}
-                            <div className="p-1 bg-black/60 border border-white/10 rounded-xl flex items-center gap-1 shadow-lg">
+                    {(theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ') && (
+                        <div className="space-y-3">
+                            {/* Toggle switcher Devine le Clip / Devine le Festival / Devine le DJ */}
+                            <div className="p-1.5 bg-black/60 border border-white/10 rounded-xl flex items-center gap-1 shadow-lg">
                                 <button
                                     type="button"
                                     onClick={() => handleSetTheme('JEU')}
-                                    className={`flex-1 py-1.5 px-2 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                                    className={`flex-1 py-1.5 px-2 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1 ${
                                         theme === 'JEU'
                                             ? 'bg-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.4)] scale-[1.02]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
                                 >
-                                    🎬 Devine le Clip
+                                    🎬 Devine Clip
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => handleSetTheme('JEU_FESTIVAL')}
-                                    className={`flex-1 py-1.5 px-2 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                                    className={`flex-1 py-1.5 px-2 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1 ${
                                         theme === 'JEU_FESTIVAL'
                                             ? 'bg-[#ffaa00] text-black shadow-[0_0_12px_rgba(255,170,0,0.4)] scale-[1.02]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
                                 >
-                                    🎪 Devine le Festival
+                                    🎪 Devine Festival
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleSetTheme('JEU_DJ')}
+                                    className={`flex-1 py-1.5 px-2 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1 ${
+                                        theme === 'JEU_DJ'
+                                            ? 'bg-[#bd00ff] text-white shadow-[0_0_12px_rgba(189,0,255,0.5)] scale-[1.02]'
+                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    👤 Devine DJ
                                 </button>
                             </div>
 
-                            {/* Preset buttons */}
+                            {/* Preset buttons pour Devine le Clip */}
                             {theme === 'JEU' && (
                                 <div className="p-2.5 bg-neon-cyan/10 border border-neon-cyan/25 rounded-xl space-y-1.5 shadow-lg">
                                     <span className="text-[8px] font-black uppercase text-neon-cyan tracking-wider flex items-center gap-1.5">
@@ -9571,6 +9814,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                             )}
 
+                            {/* Preset buttons pour Devine le Festival */}
                             {theme === 'JEU_FESTIVAL' && (
                                 <div className="p-2.5 bg-[#ffaa00]/10 border border-[#ffaa00]/25 rounded-xl space-y-1.5 shadow-lg">
                                     <span className="text-[8px] font-black uppercase text-[#ffaa00] tracking-wider flex items-center gap-1.5">
@@ -9616,6 +9860,213 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         >
                                             🏰 Quelle stage ?
                                         </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Module Dédié Devine le DJ (Silhouette Mystère - Options A + B) */}
+                            {theme === 'JEU_DJ' && (
+                                <div className="p-3 bg-[#bd00ff]/10 border border-[#bd00ff]/30 rounded-2xl space-y-3 shadow-xl">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[9px] font-black uppercase text-[#bd00ff] tracking-wider flex items-center gap-1.5">
+                                            👤 SILHOUETTE MYSTÈRE DJ (OPTIONS A + B)
+                                        </span>
+                                        <span className="text-[7.5px] font-bold text-gray-400">
+                                            Slide 1 = Mystère • Slide 2 = Reveal
+                                        </span>
+                                    </div>
+
+                                    {/* Option B : Détourage IA 1-clic */}
+                                    <div className="p-2.5 bg-black/50 border border-white/10 rounded-xl space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[8.5px] font-black uppercase text-white flex items-center gap-1.5">
+                                                🪄 Détourage Automatique par IA (Option B)
+                                            </span>
+                                            {djCutoutImage && (
+                                                <span className="px-2 py-0.5 rounded-full text-[7.5px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                                    Silhouette Active
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-[8px] text-gray-300 leading-relaxed">
+                                            Clique pour détourer automatiquement le DJ et retirer le fond de ta photo. En Slide 1, sa silhouette noire avec halo néon s'affiche. En Slide 2, la photo couleur se révèle !
+                                        </p>
+                                        
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={handleIsolateDjSilhouette}
+                                                disabled={isIsolatingSilhouette || !bgImage}
+                                                className={`flex-1 py-2 px-3 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-2 shadow-lg ${
+                                                    isIsolatingSilhouette
+                                                        ? 'bg-purple-900/50 text-purple-300 border border-purple-500/40 cursor-wait'
+                                                        : !bgImage
+                                                        ? 'bg-white/5 text-gray-500 border border-white/5 cursor-not-allowed'
+                                                        : 'bg-gradient-to-r from-[#bd00ff] to-[#7928ca] hover:from-[#d13aff] hover:to-[#9333ea] text-white shadow-[0_0_15px_rgba(189,0,255,0.4)] active:scale-98'
+                                                }`}
+                                            >
+                                                {isIsolatingSilhouette ? (
+                                                    <>
+                                                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                        <span>Détourage IA en cours... {isolationProgress !== null ? `${isolationProgress}%` : ''}</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span>🪄</span>
+                                                        <span>{djCutoutImage ? 'Re-détourer la silhouette IA' : 'Détourer la silhouette (IA 1-Clic)'}</span>
+                                                    </>
+                                                )}
+                                            </button>
+
+                                            {djCutoutImage && (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleResetDjSilhouette}
+                                                    className="py-2 px-2.5 rounded-xl text-[8px] font-black uppercase bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 transition-all"
+                                                    title="Revenir à la photo originale non détourée"
+                                                >
+                                                    🔄 Reset
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {isolationError && (
+                                            <div className="p-2 bg-red-500/15 border border-red-500/30 rounded-lg text-[8px] text-red-300">
+                                                ⚠️ {isolationError}
+                                            </div>
+                                        )}
+
+                                        <div className="text-[7.5px] text-gray-400 italic">
+                                            💡 Option A directe : fonctionne aussi directement si tu importes un fichier PNG transparent du DJ dans « Modifier le fond ».
+                                        </div>
+                                    </div>
+
+                                    {/* Option A : Personnalisation Néon Rim Light & Badge Mystère */}
+                                    <div className="p-2.5 bg-black/50 border border-white/10 rounded-xl space-y-2.5">
+                                        <span className="text-[8.5px] font-black uppercase text-white block">
+                                            🎨 Halo & Lueur Néon (Rim Light)
+                                        </span>
+
+                                        {/* Choix couleur néon */}
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            {[
+                                                { label: 'Violet EDM', color: '#bd00ff' },
+                                                { label: 'Cyan Laser', color: '#00f0ff' },
+                                                { label: 'Or Festival', color: '#ffaa00' },
+                                                { label: 'Rouge Néon', color: '#ff0033' },
+                                                { label: 'Vert Laser', color: '#39ff14' },
+                                                { label: 'Blanc Pur', color: '#ffffff' },
+                                            ].map(c => (
+                                                <button
+                                                    key={c.color}
+                                                    type="button"
+                                                    onClick={() => setDjSilhouetteColor(c.color)}
+                                                    className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1.5 border ${
+                                                        djSilhouetteColor.toLowerCase() === c.color.toLowerCase()
+                                                            ? 'bg-white/20 border-white text-white shadow-md'
+                                                            : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'
+                                                    }`}
+                                                >
+                                                    <span className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: c.color }} />
+                                                    <span>{c.label}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        {/* Slider intensité lueur */}
+                                        <div className="space-y-1">
+                                            <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase">
+                                                <span>Intensité du halo néon</span>
+                                                <span className="text-white font-mono">{djGlowIntensity}px</span>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min={10}
+                                                max={50}
+                                                value={djGlowIntensity}
+                                                onChange={(e) => setDjGlowIntensity(Number(e.target.value))}
+                                                className="w-full accent-[#bd00ff] cursor-pointer"
+                                            />
+                                        </div>
+
+                                        {/* Toggle Badge "?" */}
+                                        <div className="flex items-center justify-between pt-1 border-t border-white/10">
+                                            <span className="text-[8px] font-bold text-gray-300 uppercase">
+                                                Badge mystère « ? » au centre
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setDjShowQuestionMark(!djShowQuestionMark)}
+                                                className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase transition-all border ${
+                                                    djShowQuestionMark
+                                                        ? 'bg-[#bd00ff]/20 border-[#bd00ff] text-[#bd00ff]'
+                                                        : 'bg-white/5 border-white/10 text-gray-500'
+                                                }`}
+                                            >
+                                                {djShowQuestionMark ? 'ACTIF' : 'MASQUÉ'}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Modèles rapides en 1 clic */}
+                                    <div className="space-y-1.5">
+                                        <span className="text-[8px] font-black uppercase text-[#bd00ff] tracking-wider flex items-center gap-1.5">
+                                            👤 Modèles rapides Devine le DJ en 1 clic :
+                                        </span>
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const t = 'QUI SE CACHE DERRIÈRE CETTE *SILHOUETTE* ?';
+                                                    const s = 'RÉPONSE :\n*NOM DU DJ*\nTu avais reconnu sa silhouette ?';
+                                                    setConseilsTitle(t);
+                                                    setCustomText(t);
+                                                    setConseilsSubtext(s);
+                                                }}
+                                                className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                            >
+                                                👤 Quel DJ ?
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const t = 'QUEL *DUO LÉGENDAIRE* SE CACHE ICI ?';
+                                                    const s = 'RÉPONSE :\n*SWEDISH HOUSE MAFIA*\nDis-nous en commentaire si tu l\'avais !';
+                                                    setConseilsTitle(t);
+                                                    setCustomText(t);
+                                                    setConseilsSubtext(s);
+                                                }}
+                                                className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                            >
+                                                👥 Quel duo ?
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const t = 'SAURAS-TU RECONNAÎTRE CE *DJ MASQUÉ* ?';
+                                                    const s = 'RÉPONSE :\n*BORIS BREJCHA*\nLégendaire avec son masque de Joker !';
+                                                    setConseilsTitle(t);
+                                                    setCustomText(t);
+                                                    setConseilsSubtext(s);
+                                                }}
+                                                className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                            >
+                                                🎭 DJ masqué
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const t = 'QUELLE *TÊTE D\'AFFICHE* DE CET ÉTÉ EST-CE ?';
+                                                    const s = 'RÉPONSE :\n*DAVID GUETTA*\nDe retour sur la Mainstage cet été !';
+                                                    setConseilsTitle(t);
+                                                    setCustomText(t);
+                                                    setConseilsSubtext(s);
+                                                }}
+                                                className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                            >
+                                                ⚡ Tête d'affiche
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -12458,8 +12909,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <><span className="text-[10px] font-black text-[#ff007f] uppercase">Événements & Affiche (Carrousel)</span>{eventsEditor}</>
                             ) : theme === 'MUSIQUE' ? (
                                 <><span className="text-[10px] font-black text-[#00ff66] uppercase">Musique & Cover Track (Carrousel)</span>{musiqueEditor}</>
-                            ) : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL'].includes(theme) ? (
-                                <><span className="text-[10px] font-black text-neon-cyan uppercase">Contenu Titre & Sous-titre ({theme === 'TOP 100 DROPSIDERS' ? 'TOP 100' : theme === 'JEU' ? 'DEVINE LE CLIP' : theme === 'JEU_FESTIVAL' ? 'DEVINE LE FESTIVAL' : theme})</span>{conseilsEditor}</>
+                            ) : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
+                                <><span className="text-[10px] font-black text-neon-cyan uppercase">Contenu Titre & Sous-titre ({theme === 'TOP 100 DROPSIDERS' ? 'TOP 100' : theme === 'JEU' ? 'DEVINE LE CLIP' : theme === 'JEU_FESTIVAL' ? 'DEVINE LE FESTIVAL' : theme === 'JEU_DJ' ? 'DEVINE LE DJ' : theme})</span>{conseilsEditor}</>
                             ) : theme === 'CITATION' ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Citation & Auteur</span>{citationEditor}</>
                             ) : theme === 'PROMO' ? (
@@ -13318,7 +13769,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 ))}
                                                 <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter</button>
                                             </div>
-                                        ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'ARTISTE FESTIVAL' ? artisteFestivalEditor : (theme === 'EVENTS' || theme === 'AFFICHE') ? eventsEditor : theme === 'MUSIQUE' ? musiqueEditor : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL'].includes(theme) ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'PROMO' ? promoEditor : textEditor}
+                                        ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'ARTISTE FESTIVAL' ? artisteFestivalEditor : (theme === 'EVENTS' || theme === 'AFFICHE') ? eventsEditor : theme === 'MUSIQUE' ? musiqueEditor : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'PROMO' ? promoEditor : textEditor}
                                     </div>
                                 )}
 
