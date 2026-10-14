@@ -32,7 +32,9 @@ import {
     Play,
     Volume2,
     Music,
-    Scissors
+    Scissors,
+    ChevronDown,
+    ChevronUp
 } from 'lucide-react';
 import { ExportSuccessModal } from './ExportSuccessModal';
 import { fixEncoding } from '../utils/standardizer';
@@ -957,6 +959,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [showPromoLine1, setShowPromoLine1] = useState<boolean>(true);
     const [showPromoLine2, setShowPromoLine2] = useState<boolean>(true);
     const [sidebarStep, setSidebarStep] = useState<'text' | 'visual' | 'export'>('text');
+    const [isThemeAccordionOpen, setIsThemeAccordionOpen] = useState<boolean>(false);
+    const [themeCategoryFilter, setThemeCategoryFilter] = useState<'ALL' | 'EDITO' | 'MUSIC' | 'AGENDA' | 'GAMES'>('ALL');
 
     const getTransitionDuration = (t: SlideTransitionType) => {
         switch (t) {
@@ -13311,13 +13315,185 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {sidebarStep === 'text' && (
                             <div className="space-y-4 animate-in fade-in duration-150">
                                 <div className="space-y-1.5">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Choix du Thème</span>
-                                        <span className="text-[8.5px] font-black px-2 py-0.5 rounded-full bg-white/10 text-white uppercase border border-white/10">{theme}</span>
-                                    </div>
-                                    {themeButtons}
-                                    {devinetteSwitcher}
-                                    {styleMusicButtons}
+                                    {(() => {
+                                        const getThemeMeta = (t: string) => {
+                                            if (['MUSIQUE', 'TRACKLIST', 'ARTISTE FESTIVAL', 'SPOTLIGHT'].includes(t)) {
+                                                return { category: 'MUSIC' as const, catLabel: 'Musique', icon: '🎵', color: '#00ff66', border: 'border-[#00ff66]/40', bg: 'bg-[#00ff66]/15', text: 'text-[#00ff66]' };
+                                            }
+                                            if (['PLANNING', 'CALENDRIER', 'EVENTS', 'AFFICHE', 'MAP'].includes(t)) {
+                                                return { category: 'AGENDA' as const, catLabel: 'Agenda', icon: '📅', color: '#ff3700', border: 'border-[#ff3700]/40', bg: 'bg-[#ff3700]/15', text: 'text-[#ff3700]' };
+                                            }
+                                            if (['JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'CONCOURS', 'TOP 100 DROPSIDERS'].includes(t)) {
+                                                return { category: 'GAMES' as const, catLabel: 'Jeux', icon: '🎮', color: '#00f0ff', border: 'border-[#00f0ff]/40', bg: 'bg-[#00f0ff]/15', text: 'text-[#00f0ff]' };
+                                            }
+                                            return { category: 'EDITO' as const, catLabel: 'Édito', icon: '📰', color: '#ff1241', border: 'border-[#ff1241]/40', bg: 'bg-[#ff1241]/15', text: 'text-neon-red' };
+                                        };
+
+                                        const currentMeta = getThemeMeta(theme);
+                                        const currentDisplayName = theme === 'ARTISTE FESTIVAL'
+                                            ? (artisteFestivalSlide === 2 ? 'SPOTLIGHT' : 'ARTISTE FESTIVAL')
+                                            : theme === 'JEU_FESTIVAL' ? 'DEVINE FESTIVAL'
+                                            : theme === 'JEU_DJ' ? 'DEVINE LE DJ'
+                                            : theme === 'JEU' ? 'DEVINE CLIP'
+                                            : theme;
+
+                                        const desktopThemeList = [
+                                            // 📰 Éditorial
+                                            { id: 'NEWS', label: 'NEWS', category: 'EDITO', action: () => handleSetTheme('NEWS'), active: theme === 'NEWS', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,18,65,0.35)]' },
+                                            { id: 'FOCUS', label: 'FOCUS', category: 'EDITO', action: () => handleSetTheme('FOCUS'), active: theme === 'FOCUS', style: 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_12px_rgba(255,170,0,0.35)]' },
+                                            { id: 'RECAP', label: 'RÉCAP', category: 'EDITO', action: () => handleSetTheme('RECAP'), active: theme === 'RECAP', style: 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3] shadow-[0_0_12px_rgba(192,38,211,0.35)]' },
+                                            { id: 'INTERVIEW', label: 'INTERVIEW', category: 'EDITO', action: () => handleSetTheme('INTERVIEW'), active: theme === 'INTERVIEW', style: 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' },
+                                            { id: 'CITATION', label: 'CITATION', category: 'EDITO', action: () => handleSetTheme('CITATION'), active: theme === 'CITATION', style: 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.2)]' },
+                                            { id: 'LIVESTREAM', label: 'DIRECT', category: 'EDITO', action: () => handleSetTheme('LIVESTREAM'), active: theme === 'LIVESTREAM', style: 'bg-pink-500/20 border-pink-500 text-pink-500 shadow-[0_0_12px_rgba(236,72,153,0.35)]' },
+                                            ...(activeTab === 'REEL' ? [{ id: 'REELS', label: 'REELS', category: 'EDITO', action: () => handleSetTheme('REELS'), active: theme === 'REELS' || theme === 'CONSEILS', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' }] : []),
+
+                                            // 🎵 Musique
+                                            { id: 'MUSIQUE', label: 'MUSIQUE', category: 'MUSIC', action: () => handleSetTheme('MUSIQUE'), active: theme === 'MUSIQUE', style: 'bg-neon-green/20 border-neon-green text-neon-green shadow-[0_0_12px_rgba(0,255,102,0.35)]' },
+                                            { id: 'SPOTLIGHT', label: 'SPOTLIGHT', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(2); }, active: theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2), style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' },
+                                            { id: 'ARTISTE FESTIVAL', label: 'ARTISTE FESTIVAL', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(1); }, active: theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1, style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' },
+                                            ...(activeTab === 'REEL' ? [{ id: 'TRACKLIST', label: 'TRACKLIST', category: 'MUSIC', action: () => handleSetTheme('TRACKLIST'), active: theme === 'TRACKLIST', style: 'bg-orange-500/20 border-orange-500 text-orange-500 shadow-[0_0_12px_rgba(255,120,0,0.35)]' }] : []),
+
+                                            // 📅 Agenda
+                                            { id: 'PLANNING', label: 'AGENDA', category: 'AGENDA', action: () => handleSetTheme('PLANNING'), active: theme === 'PLANNING', style: 'bg-[#ff3700]/20 border-[#ff3700] text-[#ff3700] shadow-[0_0_12px_rgba(255,55,0,0.35)]' },
+                                            { id: 'EVENTS', label: 'EVENTS', category: 'AGENDA', action: () => { handleSetTheme('EVENTS'); setEventsSlide(1); }, active: theme === 'EVENTS' || theme === 'AFFICHE', style: 'bg-[#ff007f]/20 border-[#ff007f] text-[#ff007f] shadow-[0_0_12px_rgba(255,0,127,0.35)]' },
+                                            ...(activeTab === 'REEL' ? [{ id: 'MAP', label: 'CARTE (STORY)', category: 'AGENDA', action: () => handleSetTheme('MAP'), active: theme === 'MAP', style: 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]' }] : []),
+
+                                            // 🎮 Jeux
+                                            {
+                                                id: 'DEVINETTE',
+                                                label: theme === 'JEU_FESTIVAL' ? '🎪 DEVINE FESTIVAL' : theme === 'JEU_DJ' ? '👤 DEVINE LE DJ' : theme === 'JEU' ? '🎬 DEVINE CLIP' : 'DEVINETTE (JEU)',
+                                                category: 'GAMES',
+                                                action: () => { if (theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ') handleSetTheme('JEU'); },
+                                                active: theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ',
+                                                style: theme === 'JEU_FESTIVAL' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_12px_rgba(255,170,0,0.35)]' : theme === 'JEU_DJ' ? 'bg-[#bd00ff]/20 border-[#bd00ff] text-[#bd00ff] shadow-[0_0_12px_rgba(189,0,255,0.35)]' : 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]'
+                                            },
+                                            { id: 'CONCOURS', label: 'CONCOURS', category: 'GAMES', action: () => handleSetTheme('CONCOURS'), active: theme === 'CONCOURS', style: 'bg-[#008cff]/20 border-[#008cff] text-[#008cff] shadow-[0_0_12px_rgba(0,140,255,0.35)]' },
+                                            { id: 'TOP 100 DROPSIDERS', label: 'TOP 100 DROPSIDERS', category: 'GAMES', action: () => handleSetTheme('TOP 100 DROPSIDERS'), active: theme === 'TOP 100 DROPSIDERS', style: 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600] shadow-[0_0_12px_rgba(255,230,0,0.35)]' }
+                                        ];
+
+                                        const filteredThemes = themeCategoryFilter === 'ALL'
+                                            ? desktopThemeList
+                                            : desktopThemeList.filter(item => item.category === themeCategoryFilter);
+
+                                        return (
+                                            <div className="space-y-2">
+                                                {/* CARTE ACCORDÉON INTELLIGENT (SYNTHÈSE COMPACTE & DÉPLIANTE) */}
+                                                <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.07] to-white/[0.02] p-2.5 backdrop-blur-xl shadow-lg transition-all duration-200 hover:border-white/20">
+                                                    <div
+                                                        onClick={() => setIsThemeAccordionOpen(!isThemeAccordionOpen)}
+                                                        className="flex items-center justify-between cursor-pointer select-none group"
+                                                        title="Cliquer pour dérouler ou replier les thèmes"
+                                                    >
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <span className={`px-2 py-0.5 rounded-full text-[8.5px] font-black uppercase tracking-wider border flex items-center gap-1 ${currentMeta.bg} ${currentMeta.border} ${currentMeta.text}`}>
+                                                                <span>{currentMeta.icon}</span>
+                                                                <span>{currentMeta.catLabel}</span>
+                                                            </span>
+                                                            <div className="flex items-center gap-1.5 truncate">
+                                                                <span className="text-white font-black text-xs tracking-tight uppercase truncate">
+                                                                    {currentDisplayName}
+                                                                </span>
+                                                                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: currentMeta.color, boxShadow: `0 0 8px ${currentMeta.color}` }} />
+                                                            </div>
+                                                        </div>
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setIsThemeAccordionOpen(!isThemeAccordionOpen);
+                                                            }}
+                                                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[9px] font-black uppercase border transition-all ${
+                                                                isThemeAccordionOpen
+                                                                    ? 'bg-white/20 border-white/30 text-white shadow-sm'
+                                                                    : 'bg-white/5 border-white/10 text-gray-300 group-hover:bg-white/10 group-hover:text-white group-hover:border-white/25'
+                                                            }`}
+                                                        >
+                                                            <span>{isThemeAccordionOpen ? 'Fermer' : 'Changer'}</span>
+                                                            {isThemeAccordionOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                                                        </button>
+                                                    </div>
+
+                                                    {/* CONTENU DÉPLIÉ DE L'ACCORDÉON */}
+                                                    <AnimatePresence>
+                                                        {isThemeAccordionOpen && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, height: 0 }}
+                                                                animate={{ opacity: 1, height: 'auto' }}
+                                                                exit={{ opacity: 0, height: 0 }}
+                                                                transition={{ duration: 0.2 }}
+                                                                className="overflow-hidden pt-3 space-y-2.5 border-t border-white/10 mt-2.5"
+                                                            >
+                                                                {/* FILTRES PAR CATÉGORIE */}
+                                                                <div className="flex items-center gap-1 overflow-x-auto pb-1 custom-scrollbar">
+                                                                    {[
+                                                                        { key: 'ALL', label: 'Tous' },
+                                                                        { key: 'EDITO', label: '📰 Édito' },
+                                                                        { key: 'MUSIC', label: '🎵 Musique' },
+                                                                        { key: 'AGENDA', label: '📅 Agenda' },
+                                                                        { key: 'GAMES', label: '🎮 Jeux' },
+                                                                    ].map(cat => (
+                                                                        <button
+                                                                            key={cat.key}
+                                                                            type="button"
+                                                                            onClick={() => setThemeCategoryFilter(cat.key as any)}
+                                                                            className={`px-2.5 py-1 rounded-lg text-[8.5px] font-black uppercase whitespace-nowrap transition-all border ${
+                                                                                themeCategoryFilter === cat.key
+                                                                                    ? 'bg-white text-black border-white shadow-sm'
+                                                                                    : 'bg-black/40 text-gray-400 border-white/10 hover:text-white hover:bg-white/10'
+                                                                            }`}
+                                                                        >
+                                                                            {cat.label}
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+
+                                                                {/* GRILLE DES THÈMES */}
+                                                                <div className="grid grid-cols-3 gap-1.5 max-h-[260px] overflow-y-auto pr-1 custom-scrollbar">
+                                                                    {filteredThemes.map(item => (
+                                                                        <button
+                                                                            key={item.id}
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                item.action();
+                                                                            }}
+                                                                            className={`py-2 px-1 rounded-xl text-[8px] font-black uppercase border transition-all text-center truncate ${
+                                                                                item.active
+                                                                                    ? item.style
+                                                                                    : 'bg-white/5 border-white/5 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/15'
+                                                                            }`}
+                                                                            title={item.label}
+                                                                        >
+                                                                            {item.label}
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+
+                                                                {/* PIED DE L'ACCORDÉON */}
+                                                                <div className="pt-1 flex items-center justify-between border-t border-white/5 text-[8px] text-gray-500">
+                                                                    <span>{filteredThemes.length} thème{filteredThemes.length > 1 ? 's' : ''} disponible{filteredThemes.length > 1 ? 's' : ''}</span>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setIsThemeAccordionOpen(false)}
+                                                                        className="text-neon-cyan hover:underline uppercase font-bold flex items-center gap-1"
+                                                                    >
+                                                                        <span>Replier l'accordéon</span>
+                                                                        <ChevronUp className="w-2.5 h-2.5" />
+                                                                    </button>
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </div>
+
+                                                {/* SELECTEUR RAPIDE DEVINETTE */}
+                                                {devinetteSwitcher}
+
+                                                {/* BOUTONS STYLE MUSIQUE */}
+                                                {styleMusicButtons}
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
 
                                 {/* Texte Principal & Contenu du Thème */}
