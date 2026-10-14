@@ -14392,9 +14392,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                                 {activePanel === 'texte' && (
                                     <div className="px-6 pb-8 space-y-4">
-                                        {theme !== 'MAP' && textAnimationControl}
-                                        {theme !== 'MAP' && isMultiSlideTheme && slideTransitionControl}
-                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Contenu</p>
+                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Contenu</p>
                                         {(isCarouselPromoActive && isMultiSlideTheme) ? promoEditor : theme === 'CALENDRIER' ? (
                                             <div className="space-y-3">
                                                 <input value={calendarMonth} onChange={e => setCalendarMonth(e.target.value)} placeholder="MARS 2025" className="w-full bg-white/10 border border-neon-orange/40 rounded-xl p-3 text-white font-black italic uppercase text-xs" />
@@ -14408,6 +14406,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter</button>
                                             </div>
                                         ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'ARTISTE FESTIVAL' ? artisteFestivalEditor : (theme === 'EVENTS' || theme === 'AFFICHE') ? eventsEditor : theme === 'MUSIQUE' ? musiqueEditor : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'PROMO' ? promoEditor : textEditor}
+                                        {/* Animation du texte & transitions de slide en dessous du cadre texte */}
+                                        {theme !== 'MAP' && textAnimationControl}
+                                        {theme !== 'MAP' && isMultiSlideTheme && slideTransitionControl}
                                     </div>
                                 )}
 
