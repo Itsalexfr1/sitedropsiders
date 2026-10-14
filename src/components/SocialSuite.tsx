@@ -1348,6 +1348,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         ctx.restore();
     };
 
+    const checkImageHasAlpha = (imgElement: HTMLImageElement | null): boolean => {
+        if (!imgElement) return false;
+        try {
+            const w = imgElement.naturalWidth || imgElement.width;
+            const h = imgElement.naturalHeight || imgElement.height;
+            if (!w || !h) return false;
+            const offCanvas = document.createElement('canvas');
+            const s = 48;
+            offCanvas.width = s;
+            offCanvas.height = s;
+            const offCtx = offCanvas.getContext('2d', { willReadFrequently: true });
+            if (!offCtx) return false;
+            offCtx.drawImage(imgElement, 0, 0, s, s);
+            const data = offCtx.getImageData(0, 0, s, s).data;
+            for (let i = 3; i < data.length; i += 4) {
+                if (data[i] < 210) return true;
+            }
+            return false;
+        } catch {
+            return false;
+        }
+    };
+
     const generateImage = async (targetTab?: TabType, exportMode: boolean | ThemeType = false, forceThemeParam?: ThemeType) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -1456,10 +1479,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             let effectiveImg = img || (isMusiqueTrackSlide ? musiqueCoverImg : null);
             if (theme === 'JEU_DJ') {
                 if (isCurrentSlideSilhouette) {
-                    if (djCutoutImgObj) effectiveImg = djCutoutImgObj;
+                    effectiveImg = djCutoutImgObj || img || null;
                 } else {
-                    if (img) effectiveImg = img;
-                    else if (djOriginalImgObj) effectiveImg = djOriginalImgObj;
+                    effectiveImg = img || djOriginalImgObj || null;
                 }
             }
 
@@ -1643,151 +1665,211 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const y = ((canvas.height - ih) / 2) + bgOffsetY + bgAnimY;
                     ctx.drawImage(effectiveImg, x, y, iw, ih);
                 } else if (theme === 'JEU_DJ' && isCurrentSlideSilhouette) {
-                    // SILHOUETTE MYSTÈRE DJ (Silhouette Noire + Halo / Lueur Néon + Animation d'apparition + Badge Mystère)
-                    const baseScale = Math.min((canvas.width * 0.90) / effectiveImg.width, (canvas.height * 0.70) / effectiveImg.height);
-                    let scale = (baseScale > 1.25 ? baseScale : Math.max(canvas.width / effectiveImg.width, canvas.height / effectiveImg.height) * 0.92) * bgAnimScale;
+                    // SILHOUETTE MYSTÈRE DJ (Fond visuel scénique + Silhouette Noire avec Rim Light & Halo + Animations d'apparition)
+                    const bgPhoto = img;
+                    const isImgTransparent = bgPhoto ? checkImageHasAlpha(bgPhoto) : false;
+                    const activeSilhouetteImg = djCutoutImgObj || (isImgTransparent ? bgPhoto : null);
 
-                    // Application de l'effet d'apparition choisi
-                    let silAlpha = 1.0;
-                    let silGlowBlur = djGlowIntensity;
-                    let scanLaserY: number | null = null;
+                    // 1. DESSIN DU FOND VISUEL SCÉNIQUE
+                    if (bgPhoto && (!isImgTransparent || djCutoutImgObj)) {
+                        // Dessiner la photo comme fond de scène / club / festival
+                        const baseScale = Math.max(canvas.width / bgPhoto.width, canvas.height / bgPhoto.height);
+                        const scale = baseScale * bgAnimScale;
+                        const biw = bgPhoto.width * scale;
+                        const bih = bgPhoto.height * scale;
+                        const bx = ((canvas.width - biw) / 2) + bgOffsetX + bgAnimX;
+                        const by = ((canvas.height - bih) / 2) + bgOffsetY + bgAnimY;
+                        ctx.drawImage(bgPhoto, bx, by, biw, bih);
 
-                    if (djAppearanceAnim === 'STROBE') {
-                        // Allumage néon stroboscopique intense
-                        if (animElapsed < 0.85) {
-                            const step = Math.floor(animElapsed * 26);
-                            const flicker = (step % 4 !== 1 && step % 7 !== 2);
-                            silAlpha = flicker ? 1.0 : 0.20;
-                            silGlowBlur = flicker ? djGlowIntensity * 1.6 : djGlowIntensity * 0.3;
-                        }
-                    } else if (djAppearanceAnim === 'PULSE') {
-                        // Pulsation basse EDM calée sur 128 BPM
-                        const pulse = Math.pow(Math.sin(animElapsed * Math.PI * 2.13), 4);
-                        silGlowBlur = djGlowIntensity * (0.75 + 0.65 * pulse);
-                        scale *= (1.0 + pulse * 0.025);
-                    } else if (djAppearanceAnim === 'FADE') {
-                        // Émergence douce de l'ombre
-                        const t = Math.max(0, Math.min(1, animElapsed / 0.75));
-                        const ease = 1 - Math.pow(1 - t, 3);
-                        silAlpha = ease;
-                        scale *= (0.92 + 0.08 * ease);
-                        silGlowBlur = djGlowIntensity * ease;
-                    } else if (djAppearanceAnim === 'SCAN') {
-                        // Balayage laser vertical continu
-                        const tScan = (animElapsed % 2.4) / 2.4;
-                        scanLaserY = ((canvas.height * 0.44) - (effectiveImg.height * scale) / 2) + ((effectiveImg.height * scale) * tScan);
-                        silGlowBlur = djGlowIntensity * (0.9 + Math.sin(tScan * Math.PI) * 0.4);
-                    } else if (djAppearanceAnim === 'IMPACT') {
-                        // Zoom impact EDM
-                        const t = Math.max(0, Math.min(1, animElapsed / 0.50));
-                        const ease = 1 - Math.pow(1 - t, 4);
-                        scale *= (1.35 - 0.35 * ease);
-                        silAlpha = Math.min(1, t * 2.5);
-                    }
-
-                    const iw = effectiveImg.width * scale;
-                    const ih = effectiveImg.height * scale;
-                    const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
-                    const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
-
-                    // 1. Fond scène / club EDM sombre et immersif
-                    if (!isTransparent) {
+                        // Voile atmosphérique club/EDM sombre immersif pour faire ressortir la silhouette & le texte
+                        const bgOverlay = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                        bgOverlay.addColorStop(0, 'rgba(4, 6, 14, 0.40)');
+                        bgOverlay.addColorStop(0.35, 'rgba(4, 6, 14, 0.65)');
+                        bgOverlay.addColorStop(0.70, 'rgba(2, 3, 6, 0.88)');
+                        bgOverlay.addColorStop(1, 'rgba(2, 3, 6, 0.96)');
+                        ctx.fillStyle = bgOverlay;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    } else if (!isTransparent) {
+                        // Fond dégradé scène EDM sombre et immersif si aucun fond photo ou fond transparent
                         const bgGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height * 0.42, 40, canvas.width / 2, canvas.height * 0.45, canvas.height * 0.75);
                         bgGrad.addColorStop(0, '#101322');
                         bgGrad.addColorStop(0.45, '#070913');
                         bgGrad.addColorStop(1, '#020306');
                         ctx.fillStyle = bgGrad;
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
+
+                    const hexToRgb = (hex: string) => {
+                        const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+                        const fullHex = hex.replace(shorthandRegex, (_, r, g, b) => r + r + g + g + b + b);
+                        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(fullHex);
+                        return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '189, 0, 255';
+                    };
+                    const rgbColor = hexToRgb(djSilhouetteColor);
+
+                    // 2. DESSIN DE LA SILHOUETTE (si détourée ou PNG transparent)
+                    if (activeSilhouetteImg) {
+                        const baseScale = Math.min((canvas.width * 0.90) / activeSilhouetteImg.width, (canvas.height * 0.70) / activeSilhouetteImg.height);
+                        let scale = (baseScale > 1.25 ? baseScale : Math.max(canvas.width / activeSilhouetteImg.width, canvas.height / activeSilhouetteImg.height) * 0.92) * bgAnimScale;
+
+                        // Application de l'effet d'apparition choisi
+                        let silAlpha = 1.0;
+                        let silGlowBlur = djGlowIntensity;
+                        let scanLaserY: number | null = null;
+
+                        if (djAppearanceAnim === 'STROBE') {
+                            if (animElapsed < 0.85) {
+                                const step = Math.floor(animElapsed * 26);
+                                const flicker = (step % 4 !== 1 && step % 7 !== 2);
+                                silAlpha = flicker ? 1.0 : 0.20;
+                                silGlowBlur = flicker ? djGlowIntensity * 1.6 : djGlowIntensity * 0.3;
+                            }
+                        } else if (djAppearanceAnim === 'PULSE') {
+                            const pulse = Math.pow(Math.sin(animElapsed * Math.PI * 2.13), 4);
+                            silGlowBlur = djGlowIntensity * (0.75 + 0.65 * pulse);
+                            scale *= (1.0 + pulse * 0.025);
+                        } else if (djAppearanceAnim === 'FADE') {
+                            const t = Math.max(0, Math.min(1, animElapsed / 0.75));
+                            const ease = 1 - Math.pow(1 - t, 3);
+                            silAlpha = ease;
+                            scale *= (0.92 + 0.08 * ease);
+                            silGlowBlur = djGlowIntensity * ease;
+                        } else if (djAppearanceAnim === 'SCAN') {
+                            const tScan = (animElapsed % 2.4) / 2.4;
+                            scanLaserY = ((canvas.height * 0.44) - (activeSilhouetteImg.height * scale) / 2) + ((activeSilhouetteImg.height * scale) * tScan);
+                            silGlowBlur = djGlowIntensity * (0.9 + Math.sin(tScan * Math.PI) * 0.4);
+                        } else if (djAppearanceAnim === 'IMPACT') {
+                            const t = Math.max(0, Math.min(1, animElapsed / 0.50));
+                            const ease = 1 - Math.pow(1 - t, 4);
+                            scale *= (1.35 - 0.35 * ease);
+                            silAlpha = Math.min(1, t * 2.5);
+                        }
+
+                        const iw = activeSilhouetteImg.width * scale;
+                        const ih = activeSilhouetteImg.height * scale;
+                        const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
+                        const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
 
                         // Lueur d'ambiance scénique derrière la silhouette (couleur néon choisie)
-                        const hexToRgb = (hex: string) => {
-                            const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-                            const fullHex = hex.replace(shorthandRegex, (_, r, g, b) => r + r + g + g + b + b);
-                            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(fullHex);
-                            return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '189, 0, 255';
-                        };
-                        const rgbColor = hexToRgb(djSilhouetteColor);
                         const haloGrad = ctx.createRadialGradient(canvas.width / 2, y + ih * 0.42, 20, canvas.width / 2, y + ih * 0.42, Math.max(iw, ih) * 0.60);
-                        haloGrad.addColorStop(0, `rgba(${rgbColor}, 0.26)`);
+                        haloGrad.addColorStop(0, `rgba(${rgbColor}, 0.30)`);
+                        haloGrad.addColorStop(0.5, `rgba(${rgbColor}, 0.09)`);
+                        haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                        ctx.fillStyle = haloGrad;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                        // Traitement silhouette via canvas hors écran (fond transparent rempli en noir pur)
+                        const off = document.createElement('canvas');
+                        off.width = activeSilhouetteImg.width;
+                        off.height = activeSilhouetteImg.height;
+                        const offCtx = off.getContext('2d');
+                        if (offCtx) {
+                            offCtx.drawImage(activeSilhouetteImg, 0, 0);
+                            offCtx.globalCompositeOperation = 'source-in';
+                            offCtx.fillStyle = '#060810';
+                            offCtx.fillRect(0, 0, off.width, off.height);
+                        }
+
+                        // Dessin du halo / néon rim light
+                        ctx.save();
+                        ctx.globalAlpha = silAlpha;
+                        ctx.shadowColor = djSilhouetteColor;
+                        ctx.shadowBlur = silGlowBlur;
+                        ctx.drawImage(off, x, y, iw, ih);
+                        ctx.drawImage(off, x, y, iw, ih);
+                        ctx.restore();
+
+                        // Dessin de la silhouette noire pure
+                        ctx.save();
+                        ctx.globalAlpha = silAlpha;
+                        ctx.drawImage(off, x, y, iw, ih);
+                        ctx.restore();
+
+                        // Faisceau Laser vertical si SCAN
+                        if (scanLaserY !== null && djAppearanceAnim === 'SCAN') {
+                            ctx.save();
+                            const laserGrad = ctx.createLinearGradient(x - 50, scanLaserY, x + iw + 50, scanLaserY);
+                            laserGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                            laserGrad.addColorStop(0.2, djSilhouetteColor);
+                            laserGrad.addColorStop(0.5, '#ffffff');
+                            laserGrad.addColorStop(0.8, djSilhouetteColor);
+                            laserGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                            ctx.fillStyle = laserGrad;
+                            ctx.shadowColor = djSilhouetteColor;
+                            ctx.shadowBlur = 16;
+                            ctx.fillRect(x - 50, scanLaserY - 2.5, iw + 100, 5);
+                            ctx.restore();
+                        }
+
+                        // Badge mystère "?" chic sur la silhouette
+                        if (djShowQuestionMark) {
+                            ctx.save();
+                            ctx.globalAlpha = silAlpha;
+                            const qX = x + (iw / 2);
+                            const qY = y + (ih * 0.38);
+                            const qRadius = 42;
+
+                            ctx.shadowColor = djSilhouetteColor;
+                            ctx.shadowBlur = 18;
+                            const discGrad = ctx.createLinearGradient(qX - qRadius, qY - qRadius, qX + qRadius, qY + qRadius);
+                            discGrad.addColorStop(0, 'rgba(15, 20, 35, 0.94)');
+                            discGrad.addColorStop(1, 'rgba(6, 8, 16, 0.98)');
+                            ctx.fillStyle = discGrad;
+                            ctx.beginPath();
+                            ctx.arc(qX, qY, qRadius, 0, Math.PI * 2);
+                            ctx.fill();
+
+                            ctx.strokeStyle = djSilhouetteColor;
+                            ctx.lineWidth = 2.5;
+                            ctx.stroke();
+
+                            ctx.font = '900 italic 50px "Montserrat", sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillStyle = '#ffffff';
+                            ctx.shadowColor = djSilhouetteColor;
+                            ctx.shadowBlur = 10;
+                            ctx.fillText('?', qX, qY + 2);
+                            ctx.restore();
+                        }
+                    } else {
+                        // Pas encore de silhouette détourée : halo d'ambiance et badge mystère central sur le fond visuel
+                        const haloGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height * 0.42, 20, canvas.width / 2, canvas.height * 0.42, 380);
+                        haloGrad.addColorStop(0, `rgba(${rgbColor}, 0.28)`);
                         haloGrad.addColorStop(0.5, `rgba(${rgbColor}, 0.08)`);
                         haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
                         ctx.fillStyle = haloGrad;
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    }
 
-                    // 2. Traitement silhouette via canvas hors écran (fond transparent rempli en noir pur)
-                    const off = document.createElement('canvas');
-                    off.width = effectiveImg.width;
-                    off.height = effectiveImg.height;
-                    const offCtx = off.getContext('2d');
-                    if (offCtx) {
-                        offCtx.drawImage(effectiveImg, 0, 0);
-                        offCtx.globalCompositeOperation = 'source-in';
-                        offCtx.fillStyle = '#060810';
-                        offCtx.fillRect(0, 0, off.width, off.height);
-                    }
+                        if (djShowQuestionMark) {
+                            ctx.save();
+                            const qX = canvas.width / 2 + bgOffsetX;
+                            const qY = canvas.height * 0.42 + bgOffsetY;
+                            const qRadius = 50;
 
-                    // 3. Dessin du halo / néon rim light
-                    ctx.save();
-                    ctx.globalAlpha = silAlpha;
-                    ctx.shadowColor = djSilhouetteColor;
-                    ctx.shadowBlur = silGlowBlur;
-                    ctx.drawImage(off, x, y, iw, ih);
-                    ctx.drawImage(off, x, y, iw, ih);
-                    ctx.restore();
+                            ctx.shadowColor = djSilhouetteColor;
+                            ctx.shadowBlur = 22;
+                            const discGrad = ctx.createLinearGradient(qX - qRadius, qY - qRadius, qX + qRadius, qY + qRadius);
+                            discGrad.addColorStop(0, 'rgba(18, 24, 42, 0.95)');
+                            discGrad.addColorStop(1, 'rgba(6, 8, 16, 0.98)');
+                            ctx.fillStyle = discGrad;
+                            ctx.beginPath();
+                            ctx.arc(qX, qY, qRadius, 0, Math.PI * 2);
+                            ctx.fill();
 
-                    // 4. Dessin de la silhouette noire pure
-                    ctx.save();
-                    ctx.globalAlpha = silAlpha;
-                    ctx.drawImage(off, x, y, iw, ih);
-                    ctx.restore();
+                            ctx.strokeStyle = djSilhouetteColor;
+                            ctx.lineWidth = 3;
+                            ctx.stroke();
 
-                    // Faisceau Laser vertical si SCAN
-                    if (scanLaserY !== null && djAppearanceAnim === 'SCAN') {
-                        ctx.save();
-                        const laserGrad = ctx.createLinearGradient(x - 50, scanLaserY, x + iw + 50, scanLaserY);
-                        laserGrad.addColorStop(0, 'rgba(0,0,0,0)');
-                        laserGrad.addColorStop(0.2, djSilhouetteColor);
-                        laserGrad.addColorStop(0.5, '#ffffff');
-                        laserGrad.addColorStop(0.8, djSilhouetteColor);
-                        laserGrad.addColorStop(1, 'rgba(0,0,0,0)');
-                        ctx.fillStyle = laserGrad;
-                        ctx.shadowColor = djSilhouetteColor;
-                        ctx.shadowBlur = 16;
-                        ctx.fillRect(x - 50, scanLaserY - 2.5, iw + 100, 5);
-                        ctx.restore();
-                    }
-
-                    // 5. Badge mystère "?" chic sur la silhouette
-                    if (djShowQuestionMark) {
-                        ctx.save();
-                        ctx.globalAlpha = silAlpha;
-                        const qX = x + (iw / 2);
-                        const qY = y + (ih * 0.38);
-                        const qRadius = 42;
-
-                        ctx.shadowColor = djSilhouetteColor;
-                        ctx.shadowBlur = 18;
-                        const discGrad = ctx.createLinearGradient(qX - qRadius, qY - qRadius, qX + qRadius, qY + qRadius);
-                        discGrad.addColorStop(0, 'rgba(15, 20, 35, 0.94)');
-                        discGrad.addColorStop(1, 'rgba(6, 8, 16, 0.98)');
-                        ctx.fillStyle = discGrad;
-                        ctx.beginPath();
-                        ctx.arc(qX, qY, qRadius, 0, Math.PI * 2);
-                        ctx.fill();
-
-                        ctx.strokeStyle = djSilhouetteColor;
-                        ctx.lineWidth = 2.5;
-                        ctx.stroke();
-
-                        ctx.font = '900 italic 50px "Montserrat", sans-serif';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillStyle = '#ffffff';
-                        ctx.shadowColor = djSilhouetteColor;
-                        ctx.shadowBlur = 10;
-                        ctx.fillText('?', qX, qY + 2);
-                        ctx.restore();
+                            ctx.font = '900 italic 56px "Montserrat", sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillStyle = '#ffffff';
+                            ctx.shadowColor = djSilhouetteColor;
+                            ctx.shadowBlur = 12;
+                            ctx.fillText('?', qX, qY + 2);
+                            ctx.restore();
+                        }
                     }
                 } else {
                     const baseScale = Math.max(canvas.width / effectiveImg.width, canvas.height / effectiveImg.height);
@@ -5248,17 +5330,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             };
             video.addEventListener('loadedmetadata', onLoaded);
             video.play().catch(e => console.warn("Auto-preview play failed", e));
-            setBgVideo(video); setBgImage('');
+            setBgVideo(video);
+            setBgImage('');
+            setEditorialSlideImages(prev => {
+                const next = { ...prev };
+                delete next[editorialSlide];
+                return next;
+            });
+            setTimeout(() => generateImage(), 50);
         } else {
-            // Pre-load image to ensure it works with toDataURL
+            // Pre-load image to ensure it works immediately with canvas
             const img = new Image();
             img.crossOrigin = "anonymous";
             img.onload = () => {
+                imageCacheRef.current[url] = img;
                 setBgImage(url);
                 setBgVideo(null);
+                setDjOriginalImage(url);
+                setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
+                generateImage();
             };
             img.src = url;
         }
+        e.target.value = '';
     };
 
     const startVideoRecording = async (combinedMode: 'NONE' | 'PLANNING' | 'EDITORIAL' | 'PROMO_ONLY' = 'NONE') => {
@@ -12532,7 +12626,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     const video = document.createElement('video');
                                     video.crossOrigin = "anonymous";
                                     video.src = url;
-                                    video.onloadeddata = () => { setBgVideo(video); setBgImage(''); };
+                                    video.onloadeddata = () => {
+                                        setBgVideo(video);
+                                        setBgImage('');
+                                        setEditorialSlideImages(prev => {
+                                            const next = { ...prev };
+                                            delete next[editorialSlide];
+                                            return next;
+                                        });
+                                        setTimeout(() => generateImage(), 50);
+                                    };
                                     video.onerror = () => { setBgImage(url); setBgVideo(null); };
                                     // Pré-chargement automatique du Blob pour un export audio 100% garanti
                                     fetch(url)
@@ -12556,7 +12659,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 })
                                                 .catch(() => {});
                                         });
-                                } else { setBgImage(url); setBgVideo(null); }
+                                } else {
+                                    const img = new Image();
+                                    img.crossOrigin = "anonymous";
+                                    img.onload = () => {
+                                        imageCacheRef.current[url] = img;
+                                        setBgImage(url);
+                                        setBgVideo(null);
+                                        setDjOriginalImage(url);
+                                        setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
+                                        generateImage();
+                                    };
+                                    img.src = url;
+                                }
                                 setIsDownloaderOpen(false);
                             }} />
                         </div>
@@ -12943,14 +13058,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {/* Background */}
                         <div className="space-y-2">
                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Fond Visuel</span>
-                            <button onClick={() => {
-                                setR2TargetType('background');
-                                setIsR2ModalOpen(true);
-                            }} className="w-full py-2.5 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[9px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
-                                <Upload className="w-3.5 h-3.5 group-hover:text-neon-red transition-colors" />
-                                {bgImage || bgVideo ? 'Modifier le fond' : 'Importer du Cloud (Vidéos/Photos)'}
-                            </button>
-                            <button onClick={() => setIsDownloaderOpen(true)} className="w-full py-2.5 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[9px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                            <div className="grid grid-cols-2 gap-1.5">
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="py-2.5 px-2 border border-dashed border-white/20 hover:border-neon-red/50 rounded-xl flex items-center justify-center gap-1.5 text-gray-200 text-[8.5px] font-black uppercase hover:text-white transition-all bg-white/5 group shadow-sm active:scale-98"
+                                >
+                                    <Upload className="w-3.5 h-3.5 text-neon-red group-hover:scale-110 transition-transform" />
+                                    <span>Mon Appareil</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setR2TargetType('background');
+                                        setIsR2ModalOpen(true);
+                                    }}
+                                    className="py-2.5 px-2 border border-white/10 hover:border-neon-cyan/40 rounded-xl flex items-center justify-center gap-1.5 text-gray-300 text-[8.5px] font-black uppercase hover:text-white transition-all bg-white/5 group active:scale-98"
+                                >
+                                    <ImageIcon className="w-3.5 h-3.5 text-neon-cyan group-hover:scale-110 transition-transform" />
+                                    <span>Cloud R2</span>
+                                </button>
+                            </div>
+                            <button onClick={() => setIsDownloaderOpen(true)} className="w-full py-2 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[8.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
                                 <LinkIcon className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
                                 Télécharger Vidéo/Photo (URL)
                             </button>
@@ -13952,9 +14081,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <div className="px-6 pb-8">
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Fond Visuel</p>
                                         <div className="space-y-3">
-                                            <button onClick={() => fileInputRef.current?.click()} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
-                                                <Upload className="w-4 h-4 group-hover:text-neon-red transition-colors" />{bgImage || bgVideo ? 'Modifier le fond' : 'Importer Image/Vidéo'}
-                                            </button>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <button onClick={() => fileInputRef.current?.click()} className="py-3.5 border border-dashed border-white/20 rounded-2xl flex items-center justify-center gap-2 text-gray-200 text-[9.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                                                    <Upload className="w-4 h-4 text-neon-red group-hover:scale-110 transition-transform" />
+                                                    <span>Mon Appareil</span>
+                                                </button>
+                                                <button onClick={() => { setActivePanel(null); setR2TargetType('background'); setIsR2ModalOpen(true); }} className="py-3.5 border border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-300 text-[9.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                                                    <ImageIcon className="w-4 h-4 text-neon-cyan group-hover:scale-110 transition-transform" />
+                                                    <span>Cloud R2</span>
+                                                </button>
+                                            </div>
                                             <button onClick={() => { setActivePanel(null); setIsDownloaderOpen(true); }} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
                                                 <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />Télécharger Vidéo/Photo (URL)
                                             </button>
@@ -14184,9 +14320,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 .catch(() => {});
                             setBgVideo(video);
                             setBgImage('');
+                            setEditorialSlideImages(prev => {
+                                const next = { ...prev };
+                                delete next[editorialSlide];
+                                return next;
+                            });
+                            setTimeout(() => generateImage(), 50);
                         } else {
-                            setBgImage(finalUrl);
-                            setBgVideo(null);
+                            const img = new Image();
+                            img.crossOrigin = "anonymous";
+                            img.onload = () => {
+                                imageCacheRef.current[finalUrl] = img;
+                                setBgImage(finalUrl);
+                                setBgVideo(null);
+                                setDjOriginalImage(finalUrl);
+                                setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: finalUrl }));
+                                generateImage();
+                            };
+                            img.src = finalUrl;
                         }
                     } else if (r2TargetType === 'logo') {
                         setArtistLogo(finalUrl);
