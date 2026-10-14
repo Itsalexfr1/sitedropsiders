@@ -956,6 +956,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [showPromoHeadline, setShowPromoHeadline] = useState<boolean>(true);
     const [showPromoLine1, setShowPromoLine1] = useState<boolean>(true);
     const [showPromoLine2, setShowPromoLine2] = useState<boolean>(true);
+    const [sidebarStep, setSidebarStep] = useState<'text' | 'visual' | 'export'>('text');
 
     const getTransitionDuration = (t: SlideTransitionType) => {
         switch (t) {
@@ -13267,239 +13268,356 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <button onClick={() => { setActiveTab('PUBLICATION'); if (theme === 'REELS' || theme === 'CONSEILS') handleSetTheme('NEWS'); }} className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'PUBLICATION' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}><ImageIcon className="w-3.5 h-3.5" /> POST</button>
                         </div>
 
-                        {themeButtons}
-                        {devinetteSwitcher}
-                        {styleMusicButtons}
+                        {/* LES 3 ONGLETS DU WORKFLOW UNIVERSEL */}
+                        <div className="grid grid-cols-3 gap-1 p-1 bg-black/60 rounded-2xl border border-white/15 shadow-inner">
+                            <button
+                                type="button"
+                                onClick={() => setSidebarStep('text')}
+                                className={`py-2 px-1 rounded-xl text-[9px] font-black uppercase flex flex-col items-center justify-center gap-0.5 transition-all ${
+                                    sidebarStep === 'text'
+                                        ? 'bg-gradient-to-r from-neon-red to-[#ff007f] text-white shadow-[0_0_15px_rgba(255,18,65,0.4)] scale-[1.02]'
+                                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                }`}
+                            >
+                                <span className="text-xs">✍️</span>
+                                <span className="tracking-wider">1. Texte</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setSidebarStep('visual')}
+                                className={`py-2 px-1 rounded-xl text-[9px] font-black uppercase flex flex-col items-center justify-center gap-0.5 transition-all ${
+                                    sidebarStep === 'visual'
+                                        ? 'bg-gradient-to-r from-neon-cyan to-blue-500 text-black shadow-[0_0_15px_rgba(0,255,255,0.4)] scale-[1.02]'
+                                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                }`}
+                            >
+                                <span className="text-xs">🖼️</span>
+                                <span className="tracking-wider">2. Visuel</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setSidebarStep('export')}
+                                className={`py-2 px-1 rounded-xl text-[9px] font-black uppercase flex flex-col items-center justify-center gap-0.5 transition-all ${
+                                    sidebarStep === 'export'
+                                        ? 'bg-gradient-to-r from-emerald-400 to-green-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.4)] scale-[1.02]'
+                                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                }`}
+                            >
+                                <span className="text-xs">🚀</span>
+                                <span className="tracking-wider">3. Export</span>
+                            </button>
+                        </div>
 
-                        {/* Texte Principal & Contenu */}
-                        <div className="space-y-4">
-                            {(isCarouselPromoActive && isMultiSlideTheme) ? (
-                                <><span className="text-[10px] font-black text-neon-red uppercase">🔥 Outro Carrousel : Question & Phrase Promo</span>{promoEditor}</>
-                            ) : theme === 'MAP' ? (
-                                <><span className="text-[10px] font-black text-neon-cyan uppercase">Carte & Localisation</span>{mapEditor}</>
-                            ) : theme === 'CALENDRIER' ? (
-                                <>
-                                    <span className="text-[10px] font-black text-gray-500 uppercase">Calendrier des événements</span>
-                                    <div className="space-y-3">
-                                        <input
-                                            value={calendarMonth}
-                                            onChange={e => setCalendarMonth(e.target.value)}
-                                            placeholder="MARS 2025"
-                                            className="w-full bg-white/10 border border-neon-orange/40 rounded-xl p-3 text-white font-black italic uppercase text-xs"
-                                        />
-                                        <div className="space-y-2">
-                                            {calendarEvents.map((evt, i) => (
-                                                <div key={i} className="flex gap-2 items-center">
-                                                    <input
-                                                        value={evt.date}
-                                                        onChange={e => { const n = [...calendarEvents]; n[i].date = e.target.value; setCalendarEvents(n); }}
-                                                        placeholder="JJ"
-                                                        className="w-14 bg-neon-orange/20 border border-neon-orange/40 rounded-lg p-2 text-neon-orange font-black uppercase text-xs text-center"
-                                                    />
-                                                    <input
-                                                        value={evt.label}
-                                                        onChange={e => { const n = [...calendarEvents]; n[i].label = e.target.value; setCalendarEvents(n); }}
-                                                        placeholder="NOM DE L'ÉVÉNEMENT"
-                                                        className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-white font-black italic uppercase text-xs"
-                                                    />
-                                                    <button onClick={() => setCalendarEvents(calendarEvents.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><span className="text-xs">✕</span></button>
+                        {/* ══════════════════════════════════════════════
+                            ÉTAPE 1 : ✍️ THÈME & TEXTE
+                        ══════════════════════════════════════════════ */}
+                        {sidebarStep === 'text' && (
+                            <div className="space-y-4 animate-in fade-in duration-150">
+                                <div className="space-y-1.5">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Choix du Thème</span>
+                                        <span className="text-[8.5px] font-black px-2 py-0.5 rounded-full bg-white/10 text-white uppercase border border-white/10">{theme}</span>
+                                    </div>
+                                    {themeButtons}
+                                    {devinetteSwitcher}
+                                    {styleMusicButtons}
+                                </div>
+
+                                {/* Texte Principal & Contenu du Thème */}
+                                <div className="space-y-3 pt-2 border-t border-white/10">
+                                    {(isCarouselPromoActive && isMultiSlideTheme) ? (
+                                        <><span className="text-[10px] font-black text-neon-red uppercase">🔥 Outro Carrousel : Question & Phrase Promo</span>{promoEditor}</>
+                                    ) : theme === 'MAP' ? (
+                                        <><span className="text-[10px] font-black text-neon-cyan uppercase">Carte & Localisation</span>{mapEditor}</>
+                                    ) : theme === 'CALENDRIER' ? (
+                                        <>
+                                            <span className="text-[10px] font-black text-gray-500 uppercase">Calendrier des événements</span>
+                                            <div className="space-y-3">
+                                                <input
+                                                    value={calendarMonth}
+                                                    onChange={e => setCalendarMonth(e.target.value)}
+                                                    placeholder="MARS 2025"
+                                                    className="w-full bg-white/10 border border-neon-orange/40 rounded-xl p-3 text-white font-black italic uppercase text-xs"
+                                                />
+                                                <div className="space-y-2">
+                                                    {calendarEvents.map((evt, i) => (
+                                                        <div key={i} className="flex gap-2 items-center">
+                                                            <input
+                                                                value={evt.date}
+                                                                onChange={e => { const n = [...calendarEvents]; n[i].date = e.target.value; setCalendarEvents(n); }}
+                                                                placeholder="JJ"
+                                                                className="w-14 bg-neon-orange/20 border border-neon-orange/40 rounded-lg p-2 text-neon-orange font-black uppercase text-xs text-center"
+                                                            />
+                                                            <input
+                                                                value={evt.label}
+                                                                onChange={e => { const n = [...calendarEvents]; n[i].label = e.target.value; setCalendarEvents(n); }}
+                                                                placeholder="NOM DE L'ÉVÉNEMENT"
+                                                                className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-white font-black italic uppercase text-xs"
+                                                            />
+                                                            <button onClick={() => setCalendarEvents(calendarEvents.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><span className="text-xs">✕</span></button>
+                                                        </div>
+                                                    ))}
+                                                    <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter un événement</button>
                                                 </div>
-                                            ))}
-                                            <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter un événement</button>
-                                        </div>
-                                    </div>
-                                </>
-                            ) : theme === 'PLANNING' ? (
-                                <><span className="text-[10px] font-black text-[#ff3700] uppercase tracking-wider">📅 Agenda des Soirées & Festivals</span>{planningEditor}</>
-                            ) : theme.startsWith('TOP 5') ? (
-                                <><span className="text-[10px] font-black text-gray-500 uppercase">Éléments du Top 5</span>{top5Editor}</>
-
-                            ) : theme === 'TRACKLIST' ? (
-                                <><span className="text-[10px] font-black text-gray-500 uppercase">Détails Tracklist</span>{tracklistEditor}</>
-                            ) : theme === 'SPOTLIGHT' ? (
-                                <><span className="text-[10px] font-black text-gray-500 uppercase">Infos Spotlight & Logos</span>{spotlightEditor}</>
-                            ) : theme === 'ARTISTE FESTIVAL' ? (
-                                <><span className="text-[10px] font-black text-neon-red uppercase">Artiste Festival (Carrousel)</span>{artisteFestivalEditor}</>
-                            ) : (theme === 'EVENTS' || theme === 'AFFICHE') ? (
-                                <><span className="text-[10px] font-black text-[#ff007f] uppercase">Événements & Affiche (Carrousel)</span>{eventsEditor}</>
-                            ) : theme === 'MUSIQUE' ? (
-                                <><span className="text-[10px] font-black text-[#00ff66] uppercase">Musique & Cover Track (Carrousel)</span>{musiqueEditor}</>
-                            ) : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
-                                <><span className="text-[10px] font-black text-neon-cyan uppercase">Contenu Titre & Sous-titre ({theme === 'TOP 100 DROPSIDERS' ? 'TOP 100' : theme === 'JEU' ? 'DEVINE LE CLIP' : theme === 'JEU_FESTIVAL' ? 'DEVINE LE FESTIVAL' : theme === 'JEU_DJ' ? 'DEVINE LE DJ' : theme})</span>{conseilsEditor}</>
-                            ) : theme === 'CITATION' ? (
-                                <><span className="text-[10px] font-black text-gray-500 uppercase">Citation & Auteur</span>{citationEditor}</>
-                            ) : theme === 'PROMO' ? (
-                                <><span className="text-[10px] font-black text-neon-red uppercase">Question & Outro Réseaux</span>{promoEditor}</>
-                            ) : (
-                                <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>{textEditor}</>
-                            )}
-                            {/* Animation universelle du texte & éléments (regroupée directement sous le cadre texte) */}
-                            {theme !== 'MAP' && textAnimationControl}
-                            {theme !== 'MAP' && isMultiSlideTheme && slideTransitionControl}
-                        </div>
-                        {/* Sélection Swipe, Site & Options (en dessous du texte, au-dessus du fond) */}
-                        <div className="space-y-2.5">
-                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Options & Liens</span>
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowSwipe(!showSwipe)}>
-                                    <div className="flex items-center gap-2 min-w-0"><Layout className="w-3.5 h-3.5 flex-shrink-0 text-neon-red" /><span className="text-[9px] font-black text-white uppercase truncate">Swipe</span></div>
-                                    <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showSwipe ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,18,65,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
-                                        {showSwipe && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
-                                    </div>
-                                </div>
-                                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowArticleLink(!showArticleLink)}>
-                                    <div className="flex items-center gap-2 min-w-0"><LinkIcon className="w-3.5 h-3.5 flex-shrink-0 text-neon-cyan" /><span className="text-[9px] font-black text-white uppercase truncate">Lien Site / Article</span></div>
-                                    <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showArticleLink ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
-                                        {showArticleLink && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
-                                    </div>
-                                </div>
-                                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowVoteLink(!showVoteLink)}>
-                                    <div className="flex items-center gap-2 min-w-0"><LinkIcon className="w-3.5 h-3.5 flex-shrink-0 text-neon-purple" /><span className="text-[9px] font-black text-white uppercase truncate">Lien Vote</span></div>
-                                    <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showVoteLink ? 'bg-neon-purple border-neon-purple shadow-[0_0_10px_rgba(189,0,255,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
-                                        {showVoteLink && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
-                                    </div>
-                                </div>
-                                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowText(!showText)}>
-                                    <div className="flex items-center gap-2"><Eraser className="w-3.5 h-3.5 flex-shrink-0 text-yellow-500" /><span className="text-[9px] font-black text-white uppercase whitespace-nowrap">Masquer Texte</span></div>
-                                    <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${!showText ? 'bg-yellow-500 border-yellow-500 shadow-[0_0_100px_rgba(234,179,8,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
-                                        {!showText && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Background (Fond Visuel) */}
-                        <div className="space-y-2">
-                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Fond Visuel</span>
-                            <div className="grid grid-cols-2 gap-1.5">
-                                <button
-                                    type="button"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="py-2.5 px-2 border border-dashed border-white/20 hover:border-neon-red/50 rounded-xl flex items-center justify-center gap-1.5 text-gray-200 text-[8.5px] font-black uppercase hover:text-white transition-all bg-white/5 group shadow-sm active:scale-98"
-                                >
-                                    <Upload className="w-3.5 h-3.5 text-neon-red group-hover:scale-110 transition-transform" />
-                                    <span>Mon Appareil</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setR2TargetType('background');
-                                        setIsR2ModalOpen(true);
-                                    }}
-                                    className="py-2.5 px-2 border border-white/10 hover:border-neon-cyan/40 rounded-xl flex items-center justify-center gap-1.5 text-gray-300 text-[8.5px] font-black uppercase hover:text-white transition-all bg-white/5 group active:scale-98"
-                                >
-                                    <ImageIcon className="w-3.5 h-3.5 text-neon-cyan group-hover:scale-110 transition-transform" />
-                                    <span>Cloud R2</span>
-                                </button>
-                            </div>
-                            <button onClick={() => setIsDownloaderOpen(true)} className="w-full py-2 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[8.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
-                                <LinkIcon className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
-                                Télécharger Vidéo/Photo (URL)
-                            </button>
-                            <button onClick={() => setIsRecapPickerOpen(true)} className="w-full py-2.5 bg-[#c026d3]/10 border border-[#c026d3]/30 rounded-xl flex items-center justify-center gap-2 text-[#c026d3] text-[9px] font-black uppercase hover:bg-[#c026d3]/20 transition-all group">
-                                <PlusCircle className="w-3.5 h-3.5" />
-                                Importer un RÉCAP ÉCRIT
-                            </button>
-
-                            {bgPositionControls}
-                            <button onClick={() => setIsRetouchMode(!isRetouchMode)} className={`w-full py-2 bg-neon-cyan/10 border rounded-xl flex items-center justify-center gap-2 text-neon-cyan text-[9px] font-black uppercase hover:bg-neon-cyan/20 transition-all group ${isRetouchMode ? 'border-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.2)]' : 'border-neon-cyan/20'}`}>
-                                <Wand2 className="w-3.5 h-3.5" /> Nettoyage Photo (Outil IA Local)
-                            </button>
-                            {isRetouchMode && (
-                                <div className="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
-                                    <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-500">
-                                        <span>Taille pinceau</span>
-                                        <span className="text-neon-cyan">{brushSize}px</span>
-                                    </div>
-                                    <input type="range" min="10" max="100" value={brushSize} onChange={e => setBrushSize(parseInt(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
-                                    <div className="flex gap-2 pt-1">
-                                        <button onClick={() => setRetouchPath([])} className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center justify-center gap-1"><RotateCcw className="w-3 h-3" /> Reset</button>
-                                        <button onClick={applyMagicErase} className="flex-[2] py-2 bg-neon-cyan text-black rounded-lg text-[9px] font-black uppercase shadow-[0_0_15px_rgba(0,255,255,0.4)] hover:scale-[1.02] transition-all flex items-center justify-center gap-1"><Sparkles className="w-3 h-3" /> Appliquer (IA)</button>
-                                    </div>
-                                </div>
-                            )}
-                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
-                            {bgVideo && (
-                                <div className="space-y-1.5 pt-1">
-                                    <div className="flex gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                bgVideo.currentTime = 0;
-                                                bgVideo.play().catch(() => {});
-                                            }}
-                                            className="flex-1 py-2 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl text-[9px] font-black text-neon-cyan uppercase hover:bg-neon-cyan/20 transition-all flex items-center justify-center gap-1.5 active:scale-95 shadow-sm"
-                                            title="Remettre la vidéo à 0:00 et relancer"
-                                        >
-                                            <RotateCcw className="w-3.5 h-3.5" /> Recommencer à 0:00
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                if (bgVideo.paused) {
-                                                    bgVideo.play().catch(() => {});
-                                                } else {
-                                                    bgVideo.pause();
-                                                }
-                                            }}
-                                            className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-gray-300 uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-1.5 active:scale-95"
-                                            title="Mettre en pause ou relancer la lecture"
-                                        >
-                                            <Video className="w-3.5 h-3.5" /> Play / Pause
-                                        </button>
-                                    </div>
-                                    <p className="text-[7.5px] text-gray-400 italic text-center">
-                                        ⏱️ Le clip repartira automatiquement à 0:00 pile lors de l'export MP4
-                                    </p>
-                                </div>
-                            )}
-
-                            {/* Export du fond visuel + Option pour animer le fond */}
-                            <div className="pt-2 border-t border-white/10 space-y-2">
-                                <button
-                                    type="button"
-                                    onClick={() => downloadBackgroundVisual(activeTab)}
-                                    disabled={isDownloading}
-                                    className="w-full py-2.5 bg-white/5 border border-white/10 hover:border-white/30 rounded-xl text-[9px] font-black uppercase text-white hover:text-neon-cyan flex items-center justify-center gap-2 transition-all group shadow-sm"
-                                    title="Exporter l'image de fond seule sans texte"
-                                >
-                                    <Download className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
-                                    Exporter le fond visuel (PNG)
-                                </button>
-                                {theme !== 'MAP' && bgAnimationControl}
-                            </div>
-                        </div>
-
-                        {/* Visuals Gallery */}
-                        {visualsList.length > 0 && (
-                            <div className="space-y-3">
-                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Vos Captures ({visualsList.length})</span>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {visualsList.map((vis, idx) => (
-                                        <div key={idx} className="group relative aspect-[9/12] rounded-xl overflow-hidden border border-white/10 bg-black shadow-lg">
-                                            <img src={vis} alt={`Visual ${idx}`} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                                <button onClick={() => {
-                                                    const a = document.createElement('a'); a.href = vis;
-                                                    a.download = `dropsiders-capture-${idx}.png`; a.click();
-                                                }} className="p-2 bg-white text-black rounded-lg hover:bg-neon-cyan transition-colors">
-                                                    <Download className="w-3 h-3" />
-                                                </button>
-                                                <button onClick={() => setVisualsList(prev => prev.filter((_, i) => i !== idx))}
-                                                    className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
-                                                    <X className="w-3 h-3" />
-                                                </button>
                                             </div>
-                                        </div>
-                                    ))}
+                                        </>
+                                    ) : theme === 'PLANNING' ? (
+                                        <><span className="text-[10px] font-black text-[#ff3700] uppercase tracking-wider">📅 Agenda des Soirées & Festivals</span>{planningEditor}</>
+                                    ) : theme.startsWith('TOP 5') ? (
+                                        <><span className="text-[10px] font-black text-gray-500 uppercase">Éléments du Top 5</span>{top5Editor}</>
+                                    ) : theme === 'TRACKLIST' ? (
+                                        <><span className="text-[10px] font-black text-gray-500 uppercase">Détails Tracklist</span>{tracklistEditor}</>
+                                    ) : theme === 'SPOTLIGHT' ? (
+                                        <><span className="text-[10px] font-black text-gray-500 uppercase">Infos Spotlight & Logos</span>{spotlightEditor}</>
+                                    ) : theme === 'ARTISTE FESTIVAL' ? (
+                                        <><span className="text-[10px] font-black text-neon-red uppercase">Artiste Festival (Carrousel)</span>{artisteFestivalEditor}</>
+                                    ) : (theme === 'EVENTS' || theme === 'AFFICHE') ? (
+                                        <><span className="text-[10px] font-black text-[#ff007f] uppercase">Événements & Affiche (Carrousel)</span>{eventsEditor}</>
+                                    ) : theme === 'MUSIQUE' ? (
+                                        <><span className="text-[10px] font-black text-[#00ff66] uppercase">Musique & Cover Track (Carrousel)</span>{musiqueEditor}</>
+                                    ) : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
+                                        <><span className="text-[10px] font-black text-neon-cyan uppercase">Contenu Titre & Sous-titre ({theme === 'TOP 100 DROPSIDERS' ? 'TOP 100' : theme === 'JEU' ? 'DEVINE LE CLIP' : theme === 'JEU_FESTIVAL' ? 'DEVINE LE FESTIVAL' : theme === 'JEU_DJ' ? 'DEVINE LE DJ' : theme})</span>{conseilsEditor}</>
+                                    ) : theme === 'CITATION' ? (
+                                        <><span className="text-[10px] font-black text-gray-500 uppercase">Citation & Auteur</span>{citationEditor}</>
+                                    ) : theme === 'PROMO' ? (
+                                        <><span className="text-[10px] font-black text-neon-red uppercase">Question & Outro Réseaux</span>{promoEditor}</>
+                                    ) : (
+                                        <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>{textEditor}</>
+                                    )}
+
+                                    {/* Animation universelle du texte & éléments (regroupée directement sous le cadre texte) */}
+                                    {theme !== 'MAP' && textAnimationControl}
+                                    {theme !== 'MAP' && isMultiSlideTheme && slideTransitionControl}
+                                </div>
+
+                                {/* Navigation rapide vers l'étape suivante */}
+                                <div className="pt-3 border-t border-white/10 flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setSidebarStep('visual')}
+                                        className="flex-1 py-3 bg-neon-cyan text-black rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(0,255,255,0.3)] hover:brightness-110 active:scale-98 transition-all"
+                                    >
+                                        <span>Suivant : 2. Visuel & Fond</span>
+                                        <span>➡️</span>
+                                    </button>
                                 </div>
                             </div>
                         )}
 
-                        {/* Export */}
-                        <div className="space-y-4 mt-auto pb-36">
-                            {exportButtons}
-                        </div>
+                        {/* ══════════════════════════════════════════════
+                            ÉTAPE 2 : 🖼️ VISUEL & FOND
+                        ══════════════════════════════════════════════ */}
+                        {sidebarStep === 'visual' && (
+                            <div className="space-y-4 animate-in fade-in duration-150">
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">Fond & Médias</span>
+                                        <span className="text-[8px] text-gray-400 uppercase font-bold">Image, Vidéo ou Cloud</span>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="py-3 px-2 border border-dashed border-white/20 hover:border-neon-red/50 rounded-xl flex items-center justify-center gap-1.5 text-gray-200 text-[9px] font-black uppercase hover:text-white transition-all bg-white/5 group shadow-sm active:scale-98"
+                                        >
+                                            <Upload className="w-4 h-4 text-neon-red group-hover:scale-110 transition-transform" />
+                                            <span>Mon Appareil</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setR2TargetType('background');
+                                                setIsR2ModalOpen(true);
+                                            }}
+                                            className="py-3 px-2 border border-white/10 hover:border-neon-cyan/40 rounded-xl flex items-center justify-center gap-1.5 text-gray-300 text-[9px] font-black uppercase hover:text-white transition-all bg-white/5 group active:scale-98"
+                                        >
+                                            <ImageIcon className="w-4 h-4 text-neon-cyan group-hover:scale-110 transition-transform" />
+                                            <span>Cloud R2</span>
+                                        </button>
+                                    </div>
+                                    <button onClick={() => setIsDownloaderOpen(true)} className="w-full py-2.5 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[8.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                                        <LinkIcon className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
+                                        Télécharger Vidéo/Photo (URL)
+                                    </button>
+                                    <button onClick={() => setIsRecapPickerOpen(true)} className="w-full py-2.5 bg-[#c026d3]/10 border border-[#c026d3]/30 rounded-xl flex items-center justify-center gap-2 text-[#c026d3] text-[9px] font-black uppercase hover:bg-[#c026d3]/20 transition-all group">
+                                        <PlusCircle className="w-3.5 h-3.5" />
+                                        Importer un RÉCAP ÉCRIT
+                                    </button>
+
+                                    {bgPositionControls}
+                                    <button onClick={() => setIsRetouchMode(!isRetouchMode)} className={`w-full py-2 bg-neon-cyan/10 border rounded-xl flex items-center justify-center gap-2 text-neon-cyan text-[9px] font-black uppercase hover:bg-neon-cyan/20 transition-all group ${isRetouchMode ? 'border-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.2)]' : 'border-neon-cyan/20'}`}>
+                                        <Wand2 className="w-3.5 h-3.5" /> Nettoyage Photo (Outil IA Local)
+                                    </button>
+                                    {isRetouchMode && (
+                                        <div className="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
+                                            <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-500">
+                                                <span>Taille pinceau</span>
+                                                <span className="text-neon-cyan">{brushSize}px</span>
+                                            </div>
+                                            <input type="range" min="10" max="100" value={brushSize} onChange={e => setBrushSize(parseInt(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
+                                            <div className="flex gap-2 pt-1">
+                                                <button onClick={() => setRetouchPath([])} className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center justify-center gap-1"><RotateCcw className="w-3 h-3" /> Reset</button>
+                                                <button onClick={applyMagicErase} className="flex-[2] py-2 bg-neon-cyan text-black rounded-lg text-[9px] font-black uppercase shadow-[0_0_15px_rgba(0,255,255,0.4)] hover:scale-[1.02] transition-all flex items-center justify-center gap-1"><Sparkles className="w-3 h-3" /> Appliquer (IA)</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
+                                    {bgVideo && (
+                                        <div className="space-y-1.5 pt-1">
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        bgVideo.currentTime = 0;
+                                                        bgVideo.play().catch(() => {});
+                                                    }}
+                                                    className="flex-1 py-2 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl text-[9px] font-black text-neon-cyan uppercase hover:bg-neon-cyan/20 transition-all flex items-center justify-center gap-1.5 active:scale-95 shadow-sm"
+                                                    title="Remettre la vidéo à 0:00 et relancer"
+                                                >
+                                                    <RotateCcw className="w-3.5 h-3.5" /> Recommencer à 0:00
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (bgVideo.paused) {
+                                                            bgVideo.play().catch(() => {});
+                                                        } else {
+                                                            bgVideo.pause();
+                                                        }
+                                                    }}
+                                                    className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-gray-300 uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                                                    title="Mettre en pause ou relancer la lecture"
+                                                >
+                                                    <Video className="w-3.5 h-3.5" /> Play / Pause
+                                                </button>
+                                            </div>
+                                            <p className="text-[7.5px] text-gray-400 italic text-center">
+                                                ⏱️ Le clip repartira automatiquement à 0:00 pile lors de l'export MP4
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Export du fond visuel + Option pour animer le fond */}
+                                    <div className="pt-2 border-t border-white/10 space-y-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => downloadBackgroundVisual(activeTab)}
+                                            disabled={isDownloading}
+                                            className="w-full py-2.5 bg-white/5 border border-white/10 hover:border-white/30 rounded-xl text-[9px] font-black uppercase text-white hover:text-neon-cyan flex items-center justify-center gap-2 transition-all group shadow-sm"
+                                            title="Exporter l'image de fond seule sans texte"
+                                        >
+                                            <Download className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
+                                            Exporter le fond visuel (PNG)
+                                        </button>
+                                        {theme !== 'MAP' && bgAnimationControl}
+                                    </div>
+                                </div>
+
+                                {/* Navigation entre étapes */}
+                                <div className="pt-3 border-t border-white/10 flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setSidebarStep('text')}
+                                        className="py-2.5 px-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-bold text-gray-300 uppercase transition-all flex items-center gap-1"
+                                    >
+                                        <span>⬅️</span>
+                                        <span>1. Texte</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSidebarStep('export')}
+                                        className="flex-1 py-2.5 bg-emerald-400 hover:bg-emerald-300 text-black rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(52,211,153,0.3)] transition-all"
+                                    >
+                                        <span>Suivant : 3. Export</span>
+                                        <span>🚀</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ══════════════════════════════════════════════
+                            ÉTAPE 3 : 🚀 OPTIONS & EXPORT
+                        ══════════════════════════════════════════════ */}
+                        {sidebarStep === 'export' && (
+                            <div className="space-y-4 animate-in fade-in duration-150">
+                                {/* Options & Liens */}
+                                <div className="space-y-2.5">
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Options & Liens</span>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowSwipe(!showSwipe)}>
+                                            <div className="flex items-center gap-2 min-w-0"><Layout className="w-3.5 h-3.5 flex-shrink-0 text-neon-red" /><span className="text-[9px] font-black text-white uppercase truncate">Swipe</span></div>
+                                            <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showSwipe ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,18,65,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
+                                                {showSwipe && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
+                                            </div>
+                                        </div>
+                                        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowArticleLink(!showArticleLink)}>
+                                            <div className="flex items-center gap-2 min-w-0"><LinkIcon className="w-3.5 h-3.5 flex-shrink-0 text-neon-cyan" /><span className="text-[9px] font-black text-white uppercase truncate">Lien Site / Article</span></div>
+                                            <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showArticleLink ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
+                                                {showArticleLink && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
+                                            </div>
+                                        </div>
+                                        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowVoteLink(!showVoteLink)}>
+                                            <div className="flex items-center gap-2 min-w-0"><LinkIcon className="w-3.5 h-3.5 flex-shrink-0 text-neon-purple" /><span className="text-[9px] font-black text-white uppercase truncate">Lien Vote</span></div>
+                                            <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showVoteLink ? 'bg-neon-purple border-neon-purple shadow-[0_0_10px_rgba(189,0,255,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
+                                                {showVoteLink && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
+                                            </div>
+                                        </div>
+                                        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowText(!showText)}>
+                                            <div className="flex items-center gap-2"><Eraser className="w-3.5 h-3.5 flex-shrink-0 text-yellow-500" /><span className="text-[9px] font-black text-white uppercase whitespace-nowrap">Masquer Texte</span></div>
+                                            <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${!showText ? 'bg-yellow-500 border-yellow-500 shadow-[0_0_100px_rgba(234,179,8,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
+                                                {!showText && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Visuals Gallery */}
+                                {visualsList.length > 0 && (
+                                    <div className="space-y-3">
+                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Vos Captures ({visualsList.length})</span>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {visualsList.map((vis, idx) => (
+                                                <div key={idx} className="group relative aspect-[9/12] rounded-xl overflow-hidden border border-white/10 bg-black shadow-lg">
+                                                    <img src={vis} alt={`Visual ${idx}`} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                        <button onClick={() => {
+                                                            const a = document.createElement('a'); a.href = vis;
+                                                            a.download = `dropsiders-capture-${idx}.png`; a.click();
+                                                        }} className="p-2 bg-white text-black rounded-lg hover:bg-neon-cyan transition-colors">
+                                                            <Download className="w-3 h-3" />
+                                                        </button>
+                                                        <button onClick={() => setVisualsList(prev => prev.filter((_, i) => i !== idx))}
+                                                            className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Export */}
+                                <div className="space-y-3 pt-2 border-t border-white/10">
+                                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
+                                        <span>🚀</span> Téléchargement & Export
+                                    </span>
+                                    {exportButtons}
+                                </div>
+
+                                <div className="pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setSidebarStep('visual')}
+                                        className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-bold text-gray-400 hover:text-white uppercase transition-all flex items-center justify-center gap-1.5"
+                                    >
+                                        <span>⬅️</span>
+                                        <span>Revenir à l'étape 2 (Visuel & Fond)</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Preview */}
