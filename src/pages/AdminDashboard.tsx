@@ -81,6 +81,7 @@ import {
   Music2,
   Monitor,
   UserCheck,
+  Share2,
 } from "lucide-react";
 
 
@@ -1112,6 +1113,7 @@ export function AdminDashboard() {
     | "TEAM"
     | "R2"
     | "SOCIAL_STUDIO"
+    | "EXPORT_NEWS"
     | "TOP_DROPSIDERS"
     | "DROPSIDERS_TV"
     | "INTERVIEW"
@@ -1210,7 +1212,8 @@ export function AdminDashboard() {
     { id: "NEWS", label: "Actualités" },
     { id: "COMMUNAUTÉ", label: "Communauté" },
     { id: "DROPSIDERS_TV", label: "Dropsiders TV" },
-    { id: "SOCIAL_STUDIO", label: "Social Studio" },
+    { id: "SOCIAL_STUDIO", label: "Visuel Vide" },
+    { id: "EXPORT_NEWS", label: "Exporter une News" },
     { id: "WIKI", label: "DJs / Clubs / Festivals" },
     { id: "STUDIO", label: "Studio" },
     { id: "SHOP", label: "Boutique" },
@@ -2700,6 +2703,30 @@ export function AdminDashboard() {
     },
 
     {
+      title: "Visuel Vide",
+      description: "Social Studio vierge (Direct)",
+      icon: "Sparkles",
+      category: "STUDIO",
+      link: "#SOCIAL_STUDIO_EMPTY",
+      color: "border-pink-500/20 hover:border-pink-500",
+      bg: "bg-pink-500/5",
+      permission: "social_studio",
+      baseColor: "pink",
+      columns: 1,
+    },
+    {
+      title: "Exporter une News",
+      description: "Convertir un article en visuel réseaux",
+      icon: "Share2",
+      category: "STUDIO",
+      link: "#EXPORT_NEWS",
+      color: "border-neon-cyan/20 hover:border-neon-cyan",
+      bg: "bg-neon-cyan/5",
+      permission: "social_studio",
+      baseColor: "cyan",
+      columns: 1,
+    },
+    {
       title: "Générateurs",
       description: "Studio de création visuelle",
       icon: "Sparkles",
@@ -3058,6 +3085,10 @@ export function AdminDashboard() {
         return <Globe className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
       case "QrCode":
         return <QrCode className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+      case "Share2":
+        return <Share2 className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+      case "Sparkles":
+        return <Sparkles className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
       default:
         return (
           <FileText className={`w-8 h-8 ${colorClass}`} style={colorStyle} />
@@ -3225,8 +3256,17 @@ export function AdminDashboard() {
     if (dashboardTab === "SOCIAL_STUDIO") {
       return (
         action.title === "Social Studio" ||
+        action.title === "Visuel Vide" ||
+        action.link === "#SOCIAL_STUDIO_EMPTY" ||
         action.link === "social-studio" ||
         action.category?.toUpperCase() === "SOCIAL_STUDIO"
+      );
+    }
+
+    if (dashboardTab === "EXPORT_NEWS") {
+      return (
+        action.title === "Exporter une News" ||
+        action.link === "#EXPORT_NEWS"
       );
     }
 
@@ -3632,7 +3672,13 @@ export function AdminDashboard() {
                       return;
                     }
                     if (tab.id === "SOCIAL_STUDIO") {
+                      setSelectedSocialArticle({ title: "", image: "" });
+                      setSelectedSocialTheme(undefined);
+                      return;
+                    }
+                    if (tab.id === "EXPORT_NEWS") {
                       setIsSocialModalOpen(true);
+                      return;
                     }
                     setDashboardTab(tab.id as any);
                   }}
@@ -4864,7 +4910,19 @@ export function AdminDashboard() {
                               setIsCreatorStudioOpen(true);
                             } else if (
                               action.title === "Social Studio" ||
+                              action.title === "Visuel Vide" ||
+                              action.title === "Social Studio (Vide)" ||
+                              action.link === "#SOCIAL_STUDIO_EMPTY" ||
                               action.link === "social-studio"
+                            ) {
+                              e.preventDefault();
+                              setSelectedSocialArticle({ title: "", image: "" });
+                              setSelectedSocialTheme(undefined);
+                            } else if (
+                              action.title === "Exporter une News" ||
+                              action.title === "Export News" ||
+                              action.link === "#EXPORT_NEWS" ||
+                              action.link === "export-news"
                             ) {
                               e.preventDefault();
                               setIsSocialModalOpen(true);
@@ -5414,19 +5472,39 @@ export function AdminDashboard() {
                     <button
                       onClick={() => {
                         setIsGeneratorsModalOpen(false);
-                        setIsSocialModalOpen(true);
+                        setSelectedSocialArticle({ title: "", image: "" });
+                        setSelectedSocialTheme(undefined);
                       }}
                       className="p-4 md:p-8 bg-white/5 border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center gap-3 md:gap-6 hover:bg-pink-500/10 hover:border-pink-500/50 transition-all group"
                     >
                       <div className="w-10 h-10 md:w-16 md:h-16 bg-pink-500/20 rounded-xl md:rounded-2xl flex items-center justify-center border border-pink-500/30 group-hover:scale-110 transition-transform">
-                        <Instagram className="w-5 h-5 md:w-8 md:h-8 text-pink-500" />
+                        <Sparkles className="w-5 h-5 md:w-8 md:h-8 text-pink-500" />
                       </div>
                       <div className="text-center">
                         <h3 className="text-xs md:text-lg font-bold text-white uppercase italic">
-                          SOCIAL POST
+                          VISUEL VIDE
+                        </h3>
+                        <p className="text-[9px] text-pink-400 font-bold uppercase tracking-[0.2em] mt-2">
+                          Ouverture Directe
+                        </p>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsGeneratorsModalOpen(false);
+                        setIsSocialModalOpen(true);
+                      }}
+                      className="p-4 md:p-8 bg-white/5 border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center gap-3 md:gap-6 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
+                    >
+                      <div className="w-10 h-10 md:w-16 md:h-16 bg-neon-cyan/20 rounded-xl md:rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
+                        <Share2 className="w-5 h-5 md:w-8 md:h-8 text-neon-cyan" />
+                      </div>
+                      <div className="text-center">
+                        <h3 className="text-xs md:text-lg font-bold text-white uppercase italic">
+                          EXPORTER UNE NEWS
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">
-                          Outils Réseaux Sociaux
+                          Depuis un Article
                         </p>
                       </div>
                     </button>
@@ -6209,6 +6287,29 @@ export function AdminDashboard() {
                       <ArrowRight className="w-5 h-5 text-neon-yellow group-hover:translate-x-1 transition-transform" />
                     </Link>
                   </div>
+
+                  <button
+                    onClick={() => {
+                      setIsNewsModalOpen(false);
+                      setIsSocialModalOpen(true);
+                    }}
+                    className="w-full mt-4 p-5 bg-gradient-to-r from-neon-red/10 to-neon-purple/10 border border-neon-red/30 rounded-3xl flex items-center justify-between hover:bg-neon-red/20 transition-all group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-neon-red/20 rounded-xl border border-neon-red/30">
+                        <Share2 className="w-5 h-5 text-neon-red" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="font-bold text-white uppercase italic tracking-tight">
+                          Exporter une News en Visuel
+                        </h3>
+                        <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">
+                          Convertir un article pour Instagram & Réseaux
+                        </p>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-neon-red group-hover:translate-x-1 transition-transform" />
+                  </button>
                 </motion.div>
               </div>
             )}
@@ -6229,21 +6330,20 @@ export function AdminDashboard() {
                   <div className="flex justify-between items-start mb-10">
                     <div>
                       <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                        Social <span className="text-neon-red">Studio</span>
+                        Exporter une <span className="text-neon-red">News</span>
                       </h2>
                       <p className="text-gray-400 font-medium">
-                        Générez des visuels pour vos réseaux
+                        Sélectionnez un article pour générer son visuel réseaux sociaux
                       </p>
                     </div>
                     <button
                       onClick={() => {
                         setIsSocialModalOpen(false);
-                        setIsGeneratorsModalOpen(true);
                       }}
-                      className="p-3 bg-neon-cyan/20 hover:bg-neon-cyan text-white hover:text-black rounded-2xl border border-neon-cyan/30 transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-[0_0_20px_rgba(0,255,243,0.2)]"
+                      className="p-3 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-2xl border border-white/10 transition-all flex items-center gap-2 font-black text-[10px] uppercase tracking-widest group"
                     >
-                      <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                      RETOUR
+                      <X className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                      FERMER
                     </button>
                   </div>
 
