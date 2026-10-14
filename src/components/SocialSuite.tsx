@@ -317,6 +317,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [djSilhouetteColor, setDjSilhouetteColor] = useState<string>('#bd00ff');
     const [djGlowIntensity, setDjGlowIntensity] = useState<number>(26);
     const [djShowQuestionMark, setDjShowQuestionMark] = useState<boolean>(true);
+    const [djAppearanceAnim, setDjAppearanceAnim] = useState<'STROBE' | 'PULSE' | 'FADE' | 'SCAN' | 'IMPACT' | 'STATIC'>('STROBE');
+    const [editorialSlideImages, setEditorialSlideImages] = useState<Record<number, string>>({});
+    const [editorialSlideCutouts, setEditorialSlideCutouts] = useState<Record<number, string>>({});
+    const [editorialSlideTitles, setEditorialSlideTitles] = useState<Record<number, string>>({});
+    const [djSlideModes, setDjSlideModes] = useState<Record<number, 'SILHOUETTE' | 'REVEAL'>>({});
+    const slideFileInputRef = useRef<HTMLInputElement>(null);
+
     const [isIsolatingSilhouette, setIsIsolatingSilhouette] = useState<boolean>(false);
     const [isolationProgress, setIsolationProgress] = useState<number | null>(null);
     const [isolationError, setIsolationError] = useState<string | null>(null);
@@ -342,10 +349,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     });
 
     const addEditorialSlide = () => {
-        if (extraEditorialSlides.length >= 5) return; // Limite à 7 slides totales max (2 de base + 5 supplémentaires)
+        if (extraEditorialSlides.length >= 8) return; // Limite à 10 slides totales max (2 de base + 8 supplémentaires)
         const nextSlideNum = 2 + extraEditorialSlides.length + 1;
         setExtraEditorialSlides(prev => [...prev, '']);
         setEditorialSlide(nextSlideNum);
+    };
+
+    const handleSlideImageUpload = (file: File) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const url = e.target?.result as string;
+            if (!url) return;
+            setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
+            if (editorialSlide === 1) {
+                setBgImage(url);
+            }
+            const imgObj = new Image();
+            imgObj.crossOrigin = 'anonymous';
+            imgObj.src = url;
+            imgObj.onload = () => {
+                imageCacheRef.current[url] = imgObj;
+                generateImage();
+            };
+        };
+        reader.readAsDataURL(file);
     };
 
     const removeEditorialSlide = (slideIndexToRemove: number) => {
@@ -1350,32 +1377,54 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? promoThemeData 
                     : (themeColor || baseThemeData[theme] || baseThemeData['NEWS']);
                 let img: HTMLImageElement | null = null;
-            if (bgImage) {
-                if (imageCacheRef.current[bgImage]) {
-                    img = imageCacheRef.current[bgImage];
+            const targetHeight = effectiveTab === 'REEL' ? 1920 : 1350;
+            if (canvas.width !== 1080) canvas.width = 1080;
+            if (canvas.height !== targetHeight) canvas.height = targetHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const safeSize = effectiveTab === 'PUBLICATION' ? 1050 : 1080;
+            const safeTop = (canvas.height - safeSize) / 2;
+            const safeBottom = safeTop + safeSize;
+
+            const effectiveAgendaSlide = agendaSlideOverrideRef.current !== null ? agendaSlideOverrideRef.current : agendaSlide;
+            const effectiveEditorialSlide = editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide;
+            const effectiveTransitionProgress = transitionProgressRef.current !== null ? transitionProgressRef.current : transitionProgress;
+
+            // Image spécifique à la slide ou image de fond globale
+            const activeSlideImgSrc = editorialSlideImages[effectiveEditorialSlide] || bgImage;
+            if (activeSlideImgSrc) {
+                if (imageCacheRef.current[activeSlideImgSrc]) {
+                    img = imageCacheRef.current[activeSlideImgSrc];
                 } else {
                     const imgObj = new Image();
                     imgObj.crossOrigin = "anonymous";
-                    imgObj.src = bgImage;
+                    imgObj.src = activeSlideImgSrc;
                     imgObj.onload = () => {
-                        imageCacheRef.current[bgImage] = imgObj;
+                        imageCacheRef.current[activeSlideImgSrc] = imgObj;
                         generateImage();
                     };
                     img = null;
                 }
             }
 
-            // Image détourée IA pour JEU_DJ (Slide 1)
+            // Déterminer si la slide active est en mode Silhouette ou Reveal (JEU_DJ)
+            const isCurrentSlideSilhouette = (theme === 'JEU_DJ') && (
+                djSlideModes[effectiveEditorialSlide] !== undefined
+                    ? djSlideModes[effectiveEditorialSlide] === 'SILHOUETTE'
+                    : (effectiveEditorialSlide % 2 === 1)
+            );
+
+            // Image détourée IA pour JEU_DJ (pour la slide active)
+            const activeCutoutSrc = editorialSlideCutouts[effectiveEditorialSlide] || (effectiveEditorialSlide === 1 ? djCutoutImage : null);
             let djCutoutImgObj: HTMLImageElement | null = null;
-            if (djCutoutImage) {
-                if (imageCacheRef.current[djCutoutImage]) {
-                    djCutoutImgObj = imageCacheRef.current[djCutoutImage];
+            if (activeCutoutSrc) {
+                if (imageCacheRef.current[activeCutoutSrc]) {
+                    djCutoutImgObj = imageCacheRef.current[activeCutoutSrc];
                 } else {
                     const imgObj = new Image();
                     imgObj.crossOrigin = "anonymous";
-                    imgObj.src = djCutoutImage;
+                    imgObj.src = activeCutoutSrc;
                     imgObj.onload = () => {
-                        imageCacheRef.current[djCutoutImage] = imgObj;
+                        imageCacheRef.current[activeCutoutSrc] = imgObj;
                         generateImage();
                     };
                 }
@@ -1397,18 +1446,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            const targetHeight = effectiveTab === 'REEL' ? 1920 : 1350;
-            if (canvas.width !== 1080) canvas.width = 1080;
-            if (canvas.height !== targetHeight) canvas.height = targetHeight;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const safeSize = effectiveTab === 'PUBLICATION' ? 1050 : 1080;
-            const safeTop = (canvas.height - safeSize) / 2;
-            const safeBottom = safeTop + safeSize;
-
-            const effectiveAgendaSlide = agendaSlideOverrideRef.current !== null ? agendaSlideOverrideRef.current : agendaSlide;
-            const effectiveEditorialSlide = editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide;
-            const effectiveTransitionProgress = transitionProgressRef.current !== null ? transitionProgressRef.current : transitionProgress;
-
             // Pour MUSIQUE slide >= 2 : récupérer la cover active si aucun fond personnalisé n'a été chargé
             const isMusiqueTrackSlide = (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2);
             const musiqueTrackIdx = isMusiqueTrackSlide ? Math.max(0, effectiveEditorialSlide - 2) : 0;
@@ -1418,14 +1455,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             let effectiveImg = img || (isMusiqueTrackSlide ? musiqueCoverImg : null);
             if (theme === 'JEU_DJ') {
-                if (effectiveEditorialSlide === 1) {
+                if (isCurrentSlideSilhouette) {
                     if (djCutoutImgObj) effectiveImg = djCutoutImgObj;
-                } else if (effectiveEditorialSlide >= 2) {
-                    if (djOriginalImgObj) effectiveImg = djOriginalImgObj;
+                } else {
+                    if (img) effectiveImg = img;
+                    else if (djOriginalImgObj) effectiveImg = djOriginalImgObj;
                 }
             }
 
-            const isAnyAnimationActive = (textAnimation !== 'NONE' || bgAnimation !== 'NONE');
+            const isAnyAnimationActive = (textAnimation !== 'NONE' || bgAnimation !== 'NONE' || (theme === 'JEU_DJ' && isCurrentSlideSilhouette && djAppearanceAnim !== 'STATIC'));
             const animElapsed = isVideoRecordingRef.current
                 ? deterministicAnimTimeRef.current
                 : ((bgVideo && !isDownloading) || isAnyAnimationActive || (theme === 'MUSIQUE' && !isDownloading && (cdjPlayerRing || musicBgMotion))
@@ -1604,10 +1642,49 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const x = (canvas.width - iw) + bgOffsetX + bgAnimX;
                     const y = ((canvas.height - ih) / 2) + bgOffsetY + bgAnimY;
                     ctx.drawImage(effectiveImg, x, y, iw, ih);
-                } else if (theme === 'JEU_DJ' && effectiveEditorialSlide === 1) {
-                    // SILHOUETTE MYSTÈRE DJ (Slide 1 : Silhouette Noire + Halo / Lueur Néon + Badge Mystère)
+                } else if (theme === 'JEU_DJ' && isCurrentSlideSilhouette) {
+                    // SILHOUETTE MYSTÈRE DJ (Silhouette Noire + Halo / Lueur Néon + Animation d'apparition + Badge Mystère)
                     const baseScale = Math.min((canvas.width * 0.90) / effectiveImg.width, (canvas.height * 0.70) / effectiveImg.height);
-                    const scale = (baseScale > 1.25 ? baseScale : Math.max(canvas.width / effectiveImg.width, canvas.height / effectiveImg.height) * 0.92) * bgAnimScale;
+                    let scale = (baseScale > 1.25 ? baseScale : Math.max(canvas.width / effectiveImg.width, canvas.height / effectiveImg.height) * 0.92) * bgAnimScale;
+
+                    // Application de l'effet d'apparition choisi
+                    let silAlpha = 1.0;
+                    let silGlowBlur = djGlowIntensity;
+                    let scanLaserY: number | null = null;
+
+                    if (djAppearanceAnim === 'STROBE') {
+                        // Allumage néon stroboscopique intense
+                        if (animElapsed < 0.85) {
+                            const step = Math.floor(animElapsed * 26);
+                            const flicker = (step % 4 !== 1 && step % 7 !== 2);
+                            silAlpha = flicker ? 1.0 : 0.20;
+                            silGlowBlur = flicker ? djGlowIntensity * 1.6 : djGlowIntensity * 0.3;
+                        }
+                    } else if (djAppearanceAnim === 'PULSE') {
+                        // Pulsation basse EDM calée sur 128 BPM
+                        const pulse = Math.pow(Math.sin(animElapsed * Math.PI * 2.13), 4);
+                        silGlowBlur = djGlowIntensity * (0.75 + 0.65 * pulse);
+                        scale *= (1.0 + pulse * 0.025);
+                    } else if (djAppearanceAnim === 'FADE') {
+                        // Émergence douce de l'ombre
+                        const t = Math.max(0, Math.min(1, animElapsed / 0.75));
+                        const ease = 1 - Math.pow(1 - t, 3);
+                        silAlpha = ease;
+                        scale *= (0.92 + 0.08 * ease);
+                        silGlowBlur = djGlowIntensity * ease;
+                    } else if (djAppearanceAnim === 'SCAN') {
+                        // Balayage laser vertical continu
+                        const tScan = (animElapsed % 2.4) / 2.4;
+                        scanLaserY = ((canvas.height * 0.44) - (effectiveImg.height * scale) / 2) + ((effectiveImg.height * scale) * tScan);
+                        silGlowBlur = djGlowIntensity * (0.9 + Math.sin(tScan * Math.PI) * 0.4);
+                    } else if (djAppearanceAnim === 'IMPACT') {
+                        // Zoom impact EDM
+                        const t = Math.max(0, Math.min(1, animElapsed / 0.50));
+                        const ease = 1 - Math.pow(1 - t, 4);
+                        scale *= (1.35 - 0.35 * ease);
+                        silAlpha = Math.min(1, t * 2.5);
+                    }
+
                     const iw = effectiveImg.width * scale;
                     const ih = effectiveImg.height * scale;
                     const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
@@ -1652,18 +1729,39 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     // 3. Dessin du halo / néon rim light
                     ctx.save();
+                    ctx.globalAlpha = silAlpha;
                     ctx.shadowColor = djSilhouetteColor;
-                    ctx.shadowBlur = djGlowIntensity;
+                    ctx.shadowBlur = silGlowBlur;
                     ctx.drawImage(off, x, y, iw, ih);
                     ctx.drawImage(off, x, y, iw, ih);
                     ctx.restore();
 
                     // 4. Dessin de la silhouette noire pure
+                    ctx.save();
+                    ctx.globalAlpha = silAlpha;
                     ctx.drawImage(off, x, y, iw, ih);
+                    ctx.restore();
+
+                    // Faisceau Laser vertical si SCAN
+                    if (scanLaserY !== null && djAppearanceAnim === 'SCAN') {
+                        ctx.save();
+                        const laserGrad = ctx.createLinearGradient(x - 50, scanLaserY, x + iw + 50, scanLaserY);
+                        laserGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                        laserGrad.addColorStop(0.2, djSilhouetteColor);
+                        laserGrad.addColorStop(0.5, '#ffffff');
+                        laserGrad.addColorStop(0.8, djSilhouetteColor);
+                        laserGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                        ctx.fillStyle = laserGrad;
+                        ctx.shadowColor = djSilhouetteColor;
+                        ctx.shadowBlur = 16;
+                        ctx.fillRect(x - 50, scanLaserY - 2.5, iw + 100, 5);
+                        ctx.restore();
+                    }
 
                     // 5. Badge mystère "?" chic sur la silhouette
                     if (djShowQuestionMark) {
                         ctx.save();
+                        ctx.globalAlpha = silAlpha;
                         const qX = x + (iw / 2);
                         const qY = y + (ih * 0.38);
                         const qRadius = 42;
@@ -4551,12 +4649,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
                 // 4. MAIN TITLE IN WHITE (BOLD) & SUBTEXT UNDERNEATH (ITALIC)
-                let mainTitleText = (conseilsTitle && conseilsTitle !== 'LE TITRE ICI') 
-                    ? conseilsTitle 
-                    : (customText || (theme === 'ARTISTE FESTIVAL' ? 'LES 10 ARTISTES À NE PAS LOUPER' : ''));
+                const slideCustomTitle = editorialSlideTitles[effectiveEditorialSlide];
+                let mainTitleText = (slideCustomTitle !== undefined)
+                    ? slideCustomTitle
+                    : ((conseilsTitle && conseilsTitle !== 'LE TITRE ICI') 
+                        ? conseilsTitle 
+                        : (customText || (theme === 'ARTISTE FESTIVAL' ? 'LES 10 ARTISTES À NE PAS LOUPER' : '')));
                 
-                // Sur les slides 2+ des thèmes éditoriaux, possibilité de masquer le grand titre selon le choix de l'utilisateur
-                if (effectiveEditorialSlide >= 2 && isEditorialCarouselTheme && !showTitleOnSlide2) {
+                // Sur les slides 2+ des thèmes éditoriaux, possibilité de masquer le grand titre si pas de titre spécifique
+                if (effectiveEditorialSlide >= 2 && isEditorialCarouselTheme && !showTitleOnSlide2 && !slideCustomTitle && !isCurrentSlideSilhouette) {
                     mainTitleText = '';
                 }
 
@@ -5046,7 +5147,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         const isBadgeTheme = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'AFFICHE'].includes(theme);
         const shouldAnimateBadge = isBadgeTheme && activeTab === 'REEL';
-        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || (theme === 'MUSIQUE' && (cdjPlayerRing || musicBgMotion)) || transitionProgress > 0 || shouldAnimateBadge) {
+        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || (theme === 'MUSIQUE' && (cdjPlayerRing || musicBgMotion)) || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge) {
             let lastRender = 0;
             let isRendering = false;
             const loop = (timestamp: number) => {
@@ -5066,7 +5167,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoCategory, showPromoHook, showPromoHeadline, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoCategory, showPromoHook, showPromoHeadline, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes]);
 
     // Pre-charger les pochettes des tracks du thème MUSIQUE
     useEffect(() => {
@@ -7097,75 +7198,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             </>)}
         </div>
     );
-
-    const quizColorControls = theme === 'JEU' ? (
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-3">
-            <div className="flex items-center justify-between">
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                    🎨 Double Couleurs Quiz
-                </span>
-                <div className="w-5 h-5 rounded-full border border-white/20 shadow-sm" style={{ background: `linear-gradient(135deg, ${quizColor1}, ${quizColor2})` }} />
-            </div>
-
-            {/* Color Presets */}
-            <div className="grid grid-cols-2 gap-1.5">
-                {[
-                    { label: 'Cyan & Violet', c1: '#38bdf8', c2: '#a855f7' },
-                    { label: 'Rouge & Or', c1: '#ff0033', c2: '#ffaa00' },
-                    { label: 'Bleu & Émeraude', c1: '#00f0ff', c2: '#39ff14' },
-                    { label: 'Fuchsia & Rose', c1: '#c026d3', c2: '#f43f5e' },
-                    { label: 'Sunset Red', c1: '#ff6700', c2: '#ff0055' },
-                ].map(p => (
-                    <button
-                        key={p.label}
-                        onClick={() => {
-                            setQuizColor1(p.c1);
-                            setQuizColor2(p.c2);
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className="py-1.5 px-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white flex items-center gap-1.5 transition-all"
-                    >
-                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: `linear-gradient(135deg, ${p.c1}, ${p.c2})` }} />
-                        <span className="truncate">{p.label}</span>
-                    </button>
-                ))}
-            </div>
-
-            {/* Custom Color Pickers */}
-            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/5">
-                <div className="space-y-1">
-                    <span className="text-[7px] font-black uppercase text-gray-400 block">Couleur 1</span>
-                    <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1.5 rounded-xl">
-                        <input
-                            type="color"
-                            value={quizColor1}
-                            onChange={e => {
-                                setQuizColor1(e.target.value);
-                                setTimeout(() => generateImage(), 50);
-                            }}
-                            className="w-5 h-5 rounded cursor-pointer bg-transparent border-0"
-                        />
-                        <span className="text-[8px] font-mono text-white uppercase">{quizColor1}</span>
-                    </div>
-                </div>
-                <div className="space-y-1">
-                    <span className="text-[7px] font-black uppercase text-gray-400 block">Couleur 2</span>
-                    <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1.5 rounded-xl">
-                        <input
-                            type="color"
-                            value={quizColor2}
-                            onChange={e => {
-                                setQuizColor2(e.target.value);
-                                setTimeout(() => generateImage(), 50);
-                            }}
-                            className="w-5 h-5 rounded cursor-pointer bg-transparent border-0"
-                        />
-                        <span className="text-[8px] font-mono text-white uppercase">{quizColor2}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    ) : null;
 
     // Shared content blocks (used in both mobile & desktop)
     const themeButtons = (
@@ -9421,18 +9453,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     })();
 
     const handleIsolateDjSilhouette = async () => {
-        if (!bgImage) return;
+        const sourceImage = editorialSlideImages[editorialSlide] || bgImage;
+        if (!sourceImage) return;
         setIsIsolatingSilhouette(true);
         setIsolationProgress(0);
         setIsolationError(null);
 
         try {
             if (!djOriginalImage) {
-                setDjOriginalImage(bgImage);
+                setDjOriginalImage(sourceImage);
             }
 
-            let inputSource: Blob | string = bgImage;
-            const existingImg = imageCacheRef.current[bgImage];
+            let inputSource: Blob | string = sourceImage;
+            const existingImg = imageCacheRef.current[sourceImage];
             if (existingImg && existingImg.complete && existingImg.naturalWidth > 0) {
                 try {
                     const tempCanvas = document.createElement('canvas');
@@ -9449,7 +9482,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                     }
                 } catch {
-                    inputSource = bgImage;
+                    inputSource = sourceImage;
                 }
             }
 
@@ -9465,7 +9498,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             });
 
             const cutoutUrl = URL.createObjectURL(blobResult);
-            setDjCutoutImage(cutoutUrl);
+            setEditorialSlideCutouts(prev => ({ ...prev, [editorialSlide]: cutoutUrl }));
+            if (editorialSlide === 1) {
+                setDjCutoutImage(cutoutUrl);
+            }
 
             const imgObj = new Image();
             imgObj.crossOrigin = 'anonymous';
@@ -9484,9 +9520,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const handleResetDjSilhouette = () => {
-        setDjCutoutImage(null);
-        if (djOriginalImage) {
-            setBgImage(djOriginalImage);
+        setEditorialSlideCutouts(prev => {
+            const next = { ...prev };
+            delete next[editorialSlide];
+            return next;
+        });
+        if (editorialSlide === 1) {
+            setDjCutoutImage(null);
+            if (djOriginalImage) {
+                setBgImage(djOriginalImage);
+            }
         }
     };
 
@@ -9498,8 +9541,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <>
                     <div className="p-2 bg-black/60 border border-white/10 rounded-2xl space-y-2 shadow-xl">
                         <div className="flex items-center justify-between text-[8.5px] font-bold text-gray-400 uppercase px-1">
-                            <span>Slides du Carrousel ({2 + extraEditorialSlides.length}/7 max)</span>
-                            {extraEditorialSlides.length < 5 && (
+                            <span>Slides du Carrousel ({2 + extraEditorialSlides.length}/10 max)</span>
+                            {extraEditorialSlides.length < 8 && (
                                 <button
                                     type="button"
                                     onClick={addEditorialSlide}
@@ -9519,7 +9562,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                             >
-                                <span className="text-xs">📌</span> Slide 1 : Cover
+                                <span className="text-xs">{theme === 'JEU_DJ' ? (djSlideModes[1] === 'REVEAL' ? '🌈' : '👤') : '📌'}</span> {theme === 'JEU_DJ' ? (djSlideModes[1] === 'REVEAL' ? 'Slide 1 : Reveal' : 'Slide 1 : Silhouette') : 'Slide 1 : Cover'}
                             </button>
                             <button
                                 type="button"
@@ -9530,10 +9573,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 } ${skipEditorialSlide2 ? 'opacity-60' : ''}`}
                             >
-                                <span className="text-xs">📖</span> Slide 2 {skipEditorialSlide2 && '(Masquée)'}
+                                <span className="text-xs">{theme === 'JEU_DJ' ? (djSlideModes[2] === 'SILHOUETTE' ? '👤' : '🌈') : '📖'}</span> {theme === 'JEU_DJ' ? (djSlideModes[2] === 'SILHOUETTE' ? 'Slide 2 : Silhouette' : 'Slide 2 : Reveal') : `Slide 2 ${skipEditorialSlide2 ? '(Masquée)' : ''}`}
                             </button>
                             {extraEditorialSlides.map((_, idx) => {
                                 const sNum = idx + 3;
+                                const isSil = djSlideModes[sNum] !== undefined ? djSlideModes[sNum] === 'SILHOUETTE' : (sNum % 2 === 1);
                                 return (
                                     <button
                                         key={sNum}
@@ -9545,7 +9589,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                     >
-                                        <span className="text-xs">📄</span> Slide {sNum}
+                                        <span className="text-xs">{theme === 'JEU_DJ' ? (isSil ? '👤' : '🌈') : '📄'}</span> {theme === 'JEU_DJ' ? (isSil ? `Slide ${sNum} : Silhouette` : `Slide ${sNum} : Reveal`) : `Slide ${sNum}`}
                                     </button>
                                 );
                             })}
@@ -9585,6 +9629,99 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         {/* Contrôle de la durée et du format Vidéo / Reel (Slide 1, Promo, Slide 2) */}
                         {editorialDurationControls}
+                    </div>
+
+                    {/* CARTE GESTION DE LA SLIDE ACTIVE (Image & Mode) */}
+                    <div className="p-3 bg-black/60 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
+                                🖼️ Visuel Slide {editorialSlide} sur {2 + extraEditorialSlides.length}
+                            </span>
+                            {editorialSlide >= 3 && (
+                                <button
+                                    type="button"
+                                    onClick={() => removeEditorialSlide(editorialSlide)}
+                                    className="px-2 py-0.5 text-[8px] font-black uppercase text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg transition-all"
+                                >
+                                    🗑️ Supprimer cette slide
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="file"
+                                ref={slideFileInputRef}
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleSlideImageUpload(file);
+                                }}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => slideFileInputRef.current?.click()}
+                                className="flex-1 py-2 px-3 border border-dashed border-white/20 hover:border-neon-cyan/50 rounded-xl bg-black/40 hover:bg-white/5 text-gray-300 hover:text-white text-[8.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5"
+                            >
+                                <Upload className="w-3.5 h-3.5 text-neon-cyan" />
+                                {editorialSlideImages[editorialSlide] ? `Changer photo Slide ${editorialSlide}` : `Importer photo spécifique (Slide ${editorialSlide})`}
+                            </button>
+                            {editorialSlideImages[editorialSlide] && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEditorialSlideImages(prev => {
+                                            const next = { ...prev };
+                                            delete next[editorialSlide];
+                                            return next;
+                                        });
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className="py-2 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 text-[8px] font-black uppercase border border-white/10"
+                                    title="Réutiliser l'image globale"
+                                >
+                                    🔄 Réinit
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Mode Silhouette vs Reveal par slide (pour JEU_DJ) */}
+                        {theme === 'JEU_DJ' && (
+                            <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[8px] font-bold text-gray-300 uppercase">
+                                <span>Rendu Slide {editorialSlide} :</span>
+                                <div className="flex items-center gap-1 bg-black/80 p-0.5 rounded-xl border border-white/15">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setDjSlideModes(prev => ({ ...prev, [editorialSlide]: 'SILHOUETTE' }));
+                                            setTimeout(() => generateImage(), 50);
+                                        }}
+                                        className={`py-1 px-2.5 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 ${
+                                            (djSlideModes[editorialSlide] === 'SILHOUETTE' || (djSlideModes[editorialSlide] === undefined && editorialSlide % 2 === 1))
+                                                ? 'bg-[#bd00ff] text-white shadow-md scale-[1.02]'
+                                                : 'text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        👤 Silhouette
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setDjSlideModes(prev => ({ ...prev, [editorialSlide]: 'REVEAL' }));
+                                            setTimeout(() => generateImage(), 50);
+                                        }}
+                                        className={`py-1 px-2.5 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 ${
+                                            (djSlideModes[editorialSlide] === 'REVEAL' || (djSlideModes[editorialSlide] === undefined && editorialSlide % 2 === 0))
+                                                ? 'bg-emerald-500 text-black font-black shadow-md scale-[1.02]'
+                                                : 'text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        🌈 Reveal Couleur
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Quick Carousel Download Bar */}
@@ -10005,6 +10142,46 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             >
                                                 {djShowQuestionMark ? 'ACTIF' : 'MASQUÉ'}
                                             </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Choix d'effet d'apparition pour la silhouette */}
+                                    <div className="p-2.5 bg-black/50 border border-white/10 rounded-xl space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[8.5px] font-black uppercase text-white flex items-center gap-1.5">
+                                                ⚡ Effet d'apparition de la silhouette
+                                            </span>
+                                            <span className="text-[7.5px] font-bold text-[#bd00ff] uppercase font-mono">
+                                                {djAppearanceAnim}
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-3 gap-1">
+                                            {[
+                                                { id: 'STROBE', label: '⚡ Strobe Néon', desc: 'Clignotement tube néon stroboscopique' },
+                                                { id: 'PULSE', label: '💓 Pulse Basse', desc: 'Pulsation au rythme de la basse (128 BPM)' },
+                                                { id: 'FADE', label: '🌫️ Fondu Ombre', desc: 'Émergence douce de l\'obscurité' },
+                                                { id: 'SCAN', label: '🔍 Scan Laser', desc: 'Faisceau laser vertical continu' },
+                                                { id: 'IMPACT', label: '💥 Zoom Impact', desc: 'Zoom percutant EDM' },
+                                                { id: 'STATIC', label: '⏸️ Statique', desc: 'Silhouette nette et lueur fixe' },
+                                            ].map(eff => (
+                                                <button
+                                                    key={eff.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setDjAppearanceAnim(eff.id as any);
+                                                        setTimeout(() => generateImage(), 50);
+                                                    }}
+                                                    className={`py-1.5 px-1.5 rounded-lg text-[8px] font-black uppercase transition-all border text-center ${
+                                                        djAppearanceAnim === eff.id
+                                                            ? 'bg-[#bd00ff] border-[#bd00ff] text-white shadow-[0_0_10px_rgba(189,0,255,0.4)] scale-[1.02]'
+                                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                                    }`}
+                                                    title={eff.desc}
+                                                >
+                                                    {eff.label}
+                                                </button>
+                                            ))}
                                         </div>
                                     </div>
 
@@ -12761,7 +12938,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         {themeButtons}
                         {devinetteSwitcher}
-                        {quizColorControls}
                         {styleMusicButtons}
 
                         {/* Background */}
@@ -13747,7 +13923,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Thème visuel</p>
                                         {themeButtons}
                                         {devinetteSwitcher}
-                                        {quizColorControls}
                                         {styleMusicButtons && <div className="mt-4">{styleMusicButtons}</div>}
                                     </div>
                                 )}
