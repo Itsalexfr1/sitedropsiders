@@ -323,6 +323,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [editorialSlideTitles, setEditorialSlideTitles] = useState<Record<number, string>>({});
     const [djSlideModes, setDjSlideModes] = useState<Record<number, 'SILHOUETTE' | 'REVEAL'>>({});
     const slideFileInputRef = useRef<HTMLInputElement>(null);
+    const djPhotoInputRef = useRef<HTMLInputElement>(null);
 
     const [isIsolatingSilhouette, setIsIsolatingSilhouette] = useState<boolean>(false);
     const [isolationProgress, setIsolationProgress] = useState<number | null>(null);
@@ -9546,8 +9547,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         );
     })();
 
+    const handleDjPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+            imageCacheRef.current[url] = img;
+            setBgImage(url);
+            setBgVideo(null);
+            setDjOriginalImage(url);
+            setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
+            generateImage();
+        };
+        img.src = url;
+        e.target.value = '';
+    };
+
     const handleIsolateDjSilhouette = async () => {
-        const sourceImage = editorialSlideImages[editorialSlide] || bgImage;
+        const sourceImage = djOriginalImage || editorialSlideImages[editorialSlide] || bgImage;
         if (!sourceImage) return;
         setIsIsolatingSilhouette(true);
         setIsolationProgress(0);
@@ -10095,43 +10114,111 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                             )}
 
-                            {/* Module Dédié Devine le DJ (Silhouette Mystère - Options A + B) */}
+                            {/* Module Dédié Devine le DJ (Silhouette Mystère) */}
                             {theme === 'JEU_DJ' && (
-                                <div className="p-3 bg-[#bd00ff]/10 border border-[#bd00ff]/30 rounded-2xl space-y-3 shadow-xl">
+                                <div className="p-3.5 bg-gradient-to-b from-[#bd00ff]/20 via-black/50 to-black/70 border border-[#bd00ff]/50 rounded-2xl space-y-3 shadow-2xl">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-[9px] font-black uppercase text-[#bd00ff] tracking-wider flex items-center gap-1.5">
-                                            👤 SILHOUETTE MYSTÈRE DJ (OPTIONS A + B)
+                                        <span className="text-[9.5px] font-black uppercase text-[#bd00ff] tracking-wider flex items-center gap-1.5">
+                                            👤 DEVINETTE SILHOUETTE DJ
                                         </span>
                                         <span className="text-[7.5px] font-bold text-gray-400">
-                                            Slide 1 = Mystère • Slide 2 = Reveal
+                                            Slide 1 = Silhouette • Slide 2 = Reveal
                                         </span>
                                     </div>
 
-                                    {/* Option B : Détourage IA 1-clic */}
+                                    {/* 1. UPLOAD DE LA PHOTO DU DJ (DIRECT DANS L'ENCART ROSE) */}
+                                    <div className="p-3 bg-black/60 border border-[#bd00ff]/30 rounded-xl space-y-2.5">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
+                                                📸 1. PHOTO DU DJ À FAIRE DEVINER
+                                            </span>
+                                            {(djOriginalImage || editorialSlideImages[editorialSlide] || bgImage) && (
+                                                <span className="px-2 py-0.5 rounded-full text-[7.5px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                                    Photo Chargée ✓
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {(djOriginalImage || editorialSlideImages[editorialSlide] || bgImage) ? (
+                                            <div className="flex items-center gap-2.5 p-2 bg-white/5 rounded-xl border border-white/10">
+                                                <img
+                                                    src={djOriginalImage || editorialSlideImages[editorialSlide] || bgImage}
+                                                    alt="Photo DJ"
+                                                    className="w-12 h-12 object-cover rounded-lg border border-[#bd00ff]/40 shrink-0 shadow-md"
+                                                />
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-[8.5px] font-black text-white truncate">Photo prête pour le jeu</p>
+                                                    <p className="text-[7.5px] text-gray-400">Clique sur Détourer ci-dessous</p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => djPhotoInputRef.current?.click()}
+                                                    className="px-2.5 py-1.5 bg-[#bd00ff]/20 hover:bg-[#bd00ff]/35 border border-[#bd00ff]/40 rounded-lg text-[8px] font-black uppercase text-white transition-all shrink-0 active:scale-95"
+                                                >
+                                                    Changer
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <p className="text-[8px] text-gray-300 leading-relaxed">
+                                                Importe la photo du DJ à faire deviner (depuis ton appareil ou Cloud R2).
+                                            </p>
+                                        )}
+
+                                        <div className="grid grid-cols-2 gap-1.5">
+                                            <button
+                                                type="button"
+                                                onClick={() => djPhotoInputRef.current?.click()}
+                                                className="py-2.5 px-2 bg-gradient-to-r from-neon-red/25 to-[#bd00ff]/25 border border-neon-red/50 hover:border-neon-red rounded-xl flex items-center justify-center gap-1.5 text-white text-[8.5px] font-black uppercase transition-all shadow-sm hover:scale-[1.02] active:scale-98"
+                                            >
+                                                <Upload className="w-3.5 h-3.5 text-neon-red" />
+                                                <span>Mon Appareil (PC/Tel)</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setR2TargetType('background');
+                                                    setIsR2ModalOpen(true);
+                                                }}
+                                                className="py-2.5 px-2 bg-white/5 border border-white/15 hover:border-neon-cyan/40 rounded-xl flex items-center justify-center gap-1.5 text-gray-200 text-[8.5px] font-black uppercase hover:text-white transition-all shadow-sm hover:scale-[1.02] active:scale-98"
+                                            >
+                                                <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" />
+                                                <span>Galerie Cloud R2</span>
+                                            </button>
+                                        </div>
+                                        <input
+                                            type="file"
+                                            ref={djPhotoInputRef}
+                                            onChange={handleDjPhotoUpload}
+                                            className="hidden"
+                                            accept="image/*"
+                                        />
+                                    </div>
+
+                                    {/* 2. DÉTOURAGE DE LA SILHOUETTE IA */}
                                     <div className="p-2.5 bg-black/50 border border-white/10 rounded-xl space-y-2">
                                         <div className="flex items-center justify-between">
                                             <span className="text-[8.5px] font-black uppercase text-white flex items-center gap-1.5">
-                                                🪄 Détourage Automatique par IA (Option B)
+                                                🪄 2. DÉTOURAGE SILHOUETTE (IA 1-CLIC)
                                             </span>
                                             {djCutoutImage && (
                                                 <span className="px-2 py-0.5 rounded-full text-[7.5px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                                    Silhouette Active
+                                                    Silhouette Active ✓
                                                 </span>
                                             )}
                                         </div>
                                         <p className="text-[8px] text-gray-300 leading-relaxed">
-                                            Clique pour détourer automatiquement le DJ et retirer le fond de ta photo. En Slide 1, sa silhouette noire avec halo néon s'affiche. En Slide 2, la photo couleur se révèle !
+                                            Retire le fond de la photo du DJ en 1 clic pour créer la silhouette noire mystère avec contour néon.
                                         </p>
                                         
                                         <div className="flex items-center gap-2">
                                             <button
                                                 type="button"
                                                 onClick={handleIsolateDjSilhouette}
-                                                disabled={isIsolatingSilhouette || !bgImage}
+                                                disabled={isIsolatingSilhouette || !(djOriginalImage || editorialSlideImages[editorialSlide] || bgImage)}
                                                 className={`flex-1 py-2 px-3 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-2 shadow-lg ${
                                                     isIsolatingSilhouette
                                                         ? 'bg-purple-900/50 text-purple-300 border border-purple-500/40 cursor-wait'
-                                                        : !bgImage
+                                                        : !(djOriginalImage || editorialSlideImages[editorialSlide] || bgImage)
                                                         ? 'bg-white/5 text-gray-500 border border-white/5 cursor-not-allowed'
                                                         : 'bg-gradient-to-r from-[#bd00ff] to-[#7928ca] hover:from-[#d13aff] hover:to-[#9333ea] text-white shadow-[0_0_15px_rgba(189,0,255,0.4)] active:scale-98'
                                                 }`}
@@ -10168,7 +10255,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         )}
 
                                         <div className="text-[7.5px] text-gray-400 italic">
-                                            💡 Option A directe : fonctionne aussi directement si tu importes un fichier PNG transparent du DJ dans « Modifier le fond ».
+                                            💡 Astuce : tu peux aussi directement importer un fichier PNG transparent du DJ via les boutons ci-dessus.
                                         </div>
                                     </div>
 
