@@ -1089,8 +1089,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'PROMO': { label: 'PROMO', grad: '255, 0, 51', color: '#ff0033' },
         'MAP': { label: 'MAP', grad: '255, 0, 51', color: '#ff0033' },
         'CALENDRIER': { label: 'CALENDRIER', grad: '255, 103, 0', color: '#ff6700' },
-        'JEU': { label: 'JEU', grad: '0, 240, 255', color: '#00f0ff' },
-        'JEU_FESTIVAL': { label: 'JEU_FESTIVAL', grad: '255, 170, 0', color: '#ffaa00' },
+        'JEU': { label: 'DEVINE LE CLIP', grad: '0, 240, 255', color: '#00f0ff' },
+        'JEU_FESTIVAL': { label: 'DEVINE LE FESTIVAL', grad: '255, 170, 0', color: '#ffaa00' },
     };
 
     useEffect(() => {
@@ -1323,7 +1323,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const forceTheme = typeof exportMode === 'string' ? (exportMode as ThemeType) : forceThemeParam;
         const isPromoRequested = Boolean(promoOutroOverrideRef.current || (isCarouselPromoActive && isMultiSlideTheme));
         const effectiveTheme = isPromoRequested ? 'PROMO' : (forceTheme || theme);
-        const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(effectiveTheme);
+        const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL'].includes(effectiveTheme);
         const isEditorialAfficheRequested = Boolean(isEditorialCarouselTheme && !isPromoRequested && (editorialAfficheOverrideRef.current || isEditorialAfficheActive));
 
         try {
@@ -1910,13 +1910,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (!showText) return; 
 
             const isModernEditorialTheme = (
-                (!isEditorialAfficheRequested && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS'].includes(theme)) ||
+                (!isEditorialAfficheRequested && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL'].includes(theme)) ||
                 (theme === 'MUSIQUE' && effectiveEditorialSlide === 1) ||
                 (theme === 'EVENTS' && eventsSlide === 1) ||
                 (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1)
             );
 
-            // Modern editorial themes (NEWS, FOCUS, MUSIQUE, RECAP, EVENTS, INTERVIEW, LIVESTREAM, ARTISTE FESTIVAL Slide 1)
+            // Modern editorial themes (NEWS, FOCUS, MUSIQUE, RECAP, EVENTS, INTERVIEW, LIVESTREAM, ARTISTE FESTIVAL Slide 1, TOP 100, DEVINE CLIP / FESTIVAL)
             // Use smooth cinematic header shadow & continuous dark bottom gradient (no scanlines)
             if (isModernEditorialTheme) {
                 // Top subtle header shadow for clean badge and logo legibility
@@ -1946,7 +1946,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, canvas.height * 0.82, canvas.width, canvas.height * 0.18);
                 }
             } else {
-                if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && eventsSlide === 2) && !(theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) && !isEditorialAfficheRequested && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
+                if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && eventsSlide === 2) && !(theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) && !isEditorialAfficheRequested && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
                     const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                         ? canvas.height * 0.8
                         : canvas.height * 0.4;
@@ -1962,7 +1962,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 // Lignes de scan rétro (uniquement sur les thèmes non modernisés)
-                if (theme !== 'PLANNING' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS') {
+                if (theme !== 'PLANNING' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
                     const scanlineLimitY = canvas.height;
                     ctx.fillStyle = 'rgba(0,0,0,0.1)';
                     for (let i = 0; i < scanlineLimitY; i += 6) ctx.fillRect(0, i, canvas.width, 2);
@@ -3649,256 +3649,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
 
-            } else if (theme === 'JEU') {
-                const centerX = canvas.width / 2;
-                const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
-                const startY = labelY + 130;
 
-                // 1. Discreet Subtle Dark Vignette & Dual Gradient
-                const gradStart = canvas.height * 0.45;
-                const grad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
-                grad.addColorStop(0, 'rgba(0,0,0,0)');
-                grad.addColorStop(0.4, 'rgba(8,10,20,0.65)');
-                grad.addColorStop(0.8, quizColor1 + '33');
-                grad.addColorStop(1, quizColor2 + '44');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
 
-                // 2. Discreet & Stylish Capsule Badge "🎬 DEVINE LE CLIP"
-                const labelText = "🎬 DEVINE LE CLIP";
-                ctx.save();
-                const labelFontSize = 38;
-                ctx.font = `900 italic ${labelFontSize}px "Montserrat", sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                const labelW = ctx.measureText(labelText).width + 70;
-                const rectX = (canvas.width - labelW) / 2;
-                const rectY = labelY - 50;
-                const rectW = labelW;
-                const rectH = 72;
-                const radius = 20;
 
-                applyTextAnimCtx(ctx, 0.10, centerX, rectY + (rectH / 2));
-
-                // Dark elegant glass capsule fill
-                ctx.fillStyle = 'rgba(10, 15, 28, 0.88)';
-                ctx.beginPath();
-                ctx.roundRect(rectX, rectY, rectW, rectH, radius);
-                ctx.fill();
-
-                // Dynamic bicolore border gradient (Quiz Color 1 -> Quiz Color 2)
-                const borderGrad = ctx.createLinearGradient(rectX, 0, rectX + rectW, 0);
-                borderGrad.addColorStop(0, quizColor1);
-                borderGrad.addColorStop(1, quizColor2);
-
-                ctx.lineWidth = 2.5;
-                ctx.strokeStyle = borderGrad;
-                ctx.stroke();
-
-                // Soft glow shadow
-                ctx.shadowColor = quizColor1;
-                ctx.shadowBlur = 12;
-
-                ctx.fillStyle = '#ffffff';
-                ctx.fillText(labelText, centerX, rectY + (rectH / 2) + 3);
-                ctx.restore();
-
-                // 3. Question / Custom Text - Clean, Crisp White with Dark Shadow
-                const fontSize = 54;
-                const lineHeight = fontSize * 1.22;
-                const textToRender = customText || 'DE QUEL CLIP CETTE IMAGE EST TIRÉE ?';
-                const paragraphs = textToRender.toUpperCase().split('\n');
-                const lines: string[] = [];
-                ctx.font = `900 italic ${fontSize}px "Montserrat", sans-serif`;
-
-                for (const para of paragraphs) {
-                    if (para.trim() === '') { lines.push(''); continue; }
-                    const words = para.split(' ');
-                    let currentLine = '';
-                    for (const word of words) {
-                        const testLine = currentLine + word + ' ';
-                        if (ctx.measureText(stripTags(testLine)).width < canvas.width - 114) currentLine += word + ' ';
-                        else { lines.push(currentLine.trim()); currentLine = word + ' '; }
-                    }
-                    lines.push(currentLine.trim());
-                }
-
-                ctx.save();
-                applyTextAnimCtx(ctx, 0.22, centerX, startY + 100);
-                ctx.textAlign = 'center';
-                const maxLines = effectiveTab === 'PUBLICATION' ? 8 : 10;
-                lines.slice(0, maxLines).forEach((line, i) => {
-                    if (line !== '') {
-                        const yPos = startY + (i * lineHeight);
-                        ctx.save();
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                        ctx.shadowBlur = 12;
-                        drawRichText(ctx, line, canvas.width / 2, yPos, '#ffffff', 'center');
-                        ctx.restore();
-                    }
-                });
-
-                if (lines.length > maxLines) {
-                    ctx.fillStyle = '#ffffff';
-                    ctx.globalAlpha = 0.4;
-                    ctx.font = '900 italic 27px "Montserrat", sans-serif';
-                    ctx.fillText('...', canvas.width / 2, startY + (maxLines * lineHeight) - 20);
-                    ctx.globalAlpha = 1;
-                }
-                ctx.restore();
-
-                // 4. Discreet CTA Banner (Soft gradient pill)
-                ctx.save();
-                const ctaY = canvas.height - 60;
-                applyTextAnimCtx(ctx, 0.35, centerX, ctaY);
-                const ctaText = "💬 DEVINE EN COMMENTAIRE !";
-                ctx.font = '900 italic 25px "Montserrat", sans-serif';
-                ctx.letterSpacing = '3px';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-
-                const ctaW = ctx.measureText(ctaText).width + 50;
-                const ctaGrad = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
-                ctaGrad.addColorStop(0, 'rgba(10, 15, 28, 0.8)');
-                ctaGrad.addColorStop(0.5, 'rgba(20, 28, 45, 0.9)');
-                ctaGrad.addColorStop(1, 'rgba(10, 15, 28, 0.8)');
-
-                ctx.fillStyle = ctaGrad;
-                ctx.beginPath();
-                ctx.roundRect(centerX - ctaW / 2, ctaY - 22, ctaW, 44, 14);
-                ctx.fill();
-
-                // Discreet gradient border
-                const ctaBorder = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
-                ctaBorder.addColorStop(0, quizColor1);
-                ctaBorder.addColorStop(1, quizColor2);
-                ctx.strokeStyle = ctaBorder;
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 8;
-                ctx.fillText(ctaText, centerX, ctaY);
-                ctx.restore();
-
-            } else if (theme === 'JEU_FESTIVAL') {
-                const centerX = canvas.width / 2;
-                const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
-                const startY = labelY + 130;
-
-                // 1. Dark Vignette & Warm Gradient
-                const gradStart = canvas.height * 0.45;
-                const grad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
-                grad.addColorStop(0, 'rgba(0,0,0,0)');
-                grad.addColorStop(0.4, 'rgba(8,10,20,0.65)');
-                grad.addColorStop(0.8, '#ffaa0033');
-                grad.addColorStop(1, '#ff440044');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
-
-                // 2. Badge "🎪 DEVINE LE FESTIVAL"
-                const labelText = "🎪 DEVINE LE FESTIVAL";
-                ctx.save();
-                const labelFontSize = 38;
-                ctx.font = `900 italic ${labelFontSize}px "Montserrat", sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                const labelW = ctx.measureText(labelText).width + 70;
-                const rectX = (canvas.width - labelW) / 2;
-                const rectY = labelY - 50;
-                const rectW = labelW;
-                const rectH = 72;
-                const radius = 20;
-
-                applyTextAnimCtx(ctx, 0.10, centerX, rectY + (rectH / 2));
-
-                ctx.fillStyle = 'rgba(10, 15, 28, 0.88)';
-                ctx.beginPath();
-                ctx.roundRect(rectX, rectY, rectW, rectH, radius);
-                ctx.fill();
-
-                const borderGrad = ctx.createLinearGradient(rectX, 0, rectX + rectW, 0);
-                borderGrad.addColorStop(0, '#ffaa00');
-                borderGrad.addColorStop(1, '#ff4400');
-                ctx.lineWidth = 2.5;
-                ctx.strokeStyle = borderGrad;
-                ctx.stroke();
-
-                ctx.shadowColor = '#ffaa00';
-                ctx.shadowBlur = 12;
-                ctx.fillStyle = '#ffffff';
-                ctx.fillText(labelText, centerX, rectY + (rectH / 2) + 3);
-                ctx.restore();
-
-                // 3. Question text
-                const fontSize = 54;
-                const lineHeight = fontSize * 1.22;
-                const textToRender = customText || 'DANS QUEL FESTIVAL PEUT-ON VOIR CETTE STAGE ?';
-                const paragraphs = textToRender.toUpperCase().split('\n');
-                const lines: string[] = [];
-                ctx.font = `900 italic ${fontSize}px "Montserrat", sans-serif`;
-
-                for (const para of paragraphs) {
-                    if (para.trim() === '') { lines.push(''); continue; }
-                    const words = para.split(' ');
-                    let currentLine = '';
-                    for (const word of words) {
-                        const testLine = currentLine + word + ' ';
-                        if (ctx.measureText(stripTags(testLine)).width < canvas.width - 114) currentLine += word + ' ';
-                        else { lines.push(currentLine.trim()); currentLine = word + ' '; }
-                    }
-                    lines.push(currentLine.trim());
-                }
-
-                ctx.save();
-                applyTextAnimCtx(ctx, 0.22, centerX, startY + 100);
-                ctx.textAlign = 'center';
-                const maxLines = effectiveTab === 'PUBLICATION' ? 8 : 10;
-                lines.slice(0, maxLines).forEach((line, i) => {
-                    if (line !== '') {
-                        const yPos = startY + (i * lineHeight);
-                        ctx.save();
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                        ctx.shadowBlur = 12;
-                        drawRichText(ctx, line, canvas.width / 2, yPos, '#ffffff', 'center');
-                        ctx.restore();
-                    }
-                });
-                ctx.restore();
-
-                // 4. CTA Banner
-                ctx.save();
-                const ctaY = canvas.height - 60;
-                applyTextAnimCtx(ctx, 0.35, centerX, ctaY);
-                const ctaText = "💬 DEVINE EN COMMENTAIRE !";
-                ctx.font = '900 italic 25px "Montserrat", sans-serif';
-                ctx.letterSpacing = '3px';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-
-                const ctaW = ctx.measureText(ctaText).width + 50;
-                const ctaGrad = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
-                ctaGrad.addColorStop(0, 'rgba(10, 15, 28, 0.8)');
-                ctaGrad.addColorStop(0.5, 'rgba(20, 28, 45, 0.9)');
-                ctaGrad.addColorStop(1, 'rgba(10, 15, 28, 0.8)');
-                ctx.fillStyle = ctaGrad;
-                ctx.beginPath();
-                ctx.roundRect(centerX - ctaW / 2, ctaY - 22, ctaW, 44, 14);
-                ctx.fill();
-
-                const ctaBorder = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
-                ctaBorder.addColorStop(0, '#ffaa00');
-                ctaBorder.addColorStop(1, '#ff4400');
-                ctx.strokeStyle = ctaBorder;
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 8;
-                ctx.fillText(ctaText, centerX, ctaY);
-                ctx.restore();
 
             } else if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || isEditorialAfficheRequested) {
                 const isStory = canvas.height > 1500;
@@ -4474,20 +4227,61 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     curX += w1;
                     
                     ctx.font = `900 ${ctaSize}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = '#ffe600';
+                    ctx.shadowColor = 'rgba(255, 230, 0, 0.5)';
+                    ctx.shadowBlur = 10;
                     ctx.fillText(domain, curX, footerY);
                     
                     ctx.beginPath();
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#ffe600';
+                    ctx.lineWidth = 2.5;
                     ctx.moveTo(curX, footerY + 8);
                     ctx.lineTo(curX + w2, footerY + 8);
                     ctx.stroke();
                     ctx.restore();
                 }
 
+                // Draw Stylized CTA Banner for Devine le Clip / Devine le Festival (Slide 1)
+                if ((theme === 'JEU' || theme === 'JEU_FESTIVAL') && effectiveEditorialSlide === 1) {
+                    ctx.save();
+                    const centerX = canvas.width / 2;
+                    const ctaY = canvas.height - 60;
+                    applyTextAnimCtx(ctx, 0.35, centerX, ctaY);
+                    const ctaText = "💬 DEVINE EN COMMENTAIRE !";
+                    ctx.font = '900 italic 25px "Montserrat", sans-serif';
+                    if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    const ctaW = ctx.measureText(ctaText).width + 50;
+                    const ctaGrad = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
+                    ctaGrad.addColorStop(0, 'rgba(10, 15, 28, 0.85)');
+                    ctaGrad.addColorStop(0.5, 'rgba(20, 28, 45, 0.95)');
+                    ctaGrad.addColorStop(1, 'rgba(10, 15, 28, 0.85)');
+
+                    ctx.fillStyle = ctaGrad;
+                    ctx.beginPath();
+                    ctx.roundRect(centerX - ctaW / 2, ctaY - 22, ctaW, 44, 14);
+                    ctx.fill();
+
+                    const ctaBorderColor = theme === 'JEU' ? '#00f0ff' : '#ffaa00';
+                    const ctaBorder = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
+                    ctaBorder.addColorStop(0, ctaBorderColor);
+                    ctaBorder.addColorStop(1, theme === 'JEU' ? '#bd00ff' : '#ff4400');
+                    ctx.strokeStyle = ctaBorder;
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                    ctx.shadowBlur = 8;
+                    ctx.fillText(ctaText, centerX, ctaY);
+                    ctx.restore();
+                }
+
                 // 1. TOP-LEFT STYLIZED CAPSULE BADGE (French Crowd / Modern Editorial)
                 const isReel = effectiveTab === 'REEL';
-                const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme);
+                const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL'].includes(theme);
 
                 ctx.save();
                 if (isEditorialCarouselTheme) {
@@ -4547,7 +4341,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         : 99.0);
 
                 // Date automatique centrée dans la barre blanche (avec un segment de barre blanche de chaque côté)
-                const showEditorialDate = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'CONCOURS', 'REELS', 'CONSEILS'].includes(theme);
+                const showEditorialDate = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'CONCOURS', 'REELS', 'CONSEILS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL'].includes(theme);
 
                 ctx.save();
                 ctx.strokeStyle = '#ffffff';
@@ -6972,9 +6766,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setPromoCategory(newTheme);
         }
         if (newTheme === 'JEU') {
-            setCustomText('DE QUEL CLIP CETTE IMAGE EST TIRÉE ?');
+            const defT = 'DE QUEL *CLIP* CETTE IMAGE EST-ELLE TIRÉE ?';
+            setConseilsTitle(defT);
+            setCustomText(defT);
+            if (!conseilsSubtext) {
+                setConseilsSubtext('RÉPONSE :\n*TITRE DU MORCEAU* — ARTISTE\nSorti en 2020. Tu avais trouvé ?');
+            }
         } else if (newTheme === 'JEU_FESTIVAL') {
-            setCustomText('DANS QUEL FESTIVAL PEUT-ON VOIR CETTE STAGE ?');
+            const defT = 'DANS QUEL *FESTIVAL* PEUT-ON VOIR CETTE SCÈNE ?';
+            setConseilsTitle(defT);
+            setCustomText(defT);
+            if (!conseilsSubtext) {
+                setConseilsSubtext('RÉPONSE :\n*TOMORROWLAND* (MAINSTAGE)\nBoom, Belgique. Tu y étais ?');
+            }
+        } else if (newTheme === 'TOP 100 DROPSIDERS') {
+            if (!conseilsTitle || conseilsTitle === 'LE TITRE ICI' || conseilsTitle.includes('CLIP') || conseilsTitle.includes('FESTIVAL')) {
+                const defT = '*TOP 100 DROPSIDERS 2026* : LES VOTES SONT OUVERTS';
+                setConseilsTitle(defT);
+                setCustomText(defT);
+            }
+            if (!conseilsSubtext) {
+                setConseilsSubtext('VOTE DÈS MAINTENANT POUR TES ARTISTES, CLUBS & FESTIVALS SUR DROPSIDERS.FR !');
+            }
         } else if (newTheme === 'CONCOURS') {
             if (!conseilsTitle || conseilsTitle === 'LE TITRE ICI') {
                 const defT = '*1X PASS VIP 3 JOURS* À GAGNER';
@@ -7221,19 +7034,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => handleSetTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
             <button onClick={() => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(1); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1 ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>ARTISTE FESTIVAL</button>
             <button
-                onClick={() => handleSetTheme('JEU')}
-                style={theme === 'JEU' ? { background: `linear-gradient(135deg, ${quizColor1}44, ${quizColor2}44)`, borderColor: quizColor1 } : {}}
-                className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'JEU' ? 'text-white shadow-[0_0_15px_rgba(0,240,255,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                onClick={() => {
+                    if (theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
+                        handleSetTheme('JEU');
+                    }
+                }}
+                className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${
+                    (theme === 'JEU' || theme === 'JEU_FESTIVAL')
+                        ? (theme === 'JEU'
+                            ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]'
+                            : 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_12px_rgba(255,170,0,0.35)]')
+                        : 'bg-white/5 border-white/10 text-gray-400'
+                }`}
+                title="Devine le Clip / Devine le Festival"
             >
-                DEVINE LE CLIP
+                {theme === 'JEU_FESTIVAL' ? '🎪 DEVINE FESTIVAL' : theme === 'JEU' ? '🎬 DEVINE CLIP' : 'DEVINETTE (JEU)'}
             </button>
-            <button
-                onClick={() => handleSetTheme('JEU_FESTIVAL')}
-                className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'JEU_FESTIVAL' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_15px_rgba(255,170,0,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}
-            >
-                DEVINE LE FESTIVAL
-            </button>
-            <button onClick={() => handleSetTheme('TOP 100 DROPSIDERS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 100 DROPSIDERS' ? 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600]' : 'bg-white/5 border-white/10 text-gray-400'}`}>TOP 100 DROPSIDERS</button>
+            <button onClick={() => handleSetTheme('TOP 100 DROPSIDERS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 100 DROPSIDERS' ? 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600] shadow-[0_0_12px_rgba(255,230,0,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>TOP 100 DROPSIDERS</button>
             
             {activeTab === 'REEL' && (
                 <>
@@ -7245,6 +7062,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         </div>
     );
+
+    const devinetteSwitcher = (theme === 'JEU' || theme === 'JEU_FESTIVAL') ? (
+        <div className="p-1.5 bg-black/60 border border-white/10 rounded-2xl flex items-center gap-1.5 shadow-xl">
+            <button
+                type="button"
+                onClick={() => handleSetTheme('JEU')}
+                className={`flex-1 py-2 px-2.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                    theme === 'JEU'
+                        ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,240,255,0.4)] scale-[1.02]'
+                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+            >
+                🎬 Devine le Clip
+            </button>
+            <button
+                type="button"
+                onClick={() => handleSetTheme('JEU_FESTIVAL')}
+                className={`flex-1 py-2 px-2.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                    theme === 'JEU_FESTIVAL'
+                        ? 'bg-[#ffaa00] text-black shadow-[0_0_15px_rgba(255,170,0,0.4)] scale-[1.02]'
+                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+            >
+                🎪 Devine le Festival
+            </button>
+        </div>
+    ) : null;
 
     const styleMusicButtons = activeTab === 'REEL' && theme === 'TOP 5 STYLES' ? (
         <div className="space-y-4">
@@ -8934,7 +8778,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
-    const isMultiSlideTheme = ['PLANNING', 'ARTISTE FESTIVAL', 'EVENTS', 'AFFICHE', 'MUSIQUE', 'NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 5 STYLES', 'TOP 5 ARTISTE', 'TOP 10 FESTIVAL'].includes(theme);
+    const isMultiSlideTheme = ['PLANNING', 'ARTISTE FESTIVAL', 'EVENTS', 'AFFICHE', 'MUSIQUE', 'NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 5 STYLES', 'TOP 5 ARTISTE', 'TOP 10 FESTIVAL', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL'].includes(theme);
 
     const slideTransitionQuickBar = (
         <div className="flex items-center gap-1 pl-2 ml-1 border-l border-white/15">
@@ -9418,7 +9262,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         <div className="space-y-4">
 
             {/* CARROUSEL SLIDE SWITCHER (POUR NEWS, RÉCAP, FOCUS, ETC.) */}
-            {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && (
+            {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL'].includes(theme) && (
                 <>
                     <div className="p-2 bg-black/60 border border-white/10 rounded-2xl space-y-2 shadow-xl">
                         <div className="flex items-center justify-between text-[8.5px] font-bold text-gray-400 uppercase px-1">
@@ -9597,6 +9441,184 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     🎮 Jeu Vidéo
                                 </button>
                             </div>
+                        </div>
+                    )}
+
+                    {theme === 'TOP 100 DROPSIDERS' && (
+                        <div className="p-2.5 bg-[#ffe600]/10 border border-[#ffe600]/25 rounded-xl space-y-1.5 shadow-lg">
+                            <span className="text-[8px] font-black uppercase text-[#ffe600] tracking-wider flex items-center gap-1.5">
+                                🏆 Modèles rapides Top 100 Dropsiders en 1 clic :
+                            </span>
+                            <div className="grid grid-cols-3 gap-1.5">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const t = '*TOP 100 DROPSIDERS 2026* : LES VOTES SONT OUVERTS';
+                                        const s = 'VOTE DÈS MAINTENANT POUR TES ARTISTES, CLUBS ET FESTIVALS PRÉFÉRÉS SUR DROPSIDERS.FR !\nLES RÉSULTATS SERONT DÉVOILÉS EN DÉCEMBRE.';
+                                        setConseilsTitle(t);
+                                        setCustomText(t);
+                                        setConseilsSubtext(s);
+                                    }}
+                                    className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                >
+                                    🗳️ Votes Ouverts
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const t = '*TOP 100 DROPSIDERS* : DÉCOUVRE LE N°1';
+                                        const s = 'LE CLASSEMENT OFFICIEL DE LA COMMUNAUTÉ EST EN LIGNE.\nRETROUVE LE TOP 100 COMPLET SUR DROPSIDERS.FR.';
+                                        setConseilsTitle(t);
+                                        setCustomText(t);
+                                        setConseilsSubtext(s);
+                                    }}
+                                    className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                >
+                                    🏆 Le Classement
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const t = '*DERNIERS JOURS* DE VOTE TOP 100';
+                                        const s = 'CLÔTURE DES VOTES CE DIMANCHE À 23H59 !\nFAIS MONTER TES FAVORIS DANS LE TOP 100 DROPSIDERS.';
+                                        setConseilsTitle(t);
+                                        setCustomText(t);
+                                        setConseilsSubtext(s);
+                                    }}
+                                    className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                >
+                                    ⏳ Phase Finale
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {(theme === 'JEU' || theme === 'JEU_FESTIVAL') && (
+                        <div className="space-y-2">
+                            {/* Toggle switcher Devine le Clip / Devine le Festival */}
+                            <div className="p-1 bg-black/60 border border-white/10 rounded-xl flex items-center gap-1 shadow-lg">
+                                <button
+                                    type="button"
+                                    onClick={() => handleSetTheme('JEU')}
+                                    className={`flex-1 py-1.5 px-2 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                                        theme === 'JEU'
+                                            ? 'bg-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.4)] scale-[1.02]'
+                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    🎬 Devine le Clip
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleSetTheme('JEU_FESTIVAL')}
+                                    className={`flex-1 py-1.5 px-2 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                                        theme === 'JEU_FESTIVAL'
+                                            ? 'bg-[#ffaa00] text-black shadow-[0_0_12px_rgba(255,170,0,0.4)] scale-[1.02]'
+                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    🎪 Devine le Festival
+                                </button>
+                            </div>
+
+                            {/* Preset buttons */}
+                            {theme === 'JEU' && (
+                                <div className="p-2.5 bg-neon-cyan/10 border border-neon-cyan/25 rounded-xl space-y-1.5 shadow-lg">
+                                    <span className="text-[8px] font-black uppercase text-neon-cyan tracking-wider flex items-center gap-1.5">
+                                        🎬 Modèles rapides Devine le Clip en 1 clic :
+                                    </span>
+                                    <div className="grid grid-cols-3 gap-1.5">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const t = 'DE QUEL *CLIP* CETTE IMAGE EST-ELLE TIRÉE ?';
+                                                const s = 'RÉPONSE :\n*TITRE DU MORCEAU* — ARTISTE\nSorti en 2020. Tu avais trouvé ?';
+                                                setConseilsTitle(t);
+                                                setCustomText(t);
+                                                setConseilsSubtext(s);
+                                            }}
+                                            className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                        >
+                                            🎵 Quel clip ?
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const t = 'QUEL *ARTISTE* SE CACHE DERRIÈRE CE CLIP ?';
+                                                const s = 'RÉPONSE :\n*NOM DE L\'ARTISTE*\nIndice : il était en tête d\'affiche cet été !';
+                                                setConseilsTitle(t);
+                                                setCustomText(t);
+                                                setConseilsSubtext(s);
+                                            }}
+                                            className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                        >
+                                            🎧 Quel artiste ?
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const t = 'EN QUELLE *ANNÉE* EST SORTI CE CLIP CULTE ?';
+                                                const s = 'RÉPONSE :\nCe banger est sorti en *2015* !\nDis-nous en commentaire si tu l\'avais !';
+                                                setConseilsTitle(t);
+                                                setCustomText(t);
+                                                setConseilsSubtext(s);
+                                            }}
+                                            className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                        >
+                                            📅 Quelle année ?
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {theme === 'JEU_FESTIVAL' && (
+                                <div className="p-2.5 bg-[#ffaa00]/10 border border-[#ffaa00]/25 rounded-xl space-y-1.5 shadow-lg">
+                                    <span className="text-[8px] font-black uppercase text-[#ffaa00] tracking-wider flex items-center gap-1.5">
+                                        🎪 Modèles rapides Devine le Festival en 1 clic :
+                                    </span>
+                                    <div className="grid grid-cols-3 gap-1.5">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const t = 'DANS QUEL *FESTIVAL* PEUT-ON VOIR CETTE SCÈNE ?';
+                                                const s = 'RÉPONSE :\n*TOMORROWLAND* (MAINSTAGE)\nBoom, Belgique. Tu y étais ?';
+                                                setConseilsTitle(t);
+                                                setCustomText(t);
+                                                setConseilsSubtext(s);
+                                            }}
+                                            className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                        >
+                                            🎪 Quel festival ?
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const t = 'DANS QUEL *PAYS* SE DÉROULE CE FESTIVAL ?';
+                                                const s = 'RÉPONSE :\nCe festival légendaire a lieu aux *PAYS-BAS* !\nDonne ta note en commentaire.';
+                                                setConseilsTitle(t);
+                                                setCustomText(t);
+                                                setConseilsSubtext(s);
+                                            }}
+                                            className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                        >
+                                            📍 Quel pays ?
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const t = 'COMMENT S\'APPELLE CETTE *STAGE MYTHIQUE* ?';
+                                                const s = 'RÉPONSE :\nIl s\'agit de la mythique stage *CIRCOLOCO* !\nDis-nous en commentaire si tu avais trouvé.';
+                                                setConseilsTitle(t);
+                                                setCustomText(t);
+                                                setConseilsSubtext(s);
+                                            }}
+                                            className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                        >
+                                            🏰 Quelle stage ?
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </>
@@ -12287,6 +12309,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
 
                         {themeButtons}
+                        {devinetteSwitcher}
                         {quizColorControls}
                         {styleMusicButtons}
 
@@ -12435,8 +12458,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <><span className="text-[10px] font-black text-[#ff007f] uppercase">Événements & Affiche (Carrousel)</span>{eventsEditor}</>
                             ) : theme === 'MUSIQUE' ? (
                                 <><span className="text-[10px] font-black text-[#00ff66] uppercase">Musique & Cover Track (Carrousel)</span>{musiqueEditor}</>
-                            ) : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS'].includes(theme) ? (
-                                <><span className="text-[10px] font-black text-neon-cyan uppercase">Contenu Titre & Sous-titre ({theme})</span>{conseilsEditor}</>
+                            ) : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL'].includes(theme) ? (
+                                <><span className="text-[10px] font-black text-neon-cyan uppercase">Contenu Titre & Sous-titre ({theme === 'TOP 100 DROPSIDERS' ? 'TOP 100' : theme === 'JEU' ? 'DEVINE LE CLIP' : theme === 'JEU_FESTIVAL' ? 'DEVINE LE FESTIVAL' : theme})</span>{conseilsEditor}</>
                             ) : theme === 'CITATION' ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Citation & Auteur</span>{citationEditor}</>
                             ) : theme === 'PROMO' ? (
@@ -13272,6 +13295,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <div className="px-6 pb-8 space-y-4">
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Thème visuel</p>
                                         {themeButtons}
+                                        {devinetteSwitcher}
                                         {quizColorControls}
                                         {styleMusicButtons && <div className="mt-4">{styleMusicButtons}</div>}
                                     </div>
@@ -13294,7 +13318,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 ))}
                                                 <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter</button>
                                             </div>
-                                        ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'ARTISTE FESTIVAL' ? artisteFestivalEditor : (theme === 'EVENTS' || theme === 'AFFICHE') ? eventsEditor : theme === 'MUSIQUE' ? musiqueEditor : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS'].includes(theme) ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'PROMO' ? promoEditor : textEditor}
+                                        ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'ARTISTE FESTIVAL' ? artisteFestivalEditor : (theme === 'EVENTS' || theme === 'AFFICHE') ? eventsEditor : theme === 'MUSIQUE' ? musiqueEditor : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL'].includes(theme) ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'PROMO' ? promoEditor : textEditor}
                                     </div>
                                 )}
 
