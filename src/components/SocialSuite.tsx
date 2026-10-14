@@ -1512,10 +1512,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 switch (textAnimation) {
                     case 'SLIDE_LEFT': {
-                        const t = Math.max(0, Math.min(1, el / 0.55));
-                        const ease = 1 - Math.pow(1 - t, 3);
-                        xOff = -450 * (1 - ease);
-                        alpha = t;
+                        if (el < 0) {
+                            alpha = 0;
+                            xOff = -canvas.width;
+                        } else {
+                            const t = Math.min(1, el / 0.55);
+                            const ease = 1 - Math.pow(1 - t, 3);
+                            xOff = -canvas.width * (1 - ease);
+                            alpha = t;
+                        }
                         break;
                     }
                     case 'WORD_BY_WORD': {
@@ -4821,49 +4826,91 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         if (textAnimation === 'SLIDE_LEFT') {
                             const delay = 0.20 + (tIndex * 0.22);
-                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.55));
-                            const ease = 1 - Math.pow(1 - t, 3);
-                            xOff = -450 * (1 - ease);
-                            alpha = t;
+                            const el = animElapsed - delay;
+                            if (el < 0) {
+                                alpha = 0;
+                                xOff = -canvas.width;
+                            } else {
+                                const t = Math.min(1, el / 0.55);
+                                const ease = 1 - Math.pow(1 - t, 3);
+                                xOff = -canvas.width * (1 - ease);
+                                alpha = t;
+                            }
                         } else if (textAnimation === 'WORD_BY_WORD') {
                             const delay = 0.15 + (tIndex * 0.30);
-                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.40));
-                            const ease = 1 - Math.pow(1 - t, 3);
-                            yOff = 25 * (1 - ease);
-                            alpha = t;
+                            const el = animElapsed - delay;
+                            if (el < 0) {
+                                alpha = 0;
+                                yOff = 40;
+                            } else {
+                                const t = Math.min(1, el / 0.40);
+                                const ease = 1 - Math.pow(1 - t, 3);
+                                yOff = 40 * (1 - ease);
+                                alpha = t;
+                            }
                         } else if (textAnimation === 'POP_UP') {
                             const delay = 0.20 + (tIndex * 0.20);
-                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.50));
-                            const ease = 1 - Math.pow(1 - t, 3);
-                            yOff = 80 * (1 - ease);
-                            alpha = t;
+                            const el = animElapsed - delay;
+                            if (el < 0) {
+                                alpha = 0;
+                                yOff = 120;
+                            } else {
+                                const t = Math.min(1, el / 0.50);
+                                const ease = 1 - Math.pow(1 - t, 3);
+                                yOff = 120 * (1 - ease);
+                                alpha = t;
+                            }
                         } else if (textAnimation === 'ZOOM_IMPACT') {
                             const delay = 0.15 + (tIndex * 0.24);
-                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.40));
-                            const ease = 1 - Math.pow(1 - t, 3);
-                            scale = 1.6 - (0.6 * ease);
-                            alpha = Math.min(1, t * 2);
+                            const el = animElapsed - delay;
+                            if (el < 0) {
+                                alpha = 0;
+                                scale = 1.8;
+                            } else {
+                                const t = Math.min(1, el / 0.40);
+                                const ease = 1 - Math.pow(1 - t, 3);
+                                scale = 1.8 - (0.8 * ease);
+                                alpha = Math.min(1, t * 2);
+                            }
                         } else if (textAnimation === 'TYPEWRITER') {
                             const delay = 0.15 + (tIndex * 0.35);
-                            const words = displayText.split(/\s+/);
-                            const wordsToShow = Math.min(words.length, Math.floor(Math.max(0, animElapsed - delay) / 0.14));
-                            const visibleWords = words.slice(0, wordsToShow).join(' ');
-                            displayText = visibleWords + (wordsToShow < words.length && wordsToShow > 0 ? ' ▌' : '');
-                            alpha = wordsToShow > 0 ? 1 : 0;
+                            const el = animElapsed - delay;
+                            if (el < 0) {
+                                alpha = 0;
+                                displayText = '';
+                            } else {
+                                const words = tLine.toUpperCase().split(/\s+/);
+                                const wordsToShow = Math.min(words.length, Math.floor(el / 0.14));
+                                if (wordsToShow <= 0) {
+                                    alpha = 0;
+                                    displayText = '';
+                                } else {
+                                    const visibleWords = words.slice(0, wordsToShow).join(' ');
+                                    displayText = visibleWords + (wordsToShow < words.length ? ' ▌' : '');
+                                    alpha = 1;
+                                }
+                            }
                         } else if (textAnimation === 'BOUNCE') {
                             const delay = 0.15 + (tIndex * 0.18);
-                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.65));
-                            let bounce = 1;
-                            if (t < 1) {
-                                bounce = 1 - Math.pow(2, -10 * t) * Math.cos((t * 10 - 0.75) * ((2 * Math.PI) / 3));
+                            const el = animElapsed - delay;
+                            if (el < 0) {
+                                alpha = 0;
+                                yOff = -140;
+                            } else {
+                                const t = Math.min(1, el / 0.65);
+                                let bounce = 1;
+                                if (t < 1) {
+                                    bounce = 1 - Math.pow(2, -10 * t) * Math.cos((t * 10 - 0.75) * ((2 * Math.PI) / 3));
+                                }
+                                yOff = -140 * (1 - bounce);
+                                alpha = Math.min(1, t * 2.5);
                             }
-                            yOff = -140 * (1 - bounce);
-                            alpha = Math.min(1, t * 2.5);
                         } else if (textAnimation === 'GLITCH') {
                             const delay = 0.15 + (tIndex * 0.18);
                             const el = animElapsed - delay;
                             if (el < 0) {
                                 alpha = 0;
+                                xOff = 0;
                             } else if (el < 0.45) {
                                 const step = Math.floor(el * 28);
                                 xOff = Math.sin(step * 7.5) * 35;
@@ -4942,49 +4989,91 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         if (textAnimation === 'SLIDE_LEFT') {
                             const delay = subBaseDelay + (sIndex * 0.18);
-                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.50));
-                            const ease = 1 - Math.pow(1 - t, 3);
-                            xOff = -350 * (1 - ease);
-                            alpha = t;
+                            const el = animElapsed - delay;
+                            if (el < 0) {
+                                alpha = 0;
+                                xOff = -canvas.width;
+                            } else {
+                                const t = Math.min(1, el / 0.50);
+                                const ease = 1 - Math.pow(1 - t, 3);
+                                xOff = -canvas.width * (1 - ease);
+                                alpha = t;
+                            }
                         } else if (textAnimation === 'WORD_BY_WORD') {
                             const delay = subBaseDelay + (sIndex * 0.25);
-                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.35));
-                            const ease = 1 - Math.pow(1 - t, 3);
-                            yOff = 20 * (1 - ease);
-                            alpha = t;
+                            const el = animElapsed - delay;
+                            if (el < 0) {
+                                alpha = 0;
+                                yOff = 30;
+                            } else {
+                                const t = Math.min(1, el / 0.35);
+                                const ease = 1 - Math.pow(1 - t, 3);
+                                yOff = 30 * (1 - ease);
+                                alpha = t;
+                            }
                         } else if (textAnimation === 'POP_UP') {
                             const delay = subBaseDelay + (sIndex * 0.16);
-                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.45));
-                            const ease = 1 - Math.pow(1 - t, 3);
-                            yOff = 50 * (1 - ease);
-                            alpha = t;
+                            const el = animElapsed - delay;
+                            if (el < 0) {
+                                alpha = 0;
+                                yOff = 80;
+                            } else {
+                                const t = Math.min(1, el / 0.45);
+                                const ease = 1 - Math.pow(1 - t, 3);
+                                yOff = 80 * (1 - ease);
+                                alpha = t;
+                            }
                         } else if (textAnimation === 'ZOOM_IMPACT') {
                             const delay = subBaseDelay + (sIndex * 0.20);
-                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.38));
-                            const ease = 1 - Math.pow(1 - t, 3);
-                            scale = 1.4 - (0.4 * ease);
-                            alpha = Math.min(1, t * 2);
+                            const el = animElapsed - delay;
+                            if (el < 0) {
+                                alpha = 0;
+                                scale = 1.6;
+                            } else {
+                                const t = Math.min(1, el / 0.38);
+                                const ease = 1 - Math.pow(1 - t, 3);
+                                scale = 1.6 - (0.6 * ease);
+                                alpha = Math.min(1, t * 2);
+                            }
                         } else if (textAnimation === 'TYPEWRITER') {
                             const delay = subBaseDelay + (sIndex * 0.30);
-                            const words = displayText.split(/\s+/);
-                            const wordsToShow = Math.min(words.length, Math.floor(Math.max(0, animElapsed - delay) / 0.12));
-                            const visibleWords = words.slice(0, wordsToShow).join(' ');
-                            displayText = visibleWords + (wordsToShow < words.length && wordsToShow > 0 ? ' ▌' : '');
-                            alpha = wordsToShow > 0 ? 1 : 0;
+                            const el = animElapsed - delay;
+                            if (el < 0) {
+                                alpha = 0;
+                                displayText = '';
+                            } else {
+                                const words = bLine.split(/\s+/);
+                                const wordsToShow = Math.min(words.length, Math.floor(el / 0.12));
+                                if (wordsToShow <= 0) {
+                                    alpha = 0;
+                                    displayText = '';
+                                } else {
+                                    const visibleWords = words.slice(0, wordsToShow).join(' ');
+                                    displayText = visibleWords + (wordsToShow < words.length ? ' ▌' : '');
+                                    alpha = 1;
+                                }
+                            }
                         } else if (textAnimation === 'BOUNCE') {
                             const delay = subBaseDelay + (sIndex * 0.16);
-                            const t = Math.max(0, Math.min(1, (animElapsed - delay) / 0.55));
-                            let bounce = 1;
-                            if (t < 1) {
-                                bounce = 1 - Math.pow(2, -10 * t) * Math.cos((t * 10 - 0.75) * ((2 * Math.PI) / 3));
+                            const el = animElapsed - delay;
+                            if (el < 0) {
+                                alpha = 0;
+                                yOff = -80;
+                            } else {
+                                const t = Math.min(1, el / 0.55);
+                                let bounce = 1;
+                                if (t < 1) {
+                                    bounce = 1 - Math.pow(2, -10 * t) * Math.cos((t * 10 - 0.75) * ((2 * Math.PI) / 3));
+                                }
+                                yOff = -80 * (1 - bounce);
+                                alpha = Math.min(1, t * 2);
                             }
-                            yOff = -80 * (1 - bounce);
-                            alpha = Math.min(1, t * 2);
                         } else if (textAnimation === 'GLITCH') {
                             const delay = subBaseDelay + (sIndex * 0.16);
                             const el = animElapsed - delay;
                             if (el < 0) {
                                 alpha = 0;
+                                xOff = 0;
                             } else if (el < 0.35) {
                                 const step = Math.floor(el * 28);
                                 xOff = Math.sin(step * 7.5) * 20;
@@ -5259,6 +5348,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
     }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes]);
+
+    // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide
+    useEffect(() => {
+        animStartTimeRef.current = Date.now();
+        setAnimReplayKey(k => k + 1);
+    }, [editorialSlide]);
 
     // Pre-charger les pochettes des tracks du thème MUSIQUE
     useEffect(() => {
@@ -5686,9 +5781,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (onProgress) onProgress(progress);
 
                     const incomingElapsedSec = f / fps;
-                    deterministicAnimTimeRef.current = incomingElapsedSec;
+                    deterministicAnimTimeRef.current = 0; // Le texte de la slide entrante reste au début (frame 0) pendant la transition
                     deterministicTotalTimeRef.current = totalFramesEncoded / fps;
-                    animStartTimeRef.current = Date.now() - (incomingElapsedSec * 1000);
+                    animStartTimeRef.current = Date.now();
                     recordingStartTimeRef.current = Date.now() - ((totalFramesEncoded / fps) * 1000);
 
                     if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
@@ -6389,18 +6484,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
 
-                // Rendu actif frame-par-frame avec continuité d'animation (zéro reset de texte)
-                await renderDuration(slideDuration, slideStartOffsetSec);
+                // Rendu actif frame-par-frame avec le texte qui commence son animation dès le début de la slide
+                await renderDuration(slideDuration, 0);
             }
 
             // 1b. Transition vers la Slide Affiche si présente
             if (hasAfficheSlide) {
-                const affStartOffsetSec = await renderTransition(transitionDuration, undefined, () => {
+                await renderTransition(transitionDuration, undefined, () => {
                     editorialAfficheOverrideRef.current = true;
                     animStartTimeRef.current = Date.now();
                 });
                 transitionProgressRef.current = 0;
-                await renderDuration(slideDuration, affStartOffsetSec);
+                await renderDuration(slideDuration, 0);
                 editorialAfficheOverrideRef.current = false;
             }
 
