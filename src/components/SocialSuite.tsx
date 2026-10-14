@@ -13142,7 +13142,75 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {devinetteSwitcher}
                         {styleMusicButtons}
 
-                        {/* Background */}
+                        {/* Texte Principal & Contenu */}
+                        <div className="space-y-4">
+                            {(isCarouselPromoActive && isMultiSlideTheme) ? (
+                                <><span className="text-[10px] font-black text-neon-red uppercase">🔥 Outro Carrousel : Question & Phrase Promo</span>{promoEditor}</>
+                            ) : theme === 'MAP' ? (
+                                <><span className="text-[10px] font-black text-neon-cyan uppercase">Carte & Localisation</span>{mapEditor}</>
+                            ) : theme === 'CALENDRIER' ? (
+                                <>
+                                    <span className="text-[10px] font-black text-gray-500 uppercase">Calendrier des événements</span>
+                                    <div className="space-y-3">
+                                        <input
+                                            value={calendarMonth}
+                                            onChange={e => setCalendarMonth(e.target.value)}
+                                            placeholder="MARS 2025"
+                                            className="w-full bg-white/10 border border-neon-orange/40 rounded-xl p-3 text-white font-black italic uppercase text-xs"
+                                        />
+                                        <div className="space-y-2">
+                                            {calendarEvents.map((evt, i) => (
+                                                <div key={i} className="flex gap-2 items-center">
+                                                    <input
+                                                        value={evt.date}
+                                                        onChange={e => { const n = [...calendarEvents]; n[i].date = e.target.value; setCalendarEvents(n); }}
+                                                        placeholder="JJ"
+                                                        className="w-14 bg-neon-orange/20 border border-neon-orange/40 rounded-lg p-2 text-neon-orange font-black uppercase text-xs text-center"
+                                                    />
+                                                    <input
+                                                        value={evt.label}
+                                                        onChange={e => { const n = [...calendarEvents]; n[i].label = e.target.value; setCalendarEvents(n); }}
+                                                        placeholder="NOM DE L'ÉVÉNEMENT"
+                                                        className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-white font-black italic uppercase text-xs"
+                                                    />
+                                                    <button onClick={() => setCalendarEvents(calendarEvents.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><span className="text-xs">✕</span></button>
+                                                </div>
+                                            ))}
+                                            <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter un événement</button>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : theme === 'PLANNING' ? (
+                                <><span className="text-[10px] font-black text-[#ff3700] uppercase tracking-wider">📅 Agenda des Soirées & Festivals</span>{planningEditor}</>
+                            ) : theme.startsWith('TOP 5') ? (
+                                <><span className="text-[10px] font-black text-gray-500 uppercase">Éléments du Top 5</span>{top5Editor}</>
+
+                            ) : theme === 'TRACKLIST' ? (
+                                <><span className="text-[10px] font-black text-gray-500 uppercase">Détails Tracklist</span>{tracklistEditor}</>
+                            ) : theme === 'SPOTLIGHT' ? (
+                                <><span className="text-[10px] font-black text-gray-500 uppercase">Infos Spotlight & Logos</span>{spotlightEditor}</>
+                            ) : theme === 'ARTISTE FESTIVAL' ? (
+                                <><span className="text-[10px] font-black text-neon-red uppercase">Artiste Festival (Carrousel)</span>{artisteFestivalEditor}</>
+                            ) : (theme === 'EVENTS' || theme === 'AFFICHE') ? (
+                                <><span className="text-[10px] font-black text-[#ff007f] uppercase">Événements & Affiche (Carrousel)</span>{eventsEditor}</>
+                            ) : theme === 'MUSIQUE' ? (
+                                <><span className="text-[10px] font-black text-[#00ff66] uppercase">Musique & Cover Track (Carrousel)</span>{musiqueEditor}</>
+                            ) : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
+                                <><span className="text-[10px] font-black text-neon-cyan uppercase">Contenu Titre & Sous-titre ({theme === 'TOP 100 DROPSIDERS' ? 'TOP 100' : theme === 'JEU' ? 'DEVINE LE CLIP' : theme === 'JEU_FESTIVAL' ? 'DEVINE LE FESTIVAL' : theme === 'JEU_DJ' ? 'DEVINE LE DJ' : theme})</span>{conseilsEditor}</>
+                            ) : theme === 'CITATION' ? (
+                                <><span className="text-[10px] font-black text-gray-500 uppercase">Citation & Auteur</span>{citationEditor}</>
+                            ) : theme === 'PROMO' ? (
+                                <><span className="text-[10px] font-black text-neon-red uppercase">Question & Outro Réseaux</span>{promoEditor}</>
+                            ) : (
+                                <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>{textEditor}</>
+                            )}
+                        </div>
+
+                        {/* Animation universelle du texte & éléments (tous les thèmes sauf MAP) */}
+                        {theme !== 'MAP' && textAnimationControl}
+                        {theme !== 'MAP' && isMultiSlideTheme && slideTransitionControl}
+
+                        {/* Background (Fond Visuel) */}
                         <div className="space-y-2">
                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Fond Visuel</span>
                             <div className="grid grid-cols-2 gap-1.5">
@@ -13242,74 +13310,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </button>
                                 {theme !== 'MAP' && bgAnimationControl}
                             </div>
-                        </div>
-
-                        {/* Animation universelle du texte & éléments (tous les thèmes sauf MAP) */}
-                        {theme !== 'MAP' && textAnimationControl}
-                        {theme !== 'MAP' && isMultiSlideTheme && slideTransitionControl}
-
-                        {/* Content editor */}
-                        <div className="space-y-4">
-                            {(isCarouselPromoActive && isMultiSlideTheme) ? (
-                                <><span className="text-[10px] font-black text-neon-red uppercase">🔥 Outro Carrousel : Question & Phrase Promo</span>{promoEditor}</>
-                            ) : theme === 'MAP' ? (
-                                <><span className="text-[10px] font-black text-neon-cyan uppercase">Carte & Localisation</span>{mapEditor}</>
-                            ) : theme === 'CALENDRIER' ? (
-                                <>
-                                    <span className="text-[10px] font-black text-gray-500 uppercase">Calendrier des événements</span>
-                                    <div className="space-y-3">
-                                        <input
-                                            value={calendarMonth}
-                                            onChange={e => setCalendarMonth(e.target.value)}
-                                            placeholder="MARS 2025"
-                                            className="w-full bg-white/10 border border-neon-orange/40 rounded-xl p-3 text-white font-black italic uppercase text-xs"
-                                        />
-                                        <div className="space-y-2">
-                                            {calendarEvents.map((evt, i) => (
-                                                <div key={i} className="flex gap-2 items-center">
-                                                    <input
-                                                        value={evt.date}
-                                                        onChange={e => { const n = [...calendarEvents]; n[i].date = e.target.value; setCalendarEvents(n); }}
-                                                        placeholder="JJ"
-                                                        className="w-14 bg-neon-orange/20 border border-neon-orange/40 rounded-lg p-2 text-neon-orange font-black uppercase text-xs text-center"
-                                                    />
-                                                    <input
-                                                        value={evt.label}
-                                                        onChange={e => { const n = [...calendarEvents]; n[i].label = e.target.value; setCalendarEvents(n); }}
-                                                        placeholder="NOM DE L'ÉVÉNEMENT"
-                                                        className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-white font-black italic uppercase text-xs"
-                                                    />
-                                                    <button onClick={() => setCalendarEvents(calendarEvents.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><span className="text-xs">✕</span></button>
-                                                </div>
-                                            ))}
-                                            <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter un événement</button>
-                                        </div>
-                                    </div>
-                                </>
-                            ) : theme === 'PLANNING' ? (
-                                <><span className="text-[10px] font-black text-[#ff3700] uppercase tracking-wider">📅 Agenda des Soirées & Festivals</span>{planningEditor}</>
-                            ) : theme.startsWith('TOP 5') ? (
-                                <><span className="text-[10px] font-black text-gray-500 uppercase">Éléments du Top 5</span>{top5Editor}</>
-
-                            ) : theme === 'TRACKLIST' ? (
-                                <><span className="text-[10px] font-black text-gray-500 uppercase">Détails Tracklist</span>{tracklistEditor}</>
-                            ) : theme === 'SPOTLIGHT' ? (
-                                <><span className="text-[10px] font-black text-gray-500 uppercase">Infos Spotlight & Logos</span>{spotlightEditor}</>
-                            ) : theme === 'ARTISTE FESTIVAL' ? (
-                                <><span className="text-[10px] font-black text-neon-red uppercase">Artiste Festival (Carrousel)</span>{artisteFestivalEditor}</>
-                            ) : (theme === 'EVENTS' || theme === 'AFFICHE') ? (
-                                <><span className="text-[10px] font-black text-[#ff007f] uppercase">Événements & Affiche (Carrousel)</span>{eventsEditor}</>
-                            ) : theme === 'MUSIQUE' ? (
-                                <><span className="text-[10px] font-black text-[#00ff66] uppercase">Musique & Cover Track (Carrousel)</span>{musiqueEditor}</>
-                            ) : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
-                                <><span className="text-[10px] font-black text-neon-cyan uppercase">Contenu Titre & Sous-titre ({theme === 'TOP 100 DROPSIDERS' ? 'TOP 100' : theme === 'JEU' ? 'DEVINE LE CLIP' : theme === 'JEU_FESTIVAL' ? 'DEVINE LE FESTIVAL' : theme === 'JEU_DJ' ? 'DEVINE LE DJ' : theme})</span>{conseilsEditor}</>
-                            ) : theme === 'CITATION' ? (
-                                <><span className="text-[10px] font-black text-gray-500 uppercase">Citation & Auteur</span>{citationEditor}</>
-                            ) : theme === 'PROMO' ? (
-                                <><span className="text-[10px] font-black text-neon-red uppercase">Question & Outro Réseaux</span>{promoEditor}</>
-                            ) : (
-                                <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>{textEditor}</>
-                            )}
                         </div>
 
                         {/* Visuals Gallery */}
