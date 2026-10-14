@@ -9702,6 +9702,242 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         );
     })();
 
+    const musicCoverEditor = (() => {
+        const activeTrackIdx = Math.max(0, editorialSlide - 2);
+        const activeTrack = musicTracks[activeTrackIdx] || createEmptyMusicTrack();
+        const activeCoverUrl = activeTrack.cover || (activeTrackIdx === 0 ? afficheImage : '');
+
+        return (
+            <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4 shadow-xl">
+                <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black text-[#00ff66] uppercase tracking-widest flex items-center gap-1.5">
+                        💿 Pochette du Morceau (Track {activeTrackIdx + 1} • Cover 1:1)
+                    </label>
+                    {activeCoverUrl && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                updateMusicTrack(activeTrackIdx, { cover: '' });
+                                if (activeTrackIdx === 0) {
+                                    setAfficheImage('');
+                                    afficheImageRef.current = null;
+                                }
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="text-[9px] font-bold text-red-400 hover:text-red-300 transition-colors uppercase"
+                        >
+                            Retirer
+                        </button>
+                    )}
+                </div>
+
+                <input
+                    type="file"
+                    ref={afficheFileInputRef}
+                    onChange={handleAfficheImageChange}
+                    accept="image/*"
+                    className="hidden"
+                />
+
+                {activeCoverUrl ? (
+                    <div className="relative group rounded-xl overflow-hidden border border-[#00ff66]/30 bg-black/40 aspect-square max-h-48 mx-auto flex items-center justify-center shadow-lg">
+                        <img src={activeCoverUrl} alt="Cover Track" className="w-full h-full object-contain" />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => afficheFileInputRef.current?.click()}
+                                className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-white text-[10px] font-black uppercase backdrop-blur-md"
+                            >
+                                Changer
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={() => afficheFileInputRef.current?.click()}
+                        className="w-full py-6 border-2 border-dashed border-white/15 hover:border-[#00ff66]/50 hover:bg-[#00ff66]/5 rounded-2xl flex flex-col items-center justify-center gap-2 bg-black/20 transition-all group"
+                    >
+                        <Upload className="w-6 h-6 text-gray-500 group-hover:text-[#00ff66] transition-colors" />
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider group-hover:text-white transition-colors">
+                            Importer la pochette (Carré 1:1)
+                        </span>
+                        <span className="text-[8px] text-gray-500">PNG, JPG, WEBP • Pochette officielle</span>
+                    </button>
+                )}
+
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                    <button
+                        type="button"
+                        onClick={() => afficheFileInputRef.current?.click()}
+                        className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                    >
+                        <Upload className="w-3.5 h-3.5 text-[#00ff66]" /> Fichier Local
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setR2TargetType('musicCover');
+                            setR2TargetIdx(activeTrackIdx);
+                            setIsR2ModalOpen(true);
+                        }}
+                        className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                    >
+                        <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" /> Cloud R2
+                    </button>
+                </div>
+
+                {/* Saisie URL de la cover avec bouton d'extraction automatique */}
+                <div className="space-y-1 pt-1">
+                    <div className="flex items-center justify-between text-[8.5px] font-bold uppercase text-gray-400">
+                        <span>Lien de la Cover ou Lien Streaming</span>
+                        <span className="text-[7.5px] text-[#00ff66]">Beatport (1400x1400), Spotify, Image URL...</span>
+                    </div>
+                    <div className="flex gap-1.5">
+                        <input
+                            type="url"
+                            placeholder="Coller lien Beatport, Spotify, Apple Music ou URL d'image..."
+                            value={activeCoverUrl.startsWith('blob:') ? '' : activeCoverUrl}
+                            onChange={e => {
+                                const val = e.target.value;
+                                updateMusicTrack(activeTrackIdx, { cover: val });
+                                if (activeTrackIdx === 0) setAfficheImage(val);
+                                if (val.match(/(spotify|beatport|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
+                                    handleExtractTrackData(activeTrackIdx, val);
+                                }
+                            }}
+                            className="flex-1 bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => handleExtractTrackData(activeTrackIdx, activeCoverUrl || smartImportUrl || activeTrack.audio || '')}
+                            disabled={isResolvingAudio}
+                            className="px-3 py-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 disabled:opacity-50 shadow-md active:scale-95 whitespace-nowrap"
+                            title="Extraire la pochette officielle 1400x1400"
+                        >
+                            {isResolvingAudio ? (
+                                <span className="animate-spin">⏳</span>
+                            ) : (
+                                <span>⚡ Extraire Cover</span>
+                            )}
+                        </button>
+                    </div>
+                    {(activeTrack.artist || activeTrack.title) && (
+                        <div className="flex justify-end pt-0.5">
+                            <button
+                                type="button"
+                                onClick={() => handleExtractTrackData(activeTrackIdx, '')}
+                                disabled={isResolvingAudio}
+                                className="text-[8px] text-[#00ff66] hover:underline font-bold"
+                            >
+                                🎧 Chercher sur Beatport "{activeTrack.artist || ''} - {activeTrack.title || ''}"
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Réglages précis de taille et position de la cover */}
+                <div className="space-y-2.5 pt-2.5 border-t border-white/10">
+                    <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
+                            <span>Taille de la Pochette</span>
+                            <span className="text-[#00ff66] font-mono">{afficheScale}%</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="60"
+                            max="120"
+                            value={afficheScale}
+                            onChange={(e) => {
+                                setAfficheScale(Number(e.target.value));
+                                setTimeout(() => generateImage(), 30);
+                            }}
+                            className="w-full accent-[#00ff66] bg-white/10 rounded-lg h-1.5 cursor-pointer"
+                        />
+                    </div>
+
+                    <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
+                            <span>Position Verticale (Haut / Bas)</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-gray-300 font-mono text-[8px]">{afficheOffsetY > 0 ? `+${afficheOffsetY}` : afficheOffsetY}px</span>
+                                {(afficheOffsetY !== 0 || afficheScale !== 100) && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setAfficheScale(100);
+                                            setAfficheOffsetY(0);
+                                            setTimeout(() => generateImage(), 30);
+                                        }}
+                                        className="text-[8px] text-[#00ff66] hover:underline cursor-pointer uppercase font-bold"
+                                    >
+                                        Reset
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                        <input
+                            type="range"
+                            min="-100"
+                            max="150"
+                            value={afficheOffsetY}
+                            onChange={(e) => {
+                                setAfficheOffsetY(Number(e.target.value));
+                                setTimeout(() => generateImage(), 30);
+                            }}
+                            className="w-full accent-[#00ff66] bg-white/10 rounded-lg h-1.5 cursor-pointer"
+                        />
+                    </div>
+
+                    {/* Animations CDJ Player & Fond Animé */}
+                    <div className="pt-2.5 border-t border-white/10 space-y-2">
+                        <div className="text-[9px] font-black uppercase text-gray-400 flex items-center justify-between">
+                            <span>Animations CDJ & Ambiance</span>
+                            <span className="text-[8px] text-[#ff0033] font-bold">● LIVE 60 FPS</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setCdjPlayerRing(prev => !prev)}
+                                className={`px-2.5 py-2 rounded-xl text-[8.5px] font-black uppercase transition-all flex items-center justify-between border cursor-pointer ${
+                                    cdjPlayerRing
+                                        ? 'bg-[#ff0033]/20 border-[#ff0033]/60 text-white shadow-[0_0_12px_rgba(255,0,51,0.3)]'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                }`}
+                            >
+                                <span className="flex items-center gap-1.5">
+                                    <span className={`w-2 h-2 rounded-full ${cdjPlayerRing ? 'bg-[#ff0033] animate-pulse shadow-[0_0_6px_#ff0033]' : 'bg-gray-600'}`} />
+                                    <span>Player CDJ Rouge</span>
+                                </span>
+                                <span className={`text-[8px] font-mono ${cdjPlayerRing ? 'text-[#ff0033]' : 'text-gray-500'}`}>
+                                    {cdjPlayerRing ? 'ON' : 'OFF'}
+                                </span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setMusicBgMotion(prev => !prev)}
+                                className={`px-2.5 py-2 rounded-xl text-[8.5px] font-black uppercase transition-all flex items-center justify-between border cursor-pointer ${
+                                    musicBgMotion
+                                        ? 'bg-[#00ff66]/20 border-[#00ff66]/60 text-white shadow-[0_0_12px_rgba(0,255,102,0.3)]'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                }`}
+                            >
+                                <span className="flex items-center gap-1.5">
+                                    <span className={`w-2 h-2 rounded-full ${musicBgMotion ? 'bg-[#00ff66] animate-pulse shadow-[0_0_6px_#00ff66]' : 'bg-gray-600'}`} />
+                                    <span>Fond Organique</span>
+                                </span>
+                                <span className={`text-[8px] font-mono ${musicBgMotion ? 'text-[#00ff66]' : 'text-gray-500'}`}>
+                                    {musicBgMotion ? 'ON' : 'OFF'}
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    })();
+
     const handleDjPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -10013,6 +10249,76 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             );
         }
 
+        if (theme === 'MUSIQUE') {
+            const totalSlides = 1 + musicTracks.length;
+            return (
+                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
+                    <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
+                        <span>Export Carrousel Musique ({totalSlides} Slides)</span>
+                        <span className="text-[#00ff66]">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                        {Array.from({ length: totalSlides }).map((_, i) => (
+                            <button
+                                key={i + 1}
+                                type="button"
+                                onClick={() => downloadEditorialSlide(i + 1)}
+                                disabled={isDownloading}
+                                className="flex-1 min-w-[55px] py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1"
+                            >
+                                <Download className="w-3 h-3 text-[#00ff66]" /> S{i + 1}
+                            </button>
+                        ))}
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => downloadEditorialCarousel()}
+                        disabled={isDownloading}
+                        className="w-full py-2.5 bg-gradient-to-r from-[#00ff66] to-[#00cc88] hover:from-[#33ff85] hover:to-[#00e699] text-black font-black text-[10px] uppercase rounded-lg shadow-lg shadow-green-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95"
+                    >
+                        <Download className="w-4 h-4 text-black" /> Télécharger Carrousel Musique ({totalSlides} Slides)
+                    </button>
+                </div>
+            );
+        }
+
+        if (theme === 'EVENTS') {
+            return (
+                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
+                    <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
+                        <span>Export Carrousel Événement (2 Slides)</span>
+                        <span className="text-[#ff007f]">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        <button
+                            type="button"
+                            onClick={() => downloadEventsSlide(1)}
+                            disabled={isDownloading}
+                            className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                        >
+                            <Download className="w-3.5 h-3.5 text-[#ff007f]" /> Slide 1 (Post)
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => downloadEventsSlide(2)}
+                            disabled={isDownloading}
+                            className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                        >
+                            <Download className="w-3.5 h-3.5 text-[#ff007f]" /> Slide 2 (Affiche)
+                        </button>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => downloadEventsCarousel()}
+                        disabled={isDownloading}
+                        className="w-full py-2 bg-[#ff007f]/20 hover:bg-[#ff007f]/30 border border-[#ff007f]/40 text-[#ff007f] hover:text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-2"
+                    >
+                        <Sparkles className="w-3.5 h-3.5" /> Exporter le Carrousel Images (Slide 1 + 2)
+                    </button>
+                </div>
+            );
+        }
+
         return null;
     })();
 
@@ -10274,9 +10580,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 );
             })()}
 
-            {/* Slide Affiche dédiée */}
+            {/* Slide Affiche dédiée (gérée dans l'onglet Visuel) */}
             {isEditorialAfficheActive && (
-                afficheEditor
+                <div className="p-3 bg-white/5 border border-[#ff007f]/30 rounded-2xl flex items-center justify-between gap-3 shadow-md">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        {afficheImage ? (
+                            <img src={afficheImage} alt="Affiche" className="w-10 h-12 rounded-lg object-cover border border-[#ff007f]/40 flex-shrink-0" />
+                        ) : (
+                            <div className="w-10 h-12 rounded-lg bg-black/40 border border-dashed border-white/20 flex items-center justify-center flex-shrink-0">
+                                <ImageIcon className="w-5 h-5 text-gray-500" />
+                            </div>
+                        )}
+                        <div className="min-w-0">
+                            <span className="text-[9.5px] font-black text-white uppercase block truncate">Slide Affiche (Extra)</span>
+                            <span className="text-[8px] text-gray-400 block truncate">
+                                {afficheImage ? 'Affiche configurée' : 'Gérer l\'affiche & visuel dans l\'onglet Visuel'}
+                            </span>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setSidebarStep('visual')}
+                        className="px-3 py-1.5 bg-[#ff007f] hover:bg-[#ff1a8c] text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-sm active:scale-95 flex-shrink-0"
+                    >
+                        <Sparkles className="w-3 h-3" />
+                        <span>Gérer dans Visuel</span>
+                    </button>
+                </div>
             )}
 
             {/* CARROUSEL SLIDE SWITCHER (POUR NEWS, RÉCAP, FOCUS, ETC.) */}
@@ -11878,14 +12208,38 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             )}
 
-            {/* Slide 2 Content (Affiche) */}
+            {/* Slide 2 Content (Affiche gérée dans l'onglet Visuel) */}
             {eventsSlide === 2 && (
                 <div className="space-y-3">
                     <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
                         <span>Édition Affiche de l'Événement</span>
                         <span className="text-[#ff007f]">Slide 2</span>
                     </div>
-                    {afficheEditor}
+                    <div className="p-3 bg-white/5 border border-[#ff007f]/30 rounded-2xl flex items-center justify-between gap-3 shadow-md">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                            {afficheImage ? (
+                                <img src={afficheImage} alt="Affiche" className="w-10 h-12 rounded-lg object-cover border border-[#ff007f]/40 flex-shrink-0" />
+                            ) : (
+                                <div className="w-10 h-12 rounded-lg bg-black/40 border border-dashed border-white/20 flex items-center justify-center flex-shrink-0">
+                                    <ImageIcon className="w-5 h-5 text-gray-500" />
+                                </div>
+                            )}
+                            <div className="min-w-0">
+                                <span className="text-[9.5px] font-black text-white uppercase block truncate">Affiche Événement (Slide 2)</span>
+                                <span className="text-[8px] text-gray-400 block truncate">
+                                    {afficheImage ? 'Affiche configurée' : 'Gérer l\'affiche & visuel dans l\'onglet Visuel'}
+                                </span>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setSidebarStep('visual')}
+                            className="px-3 py-1.5 bg-[#ff007f] hover:bg-[#ff1a8c] text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-sm active:scale-95 flex-shrink-0"
+                        >
+                            <Sparkles className="w-3 h-3" />
+                            <span>Gérer dans Visuel</span>
+                        </button>
+                    </div>
                 </div>
             )}
         </div>
@@ -11965,35 +12319,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <span className="text-xs">🔥</span> Slide PROMO
                         </button>
                     </div>
-                </div>
-
-                {/* 2. Quick Carousel Download Bar */}
-                <div className="p-2.5 bg-white/5 border border-white/10 rounded-xl space-y-2">
-                    <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
-                        <span>Export Carrousel Rapide ({totalSlides} Slides)</span>
-                        <span className="text-[#00ff66]">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                        {Array.from({ length: totalSlides }).map((_, i) => (
-                            <button
-                                key={i + 1}
-                                type="button"
-                                onClick={() => downloadEditorialSlide(i + 1)}
-                                disabled={isDownloading}
-                                className="flex-1 min-w-[55px] py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1"
-                            >
-                                <Download className="w-3 h-3 text-[#00ff66]" /> S{i + 1}
-                            </button>
-                        ))}
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => downloadEditorialCarousel()}
-                        disabled={isDownloading}
-                        className="w-full py-2.5 bg-gradient-to-r from-[#00ff66] to-[#00cc88] hover:from-[#33ff85] hover:to-[#00e699] text-black font-black text-[10px] uppercase rounded-lg shadow-lg shadow-green-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95"
-                    >
-                        <Download className="w-4 h-4 text-black" /> Télécharger Carrousel Musique ({totalSlides} Slides)
-                    </button>
                 </div>
 
                 {/* 3. Slide 1 Content (Annonce) */}
@@ -12347,222 +12672,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </div>
                         </div>
 
-                        {/* SECTION A : POCHETTE CARREE 1:1 */}
-                        <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
-                            <div className="flex items-center justify-between">
-                                <label className="text-[10px] font-black text-[#00ff66] uppercase tracking-widest flex items-center gap-1.5">
-                                    💿 Pochette du Son (Cover 1:1)
-                                </label>
-                                {activeCoverUrl && (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            updateMusicTrack(activeTrackIdx, { cover: '' });
-                                            if (activeTrackIdx === 0) {
-                                                setAfficheImage('');
-                                                afficheImageRef.current = null;
-                                            }
-                                            setTimeout(() => generateImage(), 50);
-                                        }}
-                                        className="text-[9px] font-bold text-red-400 hover:text-red-300 transition-colors uppercase"
-                                    >
-                                        Retirer
-                                    </button>
+                        {/* POCHETTE CARREE 1:1 DÉPORTÉE DANS L'ONGLET VISUEL */}
+                        <div className="p-3.5 bg-white/5 border border-[#00ff66]/30 rounded-2xl flex items-center justify-between gap-3 shadow-md">
+                            <div className="flex items-center gap-3 min-w-0">
+                                {activeCoverUrl ? (
+                                    <img src={activeCoverUrl} alt="Cover" className="w-11 h-11 rounded-xl object-cover border border-[#00ff66]/40 flex-shrink-0 shadow-sm" />
+                                ) : (
+                                    <div className="w-11 h-11 rounded-xl bg-black/50 border border-dashed border-[#00ff66]/30 flex items-center justify-center flex-shrink-0">
+                                        <Music className="w-5 h-5 text-gray-400" />
+                                    </div>
                                 )}
-                            </div>
-
-                            <input
-                                type="file"
-                                ref={afficheFileInputRef}
-                                onChange={handleAfficheImageChange}
-                                accept="image/*"
-                                className="hidden"
-                            />
-
-                            {activeCoverUrl ? (
-                                <div className="relative group rounded-xl overflow-hidden border border-[#00ff66]/30 bg-black/40 aspect-square max-h-48 mx-auto flex items-center justify-center shadow-lg">
-                                    <img src={activeCoverUrl} alt="Cover Track" className="w-full h-full object-contain" />
-                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => afficheFileInputRef.current?.click()}
-                                            className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-white text-[10px] font-black uppercase backdrop-blur-md"
-                                        >
-                                            Changer
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <button
-                                    type="button"
-                                    onClick={() => afficheFileInputRef.current?.click()}
-                                    className="w-full py-6 border-2 border-dashed border-white/15 hover:border-[#00ff66]/50 hover:bg-[#00ff66]/5 rounded-2xl flex flex-col items-center justify-center gap-2 bg-black/20 transition-all group"
-                                >
-                                    <Upload className="w-6 h-6 text-gray-500 group-hover:text-[#00ff66] transition-colors" />
-                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider group-hover:text-white transition-colors">
-                                        Importer la pochette (Carré 1:1)
+                                <div className="min-w-0">
+                                    <span className="text-[10px] font-black text-white uppercase block truncate">Cover du Morceau (1:1)</span>
+                                    <span className="text-[8px] text-gray-400 block truncate">
+                                        {activeCoverUrl ? 'Pochette configurée' : 'Gérer la cover, taille et animations dans l\'onglet Visuel'}
                                     </span>
-                                    <span className="text-[8px] text-gray-500">PNG, JPG, WEBP • Pochette officielle</span>
-                                </button>
-                            )}
-
-                            <div className="grid grid-cols-2 gap-2 pt-1">
-                                <button
-                                    type="button"
-                                    onClick={() => afficheFileInputRef.current?.click()}
-                                    className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
-                                >
-                                    <Upload className="w-3.5 h-3.5 text-[#00ff66]" /> Fichier Local
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setR2TargetType('musicCover');
-                                        setR2TargetIdx(activeTrackIdx);
-                                        setIsR2ModalOpen(true);
-                                    }}
-                                    className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
-                                >
-                                    <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" /> Cloud R2
-                                </button>
-                            </div>
-
-                            {/* Saisie URL de la cover avec bouton d'extraction automatique */}
-                            <div className="space-y-1 pt-1">
-                                <div className="flex items-center justify-between text-[8.5px] font-bold uppercase text-gray-400">
-                                    <span>Lien de la Cover ou Lien Streaming</span>
-                                    <span className="text-[7.5px] text-[#00ff66]">Beatport (1400x1400), Spotify, Image URL...</span>
-                                </div>
-                                <div className="flex gap-1.5">
-                                    <input
-                                        type="url"
-                                        placeholder="Coller lien Beatport, Spotify, Apple Music ou URL d'image..."
-                                        value={activeCoverUrl.startsWith('blob:') ? '' : activeCoverUrl}
-                                        onChange={e => {
-                                            const val = e.target.value;
-                                            updateMusicTrack(activeTrackIdx, { cover: val });
-                                            if (activeTrackIdx === 0) setAfficheImage(val);
-                                            // Si c'est un lien streaming, auto-extraction de la cover HD et du son
-                                            if (val.match(/(spotify|beatport|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
-                                                handleExtractTrackData(activeTrackIdx, val);
-                                            }
-                                        }}
-                                        className="flex-1 bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => handleExtractTrackData(activeTrackIdx, activeCoverUrl || smartImportUrl || activeTrack.audio || '')}
-                                        disabled={isResolvingAudio}
-                                        className="px-3 py-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 disabled:opacity-50 shadow-md active:scale-95 whitespace-nowrap"
-                                        title="Extraire la pochette officielle 1400x1400"
-                                    >
-                                        {isResolvingAudio ? (
-                                            <span className="animate-spin">⏳</span>
-                                        ) : (
-                                            <span>⚡ Extraire Cover</span>
-                                        )}
-                                    </button>
                                 </div>
                             </div>
-
-                            {/* Réglages précis de taille et position de la cover */}
-                            <div className="space-y-2.5 pt-2.5 border-t border-white/10">
-                                <div className="space-y-1">
-                                    <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
-                                        <span>Taille de la Pochette</span>
-                                        <span className="text-[#00ff66] font-mono">{afficheScale}%</span>
-                                    </div>
-                                    <input
-                                        type="range"
-                                        min="60"
-                                        max="120"
-                                        value={afficheScale}
-                                        onChange={(e) => {
-                                            setAfficheScale(Number(e.target.value));
-                                            setTimeout(() => generateImage(), 30);
-                                        }}
-                                        className="w-full accent-[#00ff66] bg-white/10 rounded-lg h-1.5 cursor-pointer"
-                                    />
-                                </div>
-
-                                <div className="space-y-1">
-                                    <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
-                                        <span>Position Verticale (Haut / Bas)</span>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-gray-300 font-mono text-[8px]">{afficheOffsetY > 0 ? `+${afficheOffsetY}` : afficheOffsetY}px</span>
-                                            {(afficheOffsetY !== 0 || afficheScale !== 100) && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setAfficheScale(100);
-                                                        setAfficheOffsetY(0);
-                                                        setTimeout(() => generateImage(), 30);
-                                                    }}
-                                                    className="text-[8px] text-[#00ff66] hover:underline cursor-pointer uppercase font-bold"
-                                                >
-                                                    Reset
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <input
-                                        type="range"
-                                        min="-100"
-                                        max="150"
-                                        value={afficheOffsetY}
-                                        onChange={(e) => {
-                                            setAfficheOffsetY(Number(e.target.value));
-                                            setTimeout(() => generateImage(), 30);
-                                        }}
-                                        className="w-full accent-[#00ff66] bg-white/10 rounded-lg h-1.5 cursor-pointer"
-                                    />
-                                </div>
-
-                                {/* Animations CDJ Player & Fond Animé */}
-                                <div className="pt-2.5 border-t border-white/10 space-y-2">
-                                    <div className="text-[9px] font-black uppercase text-gray-400 flex items-center justify-between">
-                                        <span>Animations CDJ & Ambiance</span>
-                                        <span className="text-[8px] text-[#ff0033] font-bold">● LIVE 60 FPS</span>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => setCdjPlayerRing(prev => !prev)}
-                                            className={`px-2.5 py-2 rounded-xl text-[8.5px] font-black uppercase transition-all flex items-center justify-between border cursor-pointer ${
-                                                cdjPlayerRing
-                                                    ? 'bg-[#ff0033]/20 border-[#ff0033]/60 text-white shadow-[0_0_12px_rgba(255,0,51,0.3)]'
-                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
-                                            }`}
-                                        >
-                                            <span className="flex items-center gap-1.5">
-                                                <span className={`w-2 h-2 rounded-full ${cdjPlayerRing ? 'bg-[#ff0033] animate-pulse shadow-[0_0_6px_#ff0033]' : 'bg-gray-600'}`} />
-                                                <span>Player CDJ Rouge</span>
-                                            </span>
-                                            <span className={`text-[8px] font-mono ${cdjPlayerRing ? 'text-[#ff0033]' : 'text-gray-500'}`}>
-                                                {cdjPlayerRing ? 'ON' : 'OFF'}
-                                            </span>
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => setMusicBgMotion(prev => !prev)}
-                                            className={`px-2.5 py-2 rounded-xl text-[8.5px] font-black uppercase transition-all flex items-center justify-between border cursor-pointer ${
-                                                musicBgMotion
-                                                    ? 'bg-[#00ff66]/20 border-[#00ff66]/60 text-white shadow-[0_0_12px_rgba(0,255,102,0.3)]'
-                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
-                                            }`}
-                                        >
-                                            <span className="flex items-center gap-1.5">
-                                                <span className={`w-2 h-2 rounded-full ${musicBgMotion ? 'bg-[#00ff66] animate-pulse shadow-[0_0_6px_#00ff66]' : 'bg-gray-600'}`} />
-                                                <span>Fond Organique</span>
-                                            </span>
-                                            <span className={`text-[8px] font-mono ${musicBgMotion ? 'text-[#00ff66]' : 'text-gray-500'}`}>
-                                                {musicBgMotion ? 'ON' : 'OFF'}
-                                            </span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setSidebarStep('visual')}
+                                className="px-3.5 py-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1.5 shadow-md active:scale-95 flex-shrink-0"
+                            >
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span>Gérer dans Visuel</span>
+                            </button>
                         </div>
 
                         {/* SECTION B : TEXTES DU SON (TITRE + ARTISTE + LABEL) */}
@@ -13690,113 +13824,135 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ══════════════════════════════════════════════ */}
                         {sidebarStep === 'visual' && (
                             <div className="space-y-4 animate-in fade-in duration-150">
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">Fond & Médias</span>
-                                        <span className="text-[8px] text-gray-400 uppercase font-bold">Image, Vidéo ou Cloud</span>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => fileInputRef.current?.click()}
-                                            className="py-3 px-2 border border-dashed border-white/20 hover:border-neon-red/50 rounded-xl flex items-center justify-center gap-1.5 text-gray-200 text-[9px] font-black uppercase hover:text-white transition-all bg-white/5 group shadow-sm active:scale-98"
-                                        >
-                                            <Upload className="w-4 h-4 text-neon-red group-hover:scale-110 transition-transform" />
-                                            <span>Mon Appareil</span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setR2TargetType('background');
-                                                setIsR2ModalOpen(true);
-                                            }}
-                                            className="py-3 px-2 border border-white/10 hover:border-neon-cyan/40 rounded-xl flex items-center justify-center gap-1.5 text-gray-300 text-[9px] font-black uppercase hover:text-white transition-all bg-white/5 group active:scale-98"
-                                        >
-                                            <ImageIcon className="w-4 h-4 text-neon-cyan group-hover:scale-110 transition-transform" />
-                                            <span>Cloud R2</span>
-                                        </button>
-                                    </div>
-                                    <button onClick={() => setIsDownloaderOpen(true)} className="w-full py-2.5 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[8.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
-                                        <LinkIcon className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
-                                        Télécharger Vidéo/Photo (URL)
-                                    </button>
-                                    <button onClick={() => setIsRecapPickerOpen(true)} className="w-full py-2.5 bg-[#c026d3]/10 border border-[#c026d3]/30 rounded-xl flex items-center justify-center gap-2 text-[#c026d3] text-[9px] font-black uppercase hover:bg-[#c026d3]/20 transition-all group">
-                                        <PlusCircle className="w-3.5 h-3.5" />
-                                        Importer un RÉCAP ÉCRIT
-                                    </button>
-
-                                    {bgPositionControls}
-                                    <button onClick={() => setIsRetouchMode(!isRetouchMode)} className={`w-full py-2 bg-neon-cyan/10 border rounded-xl flex items-center justify-center gap-2 text-neon-cyan text-[9px] font-black uppercase hover:bg-neon-cyan/20 transition-all group ${isRetouchMode ? 'border-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.2)]' : 'border-neon-cyan/20'}`}>
-                                        <Wand2 className="w-3.5 h-3.5" /> Nettoyage Photo (Outil IA Local)
-                                    </button>
-                                    {isRetouchMode && (
-                                        <div className="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
-                                            <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-500">
-                                                <span>Taille pinceau</span>
-                                                <span className="text-neon-cyan">{brushSize}px</span>
-                                            </div>
-                                            <input type="range" min="10" max="100" value={brushSize} onChange={e => setBrushSize(parseInt(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
-                                            <div className="flex gap-2 pt-1">
-                                                <button onClick={() => setRetouchPath([])} className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center justify-center gap-1"><RotateCcw className="w-3 h-3" /> Reset</button>
-                                                <button onClick={applyMagicErase} className="flex-[2] py-2 bg-neon-cyan text-black rounded-lg text-[9px] font-black uppercase shadow-[0_0_15px_rgba(0,255,255,0.4)] hover:scale-[1.02] transition-all flex items-center justify-center gap-1"><Sparkles className="w-3 h-3" /> Appliquer (IA)</button>
-                                            </div>
+                                {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2)) ? (
+                                    <>
+                                        {afficheEditor}
+                                        {/* Export Visuel Carrousel / Slide */}
+                                        <div className="pt-2 border-t border-white/10 space-y-2">
+                                            {quickCarouselDownloadBar}
                                         </div>
-                                    )}
-                                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
-                                    {bgVideo && (
-                                        <div className="space-y-1.5 pt-1">
-                                            <div className="flex gap-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        bgVideo.currentTime = 0;
-                                                        bgVideo.play().catch(() => {});
-                                                    }}
-                                                    className="flex-1 py-2 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl text-[9px] font-black text-neon-cyan uppercase hover:bg-neon-cyan/20 transition-all flex items-center justify-center gap-1.5 active:scale-95 shadow-sm"
-                                                    title="Remettre la vidéo à 0:00 et relancer"
-                                                >
-                                                    <RotateCcw className="w-3.5 h-3.5" /> Recommencer à 0:00
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        if (bgVideo.paused) {
+                                    </>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {/* Cover de track pour MUSIQUE (Slide 2+) */}
+                                        {theme === 'MUSIQUE' && editorialSlide >= 2 && (
+                                            <div className="space-y-2">
+                                                {musicCoverEditor}
+                                            </div>
+                                        )}
+
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">
+                                                {theme === 'MUSIQUE' && editorialSlide >= 2 ? 'Fond & Ambiance Arrière-Plan' : 'Fond & Médias'}
+                                            </span>
+                                            <span className="text-[8px] text-gray-400 uppercase font-bold">Image, Vidéo ou Cloud</span>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="py-3 px-2 border border-dashed border-white/20 hover:border-neon-red/50 rounded-xl flex items-center justify-center gap-1.5 text-gray-200 text-[9px] font-black uppercase hover:text-white transition-all bg-white/5 group shadow-sm active:scale-98"
+                                            >
+                                                <Upload className="w-4 h-4 text-neon-red group-hover:scale-110 transition-transform" />
+                                                <span>Mon Appareil</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setR2TargetType('background');
+                                                    setIsR2ModalOpen(true);
+                                                }}
+                                                className="py-3 px-2 border border-white/10 hover:border-neon-cyan/40 rounded-xl flex items-center justify-center gap-1.5 text-gray-300 text-[9px] font-black uppercase hover:text-white transition-all bg-white/5 group active:scale-98"
+                                            >
+                                                <ImageIcon className="w-4 h-4 text-neon-cyan group-hover:scale-110 transition-transform" />
+                                                <span>Cloud R2</span>
+                                            </button>
+                                        </div>
+                                        <button onClick={() => setIsDownloaderOpen(true)} className="w-full py-2.5 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[8.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                                            <LinkIcon className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
+                                            Télécharger Vidéo/Photo (URL)
+                                        </button>
+                                        <button onClick={() => setIsRecapPickerOpen(true)} className="w-full py-2.5 bg-[#c026d3]/10 border border-[#c026d3]/30 rounded-xl flex items-center justify-center gap-2 text-[#c026d3] text-[9px] font-black uppercase hover:bg-[#c026d3]/20 transition-all group">
+                                            <PlusCircle className="w-3.5 h-3.5" />
+                                            Importer un RÉCAP ÉCRIT
+                                        </button>
+
+                                        {bgPositionControls}
+                                        <button onClick={() => setIsRetouchMode(!isRetouchMode)} className={`w-full py-2 bg-neon-cyan/10 border rounded-xl flex items-center justify-center gap-2 text-neon-cyan text-[9px] font-black uppercase hover:bg-neon-cyan/20 transition-all group ${isRetouchMode ? 'border-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.2)]' : 'border-neon-cyan/20'}`}>
+                                            <Wand2 className="w-3.5 h-3.5" /> Nettoyage Photo (Outil IA Local)
+                                        </button>
+                                        {isRetouchMode && (
+                                            <div className="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
+                                                <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-500">
+                                                    <span>Taille pinceau</span>
+                                                    <span className="text-neon-cyan">{brushSize}px</span>
+                                                </div>
+                                                <input type="range" min="10" max="100" value={brushSize} onChange={e => setBrushSize(parseInt(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
+                                                <div className="flex gap-2 pt-1">
+                                                    <button onClick={() => setRetouchPath([])} className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center justify-center gap-1"><RotateCcw className="w-3 h-3" /> Reset</button>
+                                                    <button onClick={applyMagicErase} className="flex-[2] py-2 bg-neon-cyan text-black rounded-lg text-[9px] font-black uppercase shadow-[0_0_15px_rgba(0,255,255,0.4)] hover:scale-[1.02] transition-all flex items-center justify-center gap-1"><Sparkles className="w-3 h-3" /> Appliquer (IA)</button>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
+                                        {bgVideo && (
+                                            <div className="space-y-1.5 pt-1">
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            bgVideo.currentTime = 0;
                                                             bgVideo.play().catch(() => {});
-                                                        } else {
-                                                            bgVideo.pause();
-                                                        }
-                                                    }}
-                                                    className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-gray-300 uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-1.5 active:scale-95"
-                                                    title="Mettre en pause ou relancer la lecture"
-                                                >
-                                                    <Video className="w-3.5 h-3.5" /> Play / Pause
-                                                </button>
+                                                        }}
+                                                        className="flex-1 py-2 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl text-[9px] font-black text-neon-cyan uppercase hover:bg-neon-cyan/20 transition-all flex items-center justify-center gap-1.5 active:scale-95 shadow-sm"
+                                                        title="Remettre la vidéo à 0:00 et relancer"
+                                                    >
+                                                        <RotateCcw className="w-3.5 h-3.5" /> Recommencer à 0:00
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            if (bgVideo.paused) {
+                                                                bgVideo.play().catch(() => {});
+                                                            } else {
+                                                                bgVideo.pause();
+                                                            }
+                                                        }}
+                                                        className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-gray-300 uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                                                        title="Mettre en pause ou relancer la lecture"
+                                                    >
+                                                        <Video className="w-3.5 h-3.5" /> Play / Pause
+                                                    </button>
+                                                </div>
+                                                <p className="text-[7.5px] text-gray-400 italic text-center">
+                                                    ⏱️ Le clip repartira automatiquement à 0:00 pile lors de l'export MP4
+                                                </p>
                                             </div>
-                                            <p className="text-[7.5px] text-gray-400 italic text-center">
-                                                ⏱️ Le clip repartira automatiquement à 0:00 pile lors de l'export MP4
-                                            </p>
+                                        )}
+
+                                        {/* Visuel spécifique de la Slide active (Photo, Silhouette, etc.) */}
+                                        {slideVisualEditor}
+
+                                        {/* Export du fond visuel + Option pour animer le fond */}
+                                        <div className="pt-2 border-t border-white/10 space-y-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => downloadBackgroundVisual(activeTab)}
+                                                disabled={isDownloading}
+                                                className="w-full py-2.5 bg-white/5 border border-white/10 hover:border-white/30 rounded-xl text-[9px] font-black uppercase text-white hover:text-neon-cyan flex items-center justify-center gap-2 transition-all group shadow-sm"
+                                                title="Exporter l'image de fond seule sans texte"
+                                            >
+                                                <Download className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
+                                                Exporter le fond visuel (PNG)
+                                            </button>
+                                            {theme !== 'MAP' && bgAnimationControl}
                                         </div>
-                                    )}
 
-                                    {/* Export du fond visuel + Option pour animer le fond */}
-                                    <div className="pt-2 border-t border-white/10 space-y-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => downloadBackgroundVisual(activeTab)}
-                                            disabled={isDownloading}
-                                            className="w-full py-2.5 bg-white/5 border border-white/10 hover:border-white/30 rounded-xl text-[9px] font-black uppercase text-white hover:text-neon-cyan flex items-center justify-center gap-2 transition-all group shadow-sm"
-                                            title="Exporter l'image de fond seule sans texte"
-                                        >
-                                            <Download className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
-                                            Exporter le fond visuel (PNG)
-                                        </button>
-                                        {theme !== 'MAP' && bgAnimationControl}
+                                        {/* Export Carrousel rapide dans Visuel */}
+                                        {quickCarouselDownloadBar}
                                     </div>
-
-                                    {/* Visuel spécifique de la Slide active (Photo, Silhouette, etc.) */}
-                                    {slideVisualEditor}
-                                </div>
+                                )}
 
                                 {/* Navigation entre étapes */}
                                 <div className="pt-3 border-t border-white/10 flex gap-2">
@@ -14749,7 +14905,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 <Download className="w-4 h-4 text-neon-cyan" /> Exporter le fond visuel (PNG)
                                             </button>
                                             {theme !== 'MAP' && bgAnimationControl}
+                                            {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2)) && afficheEditor}
+                                            {theme === 'MUSIQUE' && editorialSlide >= 2 && musicCoverEditor}
                                             {slideVisualEditor}
+                                            {quickCarouselDownloadBar}
                                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                         </div>
                                     </div>
