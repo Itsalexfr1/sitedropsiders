@@ -8,7 +8,7 @@
     "color": "border-[#ff007f]/40 hover:border-[#ff007f]",
     "bg": "bg-[#ff007f]/10",
     "permission": "all",
-    "baseColor": "#ff00d0",
+    "baseColor": "#ff0000",
     "columns": 1
   },
   {
@@ -20,7 +20,7 @@
     "color": "border-neon-cyan/30 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "tv_schedule",
-    "baseColor": "#00fbff",
+    "baseColor": "#aeff00",
     "columns": 1
   },
   {
@@ -32,7 +32,7 @@
     "color": "border-neon-purple/20 hover:border-neon-purple",
     "bg": "bg-neon-purple/5",
     "permission": "social_studio",
-    "baseColor": "#ff8fe1",
+    "baseColor": "#0040ff",
     "columns": 1
   },
   {
@@ -44,7 +44,7 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "news_focus",
-    "baseColor": "#ff8a8a",
+    "baseColor": "#ff00f7",
     "columns": 1
   },
   {
@@ -68,7 +68,7 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "superadmin",
-    "baseColor": "#5700fa",
+    "baseColor": "#0084ff",
     "columns": 1
   },
   {
@@ -80,7 +80,7 @@
     "color": "border-neon-orange/20 hover:border-neon-orange",
     "bg": "bg-neon-orange/5",
     "permission": "messages_contact",
-    "baseColor": "#75ffd1",
+    "baseColor": "#00ff33",
     "columns": 1
   },
   {
