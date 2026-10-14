@@ -249,6 +249,7 @@ export function AdminDashboard() {
   const [isQRCodeModalOpen, setIsQRCodeModalOpen] = useState(false);
   const [isIncomingCallModalOpen, setIsIncomingCallModalOpen] = useState(false);
   const [isAdminCardsModalOpen, setIsAdminCardsModalOpen] = useState(false);
+  const [isRadioTvModalOpen, setIsRadioTvModalOpen] = useState(false);
 
   const [teamModalTab, setTeamModalTab] = useState<"MEMBERS" | "TEAM" | "EDITORS" | "REQUESTS">("MEMBERS");
 
@@ -1208,12 +1209,9 @@ export function AdminDashboard() {
 
   const DASHBOARD_TABS = [
     { id: "ALL", label: "Tout" },
-    { id: "TOP_DROPSIDERS", label: "Top Dropsiders" },
     { id: "NEWS", label: "Actualités" },
     { id: "COMMUNAUTÉ", label: "Communauté" },
-    { id: "DROPSIDERS_TV", label: "Dropsiders TV" },
-    { id: "SOCIAL_STUDIO", label: "Visuel Vide" },
-    { id: "EXPORT_NEWS", label: "Exporter une News" },
+    { id: "DROPSIDERS_TV", label: "Radio & TV" },
     { id: "WIKI", label: "DJs / Clubs / Festivals" },
     { id: "STUDIO", label: "Studio" },
     { id: "SHOP", label: "Boutique" },
@@ -2569,6 +2567,16 @@ export function AdminDashboard() {
                 savedAction.title !== "Video Translator AI" &&
                 savedAction.title !== "Story Grid Generator" &&
                 savedAction.title !== "Story Grid" &&
+                savedAction.title !== "Agenda" &&
+                savedAction.title !== "Top Dropsiders" &&
+                savedAction.title !== "TOP DROPSIDERS" &&
+                savedAction.title !== "Documents PDF" &&
+                savedAction.title !== "Blind Test" &&
+                savedAction.title !== "MEMBRES DU SITE" &&
+                savedAction.title !== "Visuel Vide" &&
+                savedAction.title !== "Exporter une News" &&
+                savedAction.title !== "Dropsiders TV" &&
+                savedAction.title !== "Dropsiders Radio" &&
                 defaultActions.some(
                   (def) =>
                     def.title.toLowerCase() === savedAction.title.toLowerCase(),
@@ -2611,7 +2619,7 @@ export function AdminDashboard() {
     // CONTENU & ÉDITORIAL
     {
       title: "Contenu",
-      description: "News, Musique, Interviews...",
+      description: "News, Musique, Interviews, Agenda...",
       icon: "Music2",
       category: "NEWS",
       link: "#",
@@ -2621,23 +2629,11 @@ export function AdminDashboard() {
       baseColor: "cyan",
       columns: 2,
     },
-    {
-      title: "Agenda",
-      description: "Programmation",
-      icon: "Calendar",
-      category: "NEWS",
-      link: "#",
-      color: "border-neon-yellow/20 hover:border-neon-yellow",
-      bg: "bg-neon-yellow/5",
-      permission: "agenda_events",
-      baseColor: "yellow",
-      columns: 1,
-    },
 
     // COMMUNAUTÉ
     {
       title: "Communauté",
-      description: "Modération & Galerie",
+      description: "Modération, Jeux & Membres",
       icon: "MessageSquare",
       category: "COMMUNAUTÉ",
       link: "#",
@@ -2650,42 +2646,18 @@ export function AdminDashboard() {
 
     // DROPSIDERS TV & RADIO
     {
-      title: "Dropsiders TV",
-      description: "Programmation des liens YouTube & Diffusion TV",
-      icon: "Monitor",
-      category: "DROPSIDERS_TV",
-      link: "#DROPSIDERS_TV",
-      color: "border-neon-red/20 hover:border-neon-red",
-      bg: "bg-neon-red/5",
-      permission: "tv_schedule",
-      baseColor: "red",
-      columns: 1,
-    },
-    {
-      title: "Dropsiders Radio",
+      title: "Radio & TV",
       description: isRadioActive 
-        ? `Radio Active (En Ligne) · ${radioStats.sets} Sets & ${radioStats.clips} Clips` 
-        : `Radio Privée (Inactif) · ${radioStats.sets} Sets & ${radioStats.clips} Clips`,
+        ? `TV en direct · Radio En Ligne (${radioStats.sets} Sets)` 
+        : `TV en direct · Radio Privée (${radioStats.sets} Sets)`,
       icon: "Radio",
       category: "DROPSIDERS_TV",
-      link: "#DROPSIDERS_RADIO",
-      color: isRadioActive ? "border-neon-cyan/50 hover:border-neon-cyan" : "border-white/10 hover:border-white/20",
-      bg: isRadioActive ? "bg-neon-cyan/10" : "bg-white/5",
-      permission: "radio",
-      baseColor: isRadioActive ? "cyan" : "white",
-      columns: 1,
-    },
-    {
-      title: "Blind Test",
-      description: "Thèmes, Playlists Deezer & Sessions",
-      icon: "Gamepad2",
-      category: "COMMUNAUTÉ",
-      link: "#BLINDTEST_ADMIN_MODAL",
-      color: "border-neon-red/30 hover:border-neon-red",
-      bg: "bg-neon-red/10",
-      permission: "all",
-      baseColor: "red",
-      columns: 1,
+      link: "#DROPSIDERS_TV_RADIO",
+      color: "border-neon-cyan/30 hover:border-neon-cyan",
+      bg: "bg-neon-cyan/5",
+      permission: "tv_schedule",
+      baseColor: "cyan",
+      columns: 2,
     },
 
     // STUDIO & ANALYTICS
@@ -2702,30 +2674,6 @@ export function AdminDashboard() {
       columns: 1,
     },
 
-    {
-      title: "Visuel Vide",
-      description: "Social Studio vierge (Direct)",
-      icon: "Sparkles",
-      category: "STUDIO",
-      link: "#SOCIAL_STUDIO_EMPTY",
-      color: "border-pink-500/20 hover:border-pink-500",
-      bg: "bg-pink-500/5",
-      permission: "social_studio",
-      baseColor: "pink",
-      columns: 1,
-    },
-    {
-      title: "Exporter une News",
-      description: "Convertir un article en visuel réseaux",
-      icon: "Share2",
-      category: "STUDIO",
-      link: "#EXPORT_NEWS",
-      color: "border-neon-cyan/20 hover:border-neon-cyan",
-      bg: "bg-neon-cyan/5",
-      permission: "social_studio",
-      baseColor: "cyan",
-      columns: 1,
-    },
     {
       title: "Générateurs",
       description: "Studio de création visuelle",
@@ -2815,34 +2763,6 @@ export function AdminDashboard() {
       baseColor: "purple",
       columns: 1,
     },
-    {
-      title: "MEMBRES DU SITE",
-      description: "Comptes & Droits",
-      icon: "UserCheck",
-      category: "TEAM",
-      link: "/admin/team?tab=community",
-      color: "border-neon-cyan/20 hover:border-neon-cyan",
-      bg: "bg-neon-cyan/5",
-      permission: "all",
-      baseColor: "cyan",
-      columns: 1,
-    },
-
-    // PDF & DOCUMENTS
-    {
-      title: "Documents PDF",
-      description: "Hébergement & Partage",
-      icon: "Database",
-      category: "WIKI",
-      link: "/admin/pdfs",
-      color: "border-neon-cyan/20 hover:border-neon-cyan",
-      bg: "bg-neon-cyan/5",
-      permission: "news",
-      baseColor: "cyan",
-      columns: 1,
-    },
-
-
 
     // SYSTÈME
     {
@@ -2869,20 +2789,6 @@ export function AdminDashboard() {
       permission: "superadmin",
       baseColor: "cyan",
       columns: 1,
-    },
-
-    // MODÉRATION WIKI (Isolée)
-    {
-      title: "Top Dropsiders",
-      description: "Résultats des votes",
-      icon: "Trophy",
-      category: "WIKI",
-      link: "#",
-      color: "border-neon-yellow/20 hover:border-neon-yellow",
-      bg: "bg-neon-yellow/5",
-      permission: "community_mod",
-      baseColor: "yellow",
-      columns: 2,
     },
   ];
 
@@ -3284,8 +3190,11 @@ export function AdminDashboard() {
       return (
         action.category?.toUpperCase() === "DROPSIDERS_TV" ||
         action.title === "DropsidersTV" ||
+        action.title === "Radio & TV" ||
         action.link === "#DROPSIDERS_TV" ||
-        action.icon === "Tv"
+        action.link === "#DROPSIDERS_TV_RADIO" ||
+        action.icon === "Tv" ||
+        action.icon === "Radio"
       );
 
     if (dashboardTab === "COMMUNAUTÉ") {
@@ -3668,16 +3577,7 @@ export function AdminDashboard() {
                   key={tab.id}
                   onClick={() => {
                     if (tab.id === "DROPSIDERS_TV") {
-                      navigate("/tv?admin=true");
-                      return;
-                    }
-                    if (tab.id === "SOCIAL_STUDIO") {
-                      setSelectedSocialArticle({ title: "", image: "" });
-                      setSelectedSocialTheme(undefined);
-                      return;
-                    }
-                    if (tab.id === "EXPORT_NEWS") {
-                      setIsSocialModalOpen(true);
+                      setIsRadioTvModalOpen(true);
                       return;
                     }
                     setDashboardTab(tab.id as any);
@@ -4814,19 +4714,18 @@ export function AdminDashboard() {
                               e.preventDefault();
                               setIsShopModalOpen(true);
                             } else if (
+                              action.title === "Radio & TV" ||
+                              action.title === "Dropsiders TV & Radio" ||
+                              action.link === "#DROPSIDERS_TV_RADIO" ||
                               action.title === "DropsidersTV" ||
                               action.title === "Dropsiders TV" ||
                               action.link === "#DROPSIDERS_TV" ||
+                              action.title === "Dropsiders Radio" ||
+                              action.link === "#DROPSIDERS_RADIO" ||
                               action.icon === "Tv"
                             ) {
                               e.preventDefault();
-                              navigate('/tv?admin=true');
-                            } else if (
-                              action.title === "Dropsiders Radio" ||
-                              action.link === "#DROPSIDERS_RADIO"
-                            ) {
-                              e.preventDefault();
-                              setIsRadioModalOpen(true);
+                              setIsRadioTvModalOpen(true);
                             } else if (action.title === "Agenda") {
                               e.preventDefault();
                               setIsAgendaModalOpen(true);
@@ -6488,6 +6387,118 @@ export function AdminDashboard() {
             )}
           </AnimatePresence>
 
+          {/* Modal RADIO & TV */}
+          <AnimatePresence>
+            {isRadioTvModalOpen && (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-8 md:p-10 max-w-3xl w-full shadow-2xl relative overflow-hidden"
+                >
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan" />
+
+                  <div className="flex justify-between items-start mb-8 md:mb-10">
+                    <div>
+                      <h2 className="text-3xl md:text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                        RADIO <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-red to-neon-cyan">& TV</span>
+                      </h2>
+                      <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">
+                        Diffusion continue & flux en direct
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setIsRadioTvModalOpen(false)}
+                      className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Carte 1 : Dropsiders TV */}
+                    <button
+                      onClick={() => {
+                        setIsRadioTvModalOpen(false);
+                        navigate("/tv?admin=true");
+                      }}
+                      className="p-6 md:p-8 bg-gradient-to-b from-white/5 to-white/[0.02] border border-white/10 hover:border-neon-red/50 hover:bg-neon-red/[0.06] rounded-[2.5rem] flex flex-col justify-between text-left group transition-all relative overflow-hidden shadow-xl"
+                    >
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-neon-red/10 rounded-full blur-2xl group-hover:bg-neon-red/20 transition-all pointer-events-none" />
+                      <div>
+                        <div className="w-14 h-14 md:w-16 md:h-16 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(255,18,65,0.25)]">
+                          <Tv className="w-7 h-7 md:w-8 md:h-8 text-neon-red" />
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="px-2.5 py-0.5 rounded-full bg-neon-red/20 border border-neon-red/30 text-neon-red text-[9px] font-black uppercase tracking-wider">
+                            Direct TV
+                          </span>
+                        </div>
+                        <h3 className="text-xl md:text-2xl font-display font-black text-white italic uppercase tracking-tight mb-2">
+                          Dropsiders TV
+                        </h3>
+                        <p className="text-xs text-gray-400 leading-relaxed font-medium">
+                          Programmation des liens YouTube, grille de diffusion continue et gestion de la chaîne TV.
+                        </p>
+                      </div>
+
+                      <div className="mt-8 pt-4 border-t border-white/5 flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest group-hover:text-neon-red transition-colors">
+                          Ouvrir la TV
+                        </span>
+                        <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-neon-red group-hover:translate-x-1 transition-all" />
+                      </div>
+                    </button>
+
+                    {/* Carte 2 : Dropsiders Radio */}
+                    <button
+                      onClick={() => {
+                        setIsRadioTvModalOpen(false);
+                        setIsRadioModalOpen(true);
+                      }}
+                      className="p-6 md:p-8 bg-gradient-to-b from-white/5 to-white/[0.02] border border-white/10 hover:border-neon-cyan/50 hover:bg-neon-cyan/[0.06] rounded-[2.5rem] flex flex-col justify-between text-left group transition-all relative overflow-hidden shadow-xl"
+                    >
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-neon-cyan/10 rounded-full blur-2xl group-hover:bg-neon-cyan/20 transition-all pointer-events-none" />
+                      <div>
+                        <div className="w-14 h-14 md:w-16 md:h-16 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(0,255,255,0.25)]">
+                          <Radio className="w-7 h-7 md:w-8 md:h-8 text-neon-cyan" />
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${
+                              isRadioActive
+                                ? "bg-neon-cyan/20 border-neon-cyan/40 text-neon-cyan"
+                                : "bg-white/10 border-white/20 text-gray-400"
+                            }`}
+                          >
+                            {isRadioActive ? "● En Ligne" : "○ Privée"}
+                          </span>
+                          <span className="text-[10px] text-gray-500 font-bold">
+                            {radioStats.sets} Sets · {radioStats.clips} Clips
+                          </span>
+                        </div>
+                        <h3 className="text-xl md:text-2xl font-display font-black text-white italic uppercase tracking-tight mb-2">
+                          Dropsiders Radio
+                        </h3>
+                        <p className="text-xs text-gray-400 leading-relaxed font-medium">
+                          Gestion des sets audio, clips vidéos, blocs de programmation et statut de diffusion.
+                        </p>
+                      </div>
+
+                      <div className="mt-8 pt-4 border-t border-white/5 flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest group-hover:text-neon-cyan transition-colors">
+                          Gérer la Radio
+                        </span>
+                        <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-neon-cyan group-hover:translate-x-1 transition-all" />
+                      </div>
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+
           {/* Modal Agenda */}
           <AnimatePresence>
             {isAgendaModalOpen && (
@@ -7903,20 +7914,20 @@ export function AdminDashboard() {
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-4xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-8 md:p-10 max-w-5xl w-full shadow-2xl relative overflow-hidden"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-cyan via-white to-neon-cyan" />
 
-                  <div className="flex justify-between items-start mb-12">
+                  <div className="flex justify-between items-start mb-10">
                     <div>
-                      <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                      <h2 className="text-3xl md:text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                         Gestion{" "}
                         <span className="text-neon-cyan">
                           Contenu Editorial
                         </span>
                       </h2>
                       <p className="text-gray-400 font-medium">
-                        Contrôle des articles et médias editorial
+                        Articles, programmation, classements et médias éditoriaux
                       </p>
                     </div>
                     <button
@@ -7927,9 +7938,9 @@ export function AdminDashboard() {
                     </button>
                   </div>
 
-                  <div className="space-y-4 overflow-y-auto max-h-[65vh] p-3 -m-3 custom-scrollbar">
-                    {/* Ligne 1 : 4 Cartes Principales */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="space-y-4 overflow-y-auto max-h-[65vh] p-2 -m-2 custom-scrollbar">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                      {/* 1. News */}
                       <button
                         onClick={() => {
                           setIsNewsModalOpen(true);
@@ -7950,6 +7961,7 @@ export function AdminDashboard() {
                         </div>
                       </button>
 
+                      {/* 2. Musique */}
                       <button
                         onClick={() => {
                           setIsMusiqueModalOpen(true);
@@ -7970,6 +7982,7 @@ export function AdminDashboard() {
                         </div>
                       </button>
 
+                      {/* 3. Interviews */}
                       <button
                         onClick={() => {
                           setIsInterviewModalOpen(true);
@@ -7990,6 +8003,7 @@ export function AdminDashboard() {
                         </div>
                       </button>
 
+                      {/* 4. Récaps */}
                       <button
                         onClick={() => {
                           setIsRecapModalOpen(true);
@@ -8009,10 +8023,50 @@ export function AdminDashboard() {
                           </p>
                         </div>
                       </button>
-                    </div>
 
-                    {/* Ligne 2 : 3 Cartes Centrées */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
+                      {/* 5. Agenda */}
+                      <button
+                        onClick={() => {
+                          setIsAgendaModalOpen(true);
+                          setIsContenuModalOpen(false);
+                        }}
+                        className="p-5 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-3 hover:bg-neon-yellow/10 hover:border-neon-yellow/50 hover:scale-[1.02] transition-all group shadow-lg"
+                      >
+                        <div className="w-12 h-12 bg-neon-yellow/20 rounded-2xl flex items-center justify-center border border-neon-yellow/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(255,240,31,0.2)]">
+                          <Calendar className="w-6 h-6 text-neon-yellow" />
+                        </div>
+                        <div className="text-center">
+                          <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
+                            Agenda
+                          </h3>
+                          <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">
+                            Programmation
+                          </p>
+                        </div>
+                      </button>
+
+                      {/* 6. Top Dropsiders */}
+                      <button
+                        onClick={() => {
+                          setIsTopDropsidersModalOpen(true);
+                          setIsContenuModalOpen(false);
+                        }}
+                        className="p-5 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-3 hover:bg-neon-yellow/10 hover:border-neon-yellow/50 hover:scale-[1.02] transition-all group shadow-lg"
+                      >
+                        <div className="w-12 h-12 bg-neon-yellow/20 rounded-2xl flex items-center justify-center border border-neon-yellow/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(255,240,31,0.2)]">
+                          <Trophy className="w-6 h-6 text-neon-yellow" />
+                        </div>
+                        <div className="text-center">
+                          <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
+                            Top Dropsiders
+                          </h3>
+                          <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">
+                            Résultats Votes
+                          </p>
+                        </div>
+                      </button>
+
+                      {/* 7. Albums Photos */}
                       <Link
                         to="/galerie/create"
                         onClick={() => setIsContenuModalOpen(false)}
@@ -8031,6 +8085,7 @@ export function AdminDashboard() {
                         </div>
                       </Link>
 
+                      {/* 8. News Focus */}
                       <Link
                         to="/news/create?tab=Focus"
                         onClick={() => setIsContenuModalOpen(false)}
@@ -8049,6 +8104,28 @@ export function AdminDashboard() {
                         </div>
                       </Link>
 
+                      {/* 9. Documents PDF */}
+                      <button
+                        onClick={() => {
+                          navigate("/admin/pdfs");
+                          setIsContenuModalOpen(false);
+                        }}
+                        className="p-5 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-3 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 hover:scale-[1.02] transition-all group shadow-lg"
+                      >
+                        <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(0,255,255,0.2)]">
+                          <Database className="w-6 h-6 text-neon-cyan" />
+                        </div>
+                        <div className="text-center">
+                          <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
+                            Documents PDF
+                          </h3>
+                          <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">
+                            Hébergement & Partage
+                          </p>
+                        </div>
+                      </button>
+
+                      {/* 10. Notifications Push */}
                       <button
                         onClick={() => {
                           setIsExtensionNotifModalOpen(true);
@@ -8332,6 +8409,48 @@ export function AdminDashboard() {
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-1">
                           Voir et trier les cartes
+                        </p>
+                      </div>
+                    </button>
+
+                    {/* Blind Test */}
+                    <button
+                      onClick={() => {
+                        setIsBlindTestModalOpen(true);
+                        setIsCommunauteModalOpen(false);
+                      }}
+                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group relative"
+                    >
+                      <div className="w-14 h-14 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
+                        <Gamepad2 className="w-7 h-7 text-neon-red" />
+                      </div>
+                      <div className="text-center">
+                        <h3 className="text-lg font-bold text-white uppercase italic">
+                          Blind Test
+                        </h3>
+                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-1">
+                          Thèmes, Playlists Deezer & Sessions
+                        </p>
+                      </div>
+                    </button>
+
+                    {/* Membres du Site */}
+                    <button
+                      onClick={() => {
+                        navigate("/admin/team?tab=community");
+                        setIsCommunauteModalOpen(false);
+                      }}
+                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group relative"
+                    >
+                      <div className="w-14 h-14 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
+                        <UserCheck className="w-7 h-7 text-neon-cyan" />
+                      </div>
+                      <div className="text-center">
+                        <h3 className="text-lg font-bold text-white uppercase italic">
+                          Membres du Site
+                        </h3>
+                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-1">
+                          Comptes & Droits
                         </p>
                       </div>
                     </button>
