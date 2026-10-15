@@ -4623,17 +4623,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 if ((theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ') && shouldDrawDevinetteCta) {
                     ctx.save();
+                    const isReel = effectiveTab === 'REEL';
                     const centerX = canvas.width / 2;
-                    const ctaY = canvas.height - 60;
+                    const ctaY = canvas.height - (isReel ? 60 : 44);
                     applyTextAnimCtx(ctx, 0.35, centerX, ctaY);
                     const isRevealCta = (theme === 'JEU_DJ' && effectiveEditorialSlide === 2);
                     const ctaText = isRevealCta ? "🏆 TU AVAIS TROUVÉ ? DIS-LE EN COMMENTAIRE !" : "💬 DEVINE EN COMMENTAIRE !";
-                    ctx.font = '900 italic 25px "Montserrat", sans-serif';
+                    ctx.font = '900 italic 24px "Montserrat", sans-serif';
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
 
-                    const ctaW = ctx.measureText(ctaText).width + 50;
+                    const ctaW = ctx.measureText(ctaText).width + 46;
                     const ctaGrad = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
                     ctaGrad.addColorStop(0, 'rgba(10, 15, 28, 0.85)');
                     ctaGrad.addColorStop(0.5, 'rgba(20, 28, 45, 0.95)');
@@ -4641,7 +4642,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     ctx.fillStyle = ctaGrad;
                     ctx.beginPath();
-                    ctx.roundRect(centerX - ctaW / 2, ctaY - 22, ctaW, 44, 14);
+                    ctx.roundRect(centerX - ctaW / 2, ctaY - 20, ctaW, 40, 14);
                     ctx.fill();
 
                     const ctaBorderColor = isRevealCta ? '#00f0ff' : theme === 'JEU' ? '#00f0ff' : theme === 'JEU_FESTIVAL' ? '#ffaa00' : djSilhouetteColor;
@@ -4832,45 +4833,98 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const lineWidth = canvas.width - (lineMarginX * 2);
                 const isTitleOnly = mainTitleText && !bodyText;
-                
-                // Décalage du texte par rapport à la barre horizontale (donne de l'air pour que le texte ne soit pas trop proche de la ligne)
-                let curY = dividerY + (isReel ? (!mainTitleText ? 85 : 118) : (!mainTitleText ? 75 : 108));
+                const isDevinetteTheme = (theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ');
+                const isDevinetteReveal = isDevinetteTheme && effectiveEditorialSlide === 2;
+
+                // 1. Définition et préparation du Titre
+                let titleFontSize = isTitleOnly ? 64 : (isDevinetteReveal ? (isReel ? 44 : 38) : (isEditorialCarouselTheme ? 50 : 44));
+                const formatTitleLines = (fSize: number) => {
+                    ctx.font = `900 ${fSize}px "Montserrat", sans-serif`;
+                    const lines: string[] = [];
+                    if (!mainTitleText) return lines;
+                    mainTitleText.split('\n').forEach(line => {
+                        if (!line.trim()) return;
+                        const words = line.trim().split(/\s+/);
+                        let cur = '';
+                        words.forEach(w => {
+                            const test = cur ? `${cur} ${w}` : w;
+                            if (ctx.measureText(stripTags(test).toUpperCase()).width > lineWidth) {
+                                if (cur) lines.push(cur);
+                                cur = w;
+                            } else {
+                                cur = test;
+                            }
+                        });
+                        if (cur) lines.push(cur);
+                    });
+                    return lines;
+                };
+
+                let titleLines = formatTitleLines(titleFontSize);
+                while (titleFontSize > 24 && titleLines.some(l => ctx.measureText(stripTags(l).toUpperCase()).width > lineWidth)) {
+                    titleFontSize -= 2;
+                    titleLines = formatTitleLines(titleFontSize);
+                }
+                const titleLineHeight = Math.round(titleFontSize * (isDevinetteReveal ? 1.15 : 1.18));
+                const titleHeight = mainTitleText ? (titleLines.length * titleLineHeight) : 0;
+
+                // 2. Définition et préparation du Sous-titre / Réponse
+                const subFontWeight = isDevinetteReveal ? '900' : '400';
+                let subFontSize = isDevinetteReveal
+                    ? (isReel ? 44 : 38)
+                    : (!mainTitleText ? (isReel ? 38 : 34) : (isEditorialCarouselTheme ? 32 : 26));
+
+                const formatSubLines = (fSize: number) => {
+                    ctx.font = `italic ${subFontWeight} ${fSize}px "Montserrat", sans-serif`;
+                    const lines: string[] = [];
+                    if (!bodyText) return lines;
+                    bodyText.split('\n').forEach(line => {
+                        if (!line.trim()) return;
+                        const words = line.trim().split(/\s+/);
+                        let cur = '';
+                        words.forEach(w => {
+                            const test = cur ? `${cur} ${w}` : w;
+                            if (ctx.measureText(stripTags(test)).width > lineWidth) {
+                                if (cur) lines.push(cur);
+                                cur = w;
+                            } else {
+                                cur = test;
+                            }
+                        });
+                        if (cur) lines.push(cur);
+                    });
+                    return lines;
+                };
+
+                const gapBetween = (mainTitleText && bodyText) ? (isDevinetteReveal ? 14 : 22) : 0;
+                let subLineHeight = Math.round(subFontSize * (isDevinetteReveal ? 1.25 : 1.38));
+                let subLines = formatSubLines(subFontSize);
+                let subHeight = bodyText ? (subLines.length * subLineHeight) : 0;
+                let totalTextHeight = titleHeight + gapBetween + subHeight;
+
+                // Calcul dynamique de l'espace disponible pour éviter TOUT chevauchement avec le bandeau CTA en bas
+                const bottomLimit = shouldDrawDevinetteCta ? (canvas.height - (isReel ? 60 : 44) - 26) : (canvas.height - (isReel ? 40 : 25));
+                const availableSpace = Math.max(100, bottomLimit - dividerY);
+
+                // Réduction automatique si le texte dépasse en hauteur ou en largeur
+                const minSubFontSize = isDevinetteReveal ? 24 : 18;
+                while (subFontSize > minSubFontSize && 
+                       (totalTextHeight > (availableSpace - 16) || subLines.some(l => ctx.measureText(stripTags(l)).width > lineWidth))) {
+                    subFontSize -= 1;
+                    subLines = formatSubLines(subFontSize);
+                    subLineHeight = Math.round(subFontSize * (isDevinetteReveal ? 1.25 : 1.38));
+                    subHeight = subLines.length * subLineHeight;
+                    totalTextHeight = titleHeight + gapBetween + subHeight;
+                }
+
+                // Centrage vertical dynamique dans la zone libre entre le divider et le bas / bandeau CTA
+                const startPadding = Math.max(isReel ? 22 : 14, Math.round((availableSpace - totalTextHeight) / 2));
+                const firstLineFontSize = mainTitleText ? titleFontSize : subFontSize;
+                let curY = dividerY + startPadding + Math.round(firstLineFontSize * 0.82);
 
                 // --- A) MAIN TITLE IN WHITE (WITH THEME COLOR HIGHLIGHTS) ---
                 if (mainTitleText) {
                     ctx.save();
-                    // Sur la slide 1 (titre seul), le titre est agrandi pour un maximum d'impact
-                    let titleFontSize = isTitleOnly ? 64 : (isEditorialCarouselTheme ? 50 : 44);
-                    ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
-
-                    const formatTitleLines = (fSize: number) => {
-                        ctx.font = `900 ${fSize}px "Montserrat", sans-serif`;
-                        const lines: string[] = [];
-                        mainTitleText.split('\n').forEach(line => {
-                            if (!line.trim()) return;
-                            const words = line.trim().split(/\s+/);
-                            let cur = '';
-                            words.forEach(w => {
-                                const test = cur ? `${cur} ${w}` : w;
-                                if (ctx.measureText(stripTags(test).toUpperCase()).width > lineWidth) {
-                                    if (cur) lines.push(cur);
-                                    cur = w;
-                                } else {
-                                    cur = test;
-                                }
-                            });
-                            if (cur) lines.push(cur);
-                        });
-                        return lines;
-                    };
-
-                    let titleLines = formatTitleLines(titleFontSize);
-                    while (titleFontSize > 26 && titleLines.some(l => ctx.measureText(stripTags(l).toUpperCase()).width > lineWidth)) {
-                        titleFontSize -= 2;
-                        titleLines = formatTitleLines(titleFontSize);
-                    }
-
-                    const titleLineHeight = Math.round(titleFontSize * 1.18);
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
@@ -4994,49 +5048,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         curY += titleLineHeight;
                     });
                     ctx.restore();
-                    curY += 26; // Clean spacing
+                    curY += gapBetween;
                 }
 
                 // --- B) SUBTEXT UNDERNEATH (ITALIC, WITH THEME COLOR HIGHLIGHTS) ---
                 if (bodyText) {
                     ctx.save();
-                    const isDevinetteTheme = (theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ');
-                    const isDevinetteReveal = isDevinetteTheme && effectiveEditorialSlide === 2;
-                    const subFontWeight = isDevinetteReveal ? '900' : '400';
-                    // Sur la slide 2 révélation, la taille de police de la réponse est fortement agrandie (48px / 54px) en font 900
-                    let subFontSize = isDevinetteReveal
-                        ? (isReel ? 54 : 48)
-                        : (!mainTitleText ? (isReel ? 38 : 34) : (isEditorialCarouselTheme ? 32 : 26));
-
-                    const formatSubLines = (fSize: number) => {
-                        ctx.font = `italic ${subFontWeight} ${fSize}px "Montserrat", sans-serif`;
-                        const lines: string[] = [];
-                        bodyText.split('\n').forEach(line => {
-                            if (!line.trim()) return;
-                            const words = line.trim().split(/\s+/);
-                            let cur = '';
-                            words.forEach(w => {
-                                const test = cur ? `${cur} ${w}` : w;
-                                if (ctx.measureText(stripTags(test)).width > lineWidth) {
-                                    if (cur) lines.push(cur);
-                                    cur = w;
-                                } else {
-                                    cur = test;
-                                }
-                            });
-                            if (cur) lines.push(cur);
-                        });
-                        return lines;
-                    };
-
-                    const minSubFontSize = isDevinetteReveal ? 28 : 18;
-                    let subLines = formatSubLines(subFontSize);
-                    while (subFontSize > minSubFontSize && subLines.some(l => ctx.measureText(stripTags(l)).width > lineWidth)) {
-                        subFontSize -= 1;
-                        subLines = formatSubLines(subFontSize);
-                    }
-
-                    const subLineHeight = Math.round(subFontSize * (isDevinetteReveal ? 1.28 : 1.38));
                     ctx.font = `italic ${subFontWeight} ${subFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = 'rgba(255,255,255,0.95)';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
