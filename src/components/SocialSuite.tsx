@@ -954,6 +954,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isCarouselPromoActive, setIsCarouselPromoActive] = useState<boolean>(false);
     const [promoCustomPhrase, setPromoCustomPhrase] = useState<string>('');
     const [promoCustomSubphrase, setPromoCustomSubphrase] = useState<string>('');
+    const [promoOutroStyle, setPromoOutroStyle] = useState<'INSTAGRAM' | 'CLASSIC'>('INSTAGRAM');
     const [showPromoHook, setShowPromoHook] = useState<boolean>(true);
     const [showPromoHeadline, setShowPromoHeadline] = useState<boolean>(true);
     const [showPromoLine1, setShowPromoLine1] = useState<boolean>(true);
@@ -2648,84 +2649,241 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     });
                 }
 
-                // "ABONNEZ-VOUS À"
-                const abonneY = outroLines.length > 0
-                    ? (outroStartY + outroLines.length * outroSpacing + abonneGap)
-                    : (outroStartY + abonneGap);
-                ctx.font = `700 ${isReel ? 26 : 24}px "Montserrat", sans-serif`;
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-                ctx.fillText('ABONNEZ-VOUS À', centerX, abonneY);
+                if (promoOutroStyle === 'INSTAGRAM') {
+                    // ==========================================
+                    // CARTE PROFIL INSTAGRAM OFFICIELLE (PRO)
+                    // ==========================================
+                    const cardW = isReel ? 920 : 880;
+                    const cardH = isReel ? 480 : 420;
+                    const cardX = centerX - cardW / 2;
+                    const cardY = isReel ? (canvas.height - cardH - 120) : (canvas.height - cardH - 75);
 
-                // "DROPSIDERS" en grand Orbitron néon
-                dropsidersY = abonneY + dropsidersOffset;
-                ctx.font = `900 italic ${isReel ? (isAgendaPromo ? 98 : 92) : 86}px "Orbitron", sans-serif`;
-                ctx.letterSpacing = '-2px';
-                ctx.fillStyle = activeColor.color;
-                ctx.shadowColor = `rgba(${activeColor.grad}, 0.75)`;
-                ctx.shadowBlur = 38;
-                ctx.fillText('DROPSIDERS', centerX, dropsidersY);
-                ctx.restore();
-
-                // ==========================================
-                // ZONE 3 : BULLES ARRONDIES
-                // NEWS - MUSIQUE - FOCUS - RECAPS - CONCOURS - EVENTS - INTERVIEWS - VIDEOS
-                // ==========================================
-                const categories = ['NEWS', 'MUSIQUE', 'FOCUS', 'RECAPS', 'CONCOURS', 'EVENTS', 'INTERVIEWS', 'VIDEOS'];
-                pillsY = dropsidersY + pillsOffset;
-                const pillFont = `800 ${isReel ? 15 : 14}px "Montserrat", sans-serif`;
-                ctx.font = pillFont;
-
-                // Calculer la largeur de chaque pill
-                const pillPaddingX = 14;
-                const pillGap = 8;
-                const pillWidths = categories.map((cat: string) => ctx.measureText(cat).width + pillPaddingX * 2);
-                const totalPillsWidth = pillWidths.reduce((a: number, b: number) => a + b, 0) + (categories.length - 1) * pillGap;
-
-                let currentPillX = centerX - totalPillsWidth / 2;
-
-                categories.forEach((cat: string, idx: number) => {
-                    const pw = pillWidths[idx];
-                    const isPillActive = cat === activeTargetCategory;
                     ctx.save();
-                    // Bulle arrondie (pill)
+
+                    // 1. Fond carte sombre glassmorphism
                     ctx.beginPath();
-                    ctx.roundRect(currentPillX, pillsY, pw, pillH, pillH / 2);
-                    ctx.fillStyle = isPillActive ? `rgba(${activeColor.grad}, 0.18)` : 'rgba(255, 255, 255, 0.08)';
+                    ctx.roundRect(cardX, cardY, cardW, cardH, 28);
+                    ctx.fillStyle = 'rgba(14, 14, 18, 0.94)';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                    ctx.shadowBlur = 40;
                     ctx.fill();
-                    ctx.strokeStyle = isPillActive ? activeColor.color : 'rgba(255, 255, 255, 0.22)';
-                    ctx.lineWidth = isPillActive ? 2 : 1.5;
-                    if (isPillActive) {
-                        ctx.shadowColor = `rgba(${activeColor.grad}, 0.7)`;
-                        ctx.shadowBlur = 14;
-                    }
+
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+                    ctx.lineWidth = 2;
                     ctx.stroke();
 
-                    // Texte
+                    // 2. Avatar officiel avec anneau story dégradé
+                    const avatarCenterX = cardX + (isReel ? 90 : 85);
+                    const avatarCenterY = cardY + (isReel ? 90 : 85);
+                    const avatarR = isReel ? 52 : 48;
+
+                    // Anneau dégradé Instagram officiel
+                    const ringGrad = ctx.createLinearGradient(avatarCenterX - avatarR, avatarCenterY - avatarR, avatarCenterX + avatarR, avatarCenterY + avatarR);
+                    ringGrad.addColorStop(0, '#f09433');
+                    ringGrad.addColorStop(0.25, '#e6683c');
+                    ringGrad.addColorStop(0.5, '#dc2743');
+                    ringGrad.addColorStop(0.75, '#cc2366');
+                    ringGrad.addColorStop(1, '#bc1888');
+
+                    ctx.beginPath();
+                    ctx.arc(avatarCenterX, avatarCenterY, avatarR, 0, Math.PI * 2);
+                    ctx.strokeStyle = ringGrad;
+                    ctx.lineWidth = 3.5;
+                    ctx.stroke();
+
+                    // Fond noir avatar
+                    ctx.beginPath();
+                    ctx.arc(avatarCenterX, avatarCenterY, avatarR - 2.5, 0, Math.PI * 2);
+                    ctx.fillStyle = '#000000';
+                    ctx.fill();
+
+                    // Logo DROPSIDERS.FR centré
+                    if (logoRef.current) {
+                        const logo = logoRef.current;
+                        const alw = avatarR * 1.5;
+                        const alh = (logo.height / logo.width) * alw;
+                        ctx.save();
+                        ctx.filter = 'brightness(0) invert(1)';
+                        ctx.drawImage(logo, avatarCenterX - alw / 2, avatarCenterY - alh / 2, alw, alh);
+                        ctx.restore();
+                    }
+
+                    // 3. Stats Réelles Officielles (1 440 publications • 4 695 abonnés • 668 abonnements)
+                    const statsStartX = cardX + (isReel ? 200 : 190);
+                    const statsWidth = cardW - (isReel ? 220 : 210);
+                    const colW = statsWidth / 3;
+                    const statsData = [
+                        { val: '1 440', lbl: 'publications' },
+                        { val: '4 695', lbl: 'abonnés' },
+                        { val: '668', lbl: 'abonnements' }
+                    ];
+
+                    statsData.forEach((st, idx) => {
+                        const sx = statsStartX + colW * idx + colW / 2;
+                        const sy = avatarCenterY - 8;
+                        ctx.textAlign = 'center';
+                        ctx.font = `700 ${isReel ? 28 : 26}px -apple-system, "Inter", sans-serif`;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(st.val, sx, sy);
+
+                        ctx.font = `400 ${isReel ? 16 : 15}px -apple-system, "Inter", sans-serif`;
+                        ctx.fillStyle = '#999999';
+                        ctx.fillText(st.lbl, sx, sy + (isReel ? 24 : 22));
+                    });
+
+                    // 4. Ligne Profil : DROPSIDERS + Badge Certifié
+                    const infoX = cardX + 32;
+                    let curY = avatarCenterY + avatarR + (isReel ? 26 : 22);
+
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'alphabetic';
+                    ctx.font = `800 ${isReel ? 24 : 22}px -apple-system, "Inter", sans-serif`;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText('DROPSIDERS', infoX, curY);
+
+                    const nameW = ctx.measureText('DROPSIDERS').width;
+                    // Badge vérifié bleu
+                    const badgeX = infoX + nameW + 15;
+                    const badgeY = curY - 8;
+                    ctx.beginPath();
+                    ctx.arc(badgeX, badgeY, 10, 0, Math.PI * 2);
+                    ctx.fillStyle = '#0095f6';
+                    ctx.fill();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '900 11px sans-serif';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.fillStyle = isPillActive ? activeColor.color : '#ffffff';
-                    ctx.font = pillFont;
-                    ctx.fillText(cat, currentPillX + pw / 2, pillsY + pillH / 2);
+                    ctx.fillText('✓', badgeX, badgeY);
+
+                    // Pseudo
+                    curY += (isReel ? 26 : 22);
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'alphabetic';
+                    ctx.font = `500 ${isReel ? 18 : 16}px -apple-system, "Inter", sans-serif`;
+                    ctx.fillStyle = '#8e8e93';
+                    ctx.fillText('@dropsiders.fr', infoX, curY);
+
+                    // Vraie Bio Officielle
+                    curY += (isReel ? 26 : 22);
+                    ctx.font = `500 ${isReel ? 17 : 15}px -apple-system, "Inter", sans-serif`;
+                    ctx.fillStyle = '#e5e5ea';
+                    const bioText = 'La première plateforme interactive consacrée à la musique électronique et aux festivals 🔥';
+                    ctx.fillText(bioText, infoX, curY);
+
+                    // 5. Boutons d'Action : [ ✓ Suivi ▾ ]  [ Message ]
+                    const btnRowY = cardY + cardH - (isReel ? 70 : 62);
+                    const btnH = isReel ? 50 : 44;
+                    const btnGap = 14;
+                    const btnW = (cardW - 64 - btnGap) / 2;
+
+                    // Bouton 1 : Suivi (avec checkmark)
+                    const btn1X = infoX;
+                    ctx.beginPath();
+                    ctx.roundRect(btn1X, btnRowY, btnW, btnH, 10);
+                    ctx.fillStyle = '#262629';
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.font = `600 ${isReel ? 19 : 17}px -apple-system, "Inter", sans-serif`;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText('✓ Suivi ▾', btn1X + btnW / 2, btnRowY + btnH / 2);
+
+                    // Bouton 2 : Message
+                    const btn2X = btn1X + btnW + btnGap;
+                    ctx.beginPath();
+                    ctx.roundRect(btn2X, btnRowY, btnW, btnH, 10);
+                    ctx.fillStyle = '#262629';
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText('Message', btn2X + btnW / 2, btnRowY + btnH / 2);
+
+                    ctx.restore();
+                } else {
+                    // "ABONNEZ-VOUS À" (Mode Classique)
+                    const abonneY = outroLines.length > 0
+                        ? (outroStartY + outroLines.length * outroSpacing + abonneGap)
+                        : (outroStartY + abonneGap);
+                    ctx.font = `700 ${isReel ? 26 : 24}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+                    ctx.fillText('ABONNEZ-VOUS À', centerX, abonneY);
+
+                    // "DROPSIDERS" en grand Orbitron néon
+                    dropsidersY = abonneY + dropsidersOffset;
+                    ctx.font = `900 italic ${isReel ? (isAgendaPromo ? 98 : 92) : 86}px "Orbitron", sans-serif`;
+                    ctx.letterSpacing = '-2px';
+                    ctx.fillStyle = activeColor.color;
+                    ctx.shadowColor = `rgba(${activeColor.grad}, 0.75)`;
+                    ctx.shadowBlur = 38;
+                    ctx.fillText('DROPSIDERS', centerX, dropsidersY);
                     ctx.restore();
 
-                    currentPillX += pw + pillGap;
-                });
+                    // ==========================================
+                    // ZONE 3 : BULLES ARRONDIES
+                    // NEWS - MUSIQUE - FOCUS - RECAPS - CONCOURS - EVENTS - INTERVIEWS - VIDEOS
+                    // ==========================================
+                    const categories = ['NEWS', 'MUSIQUE', 'FOCUS', 'RECAPS', 'CONCOURS', 'EVENTS', 'INTERVIEWS', 'VIDEOS'];
+                    pillsY = dropsidersY + pillsOffset;
+                    const pillFont = `800 ${isReel ? 15 : 14}px "Montserrat", sans-serif`;
+                    ctx.font = pillFont;
 
-                // ==========================================
-                // ZONE 4 : LOGO DROPSIDERS TOUT EN BAS
-                // ==========================================
-                if (logoRef.current) {
-                    const logo = logoRef.current;
-                    const lw = isReel ? 240 : 220;
-                    const lh = (logo.height / logo.width) * lw;
-                    const logoY = canvas.height - lh - (isReel ? 65 : 50);
-                    ctx.save();
-                    ctx.filter = 'brightness(0) invert(1)';
-                    ctx.globalAlpha = 0.85;
-                    ctx.drawImage(logo, centerX - lw / 2, logoY, lw, lh);
+                    const pillPaddingX = 14;
+                    const pillGap = 8;
+                    const pillWidths = categories.map((cat: string) => ctx.measureText(cat).width + pillPaddingX * 2);
+                    const totalPillsWidth = pillWidths.reduce((a: number, b: number) => a + b, 0) + (categories.length - 1) * pillGap;
+
+                    let currentPillX = centerX - totalPillsWidth / 2;
+
+                    categories.forEach((cat: string, idx: number) => {
+                        const pw = pillWidths[idx];
+                        const isPillActive = cat === activeTargetCategory;
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.roundRect(currentPillX, pillsY, pw, pillH, pillH / 2);
+                        ctx.fillStyle = isPillActive ? `rgba(${activeColor.grad}, 0.18)` : 'rgba(255, 255, 255, 0.08)';
+                        ctx.fill();
+                        ctx.strokeStyle = isPillActive ? activeColor.color : 'rgba(255, 255, 255, 0.22)';
+                        ctx.lineWidth = isPillActive ? 2 : 1.5;
+                        if (isPillActive) {
+                            ctx.shadowColor = `rgba(${activeColor.grad}, 0.7)`;
+                            ctx.shadowBlur = 14;
+                        }
+                        ctx.stroke();
+
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = isPillActive ? activeColor.color : '#ffffff';
+                        ctx.font = pillFont;
+                        ctx.fillText(cat, currentPillX + pw / 2, pillsY + pillH / 2);
+                        ctx.restore();
+
+                        currentPillX += pw + pillGap;
+                    });
+
+                    // ==========================================
+                    // ZONE 4 : LOGO DROPSIDERS TOUT EN BAS
+                    // ==========================================
+                    if (logoRef.current) {
+                        const logo = logoRef.current;
+                        const lw = isReel ? 240 : 220;
+                        const lh = (logo.height / logo.width) * lw;
+                        const logoY = canvas.height - lh - (isReel ? 65 : 50);
+                        ctx.save();
+                        ctx.filter = 'brightness(0) invert(1)';
+                        ctx.globalAlpha = 0.85;
+                        ctx.drawImage(logo, centerX - lw / 2, logoY, lw, lh);
+                        ctx.restore();
+                    }
                     ctx.restore();
                 }
-                ctx.restore();
                 pCtx.restore();
             };
 
@@ -5429,7 +5587,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide
     useEffect(() => {
@@ -8596,6 +8754,48 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 >
                     {showPromoHook ? '👁️ Accroche Active' : '🚫 Désactivée (Centré)'}
                 </button>
+            </div>
+
+            {/* Choix du Style de l'Outro Promo */}
+            <div className="p-3.5 bg-gradient-to-r from-white/10 to-white/5 border border-white/15 rounded-2xl space-y-2 shadow-sm">
+                <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-white flex items-center gap-1.5">
+                        📱 Style de la Slide Promo
+                    </span>
+                    <span className="text-[8.5px] px-2 py-0.5 rounded-full font-bold bg-[#ff007f]/20 border border-[#ff007f]/30 text-[#ff007f]">
+                        {promoOutroStyle === 'INSTAGRAM' ? 'Profil Insta Pro' : 'Bulles Classique'}
+                    </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setPromoOutroStyle('INSTAGRAM');
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`py-2.5 px-2 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all border ${
+                            promoOutroStyle === 'INSTAGRAM'
+                                ? 'bg-gradient-to-r from-[#ff007f]/30 to-[#0095f6]/30 border-[#0095f6] text-white shadow-[0_0_15px_rgba(0,149,246,0.3)] scale-[1.02]'
+                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white'
+                        }`}
+                    >
+                        <Instagram className="w-3.5 h-3.5 text-[#ff007f]" /> Profil Instagram (Suivi)
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setPromoOutroStyle('CLASSIC');
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`py-2.5 px-2 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all border ${
+                            promoOutroStyle === 'CLASSIC'
+                                ? 'bg-white/20 border-white/40 text-white shadow-md scale-[1.02]'
+                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white'
+                        }`}
+                    >
+                        ⚡ Bulles Classique
+                    </button>
+                </div>
             </div>
 
             {/* Thème & Couleur synchronisés avec la publication */}
