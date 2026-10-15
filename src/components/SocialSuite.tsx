@@ -2564,18 +2564,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isStaticPreview = animElapsed >= 90.0;
                 const tAnim = isStaticPreview ? 10.0 : animElapsed;
 
-                // À 6.0s : le texte promo monte et la carte Instagram apparaît en glissant depuis le bas
+                // À 4.0s : le texte promo monte et la carte Instagram apparaît en glissant depuis le bas
                 let shiftProgress = 0.0;
                 let cardProgress = 0.0;
                 if (isInstagramStyle) {
-                    if (isStaticPreview || tAnim >= 6.8) {
+                    if (isStaticPreview || tAnim >= 4.8) {
                         shiftProgress = 1.0;
                         cardProgress = 1.0;
-                    } else if (tAnim < 6.0) {
+                    } else if (tAnim < 4.0) {
                         shiftProgress = 0.0;
                         cardProgress = 0.0;
                     } else {
-                        const p = (tAnim - 6.0) / 0.8;
+                        const p = (tAnim - 4.0) / 0.8;
                         const ease = 1 - Math.pow(1 - p, 3);
                         shiftProgress = ease;
                         cardProgress = ease;
@@ -2753,7 +2753,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
 
                         // 3. Stats Réelles Officielles (1 440 publications • 4 694 -> 4 695 abonnés • 668 abonnements)
-                        const isFollowed = isStaticPreview || tAnim >= 8.2;
+                        const isFollowed = isStaticPreview || tAnim >= 6.1;
                         const followersCountStr = isFollowed ? '4 695' : '4 694';
 
                         const statsStartX = cardX + (isReel ? 200 : 190);
@@ -2770,7 +2770,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const sy = avatarCenterY - 8;
                             ctx.textAlign = 'center';
                             ctx.font = `700 ${isReel ? 28 : 26}px -apple-system, "Inter", sans-serif`;
-                            ctx.fillStyle = (idx === 1 && isFollowed && !isStaticPreview && tAnim < 9.0) ? '#00f0ff' : '#ffffff';
+                            ctx.fillStyle = (idx === 1 && isFollowed && !isStaticPreview && tAnim < 7.5) ? '#00f0ff' : '#ffffff';
                             ctx.fillText(st.val, sx, sy);
 
                             ctx.font = `400 ${isReel ? 16 : 15}px -apple-system, "Inter", sans-serif`;
@@ -2824,11 +2824,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const btnGap = 14;
                         const btnW = (cardW - 64 - btnGap) / 2;
 
-                        // Bouton 1 : Suivre -> Suivi (avec appui / clic animé à 8.0s - 8.2s)
+                        // Bouton 1 : Suivre -> Suivi (avec appui / clic animé à 5.9s - 6.1s)
                         const btn1X = infoX;
                         const btn1CenterX = btn1X + btnW / 2;
                         const btn1CenterY = btnRowY + btnH / 2;
-                        const isPressingBtn = (!isStaticPreview && tAnim >= 8.0 && tAnim < 8.2);
+                        const isPressingBtn = (!isStaticPreview && tAnim >= 5.9 && tAnim < 6.1);
                         const btnScale = isPressingBtn ? 0.95 : 1.0;
 
                         ctx.save();
@@ -2853,9 +2853,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillText(isFollowed ? '✓ Suivi ▾' : 'Suivre', btn1CenterX, btn1CenterY);
                         ctx.restore();
 
-                        // Onde de choc (shockwave) à 8.2s
-                        if (!isStaticPreview && tAnim >= 8.2 && tAnim < 8.75) {
-                            const waveP = (tAnim - 8.2) / 0.55;
+                        // Onde de choc (shockwave) à 6.1s
+                        if (!isStaticPreview && tAnim >= 6.1 && tAnim < 6.7) {
+                            const waveP = (tAnim - 6.1) / 0.6;
                             const waveR = 25 + waveP * 110;
                             const waveA = (1 - waveP) * 0.7;
                             ctx.save();
@@ -2883,26 +2883,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillStyle = '#ffffff';
                         ctx.fillText('Message', btn2X + btnW / 2, btnRowY + btnH / 2);
 
-                        // 6. Curseur tactile animé (Pointer) entre 7.3s et 8.4s
-                        if (!isStaticPreview && tAnim >= 7.3 && tAnim < 8.5) {
+                        // 6. Curseur tactile animé (Pointer) entre 5.3s et 6.4s
+                        if (!isStaticPreview && tAnim >= 5.3 && tAnim < 6.4) {
                             let pX = btn1CenterX;
                             let pY = btn1CenterY;
                             let pScale = 1.0;
                             let pAlpha = 1.0;
 
-                            if (tAnim < 7.9) {
-                                const p = (tAnim - 7.3) / 0.6;
+                            if (tAnim < 5.9) {
+                                const p = (tAnim - 5.3) / 0.6;
                                 const ease = 1 - Math.pow(1 - p, 3);
                                 pX = btn1CenterX + (1 - ease) * 90;
                                 pY = btn1CenterY + (1 - ease) * 120;
                                 pAlpha = Math.min(1, p * 2);
-                            } else if (tAnim < 8.2) {
+                            } else if (tAnim < 6.1) {
                                 pX = btn1CenterX;
                                 pY = btn1CenterY;
-                                pScale = (tAnim >= 8.0) ? 0.85 : 1.0;
+                                pScale = 0.85;
                                 pAlpha = 1.0;
                             } else {
-                                const p = (tAnim - 8.2) / 0.3;
+                                const p = (tAnim - 6.1) / 0.3;
                                 pX = btn1CenterX;
                                 pY = btn1CenterY;
                                 pScale = 1.0;
@@ -5985,7 +5985,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const currentTransitionDuration = getTransitionDuration(slideTransition);
         let totalDuration = 0;
         if (combinedMode === 'PROMO_ONLY') {
-            totalDuration = (promoOutroStyle === 'INSTAGRAM' ? 10000 : Math.round(Math.max(3, editorialPromoDuration || 4) * 1000));
+            totalDuration = 10000; // Verrouillé strictement à 10.0s pour l'animation Instagram
         } else if (combinedMode === 'EDITORIAL') {
             const isMusicTheme = (theme === 'MUSIQUE');
             const shouldSkipSlide2 = skipEditorialSlide2;
@@ -5996,12 +5996,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
             const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
-            const promoDuration = Math.round((promoOutroStyle === 'INSTAGRAM' ? 10 : editorialPromoDuration) * 1000);
+            const promoDuration = 10000; // Verrouillé strictement à 10.0s pour l'animation Instagram
             const transitionDuration = currentTransitionDuration;
             const slideDuration = Math.round(editorialSlide1Duration * 1000);
             totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
         } else if (combinedMode === 'PLANNING') {
-            const promoDuration = 4800;
+            const promoDuration = 10000; // Verrouillé strictement à 10.0s pour l'animation Instagram
             const transitionDuration = currentTransitionDuration;
             const slideDuration = 5200;
             totalDuration = (2 * slideDuration) + (2 * transitionDuration) + promoDuration;
@@ -6814,7 +6814,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 : (shouldSkipSlide2
                     ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
-            const promoDuration = Math.round((promoOutroStyle === 'INSTAGRAM' ? 10 : editorialPromoDuration) * 1000);
+            const promoDuration = 10000; // Verrouillé strictement à 10.0s pour l'animation Instagram
             const transitionDuration = currentTransitionDuration;
             const slideDuration = Math.round(editorialSlide1Duration * 1000);
 
@@ -6878,7 +6878,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             await renderDuration(promoDuration, promoOffsetSec);
 
         } else if (combinedMode === 'PLANNING') {
-            const promoDuration = 4800; // 4.8s pour avoir tout le temps de lire le message
+            const promoDuration = 10000; // Verrouillé strictement à 10.0s pour l'animation Instagram
             const transitionDuration = currentTransitionDuration;
             const slideDuration = 5200;
 
@@ -8882,63 +8882,43 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </button>
             </div>
 
-            {/* Choix du Style de l'Outro Promo */}
-            <div className="p-3.5 bg-gradient-to-r from-white/10 to-white/5 border border-white/15 rounded-2xl space-y-2 shadow-sm">
+            {/* Style de la Slide Promo (Verrouillé Animation Instagram 10s) */}
+            <div className="p-3.5 bg-gradient-to-r from-neon-red/10 via-[#ff007f]/10 to-[#0095f6]/10 border border-[#0095f6]/40 rounded-2xl space-y-2.5 shadow-sm">
                 <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase text-white flex items-center gap-1.5">
-                        📱 Style de la Slide Promo
+                        📱 Slide Promo : Profil Instagram Dropsiders 🔒
                     </span>
-                    <span className="text-[8.5px] px-2 py-0.5 rounded-full font-bold bg-[#ff007f]/20 border border-[#ff007f]/30 text-[#ff007f]">
-                        {promoOutroStyle === 'INSTAGRAM' ? 'Profil Insta Pro' : 'Bulles Classique'}
+                    <span className="text-[8.5px] px-2 py-0.5 rounded-full font-bold bg-[#0095f6]/20 border border-[#0095f6]/40 text-[#0095f6] flex items-center gap-1">
+                        🔒 Fixe 10.0s
                     </span>
                 </div>
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setPromoOutroStyle('INSTAGRAM');
-                            setEditorialPromoDuration(10);
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className={`py-2.5 px-2 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all border ${
-                            promoOutroStyle === 'INSTAGRAM'
-                                ? 'bg-gradient-to-r from-[#ff007f]/30 to-[#0095f6]/30 border-[#0095f6] text-white shadow-[0_0_15px_rgba(0,149,246,0.3)] scale-[1.02]'
-                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white'
-                        }`}
-                    >
-                        <Instagram className="w-3.5 h-3.5 text-[#ff007f]" /> Profil Instagram (Suivi)
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setPromoOutroStyle('CLASSIC');
-                            setEditorialPromoDuration(4.5);
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className={`py-2.5 px-2 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all border ${
-                            promoOutroStyle === 'CLASSIC'
-                                ? 'bg-white/20 border-white/40 text-white shadow-md scale-[1.02]'
-                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white'
-                        }`}
-                    >
-                        ⚡ Bulles Classique
-                    </button>
-                </div>
-                {promoOutroStyle === 'INSTAGRAM' && (
-                    <div className="pt-2 space-y-1.5 border-t border-white/10 mt-2">
-                        <button
-                            type="button"
-                            onClick={playPromoPreviewAnimation}
-                            className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#0095f6]/25 to-[#bc1888]/25 hover:from-[#0095f6]/35 hover:to-[#bc1888]/35 border border-[#0095f6]/50 text-white text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-blue-500/10"
-                        >
-                            <Play className={`w-3.5 h-3.5 text-[#0095f6] ${isPromoAnimPlaying ? 'animate-spin' : ''}`} />
-                            {isPromoAnimPlaying ? '⏱️ Lecture animation 10s en direct...' : '▶️ Tester l\'animation 10s dans l\'aperçu'}
-                        </button>
-                        <div className="p-2 bg-black/40 rounded-lg border border-white/5 text-[8px] text-gray-400 font-medium leading-relaxed">
-                            <span className="text-[#0095f6] font-bold">⏱️ Séquence exportée 10s :</span> 0s à 6s (Visuel promo centré) ➔ 6s (Le texte monte & le profil glisse) ➔ 8.2s (Clic automatique Suivre ➔ Suivi)
+
+                <div className="p-2.5 bg-black/40 rounded-xl border border-white/10 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <Instagram className="w-4 h-4 text-[#ff007f]" />
+                        <div>
+                            <p className="text-[9.5px] font-black text-white uppercase">Animation Officielle Instagram Follow</p>
+                            <p className="text-[8px] text-gray-400">Verrouillée à 10s • @dropsiders.fr</p>
                         </div>
                     </div>
-                )}
+                    <span className="text-[11px] font-mono font-black text-[#00f0ff] bg-cyan-500/10 px-2 py-1 rounded-lg border border-cyan-500/30">
+                        10.0s
+                    </span>
+                </div>
+
+                <div className="space-y-1.5">
+                    <button
+                        type="button"
+                        onClick={playPromoPreviewAnimation}
+                        className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#0095f6]/25 to-[#bc1888]/25 hover:from-[#0095f6]/35 hover:to-[#bc1888]/35 border border-[#0095f6]/50 text-white text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-blue-500/10"
+                    >
+                        <Play className={`w-3.5 h-3.5 text-[#0095f6] ${isPromoAnimPlaying ? 'animate-spin' : ''}`} />
+                        {isPromoAnimPlaying ? '⏱️ Lecture animation 10s en direct...' : '▶️ Tester l\'animation 10s dans l\'aperçu'}
+                    </button>
+                    <div className="p-2 bg-black/50 rounded-lg border border-white/5 text-[8px] text-gray-400 font-medium leading-relaxed">
+                        <span className="text-[#0095f6] font-bold">⏱️ Séquence exportée 10s :</span> 0s à 4s (Visuel promo centré) ➔ 4s (Le texte monte & le profil glisse) ➔ 6.1s (Clic automatique Suivre ➔ Suivi)
+                    </div>
+                </div>
             </div>
 
             {/* Thème & Couleur synchronisés avec la publication */}
@@ -9837,29 +9817,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
 
-                {/* Durée Outro Promo */}
+                {/* Durée Outro Promo (Verrouillée à 10s) */}
                 <div className="pt-1.5 border-t border-white/10 space-y-1">
                     <div className="flex items-center justify-between text-[8px]">
                         <span className="text-gray-300 font-bold">🔥 Durée Promo Outro :</span>
-                        <span className="text-rose-400 font-mono font-black bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">
-                            {editorialPromoDuration}s
+                        <span className="text-[#00f0ff] font-mono font-black bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/30 flex items-center gap-1">
+                            🔒 10.0s Fixe (Profil Instagram)
                         </span>
-                    </div>
-                    <div className="flex gap-1">
-                        {[2.5, 3.5, 4.5, 6, 10].map(s => (
-                            <button
-                                key={s}
-                                type="button"
-                                onClick={() => setEditorialPromoDuration(s)}
-                                className={`flex-1 py-1 rounded-lg text-[8px] font-black transition-all border active:scale-95 ${
-                                    editorialPromoDuration === s
-                                        ? 'bg-rose-500 text-white border-rose-400'
-                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
-                                }`}
-                            >
-                                {s}s
-                            </button>
-                        ))}
                     </div>
                 </div>
 
