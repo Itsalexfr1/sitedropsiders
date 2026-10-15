@@ -4572,13 +4572,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-                // Draw Stylized CTA Banner for Devine le Clip / Devine le Festival / Devine le DJ (Slide 1)
-                if ((theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ') && effectiveEditorialSlide === 1) {
+                // Draw Stylized CTA Banner for Devine le Clip / Devine le Festival / Devine le DJ (Slide 1 & Slide 2 Reveal)
+                if ((theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ') && (effectiveEditorialSlide === 1 || (theme === 'JEU_DJ' && effectiveEditorialSlide === 2))) {
                     ctx.save();
                     const centerX = canvas.width / 2;
                     const ctaY = canvas.height - 60;
                     applyTextAnimCtx(ctx, 0.35, centerX, ctaY);
-                    const ctaText = "💬 DEVINE EN COMMENTAIRE !";
+                    const isRevealCta = (theme === 'JEU_DJ' && effectiveEditorialSlide === 2);
+                    const ctaText = isRevealCta ? "🏆 TU AVAIS TROUVÉ ? DIS-LE EN COMMENTAIRE !" : "💬 DEVINE EN COMMENTAIRE !";
                     ctx.font = '900 italic 25px "Montserrat", sans-serif';
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
                     ctx.textAlign = 'center';
@@ -4595,10 +4596,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.roundRect(centerX - ctaW / 2, ctaY - 22, ctaW, 44, 14);
                     ctx.fill();
 
-                    const ctaBorderColor = theme === 'JEU' ? '#00f0ff' : theme === 'JEU_FESTIVAL' ? '#ffaa00' : djSilhouetteColor;
+                    const ctaBorderColor = isRevealCta ? '#00f0ff' : theme === 'JEU' ? '#00f0ff' : theme === 'JEU_FESTIVAL' ? '#ffaa00' : djSilhouetteColor;
                     const ctaBorder = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
                     ctaBorder.addColorStop(0, ctaBorderColor);
-                    ctaBorder.addColorStop(1, theme === 'JEU' ? '#bd00ff' : theme === 'JEU_FESTIVAL' ? '#ff4400' : '#00f0ff');
+                    ctaBorder.addColorStop(1, isRevealCta ? '#10b981' : theme === 'JEU' ? '#bd00ff' : theme === 'JEU_FESTIVAL' ? '#ff4400' : '#00f0ff');
                     ctx.strokeStyle = ctaBorder;
                     ctx.lineWidth = 1.5;
                     ctx.stroke();
@@ -4619,12 +4620,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     applySlideTransitionCtx(ctx, canvas.width / 2, canvas.height / 2);
                 }
 
-                const themeDotColor = (theme === 'INTERVIEW') ? '#ffffff' : activeData.color;
-                const badgeLabelText = (theme === 'ARTISTE FESTIVAL') 
+                let themeDotColor = (theme === 'INTERVIEW') ? '#ffffff' : activeData.color;
+                let badgeLabelText = (theme === 'ARTISTE FESTIVAL') 
                     ? (festivalNameText ? festivalNameText.toUpperCase() : 'FESTIVAL')
                     : (('label' in activeData) ? (activeData as any).label : theme);
+                let badgeGrad = (theme === 'INTERVIEW') ? '255, 255, 255' : activeData.grad;
 
-                drawTopCapsuleBadge(badgeLabelText, themeDotColor, (theme === 'INTERVIEW') ? '255, 255, 255' : activeData.grad);
+                if (theme === 'JEU_DJ' && !isCurrentSlideSilhouette) {
+                    badgeLabelText = 'RÉVÉLATION DJ';
+                    themeDotColor = '#00f0ff';
+                    badgeGrad = '0, 240, 255';
+                }
+
+                drawTopCapsuleBadge(badgeLabelText, themeDotColor, badgeGrad);
 
                 // 2. TOP RIGHT PHOTO CREDIT (Left of logo)
                 const headerRightX = canvas.width - (isReel ? 420 : 380);
@@ -4754,7 +4762,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 
                 // Sur les slides 2+ des thèmes éditoriaux, possibilité de masquer le grand titre si pas de titre spécifique
                 if (effectiveEditorialSlide >= 2 && isEditorialCarouselTheme && !showTitleOnSlide2 && !slideCustomTitle && !isCurrentSlideSilhouette) {
-                    mainTitleText = '';
+                    if (theme === 'JEU_DJ') {
+                        mainTitleText = "C'ÉTAIT BIEN...";
+                    } else {
+                        mainTitleText = '';
+                    }
                 }
 
                 // Récupération du bodyText pour la slide active (Slide 1 = pas de bodyText, Slide 2 = conseilsSubtext, Slide >= 3 = extraEditorialSlides[s - 3])
@@ -7045,8 +7057,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             await generateImage(format, true);
             const isMusicTheme = (theme === 'MUSIQUE');
             const suffix = slideNumber === 1 
-                ? (isMusicTheme ? 'annonce' : 'cover') 
-                : (isMusicTheme ? 'track-cover' : `detail-slide${slideNumber}`);
+                ? (isMusicTheme ? 'annonce' : (theme === 'JEU_DJ' ? 'silhouette' : 'cover')) 
+                : (isMusicTheme ? 'track-cover' : (theme === 'JEU_DJ' && slideNumber === 2 ? 'revelation' : `detail-slide${slideNumber}`));
             const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide${slideNumber}-${suffix}.png`;
             const dataUrl = canvasRef.current.toDataURL('image/png');
             const a = document.createElement('a');
@@ -7114,7 +7126,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const dataUrl = canvasRef.current.toDataURL('image/png');
                 const a = document.createElement('a');
                 a.href = dataUrl;
-                const suffix = s === 1 ? (isMusicTheme ? 'annonce' : 'cover') : (isMusicTheme ? `track-${s - 1}-cover` : `detail-slide${s}`);
+                const suffix = s === 1 
+                    ? (isMusicTheme ? 'annonce' : (theme === 'JEU_DJ' ? 'silhouette' : 'cover')) 
+                    : (isMusicTheme ? `track-${s - 1}-cover` : (theme === 'JEU_DJ' && s === 2 ? 'revelation' : `detail-slide${s}`));
                 a.download = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide${s}-${suffix}.png`;
                 document.body.appendChild(a);
                 a.click();
@@ -9949,7 +9963,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setBgImage(url);
             setBgVideo(null);
             setDjOriginalImage(url);
-            setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
+            setEditorialSlideImages(prev => {
+                const next: Record<number, string> = { ...prev, [editorialSlide]: url };
+                if (!next[1]) next[1] = url;
+                if (!next[2]) next[2] = url;
+                return next;
+            });
             generateImage();
         };
         img.src = url;
@@ -10036,6 +10055,571 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         }
     };
+
+    const djSilhouetteEditor = theme === 'JEU_DJ' ? (
+        <div className="p-3.5 bg-gradient-to-b from-[#bd00ff]/20 via-black/50 to-black/70 border border-[#bd00ff]/50 rounded-2xl space-y-3 shadow-2xl">
+            <div className="flex items-center justify-between">
+                <span className="text-[9.5px] font-black uppercase text-[#bd00ff] tracking-wider flex items-center gap-1.5">
+                    👤 DEVINETTE SILHOUETTE DJ
+                </span>
+                <span className="text-[7.5px] font-bold text-gray-400">
+                    Slide 1 : Silhouette • Slide 2 : Révélation
+                </span>
+            </div>
+
+            {/* SÉLECTEUR DE SLIDES : SLIDE 1 (SILHOUETTE) vs SLIDE 2 (RÉVÉLATION) */}
+            <div className="grid grid-cols-2 gap-1.5 p-1 bg-black/60 border border-white/10 rounded-xl">
+                <button
+                    type="button"
+                    onClick={() => {
+                        setIsCarouselPromoActive(false);
+                        setIsEditorialAfficheActive(false);
+                        setEditorialSlide(1);
+                        setTimeout(() => generateImage(), 50);
+                    }}
+                    className={`py-2 px-2.5 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                        editorialSlide === 1 && !isCarouselPromoActive && !isEditorialAfficheActive
+                            ? 'bg-gradient-to-r from-[#bd00ff] to-[#7928ca] text-white shadow-[0_0_12px_rgba(189,0,255,0.4)]'
+                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                    }`}
+                >
+                    <span>👤</span>
+                    <span>Slide 1 : Silhouette</span>
+                </button>
+                <button
+                    type="button"
+                    onClick={() => {
+                        setIsCarouselPromoActive(false);
+                        setIsEditorialAfficheActive(false);
+                        setEditorialSlide(2);
+                        setTimeout(() => generateImage(), 50);
+                    }}
+                    className={`py-2 px-2.5 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                        editorialSlide === 2 && !isCarouselPromoActive && !isEditorialAfficheActive
+                            ? 'bg-gradient-to-r from-neon-cyan to-emerald-500 text-black font-black shadow-[0_0_12px_rgba(0,240,255,0.4)]'
+                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                    }`}
+                >
+                    <span>🌈</span>
+                    <span>Slide 2 : Révélation</span>
+                </button>
+            </div>
+
+            {editorialSlide === 1 ? (
+                <>
+                    {/* 1. UPLOAD DE LA PHOTO DU DJ (POUR LA SILHOUETTE) */}
+                    <div className="p-3 bg-black/60 border border-[#bd00ff]/30 rounded-xl space-y-2.5">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
+                                📸 1. PHOTO DU DJ À FAIRE DEVINER
+                            </span>
+                            {(djOriginalImage || editorialSlideImages[1] || bgImage) && (
+                                <span className="px-2 py-0.5 rounded-full text-[7.5px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                    Photo Chargée ✓
+                                </span>
+                            )}
+                        </div>
+
+                        {(djOriginalImage || editorialSlideImages[1] || bgImage) ? (
+                            <div className="flex items-center gap-2.5 p-2 bg-white/5 rounded-xl border border-white/10">
+                                <img
+                                    src={djOriginalImage || editorialSlideImages[1] || bgImage}
+                                    alt="Photo DJ"
+                                    className="w-12 h-12 object-cover rounded-lg border border-[#bd00ff]/40 shrink-0 shadow-md"
+                                />
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[8.5px] font-black text-white truncate">Photo prête pour le jeu</p>
+                                    <p className="text-[7.5px] text-gray-400">Clique sur Détourer ci-dessous</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => djPhotoInputRef.current?.click()}
+                                    className="px-2.5 py-1.5 bg-[#bd00ff]/20 hover:bg-[#bd00ff]/35 border border-[#bd00ff]/40 rounded-lg text-[8px] font-black uppercase text-white transition-all shrink-0 active:scale-95"
+                                >
+                                    Changer
+                                </button>
+                            </div>
+                        ) : (
+                            <p className="text-[8px] text-gray-300 leading-relaxed">
+                                Importe la photo du DJ à faire deviner (depuis ton appareil ou Cloud R2).
+                            </p>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-1.5">
+                            <button
+                                type="button"
+                                onClick={() => djPhotoInputRef.current?.click()}
+                                className="py-2.5 px-2 bg-gradient-to-r from-neon-red/25 to-[#bd00ff]/25 border border-neon-red/50 hover:border-neon-red rounded-xl flex items-center justify-center gap-1.5 text-white text-[8.5px] font-black uppercase transition-all shadow-sm hover:scale-[1.02] active:scale-98"
+                            >
+                                <Upload className="w-3.5 h-3.5 text-neon-red" />
+                                <span>Mon Appareil (PC/Tel)</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setR2TargetType('background');
+                                    setIsR2ModalOpen(true);
+                                }}
+                                className="py-2.5 px-2 bg-white/5 border border-white/15 hover:border-neon-cyan/40 rounded-xl flex items-center justify-center gap-1.5 text-gray-200 text-[8.5px] font-black uppercase hover:text-white transition-all shadow-sm hover:scale-[1.02] active:scale-98"
+                            >
+                                <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" />
+                                <span>Galerie Cloud R2</span>
+                            </button>
+                        </div>
+                        <input
+                            type="file"
+                            ref={djPhotoInputRef}
+                            onChange={handleDjPhotoUpload}
+                            className="hidden"
+                            accept="image/*"
+                        />
+                    </div>
+
+                    {/* 2. DÉTOURAGE DE LA SILHOUETTE IA */}
+                    <div className="p-2.5 bg-black/50 border border-white/10 rounded-xl space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[8.5px] font-black uppercase text-white flex items-center gap-1.5">
+                                🪄 2. DÉTOURAGE SILHOUETTE (IA 1-CLIC)
+                            </span>
+                            {djCutoutImage && (
+                                <span className="px-2 py-0.5 rounded-full text-[7.5px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                    Silhouette Active ✓
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-[8px] text-gray-300 leading-relaxed">
+                            Retire le fond de la photo du DJ en 1 clic pour créer la silhouette noire mystère avec contour néon.
+                        </p>
+                        
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={handleIsolateDjSilhouette}
+                                disabled={isIsolatingSilhouette || !(djOriginalImage || editorialSlideImages[1] || bgImage)}
+                                className={`flex-1 py-2 px-3 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-2 shadow-lg ${
+                                    isIsolatingSilhouette
+                                        ? 'bg-purple-900/50 text-purple-300 border border-purple-500/40 cursor-wait'
+                                        : !(djOriginalImage || editorialSlideImages[1] || bgImage)
+                                        ? 'bg-white/5 text-gray-500 border border-white/5 cursor-not-allowed'
+                                        : 'bg-gradient-to-r from-[#bd00ff] to-[#7928ca] hover:from-[#d13aff] hover:to-[#9333ea] text-white shadow-[0_0_15px_rgba(189,0,255,0.4)] active:scale-98'
+                                }`}
+                            >
+                                {isIsolatingSilhouette ? (
+                                    <>
+                                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        <span>Détourage IA en cours... {isolationProgress !== null ? `${isolationProgress}%` : ''}</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>🪄</span>
+                                        <span>{djCutoutImage ? 'Re-détourer la silhouette IA' : 'Détourer la silhouette (IA 1-Clic)'}</span>
+                                    </>
+                                )}
+                            </button>
+
+                            {djCutoutImage && (
+                                <button
+                                    type="button"
+                                    onClick={handleResetDjSilhouette}
+                                    className="py-2 px-2.5 rounded-xl text-[8px] font-black uppercase bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 transition-all"
+                                    title="Revenir à la photo originale non détourée"
+                                >
+                                    🔄 Reset
+                                </button>
+                            )}
+                        </div>
+
+                        {isolationError && (
+                            <div className="p-2 bg-red-500/15 border border-red-500/30 rounded-lg text-[8px] text-red-300">
+                                ⚠️ {isolationError}
+                            </div>
+                        )}
+
+                        <div className="text-[7.5px] text-gray-400 italic">
+                            💡 Astuce : tu peux aussi directement importer un fichier PNG transparent du DJ via les boutons ci-dessus.
+                        </div>
+                    </div>
+
+                    {/* Option A : Personnalisation Néon Rim Light & Badge Mystère */}
+                    <div className="p-2.5 bg-black/50 border border-white/10 rounded-xl space-y-2.5">
+                        <span className="text-[8.5px] font-black uppercase text-white block">
+                            🎨 Halo & Lueur Néon (Rim Light)
+                        </span>
+
+                        {/* Choix couleur néon */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                            {[
+                                { label: 'Violet EDM', color: '#bd00ff' },
+                                { label: 'Cyan Laser', color: '#00f0ff' },
+                                { label: 'Or Festival', color: '#ffaa00' },
+                                { label: 'Rouge Néon', color: '#ff0033' },
+                                { label: 'Vert Laser', color: '#39ff14' },
+                                { label: 'Blanc Pur', color: '#ffffff' },
+                            ].map(c => (
+                                <button
+                                    key={c.color}
+                                    type="button"
+                                    onClick={() => setDjSilhouetteColor(c.color)}
+                                    className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1.5 border ${
+                                        djSilhouetteColor.toLowerCase() === c.color.toLowerCase()
+                                            ? 'bg-white/20 border-white text-white shadow-md'
+                                            : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'
+                                    }`}
+                                >
+                                    <span className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: c.color }} />
+                                    <span>{c.label}</span>
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Slider intensité lueur */}
+                        <div className="space-y-1">
+                            <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase">
+                                <span>Intensité du halo néon</span>
+                                <span className="text-white font-mono">{djGlowIntensity}px</span>
+                            </div>
+                            <input
+                                type="range"
+                                min={10}
+                                max={50}
+                                value={djGlowIntensity}
+                                onChange={(e) => setDjGlowIntensity(Number(e.target.value))}
+                                className="w-full accent-[#bd00ff] cursor-pointer"
+                            />
+                        </div>
+
+                        {/* Toggle Badge "?" */}
+                        <div className="flex items-center justify-between pt-1 border-t border-white/10">
+                            <span className="text-[8px] font-bold text-gray-300 uppercase">
+                                Badge mystère « ? » au centre
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => setDjShowQuestionMark(!djShowQuestionMark)}
+                                className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase transition-all border ${
+                                    djShowQuestionMark
+                                        ? 'bg-[#bd00ff]/20 border-[#bd00ff] text-[#bd00ff]'
+                                        : 'bg-white/5 border-white/10 text-gray-500'
+                                }`}
+                            >
+                                {djShowQuestionMark ? 'ACTIF' : 'MASQUÉ'}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Choix d'effet d'apparition pour la silhouette */}
+                    <div className="p-2.5 bg-black/50 border border-white/10 rounded-xl space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[8.5px] font-black uppercase text-white flex items-center gap-1.5">
+                                ⚡ Effet d'apparition de la silhouette
+                            </span>
+                            <span className="text-[7.5px] font-bold text-[#bd00ff] uppercase font-mono">
+                                {djAppearanceAnim}
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-1">
+                            {[
+                                { id: 'STROBE', label: '⚡ Strobe Néon', desc: 'Clignotement tube néon stroboscopique' },
+                                { id: 'PULSE', label: '💓 Pulse Basse', desc: 'Pulsation au rythme de la basse (128 BPM)' },
+                                { id: 'FADE', label: '🌫️ Fondu Ombre', desc: 'Émergence douce de l\'obscurité' },
+                                { id: 'SCAN', label: '🔍 Scan Laser', desc: 'Faisceau laser vertical continu' },
+                                { id: 'IMPACT', label: '💥 Zoom Impact', desc: 'Zoom percutant EDM' },
+                                { id: 'STATIC', label: '⏸️ Statique', desc: 'Silhouette nette et lueur fixe' },
+                            ].map(eff => (
+                                <button
+                                    key={eff.id}
+                                    type="button"
+                                    onClick={() => {
+                                        setDjAppearanceAnim(eff.id as any);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`py-1.5 px-1.5 rounded-lg text-[8px] font-black uppercase transition-all border text-center ${
+                                        djAppearanceAnim === eff.id
+                                            ? 'bg-[#bd00ff] border-[#bd00ff] text-white shadow-[0_0_10px_rgba(189,0,255,0.4)] scale-[1.02]'
+                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                    title={eff.desc}
+                                >
+                                    {eff.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Modèles rapides en 1 clic */}
+                    <div className="space-y-1.5">
+                        <span className="text-[8px] font-black uppercase text-[#bd00ff] tracking-wider flex items-center gap-1.5">
+                            👤 Modèles rapides Devine le DJ en 1 clic :
+                        </span>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const t = 'QUI SE CACHE DERRIÈRE CETTE *SILHOUETTE* ?';
+                                    const s = 'RÉPONSE :\n*NOM DU DJ*\nTu avais reconnu sa silhouette ?';
+                                    setConseilsTitle(t);
+                                    setCustomText(t);
+                                    setConseilsSubtext(s);
+                                    setEditorialSlideTitles(prev => ({ ...prev, 2: "C'ÉTAIT BIEN..." }));
+                                }}
+                                className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                            >
+                                👤 Quel DJ ?
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const t = 'QUEL *DUO LÉGENDAIRE* SE CACHE ICI ?';
+                                    const s = 'RÉPONSE :\n*SWEDISH HOUSE MAFIA*\nDis-nous en commentaire si tu l\'avais !';
+                                    setConseilsTitle(t);
+                                    setCustomText(t);
+                                    setConseilsSubtext(s);
+                                    setEditorialSlideTitles(prev => ({ ...prev, 2: "C'ÉTAIT BIEN..." }));
+                                }}
+                                className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                            >
+                                👥 Quel duo ?
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const t = 'SAURAS-TU RECONNAÎTRE CE *DJ MASQUÉ* ?';
+                                    const s = 'RÉPONSE :\n*BORIS BREJCHA*\nLégendaire avec son masque de Joker !';
+                                    setConseilsTitle(t);
+                                    setCustomText(t);
+                                    setConseilsSubtext(s);
+                                    setEditorialSlideTitles(prev => ({ ...prev, 2: "C'ÉTAIT BIEN..." }));
+                                }}
+                                className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                            >
+                                🎭 DJ masqué
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const t = 'QUELLE *TÊTE D\'AFFICHE* DE CET ÉTÉ EST-CE ?';
+                                    const s = 'RÉPONSE :\n*DAVID GUETTA*\nDe retour sur la Mainstage cet été !';
+                                    setConseilsTitle(t);
+                                    setCustomText(t);
+                                    setConseilsSubtext(s);
+                                    setEditorialSlideTitles(prev => ({ ...prev, 2: "C'ÉTAIT BIEN..." }));
+                                }}
+                                className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                            >
+                                ⚡ Tête d'affiche
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* BOUTON PASSER À LA SLIDE 2 RÉVÉLATION */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setIsCarouselPromoActive(false);
+                            setIsEditorialAfficheActive(false);
+                            setEditorialSlide(2);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="w-full py-2.5 px-3 bg-gradient-to-r from-neon-cyan via-emerald-400 to-teal-400 hover:brightness-110 text-black font-black text-[9.5px] uppercase rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_15px_rgba(0,240,255,0.35)] active:scale-98"
+                    >
+                        <span>Passer à la Slide 2 : Révélation</span>
+                        <span>➡️</span>
+                    </button>
+                </>
+            ) : (
+                /* SECTION SLIDE 2 : RÉVÉLATION DU DJ */
+                <div className="space-y-3">
+                    <div className="p-3 bg-gradient-to-r from-neon-cyan/15 via-emerald-500/10 to-transparent border border-neon-cyan/40 rounded-xl space-y-1">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase text-neon-cyan flex items-center gap-1.5">
+                                <span>🌈</span>
+                                <span>Slide 2 : Révélation du DJ</span>
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full text-[7.5px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                Photo Plein Écran Couleur
+                            </span>
+                        </div>
+                        <p className="text-[8px] text-gray-300 leading-relaxed">
+                            Sur cette slide finale, le DJ apparaît en grand et en couleur avec la réponse et le badge officiel de révélation.
+                        </p>
+                    </div>
+
+                    {/* PHOTO EN COULEUR DE LA RÉVÉLATION */}
+                    <div className="p-3 bg-black/60 border border-white/10 rounded-xl space-y-2.5">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
+                                📸 Photo du DJ en Révélation (Couleur)
+                            </span>
+                            {(editorialSlideImages[2] || djOriginalImage || bgImage) && (
+                                <span className="px-2 py-0.5 rounded-full text-[7.5px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                    Photo Prête ✓
+                                </span>
+                            )}
+                        </div>
+
+                        {(editorialSlideImages[2] || djOriginalImage || bgImage) ? (
+                            <div className="flex items-center gap-2.5 p-2 bg-white/5 rounded-xl border border-white/10">
+                                <img
+                                    src={editorialSlideImages[2] || djOriginalImage || bgImage}
+                                    alt="Photo DJ Révélation"
+                                    className="w-12 h-12 object-cover rounded-lg border border-neon-cyan/40 shrink-0 shadow-md"
+                                />
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[8.5px] font-black text-white truncate">Photo originale couleur</p>
+                                    <p className="text-[7.5px] text-gray-400">Affichée en grand pour le reveal</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => slideFileInputRef.current?.click()}
+                                    className="px-2.5 py-1.5 bg-neon-cyan/20 hover:bg-neon-cyan/35 border border-neon-cyan/40 rounded-lg text-[8px] font-black uppercase text-neon-cyan transition-all shrink-0 active:scale-95"
+                                >
+                                    Changer
+                                </button>
+                            </div>
+                        ) : (
+                            <p className="text-[8px] text-gray-300 leading-relaxed">
+                                Importe la photo du DJ pour la révélation (ou utilise celle de la slide 1).
+                            </p>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-1.5">
+                            <button
+                                type="button"
+                                onClick={() => slideFileInputRef.current?.click()}
+                                className="py-2.5 px-2 bg-white/5 hover:bg-white/10 border border-white/15 hover:border-neon-cyan/50 rounded-xl flex items-center justify-center gap-1.5 text-gray-200 text-[8.5px] font-black uppercase hover:text-white transition-all shadow-sm active:scale-98"
+                            >
+                                <Upload className="w-3.5 h-3.5 text-neon-cyan" />
+                                <span>Importer Photo Révélation</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setR2TargetType('background');
+                                    setIsR2ModalOpen(true);
+                                }}
+                                className="py-2.5 px-2 bg-white/5 hover:bg-white/10 border border-white/15 hover:border-emerald-400/50 rounded-xl flex items-center justify-center gap-1.5 text-gray-200 text-[8.5px] font-black uppercase hover:text-white transition-all shadow-sm active:scale-98"
+                            >
+                                <ImageIcon className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>Galerie Cloud R2</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* TITRE DE LA RÉVÉLATION */}
+                    <div className="p-3 bg-black/60 border border-white/10 rounded-xl space-y-2">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[9px] font-black text-white uppercase flex items-center gap-1.5">
+                                <span>🏷️ Titre de la Révélation</span>
+                                <span className="text-[7.5px] font-bold text-gray-400">(Haut de Slide 2)</span>
+                            </label>
+                            <span className="text-[7.5px] text-gray-400 italic">Astuce: *mot*</span>
+                        </div>
+                        <input
+                            type="text"
+                            value={editorialSlideTitles[2] !== undefined ? editorialSlideTitles[2] : "C'ÉTAIT BIEN..."}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                setEditorialSlideTitles(prev => ({ ...prev, 2: val }));
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            placeholder="EX: C'ÉTAIT BIEN... ou RÉPONSE :"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white text-[11px] font-bold uppercase focus:border-neon-cyan/50 outline-none transition-all"
+                        />
+                    </div>
+
+                    {/* TEXTE RÉPONSE & NOM DU DJ */}
+                    <div className="p-3 bg-black/60 border border-white/10 rounded-xl space-y-2">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[9px] font-black text-emerald-400 uppercase flex items-center gap-1.5">
+                                <span>💬 Réponse & Nom du DJ</span>
+                                <span className="text-[7.5px] font-bold text-gray-400">(Corps de texte Slide 2)</span>
+                            </label>
+                            <span className="text-[7.5px] text-gray-400 italic">*Étoiles* = Couleur</span>
+                        </div>
+                        <textarea
+                            rows={3}
+                            value={conseilsSubtext}
+                            onChange={(e) => {
+                                setConseilsSubtext(e.target.value);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            placeholder="EX: RÉPONSE :\n*DAVID GUETTA*\nTu avais reconnu sa silhouette ?"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white text-[11px] italic focus:border-emerald-400/50 outline-none transition-all resize-none"
+                        />
+
+                        {/* Modèles rapides de réponse */}
+                        <div className="space-y-1 pt-1 border-t border-white/10">
+                            <span className="text-[7.5px] font-black uppercase text-gray-400 tracking-wider block">
+                                Exemples rapides de réponse :
+                            </span>
+                            <div className="grid grid-cols-2 gap-1.5">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEditorialSlideTitles(prev => ({ ...prev, 2: "C'ÉTAIT BIEN..." }));
+                                        setConseilsSubtext("RÉPONSE :\n*DAVID GUETTA*\nDe retour sur la Mainstage cet été !");
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className="py-1 px-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-left truncate transition-all"
+                                >
+                                    ⚡ David Guetta
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEditorialSlideTitles(prev => ({ ...prev, 2: "C'ÉTAIT BIEN..." }));
+                                        setConseilsSubtext("RÉPONSE :\n*SWEDISH HOUSE MAFIA*\nDis-nous en commentaire si tu l'avais !");
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className="py-1 px-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-left truncate transition-all"
+                                >
+                                    👥 Swedish House Mafia
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEditorialSlideTitles(prev => ({ ...prev, 2: "C'ÉTAIT BIEN..." }));
+                                        setConseilsSubtext("RÉPONSE :\n*BORIS BREJCHA*\nLégendaire avec son masque de Joker !");
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className="py-1 px-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-left truncate transition-all"
+                                >
+                                    🎭 Boris Brejcha
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEditorialSlideTitles(prev => ({ ...prev, 2: "C'ÉTAIT BIEN..." }));
+                                        setConseilsSubtext("RÉPONSE :\n*MARTIN GARRIX*\nLe prodige néerlandais !");
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className="py-1 px-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-left truncate transition-all"
+                                >
+                                    ✨ Martin Garrix
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* BOUTON REVENIR À LA SLIDE 1 SILHOUETTE */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setIsCarouselPromoActive(false);
+                            setIsEditorialAfficheActive(false);
+                            setEditorialSlide(1);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="w-full py-2.5 px-3 bg-white/10 hover:bg-white/15 border border-white/20 text-white font-black text-[9.5px] uppercase rounded-xl flex items-center justify-center gap-2 transition-all active:scale-98"
+                    >
+                        <span>⬅️</span>
+                        <span>Revenir à la Slide 1 : Silhouette</span>
+                    </button>
+                </div>
+            )}
+        </div>
+    ) : null;
 
     const slideVisualEditor = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
         <div className="p-3 bg-black/60 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
@@ -10609,97 +11193,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             )}
 
-            {/* CARROUSEL SLIDE SWITCHER (POUR NEWS, RÉCAP, FOCUS, ETC.) */}
             {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) && (
                 <>
-                    <div className="p-2 bg-black/60 border border-white/10 rounded-2xl space-y-2 shadow-xl">
-                        <div className="flex items-center justify-between text-[8.5px] font-bold text-gray-400 uppercase px-1">
-                            <span>Slides du Carrousel ({2 + extraEditorialSlides.length}/10 max)</span>
-                            {extraEditorialSlides.length < 8 && (
-                                <button
-                                    type="button"
-                                    onClick={addEditorialSlide}
-                                    className="px-2.5 py-1 bg-neon-cyan/20 hover:bg-neon-cyan/30 text-neon-cyan border border-neon-cyan/40 rounded-lg text-[9px] font-black uppercase transition-all flex items-center gap-1 shadow-sm active:scale-95"
-                                >
-                                    <span>➕</span> Ajouter Slide
-                                </button>
-                            )}
-                        </div>
-                        <div className="flex flex-wrap gap-1.5">
-                            <button
-                                type="button"
-                                onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(1); }}
-                                className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
-                                    !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === 1
-                                        ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-[1.02]'
-                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
-                                }`}
-                            >
-                                <span className="text-xs">{theme === 'JEU_DJ' ? (djSlideModes[1] === 'REVEAL' ? '🌈' : '👤') : '📌'}</span> {theme === 'JEU_DJ' ? (djSlideModes[1] === 'REVEAL' ? 'Slide 1 : Reveal' : 'Slide 1 : Silhouette') : 'Slide 1 : Cover'}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(2); }}
-                                className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
-                                    !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === 2
-                                        ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-[1.02]'
-                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
-                                } ${skipEditorialSlide2 ? 'opacity-60' : ''}`}
-                            >
-                                <span className="text-xs">{theme === 'JEU_DJ' ? (djSlideModes[2] === 'SILHOUETTE' ? '👤' : '🌈') : '📖'}</span> {theme === 'JEU_DJ' ? (djSlideModes[2] === 'SILHOUETTE' ? 'Slide 2 : Silhouette' : 'Slide 2 : Reveal') : `Slide 2 ${skipEditorialSlide2 ? '(Masquée)' : ''}`}
-                            </button>
-                            {extraEditorialSlides.map((_, idx) => {
-                                const sNum = idx + 3;
-                                const isSil = djSlideModes[sNum] !== undefined ? djSlideModes[sNum] === 'SILHOUETTE' : (sNum % 2 === 1);
-                                return (
-                                    <button
-                                        key={sNum}
-                                        type="button"
-                                        onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(sNum); }}
-                                        className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
-                                            !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === sNum
-                                                ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-[1.02]'
-                                                : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
-                                        }`}
-                                    >
-                                        <span className="text-xs">{theme === 'JEU_DJ' ? (isSil ? '👤' : '🌈') : '📄'}</span> {theme === 'JEU_DJ' ? (isSil ? `Slide ${sNum} : Silhouette` : `Slide ${sNum} : Reveal`) : `Slide ${sNum}`}
-                                    </button>
-                                );
-                            })}
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setIsCarouselPromoActive(false);
-                                    setIsEditorialAfficheActive(true);
-                                    setTimeout(() => generateImage(), 50);
-                                }}
-                                className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
-                                    !isCarouselPromoActive && isEditorialAfficheActive
-                                        ? 'bg-[#ff007f] text-white shadow-[0_0_15px_rgba(255,0,127,0.5)] scale-[1.02]'
-                                        : 'bg-[#ff007f]/10 border border-[#ff007f]/30 text-[#ff007f] hover:bg-[#ff007f]/20'
-                                }`}
-                                title="Prévisualiser et modifier la slide Affiche du carrousel"
-                            >
-                                <span className="text-xs">🖼️</span> Slide AFFICHE
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setIsCarouselPromoActive(true);
-                                    setIsEditorialAfficheActive(false);
-                                    setTimeout(() => generateImage(), 50);
-                                }}
-                                className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
-                                    isCarouselPromoActive
-                                        ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
-                                        : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'
-                                }`}
-                                title="Prévisualiser et modifier la slide Promo Outro du carrousel"
-                            >
-                                <span className="text-xs">🔥</span> Slide PROMO
-                            </button>
-                        </div>
-                    </div>
 
                     {theme === 'CONCOURS' && (
                         <div className="p-2.5 bg-[#008cff]/10 border border-[#008cff]/20 rounded-xl space-y-1.5">
@@ -10938,318 +11433,91 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                             )}
 
-                            {/* Module Dédié Devine le DJ (Silhouette Mystère) */}
+                            {/* Preset buttons pour Devine le DJ */}
                             {theme === 'JEU_DJ' && (
-                                <div className="p-3.5 bg-gradient-to-b from-[#bd00ff]/20 via-black/50 to-black/70 border border-[#bd00ff]/50 rounded-2xl space-y-3 shadow-2xl">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[9.5px] font-black uppercase text-[#bd00ff] tracking-wider flex items-center gap-1.5">
-                                            👤 DEVINETTE SILHOUETTE DJ
-                                        </span>
-                                        <span className="text-[7.5px] font-bold text-gray-400">
-                                            Slide 1 = Silhouette • Slide 2 = Reveal
-                                        </span>
+                                <div className="p-2.5 bg-[#bd00ff]/10 border border-[#bd00ff]/25 rounded-xl space-y-1.5 shadow-lg">
+                                    <span className="text-[8px] font-black uppercase text-[#bd00ff] tracking-wider flex items-center gap-1.5">
+                                        👤 Modèles rapides Devine le DJ en 1 clic :
+                                    </span>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const t = 'QUI SE CACHE DERRIÈRE CETTE *SILHOUETTE* ?';
+                                                const s = 'RÉPONSE :\n*NOM DU DJ*\nTu avais reconnu sa silhouette ?';
+                                                setConseilsTitle(t);
+                                                setCustomText(t);
+                                                setConseilsSubtext(s);
+                                            }}
+                                            className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                        >
+                                            👤 Quel DJ ?
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const t = 'QUEL *DUO LÉGENDAIRE* SE CACHE ICI ?';
+                                                const s = 'RÉPONSE :\n*SWEDISH HOUSE MAFIA*\nDis-nous en commentaire si tu l\'avais !';
+                                                setConseilsTitle(t);
+                                                setCustomText(t);
+                                                setConseilsSubtext(s);
+                                            }}
+                                            className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                        >
+                                            👥 Quel duo ?
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const t = 'SAURAS-TU RECONNAÎTRE CE *DJ MASQUÉ* ?';
+                                                const s = 'RÉPONSE :\n*BORIS BREJCHA*\nLégendaire avec son masque de Joker !';
+                                                setConseilsTitle(t);
+                                                setCustomText(t);
+                                                setConseilsSubtext(s);
+                                            }}
+                                            className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                        >
+                                            🎭 DJ masqué
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const t = 'QUELLE *TÊTE D\'AFFICHE* DE CET ÉTÉ EST-CE ?';
+                                                const s = 'RÉPONSE :\n*DAVID GUETTA*\nDe retour sur la Mainstage cet été !';
+                                                setConseilsTitle(t);
+                                                setCustomText(t);
+                                                setConseilsSubtext(s);
+                                            }}
+                                            className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
+                                        >
+                                            ⚡ Tête d'affiche
+                                        </button>
                                     </div>
+                                </div>
+                            )}
 
-                                    {/* 1. UPLOAD DE LA PHOTO DU DJ (DIRECT DANS L'ENCART ROSE) */}
-                                    <div className="p-3 bg-black/60 border border-[#bd00ff]/30 rounded-xl space-y-2.5">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
-                                                📸 1. PHOTO DU DJ À FAIRE DEVINER
-                                            </span>
-                                            {(djOriginalImage || editorialSlideImages[editorialSlide] || bgImage) && (
-                                                <span className="px-2 py-0.5 rounded-full text-[7.5px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                                    Photo Chargée ✓
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {(djOriginalImage || editorialSlideImages[editorialSlide] || bgImage) ? (
-                                            <div className="flex items-center gap-2.5 p-2 bg-white/5 rounded-xl border border-white/10">
-                                                <img
-                                                    src={djOriginalImage || editorialSlideImages[editorialSlide] || bgImage}
-                                                    alt="Photo DJ"
-                                                    className="w-12 h-12 object-cover rounded-lg border border-[#bd00ff]/40 shrink-0 shadow-md"
-                                                />
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-[8.5px] font-black text-white truncate">Photo prête pour le jeu</p>
-                                                    <p className="text-[7.5px] text-gray-400">Clique sur Détourer ci-dessous</p>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => djPhotoInputRef.current?.click()}
-                                                    className="px-2.5 py-1.5 bg-[#bd00ff]/20 hover:bg-[#bd00ff]/35 border border-[#bd00ff]/40 rounded-lg text-[8px] font-black uppercase text-white transition-all shrink-0 active:scale-95"
-                                                >
-                                                    Changer
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <p className="text-[8px] text-gray-300 leading-relaxed">
-                                                Importe la photo du DJ à faire deviner (depuis ton appareil ou Cloud R2).
-                                            </p>
-                                        )}
-
-                                        <div className="grid grid-cols-2 gap-1.5">
-                                            <button
-                                                type="button"
-                                                onClick={() => djPhotoInputRef.current?.click()}
-                                                className="py-2.5 px-2 bg-gradient-to-r from-neon-red/25 to-[#bd00ff]/25 border border-neon-red/50 hover:border-neon-red rounded-xl flex items-center justify-center gap-1.5 text-white text-[8.5px] font-black uppercase transition-all shadow-sm hover:scale-[1.02] active:scale-98"
-                                            >
-                                                <Upload className="w-3.5 h-3.5 text-neon-red" />
-                                                <span>Mon Appareil (PC/Tel)</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setR2TargetType('background');
-                                                    setIsR2ModalOpen(true);
-                                                }}
-                                                className="py-2.5 px-2 bg-white/5 border border-white/15 hover:border-neon-cyan/40 rounded-xl flex items-center justify-center gap-1.5 text-gray-200 text-[8.5px] font-black uppercase hover:text-white transition-all shadow-sm hover:scale-[1.02] active:scale-98"
-                                            >
-                                                <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" />
-                                                <span>Galerie Cloud R2</span>
-                                            </button>
-                                        </div>
-                                        <input
-                                            type="file"
-                                            ref={djPhotoInputRef}
-                                            onChange={handleDjPhotoUpload}
-                                            className="hidden"
-                                            accept="image/*"
-                                        />
-                                    </div>
-
-                                    {/* 2. DÉTOURAGE DE LA SILHOUETTE IA */}
-                                    <div className="p-2.5 bg-black/50 border border-white/10 rounded-xl space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[8.5px] font-black uppercase text-white flex items-center gap-1.5">
-                                                🪄 2. DÉTOURAGE SILHOUETTE (IA 1-CLIC)
-                                            </span>
-                                            {djCutoutImage && (
-                                                <span className="px-2 py-0.5 rounded-full text-[7.5px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                                    Silhouette Active ✓
-                                                </span>
-                                            )}
-                                        </div>
-                                        <p className="text-[8px] text-gray-300 leading-relaxed">
-                                            Retire le fond de la photo du DJ en 1 clic pour créer la silhouette noire mystère avec contour néon.
+                            {/* Raccourci vers Visuel pour configurer la silhouette DJ */}
+                            {theme === 'JEU_DJ' && (
+                                <div className="p-3 bg-gradient-to-r from-[#bd00ff]/15 to-purple-900/30 border border-[#bd00ff]/40 rounded-2xl flex items-center justify-between shadow-lg">
+                                    <div className="space-y-0.5">
+                                        <span className="text-[10px] font-black uppercase text-[#bd00ff] flex items-center gap-1.5">
+                                            <span>👤</span> Silhouette & Détourage IA
+                                        </span>
+                                        <p className="text-[8.5px] text-gray-300">
+                                            {djCutoutImage ? '✓ Silhouette détourée et active' : 'Photo DJ, détourage IA & lueurs néon gérés dans l\'onglet Visuel'}
                                         </p>
-                                        
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                type="button"
-                                                onClick={handleIsolateDjSilhouette}
-                                                disabled={isIsolatingSilhouette || !(djOriginalImage || editorialSlideImages[editorialSlide] || bgImage)}
-                                                className={`flex-1 py-2 px-3 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-2 shadow-lg ${
-                                                    isIsolatingSilhouette
-                                                        ? 'bg-purple-900/50 text-purple-300 border border-purple-500/40 cursor-wait'
-                                                        : !(djOriginalImage || editorialSlideImages[editorialSlide] || bgImage)
-                                                        ? 'bg-white/5 text-gray-500 border border-white/5 cursor-not-allowed'
-                                                        : 'bg-gradient-to-r from-[#bd00ff] to-[#7928ca] hover:from-[#d13aff] hover:to-[#9333ea] text-white shadow-[0_0_15px_rgba(189,0,255,0.4)] active:scale-98'
-                                                }`}
-                                            >
-                                                {isIsolatingSilhouette ? (
-                                                    <>
-                                                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                        <span>Détourage IA en cours... {isolationProgress !== null ? `${isolationProgress}%` : ''}</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <span>🪄</span>
-                                                        <span>{djCutoutImage ? 'Re-détourer la silhouette IA' : 'Détourer la silhouette (IA 1-Clic)'}</span>
-                                                    </>
-                                                )}
-                                            </button>
-
-                                            {djCutoutImage && (
-                                                <button
-                                                    type="button"
-                                                    onClick={handleResetDjSilhouette}
-                                                    className="py-2 px-2.5 rounded-xl text-[8px] font-black uppercase bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 transition-all"
-                                                    title="Revenir à la photo originale non détourée"
-                                                >
-                                                    🔄 Reset
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        {isolationError && (
-                                            <div className="p-2 bg-red-500/15 border border-red-500/30 rounded-lg text-[8px] text-red-300">
-                                                ⚠️ {isolationError}
-                                            </div>
-                                        )}
-
-                                        <div className="text-[7.5px] text-gray-400 italic">
-                                            💡 Astuce : tu peux aussi directement importer un fichier PNG transparent du DJ via les boutons ci-dessus.
-                                        </div>
                                     </div>
-
-                                    {/* Option A : Personnalisation Néon Rim Light & Badge Mystère */}
-                                    <div className="p-2.5 bg-black/50 border border-white/10 rounded-xl space-y-2.5">
-                                        <span className="text-[8.5px] font-black uppercase text-white block">
-                                            🎨 Halo & Lueur Néon (Rim Light)
-                                        </span>
-
-                                        {/* Choix couleur néon */}
-                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                            {[
-                                                { label: 'Violet EDM', color: '#bd00ff' },
-                                                { label: 'Cyan Laser', color: '#00f0ff' },
-                                                { label: 'Or Festival', color: '#ffaa00' },
-                                                { label: 'Rouge Néon', color: '#ff0033' },
-                                                { label: 'Vert Laser', color: '#39ff14' },
-                                                { label: 'Blanc Pur', color: '#ffffff' },
-                                            ].map(c => (
-                                                <button
-                                                    key={c.color}
-                                                    type="button"
-                                                    onClick={() => setDjSilhouetteColor(c.color)}
-                                                    className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1.5 border ${
-                                                        djSilhouetteColor.toLowerCase() === c.color.toLowerCase()
-                                                            ? 'bg-white/20 border-white text-white shadow-md'
-                                                            : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'
-                                                    }`}
-                                                >
-                                                    <span className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: c.color }} />
-                                                    <span>{c.label}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-
-                                        {/* Slider intensité lueur */}
-                                        <div className="space-y-1">
-                                            <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase">
-                                                <span>Intensité du halo néon</span>
-                                                <span className="text-white font-mono">{djGlowIntensity}px</span>
-                                            </div>
-                                            <input
-                                                type="range"
-                                                min={10}
-                                                max={50}
-                                                value={djGlowIntensity}
-                                                onChange={(e) => setDjGlowIntensity(Number(e.target.value))}
-                                                className="w-full accent-[#bd00ff] cursor-pointer"
-                                            />
-                                        </div>
-
-                                        {/* Toggle Badge "?" */}
-                                        <div className="flex items-center justify-between pt-1 border-t border-white/10">
-                                            <span className="text-[8px] font-bold text-gray-300 uppercase">
-                                                Badge mystère « ? » au centre
-                                            </span>
-                                            <button
-                                                type="button"
-                                                onClick={() => setDjShowQuestionMark(!djShowQuestionMark)}
-                                                className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase transition-all border ${
-                                                    djShowQuestionMark
-                                                        ? 'bg-[#bd00ff]/20 border-[#bd00ff] text-[#bd00ff]'
-                                                        : 'bg-white/5 border-white/10 text-gray-500'
-                                                }`}
-                                            >
-                                                {djShowQuestionMark ? 'ACTIF' : 'MASQUÉ'}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Choix d'effet d'apparition pour la silhouette */}
-                                    <div className="p-2.5 bg-black/50 border border-white/10 rounded-xl space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[8.5px] font-black uppercase text-white flex items-center gap-1.5">
-                                                ⚡ Effet d'apparition de la silhouette
-                                            </span>
-                                            <span className="text-[7.5px] font-bold text-[#bd00ff] uppercase font-mono">
-                                                {djAppearanceAnim}
-                                            </span>
-                                        </div>
-
-                                        <div className="grid grid-cols-3 gap-1">
-                                            {[
-                                                { id: 'STROBE', label: '⚡ Strobe Néon', desc: 'Clignotement tube néon stroboscopique' },
-                                                { id: 'PULSE', label: '💓 Pulse Basse', desc: 'Pulsation au rythme de la basse (128 BPM)' },
-                                                { id: 'FADE', label: '🌫️ Fondu Ombre', desc: 'Émergence douce de l\'obscurité' },
-                                                { id: 'SCAN', label: '🔍 Scan Laser', desc: 'Faisceau laser vertical continu' },
-                                                { id: 'IMPACT', label: '💥 Zoom Impact', desc: 'Zoom percutant EDM' },
-                                                { id: 'STATIC', label: '⏸️ Statique', desc: 'Silhouette nette et lueur fixe' },
-                                            ].map(eff => (
-                                                <button
-                                                    key={eff.id}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setDjAppearanceAnim(eff.id as any);
-                                                        setTimeout(() => generateImage(), 50);
-                                                    }}
-                                                    className={`py-1.5 px-1.5 rounded-lg text-[8px] font-black uppercase transition-all border text-center ${
-                                                        djAppearanceAnim === eff.id
-                                                            ? 'bg-[#bd00ff] border-[#bd00ff] text-white shadow-[0_0_10px_rgba(189,0,255,0.4)] scale-[1.02]'
-                                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
-                                                    }`}
-                                                    title={eff.desc}
-                                                >
-                                                    {eff.label}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Modèles rapides en 1 clic */}
-                                    <div className="space-y-1.5">
-                                        <span className="text-[8px] font-black uppercase text-[#bd00ff] tracking-wider flex items-center gap-1.5">
-                                            👤 Modèles rapides Devine le DJ en 1 clic :
-                                        </span>
-                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const t = 'QUI SE CACHE DERRIÈRE CETTE *SILHOUETTE* ?';
-                                                    const s = 'RÉPONSE :\n*NOM DU DJ*\nTu avais reconnu sa silhouette ?';
-                                                    setConseilsTitle(t);
-                                                    setCustomText(t);
-                                                    setConseilsSubtext(s);
-                                                }}
-                                                className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
-                                            >
-                                                👤 Quel DJ ?
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const t = 'QUEL *DUO LÉGENDAIRE* SE CACHE ICI ?';
-                                                    const s = 'RÉPONSE :\n*SWEDISH HOUSE MAFIA*\nDis-nous en commentaire si tu l\'avais !';
-                                                    setConseilsTitle(t);
-                                                    setCustomText(t);
-                                                    setConseilsSubtext(s);
-                                                }}
-                                                className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
-                                            >
-                                                👥 Quel duo ?
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const t = 'SAURAS-TU RECONNAÎTRE CE *DJ MASQUÉ* ?';
-                                                    const s = 'RÉPONSE :\n*BORIS BREJCHA*\nLégendaire avec son masque de Joker !';
-                                                    setConseilsTitle(t);
-                                                    setCustomText(t);
-                                                    setConseilsSubtext(s);
-                                                }}
-                                                className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
-                                            >
-                                                🎭 DJ masqué
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const t = 'QUELLE *TÊTE D\'AFFICHE* DE CET ÉTÉ EST-CE ?';
-                                                    const s = 'RÉPONSE :\n*DAVID GUETTA*\nDe retour sur la Mainstage cet été !';
-                                                    setConseilsTitle(t);
-                                                    setCustomText(t);
-                                                    setConseilsSubtext(s);
-                                                }}
-                                                className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
-                                            >
-                                                ⚡ Tête d'affiche
-                                            </button>
-                                        </div>
-                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setSidebarStep('visual');
+                                            setActivePanel('fond');
+                                        }}
+                                        className="px-3 py-2 bg-[#bd00ff] hover:bg-[#d13aff] text-white rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 shadow-[0_0_12px_rgba(189,0,255,0.4)] active:scale-95 shrink-0"
+                                    >
+                                        <span>Gérer dans Visuel</span>
+                                        <span>🖼️</span>
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -12037,7 +12305,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             </div>
 
             {/* Slide Affiche pour carrousels éditoriaux (NEWS, etc.) */}
-            {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && Boolean(afficheImage || isEditorialAfficheActive) && (
+            {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) && Boolean(afficheImage || isEditorialAfficheActive) && (
                 <div className="space-y-1.5 pt-1 border-t border-white/10">
                     <span className="text-[8px] font-black text-[#ff007f] uppercase tracking-wider block">🖼️ Slide Affiche ({theme})</span>
                     <button
@@ -13841,9 +14109,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             </div>
                                         )}
 
+                                        {/* Module Dédié Devine le DJ (Silhouette Mystère) */}
+                                        {theme === 'JEU_DJ' && (
+                                            <div className="space-y-2">
+                                                {djSilhouetteEditor}
+                                            </div>
+                                        )}
+
                                         <div className="flex items-center justify-between">
                                             <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">
-                                                {theme === 'MUSIQUE' && editorialSlide >= 2 ? 'Fond & Ambiance Arrière-Plan' : 'Fond & Médias'}
+                                                {theme === 'MUSIQUE' && editorialSlide >= 2 ? 'Fond & Ambiance Arrière-Plan' : theme === 'JEU_DJ' ? 'Fond Arrière-Plan Scène / Club' : 'Fond & Médias'}
                                             </span>
                                             <span className="text-[8px] text-gray-400 uppercase font-bold">Image, Vidéo ou Cloud</span>
                                         </div>
@@ -14247,7 +14522,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {slideTransitionQuickBar}
                             </div>
                         )}
-                        {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && (
+                        {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) && (
                             <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20 flex-wrap justify-center">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
                                 <button
@@ -14259,7 +14534,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
                                 >
-                                    📌 Slide 1 (Cover)
+                                    {theme === 'JEU_DJ' ? '👤 Slide 1 (Silhouette)' : '📌 Slide 1 (Cover)'}
                                 </button>
                                 <button
                                     type="button"
@@ -14270,25 +14545,47 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
                                 >
-                                    📖 Slide 2
+                                    {theme === 'JEU_DJ' ? '🌈 Slide 2 (Révélation)' : '📖 Slide 2'}
                                 </button>
                                 {extraEditorialSlides.map((_, idx) => {
                                     const sNum = idx + 3;
                                     return (
-                                        <button
-                                            key={sNum}
-                                            type="button"
-                                            onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(sNum); }}
-                                            className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                                !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === sNum
-                                                    ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
-                                                    : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
-                                            }`}
-                                        >
-                                            📄 Slide {sNum}
-                                        </button>
+                                        <div key={sNum} className="relative group">
+                                            <button
+                                                type="button"
+                                                onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(sNum); }}
+                                                className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                                    !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === sNum
+                                                        ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
+                                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                                }`}
+                                            >
+                                                📄 Slide {sNum}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    removeEditorialSlide(sNum);
+                                                }}
+                                                className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full text-[9px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                                                title={`Supprimer la Slide ${sNum}`}
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
                                     );
                                 })}
+                                {extraEditorialSlides.length < 8 && (
+                                    <button
+                                        type="button"
+                                        onClick={addEditorialSlide}
+                                        className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all bg-neon-cyan/15 text-neon-cyan border border-neon-cyan/30 hover:bg-neon-cyan/25 flex items-center gap-1 shadow-sm active:scale-95"
+                                        title="Ajouter une slide au carrousel (10 max)"
+                                    >
+                                        ➕ Slide
+                                    </button>
+                                )}
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -14599,7 +14896,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {slideTransitionQuickBar}
                             </div>
                         )}
-                        {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS'].includes(theme) && (
+                        {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) && (
                             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
                                     type="button"
@@ -14608,7 +14905,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === 1 ? 'bg-white text-black shadow-md' : 'text-gray-400'
                                     }`}
                                 >
-                                    Slide 1 (Titre)
+                                    {theme === 'JEU_DJ' ? 'Slide 1 (Silhouette)' : 'Slide 1 (Cover)'}
                                 </button>
                                 <div className="flex items-center shrink-0 rounded-xl overflow-hidden border border-white/10 bg-white/5">
                                     <button
@@ -14616,25 +14913,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(2); }}
                                         className={`px-2 py-1 text-[8px] font-black uppercase transition-all ${
                                             !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === 2 ? 'bg-white text-black shadow-md' : 'text-gray-300 hover:text-white'
-                                        } ${skipEditorialSlide2 ? 'opacity-50 line-through' : ''}`}
+                                        } ${skipEditorialSlide2 && theme !== 'JEU_DJ' ? 'opacity-50 line-through' : ''}`}
                                     >
-                                        Slide 2 {skipEditorialSlide2 ? '(Masquée)' : '(Détail)'}
+                                        {theme === 'JEU_DJ' ? 'Slide 2 (Révélation)' : `Slide 2 ${skipEditorialSlide2 ? '(Masquée)' : '(Détail)'}`}
                                     </button>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setSkipEditorialSlide2(prev => !prev);
-                                        }}
-                                        className={`px-2 py-1 text-[9px] font-black transition-all border-l border-white/10 ${
-                                            skipEditorialSlide2
-                                                ? 'bg-amber-500/30 text-amber-300'
-                                                : 'text-gray-400 hover:text-white bg-white/5'
-                                        }`}
-                                        title={skipEditorialSlide2 ? "Slide 2 masquée de l'export vidéo (cliquez pour inclure)" : "Slide 2 incluse (cliquez pour masquer de la vidéo)"}
-                                    >
-                                        {skipEditorialSlide2 ? '🚫' : '👁️'}
-                                    </button>
+                                    {theme !== 'JEU_DJ' && (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSkipEditorialSlide2(prev => !prev);
+                                            }}
+                                            className={`px-2 py-1 text-[9px] font-black transition-all border-l border-white/10 ${
+                                                skipEditorialSlide2
+                                                    ? 'bg-amber-500/30 text-amber-300'
+                                                    : 'text-gray-400 hover:text-white bg-white/5'
+                                            }`}
+                                            title={skipEditorialSlide2 ? "Slide 2 masquée de l'export vidéo (cliquez pour inclure)" : "Slide 2 incluse (cliquez pour masquer de la vidéo)"}
+                                        >
+                                            {skipEditorialSlide2 ? '🚫' : '👁️'}
+                                        </button>
+                                    )}
                                 </div>
                                 {extraEditorialSlides.map((_, idx) => {
                                     const sNum = idx + 3;
@@ -14651,6 +14950,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         </button>
                                     );
                                 })}
+                                {extraEditorialSlides.length < 8 && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); addEditorialSlide(); }}
+                                        className="px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30"
+                                        title="Ajouter une slide (10 max)"
+                                    >
+                                        ➕ Slide
+                                    </button>
+                                )}
                                 <button
                                     type="button"
                                     onClick={(e) => {
@@ -14860,6 +15169,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <div className="px-6 pb-8">
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Fond Visuel</p>
                                         <div className="space-y-3">
+                                            {/* Module Dédié Devine le DJ (Silhouette Mystère) */}
+                                            {theme === 'JEU_DJ' && djSilhouetteEditor}
                                             <div className="grid grid-cols-2 gap-2">
                                                 <button onClick={() => fileInputRef.current?.click()} className="py-3.5 border border-dashed border-white/20 rounded-2xl flex items-center justify-center gap-2 text-gray-200 text-[9.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
                                                     <Upload className="w-4 h-4 text-neon-red group-hover:scale-110 transition-transform" />
