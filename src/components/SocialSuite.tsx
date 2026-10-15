@@ -9034,92 +9034,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const spotlightEditor = (
         <div className="space-y-4">
+            {/* Noms Artiste et Festival (Secours texte si pas de logo) */}
             <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Logo Artiste</label>
-                    <div className="relative group/logo">
-                        {artistLogo && (
-                            <button 
-                                onClick={(e) => { e.stopPropagation(); setArtistLogo(''); artistLogoRef.current = null; }}
-                                className="absolute top-2 right-2 z-10 p-1.5 bg-black/60 hover:bg-red-500 text-white rounded-full transition-all opacity-100"
-                            >
-                                <X className="w-3 h-3" />
-                            </button>
-                        )}
-                        <input type="file" onChange={handleArtistLogoChange} className="hidden" id="artist-logo-up" accept="image/*" />
-                        <button onClick={() => document.getElementById('artist-logo-up')?.click()} className="w-full aspect-square bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-all group overflow-hidden">
-                            {artistLogo ? (
-                                <img 
-                                    src={artistLogo} 
-                                    alt="Artist Logo" 
-                                    className="w-full h-full object-contain p-2 transition-all" 
-                                    style={{ filter: isArtistLogoNegative ? 'brightness(0) invert(1)' : 'none' }}
-                                />
-                            ) : (
-                                <>
-                                    <Plus className="w-5 h-5 text-gray-600 group-hover:text-neon-red" />
-                                    <span className="text-[8px] font-black text-gray-600 uppercase">Logo Artiste</span>
-                                </>
-                            )}
-                        </button>
-                    </div>
-                    {!artistLogo && (
-                        <input 
-                            value={artistNameText}
-                            onChange={e => setArtistNameText(e.target.value)}
-                            placeholder="Ou nom artiste..."
-                            className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[9px] text-white uppercase font-bold"
-                        />
-                    )}
-                    {artistLogo && (
-                        <div className="flex items-center gap-2 px-1">
-                            <input 
-                                type="checkbox" 
-                                checked={isArtistLogoNegative} 
-                                onChange={e => setIsArtistLogoNegative(e.target.checked)}
-                                className="w-3 h-3 accent-neon-red"
-                                id="logo-neg-toggle"
-                            />
-                            <label htmlFor="logo-neg-toggle" className="text-[8px] font-black text-gray-500 uppercase cursor-pointer">Effet Négatif (Blanc)</label>
-                        </div>
-                    )}
+                <div className="space-y-1">
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Nom Artiste</label>
+                    <input 
+                        value={artistNameText}
+                        onChange={e => setArtistNameText(e.target.value)}
+                        placeholder="Ex: SUB FOCUS..."
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-[10px] text-white uppercase font-bold"
+                    />
                 </div>
-                <div className="space-y-2">
-                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Logo Festival</label>
-                    <div className="relative group/logo">
-                        {festivalLogo && (
-                            <button 
-                                onClick={(e) => { e.stopPropagation(); setFestivalLogo(''); festivalLogoRef.current = null; }}
-                                className="absolute top-2 right-2 z-10 p-1.5 bg-black/60 hover:bg-red-500 text-white rounded-full transition-all opacity-100"
-                            >
-                                <X className="w-3 h-3" />
-                            </button>
-                        )}
-                        <input type="file" onChange={handleFestivalLogoChange} className="hidden" id="fest-logo-up" accept="image/*" />
-                        <button onClick={() => document.getElementById('fest-logo-up')?.click()} className="w-full aspect-square bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-all group overflow-hidden">
-                            {festivalLogo ? (
-                                <img src={festivalLogo} alt="Fest Logo" className="w-full h-full object-contain p-2" />
-                            ) : (
-                                <>
-                                    <Plus className="w-5 h-5 text-gray-600 group-hover:text-neon-red" />
-                                    <span className="text-[8px] font-black text-gray-600 uppercase">Logo Festival</span>
-                                </>
-                            )}
-                        </button>
-                    </div>
-                    {!festivalLogo && (
-                        <input 
-                            value={festivalNameText}
-                            onChange={e => setFestivalNameText(e.target.value)}
-                            placeholder="Ou nom festival..."
-                            className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[9px] text-white uppercase font-bold"
-                        />
-                    )}
+                <div className="space-y-1">
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Nom Festival</label>
+                    <input 
+                        value={festivalNameText}
+                        onChange={e => setFestivalNameText(e.target.value)}
+                        placeholder="Ex: TOMORROWLAND..."
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-[10px] text-white uppercase font-bold"
+                    />
                 </div>
             </div>
 
             <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Tagline / Phrase (Ligne 1 & 2)</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tagline / Phrase (Ligne 1 & 2)</label>
                 <div className="space-y-2">
                     <input 
                         value={customText.split('\n')[0] || ''} 
@@ -9147,7 +9085,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Nom Stage</label>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nom Stage</label>
                     <input 
                         value={customText.split('\n')[1] || ''} 
                         onChange={e => {
@@ -9161,7 +9099,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     />
                 </div>
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Jour</label>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Jour</label>
                     <input 
                         value={customText.split('\n')[2] || ''} 
                         onChange={e => {
@@ -9175,7 +9113,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     />
                 </div>
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Heure</label>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Heure</label>
                     <input 
                         value={customText.split('\n')[4] || ''} 
                         onChange={e => {
@@ -9189,10 +9127,87 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     />
                 </div>
             </div>
+        </div>
+    );
+
+    const spotlightVisualEditor = (
+        <div className="space-y-4">
+            <div className="p-3.5 bg-white/5 border border-white/10 rounded-2xl space-y-3 shadow-xl">
+                <span className="text-[10px] font-black uppercase text-neon-red tracking-wider flex items-center gap-1.5">
+                    ⭐ Logos Artiste & Festival (Spotlight)
+                </span>
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Logo Artiste</label>
+                        <div className="relative group/logo">
+                            {artistLogo && (
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); setArtistLogo(''); artistLogoRef.current = null; generateImage(); }}
+                                    className="absolute top-2 right-2 z-10 p-1.5 bg-black/60 hover:bg-red-500 text-white rounded-full transition-all opacity-100"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            )}
+                            <input type="file" onChange={handleArtistLogoChange} className="hidden" id="artist-logo-up" accept="image/*" />
+                            <button onClick={() => document.getElementById('artist-logo-up')?.click()} className="w-full aspect-square bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-all group overflow-hidden">
+                                {artistLogo ? (
+                                    <img 
+                                        src={artistLogo} 
+                                        alt="Artist Logo" 
+                                        className="w-full h-full object-contain p-2 transition-all" 
+                                        style={{ filter: isArtistLogoNegative ? 'brightness(0) invert(1)' : 'none' }}
+                                    />
+                                ) : (
+                                    <>
+                                        <Plus className="w-5 h-5 text-gray-500 group-hover:text-neon-red" />
+                                        <span className="text-[8px] font-black text-gray-400 uppercase">Logo Artiste</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                        {artistLogo && (
+                            <div className="flex items-center gap-2 px-1">
+                                <input 
+                                    type="checkbox" 
+                                    checked={isArtistLogoNegative} 
+                                    onChange={e => { setIsArtistLogoNegative(e.target.checked); setTimeout(() => generateImage(), 30); }}
+                                    className="w-3 h-3 accent-neon-red"
+                                    id="logo-neg-toggle"
+                                />
+                                <label htmlFor="logo-neg-toggle" className="text-[8px] font-black text-gray-400 uppercase cursor-pointer">Effet Négatif (Blanc)</label>
+                            </div>
+                        )}
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Logo Festival</label>
+                        <div className="relative group/logo">
+                            {festivalLogo && (
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); setFestivalLogo(''); festivalLogoRef.current = null; generateImage(); }}
+                                    className="absolute top-2 right-2 z-10 p-1.5 bg-black/60 hover:bg-red-500 text-white rounded-full transition-all opacity-100"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            )}
+                            <input type="file" onChange={handleFestivalLogoChange} className="hidden" id="fest-logo-up" accept="image/*" />
+                            <button onClick={() => document.getElementById('fest-logo-up')?.click()} className="w-full aspect-square bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-all group overflow-hidden">
+                                {festivalLogo ? (
+                                    <img src={festivalLogo} alt="Fest Logo" className="w-full h-full object-contain p-2" />
+                                ) : (
+                                    <>
+                                        <Plus className="w-5 h-5 text-gray-500 group-hover:text-neon-red" />
+                                        <span className="text-[8px] font-black text-gray-400 uppercase">Logo Festival</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* Background Offsets for Spotlight */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-4">
-                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ajuster la position de la photo</p>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ajuster la position de la photo</p>
                 <div className="space-y-3">
                     <div className="space-y-1">
                         <div className="flex justify-between text-[8px] font-black uppercase text-gray-500">
@@ -9783,6 +9798,119 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     >
                         {showSwipe ? 'ACTIF' : 'MASQUÉ'}
                     </button>
+                </div>
+            </div>
+        );
+    })();
+
+    const musicSlide1VisualEditor = (() => {
+        const currentCover = bgImage || afficheImage;
+        return (
+            <div className="space-y-3 bg-white/5 border border-[#00ff66]/30 rounded-2xl p-4 shadow-xl">
+                <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black text-[#00ff66] uppercase tracking-widest flex items-center gap-1.5">
+                        💿 Cover / Visuel de Sortie (Slide 1 Annonce)
+                    </label>
+                    {currentCover && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setBgImage('');
+                                setAfficheImage('');
+                                bgImageRef.current = null;
+                                afficheImageRef.current = null;
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="text-[9px] font-bold text-red-400 hover:text-red-300 transition-colors uppercase"
+                        >
+                            Retirer
+                        </button>
+                    )}
+                </div>
+
+                {/* Aperçu de l'image */}
+                {currentCover ? (
+                    <div className="relative group rounded-xl overflow-hidden border border-[#00ff66]/30 bg-black/40 aspect-[4/5] max-h-48 mx-auto flex items-center justify-center shadow-lg">
+                        <img src={currentCover} alt="Cover Annonce" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-white text-[10px] font-black uppercase backdrop-blur-md"
+                            >
+                                Changer
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full py-6 border-2 border-dashed border-white/15 hover:border-[#00ff66]/50 hover:bg-[#00ff66]/5 rounded-2xl flex flex-col items-center justify-center gap-2 bg-black/20 transition-all group"
+                    >
+                        <Upload className="w-6 h-6 text-gray-500 group-hover:text-[#00ff66] transition-colors" />
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider group-hover:text-white transition-colors">
+                            Importer la Cover / Visuel Annonce
+                        </span>
+                        <span className="text-[8px] text-gray-500">Image officielle ou pochette HD de sortie</span>
+                    </button>
+                )}
+
+                {/* Boutons d'import rapide */}
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                    <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                    >
+                        <Upload className="w-3.5 h-3.5 text-[#00ff66]" /> Mon Appareil
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setR2TargetType('background');
+                            setIsR2ModalOpen(true);
+                        }}
+                        className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                    >
+                        <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" /> Cloud R2
+                    </button>
+                </div>
+
+                {/* Recherche Beatport Cover HD 1400x1400 */}
+                <div className="space-y-1.5 pt-2 border-t border-white/10">
+                    <div className="flex items-center justify-between text-[8.5px] font-bold uppercase text-gray-400">
+                        <span className="text-[#00ff66] font-black">⚡ Recherche Beatport (Cover HD 1400x1400)</span>
+                        <span className="text-[7.5px] text-gray-400">Importe la pochette officielle en fond</span>
+                    </div>
+                    <div className="flex gap-1.5">
+                        <input
+                            type="text"
+                            placeholder="Recherche Beatport (ex: Dimension Frequency) ou lien direct..."
+                            value={smartImportUrl}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                setSmartImportUrl(val);
+                                if (val.match(/(spotify|beatport|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
+                                    handleResolveIntroAudio(val);
+                                }
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleResolveIntroAudio(smartImportUrl);
+                                }
+                            }}
+                            className="flex-1 bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => handleResolveIntroAudio(smartImportUrl || '')}
+                            disabled={isResolvingAudio}
+                            className="px-3.5 py-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 disabled:opacity-50 shadow-md active:scale-95 whitespace-nowrap"
+                        >
+                            {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>⚡ Chercher</span>}
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -12646,49 +12774,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {/* Titre & Sous-titre de l'annonce */}
                         {conseilsEditor}
 
-                        {/* MODULE EXTRACTION SLIDE 1 (COVER HD EN FOND + EXTRAIT AUDIO INTRO) */}
-                        <div className="p-3 bg-gradient-to-r from-black/80 via-[#00ff66]/10 to-black/80 border border-[#00ff66]/40 rounded-2xl space-y-2 shadow-xl">
-                            <div className="flex items-center justify-between">
-                                <label className="text-[9.5px] font-black text-[#00ff66] uppercase tracking-wider flex items-center gap-1.5">
-                                    ⚡ Recherche Directe Beatport (Cover 1400x1400 + Audio 120s)
-                                </label>
-                                <span className="text-[7.5px] font-bold text-gray-400 bg-white/5 px-2 py-0.5 rounded-full border border-white/10 uppercase">
-                                    <span className="text-[#00ff66] font-black">Beatport Direct (120s Drop)</span> • Spotify • Soundcloud
-                                </span>
-                            </div>
-                            <div className="flex gap-1.5">
-                                <input
-                                    type="text"
-                                    placeholder="Recherche Beatport (ex: Dimension Frequency) ou lien direct..."
-                                    value={smartImportUrl}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        setSmartImportUrl(val);
-                                        if (val.match(/(spotify|beatport|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
-                                            handleResolveIntroAudio(val);
-                                        }
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            handleResolveIntroAudio(smartImportUrl);
-                                        }
-                                    }}
-                                    className="flex-1 bg-black/60 border border-white/15 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66] transition-all"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => handleResolveIntroAudio(smartImportUrl || musicIntroAudio || '')}
-                                    disabled={isResolvingAudio}
-                                    className="px-3.5 py-2 bg-gradient-to-r from-[#00ff66] to-[#00cc88] hover:from-[#33ff85] hover:to-[#00e699] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-md active:scale-95 whitespace-nowrap"
-                                >
-                                    {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>⚡ Chercher Beatport</span>}
-                                </button>
-                            </div>
-                            <p className="text-[7.5px] text-gray-400">
-                                🖼️ Recherche directement sur <strong>Beatport</strong> la <strong>Cover Ultra-HD (1400x1400)</strong> et l'extrait de <strong>120 secondes</strong> centré sur le Drop.
-                            </p>
-                        </div>
-
                         {/* Extrait Audio Intro Optionnel */}
                         <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
                             <div className="flex items-center justify-between">
@@ -12916,86 +13001,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     </button>
                                 )}
                             </div>
-                        </div>
-
-                        {/* MODULE 1-CLIC IMPORT MORCEAU (COVER + AUDIO + TITRES) */}
-                        <div className="p-3 bg-gradient-to-r from-black/80 via-[#00ff66]/10 to-black/80 border border-[#00ff66]/40 rounded-2xl space-y-2 shadow-xl">
-                            <div className="flex items-center justify-between">
-                                <label className="text-[9.5px] font-black text-[#00ff66] uppercase tracking-wider flex items-center gap-1.5">
-                                    ⚡ Recherche Directe Beatport (Cover 1400x1400 + Audio 120s Drop + Titres)
-                                </label>
-                                <span className="text-[7.5px] font-bold text-gray-400 bg-white/5 px-2 py-0.5 rounded-full border border-white/10 uppercase">
-                                    <span className="text-[#00ff66] font-black">Beatport Direct (120s Drop)</span> • Spotify • Soundcloud
-                                </span>
-                            </div>
-                            <div className="flex gap-1.5">
-                                <input
-                                    type="text"
-                                    placeholder="Recherche Beatport (ex: Dimension Frequency) ou lien direct..."
-                                    value={smartImportUrl}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        setSmartImportUrl(val);
-                                        if (val.match(/(spotify|beatport|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
-                                            handleExtractTrackData(activeTrackIdx, val);
-                                        }
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            handleExtractTrackData(activeTrackIdx, smartImportUrl);
-                                        }
-                                    }}
-                                    className="flex-1 bg-black/60 border border-white/15 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66] transition-all"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => handleExtractTrackData(activeTrackIdx, smartImportUrl || activeCoverUrl || activeTrack.audio || '')}
-                                    disabled={isResolvingAudio}
-                                    className="px-3.5 py-2 bg-gradient-to-r from-[#00ff66] to-[#00cc88] hover:from-[#33ff85] hover:to-[#00e699] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-md active:scale-95 whitespace-nowrap"
-                                >
-                                    {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>🔍 Chercher le Son (Beatport)</span>}
-                                </button>
-                            </div>
-                            <div className="flex items-center justify-between text-[7.5px] text-gray-400">
-                                <span>Extrait la <strong>Pochette Ultra-HD (1400x1400)</strong> + l'<strong>Audio 120s Drop</strong></span>
-                                {(activeTrack.title || activeTrack.artist) && (
-                                    <button
-                                        type="button"
-                                        onClick={() => handleExtractTrackData(activeTrackIdx, '')}
-                                        disabled={isResolvingAudio}
-                                        className="text-[#00ff66] hover:underline font-bold"
-                                    >
-                                        🎧 Chercher sur Beatport "{activeTrack.artist || ''} - {activeTrack.title || ''}"
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* POCHETTE CARREE 1:1 DÉPORTÉE DANS L'ONGLET VISUEL */}
-                        <div className="p-3.5 bg-white/5 border border-[#00ff66]/30 rounded-2xl flex items-center justify-between gap-3 shadow-md">
-                            <div className="flex items-center gap-3 min-w-0">
-                                {activeCoverUrl ? (
-                                    <img src={activeCoverUrl} alt="Cover" className="w-11 h-11 rounded-xl object-cover border border-[#00ff66]/40 flex-shrink-0 shadow-sm" />
-                                ) : (
-                                    <div className="w-11 h-11 rounded-xl bg-black/50 border border-dashed border-[#00ff66]/30 flex items-center justify-center flex-shrink-0">
-                                        <Music className="w-5 h-5 text-gray-400" />
-                                    </div>
-                                )}
-                                <div className="min-w-0">
-                                    <span className="text-[10px] font-black text-white uppercase block truncate">Cover du Morceau (1:1)</span>
-                                    <span className="text-[8px] text-gray-400 block truncate">
-                                        {activeCoverUrl ? 'Pochette configurée' : 'Gérer la cover, taille et animations dans l\'onglet Visuel'}
-                                    </span>
-                                </div>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setSidebarStep('visual')}
-                                className="px-3.5 py-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1.5 shadow-md active:scale-95 flex-shrink-0"
-                            >
-                                <Sparkles className="w-3.5 h-3.5" />
-                                <span>Gérer dans Visuel</span>
-                            </button>
                         </div>
 
                         {/* SECTION B : TEXTES DU SON (TITRE + ARTISTE + LABEL) */}
@@ -14084,13 +14089,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     ) : theme === 'TRACKLIST' ? (
                                         <><span className="text-[10px] font-black text-gray-500 uppercase">Détails Tracklist</span>{tracklistEditor}</>
                                     ) : theme === 'SPOTLIGHT' ? (
-                                        <><span className="text-[10px] font-black text-gray-500 uppercase">Infos Spotlight & Logos</span>{spotlightEditor}</>
+                                        <><span className="text-[10px] font-black text-gray-500 uppercase">Infos & Textes Spotlight</span>{spotlightEditor}</>
                                     ) : theme === 'ARTISTE FESTIVAL' ? (
                                         <><span className="text-[10px] font-black text-neon-red uppercase">Artiste Festival (Carrousel)</span>{artisteFestivalEditor}</>
                                     ) : (theme === 'EVENTS' || theme === 'AFFICHE') ? (
                                         <><span className="text-[10px] font-black text-[#ff007f] uppercase">Événements & Affiche (Carrousel)</span>{eventsEditor}</>
                                     ) : theme === 'MUSIQUE' ? (
-                                        <><span className="text-[10px] font-black text-[#00ff66] uppercase">Musique & Cover Track (Carrousel)</span>{musiqueEditor}</>
+                                        <><span className="text-[10px] font-black text-[#00ff66] uppercase">Musique & Morceaux (Carrousel)</span>{musiqueEditor}</>
                                     ) : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
                                         <><span className="text-[10px] font-black text-neon-cyan uppercase">Contenu Titre & Sous-titre ({theme === 'TOP 100 DROPSIDERS' ? 'TOP 100' : theme === 'JEU' ? 'DEVINE LE CLIP' : theme === 'JEU_FESTIVAL' ? 'DEVINE LE FESTIVAL' : theme === 'JEU_DJ' ? 'DEVINE LE DJ' : theme})</span>{conseilsEditor}</>
                                     ) : theme === 'CITATION' ? (
@@ -14135,10 +14140,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     </>
                                 ) : (
                                     <div className="space-y-3">
-                                        {/* Cover de track pour MUSIQUE (Slide 2+) */}
-                                        {theme === 'MUSIQUE' && editorialSlide >= 2 && (
+                                        {/* Cover pour MUSIQUE (Slide 1 Annonce ou Slide 2+ Morceaux) */}
+                                        {theme === 'MUSIQUE' && (
                                             <div className="space-y-2">
-                                                {musicCoverEditor}
+                                                {editorialSlide === 1 ? musicSlide1VisualEditor : musicCoverEditor}
+                                            </div>
+                                        )}
+
+                                        {/* Logos & Position pour SPOTLIGHT & ARTISTE FESTIVAL (Slide 2) */}
+                                        {(theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) && (
+                                            <div className="space-y-2">
+                                                {spotlightVisualEditor}
                                             </div>
                                         )}
 
@@ -15250,7 +15262,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             </button>
                                             {theme !== 'MAP' && bgAnimationControl}
                                             {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2)) && afficheEditor}
-                                            {theme === 'MUSIQUE' && editorialSlide >= 2 && musicCoverEditor}
+                                            {theme === 'MUSIQUE' && (editorialSlide === 1 ? musicSlide1VisualEditor : musicCoverEditor)}
+                                            {(theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) && spotlightVisualEditor}
                                             {slideVisualEditor}
                                             {quickCarouselDownloadBar}
                                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
