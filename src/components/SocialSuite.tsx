@@ -4616,8 +4616,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-                // Draw Stylized CTA Banner for Devine le Clip / Devine le Festival / Devine le DJ (Slide 1 & Slide 2 Reveal)
-                if ((theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ') && (effectiveEditorialSlide === 1 || (theme === 'JEU_DJ' && effectiveEditorialSlide === 2))) {
+                // Draw Stylized CTA Banner for Devine le Clip / Devine le Festival / Devine le DJ (Slide 2 Reveal uniquement - masqué en Slide 1)
+                const shouldDrawDevinetteCta = theme === 'JEU_DJ'
+                    ? (effectiveEditorialSlide === 2)
+                    : ((theme === 'JEU' || theme === 'JEU_FESTIVAL') && (effectiveEditorialSlide === 2));
+
+                if ((theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ') && shouldDrawDevinetteCta) {
                     ctx.save();
                     const centerX = canvas.width / 2;
                     const ctaY = canvas.height - 60;
@@ -4996,12 +5000,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // --- B) SUBTEXT UNDERNEATH (ITALIC, WITH THEME COLOR HIGHLIGHTS) ---
                 if (bodyText) {
                     ctx.save();
-                    // Sur la slide 2, le texte en dessous est agrandi (jusqu'à 38px si le titre est retiré) pour une excellente lisibilité
-                    let subFontSize = !mainTitleText ? (isReel ? 38 : 34) : (isEditorialCarouselTheme ? 32 : 26);
-                    ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
+                    const isDevinetteTheme = (theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ');
+                    const isDevinetteReveal = isDevinetteTheme && effectiveEditorialSlide === 2;
+                    const subFontWeight = isDevinetteReveal ? '900' : '400';
+                    // Sur la slide 2 révélation, la taille de police de la réponse est fortement agrandie (48px / 54px) en font 900
+                    let subFontSize = isDevinetteReveal
+                        ? (isReel ? 54 : 48)
+                        : (!mainTitleText ? (isReel ? 38 : 34) : (isEditorialCarouselTheme ? 32 : 26));
 
                     const formatSubLines = (fSize: number) => {
-                        ctx.font = `italic 400 ${fSize}px "Montserrat", sans-serif`;
+                        ctx.font = `italic ${subFontWeight} ${fSize}px "Montserrat", sans-serif`;
                         const lines: string[] = [];
                         bodyText.split('\n').forEach(line => {
                             if (!line.trim()) return;
@@ -5021,17 +5029,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         return lines;
                     };
 
+                    const minSubFontSize = isDevinetteReveal ? 28 : 18;
                     let subLines = formatSubLines(subFontSize);
-                    while (subFontSize > 18 && subLines.some(l => ctx.measureText(stripTags(l)).width > lineWidth)) {
+                    while (subFontSize > minSubFontSize && subLines.some(l => ctx.measureText(stripTags(l)).width > lineWidth)) {
                         subFontSize -= 1;
                         subLines = formatSubLines(subFontSize);
                     }
 
-                    const subLineHeight = Math.round(subFontSize * 1.38);
-                    ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
-                    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+                    const subLineHeight = Math.round(subFontSize * (isDevinetteReveal ? 1.28 : 1.38));
+                    ctx.font = `italic ${subFontWeight} ${subFontSize}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = 'rgba(255,255,255,0.95)';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                    ctx.shadowBlur = 4;
+                    ctx.shadowBlur = 5;
                     ctx.textBaseline = 'alphabetic';
 
                     const subBaseDelay = 0.20 + ((mainTitleText ? 1 : 0) * 0.45);
