@@ -11296,43 +11296,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     {(theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ') && (
                         <div className="space-y-3">
-                            {/* Toggle switcher Devine le Clip / Devine le Festival / Devine le DJ */}
-                            <div className="p-1.5 bg-black/60 border border-white/10 rounded-xl flex items-center gap-1 shadow-lg">
-                                <button
-                                    type="button"
-                                    onClick={() => handleSetTheme('JEU')}
-                                    className={`flex-1 py-1.5 px-2 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1 ${
-                                        theme === 'JEU'
-                                            ? 'bg-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.4)] scale-[1.02]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
-                                    }`}
-                                >
-                                    🎬 Devine Clip
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleSetTheme('JEU_FESTIVAL')}
-                                    className={`flex-1 py-1.5 px-2 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1 ${
-                                        theme === 'JEU_FESTIVAL'
-                                            ? 'bg-[#ffaa00] text-black shadow-[0_0_12px_rgba(255,170,0,0.4)] scale-[1.02]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
-                                    }`}
-                                >
-                                    🎪 Devine Festival
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleSetTheme('JEU_DJ')}
-                                    className={`flex-1 py-1.5 px-2 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1 ${
-                                        theme === 'JEU_DJ'
-                                            ? 'bg-[#bd00ff] text-white shadow-[0_0_12px_rgba(189,0,255,0.5)] scale-[1.02]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
-                                    }`}
-                                >
-                                    👤 Devine DJ
-                                </button>
-                            </div>
-
                             {/* Preset buttons pour Devine le Clip */}
                             {theme === 'JEU' && (
                                 <div className="p-2.5 bg-neon-cyan/10 border border-neon-cyan/25 rounded-xl space-y-1.5 shadow-lg">
