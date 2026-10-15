@@ -76,7 +76,18 @@ export function SocialStudioPage() {
 
     return (
         <div className="min-h-screen bg-black">
-            <div className="flex fixed top-4 right-4 lg:top-8 lg:right-8 z-[210] items-center gap-6">
+            <div className="flex fixed top-4 right-4 lg:top-8 lg:right-8 z-[210] items-center gap-4">
+                <a
+                    href="/instagram-follow-mockup.html"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-3 lg:p-4 bg-gradient-to-r from-[#ff007f]/30 to-[#0095f6]/30 hover:from-[#ff007f]/50 hover:to-[#0095f6]/50 text-white rounded-2xl border border-white/30 backdrop-blur-md transition-all flex items-center gap-2.5 font-black text-[10px] uppercase tracking-widest shadow-[0_0_20px_rgba(255,0,128,0.3)] hover:scale-105"
+                    title="Ouvrir l'animation Follow Instagram officielle"
+                >
+                    <Instagram className="w-4 h-4 text-[#ff007f]" />
+                    <span className="hidden sm:inline">ANIMATION INSTA FOLLOW</span>
+                    <span className="sm:hidden">INSTA FOLLOW</span>
+                </a>
                 <button
                     onClick={() => navigate('/admin')}
                     className="p-3 lg:p-4 bg-white/10 hover:bg-neon-red/20 text-white rounded-2xl border border-white/20 transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-[0_0_20px_rgba(255,0,255,0.1)]"
