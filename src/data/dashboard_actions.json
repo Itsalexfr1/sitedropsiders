@@ -56,7 +56,7 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "stats_analytics",
-    "baseColor": "#37ff00",
+    "baseColor": "#00fffb",
     "columns": 1
   },
   {
@@ -68,7 +68,7 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "superadmin",
-    "baseColor": "#0084ff",
+    "baseColor": "#f6ccff",
     "columns": 1
   },
   {
