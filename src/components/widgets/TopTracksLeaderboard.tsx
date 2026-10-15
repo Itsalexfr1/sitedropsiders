@@ -59,6 +59,191 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     const color = resolvedColor || 'var(--color-neon-cyan)';
     const searchTimeout = useRef<any>(null);
 
+    useEffect(() => {
+        const savedVotes = localStorage.getItem('music_voted_tracks');
+        if (savedVotes) setVotedTracks(JSON.parse(savedVotes));
+    }, []);
+
+    const handleSearch = async (q: string) => {
+        setSearchQuery(q);
+        if (!q.trim()) {
+            setSearchResults([]);
+            return;
+        }
+
+        if (searchTimeout.current) clearTimeout(searchTimeout.current);
+        searchTimeout.current = setTimeout(async () => {
+            setIsSearching(true);
+            setSearchError(null);
+            try {
+                const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(q)}`);
+                const data = await res.json();
+                if (res.ok) {
+                    setSearchResults(data);
+                } else {
+                    setSearchError(data.error || 'Erreur recherche');
+                }
+            } catch (err) {
+                setSearchError('Échec de la recherche');
+            } finally {
+                setIsSearching(false);
+            }
+        }, 500);
+    };
+
+    const handleAddTrack = async (track: any) => {
+        try {
+            const res = await fetch('/api/music/vote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    trackTitle: track.title,
+                    media: track.id || track.media,
+                    playerType: 'youtube'
+                })
+            });
+            if (res.ok) {
+                const updatedVotes = [...votedTracks, track.title];
+                setVotedTracks(updatedVotes);
+                localStorage.setItem('music_voted_tracks', JSON.stringify(updatedVotes));
+                setIsSearchOpen(false);
+                setSearchQuery('');
+                setSearchResults([]);
+                
+                // Re-fetch tracks to show the new one without refresh
+                const refreshRes = await fetch('/api/music/top-tracks');
+                if (refreshRes.ok) {
+                    const data = await refreshRes.json();
+                    const filteredData = (Array.isArray(data) ? data : []).filter((item: any) => {
+                        const t = (item.title || '').toUpperCase();
+                        return !t.includes('SORTIES DE LA SEMAINE') && 
+                               !t.includes('WEEKLY SELECTION') &&
+                               !t.includes('DÉVOILE');
+                    });
+                    setTracks(filteredData.slice(0, 5));
+                }
+                const today = new Date().toISOString().split('T')[0];
+                const lastBooster = localStorage.getItem('booster_top_tracks');
+                if (lastBooster !== today) {
+                    triggerBooster();
+                    showNotification('A voté ! Vous remportez un booster de 9 cartes !', 'success');
+                    localStorage.setItem('booster_top_tracks', today);
+                } else {
+                    showNotification('A voté ! (Booster quotidien déjà récupéré pour cette catégorie)', 'success');
+                }
+            }
+        } catch (err) {
+            console.error('Failed to add track', err);
+        }
+    };
+
+    const handleVote = async (title: string, e: React.MouseEvent, media?: string, playerType: string = 'youtube') => {
+        e.stopPropagation();
+        if (!user) {
+            setIsAuthModalOpen(true);
+            return;
+        }
+        if (votedTracks.includes(title)) return;
+
+        try {
+            const res = await fetch('/api/music/vote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    trackTitle: title,
+                    media: media, 
+                    playerType: playerType 
+                })
+            });
+            if (res.ok) {
+                const updatedVotes = [...votedTracks, title];
+                setVotedTracks(updatedVotes);
+                localStorage.setItem('music_voted_tracks', JSON.stringify(updatedVotes));
+                
+                setTracks(prev => prev.map(t => 
+                    t.title === title ? { ...t, votes: (t.votes || 0) + 1 } : t
+                ).sort((a, b) => (b.votes || 0) - (a.votes || 0)));
+                const today = new Date().toISOString().split('T')[0];
+                const lastBooster = localStorage.getItem('booster_top_tracks');
+                if (lastBooster !== today) {
+                    triggerBooster();
+                    showNotification('A voté ! Vous remportez un booster de 9 cartes !', 'success');
+                    localStorage.setItem('booster_top_tracks', today);
+                } else {
+                    showNotification('A voté ! (Booster quotidien déjà récupéré pour cette catégorie)', 'success');
+                }
+            }
+        } catch (err) {
+            console.error('Failed to vote:', err);
+        }
+    };
+
+    const isAdmin = localStorage.getItem('admin_auth_v2') === 'true';
+
+    const handleDelete = async (title: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!isAdmin) return;
+        setDeleteConfirm(title);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteConfirm) return;
+        const title = deleteConfirm;
+        try {
+            const res = await fetch('/api/music/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, adminToken: localStorage.getItem('admin_token') })
+            });
+
+            if (res.ok) {
+                setTracks(prev => prev.filter(t => t.title !== title));
+            }
+        } catch (err) {
+            console.error('Failed to delete track:', err);
+        } finally {
+            setDeleteConfirm(null);
+        }
+    };
+
+    useEffect(() => {
+        const fetchTopTracks = async () => {
+            try {
+                const res = await fetch('/api/music/top-tracks');
+                if (res.ok) {
+                    const data = await res.json();
+                    const filteredData = (Array.isArray(data) ? data : []).filter((item: any) => {
+                        const t = (item.title || '').toUpperCase();
+                        return !t.includes('SORTIES DE LA SEMAINE') && 
+                               !t.includes('WEEKLY SELECTION') &&
+                               !t.includes('DÉVOILE');
+                    });
+                    setTracks(filteredData.slice(0, 5));
+                }
+            } catch (err) {
+                console.error('Failed to fetch top tracks', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const handleTrackVoted = () => {
+            fetchTopTracks();
+            try {
+                const savedVotes = localStorage.getItem('music_voted_tracks');
+                if (savedVotes) setVotedTracks(JSON.parse(savedVotes));
+            } catch {}
+        };
+
+        fetchTopTracks();
+        const interval = setInterval(fetchTopTracks, 30000);
+        window.addEventListener('dropsiders_track_voted', handleTrackVoted);
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('dropsiders_track_voted', handleTrackVoted);
+        };
+    }, []);
+
     const togglePlayTrack = async (track: Track) => {
         if (openTrackTitle === track.title) {
             setOpenTrackTitle(null);
