@@ -775,7 +775,13 @@
             elapsedInterval = setInterval(() => {
                 const diff = (Date.now() - startTime) / 1000;
                 currentSeconds = Math.min(diff, 10.0);
-                timerBadge.innerText = `⏱️ ${currentSeconds.toFixed(1)}s / 10.0s ${currentSeconds < 3.0 ? '(Slide Promo en bas)' : '(Overlay affiché & Texte monté)'}`;
+                let stateText = '(Texte centré)';
+                if (currentSeconds >= 3.0 && currentSeconds < 7.0) {
+                    stateText = '(Overlay Insta affiché & Texte monté)';
+                } else if (currentSeconds >= 7.0) {
+                    stateText = '(Insta disparu • Texte remis normalement)';
+                }
+                timerBadge.innerText = `⏱️ ${currentSeconds.toFixed(1)}s / 10.0s ${stateText}`;
                 
                 if (currentSeconds >= 10.0) {
                     clearInterval(elapsedInterval);
@@ -788,7 +794,8 @@
             // 3.0s : LE TEXTE MONTE AU-DESSUS + L'OVERLAY APPARAÎT
             // 4.3s : Le curseur arrive sur "Suivre"
             // 5.0s : Clic & Transformation en "Suivi ✓"
-            // 5.1s -> 10.0s : Visuel complet suivi et stable
+            // 7.0s : L'OVERLAY DISPARAÎT ET LE TEXTE REDESCEND NORMALEMENT
+            // 7.0s -> 10.0s : Texte de base centré jusqu'à la fin
             // ==========================================
 
             // À 3.0 SECONDES : LE TEXTE DU SLIDE MONTE & L'OVERLAY ARRIVE
@@ -868,6 +875,12 @@
                 pointer.style.opacity = '0';
                 pointer.style.transform = 'translate(190px, 580px) scale(0.9)';
             }, 5700);
+
+            // À 7.0 SECONDES : DISPARITION DU BLOC INSTA & RETOUR DU TEXTE DE BASE NORMALEMENT
+            setTimeout(() => {
+                promoSlideContent.classList.remove('shifted-up');
+                instaOverlay.classList.remove('visible');
+            }, 7000);
         }
 
         window.addEventListener('load', () => {

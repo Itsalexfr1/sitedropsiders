@@ -2565,21 +2565,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isStaticPreview = animElapsed >= 90.0;
                 const tAnim = isStaticPreview ? 10.0 : animElapsed;
 
-                // À 3.0s : le texte promo monte et la carte Instagram apparaît en glissant depuis le bas
+                // Animation Timeline : Apparition à 3.0s, Action follow à 5.1s, Disparition à 7.0s et retour du texte
                 let shiftProgress = 0.0;
                 let cardProgress = 0.0;
                 if (isInstagramStyle) {
-                    if (isStaticPreview || tAnim >= 3.8) {
+                    if (isStaticPreview) {
                         shiftProgress = 1.0;
                         cardProgress = 1.0;
                     } else if (tAnim < 3.0) {
                         shiftProgress = 0.0;
                         cardProgress = 0.0;
-                    } else {
+                    } else if (tAnim < 3.8) {
+                        // Entrée à 3.0s : le texte monte et la carte Instagram apparaît
                         const p = (tAnim - 3.0) / 0.8;
                         const ease = 1 - Math.pow(1 - p, 3);
                         shiftProgress = ease;
                         cardProgress = ease;
+                    } else if (tAnim < 7.0) {
+                        // Affichage actif de 3.8s à 7.0s
+                        shiftProgress = 1.0;
+                        cardProgress = 1.0;
+                    } else if (tAnim < 7.8) {
+                        // À 7.0s : la carte Instagram disparaît et le texte de base redescend normalement
+                        const p = (tAnim - 7.0) / 0.8;
+                        const ease = 1 - Math.pow(1 - p, 3);
+                        shiftProgress = 1.0 - ease;
+                        cardProgress = 1.0 - ease;
+                    } else {
+                        // De 7.8s à 10.0s : texte remis normalement au centre, carte invisible
+                        shiftProgress = 0.0;
+                        cardProgress = 0.0;
                     }
                 }
 
@@ -8956,7 +8971,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {isPromoAnimPlaying ? '⏱️ Lecture animation 10s en direct...' : '▶️ Tester l\'animation 10s dans l\'aperçu'}
                     </button>
                     <div className="p-2 bg-black/50 rounded-lg border border-white/5 text-[8px] text-gray-400 font-medium leading-relaxed">
-                        <span className="text-[#0095f6] font-bold">⏱️ Séquence exportée 10s :</span> 0s à 3s (Visuel promo centré) ➔ 3s (Le texte monte & le profil glisse) ➔ 5.1s (Clic automatique Suivre ➔ Suivi)
+                        <span className="text-[#0095f6] font-bold">⏱️ Séquence exportée 10s :</span> 0s à 3s (Texte centré) ➔ 3s (Montée & Carte Insta) ➔ 5.1s (Clic Suivre ➔ Suivi) ➔ 7s (Disparition Insta & Texte remis normalement)
                     </div>
                 </div>
             </div>
