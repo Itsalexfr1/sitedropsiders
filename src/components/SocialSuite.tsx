@@ -2565,18 +2565,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isStaticPreview = animElapsed >= 90.0;
                 const tAnim = isStaticPreview ? 10.0 : animElapsed;
 
-                // À 4.0s : le texte promo monte et la carte Instagram apparaît en glissant depuis le bas
+                // À 3.0s : le texte promo monte et la carte Instagram apparaît en glissant depuis le bas
                 let shiftProgress = 0.0;
                 let cardProgress = 0.0;
                 if (isInstagramStyle) {
-                    if (isStaticPreview || tAnim >= 4.8) {
+                    if (isStaticPreview || tAnim >= 3.8) {
                         shiftProgress = 1.0;
                         cardProgress = 1.0;
-                    } else if (tAnim < 4.0) {
+                    } else if (tAnim < 3.0) {
                         shiftProgress = 0.0;
                         cardProgress = 0.0;
                     } else {
-                        const p = (tAnim - 4.0) / 0.8;
+                        const p = (tAnim - 3.0) / 0.8;
                         const ease = 1 - Math.pow(1 - p, 3);
                         shiftProgress = ease;
                         cardProgress = ease;
@@ -2789,7 +2789,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
 
                         // 3. Stats Réelles Officielles (1 440 publications • 4 694 -> 4 695 abonnés • 668 abonnements)
-                        const isFollowed = isStaticPreview || tAnim >= 6.1;
+                        const isFollowed = isStaticPreview || tAnim >= 5.1;
                         const followersCountStr = isFollowed ? '4 695' : '4 694';
 
                         const statsStartX = cardX + (isReel ? 220 : 200);
@@ -2807,7 +2807,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'alphabetic';
                             ctx.font = `800 ${isReel ? 30 : 26}px -apple-system, "Inter", sans-serif`;
-                            ctx.fillStyle = (idx === 1 && isFollowed && !isStaticPreview && tAnim < 7.5) ? '#00f0ff' : '#ffffff';
+                            ctx.fillStyle = (idx === 1 && isFollowed && !isStaticPreview && tAnim < 6.5) ? '#00f0ff' : '#ffffff';
                             ctx.fillText(st.val, sx, sy);
 
                             ctx.font = `500 ${isReel ? 16 : 14}px -apple-system, "Inter", sans-serif`;
@@ -2866,11 +2866,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const btnGap = 16;
                         const btnW = (cardW - 64 - btnGap) / 2;
 
-                        // Bouton 1 : Suivre -> Suivi (avec appui / clic animé à 5.9s - 6.1s)
+                        // Bouton 1 : Suivre -> Suivi (avec appui / clic animé à 4.9s - 5.1s)
                         const btn1X = infoX;
                         const btn1CenterX = btn1X + btnW / 2;
                         const btn1CenterY = btnRowY + btnH / 2;
-                        const isPressingBtn = (!isStaticPreview && tAnim >= 5.9 && tAnim < 6.1);
+                        const isPressingBtn = (!isStaticPreview && tAnim >= 4.9 && tAnim < 5.1);
                         const btnScale = isPressingBtn ? 0.94 : 1.0;
 
                         ctx.save();
@@ -2910,9 +2910,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                         ctx.restore();
 
-                        // Onde de choc (shockwave) à 6.1s
-                        if (!isStaticPreview && tAnim >= 6.1 && tAnim < 6.7) {
-                            const waveP = (tAnim - 6.1) / 0.6;
+                        // Onde de choc (shockwave) à 5.1s
+                        if (!isStaticPreview && tAnim >= 5.1 && tAnim < 5.7) {
+                            const waveP = (tAnim - 5.1) / 0.6;
                             const waveR = 25 + waveP * 110;
                             const waveA = (1 - waveP) * 0.7;
                             ctx.save();
@@ -2940,26 +2940,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillStyle = '#ffffff';
                         ctx.fillText('Message', btn2X + btnW / 2, btnRowY + btnH / 2);
 
-                        // 6. Curseur tactile animé (Pointer) entre 5.3s et 6.4s
-                        if (!isStaticPreview && tAnim >= 5.3 && tAnim < 6.4) {
+                        // 6. Curseur tactile animé (Pointer) entre 4.3s et 5.4s
+                        if (!isStaticPreview && tAnim >= 4.3 && tAnim < 5.4) {
                             let pX = btn1CenterX;
                             let pY = btn1CenterY;
                             let pScale = 1.0;
                             let pAlpha = 1.0;
 
-                            if (tAnim < 5.9) {
-                                const p = (tAnim - 5.3) / 0.6;
+                            if (tAnim < 4.9) {
+                                const p = (tAnim - 4.3) / 0.6;
                                 const ease = 1 - Math.pow(1 - p, 3);
                                 pX = btn1CenterX + (1 - ease) * 90;
                                 pY = btn1CenterY + (1 - ease) * 120;
                                 pAlpha = Math.min(1, p * 2);
-                            } else if (tAnim < 6.1) {
+                            } else if (tAnim < 5.1) {
                                 pX = btn1CenterX;
                                 pY = btn1CenterY;
                                 pScale = 0.85;
                                 pAlpha = 1.0;
                             } else {
-                                const p = (tAnim - 6.1) / 0.3;
+                                const p = (tAnim - 5.1) / 0.3;
                                 pX = btn1CenterX;
                                 pY = btn1CenterY;
                                 pScale = 1.0;
@@ -8956,7 +8956,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {isPromoAnimPlaying ? '⏱️ Lecture animation 10s en direct...' : '▶️ Tester l\'animation 10s dans l\'aperçu'}
                     </button>
                     <div className="p-2 bg-black/50 rounded-lg border border-white/5 text-[8px] text-gray-400 font-medium leading-relaxed">
-                        <span className="text-[#0095f6] font-bold">⏱️ Séquence exportée 10s :</span> 0s à 4s (Visuel promo centré) ➔ 4s (Le texte monte & le profil glisse) ➔ 6.1s (Clic automatique Suivre ➔ Suivi)
+                        <span className="text-[#0095f6] font-bold">⏱️ Séquence exportée 10s :</span> 0s à 3s (Visuel promo centré) ➔ 3s (Le texte monte & le profil glisse) ➔ 5.1s (Clic automatique Suivre ➔ Suivi)
                     </div>
                 </div>
             </div>
