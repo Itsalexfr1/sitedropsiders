@@ -1420,8 +1420,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const effectiveEditorialSlide = editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide;
             const effectiveTransitionProgress = transitionProgressRef.current !== null ? transitionProgressRef.current : transitionProgress;
 
-            // Image spécifique à la slide ou image de fond globale
-            const activeSlideImgSrc = editorialSlideImages[effectiveEditorialSlide] || bgImage;
+            // Image spécifique à la slide ou image de fond globale (dans JEU_DJ, la Slide 2 hérite automatiquement du fond de la Slide 1)
+            const activeSlideImgSrc = (theme === 'JEU_DJ' && effectiveEditorialSlide === 2 && (!editorialSlideImages[2] || editorialSlideImages[2] === djOriginalImage))
+                ? (editorialSlideImages[1] || bgImage)
+                : (editorialSlideImages[effectiveEditorialSlide] || bgImage);
             if (activeSlideImgSrc) {
                 if (imageCacheRef.current[activeSlideImgSrc]) {
                     img = imageCacheRef.current[activeSlideImgSrc];
@@ -1444,8 +1446,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     : (effectiveEditorialSlide % 2 === 1)
             );
 
-            // Image détourée IA pour JEU_DJ (pour la slide active)
-            const activeCutoutSrc = editorialSlideCutouts[effectiveEditorialSlide] || (effectiveEditorialSlide === 1 ? djCutoutImage : null);
+            // Image détourée IA pour JEU_DJ (pour la slide active ou héritée de Slide 1)
+            const activeCutoutSrc = editorialSlideCutouts[effectiveEditorialSlide] || djCutoutImage || null;
             let djCutoutImgObj: HTMLImageElement | null = null;
             if (activeCutoutSrc) {
                 if (imageCacheRef.current[activeCutoutSrc]) {
@@ -1677,13 +1679,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const x = (canvas.width - iw) + bgOffsetX + bgAnimX;
                     const y = ((canvas.height - ih) / 2) + bgOffsetY + bgAnimY;
                     ctx.drawImage(effectiveImg, x, y, iw, ih);
-                } else if (theme === 'JEU_DJ' && isCurrentSlideSilhouette) {
-                    // SILHOUETTE MYSTÈRE DJ (Fond visuel scénique + Silhouette Noire avec Rim Light & Halo + Animations d'apparition)
+                } else if (theme === 'JEU_DJ') {
+                    // SILHOUETTE MYSTÈRE & RÉVÉLATION DJ
+                    // Le fond scénique de Slide 1 est partagé avec la Slide 2 pour conserver le même décor
                     const bgPhoto = img;
                     const isImgTransparent = bgPhoto ? checkImageHasAlpha(bgPhoto) : false;
                     const activeSilhouetteImg = djCutoutImgObj || (isImgTransparent ? bgPhoto : null);
 
-                    // 1. DESSIN DU FOND VISUEL SCÉNIQUE
+                    // 1. DESSIN DU FOND VISUEL SCÉNIQUE (identique sur Slide 1 et Slide 2)
                     if (bgPhoto && (!isImgTransparent || djCutoutImgObj)) {
                         // Dessiner la photo comme fond de scène / club / festival
                         const baseScale = Math.max(canvas.width / bgPhoto.width, canvas.height / bgPhoto.height);
@@ -1694,7 +1697,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const by = ((canvas.height - bih) / 2) + bgOffsetY + bgAnimY;
                         ctx.drawImage(bgPhoto, bx, by, biw, bih);
 
-                        // Voile atmosphérique club/EDM sombre immersif pour faire ressortir la silhouette & le texte
+                        // Voile atmosphérique club/EDM sombre immersif pour faire ressortir l'artiste & le texte
                         const bgOverlay = ctx.createLinearGradient(0, 0, 0, canvas.height);
                         bgOverlay.addColorStop(0, 'rgba(4, 6, 14, 0.40)');
                         bgOverlay.addColorStop(0.35, 'rgba(4, 6, 14, 0.65)');
@@ -1720,168 +1723,209 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
                     const rgbColor = hexToRgb(djSilhouetteColor);
 
-                    // 2. DESSIN DE LA SILHOUETTE (si détourée ou PNG transparent)
-                    if (activeSilhouetteImg) {
-                        const baseScale = Math.min((canvas.width * 0.90) / activeSilhouetteImg.width, (canvas.height * 0.70) / activeSilhouetteImg.height);
-                        let scale = (baseScale > 1.25 ? baseScale : Math.max(canvas.width / activeSilhouetteImg.width, canvas.height / activeSilhouetteImg.height) * 0.92) * bgAnimScale;
+                    // 2. DESSIN DE L'ARTISTE : SILHOUETTE (Slide 1) vs RÉVÉLATION EN COULEUR (Slide 2)
+                    if (isCurrentSlideSilhouette) {
+                        if (activeSilhouetteImg) {
+                            const baseScale = Math.min((canvas.width * 0.90) / activeSilhouetteImg.width, (canvas.height * 0.70) / activeSilhouetteImg.height);
+                            let scale = (baseScale > 1.25 ? baseScale : Math.max(canvas.width / activeSilhouetteImg.width, canvas.height / activeSilhouetteImg.height) * 0.92) * bgAnimScale;
 
-                        // Application de l'effet d'apparition choisi
-                        let silAlpha = 1.0;
-                        let silGlowBlur = djGlowIntensity;
-                        let scanLaserY: number | null = null;
+                            // Application de l'effet d'apparition choisi
+                            let silAlpha = 1.0;
+                            let silGlowBlur = djGlowIntensity;
+                            let scanLaserY: number | null = null;
 
-                        if (djAppearanceAnim === 'STROBE') {
-                            if (animElapsed < 0.85) {
-                                const step = Math.floor(animElapsed * 26);
-                                const flicker = (step % 4 !== 1 && step % 7 !== 2);
-                                silAlpha = flicker ? 1.0 : 0.20;
-                                silGlowBlur = flicker ? djGlowIntensity * 1.6 : djGlowIntensity * 0.3;
+                            if (djAppearanceAnim === 'STROBE') {
+                                if (animElapsed < 0.85) {
+                                    const step = Math.floor(animElapsed * 26);
+                                    const flicker = (step % 4 !== 1 && step % 7 !== 2);
+                                    silAlpha = flicker ? 1.0 : 0.20;
+                                    silGlowBlur = flicker ? djGlowIntensity * 1.6 : djGlowIntensity * 0.3;
+                                }
+                            } else if (djAppearanceAnim === 'PULSE') {
+                                const pulse = Math.pow(Math.sin(animElapsed * Math.PI * 2.13), 4);
+                                silGlowBlur = djGlowIntensity * (0.75 + 0.65 * pulse);
+                                scale *= (1.0 + pulse * 0.025);
+                            } else if (djAppearanceAnim === 'FADE') {
+                                const t = Math.max(0, Math.min(1, animElapsed / 0.75));
+                                const ease = 1 - Math.pow(1 - t, 3);
+                                silAlpha = ease;
+                                scale *= (0.92 + 0.08 * ease);
+                                silGlowBlur = djGlowIntensity * ease;
+                            } else if (djAppearanceAnim === 'SCAN') {
+                                const tScan = (animElapsed % 2.4) / 2.4;
+                                scanLaserY = ((canvas.height * 0.44) - (activeSilhouetteImg.height * scale) / 2) + ((activeSilhouetteImg.height * scale) * tScan);
+                                silGlowBlur = djGlowIntensity * (0.9 + Math.sin(tScan * Math.PI) * 0.4);
+                            } else if (djAppearanceAnim === 'IMPACT') {
+                                const t = Math.max(0, Math.min(1, animElapsed / 0.50));
+                                const ease = 1 - Math.pow(1 - t, 4);
+                                scale *= (1.35 - 0.35 * ease);
+                                silAlpha = Math.min(1, t * 2.5);
                             }
-                        } else if (djAppearanceAnim === 'PULSE') {
-                            const pulse = Math.pow(Math.sin(animElapsed * Math.PI * 2.13), 4);
-                            silGlowBlur = djGlowIntensity * (0.75 + 0.65 * pulse);
-                            scale *= (1.0 + pulse * 0.025);
-                        } else if (djAppearanceAnim === 'FADE') {
-                            const t = Math.max(0, Math.min(1, animElapsed / 0.75));
-                            const ease = 1 - Math.pow(1 - t, 3);
-                            silAlpha = ease;
-                            scale *= (0.92 + 0.08 * ease);
-                            silGlowBlur = djGlowIntensity * ease;
-                        } else if (djAppearanceAnim === 'SCAN') {
-                            const tScan = (animElapsed % 2.4) / 2.4;
-                            scanLaserY = ((canvas.height * 0.44) - (activeSilhouetteImg.height * scale) / 2) + ((activeSilhouetteImg.height * scale) * tScan);
-                            silGlowBlur = djGlowIntensity * (0.9 + Math.sin(tScan * Math.PI) * 0.4);
-                        } else if (djAppearanceAnim === 'IMPACT') {
-                            const t = Math.max(0, Math.min(1, animElapsed / 0.50));
-                            const ease = 1 - Math.pow(1 - t, 4);
-                            scale *= (1.35 - 0.35 * ease);
-                            silAlpha = Math.min(1, t * 2.5);
-                        }
 
-                        const iw = activeSilhouetteImg.width * scale;
-                        const ih = activeSilhouetteImg.height * scale;
-                        const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
-                        const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
+                            const iw = activeSilhouetteImg.width * scale;
+                            const ih = activeSilhouetteImg.height * scale;
+                            const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
+                            const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
 
-                        // Lueur d'ambiance scénique derrière la silhouette (couleur néon choisie)
-                        const haloGrad = ctx.createRadialGradient(canvas.width / 2, y + ih * 0.42, 20, canvas.width / 2, y + ih * 0.42, Math.max(iw, ih) * 0.60);
-                        haloGrad.addColorStop(0, `rgba(${rgbColor}, 0.30)`);
-                        haloGrad.addColorStop(0.5, `rgba(${rgbColor}, 0.09)`);
-                        haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                        ctx.fillStyle = haloGrad;
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            // Lueur d'ambiance scénique derrière la silhouette (couleur néon choisie)
+                            const haloGrad = ctx.createRadialGradient(canvas.width / 2, y + ih * 0.42, 20, canvas.width / 2, y + ih * 0.42, Math.max(iw, ih) * 0.60);
+                            haloGrad.addColorStop(0, `rgba(${rgbColor}, 0.30)`);
+                            haloGrad.addColorStop(0.5, `rgba(${rgbColor}, 0.09)`);
+                            haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                            ctx.fillStyle = haloGrad;
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                        // Traitement silhouette via canvas hors écran (fond transparent rempli en noir pur)
-                        const off = document.createElement('canvas');
-                        off.width = activeSilhouetteImg.width;
-                        off.height = activeSilhouetteImg.height;
-                        const offCtx = off.getContext('2d');
-                        if (offCtx) {
-                            offCtx.drawImage(activeSilhouetteImg, 0, 0);
-                            offCtx.globalCompositeOperation = 'source-in';
-                            offCtx.fillStyle = '#060810';
-                            offCtx.fillRect(0, 0, off.width, off.height);
-                        }
+                            // Traitement silhouette via canvas hors écran (fond transparent rempli en noir pur)
+                            const off = document.createElement('canvas');
+                            off.width = activeSilhouetteImg.width;
+                            off.height = activeSilhouetteImg.height;
+                            const offCtx = off.getContext('2d');
+                            if (offCtx) {
+                                offCtx.drawImage(activeSilhouetteImg, 0, 0);
+                                offCtx.globalCompositeOperation = 'source-in';
+                                offCtx.fillStyle = '#060810';
+                                offCtx.fillRect(0, 0, off.width, off.height);
+                            }
 
-                        // Dessin du halo / néon rim light
-                        ctx.save();
-                        ctx.globalAlpha = silAlpha;
-                        ctx.shadowColor = djSilhouetteColor;
-                        ctx.shadowBlur = silGlowBlur;
-                        ctx.drawImage(off, x, y, iw, ih);
-                        ctx.drawImage(off, x, y, iw, ih);
-                        ctx.restore();
-
-                        // Dessin de la silhouette noire pure
-                        ctx.save();
-                        ctx.globalAlpha = silAlpha;
-                        ctx.drawImage(off, x, y, iw, ih);
-                        ctx.restore();
-
-                        // Faisceau Laser vertical si SCAN
-                        if (scanLaserY !== null && djAppearanceAnim === 'SCAN') {
-                            ctx.save();
-                            const laserGrad = ctx.createLinearGradient(x - 50, scanLaserY, x + iw + 50, scanLaserY);
-                            laserGrad.addColorStop(0, 'rgba(0,0,0,0)');
-                            laserGrad.addColorStop(0.2, djSilhouetteColor);
-                            laserGrad.addColorStop(0.5, '#ffffff');
-                            laserGrad.addColorStop(0.8, djSilhouetteColor);
-                            laserGrad.addColorStop(1, 'rgba(0,0,0,0)');
-                            ctx.fillStyle = laserGrad;
-                            ctx.shadowColor = djSilhouetteColor;
-                            ctx.shadowBlur = 16;
-                            ctx.fillRect(x - 50, scanLaserY - 2.5, iw + 100, 5);
-                            ctx.restore();
-                        }
-
-                        // Badge mystère "?" chic sur la silhouette
-                        if (djShowQuestionMark) {
+                            // Dessin du halo / néon rim light
                             ctx.save();
                             ctx.globalAlpha = silAlpha;
-                            const qX = x + (iw / 2);
-                            const qY = y + (ih * 0.38);
-                            const qRadius = 42;
-
                             ctx.shadowColor = djSilhouetteColor;
-                            ctx.shadowBlur = 18;
-                            const discGrad = ctx.createLinearGradient(qX - qRadius, qY - qRadius, qX + qRadius, qY + qRadius);
-                            discGrad.addColorStop(0, 'rgba(15, 20, 35, 0.94)');
-                            discGrad.addColorStop(1, 'rgba(6, 8, 16, 0.98)');
-                            ctx.fillStyle = discGrad;
-                            ctx.beginPath();
-                            ctx.arc(qX, qY, qRadius, 0, Math.PI * 2);
-                            ctx.fill();
-
-                            ctx.strokeStyle = djSilhouetteColor;
-                            ctx.lineWidth = 2.5;
-                            ctx.stroke();
-
-                            ctx.font = '900 italic 50px "Montserrat", sans-serif';
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'middle';
-                            ctx.fillStyle = '#ffffff';
-                            ctx.shadowColor = djSilhouetteColor;
-                            ctx.shadowBlur = 10;
-                            ctx.fillText('?', qX, qY + 2);
+                            ctx.shadowBlur = silGlowBlur;
+                            ctx.drawImage(off, x, y, iw, ih);
+                            ctx.drawImage(off, x, y, iw, ih);
                             ctx.restore();
+
+                            // Dessin de la silhouette noire pure
+                            ctx.save();
+                            ctx.globalAlpha = silAlpha;
+                            ctx.drawImage(off, x, y, iw, ih);
+                            ctx.restore();
+
+                            // Faisceau Laser vertical si SCAN
+                            if (scanLaserY !== null && djAppearanceAnim === 'SCAN') {
+                                ctx.save();
+                                const laserGrad = ctx.createLinearGradient(x - 50, scanLaserY, x + iw + 50, scanLaserY);
+                                laserGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                                laserGrad.addColorStop(0.2, djSilhouetteColor);
+                                laserGrad.addColorStop(0.5, '#ffffff');
+                                laserGrad.addColorStop(0.8, djSilhouetteColor);
+                                laserGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                                ctx.fillStyle = laserGrad;
+                                ctx.shadowColor = djSilhouetteColor;
+                                ctx.shadowBlur = 16;
+                                ctx.fillRect(x - 50, scanLaserY - 2.5, iw + 100, 5);
+                                ctx.restore();
+                            }
+
+                            // Badge mystère "?" chic sur la silhouette
+                            if (djShowQuestionMark) {
+                                ctx.save();
+                                ctx.globalAlpha = silAlpha;
+                                const qX = x + (iw / 2);
+                                const qY = y + (ih * 0.38);
+                                const qRadius = 42;
+
+                                ctx.shadowColor = djSilhouetteColor;
+                                ctx.shadowBlur = 18;
+                                const discGrad = ctx.createLinearGradient(qX - qRadius, qY - qRadius, qX + qRadius, qY + qRadius);
+                                discGrad.addColorStop(0, 'rgba(15, 20, 35, 0.94)');
+                                discGrad.addColorStop(1, 'rgba(6, 8, 16, 0.98)');
+                                ctx.fillStyle = discGrad;
+                                ctx.beginPath();
+                                ctx.arc(qX, qY, qRadius, 0, Math.PI * 2);
+                                ctx.fill();
+
+                                ctx.strokeStyle = djSilhouetteColor;
+                                ctx.lineWidth = 2.5;
+                                ctx.stroke();
+
+                                ctx.font = '900 italic 50px "Montserrat", sans-serif';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillStyle = '#ffffff';
+                                ctx.shadowColor = djSilhouetteColor;
+                                ctx.shadowBlur = 10;
+                                ctx.fillText('?', qX, qY + 2);
+                                ctx.restore();
+                            }
+                        } else {
+                            // Pas encore de silhouette détourée : halo d'ambiance et badge mystère central sur le fond visuel
+                            const haloGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height * 0.42, 20, canvas.width / 2, canvas.height * 0.42, 380);
+                            haloGrad.addColorStop(0, `rgba(${rgbColor}, 0.28)`);
+                            haloGrad.addColorStop(0.5, `rgba(${rgbColor}, 0.08)`);
+                            haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                            ctx.fillStyle = haloGrad;
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                            if (djShowQuestionMark) {
+                                ctx.save();
+                                const qX = canvas.width / 2 + bgOffsetX;
+                                const qY = canvas.height * 0.42 + bgOffsetY;
+                                const qRadius = 50;
+
+                                ctx.shadowColor = djSilhouetteColor;
+                                ctx.shadowBlur = 22;
+                                const discGrad = ctx.createLinearGradient(qX - qRadius, qY - qRadius, qX + qRadius, qY + qRadius);
+                                discGrad.addColorStop(0, 'rgba(18, 24, 42, 0.95)');
+                                discGrad.addColorStop(1, 'rgba(6, 8, 16, 0.98)');
+                                ctx.fillStyle = discGrad;
+                                ctx.beginPath();
+                                ctx.arc(qX, qY, qRadius, 0, Math.PI * 2);
+                                ctx.fill();
+
+                                ctx.strokeStyle = djSilhouetteColor;
+                                ctx.lineWidth = 3;
+                                ctx.stroke();
+
+                                ctx.font = '900 italic 56px "Montserrat", sans-serif';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillStyle = '#ffffff';
+                                ctx.shadowColor = djSilhouetteColor;
+                                ctx.shadowBlur = 12;
+                                ctx.fillText('?', qX, qY + 2);
+                                ctx.restore();
+                            }
                         }
                     } else {
-                        // Pas encore de silhouette détourée : halo d'ambiance et badge mystère central sur le fond visuel
-                        const haloGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height * 0.42, 20, canvas.width / 2, canvas.height * 0.42, 380);
-                        haloGrad.addColorStop(0, `rgba(${rgbColor}, 0.28)`);
-                        haloGrad.addColorStop(0.5, `rgba(${rgbColor}, 0.08)`);
-                        haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                        ctx.fillStyle = haloGrad;
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        // SLIDE 2 : RÉVÉLATION DU DJ EN COULEURS NON MASQUÉ SUR LE MÊME FOND DE SCÈNE
+                        const activeRevealImg = djCutoutImgObj || djOriginalImgObj || (editorialSlideImages[2] ? imageCacheRef.current[editorialSlideImages[2]] : null);
+                        if (activeRevealImg) {
+                            const isCutout = Boolean(djCutoutImgObj && activeRevealImg === djCutoutImgObj) || checkImageHasAlpha(activeRevealImg);
+                            if (isCutout) {
+                                // Dessin du DJ détouré en couleur naturelle à la même position exacte que la silhouette
+                                const baseScale = Math.min((canvas.width * 0.90) / activeRevealImg.width, (canvas.height * 0.70) / activeRevealImg.height);
+                                let scale = (baseScale > 1.25 ? baseScale : Math.max(canvas.width / activeRevealImg.width, canvas.height / activeRevealImg.height) * 0.92) * bgAnimScale;
+                                const iw = activeRevealImg.width * scale;
+                                const ih = activeRevealImg.height * scale;
+                                const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
+                                const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
 
-                        if (djShowQuestionMark) {
-                            ctx.save();
-                            const qX = canvas.width / 2 + bgOffsetX;
-                            const qY = canvas.height * 0.42 + bgOffsetY;
-                            const qRadius = 50;
+                                // Lueur d'ambiance cyan/émeraude subtile pour détacher l'artiste du fond
+                                const haloGrad = ctx.createRadialGradient(canvas.width / 2, y + ih * 0.42, 20, canvas.width / 2, y + ih * 0.42, Math.max(iw, ih) * 0.60);
+                                haloGrad.addColorStop(0, 'rgba(0, 240, 255, 0.22)');
+                                haloGrad.addColorStop(0.5, 'rgba(0, 240, 255, 0.05)');
+                                haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                                ctx.fillStyle = haloGrad;
+                                ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                            ctx.shadowColor = djSilhouetteColor;
-                            ctx.shadowBlur = 22;
-                            const discGrad = ctx.createLinearGradient(qX - qRadius, qY - qRadius, qX + qRadius, qY + qRadius);
-                            discGrad.addColorStop(0, 'rgba(18, 24, 42, 0.95)');
-                            discGrad.addColorStop(1, 'rgba(6, 8, 16, 0.98)');
-                            ctx.fillStyle = discGrad;
-                            ctx.beginPath();
-                            ctx.arc(qX, qY, qRadius, 0, Math.PI * 2);
-                            ctx.fill();
-
-                            ctx.strokeStyle = djSilhouetteColor;
-                            ctx.lineWidth = 3;
-                            ctx.stroke();
-
-                            ctx.font = '900 italic 56px "Montserrat", sans-serif';
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'middle';
-                            ctx.fillStyle = '#ffffff';
-                            ctx.shadowColor = djSilhouetteColor;
-                            ctx.shadowBlur = 12;
-                            ctx.fillText('?', qX, qY + 2);
-                            ctx.restore();
+                                ctx.save();
+                                // Ombre portée de profondeur
+                                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                                ctx.shadowBlur = 32;
+                                ctx.drawImage(activeRevealImg, x, y, iw, ih);
+                                ctx.restore();
+                            } else {
+                                // Photo DJ originale non détourée : affichage centré sur le décor
+                                const baseScale = Math.max(canvas.width / activeRevealImg.width, canvas.height / activeRevealImg.height);
+                                const scale = baseScale * bgAnimScale;
+                                const iw = activeRevealImg.width * scale;
+                                const ih = activeRevealImg.height * scale;
+                                const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
+                                const y = ((canvas.height - ih) / 2) + bgOffsetY + bgAnimY;
+                                ctx.drawImage(activeRevealImg, x, y, iw, ih);
+                            }
                         }
                     }
                 } else {
@@ -5462,7 +5506,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 imageCacheRef.current[url] = img;
                 setBgImage(url);
                 setBgVideo(null);
-                setDjOriginalImage(url);
+                if (theme !== 'JEU_DJ') {
+                    setDjOriginalImage(url);
+                }
                 setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
                 generateImage();
             };
@@ -9960,15 +10006,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         img.crossOrigin = "anonymous";
         img.onload = () => {
             imageCacheRef.current[url] = img;
-            setBgImage(url);
-            setBgVideo(null);
             setDjOriginalImage(url);
-            setEditorialSlideImages(prev => {
-                const next: Record<number, string> = { ...prev, [editorialSlide]: url };
-                if (!next[1]) next[1] = url;
-                if (!next[2]) next[2] = url;
-                return next;
-            });
+            // Si aucun fond de scène n'est encore défini, l'initialiser
+            if (!bgImage) {
+                setBgImage(url);
+            }
             generateImage();
         };
         img.src = url;
@@ -13357,7 +13399,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         imageCacheRef.current[url] = img;
                                         setBgImage(url);
                                         setBgVideo(null);
-                                        setDjOriginalImage(url);
+                                        if (theme !== 'JEU_DJ') {
+                                            setDjOriginalImage(url);
+                                        }
                                         setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
                                         generateImage();
                                     };
@@ -15391,7 +15435,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 imageCacheRef.current[finalUrl] = img;
                                 setBgImage(finalUrl);
                                 setBgVideo(null);
-                                setDjOriginalImage(finalUrl);
+                                if (theme !== 'JEU_DJ') {
+                                    setDjOriginalImage(finalUrl);
+                                }
                                 setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: finalUrl }));
                                 generateImage();
                             };
