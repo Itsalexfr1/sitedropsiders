@@ -1942,8 +1942,8 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     trackTitle: currentTrackTitle,
-                    media: currentSet.youtubeId || currentSet.audioUrl || currentSet.soundcloudUrl,
-                    playerType: 'radio'
+                    media: currentSet.youtubeId || currentSet.soundcloudUrl || currentSet.audioUrl,
+                    playerType: currentSet.youtubeId ? 'youtube' : currentSet.soundcloudUrl ? 'soundcloud' : currentSet.audioUrl ? 'audio' : 'radio'
                 })
             });
 
@@ -2314,8 +2314,8 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     trackTitle: currentTrackTitle,
-                    media: currentSet.youtubeId || currentSet.audioUrl || currentSet.soundcloudUrl,
-                    playerType: 'radio'
+                    media: currentSet.youtubeId || currentSet.soundcloudUrl || currentSet.audioUrl,
+                    playerType: currentSet.youtubeId ? 'youtube' : currentSet.soundcloudUrl ? 'soundcloud' : currentSet.audioUrl ? 'audio' : 'radio'
                 })
             });
 

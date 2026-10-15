@@ -813,13 +813,15 @@ export function RadioPage() {
         }
         setVoteLoading(true);
         try {
+            const effectiveMedia = currentSet?.youtubeId || currentSet?.soundcloudUrl || currentSet?.audioUrl || media;
+            const effectivePlayerType = currentSet?.youtubeId ? 'youtube' : currentSet?.soundcloudUrl ? 'soundcloud' : currentSet?.audioUrl ? 'audio' : 'radio';
             const res = await fetch('/api/music/vote', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     trackTitle: title,
-                    media,
-                    playerType: 'radio'
+                    media: effectiveMedia,
+                    playerType: effectivePlayerType
                 })
             });
             if (res.ok) {

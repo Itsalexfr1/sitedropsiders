@@ -1,11 +1,35 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, TrendingUp, Heart, Search, X, Plus, Youtube, Trophy, Trash2 } from 'lucide-react';
+import { Music, TrendingUp, Heart, Search, X, Plus, Youtube, Trophy, Trash2, Play, Volume2, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { useUser } from '../../context/UserContext';
 import { UserAuthModal } from '../auth/UserAuthModal';
 import { ConfirmationModal } from '../ConfirmationModal';
+
+function extractYouTubeId(urlOrId?: string | null): string | null {
+    if (!urlOrId) return null;
+    const trimmed = urlOrId.trim();
+    if (/^[A-Za-z0-9_-]{11}$/.test(trimmed)) return trimmed;
+    const match = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    return match ? match[1] : null;
+}
+
+function extractSpotifyId(urlOrId?: string | null): string | null {
+    if (!urlOrId) return null;
+    const trimmed = urlOrId.trim();
+    const match = trimmed.match(/track\/([a-zA-Z0-9]+)/);
+    if (match) return match[1];
+    if (/^[a-zA-Z0-9]{22}$/.test(trimmed)) return trimmed;
+    return null;
+}
+
+function extractBeatportId(urlOrId?: string | null): string | null {
+    if (!urlOrId) return null;
+    const trimmed = urlOrId.trim();
+    const match = trimmed.match(/\b\d{5,}\b/);
+    return match ? match[0] : null;
+}
 
 interface Track {
     title: string;
@@ -20,6 +44,8 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     const [tracks, setTracks] = useState<Track[]>([]);
     const [loading, setLoading] = useState(true);
     const [openTrackTitle, setOpenTrackTitle] = useState<string | null>(null);
+    const [resolvedMedia, setResolvedMedia] = useState<Record<string, { media: string; playerType: string }>>({});
+    const [isResolving, setIsResolving] = useState<string | null>(null);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -33,201 +59,72 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     const color = resolvedColor || 'var(--color-neon-cyan)';
     const searchTimeout = useRef<any>(null);
 
-    useEffect(() => {
-        const savedVotes = localStorage.getItem('music_voted_tracks');
-        if (savedVotes) setVotedTracks(JSON.parse(savedVotes));
-    }, []);
-
-    const handleSearch = async (q: string) => {
-        setSearchQuery(q);
-        if (!q.trim()) {
-            setSearchResults([]);
+    const togglePlayTrack = async (track: Track) => {
+        if (openTrackTitle === track.title) {
+            setOpenTrackTitle(null);
             return;
         }
+        setOpenTrackTitle(track.title);
 
-        if (searchTimeout.current) clearTimeout(searchTimeout.current);
-        searchTimeout.current = setTimeout(async () => {
-            setIsSearching(true);
-            setSearchError(null);
+        // If track has no media, try to resolve via /api/youtube/search-media
+        if (!track.media && !resolvedMedia[track.title]) {
+            setIsResolving(track.title);
             try {
-                const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(q)}`);
-                const data = await res.json();
+                const res = await fetch(`/api/youtube/search-media?q=${encodeURIComponent(track.title)}`);
                 if (res.ok) {
-                    setSearchResults(data);
-                } else {
-                    setSearchError(data.error || 'Erreur recherche');
+                    const results = await res.json();
+                    if (Array.isArray(results) && results.length > 0) {
+                        const best = results[0];
+                        const id = best.id || best.youtubeId;
+                        if (id) {
+                            setResolvedMedia(prev => ({ ...prev, [track.title]: { media: id, playerType: 'youtube' } }));
+                        }
+                    }
                 }
-            } catch (err) {
-                setSearchError('Échec de la recherche');
+            } catch (e) {
+                console.error('Failed to resolve track preview', e);
             } finally {
-                setIsSearching(false);
+                setIsResolving(null);
             }
-        }, 500);
-    };
-
-    const handleAddTrack = async (track: any) => {
-        try {
-            const res = await fetch('/api/music/vote', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    trackTitle: track.title, // Corrected from trackId
-                    media: track.id || track.media,
-                    playerType: 'youtube'
-                })
-            });
-            if (res.ok) {
-                const updatedVotes = [...votedTracks, track.title];
-                setVotedTracks(updatedVotes);
-                localStorage.setItem('music_voted_tracks', JSON.stringify(updatedVotes));
-                setIsSearchOpen(false);
-                setSearchQuery('');
-                setSearchResults([]);
-                
-                // Re-fetch tracks to show the new one without refresh
-                const refreshRes = await fetch('/api/music/top-tracks');
-                if (refreshRes.ok) {
-                    const data = await refreshRes.json();
-                    const filteredData = (Array.isArray(data) ? data : []).filter((item: any) => {
-                        const t = (item.title || '').toUpperCase();
-                        return !t.includes('SORTIES DE LA SEMAINE') && 
-                               !t.includes('WEEKLY SELECTION') &&
-                               !t.includes('DÉVOILE');
-                    });
-                    setTracks(filteredData.slice(0, 5));
-                }
-                const today = new Date().toISOString().split('T')[0];
-                const lastBooster = localStorage.getItem('booster_top_tracks');
-                if (lastBooster !== today) {
-                    triggerBooster();
-                    showNotification('A voté ! Vous remportez un booster de 9 cartes !', 'success');
-                    localStorage.setItem('booster_top_tracks', today);
-                } else {
-                    showNotification('A voté ! (Booster quotidien déjà récupéré pour cette catégorie)', 'success');
-                }
-            }
-        } catch (err) {
-            console.error('Failed to add track', err);
         }
     };
 
-    const handleVote = async (title: string, e: React.MouseEvent, media?: string, playerType: string = 'youtube') => {
-        e.stopPropagation();
-        if (!user) {
-            setIsAuthModalOpen(true);
-            return;
-        }
-        if (votedTracks.includes(title)) return;
-
-        try {
-            const res = await fetch('/api/music/vote', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    trackTitle: title, // Corrected from trackId
-                    media: media, 
-                    playerType: playerType 
-                })
-            });
-            if (res.ok) {
-                const updatedVotes = [...votedTracks, title];
-                setVotedTracks(updatedVotes);
-                localStorage.setItem('music_voted_tracks', JSON.stringify(updatedVotes));
-                
-                setTracks(prev => prev.map(t => 
-                    t.title === title ? { ...t, votes: (t.votes || 0) + 1 } : t
-                ).sort((a, b) => (b.votes || 0) - (a.votes || 0)));
-                const today = new Date().toISOString().split('T')[0];
-                const lastBooster = localStorage.getItem('booster_top_tracks');
-                if (lastBooster !== today) {
-                    triggerBooster();
-                    showNotification('A voté ! Vous remportez un booster de 9 cartes !', 'success');
-                    localStorage.setItem('booster_top_tracks', today);
-                } else {
-                    showNotification('A voté ! (Booster quotidien déjà récupéré pour cette catégorie)', 'success');
-                }
-            }
-        } catch (err) {
-            console.error('Failed to vote:', err);
-        }
-    };
-
-    const isAdmin = localStorage.getItem('admin_auth_v2') === 'true';
-
-    const handleDelete = async (title: string, e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (!isAdmin) return;
-        setDeleteConfirm(title);
-    };
-
-    const confirmDelete = async () => {
-        if (!deleteConfirm) return;
-        const title = deleteConfirm;
-        try {
-            const res = await fetch('/api/music/delete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, adminToken: localStorage.getItem('admin_token') })
-            });
-
-            if (res.ok) {
-                setTracks(prev => prev.filter(t => t.title !== title));
-            }
-        } catch (err) {
-            console.error('Failed to delete track:', err);
-        } finally {
-            setDeleteConfirm(null);
-        }
-    };
-
-    useEffect(() => {
-        const fetchTopTracks = async () => {
-            try {
-                const res = await fetch('/api/music/top-tracks');
-                if (res.ok) {
-                    const data = await res.json();
-                    const filteredData = (Array.isArray(data) ? data : []).filter((item: any) => {
-                        const t = (item.title || '').toUpperCase();
-                        return !t.includes('SORTIES DE LA SEMAINE') && 
-                               !t.includes('WEEKLY SELECTION') &&
-                               !t.includes('DÉVOILE');
-                    });
-                    setTracks(filteredData.slice(0, 5));
-                }
-            } catch (err) {
-                console.error('Failed to fetch top tracks', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        const handleTrackVoted = () => {
-            fetchTopTracks();
-            try {
-                const savedVotes = localStorage.getItem('music_voted_tracks');
-                if (savedVotes) setVotedTracks(JSON.parse(savedVotes));
-            } catch {}
-        };
-
-        fetchTopTracks();
-        const interval = setInterval(fetchTopTracks, 30000);
-        window.addEventListener('dropsiders_track_voted', handleTrackVoted);
-        return () => {
-            clearInterval(interval);
-            window.removeEventListener('dropsiders_track_voted', handleTrackVoted);
-        };
-    }, []);
-
-    const renderPlayer = (media: string, playerType: string) => {
-        if (playerType === 'youtube') {
-            const isId = /^[A-Za-z0-9_-]{11}$/.test(media);
-            const src = isId 
-                ? `https://www.youtube.com/embed/${media}?autoplay=1` 
-                : `https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(media)}&autoplay=1`;
+    const renderPlayer = (media: string, playerType: string = 'auto') => {
+        if (!media) {
             return (
-                <div className="relative w-full h-[150px] sm:h-[180px] rounded-xl overflow-hidden bg-black shadow-lg border border-white/5">
+                <div className="p-4 text-center text-xs text-gray-400">
+                    Extrait indisponible pour ce titre.
+                </div>
+            );
+        }
+
+        const trimmed = media.trim();
+
+        // 1. SoundCloud
+        if (playerType === 'soundcloud' || trimmed.includes('soundcloud.com')) {
+            return (
+                <div className="relative w-full h-[152px] sm:h-[166px] rounded-xl overflow-hidden bg-black shadow-lg border border-white/5">
                     <iframe
-                        src={src}
+                        width="100%"
+                        height="166"
+                        scrolling="no"
+                        frameBorder="no"
+                        allow="autoplay"
+                        src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(trimmed)}&color=%23ff5500&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false`}
+                        className="w-full h-full"
+                    />
+                </div>
+            );
+        }
+
+        // 2. YouTube (11-char ID or YouTube URL)
+        const ytId = extractYouTubeId(trimmed);
+        if (playerType === 'youtube' || ytId) {
+            const finalId = ytId || trimmed;
+            return (
+                <div className="relative w-full h-[160px] sm:h-[200px] rounded-xl overflow-hidden bg-black shadow-lg border border-white/5">
+                    <iframe
+                        src={`https://www.youtube.com/embed/${finalId}?autoplay=1&rel=0`}
                         className="absolute top-0 left-0 w-full h-full"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
@@ -235,10 +132,14 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 </div>
             );
         }
-        if (playerType === 'beatport' || media.includes('beatport')) {
-            const src = media.startsWith('http')
-                ? media
-                : `https://embed.beatport.com/?id=${media.match(/\d+/)?.[0] || media}&type=track`;
+
+        // 3. Beatport
+        if (playerType === 'beatport' || trimmed.includes('beatport.com') || trimmed.includes('embed.beatport.com')) {
+            let src = trimmed;
+            if (!trimmed.includes('embed.beatport.com')) {
+                const bpId = extractBeatportId(trimmed);
+                src = `https://embed.beatport.com/?id=${bpId || trimmed}&type=track`;
+            }
             return (
                 <iframe
                     src={src}
@@ -250,10 +151,13 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 />
             );
         }
-        if (playerType === 'spotify') {
+
+        // 4. Spotify
+        if (playerType === 'spotify' || trimmed.includes('spotify.com')) {
+            const spotId = extractSpotifyId(trimmed) || trimmed;
             return (
                 <iframe
-                    src={`https://open.spotify.com/embed/track/${media}`}
+                    src={`https://open.spotify.com/embed/track/${spotId}`}
                     width="100%"
                     height="80"
                     frameBorder="0"
@@ -262,7 +166,41 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 />
             );
         }
-        return null;
+
+        // 5. Direct Audio (file or stream)
+        if (
+            trimmed.endsWith('.mp3') ||
+            trimmed.endsWith('.wav') ||
+            trimmed.endsWith('.m4a') ||
+            trimmed.endsWith('.aac') ||
+            trimmed.includes('/uploads/')
+        ) {
+            return (
+                <div className="p-4 bg-black/60 rounded-xl border border-white/10 flex flex-col items-center justify-center gap-2">
+                    <audio controls autoPlay src={trimmed} className="w-full" />
+                </div>
+            );
+        }
+
+        // 6. Generic embed fallback
+        if (trimmed.startsWith('https://')) {
+            return (
+                <div className="relative w-full h-[160px] rounded-xl overflow-hidden bg-black shadow-lg border border-white/5">
+                    <iframe
+                        src={trimmed}
+                        className="w-full h-full"
+                        allow="autoplay; encrypted-media"
+                        allowFullScreen
+                    />
+                </div>
+            );
+        }
+
+        return (
+            <div className="p-4 text-center text-xs text-gray-400">
+                Format d'extrait non pris en charge.
+            </div>
+        );
     };
 
     return (
@@ -306,7 +244,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                     className="flex flex-col gap-2"
                                 >
                                     <div
-                                        onClick={() => setOpenTrackTitle(openTrackTitle === track.title ? null : track.title)}
+                                        onClick={() => togglePlayTrack(track)}
                                         className={`flex items-center gap-4 p-4 cursor-pointer hover:bg-white/10 border border-white/5 rounded-2xl transition-all group/item ${openTrackTitle === track.title ? 'bg-white/10 border-white/20' : 'bg-white/5'}`}
                                     >
                                         <div className="w-8 flex-shrink-0 text-center">
@@ -362,6 +300,27 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                         </div>
 
                                         <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    togglePlayTrack(track);
+                                                }}
+                                                className={`w-8 h-8 flex items-center justify-center rounded-xl border transition-all active:scale-90 ${
+                                                    openTrackTitle === track.title
+                                                        ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.3)]'
+                                                        : 'bg-black/40 border-white/5 text-gray-400 hover:text-white hover:border-white/20 hover:bg-white/10'
+                                                }`}
+                                                title={openTrackTitle === track.title ? "Fermer la pré-écoute" : "Écouter l'extrait"}
+                                            >
+                                                {isResolving === track.title ? (
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-neon-cyan" />
+                                                ) : openTrackTitle === track.title ? (
+                                                    <Volume2 className="w-3.5 h-3.5 animate-pulse text-neon-cyan" />
+                                                ) : (
+                                                    <Play className="w-3.5 h-3.5 fill-current ml-0.5 text-gray-300 group-hover/item:text-neon-cyan transition-colors" />
+                                                )}
+                                            </button>
                                             {isAdmin && (
                                                 <button
                                                     onClick={(e) => handleDelete(track.title, e)}
@@ -384,7 +343,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                     </div>
 
                                     <AnimatePresence>
-                                        {openTrackTitle === track.title && track.media && (
+                                        {openTrackTitle === track.title && (
                                             <motion.div
                                                 initial={{ height: 0, opacity: 0 }}
                                                 animate={{ height: 'auto', opacity: 1 }}
@@ -392,7 +351,17 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                                 className="overflow-hidden rounded-2xl border border-white/10 mb-2"
                                             >
                                                 <div className="bg-black/60 p-2">
-                                                    {renderPlayer(track.media, track.playerType || 'youtube')}
+                                                    {isResolving === track.title ? (
+                                                        <div className="py-6 flex items-center justify-center gap-3 text-gray-400 text-xs">
+                                                            <Loader2 className="w-4 h-4 animate-spin text-neon-cyan" />
+                                                            <span>Chargement de la pré-écoute...</span>
+                                                        </div>
+                                                    ) : (
+                                                        renderPlayer(
+                                                            track.media || resolvedMedia[track.title]?.media || '',
+                                                            track.playerType || resolvedMedia[track.title]?.playerType || 'auto'
+                                                        )
+                                                    )}
                                                 </div>
                                             </motion.div>
                                         )}
