@@ -344,7 +344,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [extraEditorialSlides, setExtraEditorialSlides] = useState<string[]>([]); // Slides 3, 4, 5... (texte de chaque slide)
     const [skipEditorialSlide2, setSkipEditorialSlide2] = useState<boolean>(false); // Masquer Slide 2 dans l'export Reel (Slide 1 + Promo uniquement)
     const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(5); // Durée Slide 1 (en secondes, min 2s, max 15s)
-    const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(3.5); // Durée Promo (en secondes, min 2s, max 8s)
+    const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(10); // Durée Promo (en secondes, min 2s, max 10s)
     const [exportFps, setExportFps] = useState<number>(30); // Fluidité vidéo : 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
     const [promoCategory, setPromoCategory] = useState<string>(() => {
         if (initialTheme && initialTheme !== 'PROMO') return initialTheme;
@@ -955,6 +955,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [promoCustomPhrase, setPromoCustomPhrase] = useState<string>('');
     const [promoCustomSubphrase, setPromoCustomSubphrase] = useState<string>('');
     const [promoOutroStyle, setPromoOutroStyle] = useState<'INSTAGRAM' | 'CLASSIC'>('INSTAGRAM');
+    const [isPromoAnimPlaying, setIsPromoAnimPlaying] = useState<boolean>(false);
+    const [promoAnimKey, setPromoAnimKey] = useState<number>(0);
     const [showPromoHook, setShowPromoHook] = useState<boolean>(true);
     const [showPromoHeadline, setShowPromoHeadline] = useState<boolean>(true);
     const [showPromoLine1, setShowPromoLine1] = useState<boolean>(true);
@@ -1200,6 +1202,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         return () => cancelAnimationFrame(frame);
     }, [theme, isVideoRecording]);
+
+    useEffect(() => {
+        if (!isPromoAnimPlaying) return;
+        const timer = setTimeout(() => {
+            setIsPromoAnimPlaying(false);
+        }, 10500);
+        return () => clearTimeout(timer);
+    }, [isPromoAnimPlaying, promoAnimKey]);
+
+    const playPromoPreviewAnimation = () => {
+        animStartTimeRef.current = Date.now();
+        setIsPromoAnimPlaying(true);
+        setPromoAnimKey(k => k + 1);
+    };
 
     const handleGeocode = async () => {
         if (!mapSearchQuery.trim()) return;
@@ -1499,7 +1515,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const isAnyAnimationActive = (textAnimation !== 'NONE' || bgAnimation !== 'NONE' || (theme === 'JEU_DJ' && isCurrentSlideSilhouette && djAppearanceAnim !== 'STATIC'));
             const animElapsed = isVideoRecordingRef.current
                 ? deterministicAnimTimeRef.current
-                : ((bgVideo && !isDownloading) || isAnyAnimationActive || (theme === 'MUSIQUE' && !isDownloading && (cdjPlayerRing || musicBgMotion))
+                : ((bgVideo && !isDownloading) || isAnyAnimationActive || (theme === 'MUSIQUE' && !isDownloading && (cdjPlayerRing || musicBgMotion)) || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying)
                     ? (Date.now() - animStartTimeRef.current) / 1000
                     : 99.0);
 
@@ -2543,7 +2559,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const pillsOffset = isReel ? (isAgendaPromo ? 75 : 65) : 55;
                 const pillH = isReel ? 44 : 40;
 
-                const targetCenterY = isReel ? 950 : 675;
+                // Animation Timeline pour la Slide Promo Instagram :
+                const isInstagramStyle = promoOutroStyle === 'INSTAGRAM';
+                const isStaticPreview = animElapsed >= 90.0;
+                const tAnim = isStaticPreview ? 10.0 : animElapsed;
+
+                // À 6.0s : le texte promo monte et la carte Instagram apparaît en glissant depuis le bas
+                let shiftProgress = 0.0;
+                let cardProgress = 0.0;
+                if (isInstagramStyle) {
+                    if (isStaticPreview || tAnim >= 6.8) {
+                        shiftProgress = 1.0;
+                        cardProgress = 1.0;
+                    } else if (tAnim < 6.0) {
+                        shiftProgress = 0.0;
+                        cardProgress = 0.0;
+                    } else {
+                        const p = (tAnim - 6.0) / 0.8;
+                        const ease = 1 - Math.pow(1 - p, 3);
+                        shiftProgress = ease;
+                        cardProgress = ease;
+                    }
+                }
+
+                // Décalage vertical du bloc de question quand la carte Instagram monte
+                const shiftUpDistance = isReel ? 330 : 250;
+                const targetCenterY = (isReel ? 950 : 675) - (isInstagramStyle ? (shiftProgress * shiftUpDistance) : 0);
                 let outroStartY = 0;
                 let dropsidersY = 0;
                 let pillsY = 0;
@@ -2650,163 +2691,248 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 if (promoOutroStyle === 'INSTAGRAM') {
-                    // ==========================================
-                    // CARTE PROFIL INSTAGRAM OFFICIELLE (PRO)
-                    // ==========================================
-                    const cardW = isReel ? 920 : 880;
-                    const cardH = isReel ? 480 : 420;
-                    const cardX = centerX - cardW / 2;
-                    const cardY = isReel ? (canvas.height - cardH - 120) : (canvas.height - cardH - 75);
+                    if (cardProgress > 0.005) {
+                        // ==========================================
+                        // CARTE PROFIL INSTAGRAM OFFICIELLE (PRO)
+                        // ==========================================
+                        const cardW = isReel ? 920 : 880;
+                        const cardH = isReel ? 480 : 420;
+                        const cardX = centerX - cardW / 2;
+                        const cardFinalY = isReel ? (canvas.height - cardH - 120) : (canvas.height - cardH - 75);
+                        const cardY = cardFinalY + (1 - cardProgress) * 90;
 
-                    ctx.save();
-
-                    // 1. Fond carte sombre glassmorphism
-                    ctx.beginPath();
-                    ctx.roundRect(cardX, cardY, cardW, cardH, 28);
-                    ctx.fillStyle = 'rgba(14, 14, 18, 0.94)';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-                    ctx.shadowBlur = 40;
-                    ctx.fill();
-
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-
-                    // 2. Avatar officiel avec anneau story dégradé
-                    const avatarCenterX = cardX + (isReel ? 90 : 85);
-                    const avatarCenterY = cardY + (isReel ? 90 : 85);
-                    const avatarR = isReel ? 52 : 48;
-
-                    // Anneau dégradé Instagram officiel
-                    const ringGrad = ctx.createLinearGradient(avatarCenterX - avatarR, avatarCenterY - avatarR, avatarCenterX + avatarR, avatarCenterY + avatarR);
-                    ringGrad.addColorStop(0, '#f09433');
-                    ringGrad.addColorStop(0.25, '#e6683c');
-                    ringGrad.addColorStop(0.5, '#dc2743');
-                    ringGrad.addColorStop(0.75, '#cc2366');
-                    ringGrad.addColorStop(1, '#bc1888');
-
-                    ctx.beginPath();
-                    ctx.arc(avatarCenterX, avatarCenterY, avatarR, 0, Math.PI * 2);
-                    ctx.strokeStyle = ringGrad;
-                    ctx.lineWidth = 3.5;
-                    ctx.stroke();
-
-                    // Fond noir avatar
-                    ctx.beginPath();
-                    ctx.arc(avatarCenterX, avatarCenterY, avatarR - 2.5, 0, Math.PI * 2);
-                    ctx.fillStyle = '#000000';
-                    ctx.fill();
-
-                    // Logo DROPSIDERS.FR centré
-                    if (logoRef.current) {
-                        const logo = logoRef.current;
-                        const alw = avatarR * 1.5;
-                        const alh = (logo.height / logo.width) * alw;
                         ctx.save();
-                        ctx.filter = 'brightness(0) invert(1)';
-                        ctx.drawImage(logo, avatarCenterX - alw / 2, avatarCenterY - alh / 2, alw, alh);
+                        ctx.globalAlpha = cardProgress;
+
+                        // 1. Fond carte sombre glassmorphism
+                        ctx.beginPath();
+                        ctx.roundRect(cardX, cardY, cardW, cardH, 28);
+                        ctx.fillStyle = 'rgba(14, 14, 18, 0.94)';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                        ctx.shadowBlur = 40;
+                        ctx.fill();
+
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+
+                        // 2. Avatar officiel avec anneau story dégradé
+                        const avatarCenterX = cardX + (isReel ? 90 : 85);
+                        const avatarCenterY = cardY + (isReel ? 90 : 85);
+                        const avatarR = isReel ? 52 : 48;
+
+                        // Anneau dégradé Instagram officiel
+                        const ringGrad = ctx.createLinearGradient(avatarCenterX - avatarR, avatarCenterY - avatarR, avatarCenterX + avatarR, avatarCenterY + avatarR);
+                        ringGrad.addColorStop(0, '#f09433');
+                        ringGrad.addColorStop(0.25, '#e6683c');
+                        ringGrad.addColorStop(0.5, '#dc2743');
+                        ringGrad.addColorStop(0.75, '#cc2366');
+                        ringGrad.addColorStop(1, '#bc1888');
+
+                        ctx.beginPath();
+                        ctx.arc(avatarCenterX, avatarCenterY, avatarR, 0, Math.PI * 2);
+                        ctx.strokeStyle = ringGrad;
+                        ctx.lineWidth = 3.5;
+                        ctx.stroke();
+
+                        // Fond noir avatar
+                        ctx.beginPath();
+                        ctx.arc(avatarCenterX, avatarCenterY, avatarR - 2.5, 0, Math.PI * 2);
+                        ctx.fillStyle = '#000000';
+                        ctx.fill();
+
+                        // Logo DROPSIDERS.FR centré
+                        if (logoRef.current) {
+                            const logo = logoRef.current;
+                            const alw = avatarR * 1.5;
+                            const alh = (logo.height / logo.width) * alw;
+                            ctx.save();
+                            ctx.filter = 'brightness(0) invert(1)';
+                            ctx.drawImage(logo, avatarCenterX - alw / 2, avatarCenterY - alh / 2, alw, alh);
+                            ctx.restore();
+                        }
+
+                        // 3. Stats Réelles Officielles (1 440 publications • 4 694 -> 4 695 abonnés • 668 abonnements)
+                        const isFollowed = isStaticPreview || tAnim >= 8.2;
+                        const followersCountStr = isFollowed ? '4 695' : '4 694';
+
+                        const statsStartX = cardX + (isReel ? 200 : 190);
+                        const statsWidth = cardW - (isReel ? 220 : 210);
+                        const colW = statsWidth / 3;
+                        const statsData = [
+                            { val: '1 440', lbl: 'publications' },
+                            { val: followersCountStr, lbl: 'abonnés' },
+                            { val: '668', lbl: 'abonnements' }
+                        ];
+
+                        statsData.forEach((st, idx) => {
+                            const sx = statsStartX + colW * idx + colW / 2;
+                            const sy = avatarCenterY - 8;
+                            ctx.textAlign = 'center';
+                            ctx.font = `700 ${isReel ? 28 : 26}px -apple-system, "Inter", sans-serif`;
+                            ctx.fillStyle = (idx === 1 && isFollowed && !isStaticPreview && tAnim < 9.0) ? '#00f0ff' : '#ffffff';
+                            ctx.fillText(st.val, sx, sy);
+
+                            ctx.font = `400 ${isReel ? 16 : 15}px -apple-system, "Inter", sans-serif`;
+                            ctx.fillStyle = '#999999';
+                            ctx.fillText(st.lbl, sx, sy + (isReel ? 24 : 22));
+                        });
+
+                        // 4. Ligne Profil : DROPSIDERS + Badge Certifié
+                        const infoX = cardX + 32;
+                        let curY = avatarCenterY + avatarR + (isReel ? 26 : 22);
+
+                        ctx.textAlign = 'left';
+                        ctx.textBaseline = 'alphabetic';
+                        ctx.font = `800 ${isReel ? 24 : 22}px -apple-system, "Inter", sans-serif`;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText('DROPSIDERS', infoX, curY);
+
+                        const nameW = ctx.measureText('DROPSIDERS').width;
+                        // Badge vérifié bleu
+                        const badgeX = infoX + nameW + 15;
+                        const badgeY = curY - 8;
+                        ctx.beginPath();
+                        ctx.arc(badgeX, badgeY, 10, 0, Math.PI * 2);
+                        ctx.fillStyle = '#0095f6';
+                        ctx.fill();
+
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = '900 11px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('✓', badgeX, badgeY);
+
+                        // Pseudo
+                        curY += (isReel ? 26 : 22);
+                        ctx.textAlign = 'left';
+                        ctx.textBaseline = 'alphabetic';
+                        ctx.font = `500 ${isReel ? 18 : 16}px -apple-system, "Inter", sans-serif`;
+                        ctx.fillStyle = '#8e8e93';
+                        ctx.fillText('@dropsiders.fr', infoX, curY);
+
+                        // Vraie Bio Officielle
+                        curY += (isReel ? 26 : 22);
+                        ctx.font = `500 ${isReel ? 17 : 15}px -apple-system, "Inter", sans-serif`;
+                        ctx.fillStyle = '#e5e5ea';
+                        const bioText = 'La première plateforme interactive consacrée à la musique électronique et aux festivals 🔥';
+                        ctx.fillText(bioText, infoX, curY);
+
+                        // 5. Boutons d'Action : [ Suivre / ✓ Suivi ▾ ]  [ Message ]
+                        const btnRowY = cardY + cardH - (isReel ? 70 : 62);
+                        const btnH = isReel ? 50 : 44;
+                        const btnGap = 14;
+                        const btnW = (cardW - 64 - btnGap) / 2;
+
+                        // Bouton 1 : Suivre -> Suivi (avec appui / clic animé à 8.0s - 8.2s)
+                        const btn1X = infoX;
+                        const btn1CenterX = btn1X + btnW / 2;
+                        const btn1CenterY = btnRowY + btnH / 2;
+                        const isPressingBtn = (!isStaticPreview && tAnim >= 8.0 && tAnim < 8.2);
+                        const btnScale = isPressingBtn ? 0.95 : 1.0;
+
+                        ctx.save();
+                        if (btnScale !== 1.0) {
+                            ctx.translate(btn1CenterX, btn1CenterY);
+                            ctx.scale(btnScale, btnScale);
+                            ctx.translate(-btn1CenterX, -btn1CenterY);
+                        }
+
+                        ctx.beginPath();
+                        ctx.roundRect(btn1X, btnRowY, btnW, btnH, 10);
+                        ctx.fillStyle = isFollowed ? '#262629' : '#0095f6';
+                        ctx.fill();
+                        ctx.strokeStyle = isFollowed ? 'rgba(255, 255, 255, 0.18)' : '#0095f6';
+                        ctx.lineWidth = 1.5;
+                        ctx.stroke();
+
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.font = `600 ${isReel ? 19 : 17}px -apple-system, "Inter", sans-serif`;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(isFollowed ? '✓ Suivi ▾' : 'Suivre', btn1CenterX, btn1CenterY);
+                        ctx.restore();
+
+                        // Onde de choc (shockwave) à 8.2s
+                        if (!isStaticPreview && tAnim >= 8.2 && tAnim < 8.75) {
+                            const waveP = (tAnim - 8.2) / 0.55;
+                            const waveR = 25 + waveP * 110;
+                            const waveA = (1 - waveP) * 0.7;
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.arc(btn1CenterX, btn1CenterY, waveR, 0, Math.PI * 2);
+                            ctx.strokeStyle = `rgba(0, 149, 246, ${waveA})`;
+                            ctx.lineWidth = 3;
+                            ctx.stroke();
+                            ctx.restore();
+                        }
+
+                        // Bouton 2 : Message
+                        const btn2X = btn1X + btnW + btnGap;
+                        ctx.beginPath();
+                        ctx.roundRect(btn2X, btnRowY, btnW, btnH, 10);
+                        ctx.fillStyle = '#262629';
+                        ctx.fill();
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+                        ctx.lineWidth = 1.5;
+                        ctx.stroke();
+
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.font = `600 ${isReel ? 19 : 17}px -apple-system, "Inter", sans-serif`;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText('Message', btn2X + btnW / 2, btnRowY + btnH / 2);
+
+                        // 6. Curseur tactile animé (Pointer) entre 7.3s et 8.4s
+                        if (!isStaticPreview && tAnim >= 7.3 && tAnim < 8.5) {
+                            let pX = btn1CenterX;
+                            let pY = btn1CenterY;
+                            let pScale = 1.0;
+                            let pAlpha = 1.0;
+
+                            if (tAnim < 7.9) {
+                                const p = (tAnim - 7.3) / 0.6;
+                                const ease = 1 - Math.pow(1 - p, 3);
+                                pX = btn1CenterX + (1 - ease) * 90;
+                                pY = btn1CenterY + (1 - ease) * 120;
+                                pAlpha = Math.min(1, p * 2);
+                            } else if (tAnim < 8.2) {
+                                pX = btn1CenterX;
+                                pY = btn1CenterY;
+                                pScale = (tAnim >= 8.0) ? 0.85 : 1.0;
+                                pAlpha = 1.0;
+                            } else {
+                                const p = (tAnim - 8.2) / 0.3;
+                                pX = btn1CenterX;
+                                pY = btn1CenterY;
+                                pScale = 1.0;
+                                pAlpha = Math.max(0, 1 - p);
+                            }
+
+                            ctx.save();
+                            ctx.globalAlpha = pAlpha * cardProgress;
+                            ctx.translate(pX - 4, pY - 4);
+                            ctx.scale(pScale, pScale);
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                            ctx.shadowBlur = 14;
+
+                            ctx.beginPath();
+                            ctx.moveTo(0, 0);
+                            ctx.lineTo(26, 15);
+                            ctx.lineTo(14, 18);
+                            ctx.lineTo(9, 30);
+                            ctx.closePath();
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fill();
+                            ctx.strokeStyle = '#000000';
+                            ctx.lineWidth = 2.2;
+                            ctx.lineJoin = 'round';
+                            ctx.stroke();
+                            ctx.restore();
+                        }
+
                         ctx.restore();
                     }
-
-                    // 3. Stats Réelles Officielles (1 440 publications • 4 695 abonnés • 668 abonnements)
-                    const statsStartX = cardX + (isReel ? 200 : 190);
-                    const statsWidth = cardW - (isReel ? 220 : 210);
-                    const colW = statsWidth / 3;
-                    const statsData = [
-                        { val: '1 440', lbl: 'publications' },
-                        { val: '4 695', lbl: 'abonnés' },
-                        { val: '668', lbl: 'abonnements' }
-                    ];
-
-                    statsData.forEach((st, idx) => {
-                        const sx = statsStartX + colW * idx + colW / 2;
-                        const sy = avatarCenterY - 8;
-                        ctx.textAlign = 'center';
-                        ctx.font = `700 ${isReel ? 28 : 26}px -apple-system, "Inter", sans-serif`;
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillText(st.val, sx, sy);
-
-                        ctx.font = `400 ${isReel ? 16 : 15}px -apple-system, "Inter", sans-serif`;
-                        ctx.fillStyle = '#999999';
-                        ctx.fillText(st.lbl, sx, sy + (isReel ? 24 : 22));
-                    });
-
-                    // 4. Ligne Profil : DROPSIDERS + Badge Certifié
-                    const infoX = cardX + 32;
-                    let curY = avatarCenterY + avatarR + (isReel ? 26 : 22);
-
-                    ctx.textAlign = 'left';
-                    ctx.textBaseline = 'alphabetic';
-                    ctx.font = `800 ${isReel ? 24 : 22}px -apple-system, "Inter", sans-serif`;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText('DROPSIDERS', infoX, curY);
-
-                    const nameW = ctx.measureText('DROPSIDERS').width;
-                    // Badge vérifié bleu
-                    const badgeX = infoX + nameW + 15;
-                    const badgeY = curY - 8;
-                    ctx.beginPath();
-                    ctx.arc(badgeX, badgeY, 10, 0, Math.PI * 2);
-                    ctx.fillStyle = '#0095f6';
-                    ctx.fill();
-
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 11px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('✓', badgeX, badgeY);
-
-                    // Pseudo
-                    curY += (isReel ? 26 : 22);
-                    ctx.textAlign = 'left';
-                    ctx.textBaseline = 'alphabetic';
-                    ctx.font = `500 ${isReel ? 18 : 16}px -apple-system, "Inter", sans-serif`;
-                    ctx.fillStyle = '#8e8e93';
-                    ctx.fillText('@dropsiders.fr', infoX, curY);
-
-                    // Vraie Bio Officielle
-                    curY += (isReel ? 26 : 22);
-                    ctx.font = `500 ${isReel ? 17 : 15}px -apple-system, "Inter", sans-serif`;
-                    ctx.fillStyle = '#e5e5ea';
-                    const bioText = 'La première plateforme interactive consacrée à la musique électronique et aux festivals 🔥';
-                    ctx.fillText(bioText, infoX, curY);
-
-                    // 5. Boutons d'Action : [ ✓ Suivi ▾ ]  [ Message ]
-                    const btnRowY = cardY + cardH - (isReel ? 70 : 62);
-                    const btnH = isReel ? 50 : 44;
-                    const btnGap = 14;
-                    const btnW = (cardW - 64 - btnGap) / 2;
-
-                    // Bouton 1 : Suivi (avec checkmark)
-                    const btn1X = infoX;
-                    ctx.beginPath();
-                    ctx.roundRect(btn1X, btnRowY, btnW, btnH, 10);
-                    ctx.fillStyle = '#262629';
-                    ctx.fill();
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
-                    ctx.lineWidth = 1.5;
-                    ctx.stroke();
-
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.font = `600 ${isReel ? 19 : 17}px -apple-system, "Inter", sans-serif`;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText('✓ Suivi ▾', btn1X + btnW / 2, btnRowY + btnH / 2);
-
-                    // Bouton 2 : Message
-                    const btn2X = btn1X + btnW + btnGap;
-                    ctx.beginPath();
-                    ctx.roundRect(btn2X, btnRowY, btnW, btnH, 10);
-                    ctx.fillStyle = '#262629';
-                    ctx.fill();
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
-                    ctx.lineWidth = 1.5;
-                    ctx.stroke();
-
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText('Message', btn2X + btnW / 2, btnRowY + btnH / 2);
-
-                    ctx.restore();
                 } else {
                     // "ABONNEZ-VOUS À" (Mode Classique)
                     const abonneY = outroLines.length > 0
@@ -5567,7 +5693,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         const isBadgeTheme = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'AFFICHE'].includes(theme);
         const shouldAnimateBadge = isBadgeTheme && activeTab === 'REEL';
-        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || (theme === 'MUSIQUE' && (cdjPlayerRing || musicBgMotion)) || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge) {
+        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || (theme === 'MUSIQUE' && (cdjPlayerRing || musicBgMotion)) || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying)) {
             let lastRender = 0;
             let isRendering = false;
             const loop = (timestamp: number) => {
@@ -5587,7 +5713,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide
     useEffect(() => {
@@ -5859,7 +5985,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const currentTransitionDuration = getTransitionDuration(slideTransition);
         let totalDuration = 0;
         if (combinedMode === 'PROMO_ONLY') {
-            totalDuration = Math.round(Math.max(3, editorialPromoDuration || 4) * 1000);
+            totalDuration = (promoOutroStyle === 'INSTAGRAM' ? 10000 : Math.round(Math.max(3, editorialPromoDuration || 4) * 1000));
         } else if (combinedMode === 'EDITORIAL') {
             const isMusicTheme = (theme === 'MUSIQUE');
             const shouldSkipSlide2 = skipEditorialSlide2;
@@ -5870,7 +5996,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
             const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
-            const promoDuration = Math.round(editorialPromoDuration * 1000);
+            const promoDuration = Math.round((promoOutroStyle === 'INSTAGRAM' ? 10 : editorialPromoDuration) * 1000);
             const transitionDuration = currentTransitionDuration;
             const slideDuration = Math.round(editorialSlide1Duration * 1000);
             totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
@@ -6688,7 +6814,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 : (shouldSkipSlide2
                     ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
-            const promoDuration = Math.round(editorialPromoDuration * 1000);
+            const promoDuration = Math.round((promoOutroStyle === 'INSTAGRAM' ? 10 : editorialPromoDuration) * 1000);
             const transitionDuration = currentTransitionDuration;
             const slideDuration = Math.round(editorialSlide1Duration * 1000);
 
@@ -8771,6 +8897,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         type="button"
                         onClick={() => {
                             setPromoOutroStyle('INSTAGRAM');
+                            setEditorialPromoDuration(10);
                             setTimeout(() => generateImage(), 50);
                         }}
                         className={`py-2.5 px-2 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all border ${
@@ -8785,6 +8912,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         type="button"
                         onClick={() => {
                             setPromoOutroStyle('CLASSIC');
+                            setEditorialPromoDuration(4.5);
                             setTimeout(() => generateImage(), 50);
                         }}
                         className={`py-2.5 px-2 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all border ${
@@ -8796,6 +8924,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ⚡ Bulles Classique
                     </button>
                 </div>
+                {promoOutroStyle === 'INSTAGRAM' && (
+                    <div className="pt-2 space-y-1.5 border-t border-white/10 mt-2">
+                        <button
+                            type="button"
+                            onClick={playPromoPreviewAnimation}
+                            className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#0095f6]/25 to-[#bc1888]/25 hover:from-[#0095f6]/35 hover:to-[#bc1888]/35 border border-[#0095f6]/50 text-white text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-blue-500/10"
+                        >
+                            <Play className={`w-3.5 h-3.5 text-[#0095f6] ${isPromoAnimPlaying ? 'animate-spin' : ''}`} />
+                            {isPromoAnimPlaying ? '⏱️ Lecture animation 10s en direct...' : '▶️ Tester l\'animation 10s dans l\'aperçu'}
+                        </button>
+                        <div className="p-2 bg-black/40 rounded-lg border border-white/5 text-[8px] text-gray-400 font-medium leading-relaxed">
+                            <span className="text-[#0095f6] font-bold">⏱️ Séquence exportée 10s :</span> 0s à 6s (Visuel promo centré) ➔ 6s (Le texte monte & le profil glisse) ➔ 8.2s (Clic automatique Suivre ➔ Suivi)
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Thème & Couleur synchronisés avec la publication */}
@@ -9130,7 +9273,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         🎬 Exporter Slide Promo Seule
                     </span>
                     <span className="text-[8px] font-mono text-gray-400">
-                        {activeTab === 'REEL' ? 'Story (9:16)' : 'Post (1:1)'} • {editorialPromoDuration || 4}s
+                        {activeTab === 'REEL' ? 'Story (9:16)' : 'Post (1:1)'} • {promoOutroStyle === 'INSTAGRAM' ? 10 : (editorialPromoDuration || 4)}s
                     </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -9148,7 +9291,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         disabled={isDownloading || isVideoRecording}
                         className="py-2.5 px-2 bg-gradient-to-r from-neon-red to-orange-600 hover:from-red-600 hover:to-orange-500 text-white rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 shadow-md shadow-red-500/20 active:scale-95 disabled:opacity-40"
                     >
-                        <Video className="w-3.5 h-3.5" /> {isVideoRecording ? 'Capture...' : 'Vidéo MP4'}
+                        <Video className="w-3.5 h-3.5" /> {isVideoRecording ? 'Capture...' : (promoOutroStyle === 'INSTAGRAM' ? 'Vidéo MP4 (10s)' : 'Vidéo MP4')}
                     </button>
                 </div>
             </div>
@@ -9703,7 +9846,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </span>
                     </div>
                     <div className="flex gap-1">
-                        {[2.5, 3.5, 4.5, 6].map(s => (
+                        {[2.5, 3.5, 4.5, 6, 10].map(s => (
                             <button
                                 key={s}
                                 type="button"
