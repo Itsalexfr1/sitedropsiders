@@ -2584,7 +2584,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 // Décalage vertical du bloc de question quand la carte Instagram monte
-                const shiftUpDistance = isReel ? 330 : 250;
+                const shiftUpDistance = isReel ? 270 : 190;
                 const targetCenterY = (isReel ? 950 : 675) - (isInstagramStyle ? (shiftProgress * shiftUpDistance) : 0);
                 let outroStartY = 0;
                 let dropsidersY = 0;
@@ -2691,36 +2691,71 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     });
                 }
 
+                // ==========================================
+                // "ABONNEZ-VOUS À" + GRAND LOGO NÉON "DROPSIDERS"
+                // ==========================================
+                const abonneY = outroLines.length > 0
+                    ? (outroStartY + outroLines.length * outroSpacing + abonneGap)
+                    : (outroStartY + abonneGap);
+                ctx.font = `700 ${isReel ? 26 : 24}px "Montserrat", sans-serif`;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                ctx.fillText('ABONNEZ-VOUS À', centerX, abonneY);
+
+                // "DROPSIDERS" en grand Orbitron néon
+                dropsidersY = abonneY + dropsidersOffset;
+                ctx.font = `900 italic ${isReel ? (isAgendaPromo ? 92 : 86) : 76}px "Orbitron", sans-serif`;
+                ctx.letterSpacing = '-2px';
+                ctx.fillStyle = activeColor.color;
+                ctx.shadowColor = `rgba(${activeColor.grad}, 0.85)`;
+                ctx.shadowBlur = 38;
+                ctx.fillText('DROPSIDERS', centerX, dropsidersY);
+                ctx.restore();
+
                 if (promoOutroStyle === 'INSTAGRAM') {
                     if (cardProgress > 0.005) {
                         // ==========================================
-                        // CARTE PROFIL INSTAGRAM OFFICIELLE (PRO)
+                        // CARTE PROFIL INSTAGRAM OFFICIELLE (PRO & PUNCHY)
                         // ==========================================
-                        const cardW = isReel ? 920 : 880;
-                        const cardH = isReel ? 480 : 420;
+                        const cardW = isReel ? 940 : 880;
+                        const cardH = isReel ? 440 : 380;
                         const cardX = centerX - cardW / 2;
-                        const cardFinalY = isReel ? (canvas.height - cardH - 120) : (canvas.height - cardH - 75);
+                        const cardFinalY = Math.round(dropsidersY + (isReel ? 50 : 35));
                         const cardY = cardFinalY + (1 - cardProgress) * 90;
 
                         ctx.save();
                         ctx.globalAlpha = cardProgress;
 
-                        // 1. Fond carte sombre glassmorphism
+                        // 1. Fond carte sombre glassmorphism luxueux avec dégradé
                         ctx.beginPath();
-                        ctx.roundRect(cardX, cardY, cardW, cardH, 28);
-                        ctx.fillStyle = 'rgba(14, 14, 18, 0.94)';
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-                        ctx.shadowBlur = 40;
+                        ctx.roundRect(cardX, cardY, cardW, cardH, 30);
+                        const cardGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
+                        cardGrad.addColorStop(0, 'rgba(20, 20, 26, 0.96)');
+                        cardGrad.addColorStop(1, 'rgba(10, 10, 14, 0.98)');
+                        ctx.fillStyle = cardGrad;
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                        ctx.shadowBlur = 45;
                         ctx.fill();
 
-                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+
+                        // Ligne de reflet spéculaire en haut de carte
+                        ctx.beginPath();
+                        ctx.moveTo(cardX + 35, cardY + 1.5);
+                        ctx.lineTo(cardX + cardW - 35, cardY + 1.5);
+                        const specularGrad = ctx.createLinearGradient(cardX + 35, 0, cardX + cardW - 35, 0);
+                        specularGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                        specularGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.35)');
+                        specularGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                        ctx.strokeStyle = specularGrad;
                         ctx.lineWidth = 2;
                         ctx.stroke();
 
                         // 2. Avatar officiel avec anneau story dégradé
-                        const avatarCenterX = cardX + (isReel ? 90 : 85);
-                        const avatarCenterY = cardY + (isReel ? 90 : 85);
-                        const avatarR = isReel ? 52 : 48;
+                        const avatarCenterX = cardX + (isReel ? 95 : 85);
+                        const avatarCenterY = cardY + (isReel ? 88 : 78);
+                        const avatarR = isReel ? 56 : 50;
 
                         // Anneau dégradé Instagram officiel
                         const ringGrad = ctx.createLinearGradient(avatarCenterX - avatarR, avatarCenterY - avatarR, avatarCenterX + avatarR, avatarCenterY + avatarR);
@@ -2733,19 +2768,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.beginPath();
                         ctx.arc(avatarCenterX, avatarCenterY, avatarR, 0, Math.PI * 2);
                         ctx.strokeStyle = ringGrad;
-                        ctx.lineWidth = 3.5;
+                        ctx.lineWidth = 4;
                         ctx.stroke();
 
                         // Fond noir avatar
                         ctx.beginPath();
-                        ctx.arc(avatarCenterX, avatarCenterY, avatarR - 2.5, 0, Math.PI * 2);
+                        ctx.arc(avatarCenterX, avatarCenterY, avatarR - 3, 0, Math.PI * 2);
                         ctx.fillStyle = '#000000';
                         ctx.fill();
 
                         // Logo DROPSIDERS.FR centré
                         if (logoRef.current) {
                             const logo = logoRef.current;
-                            const alw = avatarR * 1.5;
+                            const alw = avatarR * 1.55;
                             const alh = (logo.height / logo.width) * alw;
                             ctx.save();
                             ctx.filter = 'brightness(0) invert(1)';
@@ -2757,8 +2792,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const isFollowed = isStaticPreview || tAnim >= 6.1;
                         const followersCountStr = isFollowed ? '4 695' : '4 694';
 
-                        const statsStartX = cardX + (isReel ? 200 : 190);
-                        const statsWidth = cardW - (isReel ? 220 : 210);
+                        const statsStartX = cardX + (isReel ? 220 : 200);
+                        const statsWidth = cardW - (isReel ? 240 : 220);
                         const colW = statsWidth / 3;
                         const statsData = [
                             { val: '1 440', lbl: 'publications' },
@@ -2768,38 +2803,39 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         statsData.forEach((st, idx) => {
                             const sx = statsStartX + colW * idx + colW / 2;
-                            const sy = avatarCenterY - 8;
+                            const sy = avatarCenterY - 10;
                             ctx.textAlign = 'center';
-                            ctx.font = `700 ${isReel ? 28 : 26}px -apple-system, "Inter", sans-serif`;
+                            ctx.textBaseline = 'alphabetic';
+                            ctx.font = `800 ${isReel ? 30 : 26}px -apple-system, "Inter", sans-serif`;
                             ctx.fillStyle = (idx === 1 && isFollowed && !isStaticPreview && tAnim < 7.5) ? '#00f0ff' : '#ffffff';
                             ctx.fillText(st.val, sx, sy);
 
-                            ctx.font = `400 ${isReel ? 16 : 15}px -apple-system, "Inter", sans-serif`;
-                            ctx.fillStyle = '#999999';
-                            ctx.fillText(st.lbl, sx, sy + (isReel ? 24 : 22));
+                            ctx.font = `500 ${isReel ? 16 : 14}px -apple-system, "Inter", sans-serif`;
+                            ctx.fillStyle = '#a1a1aa';
+                            ctx.fillText(st.lbl, sx, sy + (isReel ? 26 : 22));
                         });
 
                         // 4. Ligne Profil : DROPSIDERS + Badge Certifié
                         const infoX = cardX + 32;
-                        let curY = avatarCenterY + avatarR + (isReel ? 26 : 22);
+                        let curY = avatarCenterY + avatarR + (isReel ? 28 : 22);
 
                         ctx.textAlign = 'left';
                         ctx.textBaseline = 'alphabetic';
-                        ctx.font = `800 ${isReel ? 24 : 22}px -apple-system, "Inter", sans-serif`;
+                        ctx.font = `900 ${isReel ? 26 : 23}px -apple-system, "Inter", sans-serif`;
                         ctx.fillStyle = '#ffffff';
                         ctx.fillText('DROPSIDERS', infoX, curY);
 
                         const nameW = ctx.measureText('DROPSIDERS').width;
                         // Badge vérifié bleu
-                        const badgeX = infoX + nameW + 15;
-                        const badgeY = curY - 8;
+                        const badgeX = infoX + nameW + 16;
+                        const badgeY = curY - 9;
                         ctx.beginPath();
-                        ctx.arc(badgeX, badgeY, 10, 0, Math.PI * 2);
+                        ctx.arc(badgeX, badgeY, 11, 0, Math.PI * 2);
                         ctx.fillStyle = '#0095f6';
                         ctx.fill();
 
                         ctx.fillStyle = '#ffffff';
-                        ctx.font = '900 11px sans-serif';
+                        ctx.font = '900 12px sans-serif';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
                         ctx.fillText('✓', badgeX, badgeY);
@@ -2808,21 +2844,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         curY += (isReel ? 26 : 22);
                         ctx.textAlign = 'left';
                         ctx.textBaseline = 'alphabetic';
-                        ctx.font = `500 ${isReel ? 18 : 16}px -apple-system, "Inter", sans-serif`;
+                        ctx.font = `600 ${isReel ? 18 : 16}px -apple-system, "Inter", sans-serif`;
                         ctx.fillStyle = '#8e8e93';
                         ctx.fillText('@dropsiders.fr', infoX, curY);
 
-                        // Vraie Bio Officielle
-                        curY += (isReel ? 26 : 22);
-                        ctx.font = `500 ${isReel ? 17 : 15}px -apple-system, "Inter", sans-serif`;
-                        ctx.fillStyle = '#e5e5ea';
-                        const bioText = 'La première plateforme interactive consacrée à la musique électronique et aux festivals 🔥';
-                        ctx.fillText(bioText, infoX, curY);
+                        // Vraie Bio Officielle Agrandie (x1.5) & Performatée sur 2 lignes ultra-lisibles
+                        curY += (isReel ? 30 : 25);
+                        ctx.font = `600 ${isReel ? 23 : 20}px -apple-system, "Inter", sans-serif`;
+                        ctx.fillStyle = '#f4f4f6';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                        ctx.shadowBlur = 10;
+                        const bioLine1 = 'La 1ère plateforme interactive consacrée à';
+                        const bioLine2 = 'la musique électronique et aux festivals 🔥';
+                        ctx.fillText(bioLine1, infoX, curY);
+                        curY += (isReel ? 32 : 27);
+                        ctx.fillText(bioLine2, infoX, curY);
 
                         // 5. Boutons d'Action : [ Suivre / ✓ Suivi ▾ ]  [ Message ]
-                        const btnRowY = cardY + cardH - (isReel ? 70 : 62);
-                        const btnH = isReel ? 50 : 44;
-                        const btnGap = 14;
+                        const btnRowY = cardY + cardH - (isReel ? 72 : 62);
+                        const btnH = isReel ? 52 : 46;
+                        const btnGap = 16;
                         const btnW = (cardW - 64 - btnGap) / 2;
 
                         // Bouton 1 : Suivre -> Suivi (avec appui / clic animé à 5.9s - 6.1s)
@@ -2830,7 +2871,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const btn1CenterX = btn1X + btnW / 2;
                         const btn1CenterY = btnRowY + btnH / 2;
                         const isPressingBtn = (!isStaticPreview && tAnim >= 5.9 && tAnim < 6.1);
-                        const btnScale = isPressingBtn ? 0.95 : 1.0;
+                        const btnScale = isPressingBtn ? 0.94 : 1.0;
 
                         ctx.save();
                         if (btnScale !== 1.0) {
@@ -2840,18 +2881,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
 
                         ctx.beginPath();
-                        ctx.roundRect(btn1X, btnRowY, btnW, btnH, 10);
-                        ctx.fillStyle = isFollowed ? '#262629' : '#0095f6';
+                        ctx.roundRect(btn1X, btnRowY, btnW, btnH, 12);
+                        ctx.fillStyle = isFollowed ? '#26262b' : '#0095f6';
                         ctx.fill();
-                        ctx.strokeStyle = isFollowed ? 'rgba(255, 255, 255, 0.18)' : '#0095f6';
+                        ctx.strokeStyle = isFollowed ? 'rgba(255, 255, 255, 0.22)' : '#38bdf8';
                         ctx.lineWidth = 1.5;
                         ctx.stroke();
 
-                        ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.font = `600 ${isReel ? 19 : 17}px -apple-system, "Inter", sans-serif`;
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillText(isFollowed ? '✓ Suivi ▾' : 'Suivre', btn1CenterX, btn1CenterY);
+                        ctx.font = `700 ${isReel ? 20 : 18}px -apple-system, "Inter", sans-serif`;
+
+                        if (isFollowed) {
+                            const checkmarkText = '✓ ';
+                            const suiviText = 'Suivi ▾';
+                            const totalW = ctx.measureText(checkmarkText + suiviText).width;
+                            const checkW = ctx.measureText(checkmarkText).width;
+                            const startTextX = btn1CenterX - totalW / 2;
+
+                            ctx.textAlign = 'left';
+                            ctx.fillStyle = '#4ade80';
+                            ctx.fillText(checkmarkText, startTextX, btn1CenterY);
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillText(suiviText, startTextX + checkW, btn1CenterY);
+                        } else {
+                            ctx.textAlign = 'center';
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillText('Suivre', btn1CenterX, btn1CenterY);
+                        }
                         ctx.restore();
 
                         // Onde de choc (shockwave) à 6.1s
@@ -2871,16 +2927,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         // Bouton 2 : Message
                         const btn2X = btn1X + btnW + btnGap;
                         ctx.beginPath();
-                        ctx.roundRect(btn2X, btnRowY, btnW, btnH, 10);
-                        ctx.fillStyle = '#262629';
+                        ctx.roundRect(btn2X, btnRowY, btnW, btnH, 12);
+                        ctx.fillStyle = '#26262b';
                         ctx.fill();
-                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
                         ctx.lineWidth = 1.5;
                         ctx.stroke();
 
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.font = `600 ${isReel ? 19 : 17}px -apple-system, "Inter", sans-serif`;
+                        ctx.font = `700 ${isReel ? 20 : 18}px -apple-system, "Inter", sans-serif`;
                         ctx.fillStyle = '#ffffff';
                         ctx.fillText('Message', btn2X + btnW / 2, btnRowY + btnH / 2);
 
@@ -2935,23 +2991,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
                     }
                 } else {
-                    // "ABONNEZ-VOUS À" (Mode Classique)
-                    const abonneY = outroLines.length > 0
-                        ? (outroStartY + outroLines.length * outroSpacing + abonneGap)
-                        : (outroStartY + abonneGap);
-                    ctx.font = `700 ${isReel ? 26 : 24}px "Montserrat", sans-serif`;
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-                    ctx.fillText('ABONNEZ-VOUS À', centerX, abonneY);
-
-                    // "DROPSIDERS" en grand Orbitron néon
-                    dropsidersY = abonneY + dropsidersOffset;
-                    ctx.font = `900 italic ${isReel ? (isAgendaPromo ? 98 : 92) : 86}px "Orbitron", sans-serif`;
-                    ctx.letterSpacing = '-2px';
-                    ctx.fillStyle = activeColor.color;
-                    ctx.shadowColor = `rgba(${activeColor.grad}, 0.75)`;
-                    ctx.shadowBlur = 38;
-                    ctx.fillText('DROPSIDERS', centerX, dropsidersY);
-                    ctx.restore();
 
                     // ==========================================
                     // ZONE 3 : BULLES ARRONDIES
