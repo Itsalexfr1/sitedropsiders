@@ -34,7 +34,8 @@ import {
     Music,
     Scissors,
     ChevronDown,
-    ChevronUp
+    ChevronUp,
+    Instagram
 } from 'lucide-react';
 import { ExportSuccessModal } from './ExportSuccessModal';
 import { fixEncoding } from '../utils/standardizer';
