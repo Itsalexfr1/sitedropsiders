@@ -4818,10 +4818,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
 
-                // Récupération du bodyText pour la slide active (Slide 1 = pas de bodyText, Slide 2 = conseilsSubtext, Slide >= 3 = extraEditorialSlides[s - 3])
+                // Récupération du bodyText pour la slide active (Slide 1 = pas de bodyText sauf MUSIQUE avec date/sous-titre, Slide 2 = conseilsSubtext, Slide >= 3 = extraEditorialSlides[s - 3])
                 let bodyText = '';
                 if (effectiveEditorialSlide === 1 && isEditorialCarouselTheme) {
-                    bodyText = '';
+                    bodyText = (theme === 'MUSIQUE' && conseilsSubtext) ? conseilsSubtext : '';
                 } else if (effectiveEditorialSlide === 2) {
                     bodyText = conseilsSubtext || '';
                 } else if (effectiveEditorialSlide >= 3) {
@@ -7331,6 +7331,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (!conseilsSubtext) {
                 setConseilsSubtext('POUR PARTICIPER :\n1. *Like* ce post & *abonne-toi* à @dropsiders\n2. *Identifie 2 potes* en commentaire\n3. *Partage en story* pour doubler tes chances !\nTirage au sort le dimanche 25 octobre.');
             }
+        } else if (newTheme === 'MUSIQUE') {
+            if (!conseilsTitle || conseilsTitle === 'LE TITRE ICI' || conseilsTitle.includes('CLIP') || conseilsTitle.includes('FESTIVAL') || conseilsTitle.includes('PASS VIP')) {
+                const defT = '*LES SORTIES* DE LA SEMAINE';
+                setConseilsTitle(defT);
+                setCustomText(defT);
+            }
+            if (!conseilsSubtext || conseilsSubtext.includes('RÉPONSE :') || conseilsSubtext.includes('POUR PARTICIPER')) {
+                const now = new Date();
+                const dStr = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                const cap = dStr.charAt(0).toUpperCase() + dStr.slice(1);
+                setConseilsSubtext(cap);
+            }
         } else if (newTheme === 'TRACKLIST') {
             if (!customText || !customText.includes('\n')) {
                 setCustomText('ODD MOB\nCRSSD FESTIVAL\nSAN DIEGO, USA, 2026');
@@ -9817,7 +9829,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             onClick={() => {
                                 setBgImage('');
                                 setAfficheImage('');
-                                bgImageRef.current = null;
                                 afficheImageRef.current = null;
                                 setTimeout(() => generateImage(), 50);
                             }}
@@ -12771,8 +12782,143 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </button>
                         </div>
 
+                        {/* Modèles rapides de phrases d'annonce en 1 clic */}
+                        <div className="p-3 bg-gradient-to-r from-[#00ff66]/15 via-black/40 to-[#00ff66]/10 border border-[#00ff66]/30 rounded-2xl space-y-2.5 shadow-xl">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[9.5px] font-black uppercase text-[#00ff66] tracking-wider flex items-center gap-1.5">
+                                    <span>⚡ Phrases d'annonce à choisir en 1 clic :</span>
+                                </span>
+                                <span className="text-[7.5px] font-bold text-gray-400 uppercase">Titre + Date du jour</span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const now = new Date();
+                                        const dStr = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                                        const cap = dStr.charAt(0).toUpperCase() + dStr.slice(1);
+                                        const t = '*LES SORTIES* DE LA SEMAINE';
+                                        setConseilsTitle(t);
+                                        setCustomText(t);
+                                        setConseilsSubtext(cap);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className="p-2.5 bg-white/5 hover:bg-[#00ff66]/20 border border-white/10 hover:border-[#00ff66]/40 rounded-xl text-left transition-all flex flex-col gap-1 active:scale-98 group shadow-sm"
+                                >
+                                    <span className="font-black text-[9px] uppercase text-[#00ff66] group-hover:text-white flex items-center gap-1">
+                                        <span>🎵</span> Les sorties de la semaine
+                                    </span>
+                                    <span className="text-[7.5px] text-gray-400 italic">
+                                        + Date du jour en dessous
+                                    </span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const now = new Date();
+                                        const dStr = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                                        const cap = dStr.charAt(0).toUpperCase() + dStr.slice(1);
+                                        const t = '*NEW MUSIC* FRIDAY';
+                                        setConseilsTitle(t);
+                                        setCustomText(t);
+                                        setConseilsSubtext(cap);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className="p-2.5 bg-white/5 hover:bg-[#00ff66]/20 border border-white/10 hover:border-[#00ff66]/40 rounded-xl text-left transition-all flex flex-col gap-1 active:scale-98 group shadow-sm"
+                                >
+                                    <span className="font-black text-[9px] uppercase text-[#00ff66] group-hover:text-white flex items-center gap-1">
+                                        <span>🔥</span> New Music Friday
+                                    </span>
+                                    <span className="text-[7.5px] text-gray-400 italic">
+                                        + Date du jour en dessous
+                                    </span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const now = new Date();
+                                        const dStr = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                                        const cap = dStr.charAt(0).toUpperCase() + dStr.slice(1);
+                                        const t = '*LES MEILLEURES SORTIES*';
+                                        setConseilsTitle(t);
+                                        setCustomText(t);
+                                        setConseilsSubtext(cap);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className="p-2.5 bg-white/5 hover:bg-[#00ff66]/20 border border-white/10 hover:border-[#00ff66]/40 rounded-xl text-left transition-all flex flex-col gap-1 active:scale-98 group shadow-sm"
+                                >
+                                    <span className="font-black text-[9px] uppercase text-[#00ff66] group-hover:text-white flex items-center gap-1">
+                                        <span>🎧</span> Les meilleures sorties
+                                    </span>
+                                    <span className="text-[7.5px] text-gray-400 italic">
+                                        + Date du jour en dessous
+                                    </span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const now = new Date();
+                                        const dStr = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                                        const cap = dStr.charAt(0).toUpperCase() + dStr.slice(1);
+                                        const t = '*SÉLECTION TRACKS* DE LA SEMAINE';
+                                        setConseilsTitle(t);
+                                        setCustomText(t);
+                                        setConseilsSubtext(cap);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className="p-2.5 bg-white/5 hover:bg-[#00ff66]/20 border border-white/10 hover:border-[#00ff66]/40 rounded-xl text-left transition-all flex flex-col gap-1 active:scale-98 group shadow-sm"
+                                >
+                                    <span className="font-black text-[9px] uppercase text-[#00ff66] group-hover:text-white flex items-center gap-1">
+                                        <span>⚡</span> Sélection de la semaine
+                                    </span>
+                                    <span className="text-[7.5px] text-gray-400 italic">
+                                        + Date du jour en dessous
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+
                         {/* Titre & Sous-titre de l'annonce */}
                         {conseilsEditor}
+
+                        {/* Date du jour / Sous-titre en dessous du titre pour Slide 1 Musique */}
+                        <div className="space-y-2 p-3 bg-black/40 border border-[#00ff66]/20 rounded-2xl shadow-lg">
+                            <div className="flex items-center justify-between pl-1">
+                                <label className="text-[9px] font-black text-[#00ff66] uppercase tracking-widest flex items-center gap-1.5">
+                                    <span>📅 Date du jour / Sous-titre (en dessous du titre)</span>
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const now = new Date();
+                                        const dStr = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                                        const cap = dStr.charAt(0).toUpperCase() + dStr.slice(1);
+                                        setConseilsSubtext(cap);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className="text-[8.5px] font-bold text-[#00ff66] hover:underline flex items-center gap-1"
+                                >
+                                    <span>🔄</span> Actualiser date du jour
+                                </button>
+                            </div>
+                            <input
+                                type="text"
+                                value={conseilsSubtext}
+                                onChange={e => {
+                                    setConseilsSubtext(e.target.value);
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                placeholder="EX: Vendredi 24 Octobre 2026"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white italic text-xs focus:border-[#00ff66]/50 outline-none transition-all shadow-md"
+                            />
+                            <p className="text-[8px] text-gray-400 pl-1">
+                                Cette date s'affiche en sous-titre élégant directement en dessous de votre titre sur la Slide 1.
+                            </p>
+                        </div>
 
                         {/* Extrait Audio Intro Optionnel */}
                         <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
