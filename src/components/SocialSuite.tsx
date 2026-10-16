@@ -743,6 +743,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const musicAudioInputRef = useRef<HTMLInputElement>(null);
     const musicIntroAudioInputRef = useRef<HTMLInputElement>(null);
     const musicCoverImgsRef = useRef<Record<string, HTMLImageElement>>({});
+    const activeTrackAudioElementRef = useRef<HTMLAudioElement | null>(null);
+    const [activeAudioCurrentTime, setActiveAudioCurrentTime] = useState<number>(0);
 
     const updateMusicTrack = (idx: number, patch: Partial<MusicTrackSlide>) => {
         setMusicTracks(prev => prev.map((t, i) => (i === idx ? { ...t, ...patch } : t)));
@@ -13879,11 +13881,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     </div>
                                     {(activeTrack.audio.startsWith('blob:') || activeTrack.audio.startsWith('data:') || audioBlobUrls[activeTrack.audio]) ? (
                                     <audio
+                                        ref={activeTrackAudioElementRef}
                                         key={`audio-track-${activeTrackIdx}-${audioBlobUrls[activeTrack.audio] ? 'ram' : 'local'}`}
                                         controls
                                         src={activeTrack.audio.startsWith('blob:') || activeTrack.audio.startsWith('data:') ? activeTrack.audio : audioBlobUrls[activeTrack.audio]}
                                         className="w-full h-8 rounded-lg accent-[#00ff66]"
                                         preload="auto"
+                                        onTimeUpdate={(e) => setActiveAudioCurrentTime(e.currentTarget.currentTime)}
                                         onLoadedMetadata={(e) => handleAudioLoadedMetadata(activeTrack.audio!, e.currentTarget.duration)}
                                     />
                                     ) : (
@@ -13892,56 +13896,127 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         </div>
                                     )}
 
+                                    {/* Bouton de capture directe du point d'écoute */}
+                                    {(() => {
+                                        const dur = audioDurations[activeTrack.audio!] || 120;
+                                        const maxStart = Math.max(0, Math.floor(dur - 30));
+                                        const currentPosSec = Math.min(maxStart, Math.max(0, Math.floor(activeAudioCurrentTime)));
+                                        return (
+                                            <div className="flex items-center justify-between gap-2 bg-[#00ff66]/10 border border-[#00ff66]/30 px-3 py-2 rounded-xl">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[7.5px] font-bold uppercase text-gray-400">Position d'écoute :</span>
+                                                    <span className="text-[11px] font-mono font-black text-[#00ff66]">{formatAudioTime(activeAudioCurrentTime)}</span>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateMusicTrack(activeTrackIdx, { audioStartTime: currentPosSec })}
+                                                    className="px-3 py-1.5 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[8px] uppercase rounded-lg transition-all flex items-center gap-1 active:scale-95 shadow-sm"
+                                                    title="Caler le départ des 30 secondes exactement sur la seconde où vous écoutez le lecteur"
+                                                >
+                                                    <span>🎯</span> Caler le début ici ({formatAudioTime(currentPosSec)})
+                                                </button>
+                                            </div>
+                                        );
+                                    })()}
+
                                     {/* Réglage du point de départ (Milieu / Drop du son) */}
                                     <div className="pt-2 border-t border-white/10 space-y-2">
                                         <div className="flex items-center justify-between text-[8.5px] font-black uppercase">
                                             <span className="text-[#00ff66] flex items-center gap-1">
-                                                <Scissors className="w-3.5 h-3.5 text-[#00ff66]" /> Point de départ (Milieu / Drop) :
+                                                <Scissors className="w-3.5 h-3.5 text-[#00ff66]" /> Tranche sélectionnée (30s) :
                                             </span>
-                                            <span className="font-mono text-white bg-white/10 px-2 py-0.5 rounded border border-white/10 text-[9px] font-bold">
-                                                {formatAudioTime(activeTrack.audioStartTime || 0)}
+                                            <span className="font-mono text-white bg-white/10 px-2 py-0.5 rounded border border-white/10 text-[8.5px] font-bold">
+                                                {formatAudioTime(activeTrack.audioStartTime || 0)} ➔ {formatAudioTime((activeTrack.audioStartTime || 0) + 30)}
                                             </span>
                                         </div>
 
                                         {/* Boutons de raccourcis rapides */}
-                                        <div className="grid grid-cols-3 gap-1.5">
+                                        <div className="grid grid-cols-4 gap-1">
                                             <button
                                                 type="button"
                                                 onClick={() => updateMusicTrack(activeTrackIdx, { audioStartTime: 0 })}
-                                                className={`py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${
+                                                className={`py-1 rounded text-[7.5px] font-black uppercase border transition-all ${
                                                     (activeTrack.audioStartTime || 0) === 0
                                                         ? 'bg-white/20 border-white text-white shadow-sm'
                                                         : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                                                 }`}
                                             >
-                                                ⏮️ Début (0:00)
+                                                0:00 (Intro)
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => {
                                                     const dur = audioDurations[activeTrack.audio!] || 120;
-                                                    if (dur <= 35) {
-                                                        updateMusicTrack(activeTrackIdx, { audioStartTime: 0 });
-                                                    } else {
-                                                        const maxStart = Math.max(0, Math.floor(dur - 30));
-                                                        const targetDrop = dur >= 90 ? 30 : Math.min(30, maxStart);
-                                                        updateMusicTrack(activeTrackIdx, { audioStartTime: targetDrop });
-                                                    }
+                                                    const maxStart = Math.max(0, Math.floor(dur - 30));
+                                                    updateMusicTrack(activeTrackIdx, { audioStartTime: Math.min(30, maxStart) });
                                                 }}
-                                                className={`py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${
-                                                    (activeTrack.audioStartTime || 0) > 0
+                                                className={`py-1 rounded text-[7.5px] font-black uppercase border transition-all ${
+                                                    (activeTrack.audioStartTime || 0) === 30
                                                         ? 'bg-[#00ff66] text-black border-[#00ff66] font-black shadow-sm'
                                                         : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
                                                 }`}
                                             >
-                                                ⚡ Drop (30s)
+                                                ⚡ 0:30
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => playAudioPreviewFrom(activeTrack.audio!, activeTrack.audioStartTime || 0)}
-                                                className="py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white rounded-lg text-[8px] font-black uppercase transition-all flex items-center justify-center gap-1"
+                                                onClick={() => {
+                                                    const dur = audioDurations[activeTrack.audio!] || 120;
+                                                    const maxStart = Math.max(0, Math.floor(dur - 30));
+                                                    updateMusicTrack(activeTrackIdx, { audioStartTime: Math.min(45, maxStart) });
+                                                }}
+                                                className={`py-1 rounded text-[7.5px] font-black uppercase border transition-all ${
+                                                    (activeTrack.audioStartTime || 0) === 45
+                                                        ? 'bg-[#00ff66] text-black border-[#00ff66] font-black shadow-sm'
+                                                        : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
+                                                 }`}
                                             >
-                                                {activeAudioPreviewSrc === activeTrack.audio ? '⏸️ Stop' : '▶️ Tester'}
+                                                🔥 0:45
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const dur = audioDurations[activeTrack.audio!] || 120;
+                                                    const maxStart = Math.max(0, Math.floor(dur - 30));
+                                                    updateMusicTrack(activeTrackIdx, { audioStartTime: Math.min(60, maxStart) });
+                                                }}
+                                                className={`py-1 rounded text-[7.5px] font-black uppercase border transition-all ${
+                                                    (activeTrack.audioStartTime || 0) === 60
+                                                        ? 'bg-[#00ff66] text-black border-[#00ff66] font-black shadow-sm'
+                                                        : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
+                                                }`}
+                                            >
+                                                💥 1:00
+                                            </button>
+                                        </div>
+
+                                        {/* Micro-ajustements précis (-5s, -1s, +1s, +5s) et bouton tester */}
+                                        <div className="flex items-center justify-between gap-1.5 pt-0.5">
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-[7.5px] text-gray-400 font-bold uppercase mr-0.5">Ajuster:</span>
+                                                {[-5, -1, 1, 5].map((delta) => (
+                                                    <button
+                                                        key={delta}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const dur = audioDurations[activeTrack.audio!] || 120;
+                                                            const maxStart = Math.max(0, Math.floor(dur - 30));
+                                                            const cur = activeTrack.audioStartTime || 0;
+                                                            const next = Math.min(maxStart, Math.max(0, cur + delta));
+                                                            updateMusicTrack(activeTrackIdx, { audioStartTime: next });
+                                                        }}
+                                                        className="px-1.5 py-0.5 bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/20 text-white rounded text-[7.5px] font-mono font-bold transition-all active:scale-95"
+                                                    >
+                                                        {delta > 0 ? `+${delta}s` : `${delta}s`}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => playAudioPreviewFrom(activeTrack.audio!, activeTrack.audioStartTime || 0)}
+                                                className="px-2.5 py-1 bg-white/10 hover:bg-white/20 border border-white/15 text-white rounded-lg text-[8px] font-black uppercase transition-all flex items-center justify-center gap-1 active:scale-95"
+                                            >
+                                                {activeAudioPreviewSrc === activeTrack.audio ? '⏸️ Stop' : '▶️ Tester 30s'}
                                             </button>
                                         </div>
 
