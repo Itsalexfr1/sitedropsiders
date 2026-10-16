@@ -949,6 +949,59 @@ export function applyRotationPatternToTracks(
 }
 
 /**
+ * Normalise le nom d'un artiste pour les comparaisons et quotas d'antenne
+ * Nettoie les feat, ft, remix, vs, ponctuation.
+ */
+export function normalizeArtistName(rawArtist?: string, rawTitle?: string): string {
+    let artist = rawArtist || '';
+    if (!artist && rawTitle) {
+        artist = parseArtistAndEvent(rawTitle).artist || '';
+    }
+    if (!artist) return '';
+
+    const clean = artist
+        .toLowerCase()
+        .replace(/\b(feat\.|feat|ft\.|ft|featuring|pres\.|pres|presents|vs\.|vs|with|remix|edit|bootleg|rework|prod\.)\b.*$/i, '')
+        .replace(/[^a-z0-9]/gi, '')
+        .trim();
+
+    return clean.toLowerCase() || artist.toLowerCase().trim();
+}
+
+/**
+ * Répartit les morceaux de manière équilibrée pour maximiser l'écart entre les morceaux d'un même artiste
+ */
+export function spreadTracksByArtist(tracks: RadioTrackItem[]): RadioTrackItem[] {
+    if (!tracks || tracks.length <= 2) return tracks;
+
+    const groups = new Map<string, RadioTrackItem[]>();
+    for (const t of tracks) {
+        const key = normalizeArtistName(t.artist, t.title) || t.id;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key)!.push(t);
+    }
+
+    if (groups.size <= 1) return tracks;
+
+    const sortedGroups = Array.from(groups.values()).sort((a, b) => b.length - a.length);
+    const result: RadioTrackItem[] = new Array(tracks.length);
+    let pos = 0;
+
+    for (const group of sortedGroups) {
+        const step = Math.max(1, Math.floor(tracks.length / group.length));
+        for (const track of group) {
+            while (result[pos] !== undefined) {
+                pos = (pos + 1) % tracks.length;
+            }
+            result[pos] = track;
+            pos = (pos + step) % tracks.length;
+        }
+    }
+
+    return result.filter(Boolean);
+}
+
+/**
  * Construit la playlist entrelacée pour le direct selon la règle du bloc
  */
 export function buildInterleavedPlaylist(
@@ -975,8 +1028,8 @@ export function buildInterleavedPlaylist(
     }
 
     const shuffledMusic = block.randomize === false
-        ? musicTracks
-        : getSeededShuffle(musicTracks, `${todayStr}_${block.id}`);
+        ? spreadTracksByArtist(musicTracks)
+        : spreadTracksByArtist(getSeededShuffle(musicTracks, `${todayStr}_${block.id}`));
 
     // Promos garanties pour la rotation du conducteur en direct (sans aucune pub)
     const blockPromos = allTracks.filter(t => t.category === 'promo' && !isForbiddenAdTrack(t) && !isItemExpired(t));
@@ -1129,6 +1182,10 @@ export function computeRadioDaySchedule(
     // Garde trace des heures où le top horaire a déjà été inséré (un seul par heure, pas un par bloc)
     const topHoraireInsertedHours = new Set<number>();
 
+    // 📻 Règle d'or de programmation : aucun même artiste ne doit être diffusé à moins d'1h d'intervalle (3600 secondes)
+    // Mémorise la seconde de fin de diffusion de chaque artiste musical pour la journée
+    const lastArtistEndSec = new Map<string, number>();
+
     sorted.forEach((block) => {
         const startH = block.startHour ?? 0;
         let endH = block.endHour ?? 24;
@@ -1224,9 +1281,64 @@ export function computeRadioDaySchedule(
             blockCursor += themeDur;
         }
 
-        // 3. Remplissage continu des morceaux de l'émission
+        // 3. Remplissage continu des morceaux de l'émission avec garantie d'1h d'intervalle par artiste
+        let blockPool: RadioTrackItem[] = [...tracks];
+
         while (blockCursor < totalBlockSec && trackIdx < 300) {
-            const track = tracks[trackIdx % tracks.length];
+            const currentAbsSec = blockStartSec + blockCursor;
+
+            if (blockPool.length === 0) {
+                blockPool = [...tracks];
+            }
+
+            // Sélection intelligente respectant la règle d'1h minimum entre deux diffusions du même artiste
+            let chosenIdx = -1;
+            let maxGapSec = -1;
+            let fallbackIdx = 0;
+
+            for (let i = 0; i < blockPool.length; i++) {
+                const candidate = blockPool[i];
+                const isJingleOrPromo = candidate.category === 'jingle' || candidate.category === 'promo' || candidate.category === 'pub' || candidate.isTopHoraire || candidate.isThemeJingle;
+
+                if (isJingleOrPromo) {
+                    chosenIdx = i;
+                    break;
+                }
+
+                const artKey = normalizeArtistName(candidate.artist, candidate.title);
+                if (!artKey || artKey.includes('dropsiders')) {
+                    chosenIdx = i;
+                    break;
+                }
+
+                const lastEnd = lastArtistEndSec.get(artKey);
+                if (lastEnd === undefined) {
+                    chosenIdx = i;
+                    break;
+                }
+
+                const gap = (currentAbsSec >= lastEnd)
+                    ? (currentAbsSec - lastEnd)
+                    : (currentAbsSec + 86400 - lastEnd);
+
+                if (gap >= 3600) {
+                    chosenIdx = i;
+                    break;
+                }
+
+                if (gap > maxGapSec) {
+                    maxGapSec = gap;
+                    fallbackIdx = i;
+                }
+            }
+
+            if (chosenIdx === -1) {
+                chosenIdx = fallbackIdx;
+            }
+
+            const track = blockPool[chosenIdx];
+            blockPool.splice(chosenIdx, 1);
+
             const dur = sanitizeTrackDuration(track);
             const isLiveSet = track.category === 'liveset' || track.category === 'set' || !isLikelySingleTrack(track.title) || dur >= 600;
 
@@ -1416,6 +1528,11 @@ export function computeRadioDaySchedule(
 
                         blockCursor += playDur;
                         remainingDur = 0;
+
+                        const artKey = normalizeArtistName(track.artist, track.title);
+                        if (artKey && !artKey.includes('dropsiders')) {
+                            lastArtistEndSec.set(artKey, (blockStartSec + blockCursor) % 86400);
+                        }
                     }
                 }
                 trackIdx++;
@@ -1524,6 +1641,11 @@ export function computeRadioDaySchedule(
 
                 blockCursor += dur;
                 trackIdx++;
+
+                const artKey = normalizeArtistName(track.artist, track.title);
+                if (artKey && !artKey.includes('dropsiders') && track.category !== 'jingle' && track.category !== 'promo' && track.category !== 'pub') {
+                    lastArtistEndSec.set(artKey, (blockStartSec + blockCursor) % 86400);
+                }
             }
         }
     });
