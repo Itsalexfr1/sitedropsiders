@@ -210,7 +210,7 @@ function HistorySection({
         }
     }, [radioBlocks, parisSec]);
 
-    // 2. Nettoyage et récupération d'éventuels titres enregistrés en direct localement (exclut les promos/jingles)
+    // 2. Nettoyage et récupération d'éventuels titres enregistrés en direct localement (exclut les promos/jingles et doublons)
     const [localHistory, setLocalHistory] = useState<RadioHistoryEntry[]>([]);
 
     useEffect(() => {
@@ -219,13 +219,22 @@ function HistorySection({
             if (raw) {
                 const parsed: any[] = JSON.parse(raw);
                 if (Array.isArray(parsed)) {
-                    // Nettoyer définitivement les jingles / promos résiduelles
-                    const cleaned: RadioHistoryEntry[] = parsed.filter(e =>
-                        e && e.title &&
-                        e.artist !== 'DROPSIDERS RADIO' &&
-                        !e.title.toLowerCase().includes('promo') &&
-                        !e.title.toLowerCase().includes('jingle')
-                    );
+                    // Nettoyer définitivement les jingles / promos résiduelles et les doublons consécutifs
+                    const cleaned: RadioHistoryEntry[] = [];
+                    parsed.forEach(e => {
+                        if (!e || !e.title) return;
+                        if (e.artist === 'DROPSIDERS RADIO' || e.title.toLowerCase().includes('promo') || e.title.toLowerCase().includes('jingle')) return;
+                        const prev = cleaned[cleaned.length - 1];
+                        if (
+                            prev &&
+                            (prev.artist || '').toLowerCase().trim() === (e.artist || '').toLowerCase().trim() &&
+                            (prev.title || '').toLowerCase().trim() === (e.title || '').toLowerCase().trim() &&
+                            (prev.endTime === e.endTime || Math.abs((prev.timestamp || 0) - (e.timestamp || 0)) < 900000)
+                        ) {
+                            return; // doublon dans le stockage local
+                        }
+                        cleaned.push(e);
+                    });
                     if (cleaned.length !== parsed.length) {
                         localStorage.setItem(RADIO_HISTORY_KEY, JSON.stringify(cleaned));
                     }
@@ -235,25 +244,49 @@ function HistorySection({
         } catch {}
     }, []);
 
-    // 3. Fusion consolidée de l'historique
+    // 3. Fusion consolidée et déduplication stricte de l'historique
     const history = useMemo(() => {
-        const map = new Map<string, RadioHistoryEntry>();
+        // L'historique officiel calculé est la source de référence
+        const allItems: RadioHistoryEntry[] = [...computedHistory];
 
-        // Ajouter l'historique officiel calculé
-        computedHistory.forEach(item => {
-            const key = `${item.day}_${item.startTime}_${item.title}`.toLowerCase();
-            map.set(key, item);
-        });
+        // Ajouter les entrées locales seulement si elles n'existent pas déjà dans computedHistory
+        localHistory.forEach(localItem => {
+            const isAlreadyPresent = allItems.some(item => {
+                const sameDay = item.day.toLowerCase() === localItem.day.toLowerCase();
+                const sameArtist = (item.artist || '').toLowerCase().trim() === (localItem.artist || '').toLowerCase().trim();
+                const sameTitle = (item.title || '').toLowerCase().trim() === (localItem.title || '').toLowerCase().trim();
+                if (!sameDay || !sameArtist || !sameTitle) return false;
 
-        // Compléter avec les entrées locales non dupliquées
-        localHistory.forEach(item => {
-            const key = `${item.day}_${item.startTime}_${item.title}`.toLowerCase();
-            if (!map.has(key)) {
-                map.set(key, item);
+                // Même titre le même jour : si même heure de fin ou horaires très proches (< 15 min), c'est un doublon
+                if (item.endTime && localItem.endTime && item.endTime === localItem.endTime) return true;
+                const timeDiff = Math.abs(item.timestamp - localItem.timestamp) / 60000;
+                return timeDiff < 15;
+            });
+
+            if (!isAlreadyPresent) {
+                allItems.push(localItem);
             }
         });
 
-        return Array.from(map.values()).sort((a, b) => b.timestamp - a.timestamp);
+        // Trier par ordre antéchronologique (le plus récent en premier)
+        const sorted = allItems.sort((a, b) => b.timestamp - a.timestamp);
+
+        // Déduplication stricte des morceaux consécutifs identiques (même artiste & titre à < 15 min d'intervalle ou même endTime)
+        const deduplicated: RadioHistoryEntry[] = [];
+        for (const entry of sorted) {
+            const last = deduplicated[deduplicated.length - 1];
+            if (last) {
+                const sameArtist = (last.artist || '').toLowerCase().trim() === (entry.artist || '').toLowerCase().trim();
+                const sameTitle = (last.title || '').toLowerCase().trim() === (entry.title || '').toLowerCase().trim();
+                const timeDiff = Math.abs(last.timestamp - entry.timestamp) / 60000;
+                if (sameArtist && sameTitle && (timeDiff < 15 || (last.endTime && entry.endTime && last.endTime === entry.endTime))) {
+                    continue; // Ignorer le doublon !
+                }
+            }
+            deduplicated.push(entry);
+        }
+
+        return deduplicated;
     }, [computedHistory, localHistory]);
 
     // Liste des jours disponibles (ordre chronologique décroissant)
@@ -928,8 +961,8 @@ export function RadioPage() {
                 id: 'hist-' + Date.now(),
                 artist: currentSet.artist || 'Artiste inconnu',
                 title: currentSet.title || currentSet.startTime,
-                startTime: formatParisTime(now),
-                endTime: formatParisTime(endTime),
+                startTime: currentSet.startTime || formatParisTime(now),
+                endTime: currentSet.endTime || formatParisTime(endTime),
                 day: formatParisDate(now),
                 timestamp: Date.now(),
                 category: currentSet.category,
