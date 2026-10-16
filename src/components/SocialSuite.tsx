@@ -765,6 +765,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
+    const resetMusicTrack = (idx: number) => {
+        const curCover = musicTracks[idx]?.cover;
+        if (curCover && musicCoverImgsRef.current[curCover]) {
+            delete musicCoverImgsRef.current[curCover];
+        }
+        setMusicTracks(prev => prev.map((t, i) => (i === idx ? createEmptyMusicTrack() : t)));
+        if (idx === 0) {
+            setAfficheImage('');
+            afficheImageRef.current = null;
+        }
+        stopPreviewPlayer();
+        setActiveAudioPreviewSrc(null);
+        if (musicAudioInputRef.current) {
+            musicAudioInputRef.current.value = '';
+        }
+        setTimeout(() => generateImage(), 50);
+    };
+
     const handleAfficheImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -4907,7 +4925,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // B) TITRE DU MORCEAU (Gros, blanc avec highlights)
                 const titleY = isStory ? 1275 : 850;
-                const titleText = currentTrack.title?.trim() || (trackIdx === 0 && conseilsTitle && conseilsTitle !== 'LE TITRE ICI' ? conseilsTitle : `TITRE DU MORCEAU`);
+                const titleText = currentTrack.title?.trim() || `TITRE DU MORCEAU`;
                 ctx.save();
                 let titleFontSize = isStory ? 52 : 38;
                 ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
@@ -4922,7 +4940,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // C) ARTISTE (En vert néon gras italique)
                 const artistY = isStory ? 1370 : 910;
-                const artistText = currentTrack.artist?.trim() || (trackIdx === 0 && artistNameText ? artistNameText : 'NOM DE L\'ARTISTE');
+                const artistText = currentTrack.artist?.trim() || 'NOM DE L\'ARTISTE';
                 ctx.save();
                 let artistFontSize = isStory ? 36 : 26;
                 ctx.font = `800 italic ${artistFontSize}px "Montserrat", sans-serif`;
@@ -13635,6 +13653,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-[#00ff66]">Slide {editorialSlide}</span>
                             </span>
                             <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => resetMusicTrack(activeTrackIdx)}
+                                    className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 active:scale-95 shadow-sm"
+                                    title="Remettre à zéro ce morceau : effacer titre, artiste, label, pochette et audio"
+                                >
+                                    <span>🔄</span> Reset Morceau
+                                </button>
                                 <button
                                     type="button"
                                     onClick={() => exportCurrentSlideVideo()}
