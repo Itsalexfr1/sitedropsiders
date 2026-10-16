@@ -342,6 +342,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const conseilsSubtextInputRef = useRef<HTMLTextAreaElement | null>(null);
     const [isConseilsLargeTitle, setIsConseilsLargeTitle] = useState(false);
     const [showTitleOnSlide2, setShowTitleOnSlide2] = useState<boolean>(false);
+    const [showMusicDate, setShowMusicDate] = useState<boolean>(false); // Masquer ou afficher la date sous le titre en thème MUSIQUE
     const [extraEditorialSlides, setExtraEditorialSlides] = useState<string[]>([]); // Slides 3, 4, 5... (texte de chaque slide)
     const [skipEditorialSlide2, setSkipEditorialSlide2] = useState<boolean>(false); // Masquer Slide 2 dans l'export Reel (Slide 1 + Promo uniquement)
     const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(5); // Durée Slide 1 (en secondes, min 2s, max 15s)
@@ -5158,10 +5159,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
 
-                // Récupération du bodyText pour la slide active (Slide 1 = pas de bodyText sauf MUSIQUE avec date/sous-titre, Slide 2 = conseilsSubtext, Slide >= 3 = extraEditorialSlides[s - 3])
+                // Récupération du bodyText pour la slide active (Slide 1 = pas de bodyText sauf MUSIQUE avec date/sous-titre si activé, Slide 2 = conseilsSubtext, Slide >= 3 = extraEditorialSlides[s - 3])
                 let bodyText = '';
                 if (effectiveEditorialSlide === 1 && isEditorialCarouselTheme) {
-                    bodyText = (theme === 'MUSIQUE' && conseilsSubtext) ? conseilsSubtext : '';
+                    bodyText = (theme === 'MUSIQUE' && showMusicDate && conseilsSubtext) ? conseilsSubtext : '';
                 } else if (effectiveEditorialSlide === 2) {
                     bodyText = conseilsSubtext || '';
                 } else if (effectiveEditorialSlide >= 3) {
@@ -5175,9 +5176,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isTitleOnly = mainTitleText && !bodyText;
                 const isDevinetteTheme = (theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ');
                 const isDevinetteReveal = isDevinetteTheme && effectiveEditorialSlide === 2;
+                const isSlide1Editorial = (effectiveEditorialSlide === 1 && isEditorialCarouselTheme);
 
-                // 1. Définition et préparation du Titre
-                let titleFontSize = isTitleOnly ? 64 : (isDevinetteReveal ? (isReel ? 44 : 38) : (isEditorialCarouselTheme ? 50 : 44));
+                // 1. Définition et préparation du Titre (sur Slide 1, le titre a toujours la grande taille standard 64px comme la phrase 1 des autres thèmes)
+                let titleFontSize = (isTitleOnly || isSlide1Editorial) ? 64 : (isDevinetteReveal ? (isReel ? 44 : 38) : (isEditorialCarouselTheme ? 50 : 44));
                 const formatTitleLines = (fSize: number) => {
                     ctx.font = `900 ${fSize}px "Montserrat", sans-serif`;
                     const lines: string[] = [];
@@ -5236,7 +5238,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     return lines;
                 };
 
-                const gapBetween = (mainTitleText && bodyText) ? (isDevinetteReveal ? 14 : 22) : 0;
+                const isMusicSlide1 = (theme === 'MUSIQUE' && effectiveEditorialSlide === 1);
+                const gapBetween = (mainTitleText && bodyText) ? (isDevinetteReveal ? 14 : (isMusicSlide1 ? 16 : 22)) : 0;
                 let subLineHeight = Math.round(subFontSize * (isDevinetteReveal ? 1.25 : 1.38));
                 let subLines = formatSubLines(subFontSize);
                 let subHeight = bodyText ? (subLines.length * subLineHeight) : 0;
@@ -5258,7 +5261,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 // Centrage vertical dynamique dans la zone libre entre le divider et le bas / bandeau CTA
-                const startPadding = Math.max(isReel ? 22 : 14, Math.round((availableSpace - totalTextHeight) / 2));
+                // Pour le thème MUSIQUE Slide 1, on remonte la phrase vers le haut pour un équilibre parfait sous la ligne
+                const startPadding = isMusicSlide1
+                    ? Math.max(isReel ? 22 : 14, Math.round((availableSpace - totalTextHeight) * (isReel ? 0.32 : 0.30)))
+                    : Math.max(isReel ? 22 : 14, Math.round((availableSpace - totalTextHeight) / 2));
                 const firstLineFontSize = mainTitleText ? titleFontSize : subFontSize;
                 let curY = dividerY + startPadding + Math.round(firstLineFontSize * 0.82);
 
@@ -5769,7 +5775,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide
     useEffect(() => {
@@ -13226,35 +13232,60 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="space-y-2 p-3 bg-black/40 border border-[#00ff66]/20 rounded-2xl shadow-lg">
                             <div className="flex items-center justify-between pl-1">
                                 <label className="text-[9px] font-black text-[#00ff66] uppercase tracking-widest flex items-center gap-1.5">
-                                    <span>📅 Date du jour / Sous-titre (en dessous du titre)</span>
+                                    <span>📅 Date sous le titre (Slide 1)</span>
+                                    <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold ${showMusicDate ? 'bg-[#00ff66]/20 text-[#00ff66] border border-[#00ff66]/30' : 'bg-white/10 text-gray-400 border border-white/20'}`}>
+                                        {showMusicDate ? 'Affichée' : 'Masquée'}
+                                    </span>
                                 </label>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        const now = new Date();
-                                        const dStr = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-                                        const cap = dStr.charAt(0).toUpperCase() + dStr.slice(1);
-                                        setConseilsSubtext(cap);
-                                        setTimeout(() => generateImage(), 50);
-                                    }}
-                                    className="text-[8.5px] font-bold text-[#00ff66] hover:underline flex items-center gap-1"
-                                >
-                                    <span>🔄</span> Actualiser date du jour
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setShowMusicDate(!showMusicDate);
+                                            setTimeout(() => generateImage(), 50);
+                                        }}
+                                        className={`px-2.5 py-1 rounded-xl text-[8.5px] font-black uppercase transition-all flex items-center gap-1 border ${
+                                            showMusicDate
+                                                ? 'bg-[#00ff66]/20 border-[#00ff66]/40 text-[#00ff66] hover:bg-[#00ff66]/30'
+                                                : 'bg-white/10 border-white/20 text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        {showMusicDate ? '👁️ Masquer la date' : '👁️ Afficher la date'}
+                                    </button>
+                                    {showMusicDate && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const now = new Date();
+                                                const dStr = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                                                const cap = dStr.charAt(0).toUpperCase() + dStr.slice(1);
+                                                setConseilsSubtext(cap);
+                                                setTimeout(() => generateImage(), 50);
+                                            }}
+                                            className="text-[8.5px] font-bold text-[#00ff66] hover:underline flex items-center gap-1"
+                                        >
+                                            <span>🔄</span> Actualiser
+                                        </button>
+                                    )}
+                                </div>
                             </div>
-                            <input
-                                type="text"
-                                value={conseilsSubtext}
-                                onChange={e => {
-                                    setConseilsSubtext(e.target.value);
-                                    setTimeout(() => generateImage(), 50);
-                                }}
-                                placeholder="EX: Vendredi 24 Octobre 2026"
-                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white italic text-xs focus:border-[#00ff66]/50 outline-none transition-all shadow-md"
-                            />
-                            <p className="text-[8px] text-gray-400 pl-1">
-                                Cette date s'affiche en sous-titre élégant directement en dessous de votre titre sur la Slide 1.
-                            </p>
+                            {showMusicDate && (
+                                <>
+                                    <input
+                                        type="text"
+                                        value={conseilsSubtext}
+                                        onChange={e => {
+                                            setConseilsSubtext(e.target.value);
+                                            setTimeout(() => generateImage(), 50);
+                                        }}
+                                        placeholder="EX: Vendredi 24 Octobre 2026"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white italic text-xs focus:border-[#00ff66]/50 outline-none transition-all shadow-md"
+                                    />
+                                    <p className="text-[8px] text-gray-400 pl-1">
+                                        Cette date s'affiche en sous-titre élégant directement en dessous de votre titre sur la Slide 1.
+                                    </p>
+                                </>
+                            )}
                         </div>
 
                         {/* Extrait Audio Intro Optionnel */}
