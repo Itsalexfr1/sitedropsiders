@@ -220,7 +220,16 @@ function ReorderableItem({ item, updateItem, getColorValue, socials, updateSocia
                                             </div>
                                         </div>
                                     </div>
-                                    <p className="text-[9px] text-gray-500 italic">Ces identifiants sont utilisés pour les flux sociaux et les liens du site.</p>
+                                    <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-white/5">
+                                        <p className="text-[9px] text-gray-500 italic">Ces identifiants sont utilisés pour les flux sociaux et les liens du site.</p>
+                                        <Link
+                                            to="/admin/instagram"
+                                            className="px-3 py-1.5 bg-[#ff007f]/20 hover:bg-[#ff007f]/30 border border-[#ff007f]/40 text-[#ff007f] hover:text-white rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all self-start sm:self-auto shrink-0"
+                                        >
+                                            <Instagram className="w-3 h-3" />
+                                            <span>Modifier abonnés & stats</span>
+                                        </Link>
+                                    </div>
                                 </div>
                             )}
                         </div>

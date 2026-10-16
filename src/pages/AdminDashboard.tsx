@@ -6922,6 +6922,30 @@ export function AdminDashboard() {
                       </div>
                     </Link>
 
+                    <Link
+                      to="/admin/instagram"
+                      onClick={() => setIsAccueilModalOpen(false)}
+                      className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-[#ff007f]/10 hover:border-[#ff007f]/50 transition-all group"
+                    >
+                      <div className="w-12 h-12 bg-gradient-to-tr from-[#f9ce34]/20 via-[#ee2a7b]/20 to-[#6228d7]/20 rounded-2xl flex items-center justify-center border border-[#ff007f]/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                        <Instagram className="w-6 h-6 text-[#ff007f]" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-xl font-bold text-white uppercase italic">
+                            Stats Instagram
+                          </h3>
+                          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[#ff007f]/20 text-[#ff007f] border border-[#ff007f]/30">
+                            Abonnés & Posts
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">
+                          Modifier le nombre d'abonnés & publications
+                        </p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                    </Link>
+
                     <button
                       onClick={() => {
                         setIsThemesModalOpen(true);
