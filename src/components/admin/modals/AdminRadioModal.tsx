@@ -98,6 +98,8 @@ import { RadioYouTubeCuePlayer } from '../radio/RadioYouTubeCuePlayer';
 import { DEFAULT_JINGLES_PUBS, type RadionomyItem } from './RadionomyJinglesBox';
 import { SunoJingleStudioModal } from './SunoJingleStudioModal';
 import { AdminSoundCloudPlaylistModal, SoundCloudIcon } from './AdminSoundCloudPlaylistModal';
+import { RadioBatchMp3UploadModal } from '../radio/RadioBatchMp3UploadModal';
+import { RadioSoundCloudTrackModal } from '../radio/RadioSoundCloudTrackModal';
 
 const PRESET_EMOJIS = ['🎧', '🔥', '⚡', '🚀', '🎵', '🕺', '📻', '💎', '🎉', '🌙', '☀️', '⭐', '🌅', '🎪'];
 const PRESET_COLORS = [
@@ -200,12 +202,13 @@ export function AdminRadioModal({
     const [tvBlocks, setTvBlocks] = useState<TVBlock[]>(getInitialTVBlocks);
     const [searchFilter, setSearchFilter] = useState('');
 
-    // ─── Modale d'Upload Jingle / Promo / Pub avec MENU DÉROULANT ─────────────
     const [isUploadJingleModalOpen, setIsUploadJingleModalOpen] = useState(false);
     const [isSunoModalOpen, setIsSunoModalOpen] = useState(false);
     const [isAddMediaDropdownOpen, setIsAddMediaDropdownOpen] = useState(false);
     const [isYouTubeSearchOpen, setIsYouTubeSearchOpen] = useState(false);
     const [isSoundCloudModalOpen, setIsSoundCloudModalOpen] = useState(false);
+    const [isBatchMp3ModalOpen, setIsBatchMp3ModalOpen] = useState(false);
+    const [isSoundCloudTrackModalOpen, setIsSoundCloudTrackModalOpen] = useState(false);
 
     // ─── Formulaire rapide d'ajout de morceau ─────────────────────────────────
     const [showAddTrackBox, setShowAddTrackBox] = useState(false);
@@ -1219,6 +1222,65 @@ export function AdminRadioModal({
         });
     };
 
+    // ─── Ajout multiple ou simple de morceaux MP3 / SoundCloud / etc. ─────────
+    const handleAddTracksToBlock = (
+        blockId: string,
+        newTracks: RadioTrackItem[],
+        interleave: boolean = false
+    ) => {
+        setBlocks(prev => {
+            const next = prev.map(b => {
+                if (b.id !== blockId) return b;
+                let updatedTracks: RadioTrackItem[];
+                if (interleave) {
+                    const genPromos = generalJingles
+                        .filter(j => (j.category === 'promo' || j.category === 'pub' || (j as any).type === 'promo' || (j as any).type === 'pub') && !isItemExpired(j))
+                        .map(p => ({
+                            id: p.id,
+                            title: p.title,
+                            artist: p.category === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS',
+                            audioUrl: p.audioUrl,
+                            youtubeId: p.youtubeId,
+                            duration: p.duration || 30,
+                            category: (p.category || 'promo') as RadioTrackCategory
+                        }));
+                    const blockPromos = (b.tracks || []).filter(t => (t.category === 'promo' || t.category === 'pub') && !isItemExpired(t));
+                    const systemPromos = getGeneralPromosList();
+                    const promosToUse = genPromos.length > 0 
+                        ? genPromos 
+                        : (blockPromos.length > 0 ? blockPromos : (systemPromos.length > 0 ? systemPromos : DEFAULT_SYSTEM_PROMOS));
+
+                    const existingMusic = (b.tracks || []).filter(t => t.category !== 'jingle' && t.category !== 'promo' && t.category !== 'pub');
+                    updatedTracks = applyRotationPatternToTracks(b, [...existingMusic, ...newTracks], undefined, promosToUse);
+                } else {
+                    updatedTracks = [...(b.tracks || []), ...newTracks];
+                }
+                return {
+                    ...b,
+                    tracks: updatedTracks
+                };
+            });
+
+            try {
+                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
+                window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+                apiFetch('/api/settings/update', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        radio_blocks: next,
+                        radio_tracks: next.flatMap(b => b.tracks || [])
+                    })
+                }).catch(() => {});
+            } catch {}
+            return next;
+        });
+    };
+
+    const handleAddSingleTrackToBlock = (blockId: string, newTrack: RadioTrackItem) => {
+        handleAddTracksToBlock(blockId, [newTrack], false);
+    };
+
     // ─── Ajout rapide de morceau dans l'émission active ───────────────────────
     const handleAddTrackToCurrentEmission = () => {
         if (!selectedBlock) {
@@ -2167,20 +2229,49 @@ export function AdminRadioModal({
                             </button>
                             {isAddMediaDropdownOpen && (
                                 <div 
-                                    className="absolute right-0 mt-2 w-60 rounded-2xl bg-[#0e131f] border border-white/20 shadow-2xl p-1.5 z-[100] animate-in fade-in zoom-in-95 space-y-1"
+                                    className="absolute right-0 mt-2 w-64 rounded-2xl bg-[#0e131f] border border-white/20 shadow-2xl p-1.5 z-[100] animate-in fade-in zoom-in-95 space-y-1"
                                     onMouseLeave={() => setIsAddMediaDropdownOpen(false)}
                                 >
+                                    {/* 1. Upload Multiple MP3 */}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsBatchMp3ModalOpen(true);
+                                            setIsAddMediaDropdownOpen(false);
+                                        }}
+                                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-emerald-500/20 text-emerald-300 flex items-center gap-2 text-xs font-bold transition-all cursor-pointer border border-emerald-500/30 bg-emerald-500/10"
+                                    >
+                                        <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                                        <span>🎵 Upload multiple MP3</span>
+                                    </button>
+
+                                    {/* 2. Morceau SoundCloud Simple */}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsSoundCloudTrackModalOpen(true);
+                                            setIsAddMediaDropdownOpen(false);
+                                        }}
+                                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-orange-500/20 text-orange-300 flex items-center gap-2 text-xs font-bold transition-all cursor-pointer border border-orange-500/30 bg-orange-500/10"
+                                    >
+                                        <SoundCloudIcon className="w-3.5 h-3.5 text-orange-400" />
+                                        <span>☁️ Morceau SoundCloud simple</span>
+                                    </button>
+
+                                    {/* 3. Playlist SoundCloud */}
                                     <button
                                         type="button"
                                         onClick={() => {
                                             setIsSoundCloudModalOpen(true);
                                             setIsAddMediaDropdownOpen(false);
                                         }}
-                                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-orange-500/20 text-orange-300 flex items-center gap-2 text-xs font-bold transition-all cursor-pointer border border-orange-500/30 bg-orange-500/10"
+                                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-orange-500/20 text-orange-300 flex items-center gap-2 text-xs font-bold transition-all cursor-pointer border border-orange-500/20"
                                     >
-                                        <SoundCloudIcon className="w-3.5 h-3.5 text-orange-400" />
+                                        <ListMusic className="w-3.5 h-3.5 text-orange-400" />
                                         <span>🟠 Playlist SoundCloud</span>
                                     </button>
+
+                                    {/* 4. Studio Suno IA */}
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -2192,6 +2283,8 @@ export function AdminRadioModal({
                                         <Sparkles className="w-3.5 h-3.5 text-violet-400 animate-pulse" />
                                         <span>✨ Studio Suno IA (Jingles)</span>
                                     </button>
+
+                                    {/* 5. Uploader un Jingle */}
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -2201,9 +2294,11 @@ export function AdminRadioModal({
                                         }}
                                         className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-500/20 text-amber-300 flex items-center gap-2 text-xs font-bold transition-all cursor-pointer"
                                     >
-                                        <Upload className="w-3.5 h-3.5 text-amber-400" />
+                                        <Volume2 className="w-3.5 h-3.5 text-amber-400" />
                                         <span>🔔 Uploader un Jingle</span>
                                     </button>
+
+                                    {/* 6. Uploader Promo / Sponsor */}
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -5148,6 +5243,26 @@ export function AdminRadioModal({
                 defaultBlockId={selectedBlock?.id}
                 onSaveSoundCloudPlaylist={handleSaveSoundCloudPlaylist}
                 onRemoveSoundCloudPlaylist={handleRemoveSoundCloudPlaylist}
+                onShowToast={showToast}
+            />
+
+            {/* ── MODALE UPLOAD MULTIPLE MP3 ── */}
+            <RadioBatchMp3UploadModal
+                isOpen={isBatchMp3ModalOpen}
+                onClose={() => setIsBatchMp3ModalOpen(false)}
+                blocks={blocks}
+                defaultBlockId={selectedBlock?.id}
+                onAddTracksToBlock={handleAddTracksToBlock}
+                onShowToast={showToast}
+            />
+
+            {/* ── MODALE MORCEAU SOUNDCLOUD SIMPLE ── */}
+            <RadioSoundCloudTrackModal
+                isOpen={isSoundCloudTrackModalOpen}
+                onClose={() => setIsSoundCloudTrackModalOpen(false)}
+                blocks={blocks}
+                defaultBlockId={selectedBlock?.id}
+                onAddTrackToBlock={handleAddSingleTrackToBlock}
                 onShowToast={showToast}
             />
         </div>

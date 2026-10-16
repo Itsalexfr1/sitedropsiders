@@ -494,6 +494,11 @@ export function AdminSoundCloudPlaylistModal({
                   )}
                 </button>
               </div>
+              {playlistUrl.trim().includes('soundcloud.com/') && !playlistUrl.includes('/sets/') && (
+                <div className="p-2.5 rounded-xl bg-orange-500/10 border border-orange-500/30 text-[11px] text-orange-200 flex items-center justify-between gap-2">
+                  <span>💡 Il s&apos;agit d&apos;un morceau simple ! Vous pouvez aussi l&apos;ajouter individuellement via l&apos;option <strong>« ☁️ Morceau SoundCloud simple »</strong> dans Nouveau Média.</span>
+                </div>
+              )}
               <p className="text-[11px] text-gray-400">
                 Collez simplement l&apos;URL de n&apos;importe quelle playlist SoundCloud. Tous les vrais titres et artistes seront détectés automatiquement !
               </p>
