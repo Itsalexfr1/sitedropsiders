@@ -17,8 +17,8 @@
   "url": "dropsiders.fr",
   "regExp": "^https?[:][/][/](([a-z0-9-]+[.])*(dropsiders[.]fr)|localhost(:[0-9]+)?)[/]",
   "version": "1.0.0",
-  "logo": "https://dropsiders.fr/premid_logo.png",
-  "thumbnail": "https://dropsiders.fr/premid_logo.png",
+  "logo": "https://raw.githubusercontent.com/Itsalexfr1/sitedropsiders/main/public/premid_logo.png",
+  "thumbnail": "https://raw.githubusercontent.com/Itsalexfr1/sitedropsiders/main/public/premid_logo.png",
   "color": "#ff1241",
   "category": "music",
   "tags": [

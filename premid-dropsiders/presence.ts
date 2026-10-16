@@ -7,9 +7,9 @@ const presence = new Presence({
 const browsingTimestamp = Math.floor(Date.now() / 1000);
 
 enum ActivityAssets {
-  Logo = 'https://dropsiders.fr/premid_logo.png',
-  Radio = 'https://dropsiders.fr/premid_radio.png',
-  Play = 'https://dropsiders.fr/premid_radio.png',
+  Logo = 'https://raw.githubusercontent.com/Itsalexfr1/sitedropsiders/main/public/premid_logo.png',
+  Radio = 'https://raw.githubusercontent.com/Itsalexfr1/sitedropsiders/main/public/premid_radio.png',
+  Play = 'https://raw.githubusercontent.com/Itsalexfr1/sitedropsiders/main/public/premid_radio.png',
 }
 
 interface LiveRadioState {
