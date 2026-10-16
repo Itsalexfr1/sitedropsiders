@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import {
     Lock, Instagram, ArrowRight, Users, ExternalLink,
@@ -104,7 +105,7 @@ const KitMedia = () => {
         "Tomorrowland Belgium",
         "EDC Las Vegas",
         "Burning Man 2026/2025",
-        "Ultra Miami & Europe",
+        "Experts Only (John Summit)",
         "Elrow (Ibiza, Barcelona, Las Vegas)",
         "Untold Festival",
         "Parookaville",
@@ -115,7 +116,7 @@ const KitMedia = () => {
         "Tomorrowland Belgium",
         "EDC Las Vegas",
         "Burning Man 2026/2025",
-        "Ultra Miami & Europe",
+        "Experts Only (John Summit)",
         "Elrow (Ibiza, Barcelona, Las Vegas)",
         "Untold Festival",
         "Parookaville",
@@ -156,7 +157,6 @@ const KitMedia = () => {
         "/assets/galeries/john-summit-ushuaia-ibiza-2025-espagne/img-2.jpg",
         "/assets/galeries/burning-man-2025-usa/img-3.jpg",
         "/assets/galeries/tomorrowland-2025-belgique/img-1.jpg",
-        "/assets/galeries/ultra-europe-2025-croatie/img-2.jpg",
         "/assets/galeries/dj-snake-arenes-de-nimes-2025-france/img-1.jpg",
         "/assets/galeries/the-end-of-genesys-2025-sphere-las-vegas-usa/img-10.jpg",
         "/assets/galeries/edc-las-vegas-2025-usa/img-1.jpg"
@@ -576,7 +576,7 @@ const KitMedia = () => {
                                 {
                                     icon: <MapPin className="w-5 h-5 text-neon-fuchsia" />,
                                     title: language === 'fr' ? "Festivals & Clubs Référencés" : "Listed Festivals & Clubs",
-                                    desc: language === 'fr' ? "Une cartographie complète des festivals majeurs (Tomorrowland, EDC, Ultra, Defqon.1) et clubs emblématiques." : "Full mapping of major festivals and iconic clubs worldwide."
+                                    desc: language === 'fr' ? "Une cartographie complète des festivals majeurs (Tomorrowland, EDC, Defqon.1) et clubs emblématiques." : "Full mapping of major festivals and iconic clubs worldwide."
                                 },
                                 {
                                     icon: <Ticket className="w-5 h-5 text-neon-fuchsia" />,
@@ -717,7 +717,7 @@ const KitMedia = () => {
                                 {
                                     icon: <Tv className="w-5 h-5 text-neon-red" />,
                                     title: language === 'fr' ? "Retransmissions Live & Sets 4K" : "Live Broadcasts & 4K Sets",
-                                    desc: language === 'fr' ? "Les performances captées sur les scènes de Tomorrowland, EDC Las Vegas, Ultra, Burning Man ou l'Amnesia Ibiza." : "Captured performances from Tomorrowland, EDC, Ultra, Burning Man, or Amnesia Ibiza."
+                                    desc: language === 'fr' ? "Les performances captées sur les scènes de Tomorrowland, EDC Las Vegas, Burning Man ou l'Amnesia Ibiza." : "Captured performances from Tomorrowland, EDC, Burning Man, or Amnesia Ibiza."
                                 },
                                 {
                                     icon: <Sparkles className="w-5 h-5 text-neon-red" />,
@@ -854,12 +854,13 @@ const KitMedia = () => {
                                 }
                             </p>
                         </div>
-                        <a
-                            href="mailto:contact@dropsiders.fr?subject=Partenariat%20Gamification%20%26%20Dotations"
-                            className="shrink-0 px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-neon-red hover:text-white transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)] active:scale-95"
+                        <Link
+                            to="/contact"
+                            className="shrink-0 px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-neon-red hover:text-white transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)] active:scale-95 flex items-center gap-2"
                         >
-                            {language === 'fr' ? "Proposer une dotation" : "Sponsor a reward"}
-                        </a>
+                            <span>{language === 'fr' ? "Proposer une dotation" : "Sponsor a reward"}</span>
+                            <ArrowRight className="w-4 h-4" />
+                        </Link>
                     </div>
                 </section>
 
@@ -906,14 +907,14 @@ const KitMedia = () => {
                                     : ["3-night immersion on the largest US electronic festival", "Exclusive interviews (Morten, Da Tweekaz, Paul Oakenfold)", "Stage design, pyrotechnics & show reporting", "Live stories & short-form immersive videos"]
                             },
                             {
-                                festival: "Ultra Music Festival",
-                                location: "Ultra Miami & Europe Split",
-                                image: "/assets/galeries/ultra-europe-2025-croatie/img-2.jpg",
-                                tag: language === 'fr' ? "Couverture Internationale" : "International Media Coverage",
-                                link: "/galerie/ultra-europe-2025-croatie",
+                                festival: "Experts Only",
+                                location: "John Summit (Ushuaïa Ibiza)",
+                                image: "/assets/galeries/john-summit-ushuaia-ibiza-2025-espagne/img-2.jpg",
+                                tag: language === 'fr' ? "Couverture Événement & Label" : "Event & Label Coverage",
+                                link: "/galerie/john-summit-ushuaia-ibiza-2025-espagne",
                                 deliverables: language === 'fr'
-                                    ? ["Présence terrain scènes Mainstage & Resistance", "Analyse des nouveautés scéniques et sets marquants", "Articles récaps complets sur le site Dropsiders", "Relais temps réel auprès de la communauté"]
-                                    : ["On-site Mainstage & Resistance stage presence", "Breakdown of stage innovations & standout sets", "In-depth editorial recap articles on Dropsiders", "Real-time updates shared with the community"]
+                                    ? ["Immersion complète sur la résidence Experts Only", "Captation photo & vidéo de l'ambiance open-air", "Mise en avant des exclusivités musicales et IDs", "Relais en direct auprès de la communauté"]
+                                    : ["Full immersion on the Experts Only residency", "Open-air vibe photo & video capture", "Showcase of musical exclusives & unreleased IDs", "Real-time coverage shared with the community"]
                             },
                             {
                                 festival: "Burning Man",
@@ -1021,12 +1022,19 @@ const KitMedia = () => {
                                     </span>
                                 </div>
                                 <div className="h-28 flex items-center justify-center p-4 bg-black/40 rounded-2xl border border-white/5 mb-8">
-                                    <img src="/logo.png" alt="Dropsiders Logo Blanc" className="max-h-12 w-auto object-contain" />
+                                    <img
+                                        src="/logo_white.png"
+                                        alt="Dropsiders Logo Blanc"
+                                        className="max-h-12 w-auto object-contain"
+                                        onError={(e) => {
+                                            (e.currentTarget as HTMLImageElement).src = '/logo_presentation.png';
+                                        }}
+                                    />
                                 </div>
                             </div>
                             <div className="space-y-3">
                                 <a
-                                    href="/logo.png"
+                                    href="/logo_white.png"
                                     download="Dropsiders_Logo_White.png"
                                     className="w-full py-3.5 bg-white text-black font-black uppercase tracking-widest text-xs rounded-xl hover:bg-neon-red hover:text-white transition-all flex items-center justify-center gap-2"
                                 >
@@ -1048,7 +1056,14 @@ const KitMedia = () => {
                                     </span>
                                 </div>
                                 <div className="h-28 flex items-center justify-center p-4 bg-white rounded-2xl border border-black/5 mb-8">
-                                    <img src="/logo_black.png" alt="Dropsiders Logo Noir" className="max-h-12 w-auto object-contain" onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/logo.png'; }} />
+                                    <img
+                                        src="/logo_black.png"
+                                        alt="Dropsiders Logo Noir"
+                                        className="max-h-12 w-auto object-contain"
+                                        onError={(e) => {
+                                            (e.currentTarget as HTMLImageElement).src = '/logo_presentation_dark.png';
+                                        }}
+                                    />
                                 </div>
                             </div>
                             <div className="space-y-3">
@@ -1192,13 +1207,13 @@ const KitMedia = () => {
                                     </ul>
                                 </div>
                                 <div className="pt-4 border-t border-white/10">
-                                    <a
-                                        href="mailto:contact@dropsiders.fr"
+                                    <Link
+                                        to="/contact"
                                         className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-white group-hover:text-neon-red transition-colors"
                                     >
                                         {language === 'fr' ? "Demander une proposition" : "Request a proposal"}
                                         <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                                    </a>
+                                    </Link>
                                 </div>
                             </motion.div>
                         ))}
@@ -1214,13 +1229,13 @@ const KitMedia = () => {
                                 : "All our activations are bespoke to fit your goals, dates, and audience. We assist you from editorial strategy to final distribution."
                             }
                         </p>
-                        <a
-                            href="mailto:contact@dropsiders.fr"
+                        <Link
+                            to="/contact"
                             className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-neon-red hover:text-white transition-all shadow-xl"
                         >
                             {language === 'fr' ? "Échanger avec notre équipe" : "Talk with our team"}
-                            <ExternalLink className="w-4 h-4" />
-                        </a>
+                            <ArrowRight className="w-4 h-4" />
+                        </Link>
                     </div>
                 </section>
 
@@ -1293,12 +1308,12 @@ const KitMedia = () => {
                                 whileHover={{ scale: 1.05 }}
                                 className="inline-block relative p-[1px] rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-red-500 group"
                             >
-                                <a href="mailto:contact@dropsiders.fr" className="block px-12 md:px-16 py-6 bg-[#050505] rounded-full hover:bg-white transition-all group overflow-hidden relative">
+                                <Link to="/contact" className="block px-12 md:px-16 py-6 bg-[#050505] rounded-full hover:bg-white transition-all group overflow-hidden relative">
                                     <span className="relative z-10 text-white group-hover:text-black font-black uppercase tracking-[0.3em] text-xs flex items-center justify-center gap-3">
                                         {language === 'fr' ? "Collaborer avec nous" : "Partner with us"}
-                                        <ExternalLink className="w-4 h-4" />
+                                        <ArrowRight className="w-4 h-4" />
                                     </span>
-                                </a>
+                                </Link>
                             </motion.div>
 
                             <div className="flex gap-4">
