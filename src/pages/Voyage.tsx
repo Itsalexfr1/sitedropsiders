@@ -11,6 +11,27 @@ import { useLanguage } from '../context/LanguageContext';
 
 import { searchAirports } from '../data/airports';
 
+const parseIsoDuration = (durationStr: string): number => {
+    if (!durationStr) return 0;
+    const match = durationStr.match(/P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?)?/);
+    if (!match) return 0;
+    const days = parseInt(match[1] || '0', 10);
+    const hours = parseInt(match[2] || '0', 10);
+    const minutes = parseInt(match[3] || '0', 10);
+    return (days * 1440) + (hours * 60) + minutes;
+};
+
+const formatDuration = (mins: number, rawStr: string = ''): string => {
+    if (!mins || mins <= 0) {
+        return (rawStr || '').replace('PT', '').replace('H', 'h ').replace('M', 'm').toLowerCase() || '--';
+    }
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    if (h > 0 && m > 0) return `${h}h ${m.toString().padStart(2, '0')}m`;
+    if (h > 0) return `${h}h`;
+    return `${m}m`;
+};
+
 
 const CitySearchInput = ({ placeholder, icon: Icon, value, onSelect, travelType }: any) => {
     const [query, setQuery] = useState('');
@@ -19,7 +40,11 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onSelect, travelType 
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        if (!value) setQuery('');
+        if (value) {
+            setQuery(value);
+        } else {
+            setQuery('');
+        }
     }, [value]);
 
     useEffect(() => {
@@ -153,6 +178,7 @@ export function Voyage() {
     const [sortType, setSortType] = useState('price');
     const [visibleCount, setVisibleCount] = useState(10);
     const [cabinClass, setCabinClass] = useState('economy');
+    const [classFilter, setClassFilter] = useState('all');
     const [searchStatus, setSearchStatus] = useState('');
     const statusMessages = ["Contact de la base de données...", "Scan des compagnies (V2)...", "Comparaison de 4 000+ routes...", "Optimisation des tarifs...", "Vérification des disponibilités..."];
 
@@ -268,24 +294,27 @@ export function Voyage() {
                         const segments = slice.segments || [];
                         if (segments.length === 0) return null;
 
-                        const match = (slice.duration || '').match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
-                        const h = match ? parseInt(match[1] || '0') : 0;
-                        const m = match ? parseInt(match[2] || '0') : 0;
-                        const durationMinutes = (h * 60) + m;
+                        const durationMinutes = parseIsoDuration(slice.duration);
+                        const formattedDuration = formatDuration(durationMinutes, slice.duration);
                         
                         const stopCodes = segments.length > 1 
                             ? segments.slice(0, -1).map((s: any) => s.destination?.iata_code).filter(Boolean).join(', ')
                             : null;
 
-                        // Identify the real cabin class from the first segment if available
-                        const actualCabinClass = segments[0]?.passenger_conditions?.cabin_class || cabinClass;
+                        // Identify the real cabin class from the first segment or offer
+                        const seg0 = segments[0];
+                        const actualCabinClass = 
+                            seg0?.passengers?.[0]?.cabin_class || 
+                            seg0?.cabin_class || 
+                            offer.cabin_class || 
+                            cabinClass;
 
                         return {
                             id: offer.id,
                             company: offer.owner?.name || 'Inconnue',
                             iata: offer.owner?.iata_code || '??',
                             price: parseFloat(offer.total_amount),
-                            duration: (slice.duration || '').replace('PT', '').replace('H', 'h ').replace('M', 'm').toLowerCase(),
+                            duration: formattedDuration,
                             duration_minutes: durationMinutes,
                             cabin_class: actualCabinClass,
                             stops: segments.length - 1,
@@ -303,7 +332,7 @@ export function Voyage() {
                                 marketing_carrier: s.marketing_carrier?.name || 'Inconnue',
                                 marketing_carrier_iata: s.marketing_carrier?.iata_code || '??',
                                 flight_number: s.marketing_carrier_flight_number,
-                                duration: (s.duration || '').replace('PT', '').replace('H', 'h ').replace('M', 'm').toLowerCase()
+                                duration: formatDuration(parseIsoDuration(s.duration), s.duration)
                             }))
                         };
                     })
@@ -324,17 +353,34 @@ export function Voyage() {
     };
 
     const cabinClassOrder: Record<string, number> = { first: 0, business: 1, premium_economy: 2, economy: 3 };
-    const sortedResults = [...results].sort((a: any, b: any) => {
-        if (sortType === 'price') return a.price - b.price;
-        if (sortType === 'duration') return a.duration_minutes - b.duration_minutes;
-        if (sortType === 'stops') return a.stops - b.stops;
-        if (sortType === 'class') {
-            const classDiff = (cabinClassOrder[a.cabin_class] ?? 9) - (cabinClassOrder[b.cabin_class] ?? 9);
-            if (classDiff !== 0) return classDiff;
-            return a.price - b.price; // Also sort by price within the same class
-        }
-        return 0;
-    });
+    const sortedResults = [...results]
+        .filter((r: any) => {
+            if (classFilter === 'all') return true;
+            return r.cabin_class === classFilter;
+        })
+        .sort((a: any, b: any) => {
+            if (sortType === 'price') {
+                const diff = a.price - b.price;
+                if (diff !== 0) return diff;
+                return a.duration_minutes - b.duration_minutes;
+            }
+            if (sortType === 'duration') {
+                const diff = a.duration_minutes - b.duration_minutes;
+                if (diff !== 0) return diff;
+                return a.price - b.price;
+            }
+            if (sortType === 'stops') {
+                const diff = a.stops - b.stops;
+                if (diff !== 0) return diff;
+                return a.price - b.price;
+            }
+            if (sortType === 'class') {
+                const classDiff = (cabinClassOrder[a.cabin_class] ?? 9) - (cabinClassOrder[b.cabin_class] ?? 9);
+                if (classDiff !== 0) return classDiff;
+                return a.price - b.price;
+            }
+            return 0;
+        });
 
     return (
         <div className="min-h-screen bg-[#050505] pb-32">
@@ -404,20 +450,20 @@ export function Voyage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
                                     <div className="space-y-3">
                                         <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">DÉPART</span>
-                                        <CitySearchInput placeholder="VILLE OU AÉROPORT" icon={Navigation} value={depObj.iata} onSelect={setDepObj} travelType={travelType} />
+                                        <CitySearchInput placeholder="VILLE OU AÉROPORT" icon={Navigation} value={depObj.name || depObj.iata} onSelect={setDepObj} travelType={travelType} />
                                     </div>
                                     <div className="hidden md:flex absolute left-1/2 bottom-5 -translate-x-1/2 z-20">
                                         <button 
                                             type="button"
                                             onClick={() => { const d = depObj; setDepObj(destObj); setDestObj(d); }}
-                                            className="w-12 h-12 bg-black border-2 border-white/10 rounded-full flex items-center justify-center text-white hover:border-neon-green hover:text-neon-green transition-all group scale-90 shadow-2xl"
+                                            className="w-12 h-12 bg-black border-2 border-white/10 rounded-full flex items-center justify-center text-white hover:border-neon-green hover:text-neon-green transition-all group scale-90 shadow-2xl cursor-pointer"
                                         >
                                             <ArrowRightLeft className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
                                         </button>
                                     </div>
                                     <div className="space-y-3">
                                         <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">DESTINATION</span>
-                                        <CitySearchInput placeholder="DESTINATION" icon={MapPin} value={destObj.iata} onSelect={setDestObj} travelType={travelType} />
+                                        <CitySearchInput placeholder="DESTINATION" icon={MapPin} value={destObj.name || destObj.iata} onSelect={setDestObj} travelType={travelType} />
                                     </div>
                                 </div>
 
@@ -600,42 +646,97 @@ export function Voyage() {
                                 className="mt-12 space-y-6"
                             >
                                 {/* Results Header & Sort */}
-                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10 px-4">
+                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 px-2">
                                     <div className="flex items-center gap-4">
                                         <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">{t('voyage.offers_found')}</h3>
                                         <div className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                                            <span className="text-[9px] font-black text-green-500 tracking-[0.2em]">{results.length} {t('voyage.results_found')}</span>
+                                            <span className="text-[9px] font-black text-green-500 tracking-[0.2em]">{sortedResults.length} {t('voyage.results_found')}</span>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5 overflow-x-auto no-scrollbar">
+                                    {/* Sort Buttons Bar (No truncation, perfectly responsive) */}
+                                    <div className="flex flex-wrap items-center gap-2 bg-[#0c0c0c] p-1.5 rounded-2xl border border-white/10 shadow-xl">
                                         {[
-                                            { id: 'price', label: t('voyage.sort_price'), icon: TrendingDown },
-                                            { id: 'class', label: t('voyage.sort_class'), icon: Navigation },
-                                            { id: 'duration', label: t('voyage.sort_duration'), icon: Clock },
-                                            { id: 'stops', label: t('voyage.sort_stops'), icon: Share2 }
+                                            { id: 'price', label: t('voyage.sort_price') || 'Moins cher', icon: TrendingDown },
+                                            { id: 'duration', label: t('voyage.sort_duration') || 'Plus rapide', icon: Clock },
+                                            { id: 'stops', label: t('voyage.sort_stops') || 'Escale min.', icon: Share2 },
+                                            { id: 'class', label: t('voyage.sort_class') || 'Classe', icon: Navigation }
                                         ].map((s) => (
                                             <button
                                                 key={s.id}
-                                                onClick={() => setSortType(s.id)}
-                                                className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shrink-0 ${
-                                                    sortType === s.id ? 'bg-white text-black shadow-2xl' : 'text-gray-500 hover:text-white'
+                                                type="button"
+                                                onClick={() => {
+                                                    setSortType(s.id);
+                                                    if (s.id !== 'class') setClassFilter('all');
+                                                }}
+                                                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                                    sortType === s.id 
+                                                        ? 'bg-white text-black shadow-lg scale-[1.02]' 
+                                                        : 'text-gray-400 hover:text-white hover:bg-white/5'
                                                 }`}
                                             >
                                                 <s.icon className="w-3.5 h-3.5" />
-                                                {s.label}
+                                                <span>{s.label}</span>
                                             </button>
                                         ))}
                                     </div>
                                 </div>
+
+                                {/* Quick Sub-bar when CLASSE is selected */}
+                                {sortType === 'class' && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="flex flex-wrap items-center gap-2 p-3 bg-white/[0.03] border border-white/10 rounded-2xl mb-8"
+                                    >
+                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-2">Filtrer par classe :</span>
+                                        {[
+                                            { id: 'all', label: 'Toutes les classes', emoji: '✨' },
+                                            { id: 'economy', label: 'Économie', emoji: '💺' },
+                                            { id: 'premium_economy', label: 'Premium Éco', emoji: '⭐' },
+                                            { id: 'business', label: 'Business', emoji: '💎' },
+                                            { id: 'first', label: 'Première', emoji: '👑' },
+                                        ].map(cls => (
+                                            <button
+                                                key={cls.id}
+                                                type="button"
+                                                onClick={() => setClassFilter(cls.id)}
+                                                className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
+                                                    classFilter === cls.id 
+                                                        ? 'bg-neon-green/20 text-neon-green border border-neon-green/40 shadow-sm' 
+                                                        : 'bg-white/5 text-gray-400 border border-white/5 hover:text-white hover:bg-white/10'
+                                                }`}
+                                            >
+                                                <span>{cls.emoji}</span>
+                                                <span>{cls.label}</span>
+                                            </button>
+                                        ))}
+                                    </motion.div>
+                                )}
+
+                                {sortedResults.length === 0 && (
+                                    <div className="p-12 text-center bg-[#0c0c0c] border border-white/5 rounded-[32px] my-6">
+                                        <p className="text-gray-400 font-bold uppercase text-xs tracking-widest">
+                                            Aucun vol trouvé pour cette classe.
+                                        </p>
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setClassFilter('all')} 
+                                            className="mt-4 px-6 py-2.5 bg-neon-green/10 border border-neon-green/30 text-neon-green rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-neon-green hover:text-black transition-all cursor-pointer"
+                                        >
+                                            Afficher toutes les classes
+                                        </button>
+                                    </div>
+                                )}
                                 
                                 {sortedResults.slice(0, visibleCount).map((r, idx) => (
                                     <motion.div 
                                         key={r.id}
-                                        initial={{ opacity: 0, y: 20 }}
+                                        layout
+                                        initial={{ opacity: 0, y: 15 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: idx * 0.05 }}
+                                        transition={{ duration: 0.2 }}
                                         className="bg-[#0c0c0c] border border-white/5 rounded-[32px] overflow-hidden hover:border-neon-green/30 transition-all group shadow-2xl"
                                     >
                                         <div className="p-8 md:p-10 flex flex-col lg:flex-row justify-between items-center gap-10">
