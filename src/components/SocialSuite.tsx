@@ -2565,28 +2565,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isStaticPreview = animElapsed >= 90.0;
                 const tAnim = isStaticPreview ? 10.0 : animElapsed;
 
-                // Animation Timeline : Apparition à 2.5s, Action follow à 4.4s, Disparition à 6.0s et retour du texte
+                // Animation Timeline : Apparition à 1.5s, Action follow à 3.4s, Disparition à 6.0s et retour du texte
                 let shiftProgress = 0.0;
                 let cardProgress = 0.0;
                 if (isInstagramStyle) {
                     if (isStaticPreview) {
                         shiftProgress = 1.0;
                         cardProgress = 1.0;
-                    } else if (tAnim < 2.5) {
+                    } else if (tAnim < 1.5) {
                         shiftProgress = 0.0;
                         cardProgress = 0.0;
-                    } else if (tAnim < 3.2) {
-                        // Entrée à 2.5s : le texte monte et la carte Instagram apparaît
-                        const p = (tAnim - 2.5) / 0.7;
+                    } else if (tAnim < 2.2) {
+                        // Entrée à 1.5s : le texte monte et la carte Instagram glisse depuis le bas
+                        const p = (tAnim - 1.5) / 0.7;
                         const ease = 1 - Math.pow(1 - p, 3);
                         shiftProgress = ease;
                         cardProgress = ease;
                     } else if (tAnim < 6.0) {
-                        // Affichage actif de 3.2s à 6.0s
+                        // Affichage actif de 2.2s à 6.0s
                         shiftProgress = 1.0;
                         cardProgress = 1.0;
                     } else if (tAnim < 6.7) {
-                        // À 6.0s : la carte Instagram disparaît et le texte de base redescend normalement
+                        // À 6.0s : la carte Instagram redescend comme l'entrée (sans fondu) et le texte redescend normalement
                         const p = (tAnim - 6.0) / 0.7;
                         const ease = 1 - Math.pow(1 - p, 3);
                         shiftProgress = 1.0 - ease;
@@ -2727,7 +2727,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
                 if (promoOutroStyle === 'INSTAGRAM') {
-                    if (cardProgress > 0.005) {
+                    if (cardProgress > 0.0001) {
                         // ==========================================
                         // CARTE PROFIL INSTAGRAM OFFICIELLE (PRO & PUNCHY)
                         // ==========================================
@@ -2735,10 +2735,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const cardH = isReel ? 440 : 380;
                         const cardX = centerX - cardW / 2;
                         const cardFinalY = Math.round(dropsidersY + (isReel ? 50 : 35));
-                        const cardY = cardFinalY + (1 - cardProgress) * 90;
+                        // Redescend tout en bas hors-écran sans aucun fondu d'opacité (comme à l'entrée)
+                        const slideDownDistance = (canvas.height - cardFinalY) + 60;
+                        const cardY = cardFinalY + (1 - cardProgress) * slideDownDistance;
 
                         ctx.save();
-                        ctx.globalAlpha = cardProgress;
 
                         // 1. Fond carte sombre glassmorphism luxueux avec dégradé
                         ctx.beginPath();
@@ -2804,7 +2805,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
 
                         // 3. Stats Réelles Officielles (1 440 publications • 4 694 -> 4 695 abonnés • 668 abonnements)
-                        const isFollowed = isStaticPreview || tAnim >= 4.4;
+                        const isFollowed = isStaticPreview || tAnim >= 3.4;
                         const followersCountStr = isFollowed ? '4 695' : '4 694';
 
                         const statsStartX = cardX + (isReel ? 220 : 200);
@@ -2822,7 +2823,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'alphabetic';
                             ctx.font = `800 ${isReel ? 30 : 26}px -apple-system, "Inter", sans-serif`;
-                            ctx.fillStyle = (idx === 1 && isFollowed && !isStaticPreview && tAnim < 5.8) ? '#00f0ff' : '#ffffff';
+                            ctx.fillStyle = (idx === 1 && isFollowed && !isStaticPreview && tAnim < 5.0) ? '#00f0ff' : '#ffffff';
                             ctx.fillText(st.val, sx, sy);
 
                             ctx.font = `500 ${isReel ? 16 : 14}px -apple-system, "Inter", sans-serif`;
@@ -2881,11 +2882,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const btnGap = 16;
                         const btnW = (cardW - 64 - btnGap) / 2;
 
-                        // Bouton 1 : Suivre -> Suivi (avec appui / clic animé à 4.2s - 4.4s)
+                        // Bouton 1 : Suivre -> Suivi (avec appui / clic animé à 3.2s - 3.4s)
                         const btn1X = infoX;
                         const btn1CenterX = btn1X + btnW / 2;
                         const btn1CenterY = btnRowY + btnH / 2;
-                        const isPressingBtn = (!isStaticPreview && tAnim >= 4.2 && tAnim < 4.4);
+                        const isPressingBtn = (!isStaticPreview && tAnim >= 3.2 && tAnim < 3.4);
                         const btnScale = isPressingBtn ? 0.94 : 1.0;
 
                         ctx.save();
@@ -2925,9 +2926,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                         ctx.restore();
 
-                        // Onde de choc (shockwave) à 4.4s
-                        if (!isStaticPreview && tAnim >= 4.4 && tAnim < 5.0) {
-                            const waveP = (tAnim - 4.4) / 0.6;
+                        // Onde de choc (shockwave) à 3.4s
+                        if (!isStaticPreview && tAnim >= 3.4 && tAnim < 4.0) {
+                            const waveP = (tAnim - 3.4) / 0.6;
                             const waveR = 25 + waveP * 110;
                             const waveA = (1 - waveP) * 0.7;
                             ctx.save();
@@ -2955,26 +2956,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillStyle = '#ffffff';
                         ctx.fillText('Message', btn2X + btnW / 2, btnRowY + btnH / 2);
 
-                        // 6. Curseur tactile animé (Pointer) entre 3.6s et 4.7s
-                        if (!isStaticPreview && tAnim >= 3.6 && tAnim < 4.7) {
+                        // 6. Curseur tactile animé (Pointer) entre 2.6s et 3.7s
+                        if (!isStaticPreview && tAnim >= 2.6 && tAnim < 3.7) {
                             let pX = btn1CenterX;
                             let pY = btn1CenterY;
                             let pScale = 1.0;
                             let pAlpha = 1.0;
 
-                            if (tAnim < 4.2) {
-                                const p = (tAnim - 3.6) / 0.6;
+                            if (tAnim < 3.2) {
+                                const p = (tAnim - 2.6) / 0.6;
                                 const ease = 1 - Math.pow(1 - p, 3);
                                 pX = btn1CenterX + (1 - ease) * 90;
                                 pY = btn1CenterY + (1 - ease) * 120;
                                 pAlpha = Math.min(1, p * 2);
-                            } else if (tAnim < 4.4) {
+                            } else if (tAnim < 3.4) {
                                 pX = btn1CenterX;
                                 pY = btn1CenterY;
                                 pScale = 0.85;
                                 pAlpha = 1.0;
                             } else {
-                                const p = (tAnim - 4.4) / 0.3;
+                                const p = (tAnim - 3.4) / 0.3;
                                 pX = btn1CenterX;
                                 pY = btn1CenterY;
                                 pScale = 1.0;
@@ -2982,7 +2983,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }
 
                             ctx.save();
-                            ctx.globalAlpha = pAlpha * cardProgress;
+                            ctx.globalAlpha = pAlpha;
                             ctx.translate(pX - 4, pY - 4);
                             ctx.scale(pScale, pScale);
                             ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
@@ -8971,7 +8972,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {isPromoAnimPlaying ? '⏱️ Lecture animation 10s en direct...' : '▶️ Tester l\'animation 10s dans l\'aperçu'}
                     </button>
                     <div className="p-2 bg-black/50 rounded-lg border border-white/5 text-[8px] text-gray-400 font-medium leading-relaxed">
-                        <span className="text-[#0095f6] font-bold">⏱️ Séquence exportée 10s :</span> 0s à 2.5s (Texte centré) ➔ 2.5s (Montée & Carte Insta) ➔ 4.4s (Clic Suivre ➔ Suivi) ➔ 6s (Disparition Insta & Texte remis normalement)
+                        <span className="text-[#0095f6] font-bold">⏱️ Séquence exportée 10s :</span> 0s à 1.5s (Texte centré) ➔ 1.5s (Montée & Carte Insta) ➔ 3.4s (Clic Suivre ➔ Suivi) ➔ 6s (Descente Insta sans fondu & Texte remis normalement)
                     </div>
                 </div>
             </div>
