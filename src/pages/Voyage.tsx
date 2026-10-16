@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
     Navigation, MapPin, Calendar, ArrowRight, Zap, Info, Clock, 
     TrendingDown, Share2, ExternalLink, ChevronDown, Plane, Bus, ArrowRightLeft, HelpCircle, Users
@@ -8,6 +8,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { CovoitSection } from '../components/community/CovoitSection';
 import { SEO } from '../components/utils/SEO';
 import { useLanguage } from '../context/LanguageContext';
+
+import { searchAirports } from '../data/airports';
 
 
 const CitySearchInput = ({ placeholder, icon: Icon, value, onSelect, travelType }: any) => {
@@ -27,18 +29,24 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onSelect, travelType 
             setIsLoading(true);
             try {
                 const res = await fetch(`/api/voyage/airports?q=${encodeURIComponent(query)}`);
-                const data = await res.json();
-                if (Array.isArray(data)) {
-                    setSuggestions(data.slice(0, 6));
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data) && data.length > 0) {
+                        setSuggestions(data.slice(0, 10));
+                        return;
+                    }
                 }
+                const local = searchAirports(query, 10);
+                setSuggestions(local);
             } catch (e) {
-                console.error("Airport search failed", e);
+                const local = searchAirports(query, 10);
+                setSuggestions(local);
             } finally {
                 setIsLoading(false);
             }
         };
 
-        const timer = setTimeout(fetchAirports, 300);
+        const timer = setTimeout(fetchAirports, 150);
         return () => clearTimeout(timer);
     }, [query, isOpen]);
 
@@ -56,7 +64,14 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onSelect, travelType 
                 onChange={(e) => {
                     const val = e.target.value.toUpperCase();
                     setQuery(val);
-                    if (travelType !== 'flight') onSelect({ name: val, iata: val });
+                    if (travelType !== 'flight') {
+                        onSelect({ name: val, iata: val });
+                    } else if (val.length === 3) {
+                        const matches = searchAirports(val, 1);
+                        if (matches.length > 0 && matches[0].iata_code === val) {
+                            onSelect({ name: matches[0].name, iata: matches[0].iata_code });
+                        }
+                    }
                 }}
                 placeholder={placeholder}
                 className="w-full bg-black/40 border border-white/10 rounded-2xl py-4.5 pl-12 pr-4 text-white focus:outline-none focus:border-neon-green/40 focus:bg-black/60 transition-all uppercase text-[11px] font-black tracking-widest placeholder:text-gray-700 shadow-inner"
@@ -76,29 +91,32 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onSelect, travelType 
                         exit={{ opacity: 0, scale: 0.98 }}
                         className="absolute top-full left-0 w-full mt-3 bg-[#0c0c0c] border border-white/10 rounded-2xl overflow-hidden z-[110] shadow-[0_20px_60px_rgba(0,0,0,1)] max-h-80 overflow-y-auto"
                     >
-                        {suggestions.map(s => (
-                            <div 
-                                key={s.id || s.iata_code || Math.random()} 
-                                onClick={() => {
-                                    setQuery(s.name.toUpperCase());
-                                    onSelect({ name: s.name, iata: s.iata_code || s.name });
-                                    setIsOpen(false);
-                                }}
-                                className="px-5 py-4 hover:bg-white/5 cursor-pointer flex justify-between items-center border-b border-white/5 last:border-0 transition-colors"
-                            >
-                                <div className="flex flex-col">
-                                    <span className="text-white text-xs font-black truncate uppercase tracking-widest">{s.name}</span>
-                                    <span className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-0.5">
-                                        {s.city_name || s.city?.name} • {s.country_name || s.country?.name}
-                                    </span>
+                        {suggestions.map(s => {
+                            const iataCode = s.iata_code || s.iata || '';
+                            return (
+                                <div 
+                                    key={s.id || iataCode || Math.random()} 
+                                    onClick={() => {
+                                        setQuery(s.name.toUpperCase());
+                                        onSelect({ name: s.name, iata: iataCode || s.name });
+                                        setIsOpen(false);
+                                    }}
+                                    className="px-5 py-4 hover:bg-white/5 cursor-pointer flex justify-between items-center border-b border-white/5 last:border-0 transition-colors"
+                                >
+                                    <div className="flex flex-col">
+                                        <span className="text-white text-xs font-black truncate uppercase tracking-widest">{s.name}</span>
+                                        <span className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-0.5">
+                                            {s.city_name || s.city?.name || s.city} • {s.country_name || s.country?.name || s.country}
+                                        </span>
+                                    </div>
+                                    {iataCode && (
+                                        <span className="text-neon-green text-[11px] font-black px-2.5 py-1 bg-neon-green/10 rounded-lg border border-neon-green/20">
+                                            {iataCode}
+                                        </span>
+                                    )}
                                 </div>
-                                {s.iata_code && (
-                                    <span className="text-neon-green text-[11px] font-black px-2.5 py-1 bg-neon-green/10 rounded-lg border border-neon-green/20">
-                                        {s.iata_code}
-                                    </span>
-                                )}
-                            </div>
-                        ))}
+                            );
+                        })}
                     </motion.div>
                 )}
             </AnimatePresence>

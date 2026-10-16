@@ -1,6 +1,7 @@
 // @ts-nocheck
 import webpush from 'web-push';
 import PostalMime from 'postal-mime';
+import { searchAirports, MAJOR_AIRPORTS } from './src/data/airports';
 
 const VAPID_PUB = '';
 const VAPID_PRI = '';
@@ -4130,122 +4131,61 @@ ${urls.map(u => `  <url>
 
         // --- API: VOYAGE (DUFFEL PROXY) ---
         if (path === '/api/voyage/airports' && request.method === 'GET') {
-            const query = (url.searchParams.get('q') || '').toUpperCase();
+            const query = (url.searchParams.get('q') || '').trim();
             if (!query || query.length < 2) return new Response(JSON.stringify([]), { headers });
             
-            const DUFFEL_KEY = env.DUFFEL_API_KEY;
-            const MAJOR_AIRPORTS = [
-                { id: '1', iata_code: 'PAR', name: 'Paris (Tous)', city_name: 'Paris', country_name: 'France' },
-                { id: '2', iata_code: 'CDG', name: 'Paris Charles de Gaulle', city_name: 'Paris', country_name: 'France' },
-                { id: '3', iata_code: 'ORY', name: 'Paris Orly', city_name: 'Paris', country_name: 'France' },
-                { id: '4', iata_code: 'MRS', name: 'Marseille Provence', city_name: 'Marseille', country_name: 'France' },
-                { id: '5', iata_code: 'LYS', name: 'Lyon Saint-Exupéry', city_name: 'Lyon', country_name: 'France' },
-                { id: '6', iata_code: 'NCE', name: 'Nice Côte d’Azur', city_name: 'Nice', country_name: 'France' },
-                { id: '7', iata_code: 'TLS', name: 'Toulouse Blagnac', city_name: 'Toulouse', country_name: 'France' },
-                { id: '8', iata_code: 'NTE', name: 'Nantes Atlantique', city_name: 'Nantes', country_name: 'France' },
-                { id: '9', iata_code: 'BOD', name: 'Bordeaux Mérignac', city_name: 'Bordeaux', country_name: 'France' },
-                { id: '10', iata_code: 'IBZ', iata_airport_code: 'IBZ', name: 'Ibiza Airport (Eivissa)', city_name: 'Ibiza', country_name: 'Espagne' },
-                { id: '11', iata_code: 'LAS', iata_airport_code: 'LAS', name: 'Harry Reid Intl (Las Vegas)', city_name: 'Las Vegas', country_name: 'USA' },
-                { id: '12', iata_code: 'JFK', iata_airport_code: 'JFK', name: 'New York John F. Kennedy', city_name: 'New York', country_name: 'USA' },
-                { id: '13', iata_code: 'EWR', iata_airport_code: 'EWR', name: 'New York Newark', city_name: 'New York', country_name: 'USA' },
-                { id: '14', iata_code: 'NYC', name: 'New York (Tous)', city_name: 'New York', country_name: 'USA' },
-                { id: '15', iata_code: 'MIA', name: 'Miami International', city_name: 'Miami', country_name: 'USA' },
-                { id: '16', iata_code: 'LAX', name: 'Los Angeles International', city_name: 'Los Angeles', country_name: 'USA' },
-                { id: '17', iata_code: 'MAD', name: 'Madrid Barajas', city_name: 'Madrid', country_name: 'Espagne' },
-                { id: '18', iata_code: 'BCN', name: 'Barcelona El Prat', city_name: 'Barcelone', country_name: 'Espagne' },
-                { id: '19', iata_code: 'LHR', name: 'London Heathrow', city_name: 'Londres', country_name: 'Royaume-Uni' },
-                { id: '20', iata_code: 'LGW', name: 'London Gatwick', city_name: 'Londres', country_name: 'Royaume-Uni' },
-                { id: '21', iata_code: 'AMS', name: 'Amsterdam Schiphol', city_name: 'Amsterdam', country_name: 'Pays-Bas' },
-                { id: '22', iata_code: 'BER', name: 'Berlin Brandenburg', city_name: 'Berlin', country_name: 'Allemagne' },
-                { id: '23', iata_code: 'DXB', name: 'Dubai International', city_name: 'Dubaï', country_name: 'Émirats arabes unis' },
-                { id: '24', iata_code: 'BKK', name: 'Bangkok Suvarnabhumi', city_name: 'Bangkok', country_name: 'Thaïlande' },
-                { id: '25', iata_code: 'HND', name: 'Tokyo Haneda', city_name: 'Tokyo', country_name: 'Japon' },
-                { id: '26', iata_code: 'DUB', name: 'Dublin Airport', city_name: 'Dublin', country_name: 'Irlande' },
-                { id: '27', iata_code: 'LIS', name: 'Lisbon Airport', city_name: 'Lisbonne', country_name: 'Portugal' },
-                { id: '28', iata_code: 'PRG', name: 'Prague Vaclav Havel', city_name: 'Prague', country_name: 'Rép. Tchèque' },
-                { id: '30', iata_code: 'ZRH', name: 'Zurich Airport', city_name: 'Zurich', country_name: 'Suisse' },
-                { id: '31', iata_code: 'BRU', name: 'Brussels Airport', city_name: 'Bruxelles', country_name: 'Belgique' },
-                { id: '32', iata_code: 'FRA', name: 'Frankfurt Airport', city_name: 'Francfort', country_name: 'Allemagne' },
-                { id: '33', iata_code: 'MUC', name: 'Munich Airport', city_name: 'Munich', country_name: 'Allemagne' },
-                { id: '34', iata_code: 'FCO', name: 'Rome Fiumicino', city_name: 'Rome', country_name: 'Italie' },
-                { id: '35', iata_code: 'MXP', name: 'Milan Malpensa', city_name: 'Milan', country_name: 'Italie' },
-                { id: '36', iata_code: 'GVA', name: 'Geneva Airport', city_name: 'Genève', country_name: 'Suisse' },
-                { id: '37', iata_code: 'PMI', name: 'Palma de Mallorca', city_name: 'Palma', country_name: 'Espagne' },
-                { id: '38', iata_code: 'AGP', name: 'Malaga Airport', city_name: 'Malaga', country_name: 'Espagne' },
-                { id: '39', iata_code: 'CPH', name: 'Copenhagen Airport', city_name: 'Copenhague', country_name: 'Danemark' },
-                { id: '40', iata_code: 'ARN', name: 'Stockholm Arlanda', city_name: 'Stockholm', country_name: 'Suède' },
-                { id: '41', iata_code: 'OSL', name: 'Oslo Gardermoen', city_name: 'Oslo', country_name: 'Norvège' },
-                { id: '42', iata_code: 'BUD', name: 'Budapest Liszt Ferenc', city_name: 'Budapest', country_name: 'Hongrie' },
-                { id: '43', iata_code: 'WAW', name: 'Warsaw Chopin', city_name: 'Varsovie', country_name: 'Pologne' },
-                { id: '44', iata_code: 'VIE', name: 'Vienna International', city_name: 'Vienne', country_name: 'Autriche' },
-                { id: '45', iata_code: 'ATH', name: 'Athens International', city_name: 'Athènes', country_name: 'Grèce' },
-                { id: '46', iata_code: 'MLA', name: 'Malta International', city_name: 'Malte', country_name: 'Malte' },
-                { id: '47', iata_code: 'RUN', name: 'Réunion Roland Garros', city_name: 'Saint-Denis', country_name: 'France' },
-                { id: '48', iata_code: 'PTP', name: 'Pointe-à-Pitre Le Raizet', city_name: 'Les Abymes', country_name: 'France' },
-                { id: '49', iata_code: 'FDF', name: 'Fort-de-France Martinique', city_name: 'Le Lamentin', country_name: 'France' }
-            ];
+            const DUFFEL_KEY = env.DUFFEL_API_KEY || env.VITE_DUFFEL_API_KEY;
 
             try {
-                // LOCAL SEARCH IN 4000+ AIRPORTS
-                const queryUpper = query.toUpperCase();
-                
-                let matches = airports_db.filter((a: any) => 
-                    a.iata.includes(queryUpper) || 
-                    a.name.toUpperCase().includes(queryUpper) || 
-                    (a.city && a.city.toUpperCase().includes(queryUpper))
-                );
+                // 1. Comprehensive world airport search (450+ major hubs, including Orlando, Atlanta, Paris, Tokyo, etc.)
+                const localMatches = searchAirports(query, 20);
 
-                // Add MAJOR_AIRPORTS weighting and sorting
-                matches.sort((a: any, b: any) => {
-                    // 1. Exact IATA match
-                    if (a.iata === queryUpper) return -1;
-                    if (b.iata === queryUpper) return 1;
+                // 2. If DUFFEL_KEY is available and we have few results, query Duffel places suggestions as complement
+                if (DUFFEL_KEY && localMatches.length < 6) {
+                    try {
+                        const dRes = await fetch(`https://api.duffel.com/places/suggestions?query=${encodeURIComponent(query)}`, {
+                            headers: { 
+                                'Authorization': `Bearer ${DUFFEL_KEY}`, 
+                                'Duffel-Version': 'v2', 
+                                'Accept': 'application/json' 
+                            },
+                        });
+                        if (dRes.ok) {
+                            const dData = await dRes.json();
+                            const duffelAirports = (dData.data || [])
+                                .filter((p: any) => p && p.iata_code)
+                                .map((p: any) => ({
+                                    id: p.id || `duffel_${p.iata_code}`,
+                                    iata_code: p.iata_code,
+                                    iata: p.iata_code,
+                                    name: p.name || `${p.city_name || ''} (${p.iata_code})`,
+                                    city_name: p.city_name || (p.city && p.city.name) || '',
+                                    country_name: p.iata_country_code || (p.country && p.country.name) || ''
+                                }));
 
-                    // 2. Is in MAJOR_AIRPORTS list? (High importance)
-                    const aIsMajor = MAJOR_AIRPORTS.some(m => m.iata_code === a.iata);
-                    const bIsMajor = MAJOR_AIRPORTS.some(m => m.iata_code === b.iata);
-                    if (aIsMajor && !bIsMajor) return -1;
-                    if (!aIsMajor && bIsMajor) return 1;
-
-                    // 3. Name or City starts with query
-                    const aName = (a.name || '').toUpperCase();
-                    const bName = (b.name || '').toUpperCase();
-                    const aCity = (a.city || '').toUpperCase();
-                    const bCity = (b.city || '').toUpperCase();
-                    
-                    const aStarts = aName.startsWith(queryUpper) || aCity.startsWith(queryUpper);
-                    const bStarts = bName.startsWith(queryUpper) || bCity.startsWith(queryUpper);
-                    
-                    if (aStarts && !bStarts) return -1;
-                    if (!aStarts && bStarts) return 1;
-
-                    return aName.localeCompare(bName);
-                });
-
-                // Limit result for performance
-                const results = matches.slice(0, 15);
-                
-                if (results.length > 5) {
-                    return new Response(JSON.stringify(results), { headers });
-                }
-
-                // If not many local results, try Duffel as a final backup (for very new airports?)
-                if (DUFFEL_KEY) {
-                    const dRes = await fetch(`https://api.duffel.com/air/airports?iata_code=${encodeURIComponent(queryUpper)}`, {
-                        headers: { 'Authorization': `Bearer ${DUFFEL_KEY}`, 'Duffel-Version': 'v2', 'Accept': 'application/json' },
-                    });
-                    const dData = await dRes.json();
-                    if (dData.data && dData.data.length > 0) {
-                        return new Response(JSON.stringify([...results, ...dData.data]), { headers });
+                            const seen = new Set(localMatches.map(m => m.iata_code));
+                            for (const d of duffelAirports) {
+                                if (!seen.has(d.iata_code)) {
+                                    seen.add(d.iata_code);
+                                    localMatches.push(d);
+                                }
+                            }
+                        }
+                    } catch (duffelErr) {
+                        console.error('Duffel suggestions fetch failed:', duffelErr);
                     }
                 }
 
-                return new Response(JSON.stringify(results), { headers });
+                return new Response(JSON.stringify(localMatches.slice(0, 15)), { headers });
 
             } catch (e) {
-                // Absolute fallback to minimal hardcoded list
-                const filtered = MAJOR_AIRPORTS.filter(a => a.iata_code.includes(query) || a.name.toUpperCase().includes(query));
-                return new Response(JSON.stringify(filtered), { headers });
+                // Absolute fallback to safe search
+                try {
+                    const fallback = searchAirports(query, 10);
+                    return new Response(JSON.stringify(fallback), { headers });
+                } catch (err) {
+                    return new Response(JSON.stringify([]), { headers });
+                }
             }
         }
 
