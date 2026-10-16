@@ -776,9 +776,9 @@
                 const diff = (Date.now() - startTime) / 1000;
                 currentSeconds = Math.min(diff, 10.0);
                 let stateText = '(Texte centré)';
-                if (currentSeconds >= 3.0 && currentSeconds < 7.0) {
+                if (currentSeconds >= 2.5 && currentSeconds < 6.0) {
                     stateText = '(Overlay Insta affiché & Texte monté)';
-                } else if (currentSeconds >= 7.0) {
+                } else if (currentSeconds >= 6.0) {
                     stateText = '(Insta disparu • Texte remis normalement)';
                 }
                 timerBadge.innerText = `⏱️ ${currentSeconds.toFixed(1)}s / 10.0s ${stateText}`;
@@ -790,21 +790,21 @@
 
             // ==========================================
             // TIMELINE EXACTE (10s au total) :
-            // 0.0s -> 3.0s : Le texte promo est bien visible en bas/centre
-            // 3.0s : LE TEXTE MONTE AU-DESSUS + L'OVERLAY APPARAÎT
-            // 4.3s : Le curseur arrive sur "Suivre"
-            // 5.0s : Clic & Transformation en "Suivi ✓"
-            // 7.0s : L'OVERLAY DISPARAÎT ET LE TEXTE REDESCEND NORMALEMENT
-            // 7.0s -> 10.0s : Texte de base centré jusqu'à la fin
+            // 0.0s -> 2.5s : Le texte promo est bien visible au centre
+            // 2.5s : LE TEXTE MONTE AU-DESSUS + L'OVERLAY APPARAÎT
+            // 3.6s : Le curseur arrive sur "Suivre"
+            // 4.4s : Clic & Transformation en "Suivi ✓"
+            // 6.0s : L'OVERLAY DISPARAÎT ET LE TEXTE REDESCEND NORMALEMENT
+            // 6.0s -> 10.0s : Texte de base centré jusqu'à la fin
             // ==========================================
 
-            // À 3.0 SECONDES : LE TEXTE DU SLIDE MONTE & L'OVERLAY ARRIVE
+            // À 2.5 SECONDES : LE TEXTE DU SLIDE MONTE & L'OVERLAY ARRIVE
             setTimeout(() => {
                 promoSlideContent.classList.add('shifted-up');
                 instaOverlay.classList.add('visible');
-            }, 3000);
+            }, 2500);
 
-            // À 4.3 SECONDES : Curseur entre en douceur
+            // À 3.6 SECONDES : Curseur entre en douceur
             setTimeout(() => {
                 const btnRect = followBtn.getBoundingClientRect();
                 const viewRect = viewport.getBoundingClientRect();
@@ -814,9 +814,9 @@
                 pointer.style.transition = 'all 0.65s cubic-bezier(0.2, 0.9, 0.3, 1)';
                 pointer.style.opacity = '1';
                 pointer.style.transform = `translate(${targetX - 8}px, ${targetY - 5}px) scale(1)`;
-            }, 4300);
+            }, 3600);
 
-            // À 4.95 SECONDES : Appui / Clic sur "Suivre"
+            // À 4.25 SECONDES : Appui / Clic sur "Suivre"
             setTimeout(() => {
                 const btnRect = followBtn.getBoundingClientRect();
                 const viewRect = viewport.getBoundingClientRect();
@@ -836,9 +836,9 @@
                 shockwave.style.animation = 'none';
                 void shockwave.offsetWidth;
                 shockwave.style.animation = 'waveBurst 0.5s ease-out forwards';
-            }, 4950);
+            }, 4250);
 
-            // À 5.1 SECONDES : "Suivi" + Particules
+            // À 4.4 SECONDES : "Suivi" + Particules
             setTimeout(() => {
                 const btnRect = followBtn.getBoundingClientRect();
                 const viewRect = viewport.getBoundingClientRect();
@@ -867,20 +867,20 @@
                 const shockX = btnRect.left - cardRect.left + btnRect.width / 2;
                 const shockY = btnRect.top - cardRect.top + btnRect.height / 2;
                 spawnCardParticles(shockX, shockY);
-            }, 5100);
+            }, 4400);
 
-            // À 5.7 SECONDES : Disparition du curseur
+            // À 5.0 SECONDES : Disparition du curseur
             setTimeout(() => {
                 pointer.style.transition = 'all 0.5s ease-in';
                 pointer.style.opacity = '0';
                 pointer.style.transform = 'translate(190px, 580px) scale(0.9)';
-            }, 5700);
+            }, 5000);
 
-            // À 7.0 SECONDES : DISPARITION DU BLOC INSTA & RETOUR DU TEXTE DE BASE NORMALEMENT
+            // À 6.0 SECONDES : DISPARITION DU BLOC INSTA & RETOUR DU TEXTE DE BASE NORMALEMENT
             setTimeout(() => {
                 promoSlideContent.classList.remove('shifted-up');
                 instaOverlay.classList.remove('visible');
-            }, 7000);
+            }, 6000);
         }
 
         window.addEventListener('load', () => {
