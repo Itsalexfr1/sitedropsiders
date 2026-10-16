@@ -317,18 +317,23 @@ export function Navbar() {
                             </motion.button>
                         </div>
 
-                        {/* Compact Language Toggle */}
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onMouseEnter={playHoverSound}
-                            onClick={() => setLanguage(language === 'fr' ? 'en' : 'fr')}
-                            className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 px-2.5 py-1.5 rounded-full text-[10px] font-black transition-all text-white shadow-sm cursor-pointer"
-                            title={language === 'fr' ? "Switch to English (EN)" : "Passer en Français (FR)"}
-                        >
-                            <FlagIcon location={language === 'fr' ? "France" : "USA"} className="w-3.5 h-2.5 rounded-xs" />
-                            <span>{language.toUpperCase()}</span>
-                        </motion.button>
+                        {/* Language Selector */}
+                        <div className="flex gap-1 bg-white/5 backdrop-blur-md border border-white/10 p-1 rounded-full">
+                            <button
+                                onClick={() => setLanguage('fr')}
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black transition-all ${language === 'fr' ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,51,51,0.4)]' : 'text-gray-400 hover:text-white'}`}
+                            >
+                                <FlagIcon location="France" className="w-3 h-2" />
+                                <span className="hidden 2xl:block">FR</span>
+                            </button>
+                            <button
+                                onClick={() => setLanguage('en')}
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black transition-all ${language === 'en' ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,51,51,0.4)]' : 'text-gray-400 hover:text-white'}`}
+                            >
+                                <FlagIcon location="USA" className="w-3 h-2" />
+                                <span className="hidden 2xl:block">EN</span>
+                            </button>
+                        </div>
 
                         {/* LE CADRE COMPTE - High Visibility */}
                         <div className="flex items-center gap-1.5 bg-gradient-to-r from-neon-red/10 to-neon-purple/10 backdrop-blur-2xl border border-white/20 p-1 rounded-[1.5rem] shadow-[0_0_30px_rgba(0,0,0,0.3)] ring-1 ring-white/5 px-1.5 xl:px-2">
