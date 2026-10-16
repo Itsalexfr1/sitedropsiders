@@ -52,6 +52,7 @@ const AdminSpotify = lazyRetry(() => import('./pages/AdminSpotify').then(m => m.
 const AdminShop = lazyRetry(() => import('./pages/AdminShop').then(m => m.AdminShop));
 const KitMedia = lazyRetry(() => import('./pages/KitMedia'));
 const AdminHome = lazyRetry(() => import('./pages/AdminHome').then(m => m.AdminHome));
+const AdminInstagram = lazyRetry(() => import('./pages/AdminInstagram').then(m => m.AdminInstagram));
 const AdminSettings = lazyRetry(() => import('./pages/AdminSettings').then(m => m.AdminSettings));
 const AdminFactures = lazyRetry(() => import('./pages/AdminFactures').then(m => m.AdminFactures));
 const AdminTarifs = lazyRetry(() => import('./pages/AdminTarifs').then(m => m.AdminTarifs));
@@ -249,6 +250,7 @@ const router = createBrowserRouter([
           { path: "admin/stats", element: <AdminStats /> },
           { path: "admin/spotify", element: <AdminSpotify /> },
           { path: "admin/home", element: <AdminHome /> },
+          { path: "admin/instagram", element: <AdminInstagram /> },
           { path: "admin/shop", element: <AdminShop /> },
           { path: "admin/settings", element: <AdminSettings /> },
           { path: "admin/messages", element: <AdminMessages /> },

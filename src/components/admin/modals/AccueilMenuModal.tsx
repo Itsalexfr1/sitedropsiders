@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { X, LayoutDashboard } from 'lucide-react';
+import { X, LayoutDashboard, Instagram } from 'lucide-react';
 
 interface AccueilMenuModalProps {
     isOpen: boolean;
@@ -18,14 +18,14 @@ export function AccueilMenuModal({ isOpen, onClose }: AccueilMenuModalProps) {
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
                         className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
                     >
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-blue via-white to-neon-blue" />
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-blue via-[#ff007f] to-neon-blue" />
 
-                        <div className="flex justify-between items-start mb-12">
+                        <div className="flex justify-between items-start mb-10">
                             <div>
                                 <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                     Gestion <span className="text-neon-blue">Accueil</span>
                                 </h2>
-                                <p className="text-gray-400 font-medium">Configuration globale</p>
+                                <p className="text-gray-400 font-medium">Configuration globale & réseaux</p>
                             </div>
                             <button
                                 onClick={onClose}
@@ -47,6 +47,20 @@ export function AccueilMenuModal({ isOpen, onClose }: AccueilMenuModalProps) {
                                 <div>
                                     <h3 className="text-xl font-bold text-white uppercase italic mb-1">Vues Accueil</h3>
                                     <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer les sections & le live</p>
+                                </div>
+                            </Link>
+
+                            <Link
+                                to="/admin/instagram"
+                                onClick={onClose}
+                                className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-[#ff007f]/10 hover:border-[#ff007f]/50 transition-all group"
+                            >
+                                <div className="w-12 h-12 bg-gradient-to-tr from-[#f9ce34]/20 via-[#ee2a7b]/20 to-[#6228d7]/20 rounded-2xl flex items-center justify-center border border-[#ff007f]/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                    <Instagram className="w-6 h-6 text-[#ff007f]" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-white uppercase italic mb-1">Stats Instagram</h3>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Modifier le nombre d'abonnés & publications</p>
                                 </div>
                             </Link>
                         </div>
