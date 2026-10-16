@@ -554,8 +554,8 @@ function HistorySection({
                 </AnimatePresence>
             </div>
 
-            {/* ── Historique complet par journée ── */}
-            {Array.from(grouped.entries()).slice(0, visibleDaysCount).map(([day, entries]) => {
+            {/* ── Historique de la journée en cours uniquement ── */}
+            {Array.from(grouped.entries()).slice(0, 1).map(([day, entries]) => {
                 const isExpanded = !!expandedDays[day];
                 const displayedEntries = isExpanded ? entries : entries.slice(0, 3);
 
@@ -644,20 +644,6 @@ function HistorySection({
                     </div>
                 );
             })}
-
-            {/* Bouton pour charger d'autres jours de l'historique mensuel */}
-            {Array.from(grouped.entries()).length > visibleDaysCount && (
-                <div className="pt-3 pb-2 text-center">
-                    <button
-                        type="button"
-                        onClick={() => setVisibleDaysCount(prev => Math.min(prev + 7, Array.from(grouped.entries()).length))}
-                        className="px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-900/40 via-purple-800/30 to-cyan-900/40 hover:from-purple-800/60 hover:to-cyan-800/60 border border-purple-500/40 hover:border-purple-400 text-white text-xs font-black uppercase italic tracking-wider transition-all cursor-pointer shadow-[0_0_20px_rgba(168,85,247,0.2)] active:scale-95 flex items-center justify-center gap-2.5 mx-auto"
-                    >
-                        <Calendar className="w-4 h-4 text-purple-400" />
-                        Charger les jours précédents (+7 jours jusqu'à 1 mois)
-                    </button>
-                </div>
-            )}
         </div>
     );
 }

@@ -133,12 +133,12 @@ export function Navbar() {
         { name: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'neon-yellow' },
         { name: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'neon-orange' },
         { name: navLabels.communaute || t('nav.communaute'), path: '/communaute', color: 'neon-cyan' },
-        { name: 'Dropsiders Tv', path: '/tv', color: 'neon-red', icon: Tv },
-        { name: 'Dropsiders Radio', path: '/radio', color: 'neon-cyan', icon: Radio },
+        { name: 'TV', path: '/tv', color: 'neon-red', icon: Tv },
+        { name: 'Radio', path: '/radio', color: 'neon-cyan', icon: Radio },
         { name: navLabels.voyage || navLabels.vols || t('nav.voyage'), path: '/voyage', color: 'neon-green' },
         { name: navLabels.team || t('nav.team'), path: '/team', color: 'neon-lime' },
-        { name: 'TOP', path: '/top-dropsiders', color: 'neon-yellow', suffix: 'DROPSIDERS', isPremium: true },
-        ...(gtaContestMenuVisible ? [{ name: 'GTA 6', path: '/concours-gta6', color: 'neon-pink', suffix: 'CONCOURS', isPremium: true }] : []),
+        { name: 'TOP 100', path: '/top-dropsiders', color: 'neon-yellow', isPremium: true },
+        ...(gtaContestMenuVisible ? [{ name: 'GTA 6', path: '/concours-gta6', color: 'neon-pink', isPremium: true }] : []),
         ...(shopEnabled && !shopPasswordProtected ? [{ name: 'SHOP', path: '/shop', color: 'neon-blue' }] : []),
         ...(((takeoverEnabled && (takeoverSettings as any)?.status === 'live')) && ((takeoverSettings as any)?.showInNavbar !== false) ? [{
             name: 'LIVE',
@@ -268,7 +268,7 @@ export function Navbar() {
                     </div>
 
                     {/* Desktop Navigation */}
-                    <div className="hidden lg:flex items-center gap-0.5 xl:gap-1">
+                    <div className="hidden lg:flex items-center gap-0.5 xl:gap-0.5 2xl:gap-1">
                         {navItems.map((item) => (
                             <NavItem key={item.path} item={item} isActive={location.pathname === item.path} />
                         ))}
@@ -276,9 +276,9 @@ export function Navbar() {
 
 
                     {/* Right Side Actions */}
-                    <div className="flex items-center gap-1 xl:gap-3 shrink-0">
+                    <div className="flex items-center gap-1 xl:gap-2.5 shrink-0">
                         {/* Search, Contact & Theme Group */}
-                        <div className="hidden xl:flex items-center gap-1 bg-white/5 border border-white/10 p-1 rounded-2xl backdrop-blur-md">
+                        <div className="hidden xl:flex items-center gap-0.5 bg-white/5 border border-white/10 p-1 rounded-2xl backdrop-blur-md">
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
@@ -317,26 +317,21 @@ export function Navbar() {
                             </motion.button>
                         </div>
 
-                        {/* Language Selector */}
-                        <div className="flex gap-1 bg-white/5 backdrop-blur-md border border-white/10 p-1 rounded-full">
-                            <button
-                                onClick={() => setLanguage('fr')}
-                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black transition-all ${language === 'fr' ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,51,51,0.4)]' : 'text-gray-400 hover:text-white'}`}
-                            >
-                                <FlagIcon location="France" className="w-3 h-2" />
-                                <span className="hidden 2xl:block">FR</span>
-                            </button>
-                            <button
-                                onClick={() => setLanguage('en')}
-                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black transition-all ${language === 'en' ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,51,51,0.4)]' : 'text-gray-400 hover:text-white'}`}
-                            >
-                                <FlagIcon location="USA" className="w-3 h-2" />
-                                <span className="hidden 2xl:block">EN</span>
-                            </button>
-                        </div>
+                        {/* Compact Language Toggle */}
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onMouseEnter={playHoverSound}
+                            onClick={() => setLanguage(language === 'fr' ? 'en' : 'fr')}
+                            className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 px-2.5 py-1.5 rounded-full text-[10px] font-black transition-all text-white shadow-sm cursor-pointer"
+                            title={language === 'fr' ? "Switch to English (EN)" : "Passer en Français (FR)"}
+                        >
+                            <FlagIcon location={language === 'fr' ? "France" : "USA"} className="w-3.5 h-2.5 rounded-xs" />
+                            <span>{language.toUpperCase()}</span>
+                        </motion.button>
 
                         {/* LE CADRE COMPTE - High Visibility */}
-                        <div className="flex items-center gap-1.5 bg-gradient-to-r from-neon-red/10 to-neon-purple/10 backdrop-blur-2xl border border-white/20 p-1.5 rounded-[1.5rem] shadow-[0_0_30px_rgba(0,0,0,0.3)] ring-1 ring-white/5 px-2">
+                        <div className="flex items-center gap-1.5 bg-gradient-to-r from-neon-red/10 to-neon-purple/10 backdrop-blur-2xl border border-white/20 p-1 rounded-[1.5rem] shadow-[0_0_30px_rgba(0,0,0,0.3)] ring-1 ring-white/5 px-1.5 xl:px-2">
                             {/* {isLoggedIn && (
                                 <TradeNotificationBadge onClick={() => setIsTradeInboxOpen(true)} />
                             )} */}
@@ -347,7 +342,7 @@ export function Navbar() {
                                 onMouseEnter={playHoverSound}
                                 onClick={() => isLoggedIn ? navigate('/profil') : setIsAuthModalOpen(true)}
                                 className={twMerge(
-                                    "px-4 py-2.5 transition-all rounded-xl flex items-center gap-2 group",
+                                    "px-3 xl:px-3.5 py-2 transition-all rounded-xl flex items-center gap-2 group",
                                     isLoggedIn ? "bg-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.3)]" : "text-gray-400 hover:text-white hover:bg-white/10"
                                 )}
                                 title={isLoggedIn ? `Compte (${user?.username})` : "Connexion"}
@@ -661,7 +656,7 @@ function NavItem({ item, isActive }: NavItemProps) {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className={twMerge(
-                    "relative block px-2.5 xl:px-4 py-2 text-[11px] xl:text-sm font-bold tracking-wider transition-all duration-300 rounded-xl",
+                    "relative block px-2 xl:px-2.5 2xl:px-3.5 py-1.5 xl:py-2 text-[11px] xl:text-xs 2xl:text-sm font-bold tracking-normal xl:tracking-wide transition-all duration-300 rounded-xl",
                     item.isPremium ? "border border-neon-yellow/20 bg-neon-yellow/5 shadow-[0_0_15px_rgba(255,240,31,0.05)]" : "",
                     isActive
                         ? (item.color === 'neon-green' ? "text-neon-green drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]" :
@@ -680,7 +675,7 @@ function NavItem({ item, isActive }: NavItemProps) {
                 )}
             >
                 <span className={twMerge(
-                    "relative z-10 flex items-center gap-2 whitespace-nowrap",
+                    "relative z-10 flex items-center gap-1.5 xl:gap-2 whitespace-nowrap",
                     item.isPremium ? "font-black" : ""
                 )}>
                     {item.icon ? (
@@ -705,8 +700,8 @@ function NavItem({ item, isActive }: NavItemProps) {
                         </div>
                     ) : (
                         <div className="flex items-center gap-1">
-                            {item.isPremium && <TopIcon className="w-3.5 h-3.5 text-neon-yellow" />}
-                            <span className={item.isPremium ? "text-neon-yellow" : ""}>{item.name}</span>
+                            {item.isPremium && <TopIcon className={twMerge("w-3.5 h-3.5", item.color === 'neon-pink' ? "text-neon-pink" : "text-neon-yellow")} />}
+                            <span className={item.color === 'neon-pink' ? "text-neon-pink" : item.isPremium ? "text-neon-yellow" : ""}>{item.name}</span>
                             {item.suffix && <span className="text-[10px] opacity-40 font-bold ml-0.5">{item.suffix}</span>}
                         </div>
                     )}

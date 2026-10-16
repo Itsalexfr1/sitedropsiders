@@ -2,7 +2,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import {
     Lock, Instagram, ArrowRight, Users, ExternalLink,
-    Facebook, Zap, Mic, FileText, Download
+    Facebook, Zap, Mic, FileText, Download,
+    Calendar, Radio, Tv, Play, Headphones, Sparkles, MapPin, Ticket, Flame, Volume2,
+    Trophy, Gamepad2, Gift, HelpCircle, CheckCircle2, TrendingUp, Copy, Check, Award, Eye, Layers
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { SpotifyWidget } from '../components/widgets/SpotifyWidget';
@@ -31,6 +33,7 @@ const KitMedia = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('kit_media_auth') === 'true');
     const [socials, setSocials] = useState<any>((settings as any).socials || {});
     const [error, setError] = useState('');
+    const [copiedSvg, setCopiedSvg] = useState(false);
 
     // Fetch latest settings on mount
     useEffect(() => {
@@ -87,6 +90,10 @@ const KitMedia = () => {
         }
     };
 
+    const handleDownloadPdf = () => {
+        window.print();
+    };
+
     // Custom Scroll Animations
     const { scrollYProgress } = useScroll();
     const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
@@ -117,10 +124,10 @@ const KitMedia = () => {
     ], [language]);
 
     const stats: StatItem[] = useMemo(() => [
-        { label: "Facebook", value: "48K", detail: "Followers", icon: <Facebook className="w-5 h-5" />, color: "text-blue-500", link: `https://www.facebook.com/${(socials.facebook || 'dropsidersfr').replace('@', '')}` },
-        { label: "Instagram", value: "6.9K", detail: "Followers", icon: <Instagram className="w-5 h-5" />, color: "text-pink-500", link: `https://www.instagram.com/${(socials.instagram || 'dropsiders.fr').replace('@', '')}` },
-        { label: "TikTok", value: "4.6K", detail: "Followers", icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1 .05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z" /></svg>, color: "text-cyan-400", link: `https://www.tiktok.com/@${(socials.tiktok || 'dropsiders.fr').replace('@', '')}` },
-        { label: "Total Reach", value: "100K", detail: language === 'fr' ? "Impression / Mois" : "Impression / Month", icon: <Zap className="w-5 h-5" />, color: "text-yellow-400" }
+        { label: "Facebook", value: "50K", detail: "Followers", icon: <Facebook className="w-5 h-5" />, color: "text-blue-500", link: `https://www.facebook.com/${(socials.facebook || 'dropsidersfr').replace('@', '')}` },
+        { label: "TikTok", value: "7K", detail: "Followers", icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1 .05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z" /></svg>, color: "text-cyan-400", link: `https://www.tiktok.com/@${(socials.tiktok || 'dropsiders.fr').replace('@', '')}` },
+        { label: "Instagram", value: "4.7K", detail: "Followers", icon: <Instagram className="w-5 h-5" />, color: "text-pink-500", link: `https://www.instagram.com/${(socials.instagram || 'dropsiders.fr').replace('@', '')}` },
+        { label: language === 'fr' ? "Communauté" : "Community", value: "61.7K+", detail: language === 'fr' ? "Followers Réseaux Sociaux" : "Social Media Followers", icon: <Users className="w-5 h-5" />, color: "text-yellow-400" }
     ], [language, socials]);
 
     const services: ServiceItem[] = useMemo(() => [
@@ -130,9 +137,10 @@ const KitMedia = () => {
     ], [language]);
 
     const featuredArtists = [
-        { name: "Morten", image: "https://159001-3fab-4329-0001.production.d.bitsof.love/eyJidWNrZXQiOiJwdWJsaWMtYXNzZXRzLXN0YWNrLXB1YmxpY2Fzc2V0c2NjMDcxYjgzLWRwNW1tb3NwYWl3diIsImtleSI6ImltYWdlcy9Nb3J0ZW4tdGVhY2hlcl8yMDI0LTA1LTA4LTE2MTgzNF96aGJyLnBuZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJ3aWR0aCI6MTkyMH0sInRvRm9ybWF0Ijoid2VicCIsIndlYnAiOnsicXVhbGl0eSI6NzV9fX0=?w=1920&q=75", role: "Special Guest", link: "https://dropsiders.fr/interviews/interview-morten-edc-las-vegas-2025-37" },
-        { name: "Da Tweekaz", image: "https://yt3.googleusercontent.com/5IxI2tqwGqGcpA1xctAIuSBuS5xHqf_fXBKb6zmSmRKQZKefUzSIkFF7YzesAd5yq80tacmoiQ=s900-c-k-c0x00ffffff-no-rj", role: "Exclusive Interview", link: "https://dropsiders.fr/interviews/interview-da-tweekaz-edc-las-vegas-2025-34" },
-        { name: "Vintage Culture", image: "https://dropsiders.fr/uploads/migrated/c_limit,w_1200,h_630/f_jpg/q_auto/production/artworks/artists/vintageculturemusic.jpg", role: "Artist Spotlight", link: "https://dropsiders.fr/interviews/interview-video-vintage-culture-tomorrowland-winter-145" }
+        { name: "Morten", image: "https://www.dropsiders.fr/uploads/uploads/746b4ef81d385342-250506_Morten_AURA56901_copy.webp", role: "EDC Las Vegas", link: "https://dropsiders.fr/interviews" },
+        { name: "Da Tweekaz", image: "https://cdn-images.dzcdn.net/images/artist/872392e50ad6dd5602c4bb34f14c2c9f/1000x1000-000000-80-0-0.jpg", role: "EDC Las Vegas", link: "https://dropsiders.fr/interviews" },
+        { name: "Henri PFR", image: "https://www.dropsiders.fr/uploads/1825045676e37db1-test__2_.webp", role: "Tomorrowland Winter", link: "https://dropsiders.fr/interviews" },
+        { name: "Third Party", image: "https://www.dropsiders.fr/uploads/c2d433079ae2ad53-maxresdefault.jpg", role: "Tomorrowland Winter", link: "https://dropsiders.fr/interviews" }
     ];
 
     const socialLinks = [
@@ -378,7 +386,7 @@ const KitMedia = () => {
                                 <span className="w-8 h-px bg-neon-red"></span>
                                 {language === 'fr' ? "NOS INTERVIEWS" : "OUR INTERVIEWS"}
                             </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 lg:gap-8 min-h-[500px]">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                                 {featuredArtists.map((artist, i) => (
                                     <a
                                         href={artist.link}
@@ -399,6 +407,9 @@ const KitMedia = () => {
                                             <motion.img
                                                 src={artist.image}
                                                 alt={artist.name}
+                                                onError={(e) => {
+                                                    (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070&auto=format&fit=crop';
+                                                }}
                                                 className="w-full h-full object-cover transition-all duration-700"
                                                 whileHover={{ scale: 1.1, filter: "brightness(1.2)" }}
                                             />
@@ -531,161 +542,689 @@ const KitMedia = () => {
                     </div>
                 </section>
 
-                <section className="py-32 px-6 lg:px-12 xl:px-16 2xl:px-24 w-full bg-white/[0.02]">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                        <div>
-                            <p className="text-neon-red text-[10px] font-black tracking-[0.5em] uppercase mb-4">{language === 'fr' ? 'Écosystème Numérique' : 'Digital Ecosystem'}</p>
-                            <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter mb-8 leading-tight">
-                                {language === 'fr' ? "UNE PLATEFORME UNIQUE POUR LES FANS D'ELECTRO" : "A UNIQUE PLATFORM FOR ELECTRO FANS"}
+                {/* AGENDA SECTION */}
+                <section className="py-32 px-6 lg:px-12 xl:px-16 2xl:px-24 w-full border-t border-white/5 relative overflow-hidden">
+                    <div className="absolute top-1/2 left-0 w-96 h-96 bg-neon-fuchsia/10 blur-[150px] rounded-full pointer-events-none" />
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                        <div className="lg:col-span-5 space-y-6">
+                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-neon-fuchsia/10 border border-neon-fuchsia/20 text-neon-fuchsia text-[10px] font-black uppercase tracking-[0.3em]">
+                                <Calendar className="w-3.5 h-3.5" />
+                                {language === 'fr' ? 'Agenda & Événements' : 'Agenda & Events'}
+                            </div>
+                            <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter leading-tight">
+                                {language === 'fr' ? "Le Guide Référence des Festivals & Clubs" : "The Benchmark Guide for Festivals & Clubs"}
                             </h2>
-                            <div className="space-y-6">
-                                {[
-                                    { title: language === 'fr' ? "Avis & Notes" : "Reviews & Ratings", desc: language === 'fr' ? "Les utilisateurs notent l'organisation, le son et la nourriture des festivals." : "Users rate festival organization, sound, and food." },
-                                    { title: language === 'fr' ? "Covoiturage" : "Carpooling", desc: language === 'fr' ? "Un outil direct pour organiser ses trajets vers les plus grands événements." : "A direct tool to organize trips to the biggest events." },
-                                    { title: language === 'fr' ? "Alertes Line-up" : "Line-up Alerts", desc: language === 'fr' ? "Notification instantanée dès qu'une tête d'affiche est annoncée." : "Instant notification as soon as a headliner is announced." },
-
-                                ].map((feature, i) => (
-                                    <div key={i} className="flex gap-4 group">
-                                        <div className="w-1.5 h-1.5 bg-neon-red rounded-full mt-2 group-hover:scale-150 transition-transform"></div>
-                                        <div>
-                                            <h4 className="font-bold uppercase tracking-widest text-xs text-white mb-1">{feature.title}</h4>
-                                            <p className="text-gray-500 text-xs leading-relaxed group-hover:text-gray-300 transition-colors">{feature.desc}</p>
-                                        </div>
-                                    </div>
-                                ))}
+                            <p className="text-gray-300 text-sm md:text-base leading-relaxed font-light">
+                                {language === 'fr'
+                                    ? "Plus de 500 événements électro répertoriés à travers l'Europe et le monde. Chaque mois, des dizaines de milliers de festivaliers consultent nos fiches détaillées pour préparer leur saison : line-up complet, billetterie officielle, localisation et notations communautaires."
+                                    : "Over 500 electro events listed across Europe and worldwide. Every month, tens of thousands of festival-goers browse our detailed listings to plan their season: full line-up, official ticketing, location, and community reviews."
+                                }
+                            </p>
+                            <div className="pt-2 flex flex-wrap gap-4">
+                                <a
+                                    href="/agenda"
+                                    className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-neon-fuchsia hover:text-white transition-all shadow-xl"
+                                >
+                                    {language === 'fr' ? 'Explorer l\'Agenda' : 'Explore the Agenda'}
+                                    <ArrowRight className="w-4 h-4" />
+                                </a>
                             </div>
                         </div>
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-neon-red/10 blur-[100px] rounded-full"></div>
-                            <div className="relative bg-black/40 border border-white/10 rounded-[3rem] p-8 backdrop-blur-3xl overflow-hidden group">
-                                <div className="aspect-video bg-gradient-to-br from-neon-red/20 to-blue-900/20 rounded-2xl flex items-center justify-center p-8 overflow-hidden">
-                                    {/* Simple creative visual representation of the app */}
-                                    <motion.div
-                                        animate={{ y: [0, -10, 0] }}
-                                        transition={{ repeat: Infinity, duration: 4 }}
-                                        className="relative z-10 w-full h-full border-4 border-white/20 rounded-3xl flex flex-col p-4 bg-black/60 shadow-2xl"
-                                    >
-                                        <div className="h-6 w-1/3 bg-white/10 rounded-full mb-4"></div>
-                                        <div className="flex-1 bg-gradient-to-br from-neon-red via-black to-blue-900 rounded-xl mb-4 relative overflow-hidden">
-                                            <div className="absolute inset-x-0 bottom-4 text-center">
-                                                <div className="h-3 w-3/4 bg-white/40 mx-auto rounded-full mb-2"></div>
-                                                <div className="h-2 w-1/2 bg-white/20 mx-auto rounded-full"></div>
-                                            </div>
-                                        </div>
-                                        <div className="flex justify-between gap-4">
-                                            <div className="h-8 w-1/4 bg-white/5 rounded-lg"></div>
-                                            <div className="h-8 w-1/4 bg-white/5 rounded-lg"></div>
-                                            <div className="h-8 w-1/2 bg-neon-red rounded-lg"></div>
-                                        </div>
-                                    </motion.div>
-                                </div>
-                                <div className="mt-8 text-center">
-                                    <p className="text-[10px] font-black tracking-[0.3em] uppercase text-neon-cyan mb-2">Social Studio App</p>
-                                    <p className="text-gray-400 text-xs leading-relaxed">
-                                        {language === 'fr' ? "Une innovation Dropsiders pour professionnaliser le partage d'actualité électro." : "A Dropsiders innovation to professionalize electro news sharing."}
-                                    </p>
-                                </div>
+
+                        <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {[
+                                {
+                                    icon: <MapPin className="w-5 h-5 text-neon-fuchsia" />,
+                                    title: language === 'fr' ? "500+ Événements Référencés" : "500+ Listed Events",
+                                    desc: language === 'fr' ? "Une cartographie complète des festivals majeurs (Tomorrowland, EDC, Ultra, Defqon.1) et clubs emblématiques." : "Full mapping of major festivals and iconic clubs worldwide."
+                                },
+                                {
+                                    icon: <Ticket className="w-5 h-5 text-neon-fuchsia" />,
+                                    title: language === 'fr' ? "Billetterie & Accès Direct" : "Ticketing & Direct Access",
+                                    desc: language === 'fr' ? "Redirection directe vers les billetteries officielles avec suivi des phases de vente et sold-out." : "Direct links to official ticketing platforms with sale phase tracking."
+                                },
+                                {
+                                    icon: <Flame className="w-5 h-5 text-neon-fuchsia" />,
+                                    title: language === 'fr' ? "Mise en Avant Partenaire" : "Partner Spotlight",
+                                    desc: language === 'fr' ? "Visibilité prioritaire en tête de liste, badge 'Événement Recommandé' et push auprès de notre communauté." : "Top-of-list priority placement, 'Recommended Event' badge, and targeted pushes."
+                                },
+                                {
+                                    icon: <Users className="w-5 h-5 text-neon-fuchsia" />,
+                                    title: language === 'fr' ? "Audience Ultra-Qualifiée" : "High-Intent Audience",
+                                    desc: language === 'fr' ? "Un public captif prêt à réserver ses pass, logements et transports pour leurs prochains festivals." : "A captive audience ready to book passes, accommodation, and travel."
+                                }
+                            ].map((card, i) => (
+                                <motion.div
+                                    key={i}
+                                    whileHover={{ y: -6, scale: 1.02 }}
+                                    className="p-6 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-md hover:border-neon-fuchsia/40 transition-all"
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-4">
+                                        {card.icon}
+                                    </div>
+                                    <h4 className="font-display font-black uppercase text-sm text-white mb-2">{card.title}</h4>
+                                    <p className="text-gray-400 text-xs leading-relaxed">{card.desc}</p>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                {/* RADIO SECTION */}
+                <section className="py-32 px-6 lg:px-12 xl:px-16 2xl:px-24 w-full bg-white/[0.02] border-t border-white/5 relative overflow-hidden">
+                    <div className="absolute top-1/2 right-0 w-96 h-96 bg-neon-cyan/10 blur-[150px] rounded-full pointer-events-none" />
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                        <div className="lg:col-span-7 order-2 lg:order-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {[
+                                {
+                                    icon: <Radio className="w-5 h-5 text-neon-cyan" />,
+                                    title: language === 'fr' ? "Diffusion Non-Stop 24/7" : "24/7 Non-Stop Broadcast",
+                                    desc: language === 'fr' ? "Flux audio haute fidélité disponible en continu sur web et mobile sans interruption." : "High-fidelity audio stream available non-stop across web and mobile."
+                                },
+                                {
+                                    icon: <Headphones className="w-5 h-5 text-neon-cyan" />,
+                                    title: language === 'fr' ? "Programmation Par Créneaux" : "Scheduled Time Blocks",
+                                    desc: language === 'fr' ? "Morning Energy, Relive Classics, Prime Electro, Deep Sessions et Zone Rouge pour chaque moment de la journée." : "Morning Energy, Relive Classics, Prime Electro, Deep Sessions, and Zone Rouge."
+                                },
+                                {
+                                    icon: <Zap className="w-5 h-5 text-neon-cyan" />,
+                                    title: language === 'fr' ? "Flash Actus & Nouveautés" : "Festival News & Flash Updates",
+                                    desc: language === 'fr' ? "Annonces de line-ups majeurs, dates clés et sorties de tracks intégrées aux tranches musicales." : "Major line-up announcements, key festival dates, and track releases integrated into music slots."
+                                },
+                                {
+                                    icon: <Sparkles className="w-5 h-5 text-neon-cyan" />,
+                                    title: language === 'fr' ? "Lecteur Persistant Global" : "Global Persistent Player",
+                                    desc: language === 'fr' ? "Le player radio reste actif durant toute la navigation des visiteurs sur le site Dropsiders." : "The radio player stays active as visitors browse all pages of Dropsiders."
+                                }
+                            ].map((card, i) => (
+                                <motion.div
+                                    key={i}
+                                    whileHover={{ y: -6, scale: 1.02 }}
+                                    className="p-6 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-md hover:border-neon-cyan/40 transition-all"
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-4">
+                                        {card.icon}
+                                    </div>
+                                    <h4 className="font-display font-black uppercase text-sm text-white mb-2">{card.title}</h4>
+                                    <p className="text-gray-400 text-xs leading-relaxed">{card.desc}</p>
+                                </motion.div>
+                            ))}
+                        </div>
+
+                        <div className="lg:col-span-5 order-1 lg:order-2 space-y-6">
+                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan text-[10px] font-black uppercase tracking-[0.3em]">
+                                <Radio className="w-3.5 h-3.5" />
+                                {language === 'fr' ? 'Web-Radio 24/7' : '24/7 Web-Radio'}
+                            </div>
+                            <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter leading-tight">
+                                {language === 'fr' ? "Dropsiders Radio : Le Son Des Festivals" : "Dropsiders Radio: The Festival Sound"}
+                            </h2>
+                            <p className="text-gray-300 text-sm md:text-base leading-relaxed font-light">
+                                {language === 'fr'
+                                    ? "Une web-radio dédiée 24h/24 aux meilleurs titres, livesets exclusifs et émissions thématiques. Une opportunité d'impact sonore unique pour faire résonner votre marque ou festival auprès de passionnés."
+                                    : "A 24/7 web-radio dedicated to the finest anthems, exclusive live sets, and themed shows. A unique audio branding opportunity to amplify your event to electro lovers."
+                                }
+                            </p>
+                            <div className="pt-2 flex flex-wrap gap-4">
+                                <a
+                                    href="/radio"
+                                    className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-neon-cyan hover:text-black transition-all shadow-xl"
+                                >
+                                    {language === 'fr' ? 'Écouter la Radio' : 'Listen to the Radio'}
+                                    <ArrowRight className="w-4 h-4" />
+                                </a>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <section className="py-32 px-6 lg:px-12 xl:px-16 2xl:px-24 w-full">
-                    <div className="text-center mb-16">
-                        <p className="text-neon-red text-[10px] font-black tracking-[0.5em] uppercase mb-4">What we do</p>
-                        <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter">
-                            {language === 'fr' ? "NOTRE SAVOIR-FAIRE" : "OUR EXPERTISE"}
+                {/* TV SECTION */}
+                <section className="py-32 px-6 lg:px-12 xl:px-16 2xl:px-24 w-full border-t border-white/5 relative overflow-hidden">
+                    <div className="absolute top-1/2 left-0 w-96 h-96 bg-neon-red/10 blur-[150px] rounded-full pointer-events-none" />
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                        <div className="lg:col-span-5 space-y-6">
+                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-neon-red/10 border border-neon-red/20 text-neon-red text-[10px] font-black uppercase tracking-[0.3em]">
+                                <Tv className="w-3.5 h-3.5" />
+                                {language === 'fr' ? 'Chaîne Vidéo Continue' : 'Continuous Video Channel'}
+                            </div>
+                            <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter leading-tight">
+                                {language === 'fr' ? "Dropsiders TV : L'Immersion Vidéo 4K" : "Dropsiders TV: 4K Video Immersion"}
+                            </h2>
+                            <p className="text-gray-300 text-sm md:text-base leading-relaxed font-light">
+                                {language === 'fr'
+                                    ? "La première chaîne vidéo francophone continue dédiée aux musiques électroniques. Retransmission des sets légendaires, aftermovies immersifs, clips officiels et reportages exclusifs rythmés par des tranches thématiques."
+                                    : "The premier continuous video channel dedicated to electronic music. Legendary festival sets, immersive aftermovies, official music videos, and backstage reports structured across themed daily slots."
+                                }
+                            </p>
+                            <div className="pt-2 flex flex-wrap gap-4">
+                                <a
+                                    href="/tv"
+                                    className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-neon-red hover:text-white transition-all shadow-xl"
+                                >
+                                    {language === 'fr' ? 'Regarder Dropsiders TV' : 'Watch Dropsiders TV'}
+                                    <ArrowRight className="w-4 h-4" />
+                                </a>
+                            </div>
+                        </div>
+
+                        <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {[
+                                {
+                                    icon: <Play className="w-5 h-5 text-neon-red" />,
+                                    title: language === 'fr' ? "Grille Vidéo Continue" : "Continuous Video Grid",
+                                    desc: language === 'fr' ? "Morning Clips, Relive Festivals, Day Time, Prime Time Dropsiders et Zone Rouge pour une expérience télévisuelle totale." : "Themed slots from morning chill clips to peak-time festival livesets."
+                                },
+                                {
+                                    icon: <Tv className="w-5 h-5 text-neon-red" />,
+                                    title: language === 'fr' ? "Retransmissions Live & Sets 4K" : "Live Broadcasts & 4K Sets",
+                                    desc: language === 'fr' ? "Les performances captées sur les scènes de Tomorrowland, EDC Las Vegas, Ultra, Burning Man ou l'Amnesia Ibiza." : "Captured performances from Tomorrowland, EDC, Ultra, Burning Man, or Amnesia Ibiza."
+                                },
+                                {
+                                    icon: <Sparkles className="w-5 h-5 text-neon-red" />,
+                                    title: language === 'fr' ? "Intégration PreMiD & Discord" : "PreMiD & Discord Integration",
+                                    desc: language === 'fr' ? "Rich Presence affichant en temps réel sur Discord le programme et l'artiste en cours de diffusion." : "Real-time Discord Rich Presence displaying current show, artist, and track."
+                                },
+                                {
+                                    icon: <Zap className="w-5 h-5 text-neon-red" />,
+                                    title: language === 'fr' ? "Sponsoring Écran & Trailers" : "Screen Sponsoring & Trailers",
+                                    desc: language === 'fr' ? "Diffusion de teasers de festivals, bandeaux publicitaires dynamiques et sponsoring de tranches horaires." : "Festival trailers broadcast, dynamic banners, and exclusive time-slot sponsorships."
+                                }
+                            ].map((card, i) => (
+                                <motion.div
+                                    key={i}
+                                    whileHover={{ y: -6, scale: 1.02 }}
+                                    className="p-6 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-md hover:border-neon-red/40 transition-all"
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-4">
+                                        {card.icon}
+                                    </div>
+                                    <h4 className="font-display font-black uppercase text-sm text-white mb-2">{card.title}</h4>
+                                    <p className="text-gray-400 text-xs leading-relaxed">{card.desc}</p>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                {/* ── ESPACE COMMUNAUTÉ & GAMIFICATION (SYSTÈME DE "DROPS") ── */}
+                <section className="py-32 px-6 lg:px-12 xl:px-16 2xl:px-24 w-full bg-white/[0.015] border-t border-white/5 relative overflow-hidden">
+                    <div className="absolute top-1/3 left-0 w-96 h-96 bg-neon-purple/10 blur-[150px] rounded-full pointer-events-none" />
+                    <div className="absolute bottom-10 right-0 w-96 h-96 bg-neon-yellow/10 blur-[150px] rounded-full pointer-events-none" />
+
+                    <div className="text-center mb-16 max-w-3xl mx-auto">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-neon-purple/10 border border-neon-purple/20 text-neon-purple text-[10px] font-black uppercase tracking-[0.3em] mb-4">
+                            <Gamepad2 className="w-3.5 h-3.5" />
+                            {language === 'fr' ? 'Espace Communauté & Gamification' : 'Community Hub & Gamification'}
+                        </div>
+                        <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter mb-4">
+                            {language === 'fr' ? "Le Système de \"Drops\" & Récompenses" : "The \"Drops\" System & Fan Rewards"}
                         </h2>
+                        <p className="text-gray-400 text-sm md:text-base leading-relaxed">
+                            {language === 'fr'
+                                ? "Une plateforme d'engagement ultra-fidèle où la passion des musiques électroniques se transforme en jeu, collection et récompenses concrètes pour les festivaliers."
+                                : "A highly engaged platform where electronic music passion turns into gameplay, collectibles, and concrete rewards for festival-goers."
+                            }
+                        </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {services.map((item, i) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+                        {[
+                            {
+                                icon: <Layers className="w-6 h-6 text-neon-cyan" />,
+                                badge: language === 'fr' ? "Cartes Collector" : "Collectible Cards",
+                                badgeColor: "text-neon-cyan bg-neon-cyan/10 border-neon-cyan/20",
+                                title: language === 'fr' ? "Cartes à Collectionner" : "Digital Collectible Cards",
+                                desc: language === 'fr'
+                                    ? "Système de cartes virtuelles avec raretés (Common, Rare, Epic, Legendary). Les festivaliers ouvrent des packs 'Drops', complètent leurs albums et s'échangent des cartes d'artistes et scènes."
+                                    : "Digital card system featuring multiple rarity tiers (Common, Rare, Epic, Legendary). Fans open 'Drops' packs, complete albums, and trade artist and festival stage cards."
+                            },
+                            {
+                                icon: <Trophy className="w-6 h-6 text-neon-yellow" />,
+                                badge: language === 'fr' ? "Fidélité & Statuts" : "Loyalty & Status",
+                                badgeColor: "text-neon-yellow bg-neon-yellow/10 border-neon-yellow/20",
+                                title: language === 'fr' ? "Festivaliers Fidèles" : "Loyal Festival-Goers",
+                                desc: language === 'fr'
+                                    ? "Programme de récompenses récompensant la régularité des festivaliers sur le site : points d'XP, badges de collectionneurs, accès anticipé aux news et classements communautaires."
+                                    : "Reward framework acknowledging festival-goers' active participation: XP points, collector badges, early content access, and community leaderboards."
+                            },
+                            {
+                                icon: <HelpCircle className="w-6 h-6 text-neon-fuchsia" />,
+                                badge: language === 'fr' ? "+85% Rétention" : "+85% Retention",
+                                badgeColor: "text-neon-fuchsia bg-neon-fuchsia/10 border-neon-fuchsia/20",
+                                title: language === 'fr' ? "Quiz & Blind Tests" : "Interactive Quizzes & Blind Tests",
+                                desc: language === 'fr'
+                                    ? "Modules interactifs de blind tests musicaux et de quiz spécialisés sur l'histoire des festivals électro, générant des taux de participation et de rétention exceptionnels."
+                                    : "Addictive interactive blind tests and festival trivia quizzes driving industry-leading engagement and prolonged user session times."
+                            },
+                            {
+                                icon: <Gift className="w-6 h-6 text-neon-red" />,
+                                badge: language === 'fr' ? "Activation Partenaire" : "Brand Activation",
+                                badgeColor: "text-neon-red bg-neon-red/10 border-neon-red/20",
+                                title: language === 'fr' ? "Récompenses Partenaires" : "Exclusive Partner Perks",
+                                desc: language === 'fr'
+                                    ? "Possibilité directe pour un festival ou une marque d'offrir des récompenses exclusives : pass VIP festivals, codes de réduction billetterie, merchandising officiel ou accès backstage."
+                                    : "Direct turnkey opportunity for festivals and brands to distribute real rewards: VIP festival passes, ticketing discount codes, official merch, and backstage perks."
+                            }
+                        ].map((item, idx) => (
                             <motion.div
-                                key={i}
-                                initial={{ opacity: 0, y: 50 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.1, type: 'spring', stiffness: 100 }}
-                                viewport={{ once: true }}
-                                whileHover={{ scale: 1.05, y: -10 }}
-
-
-                                className="bg-white/5 border border-white/10 p-8 rounded-3xl hover:bg-white/10 hover:border-white/20 transition-colors group"
+                                key={idx}
+                                whileHover={{ y: -8, scale: 1.02 }}
+                                className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 hover:border-white/25 transition-all flex flex-col justify-between group backdrop-blur-md"
                             >
-                                <motion.div
-                                    whileHover={{ rotate: [0, -10, 10, -10, 0] }}
-                                    transition={{ duration: 0.5 }}
-                                    className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mb-6 group-hover:bg-neon-red group-hover:text-white transition-colors"
-                                >
-                                    {item.icon}
-                                </motion.div>
-                                <h3 className="text-lg font-bold uppercase tracking-widest mb-3">{item.title}</h3>
-                                <p className="text-gray-500 text-sm leading-relaxed group-hover:text-gray-300 transition-colors">{item.desc}</p>
+                                <div>
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform">
+                                            {item.icon}
+                                        </div>
+                                        <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${item.badgeColor}`}>
+                                            {item.badge}
+                                        </span>
+                                    </div>
+                                    <h3 className="text-xl font-display font-black mb-3 uppercase tracking-tight text-white group-hover:text-neon-red transition-colors">
+                                        {item.title}
+                                    </h3>
+                                    <p className="text-gray-400 text-xs leading-relaxed">
+                                        {item.desc}
+                                    </p>
+                                </div>
+                                <div className="pt-6 mt-6 border-t border-white/5 flex items-center justify-between">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                                        {language === 'fr' ? 'Gamification 360°' : '360° Gamification'}
+                                    </span>
+                                    <div className="w-2 h-2 rounded-full bg-neon-red shadow-[0_0_8px_rgba(255,18,65,0.6)]" />
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    {/* Encadré Partenaire Merch / Pass VIP */}
+                    <div className="bg-gradient-to-r from-neon-purple/20 via-black to-neon-red/20 border border-white/15 rounded-[2.5rem] p-8 md:p-12 backdrop-blur-2xl max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div className="space-y-3 text-center md:text-left">
+                            <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-neon-yellow">
+                                <Award className="w-3.5 h-3.5" />
+                                {language === 'fr' ? 'Offre Partenaires Exclusifs' : 'Exclusive Partner Program'}
+                            </div>
+                            <h4 className="text-2xl md:text-3xl font-display font-black uppercase text-white tracking-tight">
+                                {language === 'fr' ? "Offrez vos Pass VIP & Merch à notre communauté" : "Offer your VIP Passes & Merch to our community"}
+                            </h4>
+                            <p className="text-gray-300 text-xs md:text-sm max-w-xl leading-relaxed">
+                                {language === 'fr'
+                                    ? "Associez votre marque ou festival aux quêtes communautaires de Dropsiders. Bénéficiez d'une visibilité organique maximale auprès de passionnés ultra-actifs prêts à voyager."
+                                    : "Tie your brand or event into Dropsiders community quests. Enjoy high-intent exposure directly reaching active festival-goers ready to travel."
+                                }
+                            </p>
+                        </div>
+                        <a
+                            href="mailto:contact@dropsiders.fr?subject=Partenariat%20Gamification%20%26%20Dotations"
+                            className="shrink-0 px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-neon-red hover:text-white transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)] active:scale-95"
+                        >
+                            {language === 'fr' ? "Proposer une dotation" : "Sponsor a reward"}
+                        </a>
+                    </div>
+                </section>
+
+                {/* ── ÉTUDES DE CAS & SUCCESS STORIES ── */}
+                <section className="py-32 px-6 lg:px-12 xl:px-16 2xl:px-24 w-full border-t border-white/5 relative overflow-hidden">
+                    <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-neon-cyan/10 blur-[150px] rounded-full pointer-events-none" />
+
+                    <div className="text-center mb-16 max-w-3xl mx-auto">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan text-[10px] font-black uppercase tracking-[0.3em] mb-4">
+                            <TrendingUp className="w-3.5 h-3.5" />
+                            {language === 'fr' ? 'Festivals Couverts & Présence Terrain' : 'Covered Festivals & Media Presence'}
+                        </div>
+                        <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter mb-4">
+                            {language === 'fr' ? "Nos Couvertures Officielles" : "Our Official Festival Coverage"}
+                        </h2>
+                        <p className="text-gray-400 text-sm md:text-base leading-relaxed">
+                            {language === 'fr'
+                                ? "Exemples de festivals majeurs où Dropsiders assure une présence terrain avec accréditation presse, interviews d'artistes et reportages complets."
+                                : "Examples of major festivals where Dropsiders provides on-site media coverage with press accreditations, artist interviews, and full reporting."
+                            }
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+                        {[
+                            {
+                                festival: "Tomorrowland Winter",
+                                location: "Alpe d'Huez, France",
+                                image: "/assets/galeries/tomorrowland-2025-belgique/img-1.jpg",
+                                tag: language === 'fr' ? "Accréditation Média Officielle" : "Official Media Accreditation",
+                                link: "/galerie/tomorrowland-2025-belgique",
+                                deliverables: language === 'fr'
+                                    ? ["Couverture live quotidienne 7 jours en altitude", "Interviews exclusives d'artistes (Henri PFR, Third Party)", "Récaps vidéo des scènes et ambiance festivaliers", "Galeries photos HD de jour et de nuit"]
+                                    : ["7-day on-site live coverage in the mountains", "Exclusive artist interviews (Henri PFR, Third Party)", "Stage video recaps and festival vibe", "Day and night HD photo galleries"]
+                            },
+                            {
+                                festival: "EDC Las Vegas",
+                                location: "Motor Speedway, USA",
+                                image: "/assets/galeries/edc-las-vegas-2025-usa/img-1.jpg",
+                                tag: language === 'fr' ? "Immersion Under the Electric Sky" : "Immersion Under the Electric Sky",
+                                link: "/galerie/edc-las-vegas-2025-usa",
+                                deliverables: language === 'fr'
+                                    ? ["Immersion 3 nuits sur le plus grand festival des USA", "Interviews exclusives (Morten, Da Tweekaz, Paul Oakenfold)", "Reportages scénographies, feux d'artifice & scènes", "Stories en direct & formats courts immersifs"]
+                                    : ["3-night immersion on the largest US electronic festival", "Exclusive interviews (Morten, Da Tweekaz, Paul Oakenfold)", "Stage design, pyrotechnics & show reporting", "Live stories & short-form immersive videos"]
+                            },
+                            {
+                                festival: "Ultra Music Festival",
+                                location: "Ultra Miami & Europe Split",
+                                image: "/assets/galeries/ultra-europe-2025-croatie/img-2.jpg",
+                                tag: language === 'fr' ? "Couverture Internationale" : "International Media Coverage",
+                                link: "/galerie/ultra-europe-2025-croatie",
+                                deliverables: language === 'fr'
+                                    ? ["Présence terrain scènes Mainstage & Resistance", "Analyse des nouveautés scéniques et sets marquants", "Articles récaps complets sur le site Dropsiders", "Relais temps réel auprès de la communauté"]
+                                    : ["On-site Mainstage & Resistance stage presence", "Breakdown of stage innovations & standout sets", "In-depth editorial recap articles on Dropsiders", "Real-time updates shared with the community"]
+                            },
+                            {
+                                festival: "Burning Man",
+                                location: "Black Rock Desert, Nevada",
+                                image: "/assets/galeries/burning-man-2025-usa/img-3.jpg",
+                                tag: language === 'fr' ? "Immersion Artistique" : "Artistic Immersion",
+                                link: "/galerie/burning-man-2025-usa",
+                                deliverables: language === 'fr'
+                                    ? ["Reportage photo immersif au cœur de la Playa", "Mise en lumière des Mutant Vehicles & Sound Camps", "Storytelling visuel authentique et artistique", "Portraits et témoignages de la communauté"]
+                                    : ["Immersive photo journalism in the Playa", "Mutant Vehicles & Sound Camps spotlight", "Authentic artistic visual storytelling", "Community portraits and testimonials"]
+                            }
+                        ].map((study, idx) => (
+                            <motion.div
+                                key={idx}
+                                whileHover={{ y: -8 }}
+                                className="rounded-[2.5rem] bg-white/5 border border-white/10 overflow-hidden backdrop-blur-md flex flex-col justify-between group hover:border-neon-red/40 transition-all shadow-2xl"
+                            >
+                                <div className="relative aspect-[16/9] overflow-hidden">
+                                    <img
+                                        src={study.image}
+                                        alt={study.festival}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                        onError={(e) => {
+                                            (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1600&auto=format&fit=crop';
+                                        }}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                                    <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between">
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neon-red mb-1">{study.location}</p>
+                                            <h3 className="text-2xl font-display font-black uppercase text-white tracking-tight">{study.festival}</h3>
+                                        </div>
+                                        <span className="text-[9px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-white/10 text-white border border-white/15 backdrop-blur-md">
+                                            {study.tag}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="p-8 flex-1 flex flex-col justify-between">
+                                    {/* Livrables concrets */}
+                                    <div>
+                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neon-red mb-4">
+                                            {language === 'fr' ? 'Couverture & Livrables Réalisés :' : 'Coverage & Real Deliverables:'}
+                                        </p>
+                                        <ul className="space-y-3 mb-6">
+                                            {study.deliverables.map((item, i) => (
+                                                <li key={i} className="flex items-start gap-3 text-xs text-gray-300 leading-relaxed">
+                                                    <CheckCircle2 className="w-4 h-4 text-neon-red shrink-0 mt-0.5" />
+                                                    <span>{item}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+
+                                    <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                                        <a
+                                            href={study.link}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-white hover:text-neon-red transition-colors"
+                                        >
+                                            {language === 'fr' ? "Voir la galerie photo" : "View Photo Gallery"}
+                                            <ArrowRight className="w-3.5 h-3.5" />
+                                        </a>
+                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                                            DROPSIDERS
+                                        </span>
+                                    </div>
+                                </div>
                             </motion.div>
                         ))}
                     </div>
                 </section>
 
-                <section className="py-32 px-6 lg:px-12 xl:px-16 2xl:px-24 w-full border-t border-white/5">
-                    <div className="text-center mb-16">
-                        <p className="text-neon-red text-[10px] font-black tracking-[0.5em] uppercase mb-4">Tarification</p>
-                        <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter">
-                            {language === 'fr' ? "NOS SOLUTIONS MÉDIAS" : "OUR MEDIA SOLUTIONS"}
+                {/* ── BRAND ASSETS & MATÉRIEL PRESSE TÉLÉCHARGEABLE ── */}
+                <section className="py-32 px-6 lg:px-12 xl:px-16 2xl:px-24 w-full bg-white/[0.015] border-t border-white/5 relative overflow-hidden">
+                    <div className="absolute top-1/2 right-0 w-96 h-96 bg-neon-red/10 blur-[150px] rounded-full pointer-events-none" />
+
+                    <div className="text-center mb-16 max-w-3xl mx-auto">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-neon-red/10 border border-neon-red/20 text-neon-red text-[10px] font-black uppercase tracking-[0.3em] mb-4">
+                            <Download className="w-3.5 h-3.5" />
+                            {language === 'fr' ? 'Brand Assets & Matériel Presse' : 'Brand Assets & Press Kit'}
+                        </div>
+                        <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter mb-4">
+                            {language === 'fr' ? "Logos Vectoriels & Charte Graphique" : "Vector Logos & Official Brand Kit"}
                         </h2>
+                        <p className="text-gray-400 text-sm md:text-base leading-relaxed">
+                            {language === 'fr'
+                                ? "Téléchargez nos logos officiels pour intégrer Dropsiders en tant que partenaire média sur vos affiches, flyers, trailers vidéo, écrans LED et supports de communication."
+                                : "Download official vector assets to include Dropsiders as media partner on your festival line-up posters, flyers, video teasers, and LED screens."
+                            }
+                        </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+                    <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                        {/* Aperçu Logo Blanc sur fond sombre */}
+                        <div className="bg-[#050505] border border-white/10 rounded-[2.5rem] p-8 flex flex-col justify-between group hover:border-white/30 transition-all shadow-xl">
+                            <div>
+                                <div className="flex items-center justify-between mb-8">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                                        {language === 'fr' ? 'Version Blanche (Fond Sombre)' : 'White Version (Dark BG)'}
+                                    </span>
+                                    <span className="text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full bg-white/10 text-white border border-white/10">
+                                        PNG HD + SVG
+                                    </span>
+                                </div>
+                                <div className="h-28 flex items-center justify-center p-4 bg-black/40 rounded-2xl border border-white/5 mb-8">
+                                    <img src="/logo.png" alt="Dropsiders Logo Blanc" className="max-h-12 w-auto object-contain" />
+                                </div>
+                            </div>
+                            <div className="space-y-3">
+                                <a
+                                    href="/logo.png"
+                                    download="Dropsiders_Logo_White.png"
+                                    className="w-full py-3.5 bg-white text-black font-black uppercase tracking-widest text-xs rounded-xl hover:bg-neon-red hover:text-white transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    {language === 'fr' ? 'Télécharger Logo Blanc (PNG HD)' : 'Download White Logo (HD PNG)'}
+                                </a>
+                            </div>
+                        </div>
+
+                        {/* Aperçu Logo Noir sur fond clair */}
+                        <div className="bg-[#f5f5f7] border border-black/10 rounded-[2.5rem] p-8 flex flex-col justify-between group hover:border-black/30 transition-all shadow-xl text-black">
+                            <div>
+                                <div className="flex items-center justify-between mb-8">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">
+                                        {language === 'fr' ? 'Version Noire (Fond Clair)' : 'Black Version (Light BG)'}
+                                    </span>
+                                    <span className="text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full bg-black/10 text-black border border-black/10">
+                                        PNG HD + SVG
+                                    </span>
+                                </div>
+                                <div className="h-28 flex items-center justify-center p-4 bg-white rounded-2xl border border-black/5 mb-8">
+                                    <img src="/logo_black.png" alt="Dropsiders Logo Noir" className="max-h-12 w-auto object-contain" onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/logo.png'; }} />
+                                </div>
+                            </div>
+                            <div className="space-y-3">
+                                <a
+                                    href="/logo_black.png"
+                                    download="Dropsiders_Logo_Black.png"
+                                    className="w-full py-3.5 bg-black text-white font-black uppercase tracking-widest text-xs rounded-xl hover:bg-neon-red transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    {language === 'fr' ? 'Télécharger Logo Noir (PNG HD)' : 'Download Black Logo (HD PNG)'}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Spécifications & Actions complémentaires */}
+                    <div className="max-w-5xl mx-auto bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-10 backdrop-blur-xl">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 text-center md:text-left">
+                            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+                                <p className="text-[10px] font-black uppercase tracking-wider text-neon-red mb-1">
+                                    {language === 'fr' ? 'Couleur Principale' : 'Primary Color'}
+                                </p>
+                                <p className="font-mono text-sm text-white font-bold">#FF1241 (Néon Rouge)</p>
+                                <p className="text-[10px] text-gray-500 mt-1">RGB(255, 18, 65)</p>
+                            </div>
+                            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+                                <p className="text-[10px] font-black uppercase tracking-wider text-neon-cyan mb-1">
+                                    {language === 'fr' ? 'Zone de Sécurité' : 'Safe Area'}
+                                </p>
+                                <p className="text-sm text-white font-bold">15% de marge minimale</p>
+                                <p className="text-[10px] text-gray-500 mt-1">Sans obstruction visuelle</p>
+                            </div>
+                            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+                                <p className="text-[10px] font-black uppercase tracking-wider text-neon-yellow mb-1">
+                                    {language === 'fr' ? 'Usage Officiel' : 'Usage Guide'}
+                                </p>
+                                <p className="text-sm text-white font-bold">Affiches, Print & LED</p>
+                                <p className="text-[10px] text-gray-500 mt-1">Haute définition 300 DPI</p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center justify-center gap-4 pt-4 border-t border-white/10">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 90" fill="none"><text x="10" y="65" fill="#ffffff" font-family="'Outfit', sans-serif" font-weight="900" font-size="52" letter-spacing="3">DROPSIDERS</text><circle cx="370" cy="40" r="10" fill="#FF1241" /></svg>`;
+                                    navigator.clipboard.writeText(svgString);
+                                    setCopiedSvg(true);
+                                    setTimeout(() => setCopiedSvg(false), 2500);
+                                }}
+                                className="px-6 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                            >
+                                {copiedSvg ? (
+                                    <>
+                                        <Check className="w-4 h-4 text-neon-green" />
+                                        <span className="text-neon-green">{language === 'fr' ? 'Code SVG Copié !' : 'SVG Code Copied!'}</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Copy className="w-4 h-4 text-gray-400" />
+                                        {language === 'fr' ? 'Copier le code SVG Vectoriel' : 'Copy Vector SVG Code'}
+                                    </>
+                                )}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleDownloadPdf}
+                                className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-neon-red to-neon-purple text-white text-xs font-black uppercase tracking-wider transition-all shadow-lg hover:shadow-neon-red/30 flex items-center gap-2 cursor-pointer active:scale-95"
+                            >
+                                <FileText className="w-4 h-4" />
+                                {language === 'fr' ? 'Télécharger la Charte & Kit PDF' : 'Download Full Press Kit (PDF)'}
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                {/* MEDIA SOLUTIONS SECTION (NO FIXED PRICES) */}
+                <section className="py-32 px-6 lg:px-12 xl:px-16 2xl:px-24 w-full border-t border-white/5">
+                    <div className="text-center mb-16 max-w-3xl mx-auto">
+                        <p className="text-neon-red text-[10px] font-black tracking-[0.5em] uppercase mb-4">
+                            {language === 'fr' ? 'Solutions & Formats' : 'Solutions & Formats'}
+                        </p>
+                        <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter mb-4">
+                            {language === 'fr' ? "NOS SOLUTIONS MÉDIAS" : "OUR MEDIA SOLUTIONS"}
+                        </h2>
+                        <p className="text-gray-400 text-sm leading-relaxed">
+                            {language === 'fr'
+                                ? "Chaque festival, marque ou artiste a des besoins uniques. Nous construisons des activations sur-mesure combinant présence terrain, amplification digitale et diffusion broadcast."
+                                : "Every festival, brand, or artist has unique needs. We craft bespoke activations combining on-site presence, digital amplification, and broadcast distribution."
+                            }
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
                         {[
-                            { name: "STARDUST", price: "90€", items: language === 'fr' ? ["1 Post Instagram", "1 Story Pack", "1 Mention News", "Relais Facebook"] : ["1 Instagram Post", "1 Story Pack", "1 News Mention", "Facebook Share"] },
-                            { name: "SPOTLIGHT", price: "180€", items: language === 'fr' ? ["1 Article Dédié", "1 Post Instagram", "1 Story Pack"] : ["1 Dedicated Article", "1 Instagram Post", "1 Story Pack"], featured: true },
-                            { name: "PULSE", price: "320€", items: language === 'fr' ? ["1 Article Premium", "2 Posts Instagram", "3 Stories Pack", "Newsletter"] : ["1 Premium Article", "2 Instagram Posts", "3 Stories Pack", "Newsletter"] },
-                            { name: "IMMERSIVE", price: "700€", items: language === 'fr' ? ["1 Post Instagram", "1 Story Pack", "Couverture Live", "Récap Vidéo (Team)"] : ["1 Instagram Post", "1 Story Pack", "Live Coverage", "Video Recap (Team)"] }
+                            {
+                                name: language === 'fr' ? "Couverture Terrain" : "On-Site Coverage",
+                                subtitle: language === 'fr' ? "Immersion Festival" : "Festival Immersion",
+                                items: language === 'fr'
+                                    ? ["Équipe envoyée sur place", "Captation photo & vidéo", "Interviews d'artistes", "Stories live en direct", "Article récapitulatif complet"]
+                                    : ["On-site media team", "Photo & video capture", "Artist interviews", "Real-time live stories", "Full recap article"]
+                            },
+                            {
+                                name: language === 'fr' ? "Activation Digitale" : "Digital Activation",
+                                subtitle: language === 'fr' ? "Réseaux & Viralité" : "Social & Reach",
+                                items: language === 'fr'
+                                    ? ["Posts & Reels Instagram / TikTok", "Mise en avant Newsletter (60K+)", "Article sponsorisé dédié", "Relais Facebook & X", "Campagnes jeux concours"]
+                                    : ["Instagram / TikTok Posts & Reels", "Newsletter push (60K+ fans)", "Dedicated sponsored article", "Facebook & X distribution", "Contest campaigns"]
+                            },
+                            {
+                                name: language === 'fr' ? "Broadcast & Médias" : "Broadcast & Media",
+                                subtitle: language === 'fr' ? "TV & Web-Radio" : "TV & Web-Radio",
+                                items: language === 'fr'
+                                    ? ["Bandeaux promotionnels sur Dropsiders TV", "Diffusion de trailers officiels", "Sponsoring d'émissions & Mentions radio", "Habillage du lecteur global", "Mention en direct à l'antenne"]
+                                    : ["Promo banners on Dropsiders TV", "Official trailer broadcast", "Show sponsoring & Radio mentions", "Global audio player branding", "On-air shoutouts"]
+                            },
+                            {
+                                name: language === 'fr' ? "Agenda & Billetterie" : "Agenda & Ticketing",
+                                subtitle: language === 'fr' ? "Conversion & Ventes" : "Sales & Conversion",
+                                items: language === 'fr'
+                                    ? ["Mise en avant 'Tête d'Affiche' Agenda", "Lien direct vers la billetterie", "Badge Partenaire Officiel", "Alertes Line-up auprès des abonnés", "Relais dates clés de vente"]
+                                    : ["Top-of-list Agenda spotlight", "Direct ticketing referral link", "Official Partner badge", "Line-up alerts to subscribers", "Key sale dates coverage"]
+                            }
                         ].map((pkg, i) => (
                             <motion.div
                                 key={i}
                                 whileHover={{ y: -10 }}
-                                className={`p-8 rounded-[2.5rem] border ${pkg.featured ? 'bg-white/10 border-neon-red shadow-[0_0_40px_rgba(255,51,51,0.1)]' : 'bg-white/5 border-white/10'} relative overflow-hidden group`}
+                                className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 hover:border-neon-red/50 transition-all flex flex-col justify-between group"
                             >
-                                {pkg.featured && <div className="absolute top-4 right-4 px-3 py-1 bg-neon-red text-white text-[8px] font-black rounded-full uppercase tracking-widest">Most Popular</div>}
-                                <h3 className="text-xl font-black mb-1 italic tracking-tighter uppercase">{pkg.name}</h3>
-                                <div className="text-4xl font-black mb-6 flex items-baseline gap-1">
-                                    {pkg.price}<span className="text-xs text-gray-500 font-bold uppercase tracking-widest">HT</span>
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neon-red mb-2">{pkg.subtitle}</p>
+                                    <h3 className="text-xl font-display font-black mb-6 uppercase tracking-tight text-white group-hover:text-neon-red transition-colors">{pkg.name}</h3>
+                                    <ul className="space-y-3 mb-8">
+                                        {pkg.items.map((item, idx) => (
+                                            <li key={idx} className="flex items-start gap-2.5 text-xs font-medium text-gray-400 leading-relaxed">
+                                                <div className="w-1.5 h-1.5 bg-neon-red rounded-full mt-1.5 shrink-0" />
+                                                <span>{item}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </div>
-                                <ul className="space-y-3 mb-8">
-                                    {pkg.items.map((item, idx) => (
-                                        <li key={idx} className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest group-hover:text-white transition-colors">
-                                            <div className="w-1 h-1 bg-neon-red rounded-full" /> {item}
-                                        </li>
-                                    ))}
-                                </ul>
+                                <div className="pt-4 border-t border-white/10">
+                                    <a
+                                        href="mailto:contact@dropsiders.fr"
+                                        className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-white group-hover:text-neon-red transition-colors"
+                                    >
+                                        {language === 'fr' ? "Demander une proposition" : "Request a proposal"}
+                                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                                    </a>
+                                </div>
                             </motion.div>
                         ))}
                     </div>
 
-                    <div className="bg-white/5 border border-white/10 rounded-[3rem] p-12 mb-32">
-                        <h3 className="text-2xl font-display font-black uppercase mb-12 tracking-tight flex items-center gap-4">
-                             <span className="w-8 h-px bg-neon-red"></span>
-                             {language === 'fr' ? "TARIFS À LA CARTE" : "A LA CARTE RATES"}
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-8">
-                            {[
-                                { label: language === 'fr' ? "Article Sponsorisé" : "Sponsored Article", price: "125€", icon: <FileText className="w-4 h-4" /> },
-                                { label: language === 'fr' ? "Instagram Post (Feed)" : "Instagram Post (Feed)", price: "90€", icon: <Instagram className="w-4 h-4" /> },
-                                { label: language === 'fr' ? "Pack Stories (3 slides)" : "Stories Pack (3 slides)", price: "45€", icon: <Zap className="w-4 h-4" /> },
-                                { label: language === 'fr' ? "Vidéo TikTok / Reel" : "TikTok / Reel Video", price: "110€", icon: <Mic className="w-4 h-4" /> },
-                                { label: language === 'fr' ? "Mise en avant Agenda" : "Agenda Spotlight", price: "60€", icon: <Users className="w-4 h-4" /> },
-                                { label: language === 'fr' ? "Placement Newsletter" : "Newsletter Placement", price: "75€", icon: <ExternalLink className="w-4 h-4" /> }
-                            ].map((item, idx) => (
-                                <div key={idx} className="flex items-center justify-between group border-b border-white/5 pb-4">
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-neon-red opacity-50 group-hover:opacity-100 transition-opacity">{item.icon}</span>
-                                        <span className="text-xs font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors">{item.label}</span>
-                                    </div>
-                                    <span className="text-sm font-black text-white italic">{item.price}</span>
-                                </div>
-                            ))}
-                        </div>
+                    <div className="bg-gradient-to-r from-neon-red/10 via-white/5 to-neon-cyan/10 border border-white/10 rounded-[2.5rem] p-10 text-center max-w-4xl mx-auto backdrop-blur-md">
+                        <h4 className="text-xl font-display font-black uppercase text-white tracking-tight mb-2">
+                            {language === 'fr' ? "Un Projet Particulier ou une Campagne Globale ?" : "A Specific Project or Global Campaign?"}
+                        </h4>
+                        <p className="text-gray-300 text-xs md:text-sm max-w-2xl mx-auto mb-6 leading-relaxed">
+                            {language === 'fr'
+                                ? "Toutes nos formules sont conçues sur-mesure selon vos objectifs, vos dates et vos cibles. Nous vous accompagnons de la stratégie éditoriale à la diffusion finale."
+                                : "All our activations are bespoke to fit your goals, dates, and audience. We assist you from editorial strategy to final distribution."
+                            }
+                        </p>
+                        <a
+                            href="mailto:contact@dropsiders.fr"
+                            className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-neon-red hover:text-white transition-all shadow-xl"
+                        >
+                            {language === 'fr' ? "Échanger avec notre équipe" : "Talk with our team"}
+                            <ExternalLink className="w-4 h-4" />
+                        </a>
                     </div>
+                </section>
 
+                <section className="py-32 px-6 lg:px-12 xl:px-16 2xl:px-24 w-full border-t border-white/5">
                     <div className="text-center mb-16">
                         <p className="text-neon-red text-[10px] font-black tracking-[0.5em] uppercase mb-4">Let's build something</p>
                         <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter">
