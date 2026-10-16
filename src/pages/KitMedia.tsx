@@ -124,10 +124,10 @@ const KitMedia = () => {
     ], [language]);
 
     const stats: StatItem[] = useMemo(() => [
-        { label: "Facebook", value: "50K", detail: "Followers", icon: <Facebook className="w-5 h-5" />, color: "text-blue-500", link: `https://www.facebook.com/${(socials.facebook || 'dropsidersfr').replace('@', '')}` },
-        { label: "TikTok", value: "7K", detail: "Followers", icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1 .05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z" /></svg>, color: "text-cyan-400", link: `https://www.tiktok.com/@${(socials.tiktok || 'dropsiders.fr').replace('@', '')}` },
-        { label: "Instagram", value: "4.7K", detail: "Followers", icon: <Instagram className="w-5 h-5" />, color: "text-pink-500", link: `https://www.instagram.com/${(socials.instagram || 'dropsiders.fr').replace('@', '')}` },
-        { label: language === 'fr' ? "Communauté" : "Community", value: "61.7K+", detail: language === 'fr' ? "Followers Réseaux Sociaux" : "Social Media Followers", icon: <Users className="w-5 h-5" />, color: "text-yellow-400" }
+        { label: "Facebook", value: "50 000", detail: language === 'fr' ? "Abonnés" : "Followers", icon: <Facebook className="w-5 h-5" />, color: "text-blue-500", link: `https://www.facebook.com/${(socials.facebook || 'dropsidersfr').replace('@', '')}` },
+        { label: "TikTok", value: "7 000", detail: language === 'fr' ? "Abonnés" : "Followers", icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1 .05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z" /></svg>, color: "text-cyan-400", link: `https://www.tiktok.com/@${(socials.tiktok || 'dropsiders.fr').replace('@', '')}` },
+        { label: "Instagram", value: "4 700", detail: language === 'fr' ? "Abonnés" : "Followers", icon: <Instagram className="w-5 h-5" />, color: "text-pink-500", link: `https://www.instagram.com/${(socials.instagram || 'dropsiders.fr').replace('@', '')}` },
+        { label: language === 'fr' ? "Total Réseaux" : "Total Social", value: "61 700", detail: language === 'fr' ? "Abonnés Cumulés" : "Combined Followers", icon: <Users className="w-5 h-5" />, color: "text-yellow-400" }
     ], [language, socials]);
 
     const services: ServiceItem[] = useMemo(() => [
@@ -556,8 +556,8 @@ const KitMedia = () => {
                             </h2>
                             <p className="text-gray-300 text-sm md:text-base leading-relaxed font-light">
                                 {language === 'fr'
-                                    ? "Plus de 500 événements électro répertoriés à travers l'Europe et le monde. Chaque mois, des dizaines de milliers de festivaliers consultent nos fiches détaillées pour préparer leur saison : line-up complet, billetterie officielle, localisation et notations communautaires."
-                                    : "Over 500 electro events listed across Europe and worldwide. Every month, tens of thousands of festival-goers browse our detailed listings to plan their season: full line-up, official ticketing, location, and community reviews."
+                                    ? "L'annuaire des festivals électro et clubs emblématiques en Europe et dans le monde : fiches complètes avec line-up détaillé, billetterie officielle, localisation et notations de la communauté."
+                                    : "The benchmark directory for electro festivals and iconic clubs across Europe and worldwide: full line-up details, official ticketing links, locations, and community reviews."
                                 }
                             </p>
                             <div className="pt-2 flex flex-wrap gap-4">
@@ -575,7 +575,7 @@ const KitMedia = () => {
                             {[
                                 {
                                     icon: <MapPin className="w-5 h-5 text-neon-fuchsia" />,
-                                    title: language === 'fr' ? "500+ Événements Référencés" : "500+ Listed Events",
+                                    title: language === 'fr' ? "Festivals & Clubs Référencés" : "Listed Festivals & Clubs",
                                     desc: language === 'fr' ? "Une cartographie complète des festivals majeurs (Tomorrowland, EDC, Ultra, Defqon.1) et clubs emblématiques." : "Full mapping of major festivals and iconic clubs worldwide."
                                 },
                                 {
@@ -789,7 +789,7 @@ const KitMedia = () => {
                             },
                             {
                                 icon: <HelpCircle className="w-6 h-6 text-neon-fuchsia" />,
-                                badge: language === 'fr' ? "+85% Rétention" : "+85% Retention",
+                                badge: language === 'fr' ? "Forte Interaction" : "High Engagement",
                                 badgeColor: "text-neon-fuchsia bg-neon-fuchsia/10 border-neon-fuchsia/20",
                                 title: language === 'fr' ? "Quiz & Blind Tests" : "Interactive Quizzes & Blind Tests",
                                 desc: language === 'fr'
@@ -1156,8 +1156,8 @@ const KitMedia = () => {
                                 name: language === 'fr' ? "Activation Digitale" : "Digital Activation",
                                 subtitle: language === 'fr' ? "Réseaux & Viralité" : "Social & Reach",
                                 items: language === 'fr'
-                                    ? ["Posts & Reels Instagram / TikTok", "Mise en avant Newsletter (60K+)", "Article sponsorisé dédié", "Relais Facebook & X", "Campagnes jeux concours"]
-                                    : ["Instagram / TikTok Posts & Reels", "Newsletter push (60K+ fans)", "Dedicated sponsored article", "Facebook & X distribution", "Contest campaigns"]
+                                    ? ["Posts & Reels Instagram / TikTok", "Mise en avant Newsletter", "Article sponsorisé dédié", "Relais Facebook & X", "Campagnes jeux concours"]
+                                    : ["Instagram / TikTok Posts & Reels", "Newsletter campaign", "Dedicated sponsored article", "Facebook & X distribution", "Contest campaigns"]
                             },
                             {
                                 name: language === 'fr' ? "Broadcast & Médias" : "Broadcast & Media",
