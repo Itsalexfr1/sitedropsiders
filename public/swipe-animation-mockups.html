@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dropsiders - Aperçu des Animations Swipe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,700;0,800;0,900;1,700;1,800;1,900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: #07080c;
+            color: #ffffff;
+            font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px 60px;
+            overflow-x: hidden;
+        }
+
+        /* En-tête */
+        .header {
+            text-align: center;
+            max-width: 800px;
+            margin-bottom: 28px;
+        }
+
+        .badge-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 255, 102, 0.12);
+            border: 1px solid rgba(0, 255, 102, 0.35);
+            color: #00ff66;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-family: "Montserrat", sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff 40%, #00ff66 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: #8f96a3;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Palette de couleurs */
+        .controls-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(18, 20, 28, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            padding: 8px 16px;
+            border-radius: 999px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .ctrl-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 1px;
+        }
+
+        .color-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .color-dot:hover {
+            transform: scale(1.2);
+        }
+        .color-dot.active {
+            border-color: #ffffff;
+            box-shadow: 0 0 12px currentColor;
+        }
+
+        /* Grille des démos */
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 22px;
+            width: 100%;
+            max-width: 1180px;
+        }
+
+        .card {
+            background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.04), rgba(12, 14, 20, 0.95));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            border-color: rgba(0, 255, 102, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-num {
+            font-size: 10px;
+            font-weight: 900;
+            color: #00ff66;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: rgba(0, 255, 102, 0.1);
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(0, 255, 102, 0.25);
+        }
+
+        .card-title {
+            font-family: "Montserrat", sans-serif;
+            font-size: 17px;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #ffffff;
+        }
+
+        .card-desc {
+            font-size: 12.5px;
+            color: #94a3b8;
+            line-height: 1.45;
+        }
+
+        /* Scène de prévisualisation (simule la ligne de séparation Dropsiders) */
+        .preview-stage {
+            background: #000000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Ligne blanche séparatrice Dropsiders */
+        .preview-divider-line {
+            position: absolute;
+            left: 20px;
+            right: 170px;
+            top: 50%;
+            height: 4px;
+            background: #ffffff;
+            border-radius: 2px;
+            transform: translateY(-50%);
+            box-shadow: 0 0 8px rgba(0,0,0,0.8);
+        }
+
+        .preview-date {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-family: "Montserrat", sans-serif;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #ffffff;
+            background: #000000;
+            padding: 0 10px;
+            white-space: nowrap;
+        }
+
+        /* ========================================================
+           STYLE 1 : GLISSEMENT PULSÉ (Arrow Slide Loop)
+           ======================================================== */
+        .anim-slide-loop {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: "Montserrat", sans-serif;
+            font-size: 19px;
+            font-weight: 800;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
+            z-index: 2;
+        }
+
+        .anim-slide-loop .arrow-slide {
+            display: inline-block;
+            animation: arrowGlide 1.25s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            color: var(--accent-color, #00ff66);
+        }
+
+        @keyframes arrowGlide {
+            0% {
+                transform: translateX(0);
+                opacity: 0.6;
+            }
+            50% {
+                transform: translateX(12px);
+                opacity: 1;
+                filter: drop-shadow(0 0 6px var(--accent-color, #00ff66));
+            }
+            100% {
+                transform: translateX(0);
+                opacity: 0.6;
+            }
+        }
+
+        /* ========================================================
+           STYLE 2 : CHEVRONS EN CASCADE (› › ›)
+           ======================================================== */
+        .anim-chevrons {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-family: "Montserrat", sans-serif;
+            font-size: 19px;
+            font-weight: 800;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
+            z-index: 2;
+        }
+
+        .chevrons-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 21px;
+            font-weight: 900;
+        }
+
+        .chevron-item {
+            color: #ffffff;
+            opacity: 0.25;
+            transition: opacity 0.2s, color 0.2s, transform 0.2s;
+            animation: chevronPulse 1.35s ease-in-out infinite;
+        }
+
+        .ch-1 { animation-delay: 0.0s; }
+        .ch-2 { animation-delay: 0.22s; }
+        .ch-3 { animation-delay: 0.44s; }
+
+        @keyframes chevronPulse {
+            0%, 100% {
+                opacity: 0.25;
+                color: #ffffff;
+                transform: translateX(0);
+            }
+            40% {
+                opacity: 1;
+                color: var(--accent-color, #00ff66);
+                transform: translateX(3px);
+                filter: drop-shadow(0 0 8px var(--accent-color, #00ff66));
+            }
+        }
+
+        /* ========================================================
+           STYLE 3 : BALAYAGE LUMINEUX NÉON (Shimmer / Glow Sweep)
+           ======================================================== */
+        .anim-shimmer {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: "Montserrat", sans-serif;
+            font-size: 19px;
+            font-weight: 800;
+            z-index: 2;
+            background: linear-gradient(90deg, #ffffff 0%, #ffffff 35%, var(--accent-color, #00ff66) 50%, #ffffff 65%, #ffffff 100%);
+            background-size: 250% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmerSweep 2.0s linear infinite;
+        }
+
+        @keyframes shimmerSweep {
+            0% { background-position: 150% 0; }
+            100% { background-position: -150% 0; }
+        }
+
+        /* ========================================================
+           STYLE 4 : CAPSULE GLASSMORPHISM (Pill Badge)
+           ======================================================== */
+        .anim-capsule {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: "Montserrat", sans-serif;
+            font-size: 14px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #ffffff;
+            background: rgba(18, 22, 32, 0.85);
+            border: 1.5px solid var(--accent-color, #00ff66);
+            box-shadow: 0 0 16px var(--accent-glow, rgba(0, 255, 102, 0.25));
+            padding: 8px 14px;
+            border-radius: 999px;
+            backdrop-filter: blur(12px);
+            z-index: 2;
+            animation: capsulePulse 1.8s ease-in-out infinite;
+        }
+
+        .anim-capsule .cap-arrow {
+            display: inline-block;
+            font-size: 15px;
+            animation: capArrowBounce 1.2s ease-in-out infinite;
+            color: var(--accent-color, #00ff66);
+        }
+
+        @keyframes capsulePulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 10px var(--accent-glow, rgba(0, 255, 102, 0.2));
+            }
+            50% {
+                transform: scale(1.04);
+                box-shadow: 0 0 20px var(--accent-glow, rgba(0, 255, 102, 0.45));
+            }
+        }
+
+        @keyframes capArrowBounce {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+        }
+
+        /* ========================================================
+           STYLE 5 : FLÈCHE MAGNÉTIQUE ÉLASTIQUE (Spring Stretcher)
+           ======================================================== */
+        .anim-elastic {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: "Montserrat", sans-serif;
+            font-size: 19px;
+            font-weight: 800;
+            color: #ffffff;
+            z-index: 2;
+        }
+
+        .elastic-line {
+            display: inline-block;
+            transform-origin: left center;
+            animation: elasticStretch 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+            color: var(--accent-color, #00ff66);
+        }
+
+        @keyframes elasticStretch {
+            0%, 100% {
+                transform: scaleX(1);
+                opacity: 0.7;
+            }
+            45% {
+                transform: scaleX(1.35) translateX(3px);
+                opacity: 1;
+                filter: drop-shadow(0 0 7px var(--accent-color, #00ff66));
+            }
+        }
+
+        /* Bouton Choisir */
+        .choose-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .choose-btn:hover {
+            background: var(--accent-color, #00ff66);
+            color: #000000;
+            border-color: var(--accent-color, #00ff66);
+            box-shadow: 0 0 16px var(--accent-glow, rgba(0, 255, 102, 0.4));
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="badge-tag">
+            <span>✨</span> Dropsiders Social Studio
+        </div>
+        <h1>Animations Possibles pour le Swipe</h1>
+        <p class="subtitle">
+            Voici les différents styles interactifs prêts à être intégrés dans <strong>SocialSuite</strong> pour les carrousels, posts et exports vidéo Reels.
+        </p>
+    </div>
+
+    <!-- Sélecteur de couleur thème -->
+    <div class="controls-bar">
+        <span class="ctrl-label">Couleur Thème :</span>
+        <div class="color-dot active" style="background: #00ff66; color: #00ff66;" onclick="setThemeColor('#00ff66', 'rgba(0,255,102,0.3)', this)" title="Musique / Vert Dropsiders"></div>
+        <div class="color-dot" style="background: #00f0ff; color: #00f0ff;" onclick="setThemeColor('#00f0ff', 'rgba(0,240,255,0.3)', this)" title="News / Cyan"></div>
+        <div class="color-dot" style="background: #ff007f; color: #ff007f;" onclick="setThemeColor('#ff007f', 'rgba(255,0,127,0.3)', this)" title="Events / Rose Fluo"></div>
+        <div class="color-dot" style="background: #ffaa00; color: #ffaa00;" onclick="setThemeColor('#ffaa00', 'rgba(255,170,0,0.3)', this)" title="Festival / Orange Or"></div>
+        <div class="color-dot" style="background: #bd00ff; color: #bd00ff;" onclick="setThemeColor('#bd00ff', 'rgba(189,0,255,0.3)', this)" title="Interview / Violet"></div>
+    </div>
+
+    <!-- Grille des animations -->
+    <div class="grid-cards">
+
+        <!-- 1. GLISSEMENT PULSÉ -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">1. Glissement Pulsé</span>
+                <span class="card-num">Option 1</span>
+            </div>
+            <p class="card-desc">
+                Le mot <strong>Swipe</strong> reste fixe et la flèche <strong>──></strong> glisse de gauche à droite en boucle fluide avec un léger éclat néon.
+            </p>
+            <div class="preview-stage">
+                <div class="preview-divider-line"></div>
+                <div class="preview-date">16 OCTOBRE 2026</div>
+                <div class="anim-slide-loop">
+                    <span>Swipe</span>
+                    <span class="arrow-slide">──></span>
+                </div>
+            </div>
+            <button class="choose-btn" onclick="alert('Option 1 sélectionnée ! Dis-moi simplement si c\'est celle-ci que tu souhaites appliquer.')">Choisir Option 1</button>
+        </div>
+
+        <!-- 2. CHEVRONS EN CASCADE -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">2. Chevrons en Cascade</span>
+                <span class="card-num">Option 2 ⭐</span>
+            </div>
+            <p class="card-desc">
+                Trois chevrons modernes <strong>› › ›</strong> qui s'illuminent en vague séquentielle de gauche à droite. Ultra dynamique et très utilisé sur TikTok / Instagram.
+            </p>
+            <div class="preview-stage">
+                <div class="preview-divider-line"></div>
+                <div class="preview-date">16 OCTOBRE 2026</div>
+                <div class="anim-chevrons">
+                    <span>Swipe</span>
+                    <span class="chevrons-group">
+                        <span class="chevron-item ch-1">›</span>
+                        <span class="chevron-item ch-2">›</span>
+                        <span class="chevron-item ch-3">›</span>
+                    </span>
+                </div>
+            </div>
+            <button class="choose-btn" onclick="alert('Option 2 sélectionnée ! Dis-moi simplement si c\'est celle-ci que tu souhaites appliquer.')">Choisir Option 2</button>
+        </div>
+
+        <!-- 3. BALAYAGE LUMINEUX NÉON -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">3. Balayage Néon (Shimmer)</span>
+                <span class="card-num">Option 3</span>
+            </div>
+            <p class="card-desc">
+                Un éclat métallique et lumineux balaye tout le texte <strong>Swipe ──></strong> à intervalles réguliers. Donne un aspect très premium et raffiné.
+            </p>
+            <div class="preview-stage">
+                <div class="preview-divider-line"></div>
+                <div class="preview-date">16 OCTOBRE 2026</div>
+                <div class="anim-shimmer">
+                    <span>Swipe ──></span>
+                </div>
+            </div>
+            <button class="choose-btn" onclick="alert('Option 3 sélectionnée ! Dis-moi simplement si c\'est celle-ci que tu souhaites appliquer.')">Choisir Option 3</button>
+        </div>
+
+        <!-- 4. CAPSULE GLASSMORPHISM -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">4. Capsule Glassmorphism</span>
+                <span class="card-num">Option 4</span>
+            </div>
+            <p class="card-desc">
+                Badge bouton arrondi avec fond sombre translucide, contour néon pulsing et flèche animée qui rebondit à l'intérieur.
+            </p>
+            <div class="preview-stage">
+                <div class="preview-divider-line"></div>
+                <div class="preview-date">16 OCTOBRE 2026</div>
+                <div class="anim-capsule">
+                    <span>Swipe</span>
+                    <span class="cap-arrow">➔</span>
+                </div>
+            </div>
+            <button class="choose-btn" onclick="alert('Option 4 sélectionnée ! Dis-moi simplement si c\'est celle-ci que tu souhaites appliquer.')">Choisir Option 4</button>
+        </div>
+
+        <!-- 5. FLÈCHE ÉLASTIQUE STRETCH -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">5. Flèche Élastique</span>
+                <span class="card-num">Option 5</span>
+            </div>
+            <p class="card-desc">
+                La barre de la flèche s'étire et rebondit avec un effet ressort énergique, créant une attraction visuelle immédiate.
+            </p>
+            <div class="preview-stage">
+                <div class="preview-divider-line"></div>
+                <div class="preview-date">16 OCTOBRE 2026</div>
+                <div class="anim-elastic">
+                    <span>Swipe</span>
+                    <span class="elastic-line">───></span>
+                </div>
+            </div>
+            <button class="choose-btn" onclick="alert('Option 5 sélectionnée ! Dis-moi simplement si c\'est celle-ci que tu souhaites appliquer.')">Choisir Option 5</button>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        Fichier généré : <code>public/swipe-animation-mockups.html</code> • Dropsiders Social Studio V2
+    </div>
+
+    <script>
+        function setThemeColor(color, glow, dotEl) {
+            document.documentElement.style.setProperty('--accent-color', color);
+            document.documentElement.style.setProperty('--accent-glow', glow);
+            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+            if (dotEl) dotEl.classList.add('active');
+        }
+
+        // Init
+        setThemeColor('#00ff66', 'rgba(0,255,102,0.3)');
+    </script>
+</body>
+</html>

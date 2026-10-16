@@ -2300,6 +2300,77 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
             };
 
+            // Indicateur Swipe moderne avec Chevrons en Cascade animés (Option 2)
+            const drawAnimatedSwipeIndicator = (
+                targetRightX: number,
+                targetCenterY: number,
+                accentColor: string = (typeof themeColor === 'string' ? themeColor : (themeColor?.color || '#00ff66')),
+                fontSize: number = 24
+            ): number => {
+                ctx.save();
+                ctx.font = `800 ${fontSize}px "Montserrat", sans-serif`;
+                ctx.textBaseline = 'middle';
+
+                const swipeWord = 'Swipe';
+                const chevronChar = '›';
+                const spaceWidth = ctx.measureText(' ').width;
+                const wordWidth = ctx.measureText(swipeWord).width;
+                const chevronWidth = ctx.measureText(chevronChar).width;
+                const chevronGap = 3;
+                const totalWidth = wordWidth + spaceWidth + (chevronWidth * 3) + (chevronGap * 2);
+
+                const isAnim = isVideoRecordingRef.current
+                    ? true
+                    : ((bgVideo && !isDownloading) || textAnimation !== 'NONE' || (showSwipe && effectiveTab === 'REEL'));
+                const animTime = isVideoRecordingRef.current
+                    ? deterministicAnimTimeRef.current
+                    : (animStartTimeRef.current ? (Date.now() - animStartTimeRef.current) / 1000 : 0);
+
+                // 1. Mot "Swipe" en blanc pur avec ombre portée nette
+                const startX = targetRightX - totalWidth;
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                ctx.shadowBlur = 6;
+                ctx.fillText(swipeWord, startX, targetCenterY);
+
+                // 2. Trois chevrons animés en cascade séquentielle vers la droite (Option 2)
+                let curChevronX = startX + wordWidth + spaceWidth;
+                const cycleDuration = 1.35; // Durée totale du cycle de cascade
+                const cycleT = (animTime % cycleDuration);
+
+                for (let i = 0; i < 3; i++) {
+                    let wave = 0;
+                    if (isAnim) {
+                        const delay = i * 0.22;
+                        const diff = (cycleT - delay + cycleDuration) % cycleDuration;
+                        if (diff < 0.45) {
+                            wave = Math.sin((diff / 0.45) * Math.PI); // Onde fluide 0 -> 1 -> 0
+                        }
+                    } else {
+                        // Rendu statique (export image PNG / visuel fixe) : dégradé progressif élégant
+                        wave = i === 2 ? 0.95 : (i === 1 ? 0.60 : 0.30);
+                    }
+
+                    const alpha = 0.28 + (0.72 * wave);
+                    const xShift = wave * 3.5; // Micro-glissement dynamique vers la droite
+
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.fillStyle = wave > 0.35 ? accentColor : '#ffffff';
+                    ctx.shadowColor = wave > 0.35 ? accentColor : 'rgba(0, 0, 0, 0.85)';
+                    ctx.shadowBlur = wave > 0.35 ? 10 * wave : 6;
+                    ctx.font = `900 ${fontSize + 2}px "Montserrat", sans-serif`;
+                    ctx.fillText(chevronChar, curChevronX + xShift, targetCenterY);
+                    ctx.restore();
+
+                    curChevronX += chevronWidth + chevronGap;
+                }
+
+                ctx.restore();
+                return totalWidth;
+            };
+
             if (!showText) return; 
 
             const isModernEditorialTheme = (
@@ -4491,18 +4562,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.stroke();
                 ctx.restore();
 
-                // 7. Mention Swipe
+                // 7. Mention Swipe (Chevrons en Cascade)
                 if (showSwipe) {
-                    ctx.save();
                     const swipeY = canvas.height - (isStory ? 80 : 50);
-                    ctx.font = '800 24px "Montserrat", sans-serif';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0,0,0,0.85)';
-                    ctx.shadowBlur = 8;
-                    ctx.textAlign = 'right';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('Swipe ──>', canvas.width - (isStory ? 80 : 60), swipeY);
-                    ctx.restore();
+                    drawAnimatedSwipeIndicator(
+                        canvas.width - (isStory ? 80 : 60),
+                        swipeY,
+                        activeData.color || '#ff7800',
+                        24
+                    );
                 }
 
             } else if (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) {
@@ -4834,17 +4902,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText('DROPSIDERS.FR', isStory ? 80 : 60, footerY);
                 ctx.restore();
 
-                // Right Swipe
+                // Right Swipe (Chevrons en Cascade)
                 if (showSwipe) {
-                    ctx.save();
-                    ctx.font = '800 24px "Montserrat", sans-serif';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0,0,0,0.85)';
-                    ctx.shadowBlur = 8;
-                    ctx.textAlign = 'right';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('Swipe ──>', canvas.width - (isStory ? 80 : 60), footerY);
-                    ctx.restore();
+                    const resolvedColor = activeData.color || (typeof themeColor === 'string' ? themeColor : themeColor?.color) || '#00ff66';
+                    drawAnimatedSwipeIndicator(
+                        canvas.width - (isStory ? 80 : 60),
+                        footerY,
+                        resolvedColor,
+                        24
+                    );
                 }
 
             } else if (theme === 'PROMO') {
@@ -5045,19 +5111,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const lineMarginX = isReel ? 80 : 60;
                 let swipeSpaceRight = 0;
 
-                // Swipe indicator aligned directly on the divider line
+                // Swipe indicator aligned directly on the divider line (Chevrons en Cascade)
                 if (showSwipe) {
-                    ctx.save();
-                    ctx.font = '800 24px "Montserrat", sans-serif';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0,0,0,0.85)';
-                    ctx.shadowBlur = 6;
-                    ctx.textAlign = 'right';
-                    ctx.textBaseline = 'middle';
-                    const swipeText = 'Swipe ──>';
-                    swipeSpaceRight = ctx.measureText(swipeText).width + 20;
-                    ctx.fillText(swipeText, canvas.width - lineMarginX, dividerY);
-                    ctx.restore();
+                    const resolvedColor = themeDotColor || (typeof themeColor === 'string' ? themeColor : themeColor?.color) || '#00ff66';
+                    const swipeWidth = drawAnimatedSwipeIndicator(
+                        canvas.width - lineMarginX,
+                        dividerY,
+                        resolvedColor,
+                        24
+                    );
+                    swipeSpaceRight = swipeWidth + 20;
                 }
 
                 const lineRightX = canvas.width - lineMarginX - swipeSpaceRight;
@@ -5755,7 +5818,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         const isBadgeTheme = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'AFFICHE'].includes(theme);
         const shouldAnimateBadge = isBadgeTheme && activeTab === 'REEL';
-        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || (theme === 'MUSIQUE' && (cdjPlayerRing || musicBgMotion)) || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying)) {
+        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || (theme === 'MUSIQUE' && (cdjPlayerRing || musicBgMotion)) || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying)) {
             let lastRender = 0;
             let isRendering = false;
             const loop = (timestamp: number) => {
