@@ -617,7 +617,7 @@
                             <span class="stat-lbl">publications</span>
                         </div>
                         <div class="stat-col">
-                            <span class="stat-val" id="statFollowers">4 694</span>
+                            <span class="stat-val" id="statFollowers">4 698</span>
                             <span class="stat-lbl">abonnés</span>
                         </div>
                         <div class="stat-col">
@@ -760,7 +760,8 @@
             followBtn.classList.remove('followed');
             followBtn.style.transform = 'scale(1)';
             followLabel.innerText = 'Suivre';
-            statFollowers.innerText = '4 694';
+            const baseFollowers = parseInt(localStorage.getItem('dropsiders_promo_followers_count')) || 4698;
+            statFollowers.innerText = baseFollowers.toLocaleString('fr-FR');
             statFollowers.style.color = '#fff';
             pointer.style.opacity = '0';
             pointer.style.transform = 'translate(190px, 500px) scale(1)';
@@ -859,7 +860,7 @@
                 `;
 
                 // +1 Abonnés
-                statFollowers.innerText = '4 695';
+                statFollowers.innerText = (baseFollowers + 1).toLocaleString('fr-FR');
                 statFollowers.style.color = '#00d2ff';
                 setTimeout(() => statFollowers.style.color = '#fff', 700);
 

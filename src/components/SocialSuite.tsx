@@ -35,7 +35,8 @@ import {
     Scissors,
     ChevronDown,
     ChevronUp,
-    Instagram
+    Instagram,
+    Users
 } from 'lucide-react';
 import { ExportSuccessModal } from './ExportSuccessModal';
 import { fixEncoding } from '../utils/standardizer';
@@ -981,6 +982,41 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setActiveAudioPreviewSrc(null);
         }
     }, [isCarouselPromoActive, theme]);
+
+    const [promoFollowersCount, setPromoFollowersCount] = useState<number>(() => {
+        try {
+            const saved = localStorage.getItem('dropsiders_promo_followers_count');
+            if (saved && !isNaN(Number(saved))) return Number(saved);
+        } catch (_) {}
+        return 4698;
+    });
+
+    const handleFollowersCountChange = (val: number) => {
+        const nextVal = Math.max(0, val);
+        setPromoFollowersCount(nextVal);
+        try {
+            localStorage.setItem('dropsiders_promo_followers_count', String(nextVal));
+        } catch (_) {}
+        setTimeout(() => generateImage(), 50);
+    };
+
+    const [promoPostsCount, setPromoPostsCount] = useState<number>(() => {
+        try {
+            const saved = localStorage.getItem('dropsiders_promo_posts_count');
+            if (saved && !isNaN(Number(saved))) return Number(saved);
+        } catch (_) {}
+        return 1441;
+    });
+
+    const handlePostsCountChange = (val: number) => {
+        const nextVal = Math.max(0, val);
+        setPromoPostsCount(nextVal);
+        try {
+            localStorage.setItem('dropsiders_promo_posts_count', String(nextVal));
+        } catch (_) {}
+        setTimeout(() => generateImage(), 50);
+    };
+
     const [promoCustomPhrase, setPromoCustomPhrase] = useState<string>('');
     const [promoCustomSubphrase, setPromoCustomSubphrase] = useState<string>('');
     const [promoOutroStyle, setPromoOutroStyle] = useState<'INSTAGRAM' | 'CLASSIC'>('INSTAGRAM');
@@ -2925,15 +2961,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.restore();
                         }
 
-                        // 3. Stats Réelles Officielles (1 440 publications • 4 694 -> 4 695 abonnés • 668 abonnements)
+                        // 3. Stats Réelles Officielles (N publications • N -> N+1 abonnés • 668 abonnements)
                         const isFollowed = isStaticPreview || tAnim >= 2.5;
-                        const followersCountStr = isFollowed ? '4 695' : '4 694';
+                        const baseFollowers = promoFollowersCount || 4698;
+                        const displayFollowers = isFollowed ? (baseFollowers + 1) : baseFollowers;
+                        const followersCountStr = displayFollowers.toLocaleString('fr-FR');
+                        const postsCountStr = (promoPostsCount || 1441).toLocaleString('fr-FR');
 
                         const statsStartX = cardX + (isReel ? 220 : 200);
                         const statsWidth = cardW - (isReel ? 240 : 220);
                         const colW = statsWidth / 3;
                         const statsData = [
-                            { val: '1 440', lbl: 'publications' },
+                            { val: postsCountStr, lbl: 'publications' },
                             { val: followersCountStr, lbl: 'abonnés' },
                             { val: '668', lbl: 'abonnements' }
                         ];
@@ -9169,6 +9208,111 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <span className="text-[11px] font-mono font-black text-[#00f0ff] bg-cyan-500/10 px-2 py-1 rounded-lg border border-cyan-500/30">
                         7.0s
                     </span>
+                </div>
+
+                {/* Réglage des stats Instagram modifiables sans passer par le code */}
+                <div className="p-3 bg-black/50 border border-[#0095f6]/30 rounded-xl space-y-3">
+                    {/* Abonnés */}
+                    <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[9.5px] font-black text-white uppercase flex items-center gap-1.5">
+                                <Users className="w-3.5 h-3.5 text-[#0095f6]" />
+                                <span>Abonnés Instagram</span>
+                            </label>
+                            <span className="text-[8px] font-mono text-[#00f0ff] font-bold bg-[#00f0ff]/10 px-2 py-0.5 rounded border border-[#00f0ff]/20">
+                                {promoFollowersCount.toLocaleString('fr-FR')} ➔ {(promoFollowersCount + 1).toLocaleString('fr-FR')} (+1 au clic)
+                            </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    value={promoFollowersCount}
+                                    onChange={(e) => handleFollowersCountChange(Math.max(0, parseInt(e.target.value) || 0))}
+                                    className="w-full bg-black/60 border border-white/10 focus:border-[#0095f6] rounded-xl px-3 py-2 text-white text-[12px] font-mono font-bold outline-none transition-all"
+                                    placeholder="Ex: 4698"
+                                />
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    type="button"
+                                    onClick={() => handleFollowersCountChange(promoFollowersCount - 1)}
+                                    className="px-2 py-2 bg-white/5 hover:bg-white/15 border border-white/10 rounded-xl text-white font-mono text-[9.5px] font-bold active:scale-95 transition-all"
+                                    title="-1 abonné"
+                                >
+                                    -1
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleFollowersCountChange(promoFollowersCount + 1)}
+                                    className="px-2.5 py-2 bg-[#0095f6]/20 hover:bg-[#0095f6]/30 border border-[#0095f6]/40 text-[#0095f6] font-mono text-[9.5px] font-bold rounded-xl active:scale-95 transition-all"
+                                    title="+1 abonné"
+                                >
+                                    +1
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleFollowersCountChange(promoFollowersCount + 10)}
+                                    className="px-2.5 py-2 bg-[#0095f6]/20 hover:bg-[#0095f6]/30 border border-[#0095f6]/40 text-[#0095f6] font-mono text-[9.5px] font-bold rounded-xl active:scale-95 transition-all"
+                                    title="+10 abonnés"
+                                >
+                                    +10
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Publications */}
+                    <div className="space-y-1.5 pt-2 border-t border-white/5">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[9.5px] font-black text-gray-300 uppercase flex items-center gap-1.5">
+                                <Instagram className="w-3.5 h-3.5 text-[#ff007f]" />
+                                <span>Nombre de publications</span>
+                            </label>
+                            <span className="text-[8px] font-mono text-gray-400 font-bold bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                                {promoPostsCount.toLocaleString('fr-FR')} posts
+                            </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    value={promoPostsCount}
+                                    onChange={(e) => handlePostsCountChange(Math.max(0, parseInt(e.target.value) || 0))}
+                                    className="w-full bg-black/60 border border-white/10 focus:border-[#ff007f] rounded-xl px-3 py-2 text-white text-[12px] font-mono font-bold outline-none transition-all"
+                                    placeholder="Ex: 1441"
+                                />
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    type="button"
+                                    onClick={() => handlePostsCountChange(promoPostsCount - 1)}
+                                    className="px-2 py-2 bg-white/5 hover:bg-white/15 border border-white/10 rounded-xl text-white font-mono text-[9.5px] font-bold active:scale-95 transition-all"
+                                    title="-1 post"
+                                >
+                                    -1
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handlePostsCountChange(promoPostsCount + 1)}
+                                    className="px-2.5 py-2 bg-[#ff007f]/20 hover:bg-[#ff007f]/30 border border-[#ff007f]/40 text-[#ff007f] font-mono text-[9.5px] font-bold rounded-xl active:scale-95 transition-all"
+                                    title="+1 post"
+                                >
+                                    +1
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p className="text-[7.5px] text-gray-400 italic">
+                        💡 Le compteur d'abonnés démarre à <strong>{promoFollowersCount.toLocaleString('fr-FR')}</strong> et passe automatiquement à <strong>{(promoFollowersCount + 1).toLocaleString('fr-FR')}</strong> lors du clic sur le bouton Suivre. Les valeurs sont sauvegardées automatiquement dans votre navigateur.
+                    </p>
                 </div>
 
                 <div className="space-y-1.5">

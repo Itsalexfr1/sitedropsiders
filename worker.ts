@@ -4704,8 +4704,8 @@ ${urls.map(u => `  <url>
                 profile: {
                     username: 'dropsiders.fr',
                     name: 'DROPSIDERS',
-                    followers: '4 689',
-                    postsCount: '1 434',
+                    followers: '4 698',
+                    postsCount: '1 441',
                     url: 'https://www.instagram.com/dropsiders.fr/'
                 },
                 posts: []
