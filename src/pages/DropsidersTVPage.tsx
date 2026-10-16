@@ -831,6 +831,33 @@ export function DropsidersTVPage() {
         ? currentPromo.title
         : currentMainVideo?.title;
 
+    // Diffusion de l'état en direct de Dropsiders TV pour PreMiD / Discord RPC
+    useEffect(() => {
+        const detail = {
+            isPlaying,
+            title: currentDisplayTitle || '',
+            blockTitle: activeScheduleBlock?.title || 'Dropsiders TV',
+            isPromo: isPlayingPromo,
+            category: currentMainVideo?.category || 'liveset'
+        };
+        window.dispatchEvent(new CustomEvent('dropsiders_tv_state', { detail }));
+    }, [isPlaying, currentDisplayTitle, activeScheduleBlock?.title, isPlayingPromo, currentMainVideo?.category]);
+
+    useEffect(() => {
+        const onQuery = () => {
+            const detail = {
+                isPlaying,
+                title: currentDisplayTitle || '',
+                blockTitle: activeScheduleBlock?.title || 'Dropsiders TV',
+                isPromo: isPlayingPromo,
+                category: currentMainVideo?.category || 'liveset'
+            };
+            window.dispatchEvent(new CustomEvent('dropsiders_tv_state', { detail }));
+        };
+        window.addEventListener('dropsiders_tv_query_state', onQuery);
+        return () => window.removeEventListener('dropsiders_tv_query_state', onQuery);
+    }, [isPlaying, currentDisplayTitle, activeScheduleBlock?.title, isPlayingPromo, currentMainVideo?.category]);
+
     // Next main video (skipping promos entirely) — used for the "À suivre" banner
     const nextMainIndex = (currentIndex + 1) % (activeBlockVideos.length || 1);
     const nextMainVideo = activeBlockVideos[nextMainIndex] || null;
@@ -1343,6 +1370,10 @@ export function DropsidersTVPage() {
             />
 
             <div
+                id="dropsiders-tv-container"
+                data-tv-title={currentDisplayTitle || ''}
+                data-tv-block={activeScheduleBlock?.title || ''}
+                data-tv-playing={isPlaying ? 'true' : 'false'}
                 ref={containerRef}
                 onMouseMove={handleMouseMove}
                 className={`${isFullscreen ? 'fixed inset-0 z-[9999] w-screen h-[100dvh]' : 'relative w-full h-[100dvh]'} bg-black overflow-hidden select-none flex flex-col justify-between`}

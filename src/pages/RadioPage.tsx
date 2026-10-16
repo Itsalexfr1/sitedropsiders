@@ -333,16 +333,88 @@ function HistorySection({
         );
     }
 
+    const recentTracks = useMemo(() => history.slice(0, 3), [history]);
+
     return (
         <div className="space-y-6">
-            {/* ── Barre de recherche par jour + heure ── */}
+            {/* ── 3 Derniers morceaux diffusés ── */}
+            <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                    <Disc3 className="w-4 h-4 text-cyan-400 animate-spin [animation-duration:8s]" />
+                    <h3 className="text-xs font-black uppercase tracking-widest text-cyan-300">
+                        3 Derniers morceaux diffusés
+                    </h3>
+                    <div className="flex-1 h-px bg-white/10" />
+                    <span className="text-[9px] font-mono text-cyan-400/80 uppercase font-bold">En direct</span>
+                </div>
+
+                <div className="space-y-2">
+                    {recentTracks.map((entry, idx) => {
+                        const trackKey = `${entry.artist} - ${entry.title}`;
+                        const isVoted = votedTracks.includes(trackKey);
+                        return (
+                            <motion.div
+                                key={`recent-${entry.id || idx}`}
+                                initial={{ opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.05 }}
+                                className="flex items-center justify-between gap-3 p-3.5 rounded-xl border border-cyan-500/25 bg-gradient-to-r from-cyan-950/30 via-[#0c0e1a] to-[#07070f] hover:border-cyan-500/50 transition-all group shadow-[0_0_15px_rgba(6,182,212,0.06)]"
+                            >
+                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                    <div className="shrink-0 text-center w-12">
+                                        <p className="text-[11px] font-mono font-black text-cyan-400">{entry.startTime}</p>
+                                        <p className="text-[8px] font-mono text-gray-500">{entry.endTime}</p>
+                                    </div>
+                                    <div className="w-px h-8 bg-cyan-500/20 shrink-0" />
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-[12px] font-black uppercase italic tracking-tight text-white truncate">{entry.artist}</p>
+                                        <p className="text-[11px] text-gray-300 truncate">{entry.title}</p>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <span className="text-[8px] font-mono text-gray-400 capitalize">{entry.day}</span>
+                                            {entry.blockTitle && (
+                                                <>
+                                                    <span className="text-gray-600 text-[8px]">·</span>
+                                                    <span className="text-[8px] font-bold text-purple-400 uppercase tracking-wider truncate">
+                                                        📻 {entry.blockTitle}
+                                                    </span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 shrink-0">
+                                    {onVote && (
+                                        <button
+                                            type="button"
+                                            onClick={() => onVote(trackKey, entry.youtubeId || entry.audioUrl)}
+                                            disabled={voteLoading}
+                                            className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                                                isVoted
+                                                    ? 'bg-red-500/20 text-red-400 border-red-500/50 shadow-[0_0_10px_rgba(255,0,85,0.3)]'
+                                                    : 'bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 border-white/10'
+                                            }`}
+                                            title={isVoted ? 'Déjà voté' : 'Voter pour ce titre dans le Top 5'}
+                                        >
+                                            <Heart className={`w-3.5 h-3.5 ${isVoted ? 'fill-current text-red-400' : ''}`} />
+                                        </button>
+                                    )}
+                                    <Music2 className="w-3.5 h-3.5 text-cyan-400 group-hover:text-cyan-300 transition-colors mr-1" />
+                                </div>
+                            </motion.div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* ── Retrouver le reste de l'historique par jour + heure ── */}
             <div className="rounded-2xl bg-gradient-to-br from-[#0d0d20] to-[#07070f] border border-purple-500/30 p-4 shadow-[0_0_20px_rgba(168,85,247,0.07)]">
                 <div className="flex items-center gap-2 mb-3">
                     <div className="p-1.5 rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-400">
                         <Search className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-purple-300">C'était quoi ce titre ?</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-purple-300">Retrouver un titre par date et heure</p>
                         <p className="text-[9px] font-mono text-gray-500">Sélectionne un jour et une heure pour retrouver le son diffusé</p>
                     </div>
                 </div>
@@ -350,7 +422,7 @@ function HistorySection({
                 <div className="flex flex-col sm:flex-row gap-2">
                     {/* Sélecteur de jour */}
                     <div className="flex-1">
-                        <label className="block text-[9px] font-mono text-gray-500 uppercase tracking-wider mb-1">Jour</label>
+                        <label className="block text-[9px] font-mono text-gray-500 uppercase tracking-wider mb-1">Date / Jour</label>
                         <select
                             value={searchDay}
                             onChange={e => { setSearchDay(e.target.value); setSearchResult(null); }}
@@ -365,7 +437,7 @@ function HistorySection({
 
                     {/* Sélecteur d'heure */}
                     <div className="sm:w-36">
-                        <label className="block text-[9px] font-mono text-gray-500 uppercase tracking-wider mb-1">Heure</label>
+                        <label className="block text-[9px] font-mono text-gray-500 uppercase tracking-wider mb-1">Heure de passage</label>
                         <input
                             type="time"
                             value={searchTime}
@@ -485,7 +557,7 @@ function HistorySection({
             {/* ── Historique complet par journée ── */}
             {Array.from(grouped.entries()).slice(0, visibleDaysCount).map(([day, entries]) => {
                 const isExpanded = !!expandedDays[day];
-                const displayedEntries = isExpanded ? entries : entries.slice(0, 30);
+                const displayedEntries = isExpanded ? entries : entries.slice(0, 3);
 
                 return (
                     <div key={day} className="space-y-3">
@@ -557,7 +629,7 @@ function HistorySection({
                                 );
                             })}
 
-                            {entries.length > 30 && (
+                            {entries.length > 3 && (
                                 <button
                                     type="button"
                                     onClick={() => toggleExpandDay(day)}
@@ -565,7 +637,7 @@ function HistorySection({
                                 >
                                     {isExpanded
                                         ? '▲ Réduire la liste'
-                                        : `▼ Afficher tous les ${entries.length} titres de la journée (+${entries.length - 30})`}
+                                        : `▼ Afficher tous les ${entries.length} titres de la journée (+${entries.length - 3})`}
                                 </button>
                             )}
                         </div>
