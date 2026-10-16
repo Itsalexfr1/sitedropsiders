@@ -991,15 +991,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return 4698;
     });
 
-    const handleFollowersCountChange = (val: number) => {
-        const nextVal = Math.max(0, val);
-        setPromoFollowersCount(nextVal);
-        try {
-            localStorage.setItem('dropsiders_promo_followers_count', String(nextVal));
-        } catch (_) {}
-        setTimeout(() => generateImage(), 50);
-    };
-
     const [promoPostsCount, setPromoPostsCount] = useState<number>(() => {
         try {
             const saved = localStorage.getItem('dropsiders_promo_posts_count');
@@ -1008,12 +999,64 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return 1441;
     });
 
+    // Synchronisation multi-navigateurs depuis l'API Dropsiders
+    useEffect(() => {
+        fetch('/api/instagram-feed')
+            .then(res => res.json())
+            .then(data => {
+                if (data?.profile?.followers) {
+                    const parsedFollowers = parseInt(String(data.profile.followers).replace(/\s+/g, ''));
+                    if (!isNaN(parsedFollowers) && parsedFollowers > 0) {
+                        setPromoFollowersCount(parsedFollowers);
+                        try { localStorage.setItem('dropsiders_promo_followers_count', String(parsedFollowers)); } catch (_) {}
+                    }
+                }
+                if (data?.profile?.postsCount) {
+                    const parsedPosts = parseInt(String(data.profile.postsCount).replace(/\s+/g, ''));
+                    if (!isNaN(parsedPosts) && parsedPosts > 0) {
+                        setPromoPostsCount(parsedPosts);
+                        try { localStorage.setItem('dropsiders_promo_posts_count', String(parsedPosts)); } catch (_) {}
+                    }
+                }
+            })
+            .catch(() => {});
+    }, []);
+
+    const syncStatsToServer = (followers: number, posts: number) => {
+        try {
+            fetch('/api/instagram-feed/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    profile: {
+                        username: 'dropsiders.fr',
+                        name: 'DROPSIDERS',
+                        followers: followers.toLocaleString('fr-FR'),
+                        postsCount: posts.toLocaleString('fr-FR'),
+                        url: 'https://www.instagram.com/dropsiders.fr/'
+                    }
+                })
+            }).catch(() => {});
+        } catch (_) {}
+    };
+
+    const handleFollowersCountChange = (val: number) => {
+        const nextVal = Math.max(0, val);
+        setPromoFollowersCount(nextVal);
+        try {
+            localStorage.setItem('dropsiders_promo_followers_count', String(nextVal));
+        } catch (_) {}
+        syncStatsToServer(nextVal, promoPostsCount);
+        setTimeout(() => generateImage(), 50);
+    };
+
     const handlePostsCountChange = (val: number) => {
         const nextVal = Math.max(0, val);
         setPromoPostsCount(nextVal);
         try {
             localStorage.setItem('dropsiders_promo_posts_count', String(nextVal));
         } catch (_) {}
+        syncStatsToServer(promoFollowersCount, nextVal);
         setTimeout(() => generateImage(), 50);
     };
 
