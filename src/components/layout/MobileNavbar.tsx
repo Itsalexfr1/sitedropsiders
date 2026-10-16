@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Video, Calendar, X, Users, Shield, Info, MoreHorizontal, Home, User, Plane, Newspaper, Gamepad2 } from 'lucide-react';
+import { Trophy, Video, Calendar, X, Users, Shield, Info, MoreHorizontal, Home, User, Plane, Newspaper, Gamepad2, Tv, Radio } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useState, useEffect } from 'react';
 import settings from '../../data/settings.json';
@@ -86,10 +86,12 @@ export function MobileNavbar() {
         // Live moved to center if active
         ...(isLiveActive ? [{ icon: Users, label: navLabels.communaute || 'Communaute', path: '/communaute', color: 'text-neon-cyan' }] : []),
         { icon: Newspaper, label: navLabels.news || 'News', path: '/news', color: 'text-neon-red' },
+        { icon: Tv, label: 'Dropsiders Tv', path: '/tv', color: 'text-neon-red' },
+        { icon: Radio, label: 'Dropsiders Radio', path: '/radio', color: 'text-neon-cyan' },
         { icon: Plane, label: navLabels.voyage || t('nav.voyage'), path: '/voyage', color: 'text-neon-green' },
+        { icon: Users, label: navLabels.team || t('nav.team'), path: '/team', color: 'text-neon-lime' },
         { icon: Newspaper, label: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'text-neon-orange' },
         { icon: Info, label: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'text-neon-orange' },
-        { icon: Users, label: navLabels.team || t('nav.team'), path: '/team', color: 'text-neon-lime' },
         { 
             icon: () => <span className="text-[10px] font-black leading-none">SHOP</span>, 
             label: navLabels.shop || t('nav.shop'), 

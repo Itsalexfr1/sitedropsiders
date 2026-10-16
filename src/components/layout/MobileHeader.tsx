@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Sun, Moon, Search } from 'lucide-react';
+import { Sun, Moon, Search, Mail } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { FlagIcon } from '../ui/FlagIcon';
@@ -32,9 +32,19 @@ export function MobileHeader({ onOpenSearch }: MobileHeaderProps) {
                 <button
                     onClick={onOpenSearch}
                     className="p-1.5 text-gray-400 hover:text-neon-red transition-colors rounded-lg hover:bg-white/5"
+                    title="Rechercher"
                 >
                     <Search className="w-5 h-5" />
                 </button>
+
+                {/* Contact Mail Button */}
+                <Link
+                    to="/contact"
+                    className="p-1.5 text-gray-400 hover:text-neon-red transition-colors rounded-lg hover:bg-white/5"
+                    title="Contact"
+                >
+                    <Mail className="w-5 h-5" />
+                </Link>
 
                 {/* Theme Toggle Button */}
                 <button

@@ -59,3 +59,7 @@ scratch/
 # Temporary Mail Import
 mails_import/
 *.zip
+
+# PreMiD Repos
+premid-repo/
+premid-dropsiders/

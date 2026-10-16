@@ -37,6 +37,11 @@ export function Footer() {
     const [shopPasswordProtected, setShopPasswordProtected] = useState((settings as any).shop_password_protected || false);
     const [socials, setSocials] = useState(settings.socials || { instagram: 'dropsiders.fr', tiktok: '@dropsiders.fr' });
     const [navLabels, setNavLabels] = useState((settings as any).nav_labels || {});
+    const [gtaContestMenuVisible, setGtaContestMenuVisible] = useState<boolean>(() => {
+        if (typeof window !== 'undefined' && new Date() > new Date('2026-11-12T23:59:59')) return false;
+        const local = localStorage.getItem('dropsiders_gta_contest_menu_visible');
+        return local !== null ? local === 'true' : ((settings as any).gta_contest_menu_visible ?? true);
+    });
 
     useEffect(() => {
         const handleSettingsUpdate = () => {
@@ -47,6 +52,10 @@ export function Footer() {
             const localShopProtected = localStorage.getItem('dropsiders_shop_password_protected');
             if (localShopProtected !== null) {
                 setShopPasswordProtected(localShopProtected === 'true');
+            }
+            const localGta = localStorage.getItem('dropsiders_gta_contest_menu_visible');
+            if (localGta !== null) {
+                setGtaContestMenuVisible(localGta === 'true');
             }
         };
         window.addEventListener('dropsiders_settings_updated', handleSettingsUpdate);
@@ -67,6 +76,9 @@ export function Footer() {
                     }
                     if (data.nav_labels) {
                         setNavLabels(data.nav_labels);
+                    }
+                    if (data.gta_contest_menu_visible !== undefined) {
+                        setGtaContestMenuVisible(data.gta_contest_menu_visible);
                     }
                 }
             } catch (e: any) {
@@ -113,12 +125,18 @@ export function Footer() {
 
     const navItems = [
         { label: navLabels.news || t('nav.news'), path: '/news' },
-        { label: navLabels.vols || t('nav.vols'), path: '/voyage/vols' },
-        { label: navLabels.bus || t('nav.bus'), path: '/voyage/bus' },
+        { label: navLabels.agenda || t('nav.agenda'), path: '/agenda' },
+        { label: 'Dropsiders Tv', path: '/tv' },
+        { label: 'Dropsiders Radio', path: '/radio' },
         { label: navLabels.recaps || t('nav.recaps'), path: '/recaps' },
         { label: navLabels.interviews || t('nav.interviews'), path: '/interviews' },
+        { label: navLabels.communaute || t('nav.communaute'), path: '/communaute' },
+        { label: navLabels.voyage || t('nav.voyage'), path: '/voyage' },
+        { label: navLabels.bus || t('nav.bus'), path: '/voyage/bus' },
         { label: navLabels.galerie || t('nav.galerie'), path: '/galerie' },
         { label: 'Clips', path: '/clips' },
+        { label: navLabels.top_dropsiders || t('nav.top_dropsiders') || 'TOP DROPSIDERS', path: '/top-dropsiders' },
+        ...(gtaContestMenuVisible ? [{ label: 'Concours GTA 6', path: '/concours-gta6' }] : []),
         ...(shopEnabled && !shopPasswordProtected ? [{ label: navLabels.shop || t('nav.shop'), path: '/shop' }] : []),
         { label: navLabels.team || t('nav.team'), path: '/team' },
         { label: navLabels.contact || t('footer.contact'), path: '/contact' }
@@ -133,7 +151,7 @@ export function Footer() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-16 lg:gap-16 mb-20">
                     {/* Brand Section */}
                     <motion.div
-                        className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-8 group/brand w-full"
+                        className="lg:col-span-4 flex flex-col items-center lg:items-start text-center lg:text-left space-y-8 group/brand w-full"
                         whileHover={{ scale: 1.02 }}
                         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                     >
@@ -211,22 +229,22 @@ export function Footer() {
 
                     {/* Navigation Section */}
                     <motion.div
-                        className="lg:col-span-3 space-y-8 group/nav"
+                        className="lg:col-span-4 space-y-8 group/nav"
                         whileHover={{ scale: 1.02 }}
                         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                     >
                         <h4 className="text-[10px] font-black text-neon-red uppercase tracking-[0.4em]">
                             <ZoomText text={t('footer.nav')} />
                         </h4>
-                        <ul className="grid grid-cols-1 gap-4">
+                        <ul className="grid grid-cols-2 gap-x-6 gap-y-3.5">
                             {navItems.map((item) => (
                                 <li key={item.label}>
                                     <Link
                                         to={item.path}
                                         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                                        className="text-gray-400 hover:text-neon-red transition-colors text-sm font-bold uppercase tracking-tight flex items-center gap-2 group"
+                                        className="text-gray-400 hover:text-neon-red transition-colors text-xs font-bold uppercase tracking-tight flex items-center gap-1.5 group"
                                     >
-                                        <div className="w-1 h-1 bg-neon-red rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <div className="w-1 h-1 bg-neon-red rounded-full opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                                         <ZoomText text={item.label} />
                                     </Link>
                                 </li>

@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, Sun, Moon, Filter, Shield, Instagram, Facebook, Video, User, Trophy as TopIcon, Tv } from 'lucide-react';
+import { X, Search, Sun, Moon, Filter, Shield, Instagram, Facebook, Video, User, Trophy as TopIcon, Tv, Radio, Mail } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useUser } from '../../context/UserContext';
@@ -133,11 +133,12 @@ export function Navbar() {
         { name: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'neon-yellow' },
         { name: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'neon-orange' },
         { name: navLabels.communaute || t('nav.communaute'), path: '/communaute', color: 'neon-cyan' },
-        { name: 'DropsidersTV', path: '/tv', color: 'neon-red', icon: Tv },
+        { name: 'Dropsiders Tv', path: '/tv', color: 'neon-red', icon: Tv },
+        { name: 'Dropsiders Radio', path: '/radio', color: 'neon-cyan', icon: Radio },
+        { name: navLabels.voyage || navLabels.vols || t('nav.voyage'), path: '/voyage', color: 'neon-green' },
+        { name: navLabels.team || t('nav.team'), path: '/team', color: 'neon-lime' },
         { name: 'TOP', path: '/top-dropsiders', color: 'neon-yellow', suffix: 'DROPSIDERS', isPremium: true },
         ...(gtaContestMenuVisible ? [{ name: 'GTA 6', path: '/concours-gta6', color: 'neon-pink', suffix: 'CONCOURS', isPremium: true }] : []),
-        { name: navLabels.vols || t('nav.vols'), path: '/voyage/vols', color: 'neon-green' },
-        { name: navLabels.team || t('nav.team'), path: '/team', color: 'neon-lime' },
         ...(shopEnabled && !shopPasswordProtected ? [{ name: 'SHOP', path: '/shop', color: 'neon-blue' }] : []),
         ...(((takeoverEnabled && (takeoverSettings as any)?.status === 'live')) && ((takeoverSettings as any)?.showInNavbar !== false) ? [{
             name: 'LIVE',
@@ -276,7 +277,7 @@ export function Navbar() {
 
                     {/* Right Side Actions */}
                     <div className="flex items-center gap-1 xl:gap-3 shrink-0">
-                        {/* Search & Theme Group */}
+                        {/* Search, Contact & Theme Group */}
                         <div className="hidden xl:flex items-center gap-1 bg-white/5 border border-white/10 p-1 rounded-2xl backdrop-blur-md">
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
@@ -288,6 +289,21 @@ export function Navbar() {
                             >
                                 <Search className="w-4 h-4" />
                             </motion.button>
+
+                            <Link
+                                to="/contact"
+                                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                                title="Contact"
+                            >
+                                <motion.div
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onMouseEnter={playHoverSound}
+                                    className="p-2 text-gray-400 hover:text-neon-red transition-colors rounded-xl hover:bg-white/5 cursor-pointer"
+                                >
+                                    <Mail className="w-4 h-4" />
+                                </motion.div>
+                            </Link>
 
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
