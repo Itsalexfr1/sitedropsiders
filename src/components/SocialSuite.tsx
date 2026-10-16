@@ -4723,6 +4723,81 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
                 ctx.fillStyle = glossGrad;
                 ctx.fillRect(cardX, cardY, cardW, cardH * 0.38);
+
+                // Option A : Ligne blanche argentée qui fait toute la cover (Cyber Glare Sweep diagonal)
+                const coverAnimTime = isVideoRecordingRef.current
+                    ? deterministicAnimTimeRef.current
+                    : (animStartTimeRef.current ? (Date.now() - animStartTimeRef.current) / 1000 : 0);
+
+                const isCoverAnim = isVideoRecordingRef.current
+                    ? true
+                    : ((bgVideo && !isDownloading) || textAnimation !== 'NONE' || activeTab === 'REEL' || !!activeAudioPreviewSrc || theme === 'MUSIQUE');
+
+                // Cycle de balayage toutes les 2.8 secondes (balayage dynamique de 1.45s + pause)
+                const glareCycle = 2.8;
+                const glareT = (coverAnimTime % glareCycle);
+
+                if (isCoverAnim) {
+                    if (glareT < 1.45) {
+                        const sweepProgress = glareT / 1.45;
+                        const easeProgress = sweepProgress < 0.5 
+                            ? 2 * sweepProgress * sweepProgress 
+                            : 1 - Math.pow(-2 * sweepProgress + 2, 2) / 2;
+
+                        const beamW = Math.round(cardW * 0.32);
+                        const slantOffset = cardH * 0.42;
+                        const totalDistance = cardW + slantOffset + (beamW * 2);
+                        const currentCenterX = cardX - beamW + (easeProgress * totalDistance);
+
+                        ctx.save();
+                        const glareGrad = ctx.createLinearGradient(
+                            currentCenterX - beamW, cardY,
+                            currentCenterX + beamW, cardY + cardH
+                        );
+                        glareGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                        glareGrad.addColorStop(0.25, 'rgba(0, 255, 102, 0.08)');
+                        glareGrad.addColorStop(0.44, 'rgba(255, 255, 255, 0.32)');
+                        glareGrad.addColorStop(0.50, 'rgba(255, 255, 255, 0.65)'); // Ligne blanche argentée intense
+                        glareGrad.addColorStop(0.56, 'rgba(255, 255, 255, 0.32)');
+                        glareGrad.addColorStop(0.75, 'rgba(0, 255, 102, 0.08)');
+                        glareGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+                        ctx.fillStyle = glareGrad;
+                        ctx.beginPath();
+                        ctx.moveTo(currentCenterX - beamW, cardY);
+                        ctx.lineTo(currentCenterX + beamW, cardY);
+                        ctx.lineTo(currentCenterX + beamW - slantOffset, cardY + cardH);
+                        ctx.lineTo(currentCenterX - beamW - slantOffset, cardY + cardH);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                } else {
+                    // Rendu statique (export image PNG) : liseré de reflet argenté discret
+                    const fixedX = cardX + cardW * 0.36;
+                    const beamW = Math.round(cardW * 0.22);
+                    const slantOffset = cardH * 0.42;
+                    ctx.save();
+                    const statGrad = ctx.createLinearGradient(
+                        fixedX - beamW, cardY,
+                        fixedX + beamW, cardY + cardH
+                    );
+                    statGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                    statGrad.addColorStop(0.46, 'rgba(255, 255, 255, 0.18)');
+                    statGrad.addColorStop(0.50, 'rgba(255, 255, 255, 0.38)');
+                    statGrad.addColorStop(0.54, 'rgba(255, 255, 255, 0.18)');
+                    statGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = statGrad;
+                    ctx.beginPath();
+                    ctx.moveTo(fixedX - beamW, cardY);
+                    ctx.lineTo(fixedX + beamW, cardY);
+                    ctx.lineTo(fixedX + beamW - slantOffset, cardY + cardH);
+                    ctx.lineTo(fixedX - beamW - slantOffset, cardY + cardH);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                }
+
                 ctx.restore();
 
                 // 6. Bague de lecture Pioneer CDJ Rouge (Remplissage 30s) ou bordure classique
@@ -4792,12 +4867,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
                     }
                 } else {
-                    // Contour bordure classique vert néon si option désactivée
+                    // Contour bordure vert néon Dropsiders intense avec halo lumineux
                     ctx.save();
                     ctx.beginPath();
                     ctx.roundRect(cardX, cardY, cardW, cardH, rad);
-                    ctx.strokeStyle = afficheBorderColor || 'rgba(57, 255, 20, 0.40)';
+                    ctx.strokeStyle = afficheBorderColor || '#00ff66';
                     ctx.lineWidth = 2.5;
+                    ctx.shadowColor = 'rgba(0, 255, 102, 0.60)';
+                    ctx.shadowBlur = 14;
                     ctx.stroke();
                     ctx.restore();
                 }
@@ -5818,7 +5895,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         const isBadgeTheme = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'AFFICHE'].includes(theme);
         const shouldAnimateBadge = isBadgeTheme && activeTab === 'REEL';
-        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || (theme === 'MUSIQUE' && (cdjPlayerRing || musicBgMotion)) || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying)) {
+        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying)) {
             let lastRender = 0;
             let isRendering = false;
             const loop = (timestamp: number) => {
