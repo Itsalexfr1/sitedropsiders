@@ -9302,32 +9302,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             </div>
 
-            {/* Boutons d'export direct de la slide Promo Outro (PNG + MP4) */}
+            {/* Bouton d'export direct de la slide Promo Outro (Uniquement Vidéo MP4 10s) */}
             <div className="p-3 bg-neon-red/10 border border-neon-red/30 rounded-2xl space-y-2 shadow-lg">
                 <div className="flex items-center justify-between">
                     <span className="text-[9.5px] font-black uppercase text-neon-red tracking-wider flex items-center gap-1.5">
                         🎬 Exporter Slide Promo Seule
                     </span>
-                    <span className="text-[8px] font-mono text-gray-400">
-                        {activeTab === 'REEL' ? 'Story (9:16)' : 'Post (1:1)'} • {promoOutroStyle === 'INSTAGRAM' ? 10 : (editorialPromoDuration || 4)}s
+                    <span className="text-[8px] font-mono text-[#00f0ff] font-bold">
+                        {activeTab === 'REEL' ? 'Story (9:16)' : 'Post (1:1)'} • 10.0s MP4
                     </span>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                    <button
-                        type="button"
-                        onClick={() => downloadPromoFormat(activeTab === 'REEL' ? 'REEL' : 'PUBLICATION')}
-                        disabled={isDownloading}
-                        className="py-2.5 px-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-40"
-                    >
-                        <Download className="w-3.5 h-3.5 text-neon-red" /> Image PNG
-                    </button>
+                <div>
                     <button
                         type="button"
                         onClick={() => exportPromoSlideVideo(activeTab === 'REEL' ? 'REEL' : 'PUBLICATION')}
                         disabled={isDownloading || isVideoRecording}
-                        className="py-2.5 px-2 bg-gradient-to-r from-neon-red to-orange-600 hover:from-red-600 hover:to-orange-500 text-white rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 shadow-md shadow-red-500/20 active:scale-95 disabled:opacity-40"
+                        className="w-full py-2.5 px-3 bg-gradient-to-r from-neon-red to-orange-600 hover:from-red-600 hover:to-orange-500 text-white rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 shadow-md shadow-red-500/20 active:scale-95 disabled:opacity-40"
                     >
-                        <Video className="w-3.5 h-3.5" /> {isVideoRecording ? 'Capture...' : (promoOutroStyle === 'INSTAGRAM' ? 'Vidéo MP4 (10s)' : 'Vidéo MP4')}
+                        <Video className="w-4 h-4 text-white" /> {isVideoRecording ? 'Capture...' : '🎬 Exporter Vidéo MP4 (10s)'}
                     </button>
                 </div>
             </div>
@@ -12792,47 +12784,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             </div>
 
-            {/* Section 2 : Slide Promo Outro (Image & Vidéo MP4) */}
+            {/* Section 2 : Slide Promo Outro (Uniquement Vidéo MP4 10s) */}
             <div className="space-y-1.5">
-                <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">🔥 Slide Promo Outro (PNG & MP4)</span>
+                <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">🔥 Slide Promo Outro (Uniquement Vidéo MP4 10s)</span>
                 <div className="grid grid-cols-2 gap-2">
-                    <button
-                        type="button"
-                        onClick={() => downloadPromoFormat('PUBLICATION')}
-                        disabled={isDownloading}
-                        className="py-2.5 px-3 bg-neon-red/10 hover:bg-neon-red/20 border border-neon-red/30 hover:border-neon-red text-neon-red rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                    >
-                        <Download className="w-3.5 h-3.5" /> PROMO POST (PNG)
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => downloadPromoFormat('REEL')}
-                        disabled={isDownloading}
-                        className="py-2.5 px-3 bg-neon-red/10 hover:bg-neon-red/20 border border-neon-red/30 hover:border-neon-red text-neon-red rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                    >
-                        <Download className="w-3.5 h-3.5" /> PROMO STORY (PNG)
-                    </button>
-                </div>
-                <div className="grid grid-cols-2 gap-2 pt-0.5">
                     <button
                         type="button"
                         onClick={() => exportPromoSlideVideo('PUBLICATION')}
                         disabled={isDownloading || isVideoRecording}
                         className="py-2.5 px-3 bg-gradient-to-r from-neon-red/20 to-orange-500/20 hover:from-neon-red/30 hover:to-orange-500/30 border border-neon-red/50 hover:border-neon-red text-white rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                        title="Télécharger la Slide Promo Outro seule en vidéo MP4 (Post Carré 1:1)"
+                        title="Télécharger la Slide Promo Outro seule en vidéo MP4 (Post Carré 1:1 • 10s)"
                     >
                         <Video className="w-3.5 h-3.5 text-neon-red" />
-                        {isVideoRecording ? 'CAPTURE...' : '🎬 PROMO MP4 POST'}
+                        {isVideoRecording ? 'CAPTURE...' : '🎬 PROMO MP4 POST (10s)'}
                     </button>
                     <button
                         type="button"
                         onClick={() => exportPromoSlideVideo('REEL')}
                         disabled={isDownloading || isVideoRecording}
                         className="py-2.5 px-3 bg-gradient-to-r from-neon-red/20 to-pink-500/20 hover:from-neon-red/30 hover:to-pink-500/30 border border-neon-red/50 hover:border-neon-red text-white rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                        title="Télécharger la Slide Promo Outro seule en vidéo MP4 (Format Story / Reel 9:16)"
+                        title="Télécharger la Slide Promo Outro seule en vidéo MP4 (Format Story / Reel 9:16 • 10s)"
                     >
                         <Video className="w-3.5 h-3.5 text-neon-red" />
-                        {isVideoRecording ? 'CAPTURE...' : '🎬 PROMO MP4 STORY'}
+                        {isVideoRecording ? 'CAPTURE...' : '🎬 PROMO MP4 STORY (10s)'}
                     </button>
                 </div>
             </div>
