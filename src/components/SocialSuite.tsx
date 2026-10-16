@@ -974,6 +974,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     });
     const isTransitioningRef = useRef<boolean>(false);
     const [isCarouselPromoActive, setIsCarouselPromoActive] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (isCarouselPromoActive && theme === 'MUSIQUE') {
+            stopPreviewPlayer();
+            setActiveAudioPreviewSrc(null);
+        }
+    }, [isCarouselPromoActive, theme]);
     const [promoCustomPhrase, setPromoCustomPhrase] = useState<string>('');
     const [promoCustomSubphrase, setPromoCustomSubphrase] = useState<string>('');
     const [promoOutroStyle, setPromoOutroStyle] = useState<'INSTAGRAM' | 'CLASSIC'>('INSTAGRAM');
@@ -1459,10 +1466,35 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const effectiveEditorialSlide = editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide;
             const effectiveTransitionProgress = transitionProgressRef.current !== null ? transitionProgressRef.current : transitionProgress;
 
-            // Image spécifique à la slide ou image de fond globale (dans JEU_DJ, la Slide 2 hérite automatiquement du fond de la Slide 1)
+            // Pour MUSIQUE slide >= 2 : récupérer la cover active du morceau pour l'arrière-plan
+            const isMusiqueTrackSlide = (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2);
+            const musiqueTrackIdx = isMusiqueTrackSlide ? Math.max(0, effectiveEditorialSlide - 2) : 0;
+            const musiqueActiveTrack = isMusiqueTrackSlide ? musicTracks[musiqueTrackIdx] : null;
+            const musiqueCoverUrl = musiqueActiveTrack?.cover || (musiqueTrackIdx === 0 ? afficheImage : '');
+            let musiqueCoverImg = (musiqueCoverUrl && musicCoverImgsRef.current[musiqueCoverUrl]) || (musiqueTrackIdx === 0 ? afficheImageRef.current : null);
+
+            if (isMusiqueTrackSlide && musiqueCoverUrl && !musiqueCoverImg) {
+                if (imageCacheRef.current[musiqueCoverUrl]) {
+                    musiqueCoverImg = imageCacheRef.current[musiqueCoverUrl];
+                } else {
+                    const imgObj = new Image();
+                    imgObj.crossOrigin = "anonymous";
+                    imgObj.onload = () => {
+                        imageCacheRef.current[musiqueCoverUrl] = imgObj;
+                        if (musicCoverImgsRef.current) musicCoverImgsRef.current[musiqueCoverUrl] = imgObj;
+                        generateImage();
+                    };
+                    imgObj.src = musiqueCoverUrl;
+                }
+            }
+
+            // Image spécifique à la slide ou image de fond globale
+            // Dans le thème MUSIQUE, pour les slides tracks (>= 2), la cover du morceau prend le dessus sur le fond uploadé pour la slide 1 (bgImage) !
             const activeSlideImgSrc = (theme === 'JEU_DJ' && effectiveEditorialSlide === 2 && (!editorialSlideImages[2] || editorialSlideImages[2] === djOriginalImage))
                 ? (editorialSlideImages[1] || bgImage)
-                : (editorialSlideImages[effectiveEditorialSlide] || bgImage);
+                : isMusiqueTrackSlide
+                    ? (editorialSlideImages[effectiveEditorialSlide] || (musiqueCoverUrl ? musiqueCoverUrl : bgImage))
+                    : (editorialSlideImages[effectiveEditorialSlide] || bgImage);
             if (activeSlideImgSrc) {
                 if (imageCacheRef.current[activeSlideImgSrc]) {
                     img = imageCacheRef.current[activeSlideImgSrc];
@@ -1518,14 +1550,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            // Pour MUSIQUE slide >= 2 : récupérer la cover active si aucun fond personnalisé n'a été chargé
-            const isMusiqueTrackSlide = (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2);
-            const musiqueTrackIdx = isMusiqueTrackSlide ? Math.max(0, effectiveEditorialSlide - 2) : 0;
-            const musiqueActiveTrack = isMusiqueTrackSlide ? musicTracks[musiqueTrackIdx] : null;
-            const musiqueCoverUrl = musiqueActiveTrack?.cover || (musiqueTrackIdx === 0 ? afficheImage : '');
-            const musiqueCoverImg = (musiqueCoverUrl && musicCoverImgsRef.current[musiqueCoverUrl]) || (musiqueTrackIdx === 0 ? afficheImageRef.current : null);
-
-            let effectiveImg = img || (isMusiqueTrackSlide ? musiqueCoverImg : null);
+            // Dans MUSIQUE slide >= 2, la cover du morceau prend le dessus sur le fond uploadé pour la slide 1 (bgImage) !
+            let effectiveImg = isMusiqueTrackSlide
+                ? (editorialSlideImages[effectiveEditorialSlide] ? img : (musiqueCoverImg || img))
+                : img;
             if (theme === 'JEU_DJ') {
                 if (isCurrentSlideSilhouette) {
                     effectiveImg = djCutoutImgObj || img || null;
@@ -1685,7 +1713,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            if (bgVideo) {
+            const shouldUseBgVideo = bgVideo && (!isMusiqueTrackSlide || (!musiqueCoverImg && !musiqueCoverUrl && !editorialSlideImages[effectiveEditorialSlide]));
+            if (shouldUseBgVideo) {
                 const baseScale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
                 const scale = baseScale * bgAnimScale;
                 const vw = bgVideo.videoWidth * scale;
@@ -6758,13 +6787,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             try {
                 // Construire la liste de segments audio avec leur offset temporel (en secondes)
-                type AudioSegment = { url: string; startOffset: number; sourceOffset: number };
+                type AudioSegment = { url: string; startOffset: number; sourceOffset: number; duration?: number };
                 const audioSegments: AudioSegment[] = [];
                 const transitionDurationSec = getTransitionDuration(slideTransition) / 1000;
 
                 if (theme === 'MUSIQUE' && hasAnyMusicAudio) {
                     if (combinedMode === 'EDITORIAL') {
-                        // Mode carrousel MUSIQUE : chaque slide a son extrait
+                        // Mode carrousel MUSIQUE : chaque slide a son extrait (durée slideDurationSec)
                         const slideDurationSec = editorialSlide1Duration;
                         let cursor = 0;
                         const allSlides = [1, ...musicTracks.map((_, i) => i + 2)];
@@ -6777,9 +6806,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const srcOffset = s === 1
                                 ? (musicIntroAudio ? (musicIntroAudioStartTime || 0) : (musicTracks[0]?.audioStartTime || 0))
                                 : (musicTracks[s - 2]?.audioStartTime || 0);
-                            if (audioUrl) audioSegments.push({ url: audioUrl, startOffset: cursor, sourceOffset: srcOffset });
+                            if (audioUrl) {
+                                // Chaque extrait audio joue pendant la durée de la slide et s'arrête avant la slide promo outro
+                                audioSegments.push({
+                                    url: audioUrl,
+                                    startOffset: cursor,
+                                    sourceOffset: srcOffset,
+                                    duration: slideDurationSec
+                                });
+                            }
                             cursor += slideDurationSec;
                         }
+                    } else if (combinedMode === 'PROMO_ONLY' || isCarouselPromoActive) {
+                        // Strictement aucun son pour la slide promo dans MUSIQUE
                     } else {
                         // Mode slide unique MUSIQUE (30s)
                         const currentTrIdx = Math.max(0, editorialSlide - 2);
@@ -6789,7 +6828,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const srcOffset = editorialSlide === 1
                             ? (musicIntroAudio ? (musicIntroAudioStartTime || 0) : (musicTracks[0]?.audioStartTime || 0))
                             : (musicTracks[currentTrIdx]?.audioStartTime || 0);
-                        if (audioUrl) audioSegments.push({ url: audioUrl, startOffset: 0, sourceOffset: srcOffset });
+                        if (audioUrl) audioSegments.push({ url: audioUrl, startOffset: 0, sourceOffset: srcOffset, duration: 30 });
                     }
                 }
 
@@ -6812,7 +6851,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         src.connect(gain);
                         gain.connect(offCtx.destination);
                         const offset = Math.min(Math.max(0, seg.sourceOffset), Math.max(0, buf.duration - 0.05));
-                        src.start(t0, offset, totalSec - t0);
+                        const segDur = seg.duration ? Math.min(seg.duration, Math.max(0, totalSec - t0)) : (totalSec - t0);
+                        src.start(t0, offset, segDur);
                     }
 
                     const renderedBuffer = await offCtx.startRendering();
@@ -6851,7 +6891,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // ── PHASE 2b : EXTRACTION AUDIO DEPUIS bgVideo (si pas de thème MUSIQUE) ────
-            if (!offlineWavBlob && bgVideoBlob) {
+            if (!offlineWavBlob && bgVideoBlob && !(theme === 'MUSIQUE' && (isCarouselPromoActive || combinedMode === 'PROMO_ONLY'))) {
                 console.log('[Audio] Extraction haute-fidélité de la piste audio de bgVideo via Web Audio API...');
                 try {
                     offlineWavBlob = await extractAudioFromBlob(bgVideoBlob, totalDuration);
@@ -7090,6 +7130,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // 2. Transition vers le visuel PROMO outro à la fin du Reel (composite fluide)
+            if (isMusicTheme) {
+                stopMusicSegment();
+            }
             const promoOffsetSec = await renderTransition(transitionDuration, undefined, () => {
                 promoOutroOverrideRef.current = true;
                 animStartTimeRef.current = Date.now();
