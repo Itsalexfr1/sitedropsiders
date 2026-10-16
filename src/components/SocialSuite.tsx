@@ -345,7 +345,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [extraEditorialSlides, setExtraEditorialSlides] = useState<string[]>([]); // Slides 3, 4, 5... (texte de chaque slide)
     const [skipEditorialSlide2, setSkipEditorialSlide2] = useState<boolean>(false); // Masquer Slide 2 dans l'export Reel (Slide 1 + Promo uniquement)
     const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(5); // Durée Slide 1 (en secondes, min 2s, max 15s)
-    const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(10); // Durée Promo (en secondes, min 2s, max 10s)
+    const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(7); // Durée Promo (en secondes, fixée à 7s pour l'animation Instagram)
     const [exportFps, setExportFps] = useState<number>(30); // Fluidité vidéo : 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
     const [promoCategory, setPromoCategory] = useState<string>(() => {
         if (initialTheme && initialTheme !== 'PROMO') return initialTheme;
@@ -1208,7 +1208,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!isPromoAnimPlaying) return;
         const timer = setTimeout(() => {
             setIsPromoAnimPlaying(false);
-        }, 10500);
+        }, 7500);
         return () => clearTimeout(timer);
     }, [isPromoAnimPlaying, promoAnimKey]);
 
@@ -2563,36 +2563,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // Animation Timeline pour la Slide Promo Instagram :
                 const isInstagramStyle = promoOutroStyle === 'INSTAGRAM';
                 const isStaticPreview = animElapsed >= 90.0;
-                const tAnim = isStaticPreview ? 10.0 : animElapsed;
+                const tAnim = isStaticPreview ? 7.0 : animElapsed;
 
-                // Animation Timeline : Apparition à 1.5s, Action follow à 3.4s, Disparition à 6.0s et retour du texte
+                // Animation Timeline (7.0s au total) : Apparition à 1.0s, Action follow à 2.5s, Descente à 4.0s et texte remis jusqu'à 7.0s
                 let shiftProgress = 0.0;
                 let cardProgress = 0.0;
                 if (isInstagramStyle) {
                     if (isStaticPreview) {
                         shiftProgress = 1.0;
                         cardProgress = 1.0;
-                    } else if (tAnim < 1.5) {
+                    } else if (tAnim < 1.0) {
                         shiftProgress = 0.0;
                         cardProgress = 0.0;
-                    } else if (tAnim < 2.2) {
-                        // Entrée à 1.5s : le texte monte et la carte Instagram glisse depuis le bas
-                        const p = (tAnim - 1.5) / 0.7;
+                    } else if (tAnim < 1.6) {
+                        // Entrée à 1.0s : le texte monte et la carte Instagram glisse depuis le bas
+                        const p = (tAnim - 1.0) / 0.6;
                         const ease = 1 - Math.pow(1 - p, 3);
                         shiftProgress = ease;
                         cardProgress = ease;
-                    } else if (tAnim < 6.0) {
-                        // Affichage actif de 2.2s à 6.0s
+                    } else if (tAnim < 4.0) {
+                        // Affichage actif de 1.6s à 4.0s
                         shiftProgress = 1.0;
                         cardProgress = 1.0;
-                    } else if (tAnim < 6.7) {
-                        // À 6.0s : la carte Instagram redescend comme l'entrée (sans fondu) et le texte redescend normalement
-                        const p = (tAnim - 6.0) / 0.7;
+                    } else if (tAnim < 4.6) {
+                        // À 4.0s : la carte Instagram redescend comme l'entrée (sans fondu) et le texte redescend normalement
+                        const p = (tAnim - 4.0) / 0.6;
                         const ease = 1 - Math.pow(1 - p, 3);
                         shiftProgress = 1.0 - ease;
                         cardProgress = 1.0 - ease;
                     } else {
-                        // De 6.7s à 10.0s : texte remis normalement au centre, carte invisible
+                        // De 4.6s à 7.0s : texte remis normalement au centre, carte invisible
                         shiftProgress = 0.0;
                         cardProgress = 0.0;
                     }
@@ -2805,7 +2805,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
 
                         // 3. Stats Réelles Officielles (1 440 publications • 4 694 -> 4 695 abonnés • 668 abonnements)
-                        const isFollowed = isStaticPreview || tAnim >= 3.4;
+                        const isFollowed = isStaticPreview || tAnim >= 2.5;
                         const followersCountStr = isFollowed ? '4 695' : '4 694';
 
                         const statsStartX = cardX + (isReel ? 220 : 200);
@@ -2823,7 +2823,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'alphabetic';
                             ctx.font = `800 ${isReel ? 30 : 26}px -apple-system, "Inter", sans-serif`;
-                            ctx.fillStyle = (idx === 1 && isFollowed && !isStaticPreview && tAnim < 5.0) ? '#00f0ff' : '#ffffff';
+                            ctx.fillStyle = (idx === 1 && isFollowed && !isStaticPreview && tAnim < 3.8) ? '#00f0ff' : '#ffffff';
                             ctx.fillText(st.val, sx, sy);
 
                             ctx.font = `500 ${isReel ? 16 : 14}px -apple-system, "Inter", sans-serif`;
@@ -2882,11 +2882,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const btnGap = 16;
                         const btnW = (cardW - 64 - btnGap) / 2;
 
-                        // Bouton 1 : Suivre -> Suivi (avec appui / clic animé à 3.2s - 3.4s)
+                        // Bouton 1 : Suivre -> Suivi (avec appui / clic animé à 2.3s - 2.5s)
                         const btn1X = infoX;
                         const btn1CenterX = btn1X + btnW / 2;
                         const btn1CenterY = btnRowY + btnH / 2;
-                        const isPressingBtn = (!isStaticPreview && tAnim >= 3.2 && tAnim < 3.4);
+                        const isPressingBtn = (!isStaticPreview && tAnim >= 2.3 && tAnim < 2.5);
                         const btnScale = isPressingBtn ? 0.94 : 1.0;
 
                         ctx.save();
@@ -2926,9 +2926,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                         ctx.restore();
 
-                        // Onde de choc (shockwave) à 3.4s
-                        if (!isStaticPreview && tAnim >= 3.4 && tAnim < 4.0) {
-                            const waveP = (tAnim - 3.4) / 0.6;
+                        // Onde de choc (shockwave) à 2.5s
+                        if (!isStaticPreview && tAnim >= 2.5 && tAnim < 3.1) {
+                            const waveP = (tAnim - 2.5) / 0.6;
                             const waveR = 25 + waveP * 110;
                             const waveA = (1 - waveP) * 0.7;
                             ctx.save();
@@ -2956,26 +2956,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillStyle = '#ffffff';
                         ctx.fillText('Message', btn2X + btnW / 2, btnRowY + btnH / 2);
 
-                        // 6. Curseur tactile animé (Pointer) entre 2.6s et 3.7s
-                        if (!isStaticPreview && tAnim >= 2.6 && tAnim < 3.7) {
+                        // 6. Curseur tactile animé (Pointer) entre 1.8s et 2.8s
+                        if (!isStaticPreview && tAnim >= 1.8 && tAnim < 2.8) {
                             let pX = btn1CenterX;
                             let pY = btn1CenterY;
                             let pScale = 1.0;
                             let pAlpha = 1.0;
 
-                            if (tAnim < 3.2) {
-                                const p = (tAnim - 2.6) / 0.6;
+                            if (tAnim < 2.3) {
+                                const p = (tAnim - 1.8) / 0.5;
                                 const ease = 1 - Math.pow(1 - p, 3);
                                 pX = btn1CenterX + (1 - ease) * 90;
                                 pY = btn1CenterY + (1 - ease) * 120;
                                 pAlpha = Math.min(1, p * 2);
-                            } else if (tAnim < 3.4) {
+                            } else if (tAnim < 2.5) {
                                 pX = btn1CenterX;
                                 pY = btn1CenterY;
                                 pScale = 0.85;
                                 pAlpha = 1.0;
                             } else {
-                                const p = (tAnim - 3.4) / 0.3;
+                                const p = (tAnim - 2.5) / 0.3;
                                 pX = btn1CenterX;
                                 pY = btn1CenterY;
                                 pScale = 1.0;
@@ -6041,7 +6041,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const currentTransitionDuration = getTransitionDuration(slideTransition);
         let totalDuration = 0;
         if (combinedMode === 'PROMO_ONLY') {
-            totalDuration = 10000; // Verrouillé strictement à 10.0s pour l'animation Instagram
+            totalDuration = 7000; // Verrouillé strictement à 7.0s pour l'animation Instagram
         } else if (combinedMode === 'EDITORIAL') {
             const isMusicTheme = (theme === 'MUSIQUE');
             const shouldSkipSlide2 = skipEditorialSlide2;
@@ -6052,12 +6052,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
             const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
-            const promoDuration = 10000; // Verrouillé strictement à 10.0s pour l'animation Instagram
+            const promoDuration = 7000; // Verrouillé strictement à 7.0s pour l'animation Instagram
             const transitionDuration = currentTransitionDuration;
             const slideDuration = Math.round(editorialSlide1Duration * 1000);
             totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
         } else if (combinedMode === 'PLANNING') {
-            const promoDuration = 10000; // Verrouillé strictement à 10.0s pour l'animation Instagram
+            const promoDuration = 7000; // Verrouillé strictement à 7.0s pour l'animation Instagram
             const transitionDuration = currentTransitionDuration;
             const slideDuration = 5200;
             totalDuration = (2 * slideDuration) + (2 * transitionDuration) + promoDuration;
@@ -6870,7 +6870,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 : (shouldSkipSlide2
                     ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
-            const promoDuration = 10000; // Verrouillé strictement à 10.0s pour l'animation Instagram
+            const promoDuration = 7000; // Verrouillé strictement à 7.0s pour l'animation Instagram
             const transitionDuration = currentTransitionDuration;
             const slideDuration = Math.round(editorialSlide1Duration * 1000);
 
@@ -8938,14 +8938,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </button>
             </div>
 
-            {/* Style de la Slide Promo (Verrouillé Animation Instagram 10s) */}
+            {/* Style de la Slide Promo (Verrouillé Animation Instagram 7s) */}
             <div className="p-3.5 bg-gradient-to-r from-neon-red/10 via-[#ff007f]/10 to-[#0095f6]/10 border border-[#0095f6]/40 rounded-2xl space-y-2.5 shadow-sm">
                 <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase text-white flex items-center gap-1.5">
                         📱 Slide Promo : Profil Instagram Dropsiders 🔒
                     </span>
                     <span className="text-[8.5px] px-2 py-0.5 rounded-full font-bold bg-[#0095f6]/20 border border-[#0095f6]/40 text-[#0095f6] flex items-center gap-1">
-                        🔒 Fixe 10.0s
+                        🔒 Fixe 7.0s
                     </span>
                 </div>
 
@@ -8954,11 +8954,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <Instagram className="w-4 h-4 text-[#ff007f]" />
                         <div>
                             <p className="text-[9.5px] font-black text-white uppercase">Animation Officielle Instagram Follow</p>
-                            <p className="text-[8px] text-gray-400">Verrouillée à 10s • @dropsiders.fr</p>
+                            <p className="text-[8px] text-gray-400">Verrouillée à 7s • @dropsiders.fr</p>
                         </div>
                     </div>
                     <span className="text-[11px] font-mono font-black text-[#00f0ff] bg-cyan-500/10 px-2 py-1 rounded-lg border border-cyan-500/30">
-                        10.0s
+                        7.0s
                     </span>
                 </div>
 
@@ -8969,10 +8969,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#0095f6]/25 to-[#bc1888]/25 hover:from-[#0095f6]/35 hover:to-[#bc1888]/35 border border-[#0095f6]/50 text-white text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-blue-500/10"
                     >
                         <Play className={`w-3.5 h-3.5 text-[#0095f6] ${isPromoAnimPlaying ? 'animate-spin' : ''}`} />
-                        {isPromoAnimPlaying ? '⏱️ Lecture animation 10s en direct...' : '▶️ Tester l\'animation 10s dans l\'aperçu'}
+                        {isPromoAnimPlaying ? '⏱️ Lecture animation 7s en direct...' : '▶️ Tester l\'animation 7s dans l\'aperçu'}
                     </button>
                     <div className="p-2 bg-black/50 rounded-lg border border-white/5 text-[8px] text-gray-400 font-medium leading-relaxed">
-                        <span className="text-[#0095f6] font-bold">⏱️ Séquence exportée 10s :</span> 0s à 1.5s (Texte centré) ➔ 1.5s (Montée & Carte Insta) ➔ 3.4s (Clic Suivre ➔ Suivi) ➔ 6s (Descente Insta sans fondu & Texte remis normalement)
+                        <span className="text-[#0095f6] font-bold">⏱️ Séquence exportée 7s :</span> 0s à 1s (Texte centré) ➔ 1s à 4s (Carte Insta & Clic Suivre) ➔ 4s à 7s (Descente Insta sans fondu & Texte remis normalement)
                     </div>
                 </div>
             </div>
@@ -9302,14 +9302,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             </div>
 
-            {/* Bouton d'export direct de la slide Promo Outro (Uniquement Vidéo MP4 10s) */}
+            {/* Bouton d'export direct de la slide Promo Outro (Uniquement Vidéo MP4 7s) */}
             <div className="p-3 bg-neon-red/10 border border-neon-red/30 rounded-2xl space-y-2 shadow-lg">
                 <div className="flex items-center justify-between">
                     <span className="text-[9.5px] font-black uppercase text-neon-red tracking-wider flex items-center gap-1.5">
                         🎬 Exporter Slide Promo Seule
                     </span>
                     <span className="text-[8px] font-mono text-[#00f0ff] font-bold">
-                        {activeTab === 'REEL' ? 'Story (9:16)' : 'Post (1:1)'} • 10.0s MP4
+                        {activeTab === 'REEL' ? 'Story (9:16)' : 'Post (1:1)'} • 7.0s MP4
                     </span>
                 </div>
                 <div>
@@ -9319,7 +9319,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         disabled={isDownloading || isVideoRecording}
                         className="w-full py-2.5 px-3 bg-gradient-to-r from-neon-red to-orange-600 hover:from-red-600 hover:to-orange-500 text-white rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 shadow-md shadow-red-500/20 active:scale-95 disabled:opacity-40"
                     >
-                        <Video className="w-4 h-4 text-white" /> {isVideoRecording ? 'Capture...' : '🎬 Exporter Vidéo MP4 (10s)'}
+                        <Video className="w-4 h-4 text-white" /> {isVideoRecording ? 'Capture...' : '🎬 Exporter Vidéo MP4 (7s)'}
                     </button>
                 </div>
             </div>
@@ -12784,29 +12784,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             </div>
 
-            {/* Section 2 : Slide Promo Outro (Uniquement Vidéo MP4 10s) */}
+            {/* Section 2 : Slide Promo Outro (Uniquement Vidéo MP4 7s) */}
             <div className="space-y-1.5">
-                <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">🔥 Slide Promo Outro (Uniquement Vidéo MP4 10s)</span>
+                <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">🔥 Slide Promo Outro (Uniquement Vidéo MP4 7s)</span>
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         type="button"
                         onClick={() => exportPromoSlideVideo('PUBLICATION')}
                         disabled={isDownloading || isVideoRecording}
                         className="py-2.5 px-3 bg-gradient-to-r from-neon-red/20 to-orange-500/20 hover:from-neon-red/30 hover:to-orange-500/30 border border-neon-red/50 hover:border-neon-red text-white rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                        title="Télécharger la Slide Promo Outro seule en vidéo MP4 (Post Carré 1:1 • 10s)"
+                        title="Télécharger la Slide Promo Outro seule en vidéo MP4 (Post Carré 1:1 • 7s)"
                     >
                         <Video className="w-3.5 h-3.5 text-neon-red" />
-                        {isVideoRecording ? 'CAPTURE...' : '🎬 PROMO MP4 POST (10s)'}
+                        {isVideoRecording ? 'CAPTURE...' : '🎬 PROMO MP4 POST (7s)'}
                     </button>
                     <button
                         type="button"
                         onClick={() => exportPromoSlideVideo('REEL')}
                         disabled={isDownloading || isVideoRecording}
                         className="py-2.5 px-3 bg-gradient-to-r from-neon-red/20 to-pink-500/20 hover:from-neon-red/30 hover:to-pink-500/30 border border-neon-red/50 hover:border-neon-red text-white rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                        title="Télécharger la Slide Promo Outro seule en vidéo MP4 (Format Story / Reel 9:16 • 10s)"
+                        title="Télécharger la Slide Promo Outro seule en vidéo MP4 (Format Story / Reel 9:16 • 7s)"
                     >
                         <Video className="w-3.5 h-3.5 text-neon-red" />
-                        {isVideoRecording ? 'CAPTURE...' : '🎬 PROMO MP4 STORY (10s)'}
+                        {isVideoRecording ? 'CAPTURE...' : '🎬 PROMO MP4 STORY (7s)'}
                     </button>
                 </div>
             </div>

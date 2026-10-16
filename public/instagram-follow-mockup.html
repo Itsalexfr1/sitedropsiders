@@ -774,49 +774,49 @@
             const startTime = Date.now();
             elapsedInterval = setInterval(() => {
                 const diff = (Date.now() - startTime) / 1000;
-                currentSeconds = Math.min(diff, 10.0);
+                currentSeconds = Math.min(diff, 7.0);
                 let stateText = '(Texte centré)';
-                if (currentSeconds >= 1.5 && currentSeconds < 6.0) {
+                if (currentSeconds >= 1.0 && currentSeconds < 4.0) {
                     stateText = '(Overlay Insta affiché & Texte monté)';
-                } else if (currentSeconds >= 6.0) {
+                } else if (currentSeconds >= 4.0) {
                     stateText = '(Insta disparu • Texte remis normalement)';
                 }
-                timerBadge.innerText = `⏱️ ${currentSeconds.toFixed(1)}s / 10.0s ${stateText}`;
+                timerBadge.innerText = `⏱️ ${currentSeconds.toFixed(1)}s / 7.0s ${stateText}`;
                 
-                if (currentSeconds >= 10.0) {
+                if (currentSeconds >= 7.0) {
                     clearInterval(elapsedInterval);
                 }
             }, 100);
 
             // ==========================================
-            // TIMELINE EXACTE (10s au total) :
-            // 0.0s -> 1.5s : Le texte promo est bien visible au centre
-            // 1.5s : LE TEXTE MONTE AU-DESSUS + L'OVERLAY APPARAÎT (GLISSE DEPUIS LE BAS)
-            // 2.6s : Le curseur arrive sur "Suivre"
-            // 3.4s : Clic & Transformation en "Suivi ✓"
-            // 6.0s : L'OVERLAY REDESCEND HORS ÉCRAN SANS FONDU ET LE TEXTE REDESCEND NORMALEMENT
-            // 6.0s -> 10.0s : Texte de base centré jusqu'à la fin
+            // TIMELINE EXACTE (7s au total) :
+            // 0.0s -> 1.0s : Le texte promo est bien visible au centre
+            // 1.0s : LE TEXTE MONTE AU-DESSUS + L'OVERLAY APPARAÎT (GLISSE DEPUIS LE BAS)
+            // 1.8s : Le curseur arrive sur "Suivre"
+            // 2.5s : Clic & Transformation en "Suivi ✓"
+            // 4.0s : L'OVERLAY REDESCEND HORS ÉCRAN SANS FONDU ET LE TEXTE REDESCEND NORMALEMENT
+            // 4.0s -> 7.0s : Texte de base centré jusqu'à la fin
             // ==========================================
 
-            // À 1.5 SECONDES : LE TEXTE DU SLIDE MONTE & L'OVERLAY ARRIVE
+            // À 1.0 SECONDE : LE TEXTE DU SLIDE MONTE & L'OVERLAY ARRIVE
             setTimeout(() => {
                 promoSlideContent.classList.add('shifted-up');
                 instaOverlay.classList.add('visible');
-            }, 1500);
+            }, 1000);
 
-            // À 2.6 SECONDES : Curseur entre en douceur
+            // À 1.8 SECONDES : Curseur entre en douceur
             setTimeout(() => {
                 const btnRect = followBtn.getBoundingClientRect();
                 const viewRect = viewport.getBoundingClientRect();
                 const targetX = btnRect.left - viewRect.left + btnRect.width / 2;
                 const targetY = btnRect.top - viewRect.top + btnRect.height / 2;
 
-                pointer.style.transition = 'all 0.65s cubic-bezier(0.2, 0.9, 0.3, 1)';
+                pointer.style.transition = 'all 0.5s cubic-bezier(0.2, 0.9, 0.3, 1)';
                 pointer.style.opacity = '1';
                 pointer.style.transform = `translate(${targetX - 8}px, ${targetY - 5}px) scale(1)`;
-            }, 2600);
+            }, 1800);
 
-            // À 3.25 SECONDES : Appui / Clic sur "Suivre"
+            // À 2.3 SECONDES : Appui / Pression sur "Suivre"
             setTimeout(() => {
                 const btnRect = followBtn.getBoundingClientRect();
                 const viewRect = viewport.getBoundingClientRect();
@@ -836,9 +836,9 @@
                 shockwave.style.animation = 'none';
                 void shockwave.offsetWidth;
                 shockwave.style.animation = 'waveBurst 0.5s ease-out forwards';
-            }, 3250);
+            }, 2300);
 
-            // À 3.4 SECONDES : "Suivi" + Particules
+            // À 2.5 SECONDES : "Suivi" + Particules
             setTimeout(() => {
                 const btnRect = followBtn.getBoundingClientRect();
                 const viewRect = viewport.getBoundingClientRect();
@@ -867,20 +867,20 @@
                 const shockX = btnRect.left - cardRect.left + btnRect.width / 2;
                 const shockY = btnRect.top - cardRect.top + btnRect.height / 2;
                 spawnCardParticles(shockX, shockY);
-            }, 3400);
+            }, 2500);
 
-            // À 4.0 SECONDES : Disparition du curseur
+            // À 2.8 SECONDES : Disparition du curseur
             setTimeout(() => {
-                pointer.style.transition = 'all 0.5s ease-in';
+                pointer.style.transition = 'all 0.4s ease-in';
                 pointer.style.opacity = '0';
                 pointer.style.transform = 'translate(190px, 580px) scale(0.9)';
-            }, 4000);
+            }, 2800);
 
-            // À 6.0 SECONDES : DISPARITION DU BLOC INSTA SANS FONDU & RETOUR DU TEXTE DE BASE NORMALEMENT
+            // À 4.0 SECONDES : DISPARITION DU BLOC INSTA SANS FONDU & RETOUR DU TEXTE DE BASE NORMALEMENT
             setTimeout(() => {
                 promoSlideContent.classList.remove('shifted-up');
                 instaOverlay.classList.remove('visible');
-            }, 6000);
+            }, 4000);
         }
 
         window.addEventListener('load', () => {
