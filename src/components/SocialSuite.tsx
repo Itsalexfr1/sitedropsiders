@@ -10877,17 +10877,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </button>
                     </div>
 
-                    {/* Téléchargement direct de l'affiche seule */}
-                    <div className="pt-2 border-t border-white/5">
-                        <button
-                            type="button"
-                            onClick={() => downloadAfficheSlide(activeTab)}
-                            disabled={isDownloading}
-                            className="w-full py-2.5 bg-gradient-to-r from-[#ff007f] to-rose-600 hover:from-[#ff1a8c] hover:to-rose-500 text-white font-black text-[9.5px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-40"
-                        >
-                            <Download className="w-3.5 h-3.5" /> Télécharger Slide Affiche ({activeTab === 'REEL' ? 'Story' : 'Post'})
-                        </button>
-                    </div>
                 </div>
 
                 {/* 2. IMAGE DE FOND (SCÈNE / FESTIVAL / WAREHOUSE) */}
@@ -10916,14 +10905,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         className="w-full py-2 bg-white/5 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[9px] font-black uppercase hover:border-white/30 hover:text-white transition-all"
                     >
                         <LinkIcon className="w-3.5 h-3.5 text-neon-cyan" /> Télécharger via Lien (URL)
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => downloadBackgroundVisual(activeTab)}
-                        disabled={isDownloading}
-                        className="w-full py-2 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white hover:text-neon-cyan flex items-center justify-center gap-1.5 transition-all"
-                    >
-                        <Download className="w-3.5 h-3.5 text-neon-cyan" /> Exporter le Fond Visuel (PNG)
                     </button>
                     {theme !== 'MAP' && bgAnimationControl}
                 </div>
@@ -15593,13 +15574,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {sidebarStep === 'visual' && (
                             <div className="space-y-4 animate-in fade-in duration-150">
                                 {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'PLANNING' && agendaSlide >= 3)) ? (
-                                    <>
-                                        {afficheEditor}
-                                        {/* Export Visuel Carrousel / Slide */}
-                                        <div className="pt-2 border-t border-white/10 space-y-2">
-                                            {quickCarouselDownloadBar}
-                                        </div>
-                                    </>
+                                    afficheEditor
                                 ) : (
                                     <div className="space-y-3">
                                         {/* Cover pour MUSIQUE (Slide 1 Annonce ou Slide 2+ Morceaux) */}
@@ -15708,21 +15683,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                                         {/* Export du fond visuel + Option pour animer le fond */}
                                         <div className="pt-2 border-t border-white/10 space-y-2">
-                                            <button
-                                                type="button"
-                                                onClick={() => downloadBackgroundVisual(activeTab)}
-                                                disabled={isDownloading}
-                                                className="w-full py-2.5 bg-white/5 border border-white/10 hover:border-white/30 rounded-xl text-[9px] font-black uppercase text-white hover:text-neon-cyan flex items-center justify-center gap-2 transition-all group shadow-sm"
-                                                title="Exporter l'image de fond seule sans texte"
-                                            >
-                                                <Download className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
-                                                Exporter le fond visuel (PNG)
-                                            </button>
                                             {theme !== 'MAP' && bgAnimationControl}
                                         </div>
-
-                                        {/* Export Carrousel rapide dans Visuel */}
-                                        {quickCarouselDownloadBar}
                                     </div>
                                 )}
 
@@ -16763,20 +16725,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     </div>
                                                 </div>
                                             )}
-                                            <button
-                                                type="button"
-                                                onClick={() => downloadBackgroundVisual(activeTab)}
-                                                disabled={isDownloading}
-                                                className="w-full py-3.5 bg-white/5 border border-white/10 hover:border-white/30 rounded-2xl text-[10px] font-black uppercase text-white hover:text-neon-cyan flex items-center justify-center gap-2 transition-all shadow-sm"
-                                            >
-                                                <Download className="w-4 h-4 text-neon-cyan" /> Exporter le fond visuel (PNG)
-                                            </button>
                                             {theme !== 'MAP' && bgAnimationControl}
                                             {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'PLANNING' && agendaSlide >= 3)) && afficheEditor}
                                             {theme === 'MUSIQUE' && (editorialSlide === 1 ? musicSlide1VisualEditor : musicCoverEditor)}
                                             {(theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) && spotlightVisualEditor}
                                             {slideVisualEditor}
-                                            {quickCarouselDownloadBar}
                                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                         </div>
                                     </div>
