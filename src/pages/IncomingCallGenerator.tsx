@@ -17,7 +17,15 @@ import {
     Check,
     Eye,
     ChevronLeft,
-    Loader2
+    Loader2,
+    Mic,
+    MicOff,
+    Volume2,
+    Grid,
+    UserPlus,
+    Activity,
+    Vibrate,
+    User
 } from 'lucide-react';
 import { toPng, toCanvas, toBlob } from 'html-to-image';
 import { ExportSuccessModal } from '../components/ExportSuccessModal';
@@ -45,6 +53,31 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
     const [readyUrl, setReadyUrl] = useState<string>('');
     const [readyFilename, setReadyFilename] = useState('');
 
+    // Nouvelles fonctionnalités ultra-réalistes Apple iPhone :
+    const [showDynamicIsland, setShowDynamicIsland] = useState(true);
+    const [dynamicIslandExpanded, setDynamicIslandExpanded] = useState(true);
+    const [showHapticRipples, setShowHapticRipples] = useState(true);
+    const [isPhoneVibrating, setIsPhoneVibrating] = useState(true);
+    const [callState, setCallState] = useState<'incoming' | 'connected'>('incoming');
+    const [contactAvatar, setContactAvatar] = useState<string | null>(null);
+    const [isMuted, setIsMuted] = useState(false);
+    const [isSpeaker, setIsSpeaker] = useState(false);
+    const [callSeconds, setCallSeconds] = useState(4);
+
+    useEffect(() => {
+        if (callState !== 'connected') return;
+        const interval = setInterval(() => {
+            setCallSeconds(prev => prev + 1);
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [callState]);
+
+    const formatCallTime = (totalSecs: number) => {
+        const mins = Math.floor(totalSecs / 60);
+        const secs = totalSecs % 60;
+        return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    };
+
     useEffect(() => {
         return () => {
             if (readyUrl) URL.revokeObjectURL(readyUrl);
@@ -53,6 +86,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
 
     const previewRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const avatarInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -212,7 +246,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 isolate-dark">
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -272,6 +306,73 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                             </div>
                         </div>
 
+                        {/* Étape d'appel : Entrant vs En communication */}
+                        <div className="space-y-4">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                <Phone className="w-3 h-3 text-[#4CD964]" /> Étape de l'Appel
+                            </label>
+                            <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10">
+                                <button 
+                                    onClick={() => setCallState('incoming')}
+                                    className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all ${callState === 'incoming' ? 'bg-[#4CD964] text-black font-black shadow-[0_0_15px_rgba(76,217,100,0.35)]' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    Appel Entrant
+                                </button>
+                                <button 
+                                    onClick={() => setCallState('connected')}
+                                    className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all ${callState === 'connected' ? 'bg-[#4CD964] text-black font-black shadow-[0_0_15px_rgba(76,217,100,0.35)]' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    Décroché (00:04)
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Effets Apple iOS Réalistes */}
+                        <div className="space-y-3 bg-white/5 border border-white/10 p-4 rounded-2xl">
+                            <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest flex items-center gap-2">
+                                <Sparkles className="w-3.5 h-3.5 text-neon-cyan" /> Effets Apple iOS Réalistes
+                            </label>
+
+                            {/* Toggle Dynamic Island */}
+                            <div className="flex items-center justify-between py-1">
+                                <span className="text-[11px] text-gray-300 font-medium flex items-center gap-2">
+                                    <Activity className="w-3.5 h-3.5 text-neon-cyan" /> Dynamic Island (Waveform)
+                                </span>
+                                <button 
+                                    onClick={() => setShowDynamicIsland(!showDynamicIsland)}
+                                    className={`w-11 h-6 rounded-full transition-colors relative p-0.5 ${showDynamicIsland ? 'bg-[#34C759]' : 'bg-white/10'}`}
+                                >
+                                    <div className={`w-5 h-5 rounded-full bg-white transition-transform ${showDynamicIsland ? 'translate-x-5' : 'translate-x-0'}`} />
+                                </button>
+                            </div>
+
+                            {/* Toggle Ondes Haptiques Radar */}
+                            <div className="flex items-center justify-between py-1">
+                                <span className="text-[11px] text-gray-300 font-medium flex items-center gap-2">
+                                    <Sparkles className="w-3.5 h-3.5 text-[#34C759]" /> Ondes Radar Haptiques
+                                </span>
+                                <button 
+                                    onClick={() => setShowHapticRipples(!showHapticRipples)}
+                                    className={`w-11 h-6 rounded-full transition-colors relative p-0.5 ${showHapticRipples ? 'bg-[#34C759]' : 'bg-white/10'}`}
+                                >
+                                    <div className={`w-5 h-5 rounded-full bg-white transition-transform ${showHapticRipples ? 'translate-x-5' : 'translate-x-0'}`} />
+                                </button>
+                            </div>
+
+                            {/* Toggle Vibreur Téléphone */}
+                            <div className="flex items-center justify-between py-1">
+                                <span className="text-[11px] text-gray-300 font-medium flex items-center gap-2">
+                                    <Vibrate className="w-3.5 h-3.5 text-neon-purple" /> Micro-Vibration Physique
+                                </span>
+                                <button 
+                                    onClick={() => setIsPhoneVibrating(!isPhoneVibrating)}
+                                    className={`w-11 h-6 rounded-full transition-colors relative p-0.5 ${isPhoneVibrating ? 'bg-[#34C759]' : 'bg-white/10'}`}
+                                >
+                                    <div className={`w-5 h-5 rounded-full bg-white transition-transform ${isPhoneVibrating ? 'translate-x-5' : 'translate-x-0'}`} />
+                                </button>
+                            </div>
+                        </div>
+
                         <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                 <Type className="w-3 h-3 text-neon-cyan" /> Infos Appelant
@@ -289,6 +390,41 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                                 onChange={(e) => setCallStatus(e.target.value)}
                                 placeholder="Statut (ex: Appel entrant...)"
                                 className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white focus:outline-none focus:border-neon-cyan/50 transition-all text-sm"
+                            />
+                        </div>
+
+                        {/* Photo de profil de l'appelant (optionnel) */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                <User className="w-3 h-3 text-neon-cyan" /> Photo Appelant (Optionnel)
+                            </label>
+                            <div className="flex items-center gap-3">
+                                <button 
+                                    onClick={() => avatarInputRef.current?.click()}
+                                    className="flex-1 py-3 px-4 bg-white/5 border border-white/10 rounded-2xl text-[11px] font-bold text-gray-300 hover:text-white hover:bg-white/10 flex items-center justify-center gap-2 transition-all"
+                                >
+                                    <Upload className="w-4 h-4 text-neon-cyan" />
+                                    {contactAvatar ? "Changer la photo" : "Ajouter une photo / logo"}
+                                </button>
+                                {contactAvatar && (
+                                    <button 
+                                        onClick={() => setContactAvatar(null)}
+                                        className="p-3 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-2xl transition-all"
+                                        title="Supprimer la photo"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
+                            <input 
+                                type="file"
+                                ref={avatarInputRef}
+                                className="hidden"
+                                accept="image/*"
+                                onChange={(e) => {
+                                    const f = e.target.files?.[0];
+                                    if (f) setContactAvatar(URL.createObjectURL(f));
+                                }}
                             />
                         </div>
 
@@ -404,15 +540,111 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,255,243,0.05)_0%,transparent_70%)] pointer-events-none" />
                         
                         <div className="relative scale-[0.65] sm:scale-[0.85] lg:scale-100 transition-transform duration-500">
-                            <div 
-                                className="w-[400px] aspect-[9/19.5] bg-black rounded-[3.5rem] border-[8px] border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden relative flex flex-col"
+                            <motion.div 
+                                animate={isPhoneVibrating ? {
+                                    x: [0, -1.2, 1.2, -1, 1, 0, 0, 0, -1.2, 1.2, -1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    y: [0, 0.6, -0.6, 0.4, -0.4, 0, 0, 0, 0.6, -0.6, 0.4, -0.4, 0, 0, 0, 0, 0, 0, 0, 0],
+                                } : { x: 0, y: 0 }}
+                                transition={{
+                                    duration: 2.2,
+                                    repeat: Infinity,
+                                    ease: "easeInOut"
+                                }}
+                                className="w-[400px] aspect-[9/19.5] bg-black rounded-[3.5rem] border-[8px] border-[#1c1c1e] shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_40px_rgba(255,255,255,0.04)] overflow-hidden relative flex flex-col select-none"
+                                style={{ backgroundColor: '#000000', color: '#ffffff' }}
                             >
                                 <div 
                                     ref={previewRef}
+                                    style={{ backgroundColor: bgType === 'transparent' ? 'transparent' : '#050505', color: '#ffffff' }}
                                     className={`w-full h-full relative flex flex-col items-center pt-24 px-6 overflow-hidden ${bgType === 'transparent' ? 'bg-transparent' : 'bg-[#050505]'}`}
                                 >
 
-                                    <div className="absolute top-5 left-1/2 -translate-x-1/2 w-32 h-8 bg-black rounded-[1.5rem] z-50 border border-white/5" />
+                                    {/* Dynamic Island */}
+                                    {showDynamicIsland ? (
+                                        <motion.div 
+                                            onClick={() => setDynamicIslandExpanded(!dynamicIslandExpanded)}
+                                            animate={{
+                                                width: dynamicIslandExpanded ? 340 : 130,
+                                                height: dynamicIslandExpanded ? 58 : 34,
+                                                borderRadius: dynamicIslandExpanded ? 26 : 18
+                                            }}
+                                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                            className="absolute top-4 left-1/2 -translate-x-1/2 bg-black border border-white/10 z-50 flex items-center justify-between px-3.5 shadow-2xl cursor-pointer select-none overflow-hidden"
+                                            style={{ backgroundColor: '#000000', color: '#ffffff' }}
+                                        >
+                                            {!dynamicIslandExpanded ? (
+                                                <>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <div className="w-2 h-2 rounded-full bg-[#34C759] animate-pulse" />
+                                                        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-[#34C759] fill-current">
+                                                            <path d="M6.62 10.79c1.44 2.82 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                                                        </svg>
+                                                    </div>
+                                                    <div className="flex items-center gap-0.5 h-3">
+                                                        {[0.5, 0.9, 0.4, 0.8, 0.3].map((val, i) => (
+                                                            <motion.span 
+                                                                key={i}
+                                                                className="w-[2.5px] bg-[#34C759] rounded-full"
+                                                                animate={{ height: ['4px', `${val * 14}px`, '4px'] }}
+                                                                transition={{
+                                                                    duration: 0.6 + i * 0.15,
+                                                                    repeat: Infinity,
+                                                                    ease: "easeInOut"
+                                                                }}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="flex items-center gap-3">
+                                                        {contactAvatar ? (
+                                                            <img src={contactAvatar} className="w-9 h-9 rounded-full object-cover border border-white/20" alt="" />
+                                                        ) : (
+                                                            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-neon-purple to-neon-cyan flex items-center justify-center text-xs font-bold text-white">
+                                                                {callerName.charAt(0).toUpperCase()}
+                                                            </div>
+                                                        )}
+                                                        <div className="text-left">
+                                                            <p className="text-xs font-semibold text-white leading-tight">{callerName}</p>
+                                                            <p className="text-[10px] text-[#34C759] font-medium leading-tight">
+                                                                {callState === 'connected' ? formatCallTime(callSeconds) : 'Appel entrant...'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="flex items-center gap-1 h-4">
+                                                            {[0.6, 1.0, 0.5, 0.9, 0.7].map((val, i) => (
+                                                                <motion.span 
+                                                                    key={i}
+                                                                    className="w-[3px] bg-[#34C759] rounded-full"
+                                                                    animate={{ height: ['4px', `${val * 18}px`, '4px'] }}
+                                                                    transition={{
+                                                                        duration: 0.5 + i * 0.12,
+                                                                        repeat: Infinity,
+                                                                        ease: "easeInOut"
+                                                                    }}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setCallState('incoming');
+                                                            }}
+                                                            className="w-7 h-7 rounded-full bg-[#FF3B30] flex items-center justify-center text-white"
+                                                        >
+                                                            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current rotate-[135deg]">
+                                                                <path d="M6.62 10.79c1.44 2.82 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </motion.div>
+                                    ) : (
+                                        <div className="absolute top-5 left-1/2 -translate-x-1/2 w-32 h-8 bg-black rounded-[1.5rem] z-50 border border-white/5" style={{ backgroundColor: '#000000' }} />
+                                    )}
 
                                     {bgType === 'image' && bgUrl && (
                                         <img src={bgUrl} className="absolute inset-0 w-full h-full object-cover" alt="" />
@@ -427,80 +659,203 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                                     )}
 
                                     {/* Call UI Content */}
-                                    <div className="relative z-10 w-full flex flex-col items-center text-center mt-20 px-8">
-                                        <h1 className="text-[36px] font-normal text-white mb-1 drop-shadow-2xl tracking-normal whitespace-nowrap overflow-hidden text-ellipsis w-full" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif' }}>
+                                    <div className="relative z-10 w-full flex flex-col items-center text-center mt-12 px-8">
+                                        {/* Optional Contact Avatar */}
+                                        {contactAvatar && (
+                                            <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-2 border-white/20 shadow-2xl ring-4 ring-black/40">
+                                                <img src={contactAvatar} className="w-full h-full object-cover" alt="" />
+                                            </div>
+                                        )}
+
+                                        <h1 className="text-[34px] font-semibold text-white mb-1 drop-shadow-2xl tracking-normal whitespace-nowrap overflow-hidden text-ellipsis w-full" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif' }}>
                                             {callerName}
                                         </h1>
-                                        <p className="text-[17px] text-white/70 font-normal drop-shadow-md tracking-normal">
-                                            {callStatus}
+                                        <p className={`text-[17px] font-normal drop-shadow-md tracking-normal ${callState === 'connected' ? 'text-[#34C759] font-medium' : 'text-white/70'}`}>
+                                            {callState === 'connected' ? formatCallTime(callSeconds) : callStatus}
                                         </p>
                                     </div>
 
                                     {/* Bottom Buttons Container */}
-                                    <div className="mt-auto mb-20 relative z-10 w-full max-w-[300px]">
-                                        {/* Top Icons: Remind & Message */}
-                                        <div className="flex justify-between px-6 mb-20 text-white">
-                                            <div className="flex flex-col items-center gap-2">
-                                                <div className="w-10 h-10 flex items-center justify-center">
-                                                    <Clock className="w-7 h-7 stroke-[1.5px]" />
+                                    {callState === 'connected' ? (
+                                        <div className="mt-auto mb-16 relative z-10 w-full max-w-[320px]">
+                                            {/* 6-Button In-Call Grid (iOS Style) */}
+                                            <div className="grid grid-cols-3 gap-y-6 gap-x-5 px-3 mb-10">
+                                                {/* Micro / Silence */}
+                                                <div className="flex flex-col items-center gap-1.5">
+                                                    <button 
+                                                        onClick={() => setIsMuted(!isMuted)}
+                                                        className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${isMuted ? 'bg-white text-black' : 'bg-white/15 text-white backdrop-blur-xl border border-white/10 hover:bg-white/20 active:scale-95'}`}
+                                                    >
+                                                        {isMuted ? <MicOff className="w-7 h-7" /> : <Mic className="w-7 h-7" />}
+                                                    </button>
+                                                    <span className="text-[11px] text-white/90 font-medium">silence</span>
                                                 </div>
-                                                <span className="text-[11px] font-medium opacity-90">Rappel</span>
-                                            </div>
-                                            <div className="flex flex-col items-center gap-2">
-                                                <div className="w-10 h-10 flex items-center justify-center">
-                                                    <MessageCircle className="w-7 h-7 stroke-[1.5px]" />
-                                                </div>
-                                                <span className="text-[11px] font-medium opacity-90">Message</span>
-                                            </div>
-                                        </div>
 
-                                        {isLocked ? (
-                                            /* Slide to Answer (Locked) */
-                                            <div className="relative w-full h-[76px] bg-white/10 backdrop-blur-md rounded-full flex items-center p-2 border border-white/5">
-                                                <div className="w-[60px] h-[60px] bg-white rounded-full flex items-center justify-center shadow-lg">
-                                                    <svg viewBox="0 0 24 24" className="w-8 h-8 text-[#4CD964] fill-current">
+                                                {/* Clavier */}
+                                                <div className="flex flex-col items-center gap-1.5">
+                                                    <button className="w-16 h-16 rounded-full bg-white/15 text-white backdrop-blur-xl border border-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center transition-all">
+                                                        <Grid className="w-7 h-7" />
+                                                    </button>
+                                                    <span className="text-[11px] text-white/90 font-medium">clavier</span>
+                                                </div>
+
+                                                {/* Haut-parleur */}
+                                                <div className="flex flex-col items-center gap-1.5">
+                                                    <button 
+                                                        onClick={() => setIsSpeaker(!isSpeaker)}
+                                                        className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${isSpeaker ? 'bg-white text-black' : 'bg-white/15 text-white backdrop-blur-xl border border-white/10 hover:bg-white/20 active:scale-95'}`}
+                                                    >
+                                                        <Volume2 className="w-7 h-7" />
+                                                    </button>
+                                                    <span className="text-[11px] text-white/90 font-medium">haut-parleur</span>
+                                                </div>
+
+                                                {/* Nouvel appel */}
+                                                <div className="flex flex-col items-center gap-1.5">
+                                                    <button className="w-16 h-16 rounded-full bg-white/15 text-white backdrop-blur-xl border border-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center transition-all">
+                                                        <UserPlus className="w-7 h-7" />
+                                                    </button>
+                                                    <span className="text-[11px] text-white/90 font-medium">nouvel appel</span>
+                                                </div>
+
+                                                {/* FaceTime */}
+                                                <div className="flex flex-col items-center gap-1.5">
+                                                    <button className="w-16 h-16 rounded-full bg-white/15 text-white backdrop-blur-xl border border-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center transition-all">
+                                                        <Video className="w-7 h-7" />
+                                                    </button>
+                                                    <span className="text-[11px] text-white/90 font-medium">FaceTime</span>
+                                                </div>
+
+                                                {/* Contacts */}
+                                                <div className="flex flex-col items-center gap-1.5">
+                                                    <button className="w-16 h-16 rounded-full bg-white/15 text-white backdrop-blur-xl border border-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center transition-all">
+                                                        <User className="w-7 h-7" />
+                                                    </button>
+                                                    <span className="text-[11px] text-white/90 font-medium">contacts</span>
+                                                </div>
+                                            </div>
+
+                                            {/* End Call Button */}
+                                            <div className="flex justify-center">
+                                                <button 
+                                                    onClick={() => setCallState('incoming')}
+                                                    className="w-[74px] h-[74px] bg-[#FF3B30] rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+                                                >
+                                                    <svg viewBox="0 0 24 24" className="w-9 h-9 text-white fill-current rotate-[135deg]">
                                                         <path d="M6.62 10.79c1.44 2.82 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
                                                     </svg>
-                                                </div>
-                                                <div className="flex-1 text-center pr-6">
-                                                    <span className="text-[13px] text-white/70 font-medium tracking-tight">
-                                                        Faire glisser pour répondre
-                                                    </span>
-                                                </div>
-                                                {/* Shimmer overlay animation */}
-                                                <motion.div 
-                                                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full pointer-events-none"
-                                                    animate={{ x: ['-100%', '100%'] }}
-                                                    transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-                                                />
+                                                </button>
                                             </div>
-                                        ) : (
-                                            /* Decline & Accept (Unlocked) */
-                                            <div className="flex justify-between">
-                                                <div className="flex flex-col items-center gap-3">
-                                                    <div className="w-[76px] h-[76px] bg-[#FF3B30] rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-transform cursor-pointer">
-                                                        <svg viewBox="0 0 24 24" className="w-10 h-10 text-white fill-current rotate-[135deg]">
+                                        </div>
+                                    ) : (
+                                        <div className="mt-auto mb-20 relative z-10 w-full max-w-[300px]">
+                                            {/* Top Icons: Remind & Message */}
+                                            <div className="flex justify-between px-6 mb-20 text-white">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <div className="w-10 h-10 flex items-center justify-center">
+                                                        <Clock className="w-7 h-7 stroke-[1.5px]" />
+                                                    </div>
+                                                    <span className="text-[11px] font-medium opacity-90">Rappel</span>
+                                                </div>
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <div className="w-10 h-10 flex items-center justify-center">
+                                                        <MessageCircle className="w-7 h-7 stroke-[1.5px]" />
+                                                    </div>
+                                                    <span className="text-[11px] font-medium opacity-90">Message</span>
+                                                </div>
+                                            </div>
+
+                                            {isLocked ? (
+                                                /* Slide to Answer (Locked) */
+                                                <div className="relative w-full h-[76px] bg-white/10 backdrop-blur-md rounded-full flex items-center p-2 border border-white/5">
+                                                    <div className="relative w-[60px] h-[60px] bg-white rounded-full flex items-center justify-center shadow-lg">
+                                                        {showHapticRipples && (
+                                                            <>
+                                                                {[0, 0.7, 1.4].map((delay, i) => (
+                                                                    <motion.div
+                                                                        key={i}
+                                                                        className="absolute inset-0 rounded-full border-2 border-[#4CD964] pointer-events-none"
+                                                                        animate={{
+                                                                            scale: [1, 1.8],
+                                                                            opacity: [0.7, 0],
+                                                                        }}
+                                                                        transition={{
+                                                                            duration: 2.1,
+                                                                            repeat: Infinity,
+                                                                            delay,
+                                                                            ease: "easeOut"
+                                                                        }}
+                                                                    />
+                                                                ))}
+                                                            </>
+                                                        )}
+                                                        <svg viewBox="0 0 24 24" className="w-8 h-8 text-[#4CD964] fill-current">
                                                             <path d="M6.62 10.79c1.44 2.82 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
                                                         </svg>
                                                     </div>
-                                                    <span className="text-[14px] text-white font-medium">Refuser</span>
-                                                </div>
-                                                <div className="flex flex-col items-center gap-3">
-                                                    <div className="w-[76px] h-[76px] bg-[#4CD964] rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-transform cursor-pointer">
-                                                        <svg viewBox="0 0 24 24" className="w-10 h-10 text-white fill-current">
-                                                            <path d="M6.62 10.79c1.44 2.82 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
-                                                        </svg>
+                                                    <div className="flex-1 text-center pr-6">
+                                                        <span className="text-[13px] text-white/70 font-medium tracking-tight">
+                                                            Faire glisser pour répondre
+                                                        </span>
                                                     </div>
-                                                    <span className="text-[14px] text-white font-medium">Accepter</span>
+                                                    {/* Shimmer overlay animation */}
+                                                    <motion.div 
+                                                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full pointer-events-none rounded-full"
+                                                        animate={{ x: ['-100%', '100%'] }}
+                                                        transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+                                                    />
                                                 </div>
-                                            </div>
-                                        )}
-                                    </div>
+                                            ) : (
+                                                /* Decline & Accept (Unlocked) */
+                                                <div className="flex justify-between">
+                                                    <div className="flex flex-col items-center gap-3">
+                                                        <div className="w-[76px] h-[76px] bg-[#FF3B30] rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+                                                            <svg viewBox="0 0 24 24" className="w-10 h-10 text-white fill-current rotate-[135deg]">
+                                                                <path d="M6.62 10.79c1.44 2.82 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                                                            </svg>
+                                                        </div>
+                                                        <span className="text-[14px] text-white font-medium">Refuser</span>
+                                                    </div>
+                                                    <div className="flex flex-col items-center gap-3 relative">
+                                                        <div 
+                                                            onClick={() => setCallState('connected')}
+                                                            className="relative w-[76px] h-[76px] bg-[#4CD964] rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+                                                        >
+                                                            {showHapticRipples && (
+                                                                <>
+                                                                    {[0, 0.7, 1.4].map((delay, i) => (
+                                                                        <motion.div
+                                                                            key={i}
+                                                                            className="absolute inset-0 rounded-full border-2 border-[#4CD964] pointer-events-none"
+                                                                            animate={{
+                                                                                scale: [1, 2.1],
+                                                                                opacity: [0.8, 0],
+                                                                            }}
+                                                                            transition={{
+                                                                                duration: 2.1,
+                                                                                repeat: Infinity,
+                                                                                delay,
+                                                                                ease: "easeOut"
+                                                                            }}
+                                                                        />
+                                                                    ))}
+                                                                </>
+                                                            )}
+                                                            <svg viewBox="0 0 24 24" className="w-10 h-10 text-white fill-current relative z-10">
+                                                                <path d="M6.62 10.79c1.44 2.82 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                                                            </svg>
+                                                        </div>
+                                                        <span className="text-[14px] text-white font-medium">Accepter</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
 
                                     {/* Indicator */}
                                     <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-36 h-1.5 bg-white/20 rounded-full z-10" />
                                 </div>
-                            </div>
+                            </motion.div>
 
                             {/* Info Badge */}
                             <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">

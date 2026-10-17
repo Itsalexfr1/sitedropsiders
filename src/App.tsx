@@ -79,6 +79,7 @@ const RadioPage = lazyRetry(() => import('./pages/RadioPage').then(m => m.RadioP
 const GTAContestPage = lazyRetry(() => import('./pages/GTAContestPage').then(m => m.GTAContestPage));
 const AdminGTAContestPage = lazyRetry(() => import('./pages/AdminGTAContestPage').then(m => m.AdminGTAContestPage));
 const BlindTestPage = lazyRetry(() => import('./pages/BlindTestPage').then(m => m.BlindTestPage));
+const CallGeneratorPage = lazyRetry(() => import('./pages/CallGeneratorPage').then(m => m.CallGeneratorPage));
 
 
 function ErrorFallback() {
@@ -273,6 +274,9 @@ const router = createBrowserRouter([
           { path: "galerie/create", element: <GalerieCreate /> },
         ]
       },
+      { path: "call-generator", element: <CallGeneratorPage /> },
+      { path: "appel", element: <CallGeneratorPage /> },
+      { path: "call", element: <CallGeneratorPage /> },
       { path: "qr", element: <QrCodePage /> },
       { path: "go", element: <BrandingPage /> },
       { path: "link", element: <BrandingPage /> },

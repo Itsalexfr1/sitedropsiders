@@ -178,6 +178,83 @@ html.light-mode {
   html.light-mode .text-neon-fuchsia { color: #cc00cc !important; }
   html.light-mode .text-neon-indigo { color: #4400cc !important; }
   html.light-mode .text-neon-amber { color: #b38600 !important; }
+
+  /* --- DARK GENERATOR & PHONE SIMULATOR ISOLATION --- */
+  html.light-mode .isolate-dark,
+  html.light-mode .isolate-dark * {
+    --bg-primary: #0a0a0a;
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.7);
+  }
+  html.light-mode .isolate-dark,
+  html.light-mode .isolate-dark .bg-\[\#0A0A0A\],
+  html.light-mode .isolate-dark .bg-\[\#050505\] {
+    background-color: #0a0a0a !important;
+  }
+  html.light-mode .isolate-dark .bg-black {
+    background-color: #000000 !important;
+  }
+  html.light-mode .isolate-dark .bg-black\/40 {
+    background-color: rgba(0, 0, 0, 0.4) !important;
+  }
+  html.light-mode .isolate-dark .bg-black\/80,
+  html.light-mode .isolate-dark .bg-black\/90 {
+    background-color: rgba(0, 0, 0, 0.85) !important;
+  }
+  html.light-mode .isolate-dark .text-white {
+    color: #ffffff !important;
+  }
+  html.light-mode .isolate-dark .text-white\/70 {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+  html.light-mode .isolate-dark .text-white\/90 {
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+  html.light-mode .isolate-dark .text-gray-400 {
+    color: #a1a1aa !important;
+  }
+  html.light-mode .isolate-dark .text-gray-500 {
+    color: #71717a !important;
+  }
+  html.light-mode .isolate-dark .bg-white\/5 {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: none !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  html.light-mode .isolate-dark .bg-white\/10 {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: none !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  html.light-mode .isolate-dark .bg-white\/15 {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+  }
+  html.light-mode .isolate-dark input {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  html.light-mode .isolate-dark .border-white\/5 {
+    border-color: rgba(255, 255, 255, 0.05) !important;
+  }
+  html.light-mode .isolate-dark .border-white\/10 {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  html.light-mode .isolate-dark .bg-\[\#34C759\] {
+    background-color: #34c759 !important;
+  }
+  html.light-mode .isolate-dark .bg-\[\#4CD964\] {
+    background-color: #4cd964 !important;
+  }
+  html.light-mode .isolate-dark .bg-\[\#FF3B30\] {
+    background-color: #ff3b30 !important;
+  }
+  html.light-mode .isolate-dark .text-neon-cyan {
+    color: #00f0ff !important;
+  }
+  html.light-mode .isolate-dark .text-neon-purple {
+    color: #bc13fe !important;
+  }
   html.light-mode .text-neon-sky { color: #0088b3 !important; }
   html.light-mode .text-neon-emerald { color: #00b372 !important; }
 
