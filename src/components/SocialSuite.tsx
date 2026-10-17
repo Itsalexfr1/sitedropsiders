@@ -8963,7 +8963,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
                         Événements ({planningItems.length})
                     </span>
-                    <span className="text-[8px] text-[#ff3700] font-bold">Style Rave Feed</span>
                 </div>
 
                 {planningItems.length === 0 ? (
