@@ -1779,7 +1779,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            const isAnyAnimationActive = (textAnimation !== 'NONE' || bgAnimation !== 'NONE' || (theme === 'JEU_DJ' && isCurrentSlideSilhouette && djAppearanceAnim !== 'STATIC'));
+            const isAnyAnimationActive = (textAnimation !== 'NONE' || bgAnimation !== 'NONE' || (theme === 'JEU_DJ' && isCurrentSlideSilhouette && djAppearanceAnim !== 'STATIC') || (theme === 'PLANNING' && activeTab === 'REEL'));
             const animElapsed = isVideoRecordingRef.current
                 ? deterministicAnimTimeRef.current
                 : ((bgVideo && !isDownloading) || isAnyAnimationActive || (theme === 'MUSIQUE' && !isDownloading && (cdjPlayerRing || musicBgMotion)) || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying)
@@ -3939,7 +3939,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // 1. TOP-LEFT BADGE DROPSIDERS OFFICIEL
                     drawTopCapsuleBadge((agendaBadgeText || 'AGENDA').toUpperCase(), monthColor, monthGrad);
 
-                    // 2. GRAND TITRE DU MOIS (Ultra-propre, plein, puissant et net)
+                    // 2. GRAND TITRE DU MOIS (Fluide, vibrant, teinté avec le gradient du mois, sans blanc agressif)
                     const monthY = isStory ? 370 : 280;
                     const monthText = (agendaMonth || 'OCTOBRE').toUpperCase().trim();
 
@@ -3951,34 +3951,68 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.font = `900 italic ${monthFontSize}px "Montserrat", Arial, sans-serif`;
                     }
 
+                    // Animation d'entrée du titre de mois pour MP4 / vidéo
+                    const isVideoAnim = isVideoRecordingRef.current || (activeTab === 'REEL' && !isDownloading);
+                    const mElapsed = isVideoAnim ? (animElapsed - 0.06) : 99.0;
+                    let mAlpha = 1.0;
+                    let mScale = 1.0;
+                    let mYOff = 0;
+                    if (mElapsed < 0) {
+                        mAlpha = 0;
+                        mScale = 0.90;
+                        mYOff = -16;
+                    } else if (mElapsed < 0.45) {
+                        const t = Math.min(1, mElapsed / 0.45);
+                        const ease = 1 - Math.pow(1 - t, 3);
+                        mAlpha = t;
+                        mScale = 0.90 + (0.10 * ease);
+                        mYOff = -16 * (1 - ease);
+                    }
+
                     ctx.save();
-                    applyTextAnimCtx(ctx, 0.18, centerX, monthY);
+                    if (mAlpha < 1) ctx.globalAlpha *= mAlpha;
+                    ctx.translate(centerX, monthY + mYOff);
+                    if (mScale !== 1) ctx.scale(mScale, mScale);
+                    applyTextAnimCtx(ctx, 0.18, 0, 0);
+
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.font = `900 italic ${monthFontSize}px "Montserrat", Arial, sans-serif`;
                     ctx.letterSpacing = '5px';
 
-                    // A) Ombre de profondeur noire 3D
+                    // Dégradé ultra-fluide teinté avec la couleur du mois (retire le blanc plat)
+                    const monthGradFill = ctx.createLinearGradient(0, -monthFontSize * 0.45, 0, monthFontSize * 0.45);
+                    monthGradFill.addColorStop(0, monthColor);
+                    monthGradFill.addColorStop(0.35, `rgba(${monthGrad}, 0.95)`);
+                    monthGradFill.addColorStop(0.70, `rgba(${monthGrad}, 0.85)`);
+                    monthGradFill.addColorStop(1, `rgba(${monthGrad}, 0.55)`);
+
+                    // 1) Ombre de profondeur noire 3D pour découper le texte
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                    ctx.shadowBlur = 18;
+                    ctx.shadowBlur = 20;
                     ctx.shadowOffsetX = 0;
                     ctx.shadowOffsetY = 6;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(monthText, centerX, monthY);
+                    ctx.fillStyle = monthGradFill;
+                    ctx.fillText(monthText, 0, 0);
 
-                    // B) Halo néon vibrant assorti à la couleur du thème
-                    ctx.shadowColor = `rgba(${monthGrad}, 0.85)`;
-                    ctx.shadowBlur = 24;
+                    // 2) Halo néon d'ambiance vibrant
+                    ctx.shadowColor = `rgba(${monthGrad}, 0.80)`;
+                    ctx.shadowBlur = 28;
                     ctx.shadowOffsetX = 0;
                     ctx.shadowOffsetY = 0;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(monthText, centerX, monthY);
+                    ctx.fillStyle = monthGradFill;
+                    ctx.fillText(monthText, 0, 0);
 
-                    // C) Rendu blanc éclatant net et lisible
+                    // 3) Rendu fluide principal
                     ctx.shadowColor = 'transparent';
                     ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(monthText, centerX, monthY);
+                    ctx.fillStyle = monthGradFill;
+                    ctx.fillText(monthText, 0, 0);
+
+                    // 4) Fin filet de brillance pour une fluidité cristalline
+                    ctx.strokeStyle = `rgba(${monthGrad}, 0.45)`;
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeText(monthText, 0, 0);
 
                     ctx.restore();
 
@@ -4008,7 +4042,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const rowY = listStartY + (i * rowSpacing);
                             if (rowY > canvas.height - 60) return;
 
-                            const itemDelay = 0.28 + (i * 0.10);
+                            // Animation d'entrée cinématique échelonnée (staggered cascade) pour MP4 et Reel
+                            const rowDelay = 0.28 + (i * 0.16);
+                            const rowElapsed = isVideoAnim ? (animElapsed - rowDelay) : 99.0;
+
+                            let rowAlpha = 1.0;
+                            let badgeXOffset = 0;
+                            let contentXOffset = 0;
+
+                            if (rowElapsed < 0) {
+                                rowAlpha = 0;
+                                badgeXOffset = -75;
+                                contentXOffset = 45;
+                            } else if (rowElapsed < 0.42) {
+                                const t = Math.min(1, rowElapsed / 0.42);
+                                const ease = 1 - Math.pow(1 - t, 3);
+                                rowAlpha = t;
+                                badgeXOffset = -75 * (1 - ease);
+                                contentXOffset = 45 * (1 - ease);
+                            }
 
                             const dayText = (item.day || item.time || 'VENDREDI').toUpperCase().trim();
                             const titleText = (item.title || item.artist || 'ÉVÉNEMENT').toUpperCase().trim();
@@ -4016,15 +4068,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const genreText = (item.genre || '').trim();
                             const venueText = (item.venue || '').toUpperCase().trim();
 
-                            // A) Left sticker badge for Day
+                            // A) Left sticker badge for Day (avec animation d'entrée)
                             ctx.save();
+                            if (rowAlpha < 1) ctx.globalAlpha *= rowAlpha;
                             ctx.font = '900 italic 20px "Montserrat", sans-serif';
                             const dayMeasureW = ctx.measureText(dayText).width;
                             const badgeW = Math.max(125, Math.min(185, dayMeasureW + 36));
                             const badgeH = 42;
-                            const badgeXCenter = 75 + badgeW / 2;
+                            const badgeXCenter = 75 + badgeW / 2 + badgeXOffset;
                             
-                            applyTextAnimCtx(ctx, itemDelay, badgeXCenter, rowY);
+                            applyTextAnimCtx(ctx, rowDelay, badgeXCenter, rowY);
 
                             const stickerAngle = (i % 2 === 0 ? -0.04 : -0.025);
                             ctx.translate(badgeXCenter, rowY);
@@ -4049,11 +4102,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.fillText(dayText, 0, 1);
                             ctx.restore();
 
-                            // B) Right content block
+                            // B) Right content block (avec animation d'entrée)
                             ctx.save();
-                            const contentX = badgeXCenter + badgeW / 2 + 28;
+                            if (rowAlpha < 1) ctx.globalAlpha *= rowAlpha;
+                            const contentX = (75 + badgeW / 2) + badgeW / 2 + 28 + contentXOffset;
                             const maxContentW = canvas.width - contentX - 55;
-                            applyTextAnimCtx(ctx, itemDelay + 0.04, contentX + (maxContentW / 3), rowY);
+                            applyTextAnimCtx(ctx, rowDelay + 0.04, contentX + (maxContentW / 3), rowY);
                             ctx.textAlign = 'left';
                             ctx.textBaseline = 'middle';
 
