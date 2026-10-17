@@ -931,6 +931,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (theme === 'MUSIQUE') {
             // Pochette propre à la slide track active
             updateMusicTrack(Math.max(0, editorialSlide - 2), { cover: url });
+        } else if (theme === 'PLANNING' && agendaSlide >= 3) {
+            const affIdx = agendaSlide - 3;
+            updateAgendaAffiche(affIdx, 'image', url);
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                imageCacheRef.current[url] = img;
+                generateImage();
+            };
+            img.src = url;
         } else {
             setAfficheImage(url);
         }
@@ -4208,53 +4218,59 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (offsetX !== 0) sCtx.translate(offsetX, 0);
                     const ctx = sCtx;
 
-                    // 1. TOP-LEFT BADGE DROPSIDERS OFFICIEL
-                    drawTopCapsuleBadge((agendaCoverBadge || 'AGENDA').toUpperCase(), monthColor, monthGrad);
+                    // 1. Ambiance sombre & immersive avec halo néon du mois
+                    const vig = ctx.createRadialGradient(
+                        canvas.width / 2, canvas.height / 2, canvas.width * 0.15,
+                        canvas.width / 2, canvas.height / 2, canvas.height * 0.72
+                    );
+                    vig.addColorStop(0, 'rgba(0, 0, 0, 0.20)');
+                    vig.addColorStop(0.65, 'rgba(0, 0, 0, 0.60)');
+                    vig.addColorStop(1, 'rgba(0, 0, 0, 0.88)');
+                    ctx.fillStyle = vig;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // 2. TOP-RIGHT MONTH & SLIDE BADGE
+                    // 2. Top-Left Badge Dropsiders Officiel
+                    drawTopCapsuleBadge('AGENDA', monthColor, monthGrad);
+
+                    // 3. Dimensions exactes de la carte affiche "comme partout" (ne dépasse JAMAIS sous le logo)
+                    const baseCardW = 800;
+                    const baseCardH = isStory ? 1380 : 980;
+                    const baseCardY = isStory ? (bgVideo ? 250 : 220) : (bgVideo ? 230 : 195);
+
+                    const scale = (afficheScale || 100) / 100;
+                    const cardW = Math.round(baseCardW * scale);
+                    const cardH = Math.round(baseCardH * scale);
+                    const cardX = Math.round((canvas.width - cardW) / 2);
+                    const cardY = Math.round(baseCardY + ((baseCardH - cardH) / 2) + (afficheOffsetY || 0));
+                    const rad = isStory ? 28 : 24;
+
+                    // 4. Ombre portée 3D et halo ambiant néon
                     ctx.save();
-                    const monthBadgeText = `${agendaMonth} ${agendaCoverYear} • AFFICHE ${afficheIndex + 1}/${agendaAffiches.length}`.toUpperCase();
-                    ctx.font = '900 italic 12px "Montserrat", sans-serif';
-                    ctx.letterSpacing = '1.5px';
-                    const mbW = ctx.measureText(monthBadgeText).width + 24;
-                    const mbH = 36;
-                    const mbX = canvas.width - 65 - mbW;
-                    const mbY = isStory ? 95 : 70;
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-                    ctx.lineWidth = 1.5;
+                    if (afficheGlow) {
+                        ctx.shadowColor = `rgba(${monthGrad}, 0.35)`;
+                        ctx.shadowBlur = 45;
+                        ctx.shadowOffsetX = 0;
+                        ctx.shadowOffsetY = 0;
+                        ctx.beginPath();
+                        ctx.roundRect(cardX, cardY, cardW, cardH, rad);
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                        ctx.fill();
+                    }
+
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                    ctx.shadowBlur = 55;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 22;
                     ctx.beginPath();
-                    ctx.roundRect(mbX, mbY, mbW, mbH, 8);
-                    ctx.fill();
-                    ctx.stroke();
-                    ctx.fillStyle = monthColor;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(monthBadgeText, mbX + mbW / 2, mbY + mbH / 2);
-                    ctx.restore();
-
-                    // 3. AFFICHE POSTER CARD (Center)
-                    const cardMarginX = 65;
-                    const cardW = canvas.width - (cardMarginX * 2);
-                    const cardTopY = isStory ? 175 : 135;
-                    const cardBottomY = isStory ? (canvas.height - 230) : (canvas.height - 180);
-                    const cardH = cardBottomY - cardTopY;
-
-                    // Card frame shadow & border
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                    ctx.shadowBlur = 30;
-                    ctx.shadowOffsetY = 15;
+                    ctx.roundRect(cardX, cardY, cardW, cardH, rad);
                     ctx.fillStyle = '#0a0a0c';
-                    ctx.beginPath();
-                    ctx.roundRect(cardMarginX, cardTopY, cardW, cardH, 24);
                     ctx.fill();
                     ctx.restore();
 
-                    // Image inside card
+                    // 5. Rendu de l'affiche dans le rectangle arrondi clippé
                     ctx.save();
                     ctx.beginPath();
-                    ctx.roundRect(cardMarginX, cardTopY, cardW, cardH, 24);
+                    ctx.roundRect(cardX, cardY, cardW, cardH, rad);
                     ctx.clip();
 
                     let flyerImg = affiche.image ? imageCacheRef.current[affiche.image] : null;
@@ -4269,110 +4285,58 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     if (flyerImg && flyerImg.complete && flyerImg.naturalWidth > 0) {
-                        drawImageZoomPan(ctx, flyerImg, cardMarginX, cardTopY, cardW, cardH, 'cover', affiche.zoom ?? 100, affiche.panX ?? 0, affiche.panY ?? 0);
-                        const vigGrad = ctx.createLinearGradient(0, cardTopY + cardH * 0.5, 0, cardTopY + cardH);
-                        vigGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-                        vigGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0.7)');
-                        vigGrad.addColorStop(1, 'rgba(0, 0, 0, 0.95)');
-                        ctx.fillStyle = vigGrad;
-                        ctx.fillRect(cardMarginX, cardTopY, cardW, cardH);
+                        if (afficheMode === 'contain') {
+                            ctx.fillStyle = '#0a0a0e';
+                            ctx.fillRect(cardX, cardY, cardW, cardH);
+                        }
+                        drawImageZoomPan(ctx, flyerImg, cardX, cardY, cardW, cardH, afficheMode === 'contain' ? 'contain' : 'cover', affiche.zoom ?? 100, affiche.panX ?? 0, affiche.panY ?? 0);
                     } else {
-                        const gridGrad = ctx.createLinearGradient(cardMarginX, cardTopY, cardMarginX + cardW, cardTopY + cardH);
-                        gridGrad.addColorStop(0, '#15151c');
-                        gridGrad.addColorStop(1, '#08080a');
-                        ctx.fillStyle = gridGrad;
-                        ctx.fillRect(cardMarginX, cardTopY, cardW, cardH);
+                        // Carte placeholder élégante en attente d'image (COMME PARTOUT)
+                        const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
+                        phGrad.addColorStop(0, 'rgba(26, 26, 32, 0.95)');
+                        phGrad.addColorStop(1, 'rgba(12, 12, 16, 0.98)');
+                        ctx.fillStyle = phGrad;
+                        ctx.fillRect(cardX, cardY, cardW, cardH);
 
-                        ctx.strokeStyle = `rgba(${monthGrad}, 0.12)`;
-                        ctx.lineWidth = 1;
-                        for (let gx = cardMarginX; gx <= cardMarginX + cardW; gx += 60) {
-                            ctx.beginPath();
-                            ctx.moveTo(gx, cardTopY);
-                            ctx.lineTo(gx, cardTopY + cardH);
-                            ctx.stroke();
-                        }
-                        for (let gy = cardTopY; gy <= cardTopY + cardH; gy += 60) {
-                            ctx.beginPath();
-                            ctx.moveTo(cardMarginX, gy);
-                            ctx.lineTo(cardMarginX + cardW, gy);
-                            ctx.stroke();
-                        }
-
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-                        ctx.font = '900 64px "Montserrat", sans-serif';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.fillText('🖼️', centerX, cardTopY + cardH / 2 - 40);
-                        ctx.font = '900 italic 20px "Orbitron", sans-serif';
-                        ctx.fillStyle = monthColor;
-                        ctx.letterSpacing = '3px';
-                        ctx.fillText('AFFICHE FESTIVAL / EVENT', centerX, cardTopY + cardH / 2 + 30);
-                        ctx.font = '600 15px "Montserrat", sans-serif';
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                        ctx.letterSpacing = '1px';
-                        ctx.fillText("Ajoutez l'image du flyer dans le panneau supérieur", centerX, cardTopY + cardH / 2 + 65);
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = '900 italic 30px "Orbitron", sans-serif';
+                        ctx.fillText("AFFICHE DE L'ÉVÉNEMENT", cardX + cardW / 2, cardY + cardH / 2 - 25);
+
+                        ctx.font = '700 16px "Montserrat", sans-serif';
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+                        ctx.fillText(`Slide ${afficheIndex + 3} • Importez dans le panneau Visuel`, cardX + cardW / 2, cardY + cardH / 2 + 25);
                     }
+
+                    // Reflet subtil en dégradé sur le haut de la carte
+                    const glossGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH * 0.35);
+                    glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
+                    glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = glossGrad;
+                    ctx.fillRect(cardX, cardY, cardW, cardH * 0.35);
                     ctx.restore();
 
-                    // Card cyber border
+                    // 6. Contour bordure élégant
                     ctx.save();
+                    ctx.beginPath();
+                    ctx.roundRect(cardX, cardY, cardW, cardH, rad);
                     ctx.strokeStyle = `rgba(${monthGrad}, 0.55)`;
                     ctx.lineWidth = 2.5;
-                    ctx.beginPath();
-                    ctx.roundRect(cardMarginX, cardTopY, cardW, cardH, 24);
                     ctx.stroke();
                     ctx.restore();
 
-                    // 4. EVENT DETAILS OVERLAY AT BOTTOM
-                    const infoY = cardBottomY + 24;
-                    ctx.save();
-                    ctx.textAlign = 'left';
-                    ctx.textBaseline = 'top';
-
-                    ctx.font = '900 italic 30px "Orbitron", sans-serif';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                    ctx.shadowBlur = 12;
-                    ctx.letterSpacing = '1px';
-                    const affTitle = (affiche.title || 'FESTIVAL').toUpperCase().trim();
-                    ctx.fillText(affTitle, cardMarginX + 10, infoY);
-
-                    const subInfoY = infoY + 42;
-                    const dateText = (affiche.date || 'DATE').toUpperCase().trim();
-                    const venueText = (affiche.venue || 'LIEU').toUpperCase().trim();
-
-                    ctx.font = '900 italic 15px "Montserrat", sans-serif';
-                    ctx.letterSpacing = '2px';
-                    const dateW = ctx.measureText(dateText).width + 24;
-                    ctx.fillStyle = monthColor;
-                    ctx.beginPath();
-                    ctx.roundRect(cardMarginX + 10, subInfoY, dateW, 30, 6);
-                    ctx.fill();
-                    ctx.fillStyle = '#000000';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(dateText, cardMarginX + 10 + dateW / 2, subInfoY + 15);
-
-                    if (venueText) {
-                        const venueStartX = cardMarginX + 10 + dateW + 12;
-                        ctx.textAlign = 'left';
-                        ctx.textBaseline = 'middle';
-                        ctx.font = '700 17px "Montserrat", sans-serif';
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                        ctx.shadowBlur = 8;
-                        ctx.fillText(`📍 ${venueText}`, venueStartX, subInfoY + 15);
+                    // 7. Mention Swipe (Chevrons en Cascade) si activée
+                    if (showSwipe) {
+                        const swipeY = canvas.height - (isStory ? 80 : 50);
+                        drawAnimatedSwipeIndicator(
+                            canvas.width - (isStory ? 80 : 60),
+                            swipeY,
+                            monthColor,
+                            24
+                        );
                     }
 
-                    ctx.textAlign = 'right';
-                    ctx.textBaseline = 'middle';
-                    ctx.font = '900 italic 13px "Orbitron", sans-serif';
-                    ctx.fillStyle = monthColor;
-                    ctx.letterSpacing = '2px';
-                    const nextText = (afficheIndex + 1 < agendaAffiches.length) ? 'SWIPE SUIVANT ➔' : 'BILLETTERIE DISPO ➔';
-                    ctx.fillText(nextText, cardMarginX + cardW - 10, subInfoY + 15);
-
-                    ctx.restore();
                     sCtx.restore();
                 };
 
@@ -10721,9 +10685,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const afficheEditor = (() => {
         const isMusicTheme = (theme === 'MUSIQUE');
-        const accentTextClass = isMusicTheme ? 'text-[#00ff66]' : 'text-neon-red';
-        const accentGlowBorder = isMusicTheme ? 'border-[#00ff66]/40 text-[#00ff66] bg-[#00ff66]/20' : 'border-neon-red/40 text-neon-red bg-neon-red/20';
-        const accentSlider = isMusicTheme ? 'accent-[#00ff66]' : 'accent-neon-red';
+        const isPlanningAffiche = (theme === 'PLANNING' && agendaSlide >= 3);
+        const planningAfficheIdx = isPlanningAffiche ? (agendaSlide - 3) : -1;
+        const currentPlanningAffiche = (isPlanningAffiche && agendaAffiches[planningAfficheIdx]) ? agendaAffiches[planningAfficheIdx] : null;
+
+        const effectiveAfficheImg = isPlanningAffiche
+            ? (currentPlanningAffiche?.image || '')
+            : afficheImage;
+
+        const accentTextClass = isMusicTheme ? 'text-[#00ff66]' : (isPlanningAffiche ? 'text-[#ff3700]' : 'text-neon-red');
+        const accentGlowBorder = isMusicTheme ? 'border-[#00ff66]/40 text-[#00ff66] bg-[#00ff66]/20' : (isPlanningAffiche ? 'border-[#ff3700]/40 text-[#ff3700] bg-[#ff3700]/20' : 'border-neon-red/40 text-neon-red bg-neon-red/20');
+        const accentSlider = isMusicTheme ? 'accent-[#00ff66]' : (isPlanningAffiche ? 'accent-[#ff3700]' : 'accent-neon-red');
 
         return (
             <div className="space-y-4">
@@ -10731,14 +10703,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
                     <div className="flex items-center justify-between">
                         <label className={`text-[10px] font-black ${accentTextClass} uppercase tracking-widest flex items-center gap-1.5`}>
-                            {isMusicTheme ? '💿 Cover du Track (1:1 Carré)' : (theme === 'NEWS' ? '🖼️ Affiche / Visuel (NEWS)' : '🖼️ Affiche de l\'Événement')}
+                            {isMusicTheme ? '💿 Cover du Track (1:1 Carré)' : (isPlanningAffiche ? `🖼️ Affiche Festival / Event (Slide ${agendaSlide})` : (theme === 'NEWS' ? '🖼️ Affiche / Visuel (NEWS)' : '🖼️ Affiche de l\'Événement'))}
                         </label>
-                        {afficheImage && (
+                        {effectiveAfficheImg && (
                             <button
                                 type="button"
                                 onClick={() => {
-                                    setAfficheImage('');
-                                    afficheImageRef.current = null;
+                                    if (isPlanningAffiche) {
+                                        updateAgendaAffiche(planningAfficheIdx, 'image', '');
+                                    } else {
+                                        setAfficheImage('');
+                                        afficheImageRef.current = null;
+                                    }
                                     setTimeout(() => generateImage(), 50);
                                 }}
                                 className="text-[9px] font-bold text-red-400 hover:text-red-300 transition-colors uppercase"
@@ -10757,9 +10733,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         className="hidden"
                     />
 
-                    {afficheImage ? (
+                    {effectiveAfficheImg ? (
                         <div className={`relative group rounded-xl overflow-hidden border border-white/20 bg-black/40 ${isMusicTheme ? 'aspect-square max-h-48' : 'aspect-[4/5] max-h-48'} mx-auto flex items-center justify-center`}>
-                            <img src={afficheImage} alt={isMusicTheme ? "Cover Track" : "Affiche Event"} className="w-full h-full object-contain" />
+                            <img src={effectiveAfficheImg} alt={isMusicTheme ? "Cover Track" : "Affiche Event"} className="w-full h-full object-contain" />
                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                 <button
                                     type="button"
@@ -10774,9 +10750,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <button
                             type="button"
                             onClick={() => afficheFileInputRef.current?.click()}
-                            className={`w-full py-6 border-2 border-dashed border-white/15 ${isMusicTheme ? 'hover:border-[#00ff66]/50 hover:bg-[#00ff66]/5' : 'hover:border-neon-red/50 hover:bg-neon-red/5'} rounded-2xl flex flex-col items-center justify-center gap-2 bg-black/20 transition-all group`}
+                            className={`w-full py-6 border-2 border-dashed border-white/15 ${isMusicTheme ? 'hover:border-[#00ff66]/50 hover:bg-[#00ff66]/5' : (isPlanningAffiche ? 'hover:border-[#ff3700]/50 hover:bg-[#ff3700]/5' : 'hover:border-neon-red/50 hover:bg-neon-red/5')} rounded-2xl flex flex-col items-center justify-center gap-2 bg-black/20 transition-all group`}
                         >
-                            <Upload className={`w-6 h-6 text-gray-500 ${isMusicTheme ? 'group-hover:text-[#00ff66]' : 'group-hover:text-neon-red'} transition-colors`} />
+                            <Upload className={`w-6 h-6 text-gray-500 ${isMusicTheme ? 'group-hover:text-[#00ff66]' : (isPlanningAffiche ? 'group-hover:text-[#ff3700]' : 'group-hover:text-neon-red')} transition-colors`} />
                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider group-hover:text-white transition-colors">
                                 {isMusicTheme ? 'Importer la cover (Artwork carré 1:1)' : 'Importer l\'affiche (Photo / Poster)'}
                             </span>
@@ -10809,11 +10785,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <input
                             type="url"
                             placeholder={isMusicTheme ? "OU COLLER LE LIEN DIRECT DE LA COVER..." : "OU COLLER LE LIEN D'UNE AFFICHE / VISUEL..."}
-                            value={afficheImage.startsWith('blob:') ? '' : afficheImage}
+                            value={effectiveAfficheImg.startsWith('blob:') ? '' : effectiveAfficheImg}
                             onChange={e => {
-                                setAfficheImage(e.target.value);
+                                const url = e.target.value;
+                                if (isPlanningAffiche) {
+                                    updateAgendaAffiche(planningAfficheIdx, 'image', url);
+                                } else {
+                                    setAfficheImage(url);
+                                }
                             }}
-                            className={`w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-medium placeholder-gray-500 outline-none ${isMusicTheme ? 'focus:border-[#00ff66]/50' : 'focus:border-neon-red/50'} transition-all`}
+                            className={`w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-medium placeholder-gray-500 outline-none ${isMusicTheme ? 'focus:border-[#00ff66]/50' : (isPlanningAffiche ? 'focus:border-[#ff3700]/50' : 'focus:border-neon-red/50')} transition-all`}
                         />
                     </div>
 
@@ -10888,11 +10869,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             />
                         </div>
                         {renderImageCropControls(
-                            afficheImgZoom, afficheImgPanX, afficheImgPanY,
+                            isPlanningAffiche ? (currentPlanningAffiche?.zoom ?? 100) : afficheImgZoom,
+                            isPlanningAffiche ? (currentPlanningAffiche?.panX ?? 0) : afficheImgPanX,
+                            isPlanningAffiche ? (currentPlanningAffiche?.panY ?? 0) : afficheImgPanY,
                             (field, value) => {
-                                if (field === 'zoom') setAfficheImgZoom(value);
-                                else if (field === 'panX') setAfficheImgPanX(value);
-                                else setAfficheImgPanY(value);
+                                if (isPlanningAffiche) {
+                                    updateAgendaAffiche(planningAfficheIdx, field, value);
+                                } else {
+                                    if (field === 'zoom') setAfficheImgZoom(value);
+                                    else if (field === 'panX') setAfficheImgPanX(value);
+                                    else setAfficheImgPanY(value);
+                                }
                             },
                             accentSlider,
                             accentTextClass
@@ -15657,7 +15644,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ══════════════════════════════════════════════ */}
                         {sidebarStep === 'visual' && (
                             <div className="space-y-4 animate-in fade-in duration-150">
-                                {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2)) ? (
+                                {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'PLANNING' && agendaSlide >= 3)) ? (
                                     <>
                                         {afficheEditor}
                                         {/* Export Visuel Carrousel / Slide */}
@@ -16853,7 +16840,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 <Download className="w-4 h-4 text-neon-cyan" /> Exporter le fond visuel (PNG)
                                             </button>
                                             {theme !== 'MAP' && bgAnimationControl}
-                                            {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2)) && afficheEditor}
+                                            {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'PLANNING' && agendaSlide >= 3)) && afficheEditor}
                                             {theme === 'MUSIQUE' && (editorialSlide === 1 ? musicSlide1VisualEditor : musicCoverEditor)}
                                             {(theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) && spotlightVisualEditor}
                                             {slideVisualEditor}
