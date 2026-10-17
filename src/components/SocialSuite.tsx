@@ -3868,21 +3868,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
                     }
 
-                    // 5. BOTTOM CTA SWIPE (Pill & Animated Chevrons)
+                    // 5. BOTTOM CTA PILL (Clean & Centered)
                     const ctaText = (agendaCoverCta || 'Les meilleurs events et coups de cœur du mois rassemblés en un post').trim();
                     if (ctaText) {
-                        const ctaY = canvas.height - (isStory ? 170 : 95);
+                        const ctaY = canvas.height - (isStory ? 170 : (showSwipe ? 110 : 92));
 
                         let ctaFontSize = isStory ? 17 : 14;
                         ctx.font = `800 italic ${ctaFontSize}px "Montserrat", sans-serif`;
                         ctx.letterSpacing = '0.5px';
-                        while (ctx.measureText(ctaText).width > (canvas.width - 220) && ctaFontSize > 11) {
+                        while (ctx.measureText(ctaText).width > (canvas.width - 120) && ctaFontSize > 11) {
                             ctaFontSize -= 0.5;
                             ctx.font = `800 italic ${ctaFontSize}px "Montserrat", sans-serif`;
                         }
 
                         const ctaW = ctx.measureText(ctaText).width;
-                        const ctaPillW = Math.min(canvas.width - 80, ctaW + 70);
+                        const ctaPillW = Math.min(canvas.width - 60, ctaW + 56);
                         const ctaPillH = isStory ? 50 : 44;
 
                         ctx.save();
@@ -3902,11 +3902,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
                         ctx.shadowBlur = 6;
                         ctx.fillStyle = '#ffffff';
-                        ctx.fillText(ctaText, centerX - 12, ctaY + 1);
-
-                        // Animated swipe arrow indicator inside or beside pill
-                        drawAnimatedSwipeIndicator(centerX + ctaW / 2 + 10, ctaY, monthColor, 16);
+                        ctx.fillText(ctaText, centerX, ctaY + 1);
                         ctx.restore();
+                    }
+
+                    // 6. MENTION SWIPE ANIMÉE OFFICIELLE (au bas de l'écran, sans chevaucher le texte)
+                    if (showSwipe) {
+                        const swipeY = canvas.height - (isStory ? 80 : 45);
+                        drawAnimatedSwipeIndicator(
+                            canvas.width - (isStory ? 80 : 60),
+                            swipeY,
+                            monthColor,
+                            isStory ? 22 : 18
+                        );
                     }
 
                     sCtx.restore();
@@ -15848,48 +15856,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     {/* Preview */}
                     <div className="flex-1 bg-[#020202] flex flex-col items-center justify-center relative overflow-hidden h-full border-l border-white/10">
-                        {theme === 'PLANNING' && (
-                            <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20 flex-wrap justify-center">
-                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
-                                <button
-                                    type="button"
-                                    onClick={() => { setIsCarouselPromoActive(false); setAgendaSlide(1); }}
-                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        !isCarouselPromoActive && agendaSlide === 1
-                                            ? 'bg-[#ff3700] text-black shadow-[0_0_12px_rgba(255,55,0,0.5)]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
-                                    }`}
-                                >
-                                    🎴 Slide 1 (Cover)
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => { setIsCarouselPromoActive(false); setAgendaSlide(2); }}
-                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        !isCarouselPromoActive && agendaSlide === 2
-                                            ? 'bg-[#ff3700] text-black shadow-[0_0_12px_rgba(255,55,0,0.5)]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
-                                    }`}
-                                >
-                                    📋 Slide 2 (Événements)
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setIsCarouselPromoActive(true);
-                                        setTimeout(() => generateImage(), 50);
-                                    }}
-                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        isCarouselPromoActive
-                                            ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
-                                    }`}
-                                >
-                                    🔥 Slide PROMO
-                                </button>
-                                {slideTransitionQuickBar}
-                            </div>
-                        )}
                         {theme === 'ARTISTE FESTIVAL' && (
                             <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20 flex-wrap justify-center">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
@@ -16321,44 +16287,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         className="absolute inset-0 flex items-center justify-center bg-black"
                         onClick={() => { if (activePanel) setActivePanel(null); }}
                     >
-                        {theme === 'PLANNING' && (
-                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setAgendaSlide(1); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        !isCarouselPromoActive && agendaSlide === 1 ? 'bg-[#ff3700] text-black shadow-md' : 'text-gray-400'
-                                    }`}
-                                >
-                                    Slide 1 (Cover)
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setAgendaSlide(2); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        !isCarouselPromoActive && agendaSlide === 2 ? 'bg-[#ff3700] text-black shadow-md' : 'text-gray-400'
-                                    }`}
-                                >
-                                    Slide 2 (Events)
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setIsCarouselPromoActive(true);
-                                        setTimeout(() => generateImage(), 50);
-                                    }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        isCarouselPromoActive
-                                            ? 'bg-neon-red text-white shadow-md'
-                                            : 'text-gray-400'
-                                    }`}
-                                >
-                                    🔥 PROMO
-                                </button>
-                                {slideTransitionQuickBar}
-                            </div>
-                        )}
                         {theme === 'ARTISTE FESTIVAL' && (
                             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
