@@ -9368,10 +9368,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </p>
                         </div>
 
-                        {/* Upload Flyer Image */}
+                        {/* Upload Flyer Image via Cloud R2 */}
                         <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2.5">
                             <label className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider block">
-                                🎨 Affiche Festival / Flyer Image
+                                🎨 Affiche Festival / Flyer (Cloud R2)
                             </label>
                             {aff.image ? (
                                 <div className="relative group rounded-xl overflow-hidden border border-white/15 bg-black/60">
@@ -9381,18 +9381,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className="w-full h-44 object-cover object-center"
                                     />
                                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                        <label className="cursor-pointer py-1.5 px-3 bg-[#ff3700] text-black text-[9px] font-black uppercase rounded-lg shadow-md hover:scale-105 transition-transform">
-                                            Changer
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={e => {
-                                                    const f = e.target.files?.[0];
-                                                    if (f) handleAgendaAfficheImageUpload(affIdx, f);
-                                                }}
-                                            />
-                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setR2TargetType('affiche');
+                                                setIsR2ModalOpen(true);
+                                            }}
+                                            className="py-1.5 px-3 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-lg shadow-md hover:scale-105 transition-transform flex items-center gap-1.5 font-mono"
+                                        >
+                                            <ImageIcon className="w-3.5 h-3.5" /> Changer (Cloud R2)
+                                        </button>
                                         <button
                                             type="button"
                                             onClick={() => updateAgendaAffiche(affIdx, 'image', '')}
@@ -9403,20 +9401,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     </div>
                                 </div>
                             ) : (
-                                <label className="cursor-pointer flex flex-col items-center justify-center p-6 border-2 border-dashed border-[#ff3700]/30 hover:border-[#ff3700] rounded-xl bg-[#ff3700]/5 hover:bg-[#ff3700]/10 transition-all group">
-                                    <Upload className="w-6 h-6 text-[#ff3700] mb-2 group-hover:scale-110 transition-transform" />
-                                    <span className="text-[9.5px] font-black uppercase text-white">Importer le flyer / l'affiche</span>
-                                    <span className="text-[7.5px] text-gray-400 mt-0.5">PNG, JPG, WEBP • Haute résolution recommandée</span>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={e => {
-                                            const f = e.target.files?.[0];
-                                            if (f) handleAgendaAfficheImageUpload(affIdx, f);
-                                        }}
-                                    />
-                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setR2TargetType('affiche');
+                                        setIsR2ModalOpen(true);
+                                    }}
+                                    className="w-full cursor-pointer flex flex-col items-center justify-center p-6 border-2 border-dashed border-[#ff3700]/30 hover:border-neon-cyan rounded-xl bg-[#ff3700]/5 hover:bg-neon-cyan/5 transition-all group"
+                                >
+                                    <ImageIcon className="w-6 h-6 text-neon-cyan mb-2 group-hover:scale-110 transition-transform" />
+                                    <span className="text-[9.5px] font-black uppercase text-white">Choisir l'affiche sur Cloud R2</span>
+                                    <span className="text-[7.5px] text-gray-400 mt-0.5">Parcourir la bibliothèque Cloud R2 Dropsiders</span>
+                                </button>
                             )}
                             {aff.image && renderImageCropControls(
                                 aff.zoom ?? 100, aff.panX ?? 0, aff.panY ?? 0,
@@ -10724,61 +10720,50 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         )}
                     </div>
 
-                    {/* Hidden file input */}
-                    <input
-                        type="file"
-                        ref={afficheFileInputRef}
-                        onChange={handleAfficheImageChange}
-                        accept="image/*"
-                        className="hidden"
-                    />
-
                     {effectiveAfficheImg ? (
                         <div className={`relative group rounded-xl overflow-hidden border border-white/20 bg-black/40 ${isMusicTheme ? 'aspect-square max-h-48' : 'aspect-[4/5] max-h-48'} mx-auto flex items-center justify-center`}>
                             <img src={effectiveAfficheImg} alt={isMusicTheme ? "Cover Track" : "Affiche Event"} className="w-full h-full object-contain" />
                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                 <button
                                     type="button"
-                                    onClick={() => afficheFileInputRef.current?.click()}
-                                    className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-white text-[10px] font-black uppercase backdrop-blur-md"
+                                    onClick={() => {
+                                        setR2TargetType('affiche');
+                                        setIsR2ModalOpen(true);
+                                    }}
+                                    className="px-3 py-1.5 bg-black/80 hover:bg-neon-cyan hover:text-black border border-white/20 rounded-lg text-white text-[10px] font-black uppercase backdrop-blur-md transition-all flex items-center gap-1.5"
                                 >
-                                    Changer
+                                    <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" /> Changer (Cloud R2)
                                 </button>
                             </div>
                         </div>
                     ) : (
                         <button
                             type="button"
-                            onClick={() => afficheFileInputRef.current?.click()}
-                            className={`w-full py-6 border-2 border-dashed border-white/15 ${isMusicTheme ? 'hover:border-[#00ff66]/50 hover:bg-[#00ff66]/5' : (isPlanningAffiche ? 'hover:border-[#ff3700]/50 hover:bg-[#ff3700]/5' : 'hover:border-neon-red/50 hover:bg-neon-red/5')} rounded-2xl flex flex-col items-center justify-center gap-2 bg-black/20 transition-all group`}
-                        >
-                            <Upload className={`w-6 h-6 text-gray-500 ${isMusicTheme ? 'group-hover:text-[#00ff66]' : (isPlanningAffiche ? 'group-hover:text-[#ff3700]' : 'group-hover:text-neon-red')} transition-colors`} />
-                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider group-hover:text-white transition-colors">
-                                {isMusicTheme ? 'Importer la cover (Artwork carré 1:1)' : 'Importer l\'affiche (Photo / Poster)'}
-                            </span>
-                            <span className="text-[8px] text-gray-500">PNG, JPG, WEBP (Format Affiche ou Carré 1:1)</span>
-                        </button>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-2 pt-1">
-                        <button
-                            type="button"
-                            onClick={() => afficheFileInputRef.current?.click()}
-                            className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
-                        >
-                            <Upload className={`w-3.5 h-3.5 ${accentTextClass}`} /> Fichier Local
-                        </button>
-                        <button
-                            type="button"
                             onClick={() => {
                                 setR2TargetType('affiche');
                                 setIsR2ModalOpen(true);
                             }}
-                            className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                            className={`w-full py-7 border-2 border-dashed border-white/15 hover:border-neon-cyan/50 hover:bg-neon-cyan/5 rounded-2xl flex flex-col items-center justify-center gap-2 bg-black/20 transition-all group cursor-pointer`}
                         >
-                            <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" /> Cloud R2
+                            <ImageIcon className="w-7 h-7 text-neon-cyan group-hover:scale-110 transition-transform" />
+                            <span className="text-[10px] font-black text-gray-300 uppercase tracking-wider group-hover:text-white transition-colors">
+                                {isMusicTheme ? 'Choisir la cover sur Cloud R2' : 'Choisir l\'affiche sur Cloud R2'}
+                            </span>
+                            <span className="text-[8px] text-gray-500">Parcourir la bibliothèque Cloud R2</span>
                         </button>
-                    </div>
+                    )}
+
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setR2TargetType('affiche');
+                            setIsR2ModalOpen(true);
+                        }}
+                        className="w-full py-2.5 bg-white/5 border border-white/10 hover:border-neon-cyan/40 hover:bg-white/10 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all shadow-sm group active:scale-98"
+                    >
+                        <ImageIcon className="w-3.5 h-3.5 text-neon-cyan group-hover:scale-110 transition-transform" />
+                        <span>Ouvrir la Bibliothèque Cloud R2</span>
+                    </button>
 
                     {/* Direct Image URL input */}
                     <div className="pt-1">
@@ -17072,7 +17057,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             generateImage();
                         };
                     } else if (r2TargetType === 'affiche') {
-                        setAfficheImage(finalUrl);
+                        if (theme === 'PLANNING' && agendaSlide >= 3) {
+                            const affIdx = agendaSlide - 3;
+                            updateAgendaAffiche(affIdx, 'image', finalUrl);
+                            const img = new Image();
+                            img.crossOrigin = 'anonymous';
+                            img.onload = () => {
+                                imageCacheRef.current[finalUrl] = img;
+                                generateImage();
+                            };
+                            img.src = finalUrl;
+                        } else {
+                            setAfficheImage(finalUrl);
+                        }
                     } else if (r2TargetType === 'musicCover') {
                         if (r2TargetIdx !== null) {
                             updateMusicTrack(r2TargetIdx, { cover: finalUrl });
