@@ -275,7 +275,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const MONTHS_FR = ['JANVIER', 'FÉVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUILLET', 'AOÛT', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÉCEMBRE'];
         return MONTHS_FR[new Date().getMonth()] || 'OCTOBRE';
     });
-    const [agendaBadgeText, setAgendaBadgeText] = useState<string>('COUPS DE CŒUR DU MOIS');
+    const [agendaBadgeText, setAgendaBadgeText] = useState<string>('AGENDA');
     const [agendaSlide, setAgendaSlide] = useState<1 | 2>(1);
     const [agendaCoverBadge, setAgendaCoverBadge] = useState<string>('AGENDA');
     const [agendaCoverTitle, setAgendaCoverTitle] = useState<string>('ON VA OÙ CE MOIS-CI ?');
@@ -3791,7 +3791,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.save();
                     const badgeX = 65;
                     const badgeY = isStory ? 90 : 65;
-                    const badgeText = (agendaBadgeText || 'AGENDA DU MOIS').toUpperCase().trim();
+                    const badgeText = (agendaBadgeText || 'AGENDA').toUpperCase().trim();
 
                     let badgeFontSize = 13;
                     let letterSpacing = '3px';
@@ -3853,49 +3853,46 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(badgeText, badgeX + pillW / 2 + 1, badgeY + pillH / 2 + 1);
                     ctx.restore();
 
-                    // 2. GRAND TITRE DU MOIS EN CONTOUR NÉON CREUX (Style Rave Hollow, sans blanc)
+                    // 2. GRAND TITRE DU MOIS (Ultra-propre, plein, puissant et net)
                     const monthY = isStory ? 370 : 280;
                     const monthText = (agendaMonth || 'OCTOBRE').toUpperCase().trim();
 
-                    let monthFontSize = isStory ? 104 : 92;
-                    ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
-                    ctx.letterSpacing = '6px';
+                    let monthFontSize = isStory ? 98 : 86;
+                    ctx.font = `900 italic ${monthFontSize}px "Montserrat", Arial, sans-serif`;
+                    ctx.letterSpacing = '5px';
                     while (ctx.measureText(monthText).width > (canvas.width - 160) && monthFontSize > 44) {
                         monthFontSize -= 2;
-                        ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
+                        ctx.font = `900 italic ${monthFontSize}px "Montserrat", Arial, sans-serif`;
                     }
 
                     ctx.save();
                     applyTextAnimCtx(ctx, 0.18, centerX, monthY);
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.font = `900 ${monthFontSize}px "Montserrat", Arial, sans-serif`;
-                    ctx.letterSpacing = '6px';
+                    ctx.font = `900 italic ${monthFontSize}px "Montserrat", Arial, sans-serif`;
+                    ctx.letterSpacing = '5px';
 
-                    // A) Ombre noire profonde derrière pour détacher le contour du fond
+                    // A) Ombre de profondeur noire 3D
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                     ctx.shadowBlur = 18;
                     ctx.shadowOffsetX = 0;
-                    ctx.shadowOffsetY = 4;
-                    ctx.strokeStyle = monthColor;
-                    ctx.lineWidth = isStory ? 6 : 5;
-                    ctx.strokeText(monthText, centerX, monthY);
+                    ctx.shadowOffsetY = 6;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(monthText, centerX, monthY);
 
-                    // B) Halo néon vibrant dans la couleur du thème
-                    ctx.shadowColor = `rgba(${monthGrad}, 0.90)`;
-                    ctx.shadowBlur = 20;
+                    // B) Halo néon vibrant assorti à la couleur du thème
+                    ctx.shadowColor = `rgba(${monthGrad}, 0.85)`;
+                    ctx.shadowBlur = 24;
                     ctx.shadowOffsetX = 0;
                     ctx.shadowOffsetY = 0;
-                    ctx.strokeStyle = monthColor;
-                    ctx.lineWidth = isStory ? 5 : 4;
-                    ctx.strokeText(monthText, centerX, monthY);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(monthText, centerX, monthY);
 
-                    // C) Contour net de précision (ultra-propre, creux à l'intérieur)
+                    // C) Rendu blanc éclatant net et lisible
                     ctx.shadowColor = 'transparent';
                     ctx.shadowBlur = 0;
-                    ctx.strokeStyle = monthColor;
-                    ctx.lineWidth = isStory ? 3.5 : 2.8;
-                    ctx.strokeText(monthText, centerX, monthY);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(monthText, centerX, monthY);
 
                     ctx.restore();
 
