@@ -1213,10 +1213,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }, 50);
     };
 
-    // Initial load for logo
+    // Initial load for logo (officiel avec WWW.DROPSIDERS.FR)
     useEffect(() => {
         const logo = new Image();
-        logo.src = '/Logo.png';
+        logo.src = '/logo_dark.png';
         logo.crossOrigin = "anonymous";
         logo.onload = () => { logoRef.current = logo; };
     }, []);
@@ -5276,8 +5276,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 // 1. TOP-LEFT STYLIZED CAPSULE BADGE (French Crowd / Modern Editorial)
-                const isReel = effectiveTab === 'REEL';
-                const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
+                const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'ARTISTE FESTIVAL'].includes(theme);
 
                 ctx.save();
                 if (isEditorialCarouselTheme) {
@@ -5531,11 +5530,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     totalTextHeight = titleHeight + gapBetween + subHeight;
                 }
 
-                // Centrage vertical dynamique dans la zone libre entre le divider et le bas / bandeau CTA
-                // Pour le thème MUSIQUE Slide 1, on remonte la phrase vers le haut pour un équilibre parfait sous la ligne
-                const startPadding = isMusicSlide1
-                    ? Math.max(isReel ? 22 : 14, Math.round((availableSpace - totalTextHeight) * (isReel ? 0.32 : 0.30)))
-                    : Math.max(isReel ? 22 : 14, Math.round((availableSpace - totalTextHeight) / 2));
+                // Positionnement vertical net et stable sous la barre divider (strictement identique à NEWS pour TOUS les thèmes)
+                // Élimine le grand vide sous la date et garantit que TOUS les thèmes ont la même hauteur de texte
+                const targetTopPadding = isReel ? 80 : 36;
+                const startPadding = isDevinetteReveal
+                    ? Math.max(isReel ? 22 : 14, Math.round((availableSpace - totalTextHeight) / 2))
+                    : Math.max(isReel ? 22 : 14, Math.min(targetTopPadding, availableSpace - totalTextHeight));
                 const firstLineFontSize = mainTitleText ? titleFontSize : subFontSize;
                 let curY = dividerY + startPadding + Math.round(firstLineFontSize * 0.82);
 

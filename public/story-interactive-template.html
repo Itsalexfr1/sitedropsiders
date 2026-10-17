@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dropsiders - Story Template Generator (Add Yours)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,500;0,700;0,800;0,900;1,900&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+    <!-- html2canvas for 1-click export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: #050508;
+            color: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 30px 20px 60px;
+        }
+
+        /* Top Toolbar */
+        .toolbar {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(18, 18, 24, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            padding: 14px 24px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .toolbar-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toolbar-title img {
+            height: 24px;
+            width: auto;
+        }
+
+        .toolbar-title span {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #ff1241;
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .btn.active {
+            background: #ff1241;
+            border-color: #ff1241;
+            box-shadow: 0 0 15px rgba(255, 18, 65, 0.5);
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, #ff1241, #ff476d);
+            border-color: #ff1241;
+            box-shadow: 0 4px 15px rgba(255, 18, 65, 0.4);
+        }
+
+        .btn.primary:hover {
+            box-shadow: 0 6px 22px rgba(255, 18, 65, 0.6);
+        }
+
+        /* Workspace container */
+        .workspace {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        /* 9:16 Story Frame */
+        .story-container {
+            width: 405px;
+            height: 720px; /* 9:16 scale ratio */
+            position: relative;
+            border-radius: 36px;
+            overflow: hidden;
+            box-shadow: 
+                0 0 0 1px rgba(255, 255, 255, 0.18),
+                0 25px 60px rgba(0, 0, 0, 0.95);
+            background: #0a0a0c;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+        }
+
+        /* Background artwork with fluid animation */
+        .story-bg {
+            position: absolute;
+            inset: -5%;
+            width: 110%;
+            height: 110%;
+            background-size: cover;
+            background-position: center 30%;
+            background-repeat: no-repeat;
+            transition: background-image 0.6s ease;
+            animation: fluidBreathe 14s ease-in-out infinite alternate;
+            z-index: 1;
+            will-change: transform;
+        }
+
+        @keyframes fluidBreathe {
+            0% {
+                transform: scale(1) translate(0%, 0%) rotate(0deg);
+            }
+            50% {
+                transform: scale(1.09) translate(-2%, -2%) rotate(0.5deg);
+            }
+            100% {
+                transform: scale(1.04) translate(1.5%, -1%) rotate(-0.5deg);
+            }
+        }
+
+        /* Fluid Light / Shimmer Beam */
+        .fluid-light-wave {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 50% at 50% 40%, rgba(255, 18, 65, 0.35), transparent 70%);
+            mix-blend-mode: screen;
+            z-index: 2;
+            animation: fluidGlowPulse 6s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        @keyframes fluidGlowPulse {
+            0% {
+                opacity: 0.4;
+                transform: scale(0.95);
+            }
+            50% {
+                opacity: 0.85;
+                transform: scale(1.08) translateY(-10px);
+            }
+            100% {
+                opacity: 0.5;
+                transform: scale(1.02);
+            }
+        }
+
+        /* Floating silk shimmer overlay */
+        .silk-shimmer-sweep {
+            position: absolute;
+            width: 200%;
+            height: 60%;
+            top: -20%;
+            left: -50%;
+            background: linear-gradient(135deg, transparent 30%, rgba(255, 60, 100, 0.25) 50%, transparent 70%);
+            mix-blend-mode: color-dodge;
+            transform: rotate(-25deg);
+            animation: silkSweep 10s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        @keyframes silkSweep {
+            0% {
+                transform: translateY(-80%) rotate(-25deg);
+                opacity: 0;
+            }
+            30% {
+                opacity: 0.7;
+            }
+            70% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(220%) rotate(-20deg);
+                opacity: 0;
+            }
+        }
+
+        /* Vignette & scanlines */
+        .story-overlay {
+            position: absolute;
+            inset: 0;
+            background: 
+                linear-gradient(to bottom, rgba(5, 5, 8, 0.8) 0%, rgba(5, 5, 8, 0.45) 30%, rgba(5, 5, 8, 0.7) 65%, rgba(5, 5, 8, 0.95) 100%),
+                radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.4) 20%, rgba(0, 0, 0, 0.95) 100%);
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        .story-scanlines {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            opacity: 0.35;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        /* Story Content Layer */
+        .story-content {
+            position: relative;
+            z-index: 10;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 38px 26px 26px;
+            justify-content: space-between;
+        }
+
+        /* Top Header split like in NEWS (Badge Left, Logo Right) */
+        .top-nav-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            height: 40px;
+            margin-bottom: 14px;
+        }
+
+        .category-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(0, 0, 0, 0.75);
+            border: 1.5px solid #ff1241;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 5px 14px;
+            border-radius: 999px;
+            box-shadow: 0 0 15px rgba(255, 18, 65, 0.4);
+        }
+
+        .category-pill .dot {
+            width: 6px;
+            height: 6px;
+            background: #ff1241;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ff1241;
+            animation: dotBlink 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes dotBlink {
+            0% { opacity: 0.5; transform: scale(0.85); }
+            100% { opacity: 1; transform: scale(1.25); }
+        }
+
+        /* Authentic Official Dropsiders Logo File Aligned Right */
+        .brand-logo-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .official-logo-img {
+            height: 34px;
+            width: auto;
+            display: block;
+            filter: brightness(0) invert(1) drop-shadow(0 0 20px rgba(255, 18, 65, 0.45));
+            transition: transform 0.3s ease;
+        }
+
+        .official-logo-img:hover {
+            transform: scale(1.05);
+        }
+
+        /* Date / Category Divider Line as in NEWS */
+        .news-date-divider {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .divider-line {
+            flex: 1;
+            height: 1.5px;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .divider-text {
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: 2.5px;
+            color: #ffffff;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* Headline section with LOCKED FIXED HEIGHT for ALL themes */
+        .headline-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 6px;
+            width: 100%;
+            height: 115px; /* STRICT FIXED HEIGHT across all themes */
+            justify-content: flex-start;
+        }
+
+        .main-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 20px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.3px;
+            line-height: 1.15;
+            color: #ffffff;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
+            height: 48px; /* FIXED height so 1 or 2 lines never move the layout */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-subtitle {
+            font-size: 11px;
+            font-weight: 500;
+            line-height: 1.4;
+            color: rgba(255, 255, 255, 0.85);
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            padding: 6px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            height: 44px; /* FIXED height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .main-subtitle strong {
+            color: #ff3355;
+            font-weight: 800;
+        }
+
+        /* Audio Player Placeholder Box */
+        .player-frame {
+            background: rgba(14, 14, 20, 0.65);
+            backdrop-filter: blur(20px);
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 20px 18px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            position: relative;
+            box-shadow: 
+                0 20px 50px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            margin: auto 0;
+        }
+
+        /* Technical badges inside player */
+        .player-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 9.5px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 10px;
+        }
+
+        .player-meta .bpm-tag {
+            color: #ff3355;
+            background: rgba(255, 18, 65, 0.12);
+            padding: 2px 7px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 18, 65, 0.25);
+        }
+
+        /* The Exact Music Sticker Slot */
+        .music-sticker-slot {
+            height: 110px;
+            border: 2px dashed rgba(255, 255, 255, 0.28);
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.85);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .music-sticker-slot:hover {
+            border-color: #ff3355;
+            background: rgba(255, 18, 65, 0.05);
+        }
+
+        .music-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: rgba(255, 18, 65, 0.2);
+            border: 1px solid rgba(255, 18, 65, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ff3355;
+        }
+
+        .slot-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: #ffffff;
+        }
+
+        .slot-hint {
+            font-size: 9px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 0.5px;
+        }
+
+        /* Waveform progress bar */
+        .waveform-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2.5px;
+            height: 26px;
+            opacity: 0.85;
+            padding: 0 4px;
+        }
+
+        .wave-bar {
+            width: 3.2px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            height: 10px;
+            transform-origin: bottom;
+            animation: waveDance 1.4s ease-in-out infinite alternate;
+        }
+
+        .wave-bar.active {
+            background: #ff1241;
+            box-shadow: 0 0 10px #ff1241;
+        }
+
+        @keyframes waveDance {
+            0% {
+                transform: scaleY(0.45);
+            }
+            100% {
+                transform: scaleY(1.35);
+            }
+        }
+
+        /* Player Controls UI */
+        .player-bottom-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+            padding-top: 4px;
+        }
+
+        .playback-icons {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .playback-play {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #ff1241;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            box-shadow: 0 0 12px rgba(255, 18, 65, 0.5);
+        }
+
+        /* Bottom Section: Add Yours Area */
+        .bottom-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        /* Native IG Add Yours Sticker representation */
+        .add-yours-native {
+            background: #ffffff;
+            color: #000000;
+            padding: 8px 16px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+            font-size: 13px;
+            font-weight: 700;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .add-yours-badge {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ff1241;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+        }
+
+        .add-yours-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #111;
+        }
+
+        .add-yours-btn-blue {
+            color: #0095f6;
+            font-weight: 800;
+            padding-left: 6px;
+            border-left: 1px solid #ddd;
+        }
+
+        .media-footer-tag {
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 2.5px;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+        }
+
+        /* Side Settings Panel */
+        .settings-panel {
+            max-width: 380px;
+            background: rgba(18, 18, 24, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            padding: 24px;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .panel-heading {
+            font-size: 15px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #ffffff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .setting-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .theme-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1.5px solid rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .theme-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .theme-card.active {
+            border-color: #ff1241;
+            background: rgba(255, 18, 65, 0.1);
+        }
+
+        .theme-preview-box {
+            height: 48px;
+            border-radius: 8px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .theme-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .custom-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            color: #fff;
+            padding: 10px 14px;
+            font-size: 12px;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .custom-input:focus {
+            border-color: #ff1241;
+        }
+
+        textarea.custom-input {
+            resize: vertical;
+            min-height: 60px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Toolbar -->
+    <div class="toolbar">
+        <div class="toolbar-title">
+            <img src="./logo_dark.png" alt="Dropsiders" style="height: 26px; width: auto; filter: brightness(0) invert(1);">
+            <span>Story Template Studio</span>
+        </div>
+        <div class="controls-group">
+            <button class="btn" onclick="applyPreset(1)">Preset 1 : Anthem</button>
+            <button class="btn" onclick="applyPreset(2)">Preset 2 : Closing Set</button>
+            <button class="btn" onclick="applyPreset(3)">Preset 3 : Radar</button>
+            <button class="btn primary" id="exportBtn" onclick="exportStoryImage()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Exporter en PNG (1080x1920)
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="workspace">
+        
+        <!-- Story Frame (9:16) -->
+        <div class="story-container" id="storyFrame">
+            <!-- Background Artwork with continuous fluid breathing animation (CLEAN - ZERO LOGO IN BACKGROUND) -->
+            <div class="story-bg" id="storyBg" style="background-image: url('./Banniere_Fluide_Clean.jpg');"></div>
+            <!-- Animated fluid ambient glow -->
+            <div class="fluid-light-wave"></div>
+            <!-- Moving silk light sweep across the fluid curves -->
+            <div class="silk-shimmer-sweep"></div>
+            <!-- Vignette Overlay -->
+            <div class="story-overlay"></div>
+            <!-- CRT Scanlines -->
+            <div class="story-scanlines"></div>
+
+            <!-- Content -->
+            <div class="story-content">
+                <!-- Top Brand Header with Official Dropsiders Logo File -->
+                <div class="top-header">
+                    <div class="brand-logo-wrap">
+                        <img src="./logo_dark.png" alt="DROPSIDERS.FR" class="official-logo-img">
+                    </div>
+                    <div class="category-pill" id="storyCategory">
+                        <span class="dot"></span>
+                        <span id="storyCategoryText">FESTIVAL ANTHEM SELECTOR</span>
+                    </div>
+
+                    <div class="headline-section">
+                        <h1 class="main-title" id="storyTitle">L'HYMNE DE TON ÉTÉ 2026</h1>
+                        <p class="main-subtitle" id="storySubtitle">
+                            Ouvre les musiques Instagram : la <strong>5ᵉ track</strong> qui apparaît est ton hymne officiel en festival.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Center Audio Frame -->
+                <div class="player-frame">
+                    <!-- Instagram Music Sticker Slot -->
+                    <div class="music-sticker-slot">
+                        <div class="music-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M9 18V5l12-2v13"></path>
+                                <circle cx="6" cy="18" r="3"></circle>
+                                <circle cx="18" cy="16" r="3"></circle>
+                            </svg>
+                        </div>
+                        <div class="slot-label">COLLE TA TRACK ICI</div>
+                        <div class="slot-hint">STICKER MUSIQUE INSTAGRAM</div>
+                    </div>
+
+                    <!-- Waveform Visualizer -->
+                    <div class="waveform-strip" id="waveformStrip">
+                        <!-- Filled by JS -->
+                    </div>
+
+                    <!-- Bottom Player UI Controls -->
+                    <div class="player-bottom-controls">
+                        <span>01:24</span>
+                        <div class="playback-icons">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 20L9 12l10-8v16zM5 19V5h2v14H5z"/></svg>
+                            <div class="playback-play">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            </div>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M5 4l10 8-10 8V4zm14 1v14h-2V5h2z"/></svg>
+                        </div>
+                        <span>03:45</span>
+                    </div>
+                </div>
+
+                <!-- Bottom Section: Add Yours sticker -->
+                <div class="bottom-section">
+                    <div class="add-yours-native">
+                        <div class="add-yours-badge">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <polyline points="9 14 4 9 9 4"></polyline>
+                                <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
+                            </svg>
+                        </div>
+                        <div class="add-yours-label">
+                            <span>Ajout perso</span>
+                            <span class="add-yours-btn-blue">+Participer</span>
+                        </div>
+                    </div>
+                    <div class="media-footer-tag">DROPSIDERS.FR • MÉDIA FESTIVALS & ÉLECTRO</div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Customization Panel -->
+        <div class="settings-panel">
+            <div class="panel-heading">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Personnalisation du Visuel
+            </div>
+
+            <!-- Background Theme selector -->
+            <div class="setting-group">
+                <label class="setting-label">Fond officiel Dropsiders (100% Fluide Animé)</label>
+                <div class="theme-grid">
+                    <div class="theme-card active" onclick="setBg('./Banniere_Fluide_Clean.jpg', this)">
+                        <div class="theme-preview-box" style="background-image: url('./Banniere_Fluide_Clean.jpg');"></div>
+                        <span class="theme-title">Fluide Sombre & Rouge</span>
+                    </div>
+                    <div class="theme-card" onclick="setBg('./Banniere_Crimson_Clean.jpg', this)">
+                        <div class="theme-preview-box" style="background-image: url('./Banniere_Crimson_Clean.jpg');"></div>
+                        <span class="theme-title">Fluide Crimson Vif</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Text customization -->
+            <div class="setting-group">
+                <label class="setting-label">Badge de catégorie</label>
+                <input type="text" class="custom-input" id="inputCategory" value="FESTIVAL ANTHEM SELECTOR" oninput="updateContent()">
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Titre principal</label>
+                <input type="text" class="custom-input" id="inputTitle" value="L'HYMNE DE TON ÉTÉ 2026" oninput="updateContent()">
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Consigne / Règle du jeu</label>
+                <textarea class="custom-input" id="inputSubtitle" oninput="updateContent()">Ouvre les musiques Instagram : la 5ᵉ track qui apparaît est ton hymne officiel en festival.</textarea>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Texte du slot sticker</label>
+                <input type="text" class="custom-input" id="inputSlot" value="COLLE TA TRACK ICI" oninput="updateContent()">
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // Generate decorative waveform bars
+        const waveformStrip = document.getElementById('waveformStrip');
+        const heights = [12, 18, 8, 14, 22, 16, 24, 18, 10, 14, 20, 24, 16, 12, 22, 18, 14, 20, 24, 18, 12, 8, 14, 18, 12, 16, 22, 14, 8, 12];
+        heights.forEach((h, i) => {
+            const bar = document.createElement('div');
+            bar.className = 'wave-bar' + (i < 14 ? ' active' : '');
+            bar.style.height = `${h}px`;
+            bar.style.animationDelay = `${(i % 8) * 0.16}s`;
+            waveformStrip.appendChild(bar);
+        });
+
+        // Set Background
+        function setBg(url, cardElem) {
+            document.getElementById('storyBg').style.backgroundImage = `url('${url}')`;
+            document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'));
+            if (cardElem) cardElem.classList.add('active');
+        }
+
+        // Live text updates
+        function updateContent() {
+            document.getElementById('storyCategoryText').innerText = document.getElementById('inputCategory').value;
+            document.getElementById('storyTitle').innerText = document.getElementById('inputTitle').value;
+            document.getElementById('storySubtitle').innerHTML = document.getElementById('inputSubtitle').value;
+            document.querySelector('.slot-label').innerText = document.getElementById('inputSlot').value;
+        }
+
+        // Presets
+        const presets = {
+            1: {
+                cat: 'FESTIVAL ANTHEM SELECTOR',
+                title: "L'HYMNE DE TON ÉTÉ 2026",
+                sub: "Ouvre les musiques Instagram : la <strong>5ᵉ track</strong> qui apparaît est ton hymne officiel en festival.",
+                slot: "COLLE TA TRACK ICI",
+                bg: "./Banniere_Fluide_Clean.jpg"
+            },
+            2: {
+                cat: 'PEAK TIME SELECTION',
+                title: "LE CLOSING TRACK PARFAIT",
+                sub: "Tape l'initiale de ton prénom : la <strong>3ᵉ track</strong> est celle qui termine le set en apothéose.",
+                slot: "VOTRE TRACK ID ICI",
+                bg: "./Banniere_Crimson_Clean.jpg"
+            },
+            3: {
+                cat: 'DROPSIDERS RADAR',
+                title: "EN ROTATION CETTE SEMAINE",
+                sub: "Partage la pépite électro que tu as découverte récemment et qui tourne en boucle chez toi.",
+                slot: "AJOUTEZ VOTRE TITRE DU MOMENT",
+                bg: "./Banniere_Fluide_Clean.jpg"
+            }
+        };
+
+        function applyPreset(num) {
+            const p = presets[num];
+            document.getElementById('inputCategory').value = p.cat;
+            document.getElementById('inputTitle').value = p.title;
+            document.getElementById('inputSubtitle').value = p.sub;
+            document.getElementById('inputSlot').value = p.slot;
+            updateContent();
+            
+            // Set background
+            const cards = document.querySelectorAll('.theme-card');
+            const targetIndex = num === 2 ? 1 : 0;
+            setBg(p.bg, cards[targetIndex]);
+        }
+
+        // 1-Click HD Export
+        async function exportStoryImage() {
+            const btn = document.getElementById('exportBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Génération HD...';
+            btn.disabled = true;
+
+            try {
+                const element = document.getElementById('storyFrame');
+                const canvas = await html2canvas(element, {
+                    scale: 3, // Upscale to 1215x2160 (HD Story size)
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#0a0a0c'
+                });
+
+                const link = document.createElement('a');
+                link.download = `Dropsiders_Story_${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (err) {
+                console.error(err);
+                alert("Erreur lors de l'export HD : " + err.message);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
