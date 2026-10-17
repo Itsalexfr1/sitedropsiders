@@ -277,7 +277,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     });
     const [agendaBadgeText, setAgendaBadgeText] = useState<string>('COUPS DE CŒUR DU MOIS');
     const [agendaSlide, setAgendaSlide] = useState<1 | 2>(1);
-    const [agendaCoverBadge, setAgendaCoverBadge] = useState<string>('AGENDA FESTIVALS & SOIRÉES');
+    const [agendaCoverBadge, setAgendaCoverBadge] = useState<string>('AGENDA');
     const [agendaCoverTitle, setAgendaCoverTitle] = useState<string>('ON VA OÙ CE MOIS-CI ?');
     const [agendaCoverYear, setAgendaCoverYear] = useState<string>(() => String(new Date().getFullYear()));
     const [agendaCoverGenres, setAgendaCoverGenres] = useState<string>('HARD TECHNO • RAWSTYLE • MULTI-GENRES');
@@ -3545,7 +3545,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.save();
                     const badgeX = 65;
                     const badgeY = isStory ? 90 : 65;
-                    const badgeText = (agendaCoverBadge || agendaBadgeText || 'AGENDA FESTIVALS & SOIRÉES').toUpperCase().trim();
+                    const badgeText = (agendaCoverBadge || 'AGENDA').toUpperCase().trim();
 
                     let badgeFontSize = 13;
                     let letterSpacing = '3px';
@@ -8678,11 +8678,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <input
                             value={agendaCoverBadge}
                             onChange={e => setAgendaCoverBadge(e.target.value)}
-                            placeholder="ex: AGENDA FESTIVALS & SOIRÉES"
+                            placeholder="ex: AGENDA"
                             className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black uppercase text-xs focus:border-[#ff3700] focus:outline-none"
                         />
                         <div className="flex flex-wrap gap-1 pt-1">
                             {[
+                                'AGENDA',
                                 'AGENDA FESTIVALS & SOIRÉES',
                                 'COUPS DE CŒUR DU MOIS',
                                 'SÉLECTION DU MOIS',
