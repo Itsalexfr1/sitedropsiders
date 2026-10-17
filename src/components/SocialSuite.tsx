@@ -154,6 +154,35 @@ export interface AgendaAfficheItem {
     date: string;
     venue: string;
     image: string;
+    zoom?: number; // 100 = taille normale, recadrage interne de l'image uniquement
+    panX?: number; // -100 (gauche) .. 100 (droite)
+    panY?: number; // -100 (haut) .. 100 (bas)
+}
+
+// Dessine une image dans un cadre (x, y, w, h) avec zoom + déplacement interne,
+// sans jamais déplacer le cadre lui-même (le clip doit être appliqué par l'appelant).
+function drawImageZoomPan(
+    ctx: CanvasRenderingContext2D,
+    img: HTMLImageElement,
+    x: number, y: number, w: number, h: number,
+    mode: 'cover' | 'contain' = 'cover',
+    zoomPct: number = 100, panXPct: number = 0, panYPct: number = 0
+) {
+    const iw = img.naturalWidth || img.width;
+    const ih = img.naturalHeight || img.height;
+    if (!iw || !ih) return;
+    const base = mode === 'contain' ? Math.min(w / iw, h / ih) : Math.max(w / iw, h / ih);
+    const s = base * Math.max(1, (zoomPct || 100) / 100);
+    const dw = iw * s;
+    const dh = ih * s;
+    const rangeX = Math.abs(dw - w) / 2;
+    const rangeY = Math.abs(dh - h) / 2;
+    const px = Math.max(-1, Math.min(1, (panXPct || 0) / 100));
+    const py = Math.max(-1, Math.min(1, (panYPct || 0) / 100));
+    // pan positif = on montre davantage la droite / le bas de l'image
+    const dx = x + (w - dw) / 2 - rangeX * px * (dw >= w ? 1 : -1);
+    const dy = y + (h - dh) / 2 - rangeY * py * (dh >= h ? 1 : -1);
+    ctx.drawImage(img, dx, dy, dw, dh);
 }
 
 // Helpers géométriques pour le Player CDJ (bague de progression circulaire/carrée arrondie)
@@ -396,7 +425,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    const updateAgendaAffiche = (afficheIndex: number, field: keyof AgendaAfficheItem, value: string) => {
+    const updateAgendaAffiche = (afficheIndex: number, field: keyof AgendaAfficheItem, value: string | number) => {
         setAgendaAffiches(prev => {
             const next = [...prev];
             if (next[afficheIndex]) {
@@ -524,6 +553,53 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [afficheMode, setAfficheMode] = useState<'cover' | 'contain'>('cover');
     const [afficheScale, setAfficheScale] = useState<number>(100);
     const [afficheOffsetY, setAfficheOffsetY] = useState<number>(0);
+    // Recadrage interne de l'image de l'affiche (zoom + déplacement sans bouger le cadre)
+    const [afficheImgZoom, setAfficheImgZoom] = useState<number>(100);
+    const [afficheImgPanX, setAfficheImgPanX] = useState<number>(0);
+    const [afficheImgPanY, setAfficheImgPanY] = useState<number>(0);
+
+    const renderImageCropControls = (
+        zoom: number, panX: number, panY: number,
+        onChange: (field: 'zoom' | 'panX' | 'panY', value: number) => void,
+        accentClass: string = 'accent-[#ff3700]',
+        textClass: string = 'text-[#ff3700]'
+    ) => (
+        <div className="space-y-2 p-2.5 bg-black/40 border border-white/10 rounded-xl">
+            <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-300">
+                <span>🔍 Recadrer l'image (le cadre reste fixe)</span>
+                {(zoom !== 100 || panX !== 0 || panY !== 0) && (
+                    <button
+                        type="button"
+                        onClick={() => { onChange('zoom', 100); onChange('panX', 0); onChange('panY', 0); }}
+                        className={`text-[8px] ${textClass} hover:underline uppercase font-bold`}
+                    >
+                        Reset
+                    </button>
+                )}
+            </div>
+            {([
+                { key: 'zoom' as const, label: 'Zoom', value: zoom, min: 100, max: 200, unit: '%' },
+                { key: 'panX' as const, label: 'Gauche ↔ Droite', value: panX, min: -100, max: 100, unit: '' },
+                { key: 'panY' as const, label: 'Haut ↕ Bas', value: panY, min: -100, max: 100, unit: '' }
+            ]).map(ctrl => (
+                <div key={ctrl.key} className="space-y-1">
+                    <div className="flex items-center justify-between text-[8.5px] font-bold uppercase text-gray-400">
+                        <span>{ctrl.label}</span>
+                        <span className={`${textClass} font-mono`}>{ctrl.value}{ctrl.unit}</span>
+                    </div>
+                    <input
+                        type="range"
+                        min={ctrl.min}
+                        max={ctrl.max}
+                        value={ctrl.value}
+                        onChange={e => onChange(ctrl.key, Number(e.target.value))}
+                        onDoubleClick={() => onChange(ctrl.key, ctrl.key === 'zoom' ? 100 : 0)}
+                        className={`w-full ${accentClass} bg-white/10 rounded-lg h-1.5 cursor-pointer`}
+                    />
+                </div>
+            ))}
+        </div>
+    );
     const afficheFileInputRef = useRef<HTMLInputElement>(null);
 
     // MUSIQUE : Slide 1 = Annonce, Slides 2 à 19 = Tracks (pochette + titre + artiste + label + extrait audio), Slide 20 = Promo
@@ -4131,22 +4207,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     if (flyerImg && flyerImg.complete && flyerImg.naturalWidth > 0) {
-                        const imgAspect = flyerImg.naturalWidth / flyerImg.naturalHeight;
-                        const cardAspect = cardW / cardH;
-                        let dw = cardW;
-                        let dh = cardH;
-                        let dx = cardMarginX;
-                        let dy = cardTopY;
-                        if (imgAspect > cardAspect) {
-                            dh = cardH;
-                            dw = cardH * imgAspect;
-                            dx = cardMarginX + (cardW - dw) / 2;
-                        } else {
-                            dw = cardW;
-                            dh = cardW / imgAspect;
-                            dy = cardTopY + (cardH - dh) / 2;
-                        }
-                        ctx.drawImage(flyerImg, dx, dy, dw, dh);
+                        drawImageZoomPan(ctx, flyerImg, cardMarginX, cardTopY, cardW, cardH, 'cover', affiche.zoom ?? 100, affiche.panX ?? 0, affiche.panY ?? 0);
                         const vigGrad = ctx.createLinearGradient(0, cardTopY + cardH * 0.5, 0, cardTopY + cardH);
                         vigGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
                         vigGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0.7)');
@@ -4830,26 +4891,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (afficheMode === 'contain') {
                         ctx.fillStyle = '#0a0a0e';
                         ctx.fillRect(cardX, cardY, cardW, cardH);
-                        const fitScale = Math.min(cardW / poster.width, cardH / poster.height);
-                        const dw = poster.width * fitScale;
-                        const dh = poster.height * fitScale;
-                        const dx = cardX + (cardW - dw) / 2;
-                        const dy = cardY + (cardH - dh) / 2;
-                        ctx.drawImage(poster, dx, dy, dw, dh);
-                    } else {
-                        // Mode Cover
-                        const posterRatio = poster.width / poster.height;
-                        const cardRatio = cardW / cardH;
-                        let sx = 0, sy = 0, sw = poster.width, sh = poster.height;
-                        if (posterRatio > cardRatio) {
-                            sw = poster.height * cardRatio;
-                            sx = (poster.width - sw) / 2;
-                        } else {
-                            sh = poster.width / cardRatio;
-                            sy = (poster.height - sh) / 2;
-                        }
-                        ctx.drawImage(poster, sx, sy, sw, sh, cardX, cardY, cardW, cardH);
                     }
+                    // Zoom + déplacement interne : seule l'image bouge, le cadre reste fixe
+                    drawImageZoomPan(ctx, poster, cardX, cardY, cardW, cardH, afficheMode === 'contain' ? 'contain' : 'cover', afficheImgZoom, afficheImgPanX, afficheImgPanY);
                 } else {
                     // Carte placeholder élégante en attente d'image
                     const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
@@ -4975,26 +5019,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (afficheMode === 'contain') {
                         ctx.fillStyle = '#0a0a0e';
                         ctx.fillRect(cardX, cardY, cardW, cardH);
-                        const fitScale = Math.min(cardW / poster.width, cardH / poster.height);
-                        const dw = poster.width * fitScale;
-                        const dh = poster.height * fitScale;
-                        const dx = cardX + (cardW - dw) / 2;
-                        const dy = cardY + (cardH - dh) / 2;
-                        ctx.drawImage(poster, dx, dy, dw, dh);
-                    } else {
-                        // Mode Cover 1:1
-                        const posterRatio = poster.width / poster.height;
-                        const cardRatio = cardW / cardH;
-                        let sx = 0, sy = 0, sw = poster.width, sh = poster.height;
-                        if (posterRatio > cardRatio) {
-                            sw = poster.height * cardRatio;
-                            sx = (poster.width - sw) / 2;
-                        } else {
-                            sh = poster.width / cardRatio;
-                            sy = (poster.height - sh) / 2;
-                        }
-                        ctx.drawImage(poster, sx, sy, sw, sh, cardX, cardY, cardW, cardH);
                     }
+                    // Zoom + déplacement interne de la pochette (cadre fixe)
+                    drawImageZoomPan(ctx, poster, cardX, cardY, cardW, cardH, afficheMode === 'contain' ? 'contain' : 'cover', afficheImgZoom, afficheImgPanX, afficheImgPanY);
                 } else {
                     // Placeholder vinyle / music art élégant et épuré
                     const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
@@ -6240,7 +6267,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide
     useEffect(() => {
@@ -9365,6 +9392,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     />
                                 </label>
                             )}
+                            {aff.image && renderImageCropControls(
+                                aff.zoom ?? 100, aff.panX ?? 0, aff.panY ?? 0,
+                                (field, value) => updateAgendaAffiche(affIdx, field, value)
+                            )}
                         </div>
 
                         {/* Title Input */}
@@ -10794,6 +10825,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 className={`w-full ${accentSlider} bg-white/10 rounded-lg h-1.5 cursor-pointer`}
                             />
                         </div>
+                        {renderImageCropControls(
+                            afficheImgZoom, afficheImgPanX, afficheImgPanY,
+                            (field, value) => {
+                                if (field === 'zoom') setAfficheImgZoom(value);
+                                else if (field === 'panX') setAfficheImgPanX(value);
+                                else setAfficheImgPanY(value);
+                            },
+                            accentSlider,
+                            accentTextClass
+                        )}
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-white/5">
@@ -11189,6 +11230,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             className="w-full accent-[#00ff66] bg-white/10 rounded-lg h-1.5 cursor-pointer"
                         />
                     </div>
+
+                    {renderImageCropControls(
+                        afficheImgZoom, afficheImgPanX, afficheImgPanY,
+                        (field, value) => {
+                            if (field === 'zoom') setAfficheImgZoom(value);
+                            else if (field === 'panX') setAfficheImgPanX(value);
+                            else setAfficheImgPanY(value);
+                        },
+                        'accent-[#00ff66]',
+                        'text-[#00ff66]'
+                    )}
 
                     {/* Animations CDJ Player & Fond Animé */}
                     <div className="pt-2.5 border-t border-white/10 space-y-2">
