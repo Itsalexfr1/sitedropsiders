@@ -1364,9 +1364,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     // Initial load for logo (officiel avec WWW.DROPSIDERS.FR)
     useEffect(() => {
         const logo = new Image();
-        logo.src = '/logo_dark.png';
+        logo.src = '/logo_white_official.png';
         logo.crossOrigin = "anonymous";
         logo.onload = () => { logoRef.current = logo; };
+        if (logo.complete) { logoRef.current = logo; }
     }, []);
 
     const baseThemeData: Record<ThemeType, { label: string; grad: string; color: string }> = {
@@ -4603,6 +4604,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         
                         ctx.save();
                         ctx.globalAlpha = t;
+                        ctx.filter = 'brightness(0) invert(1)';
                         const logoW = 120;
                         const logoH = (logoRef.current.height / logoRef.current.width) * logoW;
                         const logoY = 1780 - (20 * (1 - ease)); // Slight slide up
@@ -6131,13 +6133,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.save();
                 ctx.shadowColor = 'rgba(0,0,0,0.6)';
                 ctx.shadowBlur = 18;
-                if (isArtistLogoNegative) {
-                    ctx.filter = 'brightness(0) invert(1)';
-                    ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, logoH);
-                    ctx.filter = 'none';
-                } else {
-                    ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, logoH);
-                }
+                ctx.filter = 'brightness(0) invert(1)';
+                ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, logoH);
                 ctx.restore();
             }
 
@@ -10908,25 +10905,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             Flou auto cohérent
                         </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                        <button
-                            type="button"
-                            onClick={() => fileInputRef.current?.click()}
-                            className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
-                        >
-                            <Upload className={`w-3.5 h-3.5 ${accentTextClass}`} /> Importer Fond
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setR2TargetType('background');
-                                setIsR2ModalOpen(true);
-                            }}
-                            className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
-                        >
-                            <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" /> Fond Cloud R2
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setR2TargetType('background');
+                            setIsR2ModalOpen(true);
+                        }}
+                        className="w-full py-2.5 bg-white/5 border border-white/10 hover:border-neon-cyan/40 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                    >
+                        <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" /> Fond Cloud R2
+                    </button>
                     <button
                         type="button"
                         onClick={() => setIsDownloaderOpen(true)}
@@ -10997,7 +10985,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                             <button
                                 type="button"
-                                onClick={() => fileInputRef.current?.click()}
+                                onClick={() => {
+                                    setR2TargetType('background');
+                                    setIsR2ModalOpen(true);
+                                }}
                                 className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-white text-[10px] font-black uppercase backdrop-blur-md"
                             >
                                 Changer
@@ -11007,33 +10998,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ) : (
                     <button
                         type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="w-full py-6 border-2 border-dashed border-white/15 hover:border-[#00ff66]/50 hover:bg-[#00ff66]/5 rounded-2xl flex flex-col items-center justify-center gap-2 bg-black/20 transition-all group"
+                        onClick={() => {
+                            setR2TargetType('background');
+                            setIsR2ModalOpen(true);
+                        }}
+                        className="w-full py-6 border-2 border-dashed border-white/15 hover:border-neon-cyan/50 hover:bg-neon-cyan/5 rounded-2xl flex flex-col items-center justify-center gap-2 bg-black/20 transition-all group"
                     >
-                        <Upload className="w-6 h-6 text-gray-500 group-hover:text-[#00ff66] transition-colors" />
+                        <ImageIcon className="w-6 h-6 text-neon-cyan group-hover:scale-110 transition-transform" />
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider group-hover:text-white transition-colors">
-                            Importer la Cover / Visuel Annonce
+                            Importer depuis Cloud R2
                         </span>
-                        <span className="text-[8px] text-gray-500">Image officielle ou pochette HD de sortie</span>
+                        <span className="text-[8px] text-gray-500">Image officielle ou pochette HD depuis la galerie R2</span>
                     </button>
                 )}
 
-                {/* Boutons d'import rapide */}
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                    <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
-                    >
-                        <Upload className="w-3.5 h-3.5 text-[#00ff66]" /> Mon Appareil
-                    </button>
+                {/* Bouton Cloud R2 */}
+                <div className="pt-1">
                     <button
                         type="button"
                         onClick={() => {
                             setR2TargetType('background');
                             setIsR2ModalOpen(true);
                         }}
-                        className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                        className="w-full py-2.5 bg-white/5 border border-white/10 hover:border-neon-cyan/40 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
                     >
                         <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" /> Cloud R2
                     </button>
@@ -11510,31 +11497,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </div>
                         ) : (
                             <p className="text-[8px] text-gray-300 leading-relaxed">
-                                Importe la photo du DJ à faire deviner (depuis ton appareil ou Cloud R2).
+                                Importe la photo du DJ à faire deviner (depuis Cloud R2).
                             </p>
                         )}
 
-                        <div className="grid grid-cols-2 gap-1.5">
-                            <button
-                                type="button"
-                                onClick={() => djPhotoInputRef.current?.click()}
-                                className="py-2.5 px-2 bg-gradient-to-r from-neon-red/25 to-[#bd00ff]/25 border border-neon-red/50 hover:border-neon-red rounded-xl flex items-center justify-center gap-1.5 text-white text-[8.5px] font-black uppercase transition-all shadow-sm hover:scale-[1.02] active:scale-98"
-                            >
-                                <Upload className="w-3.5 h-3.5 text-neon-red" />
-                                <span>Mon Appareil (PC/Tel)</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setR2TargetType('background');
-                                    setIsR2ModalOpen(true);
-                                }}
-                                className="py-2.5 px-2 bg-white/5 border border-white/15 hover:border-neon-cyan/40 rounded-xl flex items-center justify-center gap-1.5 text-gray-200 text-[8.5px] font-black uppercase hover:text-white transition-all shadow-sm hover:scale-[1.02] active:scale-98"
-                            >
-                                <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" />
-                                <span>Galerie Cloud R2</span>
-                            </button>
-                        </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setR2TargetType('background');
+                                setIsR2ModalOpen(true);
+                            }}
+                            className="w-full py-2.5 px-2 bg-white/5 border border-white/15 hover:border-neon-cyan/40 rounded-xl flex items-center justify-center gap-1.5 text-white text-[8.5px] font-black uppercase transition-all shadow-sm hover:scale-[1.02] active:scale-98"
+                        >
+                            <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" />
+                            <span>Galerie Cloud R2</span>
+                        </button>
                         <input
                             type="file"
                             ref={djPhotoInputRef}
@@ -14823,25 +14800,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     Flou auto DropSiders
                                 </span>
                             </div>
-                            <div className="grid grid-cols-2 gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
-                                >
-                                    <Upload className="w-3.5 h-3.5 text-[#00ff66]" /> Importer Fond
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setR2TargetType('background');
-                                        setIsR2ModalOpen(true);
-                                    }}
-                                    className="py-2.5 bg-white/5 border border-white/10 hover:border-white/25 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
-                                >
-                                    <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" /> Fond Cloud R2
-                                </button>
-                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setR2TargetType('background');
+                                    setIsR2ModalOpen(true);
+                                }}
+                                className="w-full py-2.5 bg-white/5 border border-white/10 hover:border-neon-cyan/40 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all"
+                            >
+                                <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" /> Fond Cloud R2
+                            </button>
                         </div>
 
                         {/* SECTION E : SWIPE DROPSIDERS */}
@@ -15667,27 +15635,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             <span className="text-[8px] text-gray-400 uppercase font-bold">Image, Vidéo ou Cloud</span>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <button
-                                                type="button"
-                                                onClick={() => fileInputRef.current?.click()}
-                                                className="py-3 px-2 border border-dashed border-white/20 hover:border-neon-red/50 rounded-xl flex items-center justify-center gap-1.5 text-gray-200 text-[9px] font-black uppercase hover:text-white transition-all bg-white/5 group shadow-sm active:scale-98"
-                                            >
-                                                <Upload className="w-4 h-4 text-neon-red group-hover:scale-110 transition-transform" />
-                                                <span>Mon Appareil</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setR2TargetType('background');
-                                                    setIsR2ModalOpen(true);
-                                                }}
-                                                className="py-3 px-2 border border-white/10 hover:border-neon-cyan/40 rounded-xl flex items-center justify-center gap-1.5 text-gray-300 text-[9px] font-black uppercase hover:text-white transition-all bg-white/5 group active:scale-98"
-                                            >
-                                                <ImageIcon className="w-4 h-4 text-neon-cyan group-hover:scale-110 transition-transform" />
-                                                <span>Cloud R2</span>
-                                            </button>
-                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setR2TargetType('background');
+                                                setIsR2ModalOpen(true);
+                                            }}
+                                            className="w-full py-3.5 border border-white/10 hover:border-neon-cyan/40 rounded-xl flex items-center justify-center gap-2 text-white text-[9.5px] font-black uppercase transition-all bg-white/5 group active:scale-98 shadow-sm"
+                                        >
+                                            <ImageIcon className="w-4 h-4 text-neon-cyan group-hover:scale-110 transition-transform" />
+                                            <span>Cloud R2</span>
+                                        </button>
                                         <button onClick={() => setIsDownloaderOpen(true)} className="w-full py-2.5 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[8.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
                                             <LinkIcon className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
                                             Télécharger Vidéo/Photo (URL)
@@ -16780,16 +16738,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <div className="space-y-3">
                                             {/* Module Dédié Devine le DJ (Silhouette Mystère) */}
                                             {theme === 'JEU_DJ' && djSilhouetteEditor}
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <button onClick={() => fileInputRef.current?.click()} className="py-3.5 border border-dashed border-white/20 rounded-2xl flex items-center justify-center gap-2 text-gray-200 text-[9.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
-                                                    <Upload className="w-4 h-4 text-neon-red group-hover:scale-110 transition-transform" />
-                                                    <span>Mon Appareil</span>
-                                                </button>
-                                                <button onClick={() => { setActivePanel(null); setR2TargetType('background'); setIsR2ModalOpen(true); }} className="py-3.5 border border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-300 text-[9.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
-                                                    <ImageIcon className="w-4 h-4 text-neon-cyan group-hover:scale-110 transition-transform" />
-                                                    <span>Cloud R2</span>
-                                                </button>
-                                            </div>
+                                            <button onClick={() => { setActivePanel(null); setR2TargetType('background'); setIsR2ModalOpen(true); }} className="w-full py-3.5 border border-white/10 rounded-2xl flex items-center justify-center gap-2 text-white text-[9.5px] font-black uppercase hover:border-neon-cyan/40 hover:text-white transition-all bg-white/5 group">
+                                                <ImageIcon className="w-4 h-4 text-neon-cyan group-hover:scale-110 transition-transform" />
+                                                <span>Cloud R2</span>
+                                            </button>
                                             <button onClick={() => { setActivePanel(null); setIsDownloaderOpen(true); }} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
                                                 <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />Télécharger Vidéo/Photo (URL)
                                             </button>
