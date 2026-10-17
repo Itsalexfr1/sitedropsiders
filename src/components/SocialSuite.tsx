@@ -3148,7 +3148,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const alw = avatarR * 1.55;
                             const alh = (logo.height / logo.width) * alw;
                             ctx.save();
-                            ctx.filter = 'brightness(0) invert(1)';
                             ctx.drawImage(logo, avatarCenterX - alw / 2, avatarCenterY - alh / 2, alw, alh);
                             ctx.restore();
                         }
@@ -3411,7 +3410,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const lh = (logo.height / logo.width) * lw;
                         const logoY = canvas.height - lh - (isReel ? 65 : 50);
                         ctx.save();
-                        ctx.filter = 'brightness(0) invert(1)';
                         ctx.globalAlpha = 0.85;
                         ctx.drawImage(logo, centerX - lw / 2, logoY, lw, lh);
                         ctx.restore();
@@ -4604,7 +4602,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         
                         ctx.save();
                         ctx.globalAlpha = t;
-                        ctx.filter = 'brightness(0) invert(1)';
                         const logoW = 120;
                         const logoH = (logoRef.current.height / logoRef.current.width) * logoW;
                         const logoY = 1780 - (20 * (1 - ease)); // Slight slide up
@@ -4790,7 +4787,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const xOffset = bgVideo ? 140 : 40;
                     const yOffset = bgVideo ? 70 : 20;
                     ctx.save();
-                    ctx.filter = 'brightness(0) invert(1)'; // White logo
                     ctx.drawImage(logo, canvas.width - lw - xOffset, yOffset, lw, lh);
                     ctx.restore();
                 }
@@ -6133,7 +6129,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.save();
                 ctx.shadowColor = 'rgba(0,0,0,0.6)';
                 ctx.shadowBlur = 18;
-                ctx.filter = 'brightness(0) invert(1)';
                 ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, logoH);
                 ctx.restore();
             }
