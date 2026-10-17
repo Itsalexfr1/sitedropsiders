@@ -148,6 +148,14 @@ const AccordionChevron = ({ open }: { open: boolean }) => (
     <span className={`text-[10px] text-gray-400 group-hover:text-white transition-transform duration-300 ${open ? 'rotate-180' : ''}`}>▾</span>
 );
 
+export interface AgendaAfficheItem {
+    id: string;
+    title: string;
+    date: string;
+    venue: string;
+    image: string;
+}
+
 // Helpers géométriques pour le Player CDJ (bague de progression circulaire/carrée arrondie)
 function drawRoundRectPathFromTopCenter(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
     ctx.beginPath();
@@ -276,7 +284,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return MONTHS_FR[new Date().getMonth()] || 'OCTOBRE';
     });
     const [agendaBadgeText, setAgendaBadgeText] = useState<string>('AGENDA');
-    const [agendaSlide, setAgendaSlide] = useState<1 | 2>(1);
+    const [agendaSlide, setAgendaSlide] = useState<number>(1);
+    const [agendaAffiches, setAgendaAffiches] = useState<AgendaAfficheItem[]>([]);
     const [agendaCoverBadge, setAgendaCoverBadge] = useState<string>('AGENDA');
     const [agendaCoverTitle, setAgendaCoverTitle] = useState<string>('ON VA OÙ CE MOIS-CI ?');
     const [agendaCoverYear, setAgendaCoverYear] = useState<string>(() => String(new Date().getFullYear()));
@@ -349,16 +358,69 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(5); // Durée Slide 1 (en secondes, min 2s, max 15s)
     const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(7); // Durée Promo (en secondes, fixée à 7s pour l'animation Instagram)
     const [exportFps, setExportFps] = useState<number>(30); // Fluidité vidéo : 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
+    const [exportAccordion, setExportAccordion] = useState<'image' | 'video_slide' | 'video_carousel' | null>('image');
     const [promoCategory, setPromoCategory] = useState<string>(() => {
         if (initialTheme && initialTheme !== 'PROMO') return initialTheme;
         return 'NEWS';
     });
 
     const addEditorialSlide = () => {
-        if (extraEditorialSlides.length >= 8) return; // Limite à 10 slides totales max (2 de base + 8 supplémentaires)
+        if (extraEditorialSlides.length >= 18) return; // Limite stricte à 20 slides totales max (2 de base + 18 supplémentaires)
         const nextSlideNum = 2 + extraEditorialSlides.length + 1;
         setExtraEditorialSlides(prev => [...prev, '']);
         setEditorialSlide(nextSlideNum);
+    };
+
+    const addAgendaAffiche = () => {
+        if (agendaAffiches.length >= 18) return; // Limite stricte à 20 slides totales max (2 de base + 18 affiches)
+        const nextNum = 2 + agendaAffiches.length + 1;
+        const newAffiche: AgendaAfficheItem = {
+            id: `aff-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+            title: `FESTIVAL ${agendaAffiches.length + 1}`,
+            date: 'DATE ÉVÉNEMENT',
+            venue: 'LIEU / VILLE',
+            image: ''
+        };
+        setAgendaAffiches(prev => [...prev, newAffiche]);
+        setIsCarouselPromoActive(false);
+        setAgendaSlide(nextNum);
+    };
+
+    const removeAgendaAffiche = (afficheIndex: number) => {
+        setAgendaAffiches(prev => prev.filter((_, idx) => idx !== afficheIndex));
+        const targetSlide = afficheIndex + 3;
+        if (agendaSlide === targetSlide) {
+            setAgendaSlide(Math.max(2, targetSlide - 1));
+        } else if (agendaSlide > targetSlide) {
+            setAgendaSlide(agendaSlide - 1);
+        }
+    };
+
+    const updateAgendaAffiche = (afficheIndex: number, field: keyof AgendaAfficheItem, value: string) => {
+        setAgendaAffiches(prev => {
+            const next = [...prev];
+            if (next[afficheIndex]) {
+                next[afficheIndex] = { ...next[afficheIndex], [field]: value };
+            }
+            return next;
+        });
+    };
+
+    const handleAgendaAfficheImageUpload = (afficheIndex: number, file: File) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const url = e.target?.result as string;
+            if (!url) return;
+            updateAgendaAffiche(afficheIndex, 'image', url);
+            const imgObj = new Image();
+            imgObj.crossOrigin = 'anonymous';
+            imgObj.src = url;
+            imgObj.onload = () => {
+                imageCacheRef.current[url] = imgObj;
+                generateImage();
+            };
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleSlideImageUpload = (file: File) => {
@@ -427,7 +489,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [concoursGTACondition4, setConcoursGTACondition4] = useState('4 - POUR VALIDER LA PARTICIPATION RÉPONDEZ AUX 3 QUESTIONS SUR DROPSIDERS.FR');
     const isVideoRecordingRef = useRef<boolean>(false);
     const recordingStartTimeRef = useRef<number>(0);
-    const agendaSlideOverrideRef = useRef<1 | 2 | null>(null);
+    const agendaSlideOverrideRef = useRef<number | null>(null);
     const editorialSlideOverrideRef = useRef<number | null>(null);
     const [isEditorialAfficheActive, setIsEditorialAfficheActive] = useState<boolean>(false);
     const editorialAfficheOverrideRef = useRef<boolean>(false);
@@ -3540,124 +3602,103 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (alpha < 1) sCtx.globalAlpha *= alpha;
                     if (offsetX !== 0) sCtx.translate(offsetX, 0);
                     const ctx = sCtx;
-
-                    // 1. TOP-LEFT BADGE (Cyber capsule assortie à la couleur du mois)
-                    ctx.save();
-                    const badgeX = 65;
-                    const badgeY = isStory ? 90 : 65;
-                    const badgeText = (agendaCoverBadge || 'AGENDA').toUpperCase().trim();
-
-                    let badgeFontSize = 13;
-                    let letterSpacing = '3px';
-                    if (badgeText.length <= 8) {
-                        badgeFontSize = 18;
-                        letterSpacing = '5px';
-                    } else if (badgeText.length <= 14) {
-                        badgeFontSize = 15;
-                        letterSpacing = '4px';
-                    } else if (badgeText.length <= 22) {
-                        badgeFontSize = 12.5;
-                        letterSpacing = '2.5px';
-                    } else {
-                        badgeFontSize = 11;
-                        letterSpacing = '1.5px';
-                    }
-
-                    ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
-                    ctx.letterSpacing = letterSpacing;
-                    const textWidth = ctx.measureText(badgeText).width;
-                    const pillPadding = 34;
-                    const pillW = Math.max(180, Math.ceil(textWidth + pillPadding));
-                    const pillH = 46;
-
-                    const pillCenterX = badgeX + pillW / 2;
-                    const pillCenterY = badgeY + pillH / 2;
-                    applyTextAnimCtx(ctx, 0.05, pillCenterX, pillCenterY);
-                    ctx.translate(pillCenterX, pillCenterY);
-                    ctx.rotate(-0.04);
-                    ctx.translate(-pillCenterX, -pillCenterY);
-
-                    // Cyber Box Glow & Fill
-                    ctx.shadowColor = `rgba(${monthGrad}, 0.75)`;
-                    ctx.shadowBlur = 18;
-                    ctx.fillStyle = 'rgba(12, 6, 4, 0.92)';
-                    ctx.strokeStyle = monthColor;
-                    ctx.lineWidth = 2.5;
-
-                    ctx.beginPath();
-                    ctx.roundRect(badgeX, badgeY, pillW, pillH, 10);
-                    ctx.fill();
-                    ctx.stroke();
-
-                    // Notches cyber
-                    ctx.strokeStyle = monthColor;
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(badgeX - 14, badgeY + pillH / 2);
-                    ctx.lineTo(badgeX - 4, badgeY + pillH / 2);
-                    ctx.moveTo(badgeX + pillW + 4, badgeY + pillH / 2);
-                    ctx.lineTo(badgeX + pillW + 14, badgeY + pillH / 2);
-                    ctx.stroke();
-
-                    // Inner text
-                    ctx.shadowColor = `rgba(${monthGrad}, 0.85)`;
-                    ctx.shadowBlur = 12;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
-                    ctx.letterSpacing = letterSpacing;
-                    ctx.fillText(badgeText, badgeX + pillW / 2 + 1, badgeY + pillH / 2 + 1);
-                    ctx.restore();
-
-                    // 2. HERO COVER HOOK
+                    const centerX = canvas.width / 2;
                     const centerY = canvas.height / 2;
 
-                    // A) Top Month / Tag (remplace DROPSIDERS 2026 par le mois)
+                    // 0. ATMOSPHERE & BACKGROUND EFFECTS (Identique à NEWS & MUSIQUE)
+                    // Halo néon volumétrique centré
+                    const bgGlow = ctx.createRadialGradient(centerX, centerY, 60, centerX, centerY, isStory ? 640 : 500);
+                    bgGlow.addColorStop(0, `rgba(${monthGrad}, 0.28)`);
+                    bgGlow.addColorStop(0.45, `rgba(${monthGrad}, 0.08)`);
+                    bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = bgGlow;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // Micro-grille cyber subtile (lignes très fines transparentes)
+                    ctx.save();
+                    ctx.strokeStyle = `rgba(${monthGrad}, 0.05)`;
+                    ctx.lineWidth = 1;
+                    for (let x = 0; x < canvas.width; x += 80) {
+                        ctx.beginPath();
+                        ctx.moveTo(x, 0);
+                        ctx.lineTo(x, canvas.height);
+                        ctx.stroke();
+                    }
+                    for (let y = 0; y < canvas.height; y += 80) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, y);
+                        ctx.lineTo(canvas.width, y);
+                        ctx.stroke();
+                    }
+                    ctx.restore();
+
+                    // Particules / Motes cyber flottantes lumineuses (effet club / scène festival)
+                    ctx.save();
+                    const particleTime = isVideoRecordingRef.current 
+                        ? deterministicTotalTimeRef.current 
+                        : (animElapsed !== 99.0 ? animElapsed : (Date.now() / 1000));
+                    const numParticles = 24;
+                    for (let pi = 0; pi < numParticles; pi++) {
+                        const px = ((pi * 137.5) % canvas.width);
+                        const pSpeed = 15 + (pi % 5) * 8;
+                        const py = (canvas.height - ((particleTime * pSpeed + pi * 85) % canvas.height));
+                        const pRadius = 1.2 + (pi % 3) * 0.9;
+                        const pAlpha = 0.25 + 0.45 * Math.sin(particleTime * 2.0 + pi);
+                        ctx.fillStyle = `rgba(${monthGrad}, ${Math.max(0.1, pAlpha)})`;
+                        ctx.shadowColor = monthColor;
+                        ctx.shadowBlur = 8;
+                        ctx.beginPath();
+                        ctx.arc(px, py, pRadius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.restore();
+
+                    // Halo cinématique au bas de l'écran
+                    const bottomAura = ctx.createLinearGradient(0, canvas.height * 0.82, 0, canvas.height);
+                    bottomAura.addColorStop(0, `rgba(${monthGrad}, 0)`);
+                    bottomAura.addColorStop(1, `rgba(${monthGrad}, 0.18)`);
+                    ctx.fillStyle = bottomAura;
+                    ctx.fillRect(0, canvas.height * 0.82, canvas.width, canvas.height * 0.18);
+
+                    // 1. TOP-LEFT BADGE DROPSIDERS OFFICIEL (Identique à NEWS, FOCUS, MUSIQUE)
+                    drawTopCapsuleBadge((agendaCoverBadge || 'AGENDA').toUpperCase(), monthColor, monthGrad);
+
+                    // 2. CATEGORY TAG MOIS / ANNÉE (Sleek Dropsiders Pill)
                     const monthName = (agendaMonth || 'OCTOBRE').toUpperCase().trim();
                     const tagYear = (agendaCoverYear || '').trim();
                     const tagText = tagYear && !monthName.includes(tagYear)
                         ? `${monthName} • ${tagYear}`
                         : monthName;
-                    const tagY = centerY - (isStory ? 220 : 160);
+                    const tagY = centerY - (isStory ? 200 : 150);
 
                     ctx.save();
                     applyTextAnimCtx(ctx, 0.16, centerX, tagY);
+                    ctx.font = '900 italic 16px "Montserrat", sans-serif';
+                    ctx.letterSpacing = '3px';
+                    const tagW = ctx.measureText(tagText).width;
+                    const tagPillW = Math.max(160, Math.ceil(tagW + 40));
+                    const tagPillH = 38;
+
+                    // Tag Pill Background & Border
+                    ctx.shadowColor = `rgba(${monthGrad}, 0.55)`;
+                    ctx.shadowBlur = 15;
+                    ctx.fillStyle = 'rgba(15, 12, 18, 0.88)';
+                    ctx.strokeStyle = monthColor;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.roundRect(centerX - tagPillW / 2, tagY - tagPillH / 2, tagPillW, tagPillH, tagPillH / 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Tag Pill Text
+                    ctx.shadowColor = 'transparent';
+                    ctx.fillStyle = monthColor;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.font = `900 20px "Orbitron", sans-serif`;
-                    ctx.letterSpacing = '5px';
-                    ctx.shadowColor = `rgba(${monthGrad}, 0.85)`;
-                    ctx.shadowBlur = 16;
-                    ctx.fillStyle = monthColor;
-                    ctx.fillText(tagText, centerX, tagY);
-
-                    // Lignes néon fines à gauche et droite du tag
-                    const tagMeasureW = ctx.measureText(tagText).width;
-                    const lineW = isStory ? 80 : 60;
-                    const lineGap = 20;
-
-                    const leftGrad = ctx.createLinearGradient(centerX - tagMeasureW / 2 - lineGap - lineW, 0, centerX - tagMeasureW / 2 - lineGap, 0);
-                    leftGrad.addColorStop(0, 'rgba(255, 55, 0, 0)');
-                    leftGrad.addColorStop(1, monthColor);
-                    ctx.strokeStyle = leftGrad;
-                    ctx.lineWidth = isStory ? 3.5 : 2.5;
-                    ctx.beginPath();
-                    ctx.moveTo(centerX - tagMeasureW / 2 - lineGap - lineW, tagY);
-                    ctx.lineTo(centerX - tagMeasureW / 2 - lineGap, tagY);
-                    ctx.stroke();
-
-                    const rightGrad = ctx.createLinearGradient(centerX + tagMeasureW / 2 + lineGap, 0, centerX + tagMeasureW / 2 + lineGap + lineW, 0);
-                    rightGrad.addColorStop(0, monthColor);
-                    rightGrad.addColorStop(1, 'rgba(255, 55, 0, 0)');
-                    ctx.strokeStyle = rightGrad;
-                    ctx.beginPath();
-                    ctx.moveTo(centerX + tagMeasureW / 2 + lineGap, tagY);
-                    ctx.lineTo(centerX + tagMeasureW / 2 + lineGap + lineW, tagY);
-                    ctx.stroke();
+                    ctx.fillText(tagText, centerX, tagY + 1);
                     ctx.restore();
 
-                    // B) Grand Hook Principal
+                    // 3. GRAND HOOK PRINCIPAL (Montserrat 900 Italic comme dans NEWS)
                     ctx.save();
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
@@ -3675,106 +3716,120 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     let titleFontSize = isStory 
-                        ? (titleLines.length > 2 ? 80 : (titleLines.length === 2 ? 105 : 120))
-                        : (titleLines.length > 2 ? 58 : (titleLines.length === 2 ? 76 : 88));
-                    ctx.font = `900 italic ${titleFontSize}px "Montserrat", Arial, sans-serif`;
-                    ctx.letterSpacing = '2px';
+                        ? (titleLines.length > 2 ? 82 : (titleLines.length === 2 ? 104 : 118))
+                        : (titleLines.length > 2 ? 60 : (titleLines.length === 2 ? 78 : 90));
+                    ctx.font = `900 italic ${titleFontSize}px "Montserrat", sans-serif`;
+                    ctx.letterSpacing = '1px';
                     titleLines.forEach(l => {
-                        while (ctx.measureText(l).width > (canvas.width - 100) && titleFontSize > 36) {
+                        while (ctx.measureText(l).width > (canvas.width - 120) && titleFontSize > 36) {
                             titleFontSize -= 2;
-                            ctx.font = `900 italic ${titleFontSize}px "Montserrat", Arial, sans-serif`;
+                            ctx.font = `900 italic ${titleFontSize}px "Montserrat", sans-serif`;
                         }
                     });
 
-                    const titleLineHeight = titleFontSize * 1.16;
+                    const titleLineHeight = titleFontSize * 1.15;
                     const titleBlockHeight = titleLines.length * titleLineHeight;
                     const titleStartY = centerY - 10 - ((titleLines.length - 1) * titleLineHeight) / 2;
 
                     titleLines.forEach((line, idx) => {
                         const lineY = titleStartY + idx * titleLineHeight;
                         ctx.save();
-                        applyTextAnimCtx(ctx, 0.30 + idx * 0.12, centerX, lineY);
+                        applyTextAnimCtx(ctx, 0.28 + idx * 0.10, centerX, lineY);
+                        
+                        // Deep 3D Shadow
                         ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                        ctx.shadowBlur = 28;
-                        ctx.shadowOffsetX = 3;
-                        ctx.shadowOffsetY = 4;
+                        ctx.shadowBlur = 30;
+                        ctx.shadowOffsetX = 0;
+                        ctx.shadowOffsetY = 6;
                         ctx.fillStyle = '#ffffff';
                         ctx.fillText(line, centerX, lineY);
+
+                        // Subtle Neon Glow Overlay
+                        ctx.shadowColor = `rgba(${monthGrad}, 0.45)`;
+                        ctx.shadowBlur = 18;
+                        ctx.shadowOffsetX = 0;
+                        ctx.shadowOffsetY = 0;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(line, centerX, lineY);
+
                         ctx.restore();
                     });
                     ctx.restore();
 
-                    // C) Subtitle / Genres Musicaux
+                    // 4. SUBTITLE / GENRES MUSICAUX (Glassmorphism Pill)
                     const genresText = (agendaCoverGenres || 'HARD TECHNO • RAWSTYLE • MULTI-GENRES').toUpperCase().trim();
                     if (genresText) {
-                        let genresFontSize = isStory ? 28 : 20;
-                        ctx.font = `800 ${genresFontSize}px "Montserrat", Arial, sans-serif`;
-                        ctx.letterSpacing = isStory ? '3.5px' : '3px';
-                        while (ctx.measureText(genresText).width > (canvas.width - 140) && genresFontSize > 14) {
+                        let genresFontSize = isStory ? 24 : 18;
+                        ctx.font = `800 italic ${genresFontSize}px "Montserrat", sans-serif`;
+                        ctx.letterSpacing = '2px';
+                        while (ctx.measureText(genresText).width > (canvas.width - 160) && genresFontSize > 13) {
                             genresFontSize -= 1;
-                            ctx.font = `800 ${genresFontSize}px "Montserrat", Arial, sans-serif`;
+                            ctx.font = `800 italic ${genresFontSize}px "Montserrat", sans-serif`;
                         }
 
                         const genresW = ctx.measureText(genresText).width;
-                        const genresPillW = Math.min(canvas.width - 60, genresW + (isStory ? 64 : 48));
-                        const genresPillH = isStory ? 58 : 46;
-                        const genresY = titleStartY + titleBlockHeight / 2 + (isStory ? (titleLines.length > 1 ? 88 : 72) : (titleLines.length > 1 ? 55 : 45));
+                        const genresPillW = Math.min(canvas.width - 80, genresW + 48);
+                        const genresPillH = isStory ? 52 : 42;
+                        const genresY = titleStartY + titleBlockHeight / 2 + (isStory ? 75 : 50);
 
                         ctx.save();
-                        applyTextAnimCtx(ctx, 0.48, centerX, genresY);
+                        applyTextAnimCtx(ctx, 0.46, centerX, genresY);
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-                        ctx.shadowBlur = 14;
-                        ctx.fillStyle = 'rgba(15, 12, 10, 0.82)';
-                        ctx.strokeStyle = `rgba(${monthGrad}, 0.55)`;
-                        ctx.lineWidth = 2;
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                        ctx.shadowBlur = 18;
+                        ctx.fillStyle = 'rgba(18, 16, 24, 0.88)';
+                        ctx.strokeStyle = `rgba(255, 255, 255, 0.18)`;
+                        ctx.lineWidth = 1.5;
                         ctx.beginPath();
-                        ctx.roundRect(centerX - genresPillW / 2, genresY - genresPillH / 2, genresPillW, genresPillH, 14);
+                        ctx.roundRect(centerX - genresPillW / 2, genresY - genresPillH / 2, genresPillW, genresPillH, genresPillH / 2);
                         ctx.fill();
                         ctx.stroke();
 
                         ctx.shadowColor = 'transparent';
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
                         ctx.fillText(genresText, centerX, genresY + 1);
                         ctx.restore();
                     }
 
-                    // 3. BOTTOM CTA SWIPE
-                    const ctaText = (agendaCoverCta || 'Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️').trim();
+                    // 5. BOTTOM CTA SWIPE (Pill & Animated Chevrons)
+                    const ctaText = (agendaCoverCta || 'Les meilleurs events et coups de cœur du mois rassemblés en un post').trim();
                     if (ctaText) {
                         const ctaY = canvas.height - (isStory ? 170 : 95);
 
-                        let ctaFontSize = 18;
-                        ctx.font = `800 italic ${ctaFontSize}px "Montserrat", Arial, sans-serif`;
-                        ctx.letterSpacing = '1px';
-                        while (ctx.measureText(ctaText).width > 880 && ctaFontSize > 12) {
+                        let ctaFontSize = isStory ? 17 : 14;
+                        ctx.font = `800 italic ${ctaFontSize}px "Montserrat", sans-serif`;
+                        ctx.letterSpacing = '0.5px';
+                        while (ctx.measureText(ctaText).width > (canvas.width - 220) && ctaFontSize > 11) {
                             ctaFontSize -= 0.5;
-                            ctx.font = `800 italic ${ctaFontSize}px "Montserrat", Arial, sans-serif`;
+                            ctx.font = `800 italic ${ctaFontSize}px "Montserrat", sans-serif`;
                         }
 
                         const ctaW = ctx.measureText(ctaText).width;
-                        const ctaPillW = Math.min(canvas.width - 80, ctaW + 52);
-                        const ctaPillH = 50;
+                        const ctaPillW = Math.min(canvas.width - 80, ctaW + 70);
+                        const ctaPillH = isStory ? 50 : 44;
 
                         ctx.save();
-                        applyTextAnimCtx(ctx, 0.62, centerX, ctaY);
+                        applyTextAnimCtx(ctx, 0.58, centerX, ctaY);
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.shadowColor = `rgba(${monthGrad}, 0.4)`;
-                        ctx.shadowBlur = 16;
-                        ctx.fillStyle = 'rgba(12, 8, 6, 0.88)';
-                        ctx.strokeStyle = monthColor;
-                        ctx.lineWidth = 2;
+                        ctx.shadowColor = `rgba(${monthGrad}, 0.35)`;
+                        ctx.shadowBlur = 18;
+                        ctx.fillStyle = 'rgba(12, 12, 16, 0.90)';
+                        ctx.strokeStyle = `rgba(${monthGrad}, 0.65)`;
+                        ctx.lineWidth = 1.8;
                         ctx.beginPath();
-                        ctx.roundRect(centerX - ctaPillW / 2, ctaY - ctaPillH / 2, ctaPillW, ctaPillH, 14);
+                        ctx.roundRect(centerX - ctaPillW / 2, ctaY - ctaPillH / 2, ctaPillW, ctaPillH, ctaPillH / 2);
                         ctx.fill();
                         ctx.stroke();
 
                         ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
                         ctx.shadowBlur = 6;
                         ctx.fillStyle = '#ffffff';
-                        ctx.fillText(ctaText, centerX, ctaY + 1);
+                        ctx.fillText(ctaText, centerX - 12, ctaY + 1);
+
+                        // Animated swipe arrow indicator inside or beside pill
+                        drawAnimatedSwipeIndicator(centerX + ctaW / 2 + 10, ctaY, monthColor, 16);
                         ctx.restore();
                     }
 
@@ -3786,72 +3841,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (alpha < 1) sCtx.globalAlpha *= alpha;
                     if (offsetX !== 0) sCtx.translate(offsetX, 0);
                     const ctx = sCtx;
+                    const centerX = canvas.width / 2;
+                    const centerY = canvas.height / 2;
 
-                    // 1. TOP-LEFT BADGE (Cyber capsule)
-                    ctx.save();
-                    const badgeX = 65;
-                    const badgeY = isStory ? 90 : 65;
-                    const badgeText = (agendaBadgeText || 'AGENDA').toUpperCase().trim();
+                    // 0. ATMOSPHERE & BACKGROUND EFFECTS (Slide 2 Événements)
+                    const bgGlow2 = ctx.createRadialGradient(centerX, centerY, 60, centerX, centerY, isStory ? 650 : 500);
+                    bgGlow2.addColorStop(0, `rgba(${monthGrad}, 0.20)`);
+                    bgGlow2.addColorStop(0.5, `rgba(${monthGrad}, 0.05)`);
+                    bgGlow2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = bgGlow2;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    let badgeFontSize = 13;
-                    let letterSpacing = '3px';
-                    if (badgeText.length <= 8) {
-                        badgeFontSize = 18;
-                        letterSpacing = '5px';
-                    } else if (badgeText.length <= 14) {
-                        badgeFontSize = 15;
-                        letterSpacing = '4px';
-                    } else if (badgeText.length <= 22) {
-                        badgeFontSize = 12.5;
-                        letterSpacing = '2.5px';
-                    } else {
-                        badgeFontSize = 11;
-                        letterSpacing = '1.5px';
-                    }
-
-                    ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
-                    ctx.letterSpacing = letterSpacing;
-                    const textWidth = ctx.measureText(badgeText).width;
-                    const pillPadding = 34;
-                    const pillW = Math.max(180, Math.ceil(textWidth + pillPadding));
-                    const pillH = 46;
-
-                    const pillCenterX = badgeX + pillW / 2;
-                    const pillCenterY = badgeY + pillH / 2;
-                    applyTextAnimCtx(ctx, 0.05, pillCenterX, pillCenterY);
-                    ctx.translate(pillCenterX, pillCenterY);
-                    ctx.rotate(-0.04);
-                    ctx.translate(-pillCenterX, -pillCenterY);
-
-                    ctx.shadowColor = `rgba(${monthGrad}, 0.75)`;
-                    ctx.shadowBlur = 18;
-                    ctx.fillStyle = 'rgba(12, 6, 4, 0.92)';
-                    ctx.strokeStyle = monthColor;
-                    ctx.lineWidth = 2.5;
-
-                    ctx.beginPath();
-                    ctx.roundRect(badgeX, badgeY, pillW, pillH, 10);
-                    ctx.fill();
-                    ctx.stroke();
-
-                    ctx.strokeStyle = monthColor;
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(badgeX - 14, badgeY + pillH / 2);
-                    ctx.lineTo(badgeX - 4, badgeY + pillH / 2);
-                    ctx.moveTo(badgeX + pillW + 4, badgeY + pillH / 2);
-                    ctx.lineTo(badgeX + pillW + 14, badgeY + pillH / 2);
-                    ctx.stroke();
-
-                    ctx.shadowColor = `rgba(${monthGrad}, 0.85)`;
-                    ctx.shadowBlur = 12;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.font = `900 italic ${badgeFontSize}px "Orbitron", sans-serif`;
-                    ctx.letterSpacing = letterSpacing;
-                    ctx.fillText(badgeText, badgeX + pillW / 2 + 1, badgeY + pillH / 2 + 1);
-                    ctx.restore();
+                    // 1. TOP-LEFT BADGE DROPSIDERS OFFICIEL
+                    drawTopCapsuleBadge((agendaBadgeText || 'AGENDA').toUpperCase(), monthColor, monthGrad);
 
                     // 2. GRAND TITRE DU MOIS (Ultra-propre, plein, puissant et net)
                     const monthY = isStory ? 370 : 280;
@@ -4060,6 +4062,197 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     sCtx.restore();
                 };
 
+                const renderAgendaAfficheSlide = (sCtx: CanvasRenderingContext2D, afficheIndex: number, offsetX: number = 0, alpha: number = 1.0) => {
+                    const affiche = agendaAffiches[afficheIndex];
+                    if (!affiche) return;
+                    sCtx.save();
+                    if (alpha < 1) sCtx.globalAlpha *= alpha;
+                    if (offsetX !== 0) sCtx.translate(offsetX, 0);
+                    const ctx = sCtx;
+
+                    // 1. TOP-LEFT BADGE DROPSIDERS OFFICIEL
+                    drawTopCapsuleBadge((agendaCoverBadge || 'AGENDA').toUpperCase(), monthColor, monthGrad);
+
+                    // 2. TOP-RIGHT MONTH & SLIDE BADGE
+                    ctx.save();
+                    const monthBadgeText = `${agendaMonth} ${agendaCoverYear} • AFFICHE ${afficheIndex + 1}/${agendaAffiches.length}`.toUpperCase();
+                    ctx.font = '900 italic 12px "Montserrat", sans-serif';
+                    ctx.letterSpacing = '1.5px';
+                    const mbW = ctx.measureText(monthBadgeText).width + 24;
+                    const mbH = 36;
+                    const mbX = canvas.width - 65 - mbW;
+                    const mbY = isStory ? 95 : 70;
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.roundRect(mbX, mbY, mbW, mbH, 8);
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.fillStyle = monthColor;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(monthBadgeText, mbX + mbW / 2, mbY + mbH / 2);
+                    ctx.restore();
+
+                    // 3. AFFICHE POSTER CARD (Center)
+                    const cardMarginX = 65;
+                    const cardW = canvas.width - (cardMarginX * 2);
+                    const cardTopY = isStory ? 175 : 135;
+                    const cardBottomY = isStory ? (canvas.height - 230) : (canvas.height - 180);
+                    const cardH = cardBottomY - cardTopY;
+
+                    // Card frame shadow & border
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                    ctx.shadowBlur = 30;
+                    ctx.shadowOffsetY = 15;
+                    ctx.fillStyle = '#0a0a0c';
+                    ctx.beginPath();
+                    ctx.roundRect(cardMarginX, cardTopY, cardW, cardH, 24);
+                    ctx.fill();
+                    ctx.restore();
+
+                    // Image inside card
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.roundRect(cardMarginX, cardTopY, cardW, cardH, 24);
+                    ctx.clip();
+
+                    let flyerImg = affiche.image ? imageCacheRef.current[affiche.image] : null;
+                    if (affiche.image && !flyerImg) {
+                        const tempImg = new Image();
+                        tempImg.crossOrigin = 'anonymous';
+                        tempImg.src = affiche.image;
+                        tempImg.onload = () => {
+                            imageCacheRef.current[affiche.image] = tempImg;
+                            generateImage();
+                        };
+                    }
+
+                    if (flyerImg && flyerImg.complete && flyerImg.naturalWidth > 0) {
+                        const imgAspect = flyerImg.naturalWidth / flyerImg.naturalHeight;
+                        const cardAspect = cardW / cardH;
+                        let dw = cardW;
+                        let dh = cardH;
+                        let dx = cardMarginX;
+                        let dy = cardTopY;
+                        if (imgAspect > cardAspect) {
+                            dh = cardH;
+                            dw = cardH * imgAspect;
+                            dx = cardMarginX + (cardW - dw) / 2;
+                        } else {
+                            dw = cardW;
+                            dh = cardW / imgAspect;
+                            dy = cardTopY + (cardH - dh) / 2;
+                        }
+                        ctx.drawImage(flyerImg, dx, dy, dw, dh);
+                        const vigGrad = ctx.createLinearGradient(0, cardTopY + cardH * 0.5, 0, cardTopY + cardH);
+                        vigGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+                        vigGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0.7)');
+                        vigGrad.addColorStop(1, 'rgba(0, 0, 0, 0.95)');
+                        ctx.fillStyle = vigGrad;
+                        ctx.fillRect(cardMarginX, cardTopY, cardW, cardH);
+                    } else {
+                        const gridGrad = ctx.createLinearGradient(cardMarginX, cardTopY, cardMarginX + cardW, cardTopY + cardH);
+                        gridGrad.addColorStop(0, '#15151c');
+                        gridGrad.addColorStop(1, '#08080a');
+                        ctx.fillStyle = gridGrad;
+                        ctx.fillRect(cardMarginX, cardTopY, cardW, cardH);
+
+                        ctx.strokeStyle = `rgba(${monthGrad}, 0.12)`;
+                        ctx.lineWidth = 1;
+                        for (let gx = cardMarginX; gx <= cardMarginX + cardW; gx += 60) {
+                            ctx.beginPath();
+                            ctx.moveTo(gx, cardTopY);
+                            ctx.lineTo(gx, cardTopY + cardH);
+                            ctx.stroke();
+                        }
+                        for (let gy = cardTopY; gy <= cardTopY + cardH; gy += 60) {
+                            ctx.beginPath();
+                            ctx.moveTo(cardMarginX, gy);
+                            ctx.lineTo(cardMarginX + cardW, gy);
+                            ctx.stroke();
+                        }
+
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                        ctx.font = '900 64px "Montserrat", sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('🖼️', centerX, cardTopY + cardH / 2 - 40);
+                        ctx.font = '900 italic 20px "Orbitron", sans-serif';
+                        ctx.fillStyle = monthColor;
+                        ctx.letterSpacing = '3px';
+                        ctx.fillText('AFFICHE FESTIVAL / EVENT', centerX, cardTopY + cardH / 2 + 30);
+                        ctx.font = '600 15px "Montserrat", sans-serif';
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                        ctx.letterSpacing = '1px';
+                        ctx.fillText("Ajoutez l'image du flyer dans le panneau supérieur", centerX, cardTopY + cardH / 2 + 65);
+                    }
+                    ctx.restore();
+
+                    // Card cyber border
+                    ctx.save();
+                    ctx.strokeStyle = `rgba(${monthGrad}, 0.55)`;
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.roundRect(cardMarginX, cardTopY, cardW, cardH, 24);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // 4. EVENT DETAILS OVERLAY AT BOTTOM
+                    const infoY = cardBottomY + 24;
+                    ctx.save();
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'top';
+
+                    ctx.font = '900 italic 30px "Orbitron", sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                    ctx.shadowBlur = 12;
+                    ctx.letterSpacing = '1px';
+                    const affTitle = (affiche.title || 'FESTIVAL').toUpperCase().trim();
+                    ctx.fillText(affTitle, cardMarginX + 10, infoY);
+
+                    const subInfoY = infoY + 42;
+                    const dateText = (affiche.date || 'DATE').toUpperCase().trim();
+                    const venueText = (affiche.venue || 'LIEU').toUpperCase().trim();
+
+                    ctx.font = '900 italic 15px "Montserrat", sans-serif';
+                    ctx.letterSpacing = '2px';
+                    const dateW = ctx.measureText(dateText).width + 24;
+                    ctx.fillStyle = monthColor;
+                    ctx.beginPath();
+                    ctx.roundRect(cardMarginX + 10, subInfoY, dateW, 30, 6);
+                    ctx.fill();
+                    ctx.fillStyle = '#000000';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(dateText, cardMarginX + 10 + dateW / 2, subInfoY + 15);
+
+                    if (venueText) {
+                        const venueStartX = cardMarginX + 10 + dateW + 12;
+                        ctx.textAlign = 'left';
+                        ctx.textBaseline = 'middle';
+                        ctx.font = '700 17px "Montserrat", sans-serif';
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                        ctx.shadowBlur = 8;
+                        ctx.fillText(`📍 ${venueText}`, venueStartX, subInfoY + 15);
+                    }
+
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'middle';
+                    ctx.font = '900 italic 13px "Orbitron", sans-serif';
+                    ctx.fillStyle = monthColor;
+                    ctx.letterSpacing = '2px';
+                    const nextText = (afficheIndex + 1 < agendaAffiches.length) ? 'SWIPE SUIVANT ➔' : 'BILLETTERIE DISPO ➔';
+                    ctx.fillText(nextText, cardMarginX + cardW - 10, subInfoY + 15);
+
+                    ctx.restore();
+                    sCtx.restore();
+                };
+
                 if (transitionTargetRef.current === 'SLIDE_1_TO_2') {
                     const p = effectiveTransitionProgress;
                     const ease = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
@@ -4145,8 +4338,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         } else {
                             renderAgendaSlide1(ctx, 0, 1.0);
                         }
-                    } else {
+                    } else if (effectiveAgendaSlide === 2) {
                         renderAgendaSlide2(ctx, 0, 1.0);
+                    } else {
+                        const affIdx = effectiveAgendaSlide - 3;
+                        renderAgendaAfficheSlide(ctx, affIdx, 0, 1.0);
                     }
                 }
 
@@ -6022,7 +6218,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (isVideoRecording) {
             return;
         }
-        const isBadgeTheme = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'AFFICHE'].includes(theme);
+        const isBadgeTheme = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'AFFICHE', 'PLANNING'].includes(theme);
         const shouldAnimateBadge = isBadgeTheme && activeTab === 'REEL';
         if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying)) {
             let lastRender = 0;
@@ -6044,13 +6240,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide
     useEffect(() => {
         animStartTimeRef.current = Date.now();
         setAnimReplayKey(k => k + 1);
-    }, [editorialSlide]);
+    }, [editorialSlide, agendaSlide]);
 
     // Pre-charger les pochettes des tracks du thème MUSIQUE
     useEffect(() => {
@@ -6335,7 +6531,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const promoDuration = 7000; // Verrouillé strictement à 7.0s pour l'animation Instagram
             const transitionDuration = currentTransitionDuration;
             const slideDuration = 5200;
-            totalDuration = (2 * slideDuration) + (2 * transitionDuration) + promoDuration;
+            const numAgendaSlides = 2 + agendaAffiches.length;
+            totalDuration = (numAgendaSlides * slideDuration) + (numAgendaSlides * transitionDuration) + promoDuration;
         } else if (theme.startsWith('TOP 5')) {
             totalDuration = 5 * (16800 + 1200); // 5 slides + transitions
         } else if (theme === 'TOP 10 FESTIVAL') {
@@ -7223,7 +7420,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             await renderDuration(promoDuration, promoOffsetSec);
 
         } else if (combinedMode === 'PLANNING') {
-            const promoDuration = 10000; // Verrouillé strictement à 10.0s pour l'animation Instagram
+            const promoDuration = 7000; // Verrouillé strictement à 7.0s pour l'animation Instagram
             const transitionDuration = currentTransitionDuration;
             const slideDuration = 5200;
 
@@ -7233,23 +7430,34 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             await renderDuration(slideDuration);
 
             // 2. Transition carrousel vers Slide 2 (composite fluide)
-            const slide2OffsetSec = await renderTransition(transitionDuration, undefined, () => {
+            let currentOffset = await renderTransition(transitionDuration, undefined, () => {
                 agendaSlideOverrideRef.current = 2;
                 animStartTimeRef.current = Date.now();
             });
             transitionProgressRef.current = 0;
 
-            // 3. Slide 2 (Lineup)
-            await renderDuration(slideDuration, slide2OffsetSec);
+            // 3. Slide 2 (Lineup / Événements)
+            await renderDuration(slideDuration, currentOffset);
 
-            // 4. Transition vers le visuel PROMO outro à la fin du Reel (composite fluide)
+            // 4. Slides Affiches (Slide 3..N)
+            for (let aIdx = 0; aIdx < agendaAffiches.length; aIdx++) {
+                const targetSlide = aIdx + 3;
+                currentOffset = await renderTransition(transitionDuration, undefined, () => {
+                    agendaSlideOverrideRef.current = targetSlide;
+                    animStartTimeRef.current = Date.now();
+                });
+                transitionProgressRef.current = 0;
+                await renderDuration(slideDuration, currentOffset);
+            }
+
+            // 5. Transition vers le visuel PROMO outro à la fin du Reel (composite fluide)
             const promoOffsetSec = await renderTransition(transitionDuration, undefined, () => {
                 promoOutroOverrideRef.current = true;
                 animStartTimeRef.current = Date.now();
             });
             transitionProgressRef.current = 0;
 
-            // 5. Affichage du visuel promo final pendant promoDuration avec continuité (zéro relance de texte)
+            // 6. Affichage du visuel promo final pendant promoDuration avec continuité (zéro relance de texte)
             await renderDuration(promoDuration, promoOffsetSec);
 
         } else if (theme.startsWith('TOP 5')) {
@@ -7541,7 +7749,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    const downloadAgendaSlide = async (slideNumber: 1 | 2, format: TabType = (activeTab || 'PUBLICATION')) => {
+    const downloadAgendaSlide = async (slideNumber: number, format: TabType = (activeTab || 'PUBLICATION')) => {
         if (!canvasRef.current) return;
         setIsDownloading(true);
         const prevSlide = agendaSlide;
@@ -7549,7 +7757,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setAgendaSlide(slideNumber);
             await new Promise(r => setTimeout(r, 60));
             await generateImage(format, true);
-            const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide${slideNumber}-${slideNumber === 1 ? 'cover' : 'events'}.png`;
+            let slideLabel = 'cover';
+            if (slideNumber === 2) slideLabel = 'events';
+            else if (slideNumber >= 3) {
+                const aff = agendaAffiches[slideNumber - 3];
+                slideLabel = `affiche-${slideNumber - 2}-${aff?.title ? aff.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'event'}`;
+            }
+            const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide${slideNumber}-${slideLabel}.png`;
             const dataUrl = canvasRef.current.toDataURL('image/png');
             const a = document.createElement('a');
             a.href = dataUrl;
@@ -7598,6 +7812,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             document.body.appendChild(a2);
             a2.click();
             document.body.removeChild(a2);
+
+            // 3. Slides Affiches (Slide 3..N)
+            for (let i = 0; i < agendaAffiches.length; i++) {
+                const sNum = i + 3;
+                await new Promise(r => setTimeout(r, 350));
+                setAgendaSlide(sNum);
+                await new Promise(r => setTimeout(r, 60));
+                await generateImage(format, true);
+                const dataUrlAff = canvasRef.current.toDataURL('image/png');
+                const aAff = document.createElement('a');
+                aAff.href = dataUrlAff;
+                const affTitle = agendaAffiches[i]?.title ? agendaAffiches[i].title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : `event-${i + 1}`;
+                aAff.download = `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide${sNum}-affiche-${affTitle}.png`;
+                document.body.appendChild(aAff);
+                aAff.click();
+                document.body.removeChild(aAff);
+            }
         } catch (e) {
             console.error(e);
             setErrorMessage("Erreur lors de l'exportation du carrousel.");
@@ -8541,32 +8772,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const planningEditor = (
         <div className="space-y-4">
-            {/* 1. CARROUSEL SLIDE SWITCHER */}
-            <div className="p-1.5 bg-black/60 border border-[#ff3700]/30 rounded-2xl flex gap-1 shadow-xl">
-                <button
-                    type="button"
-                    onClick={() => setAgendaSlide(1)}
-                    className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
-                        agendaSlide === 1
-                            ? 'bg-[#ff3700] text-black shadow-[0_0_15px_rgba(255,55,0,0.5)] scale-[1.02]'
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                >
-                    <span className="text-xs">🎴</span> Slide 1 : Cover (Accroche)
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setAgendaSlide(2)}
-                    className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
-                        agendaSlide === 2
-                            ? 'bg-[#ff3700] text-black shadow-[0_0_15px_rgba(255,55,0,0.5)] scale-[1.02]'
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                >
-                    <span className="text-xs">📋</span> Slide 2 : Événements ({planningItems.length})
-                </button>
-            </div>
-
             {agendaSlide === 1 ? (
                 /* ══════════════════════════════════════════════════════════
                    EDITEUR SLIDE 1 : COVER (ACCROCHE INSTAGRAM)
@@ -8777,16 +8982,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ))}
                         </div>
                     </div>
-
-                    <button
-                        type="button"
-                        onClick={() => setAgendaSlide(2)}
-                        className="w-full py-3 bg-[#ff3700] hover:bg-[#ff5522] text-black font-black text-[10px] uppercase rounded-xl transition-all shadow-lg shadow-[#ff3700]/20 flex items-center justify-center gap-2"
-                    >
-                        Continuer vers la Slide 2 (Événements) ➔
-                    </button>
                 </div>
-            ) : (
+            ) : agendaSlide === 2 ? (
                 /* ══════════════════════════════════════════════════════════
                    EDITEUR SLIDE 2 : ÉVÉNEMENTS & DATES
                    ══════════════════════════════════════════════════════════ */
@@ -9075,16 +9272,146 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <Plus className="w-3.5 h-3.5" /> Ajouter un événement à l'Agenda
             </button>
 
-            <button
-                type="button"
-                onClick={() => setAgendaSlide(1)}
-                className="w-full py-2.5 text-gray-400 hover:text-white text-[9px] font-black uppercase transition-colors"
-            >
-                ❮ Revenir à la Slide 1 (Cover)
-            </button>
         </div>
-    )}
-</div>
+            ) : (() => {
+                const affIdx = agendaSlide - 3;
+                const aff = agendaAffiches[affIdx];
+                if (!aff) {
+                    return (
+                        <div className="p-4 bg-black/40 border border-white/10 rounded-2xl text-center space-y-2">
+                            <span className="text-gray-400 text-xs">Slide affiche introuvable.</span>
+                            <button
+                                type="button"
+                                onClick={() => setAgendaSlide(1)}
+                                className="px-3 py-1.5 bg-[#ff3700] text-black text-[9px] font-black uppercase rounded-lg"
+                            >
+                                Revenir à la Slide 1
+                            </button>
+                        </div>
+                    );
+                }
+                return (
+                    <div className="space-y-4 animate-in fade-in duration-200">
+                        {/* Header Affiche Info */}
+                        <div className="p-3.5 bg-black/40 border border-[#ff3700]/30 rounded-2xl space-y-2 shadow-lg">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm">🖼️</span>
+                                    <span className="text-[10px] font-black uppercase text-white tracking-wider">
+                                        Slide {agendaSlide} : Affiche {affIdx + 1}
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => removeAgendaAffiche(affIdx)}
+                                    className="px-2 py-1 bg-red-500/10 hover:bg-red-500/25 border border-red-500/30 text-red-400 text-[8px] font-black uppercase rounded-lg transition-all flex items-center gap-1"
+                                    title="Supprimer cette slide affiche"
+                                >
+                                    ✕ Supprimer
+                                </button>
+                            </div>
+                            <p className="text-[7.5px] text-gray-400">
+                                Importez l'affiche officielle du festival ou de la soirée pour l'intégrer au carrousel Agenda.
+                            </p>
+                        </div>
+
+                        {/* Upload Flyer Image */}
+                        <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2.5">
+                            <label className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider block">
+                                🎨 Affiche Festival / Flyer Image
+                            </label>
+                            {aff.image ? (
+                                <div className="relative group rounded-xl overflow-hidden border border-white/15 bg-black/60">
+                                    <img
+                                        src={aff.image}
+                                        alt={aff.title}
+                                        className="w-full h-44 object-cover object-center"
+                                    />
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                        <label className="cursor-pointer py-1.5 px-3 bg-[#ff3700] text-black text-[9px] font-black uppercase rounded-lg shadow-md hover:scale-105 transition-transform">
+                                            Changer
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={e => {
+                                                    const f = e.target.files?.[0];
+                                                    if (f) handleAgendaAfficheImageUpload(affIdx, f);
+                                                }}
+                                            />
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => updateAgendaAffiche(affIdx, 'image', '')}
+                                            className="py-1.5 px-3 bg-red-600 text-white text-[9px] font-black uppercase rounded-lg shadow-md hover:scale-105 transition-transform"
+                                        >
+                                            Effacer
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <label className="cursor-pointer flex flex-col items-center justify-center p-6 border-2 border-dashed border-[#ff3700]/30 hover:border-[#ff3700] rounded-xl bg-[#ff3700]/5 hover:bg-[#ff3700]/10 transition-all group">
+                                    <Upload className="w-6 h-6 text-[#ff3700] mb-2 group-hover:scale-110 transition-transform" />
+                                    <span className="text-[9.5px] font-black uppercase text-white">Importer le flyer / l'affiche</span>
+                                    <span className="text-[7.5px] text-gray-400 mt-0.5">PNG, JPG, WEBP • Haute résolution recommandée</span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={e => {
+                                            const f = e.target.files?.[0];
+                                            if (f) handleAgendaAfficheImageUpload(affIdx, f);
+                                        }}
+                                    />
+                                </label>
+                            )}
+                        </div>
+
+                        {/* Title Input */}
+                        <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
+                            <label className="text-[9px] font-black text-gray-300 uppercase tracking-wider block">
+                                ⭐ Nom de l'Événement / Festival
+                            </label>
+                            <input
+                                type="text"
+                                value={aff.title}
+                                onChange={e => updateAgendaAffiche(affIdx, 'title', e.target.value)}
+                                placeholder="ex: ELECTROBEACH MUSIC FESTIVAL"
+                                className="w-full bg-white/5 border border-white/15 focus:border-[#ff3700] rounded-xl px-3 py-2 text-white font-black uppercase text-xs outline-none transition-colors"
+                            />
+                        </div>
+
+                        {/* Date Input */}
+                        <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
+                            <label className="text-[9px] font-black text-gray-300 uppercase tracking-wider block">
+                                📅 Date(s) de l'Événement
+                            </label>
+                            <input
+                                type="text"
+                                value={aff.date}
+                                onChange={e => updateAgendaAffiche(affIdx, 'date', e.target.value)}
+                                placeholder="ex: 14 - 16 JUILLET 2026"
+                                className="w-full bg-white/5 border border-white/15 focus:border-[#ff3700] rounded-xl px-3 py-2 text-white font-bold uppercase text-xs outline-none transition-colors"
+                            />
+                        </div>
+
+                        {/* Venue Input */}
+                        <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
+                            <label className="text-[9px] font-black text-gray-300 uppercase tracking-wider block">
+                                📍 Lieu & Ville
+                            </label>
+                            <input
+                                type="text"
+                                value={aff.venue}
+                                onChange={e => updateAgendaAffiche(affIdx, 'venue', e.target.value)}
+                                placeholder="ex: LE BARCARÈS, FRANCE"
+                                className="w-full bg-white/5 border border-white/15 focus:border-[#ff3700] rounded-xl px-3 py-2 text-white font-bold uppercase text-xs outline-none transition-colors"
+                            />
+                        </div>
+                    </div>
+                );
+            })()}
+        </div>
     );
 
     const textAnimationControl = (
@@ -11673,37 +12000,50 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const quickCarouselDownloadBar = (() => {
         if (theme === 'PLANNING') {
+            const totalAgendaSlides = 2 + agendaAffiches.length;
             return (
                 <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
                     <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
-                        <span>Export Carrousel Agenda</span>
+                        <span>Export Carrousel Agenda ({totalAgendaSlides} Slides)</span>
                         <span className="text-[#ff3700]">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                         <button
                             type="button"
                             onClick={() => downloadAgendaSlide(1)}
                             disabled={isDownloading}
-                            className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                            className="flex-1 min-w-[70px] py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1"
                         >
-                            <Download className="w-3.5 h-3.5 text-[#ff3700]" /> Slide 1 (PNG)
+                            <Download className="w-3.5 h-3.5 text-[#ff3700]" /> S1 (Cover)
                         </button>
                         <button
                             type="button"
                             onClick={() => downloadAgendaSlide(2)}
                             disabled={isDownloading}
-                            className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                            className="flex-1 min-w-[70px] py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1"
                         >
-                            <Download className="w-3.5 h-3.5 text-[#ff3700]" /> Slide 2 (PNG)
+                            <Download className="w-3.5 h-3.5 text-[#ff3700]" /> S2 (Dates)
                         </button>
+                        {agendaAffiches.map((aff, i) => (
+                            <button
+                                key={aff.id}
+                                type="button"
+                                onClick={() => downloadAgendaSlide(i + 3)}
+                                disabled={isDownloading}
+                                className="flex-1 min-w-[70px] py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1"
+                                title={aff.title}
+                            >
+                                <Download className="w-3.5 h-3.5 text-[#ff3700]" /> S{i + 3} (Affiche {i + 1})
+                            </button>
+                        ))}
                     </div>
                     <button
                         type="button"
                         onClick={() => downloadFullAgendaCarousel()}
                         disabled={isDownloading}
-                        className="w-full py-2 bg-[#ff3700]/20 hover:bg-[#ff3700]/30 border border-[#ff3700]/40 text-[#ff3700] hover:text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-2"
+                        className="w-full py-2.5 bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 hover:brightness-110 text-black font-black text-[10px] uppercase rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#ff3700]/20"
                     >
-                        <Sparkles className="w-3.5 h-3.5" /> Exporter le Carrousel Images (Slide 1 + 2)
+                        <Sparkles className="w-4 h-4 text-black" /> Exporter le Carrousel Images ({totalAgendaSlides} Slides)
                     </button>
                 </div>
             );
@@ -13116,7 +13456,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     );
 
     const exportButtons = (
-        <div className="p-4 bg-gradient-to-b from-white/[0.08] to-black/60 border border-white/15 rounded-3xl space-y-3.5 shadow-2xl">
+        <div className="p-4 bg-gradient-to-b from-white/[0.08] to-black/60 border border-white/15 rounded-3xl space-y-3 shadow-2xl">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <Download className="w-4 h-4 text-neon-cyan" />
@@ -13127,218 +13467,316 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </span>
             </div>
 
-            {/* Section 1 : Visuel Actuel (PNG & MP4) */}
-            <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">📸 Visuel Actuel (Image & Vidéo)</span>
-                    <span className="text-[7.5px] font-bold text-[#00ff66] uppercase">PNG & MP4</span>
-                </div>
-                {/* Ligne 1 : Image PNG */}
-                <div className="grid grid-cols-2 gap-2">
-                    <button
-                        type="button"
-                        onClick={() => downloadFormat('PUBLICATION')}
-                        disabled={isDownloading || isVideoRecording}
-                        className="py-2.5 px-3 bg-neon-cyan/10 hover:bg-neon-cyan/20 border border-neon-cyan/30 hover:border-neon-cyan text-neon-cyan rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                    >
-                        <Download className="w-3.5 h-3.5" /> PNG POST
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => downloadFormat('REEL')}
-                        disabled={isDownloading || isVideoRecording}
-                        className="py-2.5 px-3 bg-neon-purple/10 hover:bg-neon-purple/20 border border-neon-purple/30 hover:border-neon-purple text-neon-purple rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                    >
-                        <Download className="w-3.5 h-3.5" /> PNG STORY
-                    </button>
-                </div>
-
-                {/* Ligne 2 : Vidéo MP4 (avec Cover et Musique - 30s Fixe) */}
-                <div className="grid grid-cols-2 gap-2">
-                    <button
-                        type="button"
-                        onClick={() => exportCurrentSlideVideo('PUBLICATION')}
-                        disabled={isDownloading || isVideoRecording}
-                        className="py-2.5 px-3 bg-gradient-to-r from-[#00ff66]/20 to-[#00cc88]/20 hover:from-[#00ff66]/30 hover:to-[#00cc88]/30 border border-[#00ff66]/50 hover:border-[#00ff66] text-[#00ff66] rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-40"
-                        title="Exporter ce visuel en vidéo MP4 Post 1:1 avec la musique et la cover (durée fixe : 30 secondes)"
-                    >
-                        <Video className="w-3.5 h-3.5 text-[#00ff66]" />
-                        {isVideoRecording ? 'CAPTURE 30s...' : '🎬 MP4 POST (30s)'}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => exportCurrentSlideVideo('REEL')}
-                        disabled={isDownloading || isVideoRecording}
-                        className="py-2.5 px-3 bg-gradient-to-r from-neon-purple/20 to-pink-500/20 hover:from-neon-purple/30 hover:to-pink-500/30 border border-neon-purple/50 hover:border-neon-purple text-white rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-40"
-                        title="Exporter ce visuel en vidéo MP4 Story 9:16 avec la musique et la cover (durée fixe : 30 secondes)"
-                    >
-                        <Video className="w-3.5 h-3.5 text-neon-purple" />
-                        {isVideoRecording ? 'CAPTURE 30s...' : '🎬 MP4 STORY (30s)'}
-                    </button>
-                </div>
-            </div>
-
-            {/* Section 2 : Slide Promo Outro (Uniquement Vidéo MP4 7s) */}
-            <div className="space-y-1.5">
-                <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">🔥 Slide Promo Outro (Uniquement Vidéo MP4 7s)</span>
-                <div className="grid grid-cols-2 gap-2">
-                    <button
-                        type="button"
-                        onClick={() => exportPromoSlideVideo('PUBLICATION')}
-                        disabled={isDownloading || isVideoRecording}
-                        className="py-2.5 px-3 bg-gradient-to-r from-neon-red/20 to-orange-500/20 hover:from-neon-red/30 hover:to-orange-500/30 border border-neon-red/50 hover:border-neon-red text-white rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                        title="Télécharger la Slide Promo Outro seule en vidéo MP4 (Post Carré 1:1 • 7s)"
-                    >
-                        <Video className="w-3.5 h-3.5 text-neon-red" />
-                        {isVideoRecording ? 'CAPTURE...' : '🎬 PROMO MP4 POST (7s)'}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => exportPromoSlideVideo('REEL')}
-                        disabled={isDownloading || isVideoRecording}
-                        className="py-2.5 px-3 bg-gradient-to-r from-neon-red/20 to-pink-500/20 hover:from-neon-red/30 hover:to-pink-500/30 border border-neon-red/50 hover:border-neon-red text-white rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                        title="Télécharger la Slide Promo Outro seule en vidéo MP4 (Format Story / Reel 9:16 • 7s)"
-                    >
-                        <Video className="w-3.5 h-3.5 text-neon-red" />
-                        {isVideoRecording ? 'CAPTURE...' : '🎬 PROMO MP4 STORY (7s)'}
-                    </button>
-                </div>
-            </div>
-
-            {/* Slide Affiche pour carrousels éditoriaux (NEWS, etc.) */}
-            {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) && Boolean(afficheImage || isEditorialAfficheActive) && (
-                <div className="space-y-1.5 pt-1 border-t border-white/10">
-                    <span className="text-[8px] font-black text-[#ff007f] uppercase tracking-wider block">🖼️ Slide Affiche ({theme})</span>
-                    <button
-                        type="button"
-                        onClick={() => downloadAfficheSlide(activeTab)}
-                        disabled={isDownloading}
-                        className="w-full py-2.5 bg-gradient-to-r from-[#ff007f] to-rose-600 hover:from-[#ff1a8c] hover:to-rose-500 text-white font-black text-[10px] uppercase rounded-xl shadow-lg shadow-pink-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-95 disabled:opacity-40"
-                    >
-                        <Download className="w-4 h-4" /> Télécharger Slide Affiche ({activeTab === 'REEL' ? 'Story' : 'Post'})
-                    </button>
-                </div>
-            )}
-
-            {/* Section Carrousel Événements (Slide 1 + 2) */}
-            {(theme === 'EVENTS' || theme === 'AFFICHE') && (
-                <div className="space-y-1.5 pt-1 border-t border-white/10">
-                    <span className="text-[8px] font-black text-[#ff007f] uppercase tracking-wider block">🎨 Carrousel Événement (Post + Affiche)</span>
-                    <button
-                        type="button"
-                        onClick={() => downloadEventsCarousel()}
-                        disabled={isDownloading}
-                        className="w-full py-2.5 bg-gradient-to-r from-[#ff007f] to-[#ff4400] hover:from-[#ff1a8c] hover:to-[#ff551a] text-white font-black text-[10px] uppercase rounded-xl shadow-lg shadow-pink-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-95 disabled:opacity-40"
-                    >
-                        <Download className="w-4 h-4" /> Télécharger Carrousel (Slide 1 + 2)
-                    </button>
-                </div>
-            )}
-
-            {/* Section 3 : Vidéo Animée (MP4) */}
-            <div className="space-y-1.5 pt-1 border-t border-white/10">
+            {/* ACCORDION 1 : 📸 EXPORT IMAGES (PNG) */}
+            <div className="border border-white/10 rounded-2xl overflow-hidden bg-black/40">
                 <button
                     type="button"
-                    onClick={() => setVideoOptionsOpen(o => !o)}
-                    className="w-full flex items-center justify-between gap-2 group py-0.5"
-                    title={videoOptionsOpen ? 'Masquer la vidéo animée' : 'Afficher la vidéo animée'}
+                    onClick={() => setExportAccordion(curr => curr === 'image' ? null : 'image')}
+                    className="w-full p-3 flex items-center justify-between text-left hover:bg-white/5 transition-colors group"
                 >
-                    <span className="text-[8px] font-black text-gray-400 group-hover:text-white uppercase tracking-wider transition-colors">🎬 Vidéo Animée (MP4)</span>
-                    <span className="flex items-center gap-1.5">
-                        <AccordionBadge
-                            active={isVideoRecording || textAnimation !== 'NONE' || bgAnimation !== 'NONE'}
-                            label={isVideoRecording ? '● REC' : `${activeTab === 'REEL' ? '9:16' : '1:1'} • ${exportFps} FPS`}
-                        />
-                        <AccordionChevron open={videoOptionsOpen} />
-                    </span>
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center text-neon-cyan shadow-sm">
+                            <ImageIcon className="w-4 h-4" />
+                        </div>
+                        <div>
+                            <span className="text-[9.5px] font-black uppercase text-white block tracking-wider">
+                                📸 Export Images (PNG)
+                            </span>
+                            <span className="text-[7.5px] text-gray-400 block">
+                                Format HD Post 1:1, Story 9:16 ou Carrousel Complet
+                            </span>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="px-1.5 py-0.5 rounded text-[7.5px] font-black uppercase bg-neon-cyan/15 text-neon-cyan border border-neon-cyan/30">
+                            Instantané
+                        </span>
+                        <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${exportAccordion === 'image' ? 'rotate-180 text-white' : ''}`} />
+                    </div>
                 </button>
-                {!videoOptionsOpen ? null : theme === 'PLANNING' ? (
-                    <button
-                        type="button"
-                        onClick={() => startVideoRecording('PLANNING')}
-                        disabled={isVideoRecording}
-                        className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${
-                            isVideoRecording
-                                ? 'bg-[#ff3700]/30 text-[#ff3700] border border-[#ff3700]/50 animate-pulse'
-                                : 'bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 text-black hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,55,0,0.45)]'
-                        }`}
-                    >
-                        <Video className="w-4 h-4 text-black" />
-                        {isVideoRecording ? 'CAPTURE VIDÉO EN COURS...' : '🎬 EXPORTER VIDÉO COMPLÈTE (SLIDE 1 + 2 + PROMO) • MP4'}
-                    </button>
-                ) : ['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
-                    <div className="space-y-2">
-                        {/* Option Dédiée pour thème MUSIQUE : Exporter le morceau actif seul (30s fixe) */}
-                        {theme === 'MUSIQUE' && (
-                            <div className="p-3 bg-gradient-to-r from-[#00ff66]/15 via-black/80 to-black/80 border border-[#00ff66]/40 rounded-2xl space-y-2 shadow-lg">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-[9px] font-black uppercase text-[#00ff66] flex items-center gap-1.5">
-                                        🎵 Ce Morceau Seul (Cover + Son) • MP4
-                                    </span>
-                                    <span className="text-[8px] font-black text-black bg-[#00ff66] px-2 py-0.5 rounded-full font-mono">
-                                        30s Fixe
-                                    </span>
-                                </div>
-                                <p className="text-[7.5px] text-gray-400">
-                                    Exporte uniquement ce morceau avec sa pochette carrée 1:1 et son extrait audio synchronisé (durée fixe de 30 secondes).
-                                </p>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => exportCurrentSlideVideo('PUBLICATION')}
-                                        disabled={isDownloading || isVideoRecording}
-                                        className="py-2.5 px-2 bg-[#00ff66] hover:bg-[#33ff85] text-black rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow active:scale-95 disabled:opacity-40"
-                                    >
-                                        <Video className="w-3.5 h-3.5" /> MP4 POST (30s)
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => exportCurrentSlideVideo('REEL')}
-                                        disabled={isDownloading || isVideoRecording}
-                                        className="py-2.5 px-2 bg-neon-purple hover:bg-purple-500 text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow active:scale-95 disabled:opacity-40"
-                                    >
-                                        <Video className="w-3.5 h-3.5" /> MP4 STORY (30s)
-                                    </button>
-                                </div>
+
+                {exportAccordion === 'image' && (
+                    <div className="p-3 pt-0 space-y-2.5 border-t border-white/5 animate-in fade-in duration-200">
+                        {/* Ligne 1 : Visuel Actuel Post / Story */}
+                        <div className="pt-2">
+                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block mb-1.5">
+                                Slide Actuelle ({theme === 'PLANNING' ? `Slide ${agendaSlide}` : `Slide ${editorialSlide}`})
+                            </span>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => downloadFormat('PUBLICATION')}
+                                    disabled={isDownloading || isVideoRecording}
+                                    className="py-2 px-3 bg-neon-cyan/10 hover:bg-neon-cyan/20 border border-neon-cyan/30 hover:border-neon-cyan text-neon-cyan rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
+                                >
+                                    <Download className="w-3.5 h-3.5" /> PNG POST (1:1)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => downloadFormat('REEL')}
+                                    disabled={isDownloading || isVideoRecording}
+                                    className="py-2 px-3 bg-neon-purple/10 hover:bg-neon-purple/20 border border-neon-purple/30 hover:border-neon-purple text-neon-purple rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
+                                >
+                                    <Download className="w-3.5 h-3.5" /> PNG STORY (9:16)
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Carrousel Complet */}
+                        {theme === 'PLANNING' && (
+                            <div className="space-y-1.5 pt-1 border-t border-white/5">
+                                <span className="text-[8px] font-black text-[#ff3700] uppercase tracking-wider block">
+                                    Carrousel Complet ({2 + agendaAffiches.length} Slides)
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => downloadFullAgendaCarousel()}
+                                    disabled={isDownloading}
+                                    className="w-full py-2.5 bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 hover:brightness-110 text-black font-black text-[9.5px] uppercase rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-[#ff3700]/20"
+                                >
+                                    <Sparkles className="w-4 h-4 text-black" /> Télécharger Toutes les Slides ({2 + agendaAffiches.length})
+                                </button>
                             </div>
                         )}
 
-                        {theme !== 'MUSIQUE' && editorialDurationControls}
+                        {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) && (
+                            <div className="space-y-1.5 pt-1 border-t border-white/5">
+                                <span className="text-[8px] font-black text-neon-cyan uppercase tracking-wider block">
+                                    Carrousel Complet ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)} Slides)
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => downloadEditorialCarousel()}
+                                    disabled={isDownloading}
+                                    className="w-full py-2.5 bg-gradient-to-r from-neon-cyan via-blue-500 to-indigo-600 hover:opacity-90 text-black font-black text-[9.5px] uppercase rounded-xl shadow-md shadow-cyan-500/20 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Download className="w-4 h-4 text-black" /> Télécharger Toutes les Slides ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)})
+                                </button>
+                            </div>
+                        )}
 
-                        <button
-                            type="button"
-                            onClick={() => startVideoRecording('EDITORIAL')}
-                            disabled={isVideoRecording}
-                            className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${
-                                isVideoRecording
-                                    ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
-                                    : 'bg-gradient-to-r from-neon-red via-rose-500 to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,0,51,0.45)]'
-                            }`}
-                        >
-                            <Video className="w-4 h-4" />
-                            {isVideoRecording
-                                ? 'CAPTURE VIDÉO EN COURS...'
-                                : theme === 'MUSIQUE'
-                                    ? `🎬 EXPORTER LE CARROUSEL VIDÉO COMPLET (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`
-                                    : skipEditorialSlide2
-                                        ? `🎬 EXPORTER VIDÉO (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${exportFps} FPS • SLIDE 1 [${editorialSlide1Duration}s] + PROMO [${editorialPromoDuration}s]) • MP4`
-                                        : `🎬 EXPORTER VIDÉO COMPLÈTE (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${exportFps} FPS • ${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
-                        </button>
+                        {theme === 'MUSIQUE' && (
+                            <div className="space-y-1.5 pt-1 border-t border-white/5">
+                                <span className="text-[8px] font-black text-[#00ff66] uppercase tracking-wider block">
+                                    Carrousel Musique ({1 + musicTracks.length} Slides)
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => downloadEditorialCarousel()}
+                                    disabled={isDownloading}
+                                    className="w-full py-2.5 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9.5px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Download className="w-4 h-4 text-black" /> Télécharger Toutes les Slides ({1 + musicTracks.length})
+                                </button>
+                            </div>
+                        )}
+
+                        {(theme === 'EVENTS' || theme === 'AFFICHE') && (
+                            <div className="space-y-1.5 pt-1 border-t border-white/5">
+                                <span className="text-[8px] font-black text-[#ff007f] uppercase tracking-wider block">
+                                    Carrousel Événement (Slide 1 + 2)
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => downloadEventsCarousel()}
+                                    disabled={isDownloading}
+                                    className="w-full py-2.5 bg-gradient-to-r from-[#ff007f] to-[#ff4400] text-white font-black text-[9.5px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Download className="w-4 h-4" /> Télécharger Carrousel (Slide 1 + 2)
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Slide Affiche isolée */}
+                        {Boolean(afficheImage || isEditorialAfficheActive) && (
+                            <div className="space-y-1 pt-1 border-t border-white/5">
+                                <button
+                                    type="button"
+                                    onClick={() => downloadAfficheSlide(activeTab)}
+                                    disabled={isDownloading}
+                                    className="w-full py-2 bg-[#ff007f]/20 hover:bg-[#ff007f]/30 border border-[#ff007f]/40 text-[#ff007f] hover:text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-1.5"
+                                >
+                                    <Download className="w-3.5 h-3.5" /> Télécharger Slide Affiche Isolée
+                                </button>
+                            </div>
+                        )}
                     </div>
-                ) : (
-                    <button
-                        type="button"
-                        onClick={() => startVideoRecording('NONE')}
-                        disabled={isVideoRecording}
-                        className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${
-                            isVideoRecording
-                                ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
-                                : 'bg-gradient-to-r from-neon-red to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,0,51,0.45)]'
-                        }`}
-                    >
-                        <Video className="w-4 h-4" />
-                        {isVideoRecording ? 'CAPTURE MP4 EN COURS...' : `🎬 EXPORTER EN VIDÉO MP4 (${activeTab === 'REEL' ? 'REEL 9:16' : theme})`}
-                    </button>
+                )}
+            </div>
+
+            {/* ACCORDION 2 : 🎬 EXPORT VIDÉO - SLIDE ACTUELLE (MP4) */}
+            <div className="border border-white/10 rounded-2xl overflow-hidden bg-black/40">
+                <button
+                    type="button"
+                    onClick={() => setExportAccordion(curr => curr === 'video_slide' ? null : 'video_slide')}
+                    className="w-full p-3 flex items-center justify-between text-left hover:bg-white/5 transition-colors group"
+                >
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-[#00ff66]/15 border border-[#00ff66]/30 flex items-center justify-center text-[#00ff66] shadow-sm">
+                            <Video className="w-4 h-4" />
+                        </div>
+                        <div>
+                            <span className="text-[9.5px] font-black uppercase text-white block tracking-wider">
+                                🎬 Export Vidéo - Slide Actuelle (MP4)
+                            </span>
+                            <span className="text-[7.5px] text-gray-400 block">
+                                Vidéo 30s synchronisée avec l'audio + Promo Outro 7s
+                            </span>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="px-1.5 py-0.5 rounded text-[7.5px] font-black uppercase bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/30">
+                            30s & Promo
+                        </span>
+                        <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${exportAccordion === 'video_slide' ? 'rotate-180 text-white' : ''}`} />
+                    </div>
+                </button>
+
+                {exportAccordion === 'video_slide' && (
+                    <div className="p-3 pt-0 space-y-2.5 border-t border-white/5 animate-in fade-in duration-200">
+                        {/* Vidéo 30s avec musique */}
+                        <div className="pt-2">
+                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block mb-1.5">
+                                Vidéo 30s synchronisée (Cover + Audio)
+                            </span>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => exportCurrentSlideVideo('PUBLICATION')}
+                                    disabled={isDownloading || isVideoRecording}
+                                    className="py-2.5 px-3 bg-gradient-to-r from-[#00ff66]/20 to-[#00cc88]/20 hover:from-[#00ff66]/30 hover:to-[#00cc88]/30 border border-[#00ff66]/50 hover:border-[#00ff66] text-[#00ff66] rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-40"
+                                >
+                                    <Video className="w-3.5 h-3.5 text-[#00ff66]" />
+                                    {isVideoRecording ? 'CAPTURE...' : '🎬 MP4 POST (30s)'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => exportCurrentSlideVideo('REEL')}
+                                    disabled={isDownloading || isVideoRecording}
+                                    className="py-2.5 px-3 bg-gradient-to-r from-neon-purple/20 to-pink-500/20 hover:from-neon-purple/30 hover:to-pink-500/30 border border-neon-purple/50 hover:border-neon-purple text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-40"
+                                >
+                                    <Video className="w-3.5 h-3.5 text-neon-purple" />
+                                    {isVideoRecording ? 'CAPTURE...' : '🎬 MP4 STORY (30s)'}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Slide Promo Outro 7s */}
+                        <div className="space-y-1.5 pt-1 border-t border-white/5">
+                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">
+                                🔥 Slide Promo Outro (Vidéo MP4 7s)
+                            </span>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => exportPromoSlideVideo('PUBLICATION')}
+                                    disabled={isDownloading || isVideoRecording}
+                                    className="py-2 px-3 bg-gradient-to-r from-neon-red/20 to-orange-500/20 hover:from-neon-red/30 hover:to-orange-500/30 border border-neon-red/50 hover:border-neon-red text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-40"
+                                >
+                                    <Video className="w-3.5 h-3.5 text-neon-red" />
+                                    {isVideoRecording ? 'CAPTURE...' : 'PROMO POST (7s)'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => exportPromoSlideVideo('REEL')}
+                                    disabled={isDownloading || isVideoRecording}
+                                    className="py-2 px-3 bg-gradient-to-r from-neon-red/20 to-pink-500/20 hover:from-neon-red/30 hover:to-pink-500/30 border border-neon-red/50 hover:border-neon-red text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-40"
+                                >
+                                    <Video className="w-3.5 h-3.5 text-neon-red" />
+                                    {isVideoRecording ? 'CAPTURE...' : 'PROMO STORY (7s)'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* ACCORDION 3 : 🚀 EXPORT VIDÉO - CARROUSEL COMPLET (MP4) */}
+            <div className="border border-white/10 rounded-2xl overflow-hidden bg-black/40">
+                <button
+                    type="button"
+                    onClick={() => setExportAccordion(curr => curr === 'video_carousel' ? null : 'video_carousel')}
+                    className="w-full p-3 flex items-center justify-between text-left hover:bg-white/5 transition-colors group"
+                >
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-neon-red/20 to-pink-500/20 border border-neon-red/30 flex items-center justify-center text-neon-red shadow-sm">
+                            <Film className="w-4 h-4" />
+                        </div>
+                        <div>
+                            <span className="text-[9.5px] font-black uppercase text-white block tracking-wider">
+                                🚀 Export Vidéo - Carrousel Complet (MP4)
+                            </span>
+                            <span className="text-[7.5px] text-gray-400 block">
+                                Toutes les slides enchaînées avec transitions + Outro Promo
+                            </span>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="px-1.5 py-0.5 rounded text-[7.5px] font-black uppercase bg-neon-red/15 text-neon-red border border-neon-red/30">
+                            {theme === 'PLANNING' ? `${2 + agendaAffiches.length} Slides` : ['NEWS', 'FOCUS', 'RECAP'].includes(theme) ? `${2 + extraEditorialSlides.length} Slides` : 'Carrousel'}
+                        </span>
+                        <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${exportAccordion === 'video_carousel' ? 'rotate-180 text-white' : ''}`} />
+                    </div>
+                </button>
+
+                {exportAccordion === 'video_carousel' && (
+                    <div className="p-3 pt-0 space-y-3 border-t border-white/5 animate-in fade-in duration-200">
+                        {/* Options et Durées */}
+                        <div className="pt-2">
+                            {theme !== 'MUSIQUE' && editorialDurationControls}
+                        </div>
+
+                        {/* Grand Bouton d'Export */}
+                        {theme === 'PLANNING' ? (
+                            <button
+                                type="button"
+                                onClick={() => startVideoRecording('PLANNING')}
+                                disabled={isVideoRecording}
+                                className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${
+                                    isVideoRecording
+                                        ? 'bg-[#ff3700]/30 text-[#ff3700] border border-[#ff3700]/50 animate-pulse'
+                                        : 'bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 text-black hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,55,0,0.45)]'
+                                }`}
+                            >
+                                <Video className="w-4 h-4 text-black" />
+                                {isVideoRecording ? 'CAPTURE VIDÉO EN COURS...' : `🎬 EXPORTER CARROUSEL VIDÉO COMPLET (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${2 + agendaAffiches.length} SLIDES + PROMO) • MP4`}
+                            </button>
+                        ) : ['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
+                            <button
+                                type="button"
+                                onClick={() => startVideoRecording('EDITORIAL')}
+                                disabled={isVideoRecording}
+                                className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${
+                                    isVideoRecording
+                                        ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
+                                        : 'bg-gradient-to-r from-neon-red via-rose-500 to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,0,51,0.45)]'
+                                }`}
+                            >
+                                <Video className="w-4 h-4" />
+                                {isVideoRecording
+                                    ? 'CAPTURE VIDÉO EN COURS...'
+                                    : theme === 'MUSIQUE'
+                                        ? `🎬 EXPORTER LE CARROUSEL VIDÉO COMPLET (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${1 + musicTracks.length} TRACKS + PROMO) • MP4`
+                                        : skipEditorialSlide2
+                                            ? `🎬 EXPORTER VIDÉO (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${exportFps} FPS • SLIDE 1 [${editorialSlide1Duration}s] + PROMO [${editorialPromoDuration}s]) • MP4`
+                                            : `🎬 EXPORTER CARROUSEL VIDÉO COMPLET (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${exportFps} FPS • ${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => startVideoRecording('NONE')}
+                                disabled={isVideoRecording}
+                                className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${
+                                    isVideoRecording
+                                        ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
+                                        : 'bg-gradient-to-r from-neon-red to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,0,51,0.45)]'
+                                }`}
+                            >
+                                <Video className="w-4 h-4" />
+                                {isVideoRecording ? 'CAPTURE MP4 EN COURS...' : `🎬 EXPORTER EN VIDÉO MP4 (${activeTab === 'REEL' ? 'REEL 9:16' : theme})`}
+                            </button>
+                        )}
+                    </div>
                 )}
             </div>
 
@@ -13358,7 +13796,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     className="flex-1 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all"
                     title="Exporter l'image de fond seule sans texte"
                 >
-                    <Download className="w-3 h-3 text-neon-cyan" /> Fond seul
+                    <Download className="w-3 h-3" /> Fond seul
                 </button>
             </div>
         </div>
@@ -13429,15 +13867,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <span className="text-[#00ff66] font-black">CARROUSEL MUSIQUE</span>
                             <span>({totalSlides}/20 max)</span>
                         </span>
-                        {musicTracks.length < MAX_MUSIC_TRACKS && (
-                            <button
-                                type="button"
-                                onClick={addMusicTrack}
-                                className="px-2.5 py-1 bg-[#00ff66]/20 hover:bg-[#00ff66]/30 text-[#00ff66] border border-[#00ff66]/40 rounded-lg text-[9px] font-black uppercase transition-all flex items-center gap-1 shadow-sm active:scale-95"
-                            >
-                                <span>➕</span> Ajouter Track
-                            </button>
-                        )}
+                        <span className="text-[7.5px] text-gray-500">Gérer via la barre en haut ➔</span>
                     </div>
 
                     <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto custom-scrollbar p-0.5">
@@ -15550,6 +15980,88 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {slideTransitionQuickBar}
                             </div>
                         )}
+                        {theme === 'PLANNING' && (
+                            <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-[#ff3700]/30 shadow-2xl z-20 flex-wrap justify-center">
+                                <span className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider mr-1">Carrousel Agenda ({2 + agendaAffiches.length}/20 max) :</span>
+                                <button
+                                    type="button"
+                                    onClick={() => { setIsCarouselPromoActive(false); setAgendaSlide(1); }}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                        !isCarouselPromoActive && agendaSlide === 1
+                                            ? 'bg-[#ff3700] text-black shadow-[0_0_12px_rgba(255,55,0,0.6)] font-black'
+                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    📌 Slide 1 (Cover)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { setIsCarouselPromoActive(false); setAgendaSlide(2); }}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                        !isCarouselPromoActive && agendaSlide === 2
+                                            ? 'bg-[#ff3700] text-black shadow-[0_0_12px_rgba(255,55,0,0.6)] font-black'
+                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    📋 Slide 2 (Événements)
+                                </button>
+                                {agendaAffiches.map((aff, idx) => {
+                                    const sNum = idx + 3;
+                                    const isSelected = !isCarouselPromoActive && agendaSlide === sNum;
+                                    return (
+                                        <div key={aff.id} className="relative group">
+                                            <button
+                                                type="button"
+                                                onClick={() => { setIsCarouselPromoActive(false); setAgendaSlide(sNum); }}
+                                                className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                                    isSelected
+                                                        ? 'bg-[#ff3700] text-black shadow-[0_0_12px_rgba(255,55,0,0.6)] font-black'
+                                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                                }`}
+                                            >
+                                                🖼️ S{sNum} (Affiche {idx + 1})
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    removeAgendaAffiche(idx);
+                                                }}
+                                                className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full text-[9px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                                                title={`Supprimer l'Affiche ${idx + 1}`}
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                                {agendaAffiches.length < 18 && (
+                                    <button
+                                        type="button"
+                                        onClick={addAgendaAffiche}
+                                        className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all bg-[#ff3700]/15 text-[#ff3700] border border-[#ff3700]/30 hover:bg-[#ff3700]/25 flex items-center gap-1 shadow-sm active:scale-95"
+                                        title="Ajouter une slide affiche festival/event (20 slides max)"
+                                    >
+                                        ➕ Affiche
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsCarouselPromoActive(true);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                        isCarouselPromoActive
+                                            ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
+                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    🔥 Slide PROMO
+                                </button>
+                                {slideTransitionQuickBar}
+                            </div>
+                        )}
                         {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) && (
                             <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20 flex-wrap justify-center">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
@@ -15604,12 +16116,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         </div>
                                     );
                                 })}
-                                {extraEditorialSlides.length < 8 && (
+                                {extraEditorialSlides.length < 18 && (
                                     <button
                                         type="button"
                                         onClick={addEditorialSlide}
                                         className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all bg-neon-cyan/15 text-neon-cyan border border-neon-cyan/30 hover:bg-neon-cyan/25 flex items-center gap-1 shadow-sm active:scale-95"
-                                        title="Ajouter une slide au carrousel (10 max)"
+                                        title="Ajouter une slide au carrousel (20 max)"
                                     >
                                         ➕ Slide
                                     </button>
@@ -15924,6 +16436,69 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {slideTransitionQuickBar}
                             </div>
                         )}
+                        {theme === 'PLANNING' && (
+                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-[#ff3700]/30 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
+                                <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setAgendaSlide(1); }}
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
+                                        !isCarouselPromoActive && agendaSlide === 1 ? 'bg-[#ff3700] text-black shadow-md' : 'text-gray-400'
+                                    }`}
+                                >
+                                    Slide 1 (Cover)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setAgendaSlide(2); }}
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
+                                        !isCarouselPromoActive && agendaSlide === 2 ? 'bg-[#ff3700] text-black shadow-md' : 'text-gray-400'
+                                    }`}
+                                >
+                                    Slide 2 (Dates)
+                                </button>
+                                {agendaAffiches.map((aff, idx) => {
+                                    const sNum = idx + 3;
+                                    return (
+                                        <button
+                                            key={aff.id}
+                                            type="button"
+                                            onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setAgendaSlide(sNum); }}
+                                            className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
+                                                !isCarouselPromoActive && agendaSlide === sNum ? 'bg-[#ff3700] text-black shadow-md' : 'text-gray-400'
+                                            }`}
+                                        >
+                                            S{sNum} (Affiche {idx + 1})
+                                        </button>
+                                    );
+                                })}
+                                {agendaAffiches.length < 18 && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); addAgendaAffiche(); }}
+                                        className="px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 bg-[#ff3700]/20 text-[#ff3700] border border-[#ff3700]/30"
+                                        title="Ajouter une affiche (20 slides max)"
+                                    >
+                                        ➕ Affiche
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsCarouselPromoActive(true);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
+                                        isCarouselPromoActive
+                                            ? 'bg-neon-red text-white shadow-md'
+                                            : 'text-gray-400'
+                                    }`}
+                                >
+                                    🔥 PROMO
+                                </button>
+                                {slideTransitionQuickBar}
+                            </div>
+                        )}
                         {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) && (
                             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
@@ -15978,12 +16553,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         </button>
                                     );
                                 })}
-                                {extraEditorialSlides.length < 8 && (
+                                {extraEditorialSlides.length < 18 && (
                                     <button
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); addEditorialSlide(); }}
                                         className="px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30"
-                                        title="Ajouter une slide (10 max)"
+                                        title="Ajouter une slide (20 max)"
                                     >
                                         ➕ Slide
                                     </button>
