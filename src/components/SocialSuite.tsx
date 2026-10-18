@@ -377,7 +377,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [highlightsCity, setHighlightsCity] = useState<string>('BOOM');
     const [highlightsCountry, setHighlightsCountry] = useState<string>('BELGIQUE');
     const [highlightsDate, setHighlightsDate] = useState<string>('18 - 20 JUILLET 2026');
-    const [highlightsSlideArtists, setHighlightsSlideArtists] = useState<Record<number, { artist?: string; festival?: string; city?: string; country?: string; date?: string }>>({});
+    const [highlightsSlideArtists, setHighlightsSlideArtists] = useState<Record<number, {
+        artist?: string;
+        festival?: string;
+        city?: string;
+        country?: string;
+        date?: string;
+        colorArtist?: 'WHITE' | 'RED';
+        colorFestival?: 'WHITE' | 'RED';
+        colorCity?: 'WHITE' | 'RED';
+        colorCountry?: 'WHITE' | 'RED';
+        colorDate?: 'WHITE' | 'RED';
+    }>>({});
+    const [highlightsColorArtist, setHighlightsColorArtist] = useState<'WHITE' | 'RED'>('WHITE');
+    const [highlightsColorFestival, setHighlightsColorFestival] = useState<'WHITE' | 'RED'>('WHITE');
+    const [highlightsColorCity, setHighlightsColorCity] = useState<'WHITE' | 'RED'>('WHITE');
+    const [highlightsColorCountry, setHighlightsColorCountry] = useState<'WHITE' | 'RED'>('WHITE');
+    const [highlightsColorDate, setHighlightsColorDate] = useState<'WHITE' | 'RED'>('WHITE');
     const [isArtistLogoNegative, setIsArtistLogoNegative] = useState(true);
     const [citationAuthor, setCitationAuthor] = useState('');
     const [citationMedia, setCitationMedia] = useState('pour Dropsiders');
@@ -2428,25 +2444,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const textStartX = dotCenterX + dotRadius + dotGap;
                 const badgeW = Math.ceil(badgePadLeft + (dotRadius * 2) + dotGap + textWidth + italicSlantBuffer + badgePadRight);
 
-                if (theme === 'HIGHLIGHTS') {
-                    ctx.save();
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-                    ctx.shadowBlur = 12;
-                    ctx.shadowOffsetY = 2;
-                    ctx.beginPath();
-                    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
-                    ctx.fill();
-
-                    ctx.shadowColor = 'transparent';
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#000000';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(label, badgeX + badgeW / 2, badgeY + badgeH / 2);
-                    ctx.restore();
-                    return;
-                }
+                
 
                 // Détection export image (PNG) vs export vidéo (MP4)
                 const isPngExport = isDownloading || Boolean(exportMode);
@@ -5642,46 +5640,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isReel = effectiveTab === 'REEL';
                 const centerX = canvas.width / 2;
 
-                // 1. Top subtle shadow for top header legibility
+                // 1. Top subtle shadow for clean top header legibility
                 const topGrad = ctx.createLinearGradient(0, 0, 0, 220);
                 topGrad.addColorStop(0, 'rgba(0, 0, 0, 0.7)');
                 topGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
                 ctx.fillStyle = topGrad;
                 ctx.fillRect(0, 0, canvas.width, 220);
 
-                // CADRE EN HAUT (TOP-LEFT) : FOND BLANC, ÉCRITURE NOIR MARQUÉ "HIGHLIGHT"
-                const badgeX = isReel ? 80 : 60;
-                const badgeY = isReel ? 74 : 50;
-                const badgeH = 46;
-                const badgeRadius = badgeH / 2;
-                const badgeText = 'HIGHLIGHT';
+                // 2. BADGE OFFICIEL DROPSIDERS "HIGHLIGHT" (avec effet noir verre fumé, néon et balayage glare comme sur les autres thèmes)
+                drawTopCapsuleBadge('HIGHLIGHT', '#ffffff', '255, 255, 255');
 
-                ctx.save();
-                ctx.font = '900 italic 20px "Montserrat", sans-serif';
-                if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
-                const textMetrics = ctx.measureText(badgeText);
-                const badgePadX = 22;
-                const badgeW = Math.ceil(textMetrics.width + (badgePadX * 2) + 6);
-
-                // Fond blanc pur avec ombre portée nette
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-                ctx.shadowBlur = 12;
-                ctx.shadowOffsetY = 3;
-                ctx.beginPath();
-                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
-                ctx.fill();
-
-                // Texte noir pur centré au milieu de la capsule
-                ctx.shadowColor = 'transparent';
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = '#000000';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(badgeText, badgeX + (badgeW / 2) + 1, badgeY + (badgeH / 2) + 0.5);
-                ctx.restore();
-
-                // 3. Safe bottom position for the 3 stacked text lines
+                // 4. Safe bottom position for the 3 stacked text lines
                 const safeBottom = canvas.height - (isReel ? 180 : 100);
 
                 // Animation support (if animated)
@@ -5693,11 +5662,198 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 ctx.save();
                 ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                 ctx.shadowBlur = 14;
                 ctx.shadowOffsetY = 4;
 
-                // --- LINE 1 : L'ARTISTE EN ASSEZ GROS (BLANC PUR) ---
+                const computeLineAnim = (tLine: string, tIndex: number) => {
+                    let xOff = 0;
+                    let yOff = 0;
+                    let alpha = 1;
+                    let scale = 1;
+                    let displayText = tLine;
+
+                    if (textAnimation === 'SLIDE_LEFT') {
+                        const delay = 0.08 + (tIndex * 0.14);
+                        const el = animElapsed - delay;
+                        if (el < 0) {
+                            alpha = 0;
+                            xOff = -canvas.width;
+                        } else {
+                            const t = Math.min(1, el / 0.55);
+                            const ease = 1 - Math.pow(1 - t, 3);
+                            xOff = -canvas.width * (1 - ease);
+                            alpha = t;
+                        }
+                    } else if (textAnimation === 'WORD_BY_WORD') {
+                        const delay = 0.08 + (tIndex * 0.18);
+                        const el = animElapsed - delay;
+                        if (el < 0) {
+                            alpha = 0;
+                            yOff = 40;
+                        } else {
+                            const t = Math.min(1, el / 0.40);
+                            const ease = 1 - Math.pow(1 - t, 3);
+                            yOff = 40 * (1 - ease);
+                            alpha = t;
+                        }
+                    } else if (textAnimation === 'POP_UP') {
+                        const delay = 0.08 + (tIndex * 0.14);
+                        const el = animElapsed - delay;
+                        if (el < 0) {
+                            alpha = 0;
+                            yOff = 100;
+                        } else {
+                            const t = Math.min(1, el / 0.50);
+                            const ease = 1 - Math.pow(1 - t, 3);
+                            yOff = 100 * (1 - ease);
+                            alpha = t;
+                        }
+                    } else if (textAnimation === 'ZOOM_IMPACT') {
+                        const delay = 0.08 + (tIndex * 0.16);
+                        const el = animElapsed - delay;
+                        if (el < 0) {
+                            alpha = 0;
+                            scale = 1.8;
+                        } else {
+                            const t = Math.min(1, el / 0.40);
+                            const ease = 1 - Math.pow(1 - t, 3);
+                            scale = 1.8 - (0.8 * ease);
+                            alpha = Math.min(1, t * 2);
+                        }
+                    } else if (textAnimation === 'TYPEWRITER') {
+                        const delay = 0.08 + (tIndex * 0.22);
+                        const el = animElapsed - delay;
+                        if (el < 0) {
+                            alpha = 0;
+                            displayText = '';
+                        } else {
+                            const charsToShow = Math.min(tLine.length, Math.floor(el / 0.035));
+                            if (charsToShow <= 0) {
+                                alpha = 0;
+                                displayText = '';
+                            } else {
+                                displayText = tLine.slice(0, charsToShow) + (charsToShow < tLine.length ? ' ▌' : '');
+                                alpha = 1;
+                            }
+                        }
+                    } else if (textAnimation === 'BOUNCE') {
+                        const delay = 0.08 + (tIndex * 0.14);
+                        const el = animElapsed - delay;
+                        if (el < 0) {
+                            alpha = 0;
+                            yOff = -140;
+                        } else {
+                            const t = Math.min(1, el / 0.65);
+                            let bounce = 1;
+                            if (t < 1) {
+                                bounce = 1 - Math.pow(2, -10 * t) * Math.cos((t * 10 - 0.75) * ((2 * Math.PI) / 3));
+                            }
+                            yOff = -140 * (1 - bounce);
+                            alpha = Math.min(1, t * 2.5);
+                        }
+                    } else if (textAnimation === 'GLITCH') {
+                        const delay = 0.08 + (tIndex * 0.14);
+                        const el = animElapsed - delay;
+                        if (el < 0) {
+                            alpha = 0;
+                            xOff = 0;
+                        } else if (el < 0.45) {
+                            const step = Math.floor(el * 28);
+                            xOff = Math.sin(step * 7.5) * 35;
+                            alpha = (step % 3 === 0) ? 0.35 : 1;
+                        } else {
+                            xOff = 0;
+                            alpha = 1;
+                        }
+                    }
+
+                    return { xOff, yOff, alpha, scale, displayText };
+                };
+
+                const renderAnimLine = (text: string, tIndex: number, lineY: number, customColor?: string) => {
+                    const anim = computeLineAnim(text, tIndex);
+                    if (anim.alpha <= 0 || !anim.displayText) return;
+
+                    ctx.save();
+                    ctx.globalAlpha = anim.alpha;
+                    if (customColor) {
+                        ctx.fillStyle = customColor;
+                        if (customColor === '#ff1241') {
+                            ctx.shadowColor = 'rgba(255, 18, 65, 0.60)';
+                            ctx.shadowBlur = 16;
+                        } else {
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                            ctx.shadowBlur = 14;
+                        }
+                    }
+                    if (anim.scale !== 1) {
+                        ctx.translate(centerX + anim.xOff, lineY + anim.yOff);
+                        ctx.scale(anim.scale, anim.scale);
+                        ctx.fillText(anim.displayText, 0, 0);
+                    } else {
+                        ctx.fillText(anim.displayText, centerX + anim.xOff, lineY + anim.yOff);
+                    }
+                    ctx.restore();
+                };
+
+                const renderAnimSegments = (
+                    segments: { text: string; color: string }[],
+                    fullText: string,
+                    tIndex: number,
+                    lineY: number
+                ) => {
+                    const anim = computeLineAnim(fullText, tIndex);
+                    if (anim.alpha <= 0 || !anim.displayText) return;
+
+                    ctx.save();
+                    ctx.globalAlpha = anim.alpha;
+                    if (anim.scale !== 1) {
+                        ctx.translate(centerX + anim.xOff, lineY + anim.yOff);
+                        ctx.scale(anim.scale, anim.scale);
+                    }
+
+                    const sepStr = ' • ';
+                    const sepW = ctx.measureText(sepStr).width;
+                    const totalW = segments.reduce((sum, seg) => sum + ctx.measureText(seg.text).width, 0) + (segments.length - 1) * sepW;
+
+                    let curX = (anim.scale !== 1 ? 0 : (centerX + anim.xOff)) - (totalW / 2);
+                    ctx.textAlign = 'left';
+
+                    segments.forEach((seg, idx) => {
+                        const segW = ctx.measureText(seg.text).width;
+                        ctx.fillStyle = seg.color;
+                        if (seg.color === '#ff1241') {
+                            ctx.shadowColor = 'rgba(255, 18, 65, 0.60)';
+                            ctx.shadowBlur = 14;
+                        } else {
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                            ctx.shadowBlur = 14;
+                        }
+                        ctx.fillText(seg.text, curX, anim.scale !== 1 ? 0 : lineY + anim.yOff);
+                        curX += segW;
+
+                        if (idx < segments.length - 1) {
+                            ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                            ctx.shadowBlur = 10;
+                            ctx.fillText(sepStr, curX, anim.scale !== 1 ? 0 : lineY + anim.yOff);
+                            curX += sepW;
+                        }
+                    });
+
+                    ctx.restore();
+                };
+
+                // Couleurs actives pour les textes
+                const isArtistRed = (highlightsSlideArtists[effectiveEditorialSlide]?.colorArtist ?? highlightsColorArtist) === 'RED';
+                const isFestRed = (highlightsSlideArtists[effectiveEditorialSlide]?.colorFestival ?? highlightsColorFestival) === 'RED';
+                const isCityRed = (highlightsSlideArtists[effectiveEditorialSlide]?.colorCity ?? highlightsColorCity) === 'RED';
+                const isCountryRed = (highlightsSlideArtists[effectiveEditorialSlide]?.colorCountry ?? highlightsColorCountry) === 'RED';
+                const isDateRed = (highlightsSlideArtists[effectiveEditorialSlide]?.colorDate ?? highlightsColorDate) === 'RED';
+
+                // --- LINE 1 : L'ARTISTE EN ASSEZ GROS (BLANC OU ROUGE) ---
                 const activeArtist = highlightsSlideArtists[effectiveEditorialSlide]?.artist ?? highlightsArtist;
                 const artistStr = (activeArtist || '').trim().toUpperCase();
                 if (artistStr) {
@@ -5709,116 +5865,98 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         artistFontSize = Math.max(36, Math.floor(artistFontSize * (maxArtistW / w)));
                         ctx.font = `900 italic ${artistFontSize}px "Montserrat", sans-serif`;
                     }
-                    ctx.fillStyle = '#ffffff';
 
-                    let xOff = 0;
-                    let yOff = 0;
-                    let alpha = 1;
-                    if (textAnimation === 'SLIDE_LEFT') {
-                        const t = Math.max(0, Math.min(1, animElapsed / 0.5));
-                        const ease = 1 - Math.pow(1 - t, 3);
-                        xOff = -400 * (1 - ease);
-                        alpha = t;
-                    } else if (textAnimation === 'POP_UP') {
-                        const t = Math.max(0, Math.min(1, animElapsed / 0.5));
-                        const ease = 1 - Math.pow(1 - t, 3);
-                        yOff = 80 * (1 - ease);
-                        alpha = t;
-                    }
-
+                    const artistColor = isArtistRed ? '#ff1241' : '#ffffff';
                     const artistY = safeBottom - (isReel ? 130 : 110);
-                    ctx.save();
-                    ctx.globalAlpha = alpha;
-                    ctx.fillText(artistStr, centerX + xOff, artistY + yOff);
-                    ctx.restore();
+                    renderAnimLine(artistStr, 0, artistY, artistColor);
                 }
 
-                // --- LINE 2 : FESTIVAL + VILLE + PAYS (BLANC PUR - AUCUNE COULEUR) ---
+                // --- LINE 2 : FESTIVAL + VILLE + PAYS (BLANC OU ROUGE PAR ÉLÉMENT) ---
                 const activeFestival = highlightsSlideArtists[effectiveEditorialSlide]?.festival ?? highlightsFestival;
                 const activeCity = highlightsSlideArtists[effectiveEditorialSlide]?.city ?? highlightsCity;
                 const activeCountry = highlightsSlideArtists[effectiveEditorialSlide]?.country ?? highlightsCountry;
-                const metaParts = [
-                    activeFestival?.trim().toUpperCase(),
-                    activeCity?.trim().toUpperCase(),
-                    activeCountry?.trim().toUpperCase()
-                ].filter(Boolean);
-                const festivalLine = metaParts.join(' • ');
 
-                if (festivalLine) {
+                const festParts: { text: string; color: string }[] = [];
+                if (activeFestival?.trim()) festParts.push({ text: activeFestival.trim().toUpperCase(), color: isFestRed ? '#ff1241' : '#ffffff' });
+                if (activeCity?.trim()) festParts.push({ text: activeCity.trim().toUpperCase(), color: isCityRed ? '#ff1241' : '#ffffff' });
+                if (activeCountry?.trim()) festParts.push({ text: activeCountry.trim().toUpperCase(), color: isCountryRed ? '#ff1241' : '#ffffff' });
+
+                if (festParts.length > 0) {
                     let festFontSize = isReel ? 34 : 30;
                     const maxFestW = canvas.width - (isReel ? 160 : 120);
                     ctx.font = `800 ${festFontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
-                    const fw = ctx.measureText(festivalLine).width;
+                    const fullText = festParts.map(p => p.text).join(' • ');
+                    let fw = ctx.measureText(fullText).width;
                     if (fw > maxFestW) {
                         festFontSize = Math.max(18, Math.floor(festFontSize * (maxFestW / fw)));
                         ctx.font = `800 ${festFontSize}px "Montserrat", sans-serif`;
                     }
-                    ctx.fillStyle = '#ffffff';
-
-                    let xOff = 0;
-                    let yOff = 0;
-                    let alpha = 1;
-                    if (textAnimation === 'SLIDE_LEFT') {
-                        const t = Math.max(0, Math.min(1, (animElapsed - 0.15) / 0.5));
-                        const ease = 1 - Math.pow(1 - t, 3);
-                        xOff = -400 * (1 - ease);
-                        alpha = t;
-                    } else if (textAnimation === 'POP_UP') {
-                        const t = Math.max(0, Math.min(1, (animElapsed - 0.15) / 0.5));
-                        const ease = 1 - Math.pow(1 - t, 3);
-                        yOff = 80 * (1 - ease);
-                        alpha = t;
-                    }
 
                     const festY = safeBottom - (isReel ? 68 : 58);
-                    ctx.save();
-                    ctx.globalAlpha = alpha;
-                    ctx.fillText(festivalLine, centerX + xOff, festY + yOff);
-                    ctx.restore();
+                    renderAnimSegments(festParts, fullText, 1, festY);
                 }
 
-                // --- LINE 3 : DATE EN DESSOUS (BLANC PUR) ---
+                // --- LINE 3 : DATE EN DESSOUS (BLANC OU ROUGE) ---
                 const activeDate = highlightsSlideArtists[effectiveEditorialSlide]?.date ?? highlightsDate;
                 const dateStr = (activeDate || '').trim().toUpperCase();
                 if (dateStr) {
                     let dateFontSize = isReel ? 24 : 21;
                     ctx.font = `700 ${dateFontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '4px';
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
 
-                    let xOff = 0;
-                    let yOff = 0;
-                    let alpha = 1;
-                    if (textAnimation === 'SLIDE_LEFT') {
-                        const t = Math.max(0, Math.min(1, (animElapsed - 0.3) / 0.5));
-                        const ease = 1 - Math.pow(1 - t, 3);
-                        xOff = -400 * (1 - ease);
-                        alpha = t;
-                    } else if (textAnimation === 'POP_UP') {
-                        const t = Math.max(0, Math.min(1, (animElapsed - 0.3) / 0.5));
-                        const ease = 1 - Math.pow(1 - t, 3);
-                        yOff = 80 * (1 - ease);
-                        alpha = t;
-                    }
-
+                    const dateColor = isDateRed ? '#ff1241' : 'rgba(255, 255, 255, 0.88)';
                     const dateY = safeBottom;
-                    ctx.save();
-                    ctx.globalAlpha = alpha;
-                    ctx.fillText(dateStr, centerX + xOff, dateY + yOff);
-                    ctx.restore();
+                    renderAnimLine(dateStr, 2, dateY, dateColor);
                 }
 
                 ctx.restore();
 
-                // Swipe indicator if enabled
+                // 7. Mention Swipe (Chevrons en Cascade) si activée (alignée en bas à droite à la même hauteur que les autres thèmes)
                 if (showSwipe) {
                     drawAnimatedSwipeIndicator(
                         canvas.width - (isReel ? 80 : 60),
-                        safeBottom - 35,
+                        canvas.height - (isReel ? 80 : 50),
                         '#ffffff',
                         24
                     );
+                }
+
+                // 8. LÉGÈRE LIGNE BLANCHE TOUT EN BAS QUI SE REMPLIT AU FUR ET À MESURE DE LA VIDÉO
+                const shouldDrawVideoProgress = Boolean(bgVideo) || isVideoRecordingRef.current || textAnimation !== 'NONE';
+                if (shouldDrawVideoProgress) {
+                    let vProgress = 0;
+                    if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
+                        if (isVideoRecordingRef.current) {
+                            const vTime = deterministicTotalTimeRef.current % bgVideo.duration;
+                            vProgress = Math.max(0, Math.min(1, vTime / bgVideo.duration));
+                        } else {
+                            vProgress = Math.max(0, Math.min(1, bgVideo.currentTime / bgVideo.duration));
+                        }
+                    } else if (isVideoRecordingRef.current) {
+                        const dur = 6.0;
+                        vProgress = Math.max(0, Math.min(1, (deterministicTotalTimeRef.current % dur) / dur));
+                    } else if (textAnimation !== 'NONE') {
+                        const dur = 5.0;
+                        vProgress = Math.max(0, Math.min(1, (animElapsed % dur) / dur));
+                    }
+
+                    const barH = isReel ? 4 : 3;
+                    const barY = canvas.height - barH;
+
+                    ctx.save();
+                    // Piste de fond translucide subtile sur toute la largeur
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+                    ctx.fillRect(0, barY, canvas.width, barH);
+
+                    // Remplissage blanc lumineux au fur et à mesure de la vidéo
+                    if (vProgress > 0) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                        ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+                        ctx.shadowBlur = 6;
+                        ctx.fillRect(0, barY, canvas.width * vProgress, barH);
+                    }
+                    ctx.restore();
                 }
 
             } else {
@@ -6611,7 +6749,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (isVideoRecording) {
             return;
         }
-        const isBadgeTheme = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'AFFICHE', 'PLANNING'].includes(theme);
+        const isBadgeTheme = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'AFFICHE', 'PLANNING', 'HIGHLIGHTS'].includes(theme);
         const shouldAnimateBadge = isBadgeTheme && activeTab === 'REEL';
         if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS') {
             let lastRender = 0;
@@ -6633,7 +6771,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide
     useEffect(() => {
@@ -10472,12 +10610,53 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const currentHighlightsCountry = highlightsSlideArtists[editorialSlide]?.country ?? highlightsCountry;
     const currentHighlightsDate = highlightsSlideArtists[editorialSlide]?.date ?? highlightsDate;
 
+    const currentHighlightsColorArtist = highlightsSlideArtists[editorialSlide]?.colorArtist ?? highlightsColorArtist;
+    const currentHighlightsColorFestival = highlightsSlideArtists[editorialSlide]?.colorFestival ?? highlightsColorFestival;
+    const currentHighlightsColorCity = highlightsSlideArtists[editorialSlide]?.colorCity ?? highlightsColorCity;
+    const currentHighlightsColorCountry = highlightsSlideArtists[editorialSlide]?.colorCountry ?? highlightsColorCountry;
+    const currentHighlightsColorDate = highlightsSlideArtists[editorialSlide]?.colorDate ?? highlightsColorDate;
+
+    const handleHighlightsColorChange = (key: 'colorArtist' | 'colorFestival' | 'colorCity' | 'colorCountry' | 'colorDate', color: 'WHITE' | 'RED') => {
+        if (editorialSlide === 1) {
+            if (key === 'colorArtist') setHighlightsColorArtist(color);
+            else if (key === 'colorFestival') setHighlightsColorFestival(color);
+            else if (key === 'colorCity') setHighlightsColorCity(color);
+            else if (key === 'colorCountry') setHighlightsColorCountry(color);
+            else if (key === 'colorDate') setHighlightsColorDate(color);
+        }
+        setHighlightsSlideArtists(prev => ({
+            ...prev,
+            [editorialSlide]: { ...(prev[editorialSlide] || {}), [key]: color }
+        }));
+    };
+
+    const handleHighlightsColorAll = (color: 'WHITE' | 'RED') => {
+        if (editorialSlide === 1) {
+            setHighlightsColorArtist(color);
+            setHighlightsColorFestival(color);
+            setHighlightsColorCity(color);
+            setHighlightsColorCountry(color);
+            setHighlightsColorDate(color);
+        }
+        setHighlightsSlideArtists(prev => ({
+            ...prev,
+            [editorialSlide]: {
+                ...(prev[editorialSlide] || {}),
+                colorArtist: color,
+                colorFestival: color,
+                colorCity: color,
+                colorCountry: color,
+                colorDate: color,
+            }
+        }));
+    };
+
     const highlightsEditor = (
         <div className="space-y-3">
             <div className="space-y-1">
                 <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black text-white uppercase tracking-wider">Artiste (Slide {editorialSlide})</span>
-                    <span className="text-[8.5px] font-bold text-gray-400">Gros texte blanc</span>
+                    <span className="text-[8.5px] font-bold text-gray-400">Gros texte</span>
                 </div>
                 <input 
                     value={currentHighlightsArtist} 
@@ -10521,7 +10700,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             if (editorialSlide === 1) setHighlightsCity(val);
                             setHighlightsSlideArtists(prev => ({
                                 ...prev,
-                               [editorialSlide]: { ...(prev[editorialSlide] || {}), city: val }
+                                [editorialSlide]: { ...(prev[editorialSlide] || {}), city: val }
                             }));
                         }} 
                         placeholder="VILLE (ex: BOOM)" 
@@ -10564,10 +10743,181 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-white outline-none transition-all" 
                 />
             </div>
-        </div>
-    );
 
-    const tracklistEditor = (
+            {/* OPTIONS COULEURS (BLANC / ROUGE) */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-3 space-y-2.5">
+                <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                        Couleur des textes (Slide {editorialSlide})
+                    </span>
+                    <div className="flex items-center gap-1">
+                        <button
+                            type="button"
+                            onClick={() => handleHighlightsColorAll('WHITE')}
+                            className="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white transition-all"
+                        >
+                            Tout Blanc
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleHighlightsColorAll('RED')}
+                            className="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-red-600/30 hover:bg-red-600/50 text-red-400 hover:text-white border border-red-500/30 transition-all"
+                        >
+                            Tout Rouge
+                        </button>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-1.5 text-[9px] font-bold">
+                    {/* Artiste */}
+                    <div className="flex items-center justify-between bg-black/30 px-2 py-1.5 rounded-xl border border-white/5">
+                        <span className="text-gray-300">Artiste</span>
+                        <div className="flex gap-1">
+                            <button
+                                type="button"
+                                onClick={() => handleHighlightsColorChange('colorArtist', 'WHITE')}
+                                className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${
+                                    currentHighlightsColorArtist === 'WHITE'
+                                        ? 'bg-white text-black border-white shadow-sm'
+                                        : 'bg-white/5 text-gray-400 border-white/10'
+                                }`}
+                            >
+                                Blanc
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleHighlightsColorChange('colorArtist', 'RED')}
+                                className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${
+                                    currentHighlightsColorArtist === 'RED'
+                                        ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(255,18,65,0.6)]'
+                                        : 'bg-white/5 text-gray-400 border-white/10 hover:text-red-400'
+                                }`}
+                            >
+                                Rouge
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Festival */}
+                    <div className="flex items-center justify-between bg-black/30 px-2 py-1.5 rounded-xl border border-white/5">
+                        <span className="text-gray-300">Festival</span>
+                        <div className="flex gap-1">
+                            <button
+                                type="button"
+                                onClick={() => handleHighlightsColorChange('colorFestival', 'WHITE')}
+                                className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${
+                                    currentHighlightsColorFestival === 'WHITE'
+                                        ? 'bg-white text-black border-white shadow-sm'
+                                        : 'bg-white/5 text-gray-400 border-white/10'
+                                }`}
+                            >
+                                Blanc
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleHighlightsColorChange('colorFestival', 'RED')}
+                                className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${
+                                    currentHighlightsColorFestival === 'RED'
+                                        ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(255,18,65,0.6)]'
+                                        : 'bg-white/5 text-gray-400 border-white/10 hover:text-red-400'
+                                }`}
+                            >
+                                Rouge
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Ville */}
+                    <div className="flex items-center justify-between bg-black/30 px-2 py-1.5 rounded-xl border border-white/5">
+                        <span className="text-gray-300">Ville</span>
+                        <div className="flex gap-1">
+                            <button
+                                type="button"
+                                onClick={() => handleHighlightsColorChange('colorCity', 'WHITE')}
+                                className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${
+                                    currentHighlightsColorCity === 'WHITE'
+                                        ? 'bg-white text-black border-white shadow-sm'
+                                        : 'bg-white/5 text-gray-400 border-white/10'
+                                }`}
+                            >
+                                Blanc
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleHighlightsColorChange('colorCity', 'RED')}
+                                className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${
+                                    currentHighlightsColorCity === 'RED'
+                                        ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(255,18,65,0.6)]'
+                                        : 'bg-white/5 text-gray-400 border-white/10 hover:text-red-400'
+                                }`}
+                            >
+                                Rouge
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Pays */}
+                    <div className="flex items-center justify-between bg-black/30 px-2 py-1.5 rounded-xl border border-white/5">
+                        <span className="text-gray-300">Pays</span>
+                        <div className="flex gap-1">
+                            <button
+                                type="button"
+                                onClick={() => handleHighlightsColorChange('colorCountry', 'WHITE')}
+                                className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${
+                                    currentHighlightsColorCountry === 'WHITE'
+                                        ? 'bg-white text-black border-white shadow-sm'
+                                        : 'bg-white/5 text-gray-400 border-white/10'
+                                }`}
+                            >
+                                Blanc
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleHighlightsColorChange('colorCountry', 'RED')}
+                                className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${
+                                    currentHighlightsColorCountry === 'RED'
+                                        ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(255,18,65,0.6)]'
+                                        : 'bg-white/5 text-gray-400 border-white/10 hover:text-red-400'
+                                }`}
+                            >
+                                Rouge
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Date */}
+                    <div className="flex items-center justify-between bg-black/30 px-2 py-1.5 rounded-xl border border-white/5 col-span-2">
+                        <span className="text-gray-300">Date</span>
+                        <div className="flex gap-1">
+                            <button
+                                type="button"
+                                onClick={() => handleHighlightsColorChange('colorDate', 'WHITE')}
+                                className={`px-2.5 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${
+                                    currentHighlightsColorDate === 'WHITE'
+                                        ? 'bg-white text-black border-white shadow-sm'
+                                        : 'bg-white/5 text-gray-400 border-white/10'
+                                }`}
+                            >
+                                Blanc
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleHighlightsColorChange('colorDate', 'RED')}
+                                className={`px-2.5 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${
+                                    currentHighlightsColorDate === 'RED'
+                                        ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(255,18,65,0.6)]'
+                                        : 'bg-white/5 text-gray-400 border-white/10 hover:text-red-400'
+                                }`}
+                            >
+                                Rouge
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );const tracklistEditor = (
         <div className="space-y-4">
             <div className="space-y-2">
                 <label className="text-[10px] font-black text-orange-400 uppercase tracking-widest pl-1">Ligne 1 : Artiste (Orange)</label>
