@@ -18,7 +18,6 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePlayer } from '../../context/PlayerContext';
 import { RadioDedicationModal } from './RadioDedicationModal';
-import { RadioAutoGainModal } from './RadioAutoGainModal';
 
 // ─── Modes d'enchaînement radio ──────────────────────────────────────────────
 export type RadioTransitionMode = 'RAPIDE' | 'CROSSFADE' | 'STANDARD';
@@ -1964,7 +1963,6 @@ export function useMessagesEnabled() {
 function MobileRadioPlayer({ audio }: { audio: AudioState }) {
     const [expanded, setExpanded] = useState(false);
     const [isDedicationOpen, setIsDedicationOpen] = useState(false);
-    const [isAutoGainOpen, setIsAutoGainOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [dragMode, setDragMode] = useState(false);
     const navigate = useNavigate();
@@ -2214,27 +2212,6 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                     </div>
                                 </div>
 
-                                {/* Système Réglage Son Automatique (Auto-Gain) */}
-                                <div className="flex items-center justify-between gap-2 px-1 mb-4 relative z-10">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsAutoGainOpen(true)}
-                                        className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-[10px] font-display font-black uppercase tracking-wider transition-all cursor-pointer ${
-                                            audio.autoGainEnabled
-                                                ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.2)] active:scale-95'
-                                                : 'bg-white/5 border-white/10 text-gray-400'
-                                        }`}
-                                    >
-                                        <Sliders className="w-3.5 h-3.5" />
-                                        <span>Auto-Gain : {audio.autoGainEnabled ? `Jingles +${audio.jingleBoost}dB` : 'Désactivé'}</span>
-                                    </button>
-                                    {audio.isCurrentTrackJingle && audio.autoGainEnabled && (
-                                        <span className="shrink-0 px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[8px] font-black uppercase tracking-wider animate-pulse flex items-center gap-1">
-                                            <Zap className="w-2.5 h-2.5 fill-current" /> Boost Jingle
-                                        </span>
-                                    )}
-                                </div>
-
                                 {/* Volume slider mobile */}
                                 <div className="flex items-center gap-3 px-2 mb-5 relative z-10">
                                     <VolumeX className={`w-3.5 h-3.5 shrink-0 ${isMuted ? 'text-neon-red' : 'text-gray-500'}`} />
@@ -2287,18 +2264,6 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                 isOpen={isDedicationOpen}
                 onClose={() => setIsDedicationOpen(false)}
                 currentTrackTitle={currentSet ? `${currentSet.artist} - ${currentSet.title}` : undefined}
-            />
-
-            <RadioAutoGainModal
-                isOpen={isAutoGainOpen}
-                onClose={() => setIsAutoGainOpen(false)}
-                autoGainEnabled={audio.autoGainEnabled}
-                onToggleAutoGain={audio.changeAutoGainEnabled}
-                jingleBoost={audio.jingleBoost}
-                onChangeBoost={audio.changeJingleBoost}
-                currentTrackTitle={currentSet ? `${currentSet.artist} - ${currentSet.title}` : undefined}
-                isCurrentTrackJingle={audio.isCurrentTrackJingle}
-                activeGainDb={audio.activeGainDb}
             />
 
             {/* ── Mini-bouton flottant DRAGGABLE ── */}
@@ -2404,7 +2369,6 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
         try { return sessionStorage.getItem('radio_desktop_hidden') === 'true'; } catch { return false; }
     });
     const [isDedicationOpen, setIsDedicationOpen] = useState(false);
-    const [isAutoGainOpen, setIsAutoGainOpen] = useState(false);
     const navigate = useNavigate();
     const messagesEnabled = useMessagesEnabled();
 
@@ -2601,11 +2565,6 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                                 <div className="min-w-0 text-left">
                                     <div className="text-[7.5px] font-black uppercase tracking-widest text-neon-cyan mb-0.5 flex items-center gap-1.5">
                                         <Sparkles className="w-2.5 h-2.5" /><span>EN CE MOMENT</span>
-                                        {audio.isCurrentTrackJingle && audio.autoGainEnabled && (
-                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/25 text-amber-300 border border-amber-500/50 text-[7px] font-black tracking-wider animate-pulse">
-                                                <Zap className="w-2 h-2 fill-current" /> JINGLE BOOST +{audio.jingleBoost}dB
-                                            </span>
-                                        )}
                                     </div>
                                     <h4 className="text-[15px] font-display font-black text-white uppercase italic tracking-tight truncate leading-tight">
                                         {currentSet.title || (currentSet as any).event}
@@ -2656,30 +2615,14 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                             {/* Divider */}
                             <div className="h-8 w-px bg-white/10 shrink-0" />
 
-                            {/* Volume & Auto-Gain */}
-                            <div className="flex items-center gap-2 shrink-0">
+                            {/* Volume */}
+                            <div className="flex items-center gap-2 shrink-0 w-32">
                                 <button onClick={toggleMute} className="p-1 text-gray-300 hover:text-white transition-colors cursor-pointer shrink-0">
                                     {isMuted || volume === 0 ? <VolumeX className="w-4 h-4 text-neon-red" /> : <Volume2 className="w-4 h-4 text-neon-cyan" />}
                                 </button>
                                 <input type="range" min="0" max="100" value={isMuted ? 0 : volume}
                                     onChange={e => { setVolume(Number(e.target.value)); if (isMuted) setIsMuted(false); }}
-                                    className="w-20 sm:w-24 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
-
-                                <button
-                                    type="button"
-                                    onClick={() => setIsAutoGainOpen(true)}
-                                    className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-[10px] font-display font-black uppercase tracking-wider transition-all cursor-pointer shadow-sm active:scale-95 ${
-                                        audio.autoGainEnabled
-                                            ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.2)] hover:bg-neon-cyan/25'
-                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
-                                    }`}
-                                    title={`Égalisation automatique du son (${audio.autoGainEnabled ? `Auto-Gain +${audio.jingleBoost}dB actif` : 'Désactivé'})`}
-                                >
-                                    <Sliders className="w-3.5 h-3.5" />
-                                    <span className="hidden xl:inline">
-                                        {audio.autoGainEnabled ? `Auto-Gain +${audio.jingleBoost}dB` : 'Gain Brut'}
-                                    </span>
-                                </button>
+                                    className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
                             </div>
 
                             {/* Bouton Message / Dédicace à l'animateur */}
@@ -2726,18 +2669,6 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                 isOpen={isDedicationOpen}
                 onClose={() => setIsDedicationOpen(false)}
                 currentTrackTitle={currentSet ? `${currentSet.artist} - ${currentSet.title}` : undefined}
-            />
-
-            <RadioAutoGainModal
-                isOpen={isAutoGainOpen}
-                onClose={() => setIsAutoGainOpen(false)}
-                autoGainEnabled={audio.autoGainEnabled}
-                onToggleAutoGain={audio.changeAutoGainEnabled}
-                jingleBoost={audio.jingleBoost}
-                onChangeBoost={audio.changeJingleBoost}
-                currentTrackTitle={currentSet ? `${currentSet.artist} - ${currentSet.title}` : undefined}
-                isCurrentTrackJingle={audio.isCurrentTrackJingle}
-                activeGainDb={audio.activeGainDb}
             />
         </>
     );
