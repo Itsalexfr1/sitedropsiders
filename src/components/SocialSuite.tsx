@@ -377,6 +377,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [highlightsCity, setHighlightsCity] = useState<string>('BOOM');
     const [highlightsCountry, setHighlightsCountry] = useState<string>('BELGIQUE');
     const [highlightsDate, setHighlightsDate] = useState<string>('18 - 20 JUILLET 2026');
+    const [showHighlightsLine, setShowHighlightsLine] = useState<boolean>(false);
     const [isArtistLogoNegative, setIsArtistLogoNegative] = useState(true);
     const [citationAuthor, setCitationAuthor] = useState('');
     const [citationMedia, setCitationMedia] = useState('pour Dropsiders');
@@ -1410,7 +1411,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'JEU': { label: 'DEVINE LE CLIP', grad: '0, 240, 255', color: '#00f0ff' },
         'JEU_FESTIVAL': { label: 'DEVINE LE FESTIVAL', grad: '255, 170, 0', color: '#ffaa00' },
         'JEU_DJ': { label: 'DEVINE LE DJ', grad: '189, 0, 255', color: '#bd00ff' },
-        'HIGHLIGHTS': { label: 'HIGHLIGHTS', grad: '0, 240, 255', color: '#00f0ff' },
+        'HIGHLIGHTS': { label: 'HIGHLIGHT', grad: '255, 255, 255', color: '#ffffff' },
     };
 
     useEffect(() => {
@@ -5622,14 +5623,46 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isReel = effectiveTab === 'REEL';
                 const centerX = canvas.width / 2;
 
-                // 1. Top subtle shadow for top-left framed logo legibility
+                // 1. Top subtle shadow for top header legibility
                 const topGrad = ctx.createLinearGradient(0, 0, 0, 220);
                 topGrad.addColorStop(0, 'rgba(0, 0, 0, 0.7)');
                 topGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
                 ctx.fillStyle = topGrad;
                 ctx.fillRect(0, 0, canvas.width, 220);
 
-                // 2. Cinematic dark gradient from mid-height down to bottom
+                // CADRE EN HAUT (TOP-LEFT) : FOND BLANC, ÉCRITURE NOIR MARQUÉ "HIGHLIGHT"
+                const badgeX = isReel ? 80 : 60;
+                const badgeY = isReel ? 74 : 50;
+                const badgeH = 46;
+                const badgeRadius = badgeH / 2;
+                const badgeText = 'HIGHLIGHT';
+
+                ctx.save();
+                ctx.font = '900 italic 20px "Montserrat", sans-serif';
+                if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
+                const textMetrics = ctx.measureText(badgeText);
+                const badgePadX = 22;
+                const badgeW = Math.ceil(textMetrics.width + (badgePadX * 2) + 6);
+
+                // Fond blanc pur avec ombre portée nette
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 12;
+                ctx.shadowOffsetY = 3;
+                ctx.beginPath();
+                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
+                ctx.fill();
+
+                // Texte noir pur centré au milieu de la capsule
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#000000';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(badgeText, badgeX + (badgeW / 2) + 1, badgeY + (badgeH / 2) + 0.5);
+                ctx.restore();
+
+                // 2. Cinematic dark gradient from mid-height down to bottom (AUCUNE COULEUR, 100% NEUTRE)
                 const gradStart = canvas.height * 0.44;
                 const bGrad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
                 bGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
@@ -5639,15 +5672,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillStyle = bGrad;
                 ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
 
-                // 3. Ambient cyan glow at the bottom edge
-                const ambientGlow = ctx.createLinearGradient(0, canvas.height - 180, 0, canvas.height);
-                ambientGlow.addColorStop(0, 'rgba(0, 240, 255, 0)');
-                ambientGlow.addColorStop(1, 'rgba(0, 240, 255, 0.12)');
-                ctx.fillStyle = ambientGlow;
-                ctx.fillRect(0, canvas.height - 180, canvas.width, 180);
-
-                // 4. Safe bottom position for the 3 stacked text lines
+                // 3. Safe bottom position for the 3 stacked text lines
                 const safeBottom = canvas.height - (isReel ? 180 : 100);
+
+                // Ligne de séparation optionnelle
+                if (showHighlightsLine) {
+                    const lineMarginX = isReel ? 80 : 60;
+                    const lineY = safeBottom - (isReel ? 180 : 155);
+                    ctx.save();
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 4;
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                    ctx.shadowBlur = 6;
+                    ctx.beginPath();
+                    ctx.moveTo(lineMarginX, lineY);
+                    ctx.lineTo(canvas.width - lineMarginX, lineY);
+                    ctx.stroke();
+                    ctx.restore();
+                }
 
                 // Animation support (if animated)
                 const animElapsed = isVideoRecordingRef.current
@@ -5662,7 +5704,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.shadowBlur = 14;
                 ctx.shadowOffsetY = 4;
 
-                // --- LINE 1 : L'ARTISTE EN ASSEZ GROS ---
+                // --- LINE 1 : L'ARTISTE EN ASSEZ GROS (BLANC PUR) ---
                 const artistStr = (highlightsArtist || '').trim().toUpperCase();
                 if (artistStr) {
                     let artistFontSize = isReel ? 82 : 74;
@@ -5697,7 +5739,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-                // --- LINE 2 : FESTIVAL + VILLE + PAYS ---
+                // --- LINE 2 : FESTIVAL + VILLE + PAYS (BLANC PUR - AUCUNE COULEUR) ---
                 const metaParts = [
                     highlightsFestival?.trim().toUpperCase(),
                     highlightsCity?.trim().toUpperCase(),
@@ -5715,7 +5757,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         festFontSize = Math.max(18, Math.floor(festFontSize * (maxFestW / fw)));
                         ctx.font = `800 ${festFontSize}px "Montserrat", sans-serif`;
                     }
-                    ctx.fillStyle = '#00f0ff';
+                    ctx.fillStyle = '#ffffff';
 
                     let xOff = 0;
                     let yOff = 0;
@@ -5739,7 +5781,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-                // --- LINE 3 : DATE EN DESSOUS ---
+                // --- LINE 3 : DATE EN DESSOUS (BLANC PUR) ---
                 const dateStr = (highlightsDate || '').trim().toUpperCase();
                 if (dateStr) {
                     let dateFontSize = isReel ? 24 : 21;
@@ -5776,7 +5818,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     drawAnimatedSwipeIndicator(
                         canvas.width - (isReel ? 80 : 60),
                         safeBottom - 35,
-                        '#00f0ff',
+                        '#ffffff',
                         24
                     );
                 }
@@ -6437,11 +6479,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.save();
                 ctx.shadowColor = 'rgba(0,0,0,0.6)';
                 ctx.shadowBlur = 18;
-                if (theme === 'HIGHLIGHTS') {
-                    ctx.drawImage(logo, xOffset, yOffset, w, logoH);
-                } else {
-                    ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, logoH);
-                }
+                ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, logoH);
                 ctx.restore();
             }
 
@@ -8722,7 +8760,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(2); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2) ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>SPOTLIGHT</button>
             <button onClick={() => handleSetTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
             <button onClick={() => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(1); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1 ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>ARTISTE FESTIVAL</button>
-            <button onClick={() => handleSetTheme('HIGHLIGHTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400 shadow-[0_0_12px_rgba(0,240,255,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>HIGHLIGHTS</button>
+            <button onClick={() => handleSetTheme('HIGHLIGHTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>HIGHLIGHTS</button>
             <button
                 onClick={() => {
                     if (theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ') {
@@ -10481,9 +10519,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     onChange={e => setHighlightsDate(e.target.value)} 
                     placeholder="DATE (ex: 18 - 20 JUILLET 2026)" 
                     spellCheck={false}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-cyan-400 outline-none transition-all" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-white outline-none transition-all" 
                 />
             </div>
+            <button 
+                type="button"
+                onClick={() => setShowHighlightsLine(!showHighlightsLine)}
+                className={`w-full py-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-2 border ${
+                    showHighlightsLine 
+                        ? 'bg-white/20 text-white border-white shadow-md' 
+                        : 'bg-white/5 text-gray-400 border-white/10 hover:text-white'
+                }`}
+            >
+                {showHighlightsLine ? '— Ligne de séparation : Activée' : '— Ligne de séparation : Désactivée'}
+            </button>
         </div>
     );
 
@@ -15755,7 +15804,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                                             // 🎵 Musique
                                             { id: 'MUSIQUE', label: 'MUSIQUE', category: 'MUSIC', action: () => handleSetTheme('MUSIQUE'), active: theme === 'MUSIQUE', style: 'bg-neon-green/20 border-neon-green text-neon-green shadow-[0_0_12px_rgba(0,255,102,0.35)]' },
-                                            { id: 'HIGHLIGHTS', label: 'HIGHLIGHTS', category: 'MUSIC', action: () => handleSetTheme('HIGHLIGHTS'), active: theme === 'HIGHLIGHTS', style: 'bg-cyan-500/20 border-cyan-500 text-cyan-400 shadow-[0_0_12px_rgba(0,240,255,0.35)]' },
+                                            { id: 'HIGHLIGHTS', label: 'HIGHLIGHTS', category: 'MUSIC', action: () => handleSetTheme('HIGHLIGHTS'), active: theme === 'HIGHLIGHTS', style: 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' },
                                             { id: 'SPOTLIGHT', label: 'SPOTLIGHT', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(2); }, active: theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2), style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' },
                                             { id: 'ARTISTE FESTIVAL', label: 'ARTISTE FESTIVAL', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(1); }, active: theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1, style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' },
                                             ...(activeTab === 'REEL' ? [{ id: 'TRACKLIST', label: 'TRACKLIST', category: 'MUSIC', action: () => handleSetTheme('TRACKLIST'), active: theme === 'TRACKLIST', style: 'bg-orange-500/20 border-orange-500 text-orange-500 shadow-[0_0_12px_rgba(255,120,0,0.35)]' }] : []),
