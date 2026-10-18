@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, Calendar, MessageSquare, CheckCircle, CheckCircle2, Check, AlertCircle, ShieldAlert, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon, Eye, Ban, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, Calendar, MessageSquare, CheckCircle, CheckCircle2, Check, AlertCircle, ShieldAlert, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon, Eye, Ban, ShieldCheck, Camera } from 'lucide-react';
 import { getAuthHeaders, isSuperAdmin, apiFetch, hasPermission } from '../utils/auth';
 
 const EDITOR_COLORS = ['#FF1241', '#00FFFF', '#BF00FF', '#39FF14', '#FFF01F', '#FF5E00', '#E91E63', '#2196F3', '#FF9800', '#4CAF50'];
@@ -230,7 +230,7 @@ export function AdminMessages() {
     const [festivalName, setFestivalName] = useState('');
     const [festivalDates, setFestivalDates] = useState('');
     const [accreditationLang, setAccreditationLang] = useState<'FR' | 'EN'>('FR');
-    const [eventType, setEventType] = useState<'Festival' | 'Événement'>('Festival');
+    const [eventType, setEventType] = useState<'Festival' | 'Concert' | 'Soirée' | 'Événement'>('Festival');
     const [includeContest, setIncludeContest] = useState(true);
 
     // Photo Accreditation States
@@ -721,69 +721,172 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         }
     };
 
-    const getAccreditationTemplate = (lang: 'FR' | 'EN', festival: string, dates: string, name: string, evtType: 'Festival' | 'Événement' = 'Festival', withContest: boolean = true) => {
-        const festivalUpper = (festival || '[NOM DU FESTIVAL]').toUpperCase();
+    const getAccreditationTemplate = (
+        lang: 'FR' | 'EN',
+        festival: string,
+        dates: string,
+        name: string,
+        evtType: 'Festival' | 'Concert' | 'Soirée' | 'Événement' = 'Festival',
+        withContest: boolean = true
+    ) => {
+        const defaultName = evtType === 'Festival' ? '[NOM DU FESTIVAL]' :
+            evtType === 'Concert' ? '[NOM DU CONCERT / ARTISTE]' :
+            evtType === 'Soirée' ? '[NOM DE LA SOIRÉE / CLUB]' :
+            '[NOM DE L\'ÉVÉNEMENT]';
+        const festivalUpper = (festival || defaultName).toUpperCase();
         const datesUpper = (dates || '[DATES]').toUpperCase();
         const year = new Date().getFullYear();
         
         const isSingleDay = !datesUpper.includes(' AU ') && !datesUpper.includes('-') && !datesUpper.includes(' ET ') && !datesUpper.includes('&') && datesUpper !== '[DATES]';
         const prepositionFR = isSingleDay ? 'le' : 'du';
         const prepositionEN = isSingleDay ? 'on' : 'from';
-        const isFestival = evtType === 'Festival';
 
         if (lang === 'FR') {
-            const evtWordFR = isFestival ? 'festival' : 'événement';
-            const evtWordFRCap = isFestival ? 'Festival' : 'Événement';
             const contestSection = withContest ? `
 
-${withContest ? (isFestival ? '2' : '2') : ''}. Le Concours Blind Test (Levier de Viralité) : Pour booster l'engagement, nos lecteurs participent à un quiz dédié à votre programmation et partagent obligatoirement leur score en Story Instagram en identifiant votre compte officiel et @dropsiders.fr. Cela génère un flux massif de mentions organiques authentiques.` : '';
+2. Le Concours Blind Test (Levier de Viralité) : Pour booster l'engagement, nos lecteurs participent à un quiz dédié à votre programmation et partagent obligatoirement leur score en Story Instagram en identifiant votre compte officiel et @dropsiders.fr. Cela génère un flux massif de mentions organiques authentiques.` : '';
             const partnerNum = withContest ? '3' : '2';
             const contestGiveaway = withContest ? `
    - Organisation du jeu concours pour faire gagner des invitations à notre communauté.` : '';
-            return `Bonjour,
 
-Je me permets de vous contacter au nom de DROPSIDERS, média de référence dédié à la culture électronique, afin de solliciter une accréditation presse pour l'édition ${year} de ${festivalUpper}.
+            let introPhrase = '';
+            let pastExperience = '';
+            let whyCollab = '';
+            let visibilityPoint = '';
+            let exchangeOffer = '';
+            let conclusionPhrase = '';
 
-Après avoir couvert des événements mondiaux comme Tomorrowland, EDC Las Vegas ou l'Ultra Europe, nous souhaiterions cette année mettre notre expertise et nos nouveaux outils interactifs au service de ${festivalUpper} prévu ${prepositionFR} ${datesUpper}.
-
-Pourquoi collaborer avec nous ? Nous activons un dispositif digital global et carré pour maximiser la visibilité de votre ${evtWordFR} :
-
-1. Visibilité Multi-Plateforme (Agenda & Communauté) : Votre ${evtWordFR} bénéficie déjà d'une mise en avant sur notre Agenda (https://dropsiders.fr/agenda). De plus, nous avons intégré ${festivalUpper} dans notre espace Communauté : nos utilisateurs peuvent désormais voter, partager leurs photos et laisser des avis détaillés, créant ainsi une base de données sociale précieuse pour votre promotion.${contestSection}
-
-${partnerNum}. Proposition de Partenariat & Échange : En échange de 1 ou 2 pass presse, nous vous proposons un pack de couverture complet :${contestGiveaway}
+            if (evtType === 'Concert') {
+                introPhrase = `afin de solliciter une accréditation presse pour le concert de ${festivalUpper}.`;
+                pastExperience = `Média de référence dédié à la culture électronique et aux performances live, nous couvrons régulièrement les plus grandes tournées et concerts en salle (Zéniths, Arenas, salles de spectacle). Nous souhaiterions cette année déployer notre savoir-faire digital pour couvrir le concert de ${festivalUpper} prévu ${prepositionFR} ${datesUpper}.`;
+                whyCollab = `Pourquoi collaborer avec nous ? Nous activons un dispositif digital complet pour maximiser l'impact et la visibilité de votre concert :`;
+                visibilityPoint = `1. Visibilité Multi-Plateforme (Agenda & Communauté) : Votre concert bénéficie déjà d'une mise en avant sur notre Agenda officiel (https://dropsiders.fr/agenda) et auprès de notre communauté de passionnés.${contestSection}`;
+                exchangeOffer = `${partnerNum}. Proposition de Partenariat & Échange : En échange de 1 ou 2 pass presse, nous vous proposons un pack de couverture complet :${contestGiveaway}
+   - Relais massifs en Stories (Teasing avant le show & Live-report immersif sur place).
+   - Photos HD / Vidéos et article récapitulatif sur notre média.
+   - Posts permanents sur nos réseaux sociaux pour faire rayonner la date sur la durée.`;
+                conclusionPhrase = `Nous serions ravis d'activer ce dispositif pour mettre en lumière le concert de ${festivalUpper}.`;
+            } else if (evtType === 'Soirée') {
+                introPhrase = `afin de solliciter une accréditation presse pour la soirée ${festivalUpper}.`;
+                pastExperience = `Acteur incontournable de la vie nocturne et des musiques électroniques, Dropsiders couvre les meilleures soirées en club, warehouses et collectifs à travers la France et l'Europe. Nous souhaiterions mettre notre audience au service de la soirée ${festivalUpper} prévue ${prepositionFR} ${datesUpper}.`;
+                whyCollab = `Pourquoi collaborer avec nous ? Nous activons un dispositif digital ciblé pour maximiser la portée et l'énergie de votre soirée :`;
+                visibilityPoint = `1. Visibilité Multi-Plateforme (Agenda & Guide Clubs) : Votre soirée bénéficie d'une visibilité directe sur notre Agenda (https://dropsiders.fr/agenda) ainsi que dans notre annuaire des Clubs & Lieux, où notre communauté consulte les sorties du week-end.${contestSection}`;
+                exchangeOffer = `${partnerNum}. Proposition de Partenariat & Échange : En échange de 1 ou 2 entrées presse / invités, nous vous proposons une couverture dynamique :${contestGiveaway}
+   - Teasing en Story en amont pour stimuler la billetterie et les réservations.
+   - Live-report immersif en Story le soir même pour capter l'ambiance et la scénographie.
+   - Mise en avant des DJs et résidents de la programmation.`;
+                conclusionPhrase = `Nous serions ravis d'activer ce dispositif pour faire rayonner la soirée ${festivalUpper}.`;
+            } else if (evtType === 'Événement') {
+                introPhrase = `afin de solliciter une accréditation presse pour l'événement ${festivalUpper}.`;
+                pastExperience = `Après avoir couvert de nombreux rendez-vous de l'industrie musicale et des cultures électroniques (salons, showcases, conférences et rassemblements), nous souhaiterions cette année mettre notre expertise et nos nouveaux outils interactifs au service de ${festivalUpper} prévu ${prepositionFR} ${datesUpper}.`;
+                whyCollab = `Pourquoi collaborer avec nous ? Nous activons un dispositif digital global et carré pour maximiser la visibilité de votre événement :`;
+                visibilityPoint = `1. Visibilité Multi-Plateforme (Agenda & Communauté) : Votre événement bénéficie déjà d'une mise en avant sur notre Agenda (https://dropsiders.fr/agenda). De plus, nous avons intégré ${festivalUpper} dans notre espace Communauté : nos utilisateurs peuvent interagir, voter et partager leurs retours.${contestSection}`;
+                exchangeOffer = `${partnerNum}. Proposition de Partenariat & Échange : En échange de 1 ou 2 pass presse, nous vous proposons un pack de couverture complet :${contestGiveaway}
    - Relais massifs en Stories (Teasing & Live-report sur place).
    - Articles dédiés et interviews exclusifs sur notre plateforme.
-   - Posts permanents sur nos réseaux sociaux pour une visibilité sur le long terme.
+   - Posts permanents sur nos réseaux sociaux pour une visibilité sur le long terme.`;
+                conclusionPhrase = `Nous serions ravis d'activer ce dispositif pour mettre en lumière l'événement ${festivalUpper}.`;
+            } else {
+                // Festival
+                introPhrase = `afin de solliciter une accréditation presse pour l'édition ${year} de ${festivalUpper}.`;
+                pastExperience = `Après avoir couvert des événements mondiaux comme Tomorrowland, EDC Las Vegas ou l'Ultra Europe, nous souhaiterions cette année mettre notre expertise et nos nouveaux outils interactifs au service de ${festivalUpper} prévu ${prepositionFR} ${datesUpper}.`;
+                whyCollab = `Pourquoi collaborer avec nous ? Nous activons un dispositif digital global et carré pour maximiser la visibilité de votre festival :`;
+                visibilityPoint = `1. Visibilité Multi-Plateforme (Agenda & Communauté) : Votre festival bénéficie déjà d'une mise en avant sur notre Agenda (https://dropsiders.fr/agenda). De plus, nous avons intégré ${festivalUpper} dans notre espace Communauté : nos utilisateurs peuvent désormais voter, partager leurs photos et laisser des avis détaillés, créant ainsi une base de données sociale précieuse pour votre promotion.${contestSection}`;
+                exchangeOffer = `${partnerNum}. Proposition de Partenariat & Échange : En échange de 1 ou 2 pass presse, nous vous proposons un pack de couverture complet :${contestGiveaway}
+   - Relais massifs en Stories (Teasing & Live-report sur place).
+   - Articles dédiés et interviews exclusifs sur notre plateforme.
+   - Posts permanents sur nos réseaux sociaux pour une visibilité sur le long terme.`;
+                conclusionPhrase = `Nous serions ravis d'activer ce dispositif pour mettre en lumière l'édition ${year} de ${festivalUpper}.`;
+            }
 
-Nous serions ravis d'activer ce dispositif pour mettre en lumière l'édition ${year} de ${festivalUpper}.
+            return `Bonjour,
+
+Je me permets de vous contacter au nom de DROPSIDERS, média de référence dédié à la culture électronique, ${introPhrase}
+
+${pastExperience}
+
+${whyCollab}
+
+${visibilityPoint}
+
+${exchangeOffer}
+
+${conclusionPhrase}
 
 Dans l'attente de votre retour pour en discuter,
 
 ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
         } else {
-            const evtWordEN = isFestival ? 'festival' : 'event';
             const contestSectionEN = withContest ? `
 
 2. Blind Test Contest (Virality Lever): To boost engagement, our readers complete a quiz dedicated to your lineup and must share their score on Instagram Story, tagging your official account and @dropsiders.fr. This generates a massive flow of authentic organic mentions.` : '';
             const partnerNumEN = withContest ? '3' : '2';
             const contestGiveawayEN = withContest ? `
    - Hosting a giveaway contest for our community.` : '';
-            return `Hello,
 
-I am contacting you on behalf of DROPSIDERS, a leading media dedicated to electronic culture, to request press accreditation for the ${year} edition of ${festivalUpper}.
+            let introPhraseEN = '';
+            let pastExperienceEN = '';
+            let whyCollabEN = '';
+            let visibilityPointEN = '';
+            let exchangeOfferEN = '';
+            let conclusionPhraseEN = '';
 
-Having covered global events such as Tomorrowland, EDC Las Vegas, and Ultra Europe, we would like to bring our expertise and new interactive tools to ${festivalUpper} scheduled ${prepositionEN} ${datesUpper}.
-
-Why collaborate with us? We activate a comprehensive and professional digital package to maximize your ${evtWordEN}'s visibility:
-
-1. Multi-Platform Visibility (Agenda & Community): Your ${evtWordEN} is already featured on our Agenda (https://dropsiders.fr/agenda). Additionally, we have integrated ${festivalUpper} into our Community hub: our users can now vote, share their photos, and leave detailed reviews, creating a valuable social proof database for your promotion.${contestSectionEN}
-
-${partnerNumEN}. Partnership & Exchange Proposal: In exchange for 1 or 2 press passes, we offer a full coverage pack:${contestGiveawayEN}
+            if (evtType === 'Concert') {
+                introPhraseEN = `to request press accreditation for the concert of ${festivalUpper}.`;
+                pastExperienceEN = `As a leading media dedicated to electronic culture and live shows, we regularly cover major arena tours, venue concerts, and shows. We would like to bring our digital platform to cover ${festivalUpper} scheduled ${prepositionEN} ${datesUpper}.`;
+                whyCollabEN = `Why collaborate with us? We activate a comprehensive and professional digital package to maximize your concert's visibility:`;
+                visibilityPointEN = `1. Multi-Platform Visibility (Agenda & Community): Your concert is already featured on our Agenda (https://dropsiders.fr/agenda). Additionally, our community can discover the date, interact, and share reviews.${contestSectionEN}`;
+                exchangeOfferEN = `${partnerNumEN}. Partnership & Exchange Proposal: In exchange for 1 or 2 press passes, we offer a dedicated coverage pack:${contestGiveawayEN}
+   - Massive Story coverage (Pre-show teasing & On-site live reporting).
+   - Dedicated articles, photos, and exclusive content on our platform.
+   - Permanent posts on our social networks for long-term visibility.`;
+                conclusionPhraseEN = `We would be delighted to activate this professional package to highlight the concert of ${festivalUpper}.`;
+            } else if (evtType === 'Soirée') {
+                introPhraseEN = `to request press accreditation for the ${festivalUpper} club night / party.`;
+                pastExperienceEN = `As a key player in electronic nightlife, Dropsiders covers top club nights, warehouses, and collective events. We would like to bring our audience to highlight ${festivalUpper} scheduled ${prepositionEN} ${datesUpper}.`;
+                whyCollabEN = `Why collaborate with us? We activate a targeted digital package to maximize the buzz around your night:`;
+                visibilityPointEN = `1. Multi-Platform Visibility (Agenda & Club Guide): Your event is featured on our Agenda (https://dropsiders.fr/agenda) and Club directory, where our community checks weekend lineups.${contestSectionEN}`;
+                exchangeOfferEN = `${partnerNumEN}. Partnership & Exchange Proposal: In exchange for 1 or 2 press / guest passes, we offer dynamic coverage:${contestGiveawayEN}
+   - Story teasing ahead of the event to boost ticket sales and table bookings.
+   - On-site immersive Story reporting capturing the crowd, vibe, and production.
+   - Spotlighting the lineup and resident DJs.`;
+                conclusionPhraseEN = `We would be delighted to activate this package to highlight ${festivalUpper}.`;
+            } else if (evtType === 'Événement') {
+                introPhraseEN = `to request press accreditation for the ${festivalUpper} event.`;
+                pastExperienceEN = `Having covered major electronic music gatherings, showcases, conferences, and industry summits, we would like to bring our interactive tools to ${festivalUpper} scheduled ${prepositionEN} ${datesUpper}.`;
+                whyCollabEN = `Why collaborate with us? We activate a comprehensive digital package to maximize your event's visibility:`;
+                visibilityPointEN = `1. Multi-Platform Visibility (Agenda & Community): Your event is featured on our Agenda (https://dropsiders.fr/agenda). Additionally, we have integrated ${festivalUpper} into our Community hub.${contestSectionEN}`;
+                exchangeOfferEN = `${partnerNumEN}. Partnership & Exchange Proposal: In exchange for 1 or 2 press passes, we offer a full coverage pack:${contestGiveawayEN}
+   - Massive Story coverage (Teasing & On-site reporting).
+   - Dedicated articles and interviews on our platform.
+   - Permanent posts on our social networks for long-term visibility.`;
+                conclusionPhraseEN = `We would be delighted to activate this package to highlight ${festivalUpper}.`;
+            } else {
+                // Festival
+                introPhraseEN = `to request press accreditation for the ${year} edition of ${festivalUpper}.`;
+                pastExperienceEN = `Having covered global events such as Tomorrowland, EDC Las Vegas, and Ultra Europe, we would like to bring our expertise and new interactive tools to ${festivalUpper} scheduled ${prepositionEN} ${datesUpper}.`;
+                whyCollabEN = `Why collaborate with us? We activate a comprehensive and professional digital package to maximize your festival's visibility:`;
+                visibilityPointEN = `1. Multi-Platform Visibility (Agenda & Community): Your festival is already featured on our Agenda (https://dropsiders.fr/agenda). Additionally, we have integrated ${festivalUpper} into our Community hub: our users can now vote, share their photos, and leave detailed reviews, creating a valuable social proof database for your promotion.${contestSectionEN}`;
+                exchangeOfferEN = `${partnerNumEN}. Partnership & Exchange Proposal: In exchange for 1 or 2 press passes, we offer a full coverage pack:${contestGiveawayEN}
    - Massive Story coverage (Pre-event teasing & On-site live reporting).
    - Dedicated articles and exclusive interviews on our platform.
-   - Permanent posts on our social networks for long-term visibility.
+   - Permanent posts on our social networks for long-term visibility.`;
+                conclusionPhraseEN = `We would be delighted to activate this professional package to highlight the ${year} edition of ${festivalUpper}.`;
+            }
 
-We would be delighted to activate this professional package to highlight the ${year} edition of ${festivalUpper}.
+            return `Hello,
+
+I am contacting you on behalf of DROPSIDERS, a leading media dedicated to electronic culture, ${introPhraseEN}
+
+${pastExperienceEN}
+
+${whyCollabEN}
+
+${visibilityPointEN}
+
+${exchangeOfferEN}
+
+${conclusionPhraseEN}
 
 Looking forward to hearing from you to discuss this,
 
@@ -791,8 +894,22 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         }
     };
 
-    const getPhotoAccreditationTemplate = (lang: 'FR' | 'EN', festival: string, dates: string, firstName: string, lastName: string, portfolio: string, name: string, evtType: 'Festival' | 'Événement' = 'Festival', withContest: boolean = true) => {
-        const festivalUpper = (festival || '[NOM DU FESTIVAL]').toUpperCase();
+    const getPhotoAccreditationTemplate = (
+        lang: 'FR' | 'EN',
+        festival: string,
+        dates: string,
+        firstName: string,
+        lastName: string,
+        portfolio: string,
+        name: string,
+        evtType: 'Festival' | 'Concert' | 'Soirée' | 'Événement' = 'Festival',
+        withContest: boolean = true
+    ) => {
+        const defaultName = evtType === 'Festival' ? '[NOM DU FESTIVAL]' :
+            evtType === 'Concert' ? '[NOM DU CONCERT / ARTISTE]' :
+            evtType === 'Soirée' ? '[NOM DE LA SOIRÉE / CLUB]' :
+            '[NOM DE L\'ÉVÉNEMENT]';
+        const festivalUpper = (festival || defaultName).toUpperCase();
         const datesUpper = (dates || '[DATES]').toUpperCase();
         const year = new Date().getFullYear();
 
@@ -800,11 +917,27 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         const prepositionFR = isSingleDay ? 'le' : 'du';
         const prepositionEN = isSingleDay ? 'on' : 'from';
 
+        const targetPhraseFR = evtType === 'Concert'
+            ? `pour le concert de ${festivalUpper} prévu ${prepositionFR} ${datesUpper}`
+            : evtType === 'Soirée'
+            ? `pour la soirée ${festivalUpper} prévue ${prepositionFR} ${datesUpper}`
+            : evtType === 'Événement'
+            ? `pour l'événement ${festivalUpper} prévu ${prepositionFR} ${datesUpper}`
+            : `pour l'édition ${year} de ${festivalUpper} prévue ${prepositionFR} ${datesUpper}`;
+
+        const targetPhraseEN = evtType === 'Concert'
+            ? `for the concert of ${festivalUpper} scheduled ${prepositionEN} ${datesUpper}`
+            : evtType === 'Soirée'
+            ? `for the ${festivalUpper} party / night scheduled ${prepositionEN} ${datesUpper}`
+            : evtType === 'Événement'
+            ? `for the ${festivalUpper} event scheduled ${prepositionEN} ${datesUpper}`
+            : `for the ${year} edition of ${festivalUpper} scheduled ${prepositionEN} ${datesUpper}`;
+
         if (lang === 'FR') {
             const contestLine = withContest ? '\n- Organisation d\'un Concours Blind Test (invitations à gagner pour notre communauté via Story Instagram).' : '';
             return `Bonjour,
 
-Dropsiders souhaite solliciter une accréditation photo pour l'édition ${year} de ${festivalUpper} prévue ${prepositionFR} ${datesUpper}.
+Dropsiders souhaite solliciter une accréditation photo ${targetPhraseFR}.
 
 Photographe délégué : ${firstName || '[PRÉNOM]'} ${lastName || '[NOM]'}
 Portfolio : ${portfolio || '[LIEN PORTFOLIO]'}
@@ -820,7 +953,7 @@ ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
             const contestLineEN = withContest ? '\n- Blind Test Contest hosting (ticket giveaways for our community via Instagram Story).' : '';
             return `Hello,
 
-Dropsiders would like to request photo accreditation for the ${year} edition of ${festivalUpper} scheduled ${prepositionEN} ${datesUpper}.
+Dropsiders would like to request photo accreditation ${targetPhraseEN}.
 
 Delegated Photographer: ${firstName || '[FIRST NAME]'} ${lastName || '[LAST NAME]'}
 Portfolio: ${portfolio || '[PORTFOLIO LINK]'}
@@ -949,18 +1082,22 @@ Alex (Dropsiders)`;
         if (isAccreditationMode) {
             setReplyBody(getAccreditationTemplate(accreditationLang, festivalName, festivalDates, currentName, eventType, includeContest));
             const festivalPart = festivalName ? ` - ${festivalName.toUpperCase()}` : '';
+            const typeLabelFR = eventType === 'Concert' ? 'CONCERT' : eventType === 'Soirée' ? 'SOIRÉE' : eventType === 'Événement' ? 'ÉVÉNEMENT' : 'FESTIVAL';
+            const typeLabelEN = eventType === 'Concert' ? 'CONCERT' : eventType === 'Soirée' ? 'CLUB / EVENT' : eventType === 'Événement' ? 'EVENT' : 'FESTIVAL';
             if (accreditationLang === 'FR') {
-                setMailSubject(`DEMANDE ACCRÉDITATION MÉDIA${festivalPart} - DROPSIDERS`);
+                setMailSubject(`DEMANDE ACCRÉDITATION MÉDIA ${typeLabelFR}${festivalPart} - DROPSIDERS`);
             } else {
-                setMailSubject(`MEDIA ACCREDITATION REQUEST${festivalPart} - DROPSIDERS`);
+                setMailSubject(`MEDIA ACCREDITATION REQUEST ${typeLabelEN}${festivalPart} - DROPSIDERS`);
             }
         } else if (isPhotoAccreditationMode) {
             setReplyBody(getPhotoAccreditationTemplate(accreditationLang, festivalName, festivalDates, photoFirstName, photoLastName, photoPortfolio, currentName, eventType, includeContest));
             const festivalPart = festivalName ? ` - ${festivalName.toUpperCase()}` : '';
+            const typeLabelFR = eventType === 'Concert' ? 'CONCERT' : eventType === 'Soirée' ? 'SOIRÉE' : eventType === 'Événement' ? 'ÉVÉNEMENT' : 'FESTIVAL';
+            const typeLabelEN = eventType === 'Concert' ? 'CONCERT' : eventType === 'Soirée' ? 'CLUB / EVENT' : eventType === 'Événement' ? 'EVENT' : 'FESTIVAL';
             if (accreditationLang === 'FR') {
-                setMailSubject(`DEMANDE ACCRÉDITATION PHOTO${festivalPart} - DROPSIDERS`);
+                setMailSubject(`DEMANDE ACCRÉDITATION PHOTO ${typeLabelFR}${festivalPart} - DROPSIDERS`);
             } else {
-                setMailSubject(`PHOTO ACCREDITATION REQUEST${festivalPart} - DROPSIDERS`);
+                setMailSubject(`PHOTO ACCREDITATION REQUEST ${typeLabelEN}${festivalPart} - DROPSIDERS`);
             }
         } else if (isInterviewMode) {
             setReplyBody(getInterviewTemplate(accreditationLang, djName, interviewType, interviewDate, interviewFestival, currentName, interviewGender));
@@ -1934,17 +2071,51 @@ Alex (Dropsiders)`;
                                                 }}
                                                 className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border ${(!isAccreditationMode && !isPhotoAccreditationMode && !isInterviewMode && replyBody) ? 'bg-neon-cyan border-neon-cyan text-black' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
                                             >
-                                                Communiqué Standard
+                                                Communiqué
                                             </button>
                                             <button
                                                 onClick={() => {
                                                     setIsAccreditationMode(true);
                                                     setIsPhotoAccreditationMode(false);
                                                     setIsInterviewMode(false);
+                                                    setEventType('Festival');
                                                 }}
-                                                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border ${isAccreditationMode ? 'bg-neon-purple border-neon-purple text-white shadow-[0_0_15px_rgba(191,0,255,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border ${isAccreditationMode && eventType === 'Festival' ? 'bg-neon-purple border-neon-purple text-white shadow-[0_0_15px_rgba(191,0,255,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
                                             >
-                                                Demande Accréditation
+                                                🎪 Festival
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setIsAccreditationMode(true);
+                                                    setIsPhotoAccreditationMode(false);
+                                                    setIsInterviewMode(false);
+                                                    setEventType('Concert');
+                                                }}
+                                                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border ${isAccreditationMode && eventType === 'Concert' ? 'bg-neon-purple border-neon-purple text-white shadow-[0_0_15px_rgba(191,0,255,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                            >
+                                                🎸 Concert
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setIsAccreditationMode(true);
+                                                    setIsPhotoAccreditationMode(false);
+                                                    setIsInterviewMode(false);
+                                                    setEventType('Soirée');
+                                                }}
+                                                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border ${isAccreditationMode && eventType === 'Soirée' ? 'bg-neon-purple border-neon-purple text-white shadow-[0_0_15px_rgba(191,0,255,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                            >
+                                                🪩 Soirée
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setIsAccreditationMode(true);
+                                                    setIsPhotoAccreditationMode(false);
+                                                    setIsInterviewMode(false);
+                                                    setEventType('Événement');
+                                                }}
+                                                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border ${isAccreditationMode && eventType === 'Événement' ? 'bg-neon-purple border-neon-purple text-white shadow-[0_0_15px_rgba(191,0,255,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                            >
+                                                ⚡ Événement
                                             </button>
                                             <button
                                                 onClick={() => {
@@ -1952,9 +2123,9 @@ Alex (Dropsiders)`;
                                                     setIsAccreditationMode(false);
                                                     setIsInterviewMode(false);
                                                 }}
-                                                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border ${isPhotoAccreditationMode ? 'bg-neon-blue border-neon-blue text-white shadow-[0_0_15px_rgba(0,191,255,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border flex items-center gap-1.5 ${isPhotoAccreditationMode ? 'bg-neon-blue border-neon-blue text-white shadow-[0_0_15px_rgba(0,191,255,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
                                             >
-                                                Accréditation Photo
+                                                <Camera className="w-3 h-3 shrink-0" /> Photo
                                             </button>
                                             <button
                                                 onClick={() => {
@@ -1964,7 +2135,7 @@ Alex (Dropsiders)`;
                                                 }}
                                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-1.5 ${isInterviewMode ? 'bg-neon-red border-neon-red text-white shadow-[0_0_15px_rgba(255,18,65,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
                                             >
-                                                <Video className="w-3 h-3" /> Demande Interview
+                                                <Video className="w-3 h-3" /> Interview
                                             </button>
                                         </div>
                                     )}
@@ -1996,16 +2167,18 @@ Alex (Dropsiders)`;
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                         <div className="space-y-1">
                                                             <div className="flex items-center justify-between mb-1">
-                                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{eventType === 'Festival' ? 'Festival' : 'Événement'}</label>
+                                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">
+                                                                    {eventType === 'Festival' ? '🎪 Festival' : eventType === 'Concert' ? '🎸 Concert' : eventType === 'Soirée' ? '🪩 Soirée' : '⚡ Événement'}
+                                                                </label>
                                                                 <div className="flex bg-black/40 rounded-lg p-0.5 border border-white/5">
-                                                                    {(['Festival', 'Événement'] as const).map((t) => (
+                                                                    {(['Festival', 'Concert', 'Soirée', 'Événement'] as const).map((t) => (
                                                                         <button
                                                                             key={t}
                                                                             type="button"
                                                                             onClick={() => setEventType(t)}
                                                                             className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider transition-all ${eventType === t ? (isPhotoAccreditationMode ? 'bg-neon-blue text-white' : 'bg-neon-purple text-white') : 'text-gray-500 hover:text-white'}`}
                                                                         >
-                                                                            {t === 'Événement' ? 'Event' : t}
+                                                                            {t === 'Festival' ? 'Festival' : t === 'Concert' ? 'Concert' : t === 'Soirée' ? 'Soirée' : 'Event'}
                                                                         </button>
                                                                     ))}
                                                                 </div>
@@ -2014,7 +2187,12 @@ Alex (Dropsiders)`;
                                                                 type="text"
                                                                 value={festivalName}
                                                                 onChange={(e) => setFestivalName(e.target.value)}
-                                                                placeholder={eventType === 'Festival' ? 'Tomorrowland, EDC...' : 'Nom de l\'événement...'}
+                                                                placeholder={
+                                                                    eventType === 'Festival' ? 'Tomorrowland, EDC, Ultra...' :
+                                                                    eventType === 'Concert' ? 'DJ Snake au Stade de France, Fred again.. à Bercy...' :
+                                                                    eventType === 'Soirée' ? 'Soirée Rex Club, Warehouse Nantes, Phantom...' :
+                                                                    'Amsterdam Dance Event (ADE), IMS Ibiza...'
+                                                                }
                                                                 className={`w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none ${isPhotoAccreditationMode ? 'focus:border-neon-blue' : 'focus:border-neon-purple'}`}
                                                             />
                                                         </div>
@@ -2062,7 +2240,13 @@ Alex (Dropsiders)`;
                                                                 value={festivalDates}
                                                                 onChange={(e) => setFestivalDates(e.target.value)}
                                                                 className={`w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none ${isPhotoAccreditationMode ? 'focus:border-neon-blue' : 'focus:border-neon-purple'}`}
-                                                                placeholder={accreditationLang === 'FR' ? "Ex: 17 - 19 Juillet 2026" : "Ex: July 17 - 19, 2026"}
+                                                                placeholder={
+                                                                    eventType === 'Concert'
+                                                                        ? (accreditationLang === 'FR' ? "Ex: Samedi 10 Mai 2026" : "Ex: Saturday, May 10, 2026")
+                                                                        : eventType === 'Soirée'
+                                                                        ? (accreditationLang === 'FR' ? "Ex: Vendredi 24 Octobre 2026" : "Ex: Friday, October 24, 2026")
+                                                                        : (accreditationLang === 'FR' ? "Ex: 17 - 19 Juillet 2026" : "Ex: July 17 - 19, 2026")
+                                                                }
                                                             />
                                                         </div>
                                                     </div>
