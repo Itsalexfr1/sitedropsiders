@@ -5681,16 +5681,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(badgeText, badgeX + (badgeW / 2) + 1, badgeY + (badgeH / 2) + 0.5);
                 ctx.restore();
 
-                // 2. Cinematic dark gradient from mid-height down to bottom (AUCUNE COULEUR, 100% NEUTRE)
-                const gradStart = canvas.height * 0.44;
-                const bGrad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
-                bGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-                bGrad.addColorStop(0.35, 'rgba(0, 0, 0, 0.55)');
-                bGrad.addColorStop(0.70, 'rgba(0, 0, 0, 0.90)');
-                bGrad.addColorStop(1, 'rgba(0, 0, 0, 0.98)');
-                ctx.fillStyle = bGrad;
-                ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
-
                 // 3. Safe bottom position for the 3 stacked text lines
                 const safeBottom = canvas.height - (isReel ? 180 : 100);
 

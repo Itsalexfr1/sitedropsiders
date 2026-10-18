@@ -240,28 +240,61 @@ export function ImageUploadModal({
             }
 
             const sortParam = sortBy === 'newest' ? '&sort=date' : '';
-            // Ajouter un préfixe selon le filtre media pour éviter de scanner tout le bucket
-            // (le dossier uploads/ est en dernier alphabétiquement - sans préfixe les 2000 premiers objets ne l'atteignent jamais)
-            let prefixParam = '';
+
             if (mediaFilter === 'videos') {
-                prefixParam = '&prefix=VIDEOS%2F';
-            } else if (mediaFilter === 'images') {
-                prefixParam = '&prefix=uploads%2F';
-            } else {
-                // 'all' : on liste d'abord les images récentes (uploads/) puis les vidéos (VIDEOS/)
-                prefixParam = '&prefix=uploads%2F';
-            }
-            const url = `/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${sortParam}${prefixParam}`;
-            const res = await fetch(url, { headers: getAuthHeaders() });
-            if (res.ok) {
-                const data = await res.json();
-                    const processed = (data.objects || []).map((p: any) => ({ ...p, url: p.url ? (p.url.startsWith('http') ? p.url : p.url) : (p.key.startsWith('http') ? p.key : `/uploads/${p.key}`) }));
+                const url = `/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${sortParam}&prefix=VIDEOS%2F`;
+                const res = await fetch(url, { headers: getAuthHeaders() });
+                if (res.ok) {
+                    const data = await res.json();
+                    const processed = (data.objects || []).map((p: any) => ({ ...p, url: p.url ? p.url : (p.key.startsWith('http') ? p.key : `/uploads/${p.key}`) }));
                     if (targetCursor) {
                         setR2Photos(prev => [...prev, ...processed]);
                     } else {
                         setR2Photos(processed);
                     }
-                setR2Cursor(data.cursor || null);
+                    setR2Cursor(data.cursor || null);
+                }
+            } else if (mediaFilter === 'images') {
+                const url = `/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${sortParam}&prefix=uploads%2F`;
+                const res = await fetch(url, { headers: getAuthHeaders() });
+                if (res.ok) {
+                    const data = await res.json();
+                    const processed = (data.objects || []).map((p: any) => ({ ...p, url: p.url ? p.url : (p.key.startsWith('http') ? p.key : `/uploads/${p.key}`) }));
+                    if (targetCursor) {
+                        setR2Photos(prev => [...prev, ...processed]);
+                    } else {
+                        setR2Photos(processed);
+                    }
+                    setR2Cursor(data.cursor || null);
+                }
+            } else {
+                // 'all' : fetch BOTH uploads/ (images & uploads) and VIDEOS/ (all uploaded videos) in parallel!
+                const [resUploads, resVideos] = await Promise.all([
+                    fetch(`/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${sortParam}&prefix=uploads%2F`, { headers: getAuthHeaders() }),
+                    fetch(`/api/r2/list?limit=100${sortParam}&prefix=VIDEOS%2F`, { headers: getAuthHeaders() })
+                ]);
+                const dataUploads = resUploads.ok ? await resUploads.json() : { objects: [] };
+                const dataVideos = resVideos.ok ? await resVideos.json() : { objects: [] };
+
+                const processedUploads = (dataUploads.objects || []).map((p: any) => ({ ...p, url: p.url ? p.url : (p.key.startsWith('http') ? p.key : `/uploads/${p.key}`) }));
+                const processedVideos = (dataVideos.objects || []).map((p: any) => ({ ...p, url: p.url ? p.url : (p.key.startsWith('http') ? p.key : `/uploads/${p.key}`) }));
+
+                const merged = [...processedUploads, ...processedVideos].sort((a: any, b: any) => {
+                    const ta = new Date(a.uploaded || 0).getTime();
+                    const tb = new Date(b.uploaded || 0).getTime();
+                    return tb - ta;
+                });
+
+                if (targetCursor) {
+                    setR2Photos(prev => {
+                        const existingKeys = new Set(prev.map(p => p.key));
+                        const additions = merged.filter(p => !existingKeys.has(p.key));
+                        return [...prev, ...additions];
+                    });
+                } else {
+                    setR2Photos(merged);
+                }
+                setR2Cursor(dataUploads.cursor || null);
             }
         } catch (err) {
             console.error('Failed to fetch R2 photos', err);
@@ -276,7 +309,7 @@ export function ImageUploadModal({
         } else if (isOpen) {
             fetchR2Photos();
         }
-    }, [sortBy]);
+    }, [sortBy, mediaFilter, isOpen]);
 
     const MAX_IMAGE_SIZE = 500 * 1024 * 1024; // 500MB
     const MAX_VIDEO_SIZE = 600 * 1024 * 1024; // 600MB
