@@ -231,7 +231,6 @@ export function AdminMessages() {
     const [festivalDates, setFestivalDates] = useState('');
     const [accreditationLang, setAccreditationLang] = useState<'FR' | 'EN'>('FR');
     const [eventType, setEventType] = useState<'Festival' | 'Concert' | 'Soirée' | 'Événement'>('Festival');
-    const [includeContest, setIncludeContest] = useState(true);
 
     // Photo Accreditation States
     const [isPhotoAccreditationMode, setIsPhotoAccreditationMode] = useState(false);
@@ -726,8 +725,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         festival: string,
         dates: string,
         name: string,
-        evtType: 'Festival' | 'Concert' | 'Soirée' | 'Événement' = 'Festival',
-        withContest: boolean = true
+        evtType: 'Festival' | 'Concert' | 'Soirée' | 'Événement' = 'Festival'
     ) => {
         const defaultName = evtType === 'Festival' ? '[NOM DU FESTIVAL]' :
             evtType === 'Concert' ? '[NOM DU CONCERT / ARTISTE]' :
@@ -742,13 +740,6 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         const prepositionEN = isSingleDay ? 'on' : 'from';
 
         if (lang === 'FR') {
-            const contestSection = withContest ? `
-
-2. Le Concours Blind Test (Levier de Viralité) : Pour booster l'engagement, nos lecteurs participent à un quiz dédié à votre programmation et partagent obligatoirement leur score en Story Instagram en identifiant votre compte officiel et @dropsiders.fr. Cela génère un flux massif de mentions organiques authentiques.` : '';
-            const partnerNum = withContest ? '3' : '2';
-            const contestGiveaway = withContest ? `
-   - Organisation du jeu concours pour faire gagner des invitations à notre communauté.` : '';
-
             let introPhrase = '';
             let pastExperience = '';
             let whyCollab = '';
@@ -760,8 +751,8 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                 introPhrase = `afin de solliciter une accréditation presse pour le concert de ${festivalUpper}.`;
                 pastExperience = `Média de référence dédié à la culture électronique et aux performances live, nous couvrons régulièrement les plus grandes tournées et concerts en salle (Zéniths, Arenas, salles de spectacle). Nous souhaiterions cette année déployer notre savoir-faire digital pour couvrir le concert de ${festivalUpper} prévu ${prepositionFR} ${datesUpper}.`;
                 whyCollab = `Pourquoi collaborer avec nous ? Nous activons un dispositif digital complet pour maximiser l'impact et la visibilité de votre concert :`;
-                visibilityPoint = `1. Visibilité Multi-Plateforme (Agenda & Communauté) : Votre concert bénéficie déjà d'une mise en avant sur notre Agenda officiel (https://dropsiders.fr/agenda) et auprès de notre communauté de passionnés.${contestSection}`;
-                exchangeOffer = `${partnerNum}. Proposition de Partenariat & Échange : En échange de 1 ou 2 pass presse, nous vous proposons un pack de couverture complet :${contestGiveaway}
+                visibilityPoint = `1. Visibilité Multi-Plateforme (Agenda & Communauté) : Votre concert bénéficie déjà d'une mise en avant sur notre Agenda officiel (https://dropsiders.fr/agenda) et auprès de notre communauté de passionnés.`;
+                exchangeOffer = `2. Proposition de Partenariat & Échange : En échange de 1 ou 2 pass presse, nous vous proposons un pack de couverture complet :
    - Relais massifs en Stories (Teasing avant le show & Live-report immersif sur place).
    - Photos HD / Vidéos et article récapitulatif sur notre média.
    - Posts permanents sur nos réseaux sociaux pour faire rayonner la date sur la durée.`;
@@ -770,8 +761,8 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                 introPhrase = `afin de solliciter une accréditation presse pour la soirée ${festivalUpper}.`;
                 pastExperience = `Acteur incontournable de la vie nocturne et des musiques électroniques, Dropsiders couvre les meilleures soirées en club, warehouses et collectifs à travers la France et l'Europe. Nous souhaiterions mettre notre audience au service de la soirée ${festivalUpper} prévue ${prepositionFR} ${datesUpper}.`;
                 whyCollab = `Pourquoi collaborer avec nous ? Nous activons un dispositif digital ciblé pour maximiser la portée et l'énergie de votre soirée :`;
-                visibilityPoint = `1. Visibilité Multi-Plateforme (Agenda & Guide Clubs) : Votre soirée bénéficie d'une visibilité directe sur notre Agenda (https://dropsiders.fr/agenda) ainsi que dans notre annuaire des Clubs & Lieux, où notre communauté consulte les sorties du week-end.${contestSection}`;
-                exchangeOffer = `${partnerNum}. Proposition de Partenariat & Échange : En échange de 1 ou 2 entrées presse / invités, nous vous proposons une couverture dynamique :${contestGiveaway}
+                visibilityPoint = `1. Visibilité Multi-Plateforme (Agenda & Guide Clubs) : Votre soirée bénéficie d'une visibilité directe sur notre Agenda (https://dropsiders.fr/agenda) ainsi que dans notre annuaire des Clubs & Lieux, où notre communauté consulte les sorties du week-end.`;
+                exchangeOffer = `2. Proposition de Partenariat & Échange : En échange de 1 ou 2 entrées presse / invités, nous vous proposons une couverture dynamique :
    - Teasing en Story en amont pour stimuler la billetterie et les réservations.
    - Live-report immersif en Story le soir même pour capter l'ambiance et la scénographie.
    - Mise en avant des DJs et résidents de la programmation.`;
@@ -780,8 +771,8 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                 introPhrase = `afin de solliciter une accréditation presse pour l'événement ${festivalUpper}.`;
                 pastExperience = `Après avoir couvert de nombreux rendez-vous de l'industrie musicale et des cultures électroniques (salons, showcases, conférences et rassemblements), nous souhaiterions cette année mettre notre expertise et nos nouveaux outils interactifs au service de ${festivalUpper} prévu ${prepositionFR} ${datesUpper}.`;
                 whyCollab = `Pourquoi collaborer avec nous ? Nous activons un dispositif digital global et carré pour maximiser la visibilité de votre événement :`;
-                visibilityPoint = `1. Visibilité Multi-Plateforme (Agenda & Communauté) : Votre événement bénéficie déjà d'une mise en avant sur notre Agenda (https://dropsiders.fr/agenda). De plus, nous avons intégré ${festivalUpper} dans notre espace Communauté : nos utilisateurs peuvent interagir, voter et partager leurs retours.${contestSection}`;
-                exchangeOffer = `${partnerNum}. Proposition de Partenariat & Échange : En échange de 1 ou 2 pass presse, nous vous proposons un pack de couverture complet :${contestGiveaway}
+                visibilityPoint = `1. Visibilité Multi-Plateforme (Agenda & Communauté) : Votre événement bénéficie déjà d'une mise en avant sur notre Agenda (https://dropsiders.fr/agenda). De plus, nous avons intégré ${festivalUpper} dans notre espace Communauté : nos utilisateurs peuvent interagir, voter et partager leurs retours.`;
+                exchangeOffer = `2. Proposition de Partenariat & Échange : En échange de 1 ou 2 pass presse, nous vous proposons un pack de couverture complet :
    - Relais massifs en Stories (Teasing & Live-report sur place).
    - Articles dédiés et interviews exclusifs sur notre plateforme.
    - Posts permanents sur nos réseaux sociaux pour une visibilité sur le long terme.`;
@@ -791,8 +782,8 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                 introPhrase = `afin de solliciter une accréditation presse pour l'édition ${year} de ${festivalUpper}.`;
                 pastExperience = `Après avoir couvert des événements mondiaux comme Tomorrowland, EDC Las Vegas ou l'Ultra Europe, nous souhaiterions cette année mettre notre expertise et nos nouveaux outils interactifs au service de ${festivalUpper} prévu ${prepositionFR} ${datesUpper}.`;
                 whyCollab = `Pourquoi collaborer avec nous ? Nous activons un dispositif digital global et carré pour maximiser la visibilité de votre festival :`;
-                visibilityPoint = `1. Visibilité Multi-Plateforme (Agenda & Communauté) : Votre festival bénéficie déjà d'une mise en avant sur notre Agenda (https://dropsiders.fr/agenda). De plus, nous avons intégré ${festivalUpper} dans notre espace Communauté : nos utilisateurs peuvent désormais voter, partager leurs photos et laisser des avis détaillés, créant ainsi une base de données sociale précieuse pour votre promotion.${contestSection}`;
-                exchangeOffer = `${partnerNum}. Proposition de Partenariat & Échange : En échange de 1 ou 2 pass presse, nous vous proposons un pack de couverture complet :${contestGiveaway}
+                visibilityPoint = `1. Visibilité Multi-Plateforme (Agenda & Communauté) : Votre festival bénéficie déjà d'une mise en avant sur notre Agenda (https://dropsiders.fr/agenda). De plus, nous avons intégré ${festivalUpper} dans notre espace Communauté : nos utilisateurs peuvent désormais voter, partager leurs photos et laisser des avis détaillés, créant ainsi une base de données sociale précieuse pour votre promotion.`;
+                exchangeOffer = `2. Proposition de Partenariat & Échange : En échange de 1 ou 2 pass presse, nous vous proposons un pack de couverture complet :
    - Relais massifs en Stories (Teasing & Live-report sur place).
    - Articles dédiés et interviews exclusifs sur notre plateforme.
    - Posts permanents sur nos réseaux sociaux pour une visibilité sur le long terme.`;
@@ -817,13 +808,6 @@ Dans l'attente de votre retour pour en discuter,
 
 ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
         } else {
-            const contestSectionEN = withContest ? `
-
-2. Blind Test Contest (Virality Lever): To boost engagement, our readers complete a quiz dedicated to your lineup and must share their score on Instagram Story, tagging your official account and @dropsiders.fr. This generates a massive flow of authentic organic mentions.` : '';
-            const partnerNumEN = withContest ? '3' : '2';
-            const contestGiveawayEN = withContest ? `
-   - Hosting a giveaway contest for our community.` : '';
-
             let introPhraseEN = '';
             let pastExperienceEN = '';
             let whyCollabEN = '';
@@ -835,8 +819,8 @@ ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
                 introPhraseEN = `to request press accreditation for the concert of ${festivalUpper}.`;
                 pastExperienceEN = `As a leading media dedicated to electronic culture and live shows, we regularly cover major arena tours, venue concerts, and shows. We would like to bring our digital platform to cover ${festivalUpper} scheduled ${prepositionEN} ${datesUpper}.`;
                 whyCollabEN = `Why collaborate with us? We activate a comprehensive and professional digital package to maximize your concert's visibility:`;
-                visibilityPointEN = `1. Multi-Platform Visibility (Agenda & Community): Your concert is already featured on our Agenda (https://dropsiders.fr/agenda). Additionally, our community can discover the date, interact, and share reviews.${contestSectionEN}`;
-                exchangeOfferEN = `${partnerNumEN}. Partnership & Exchange Proposal: In exchange for 1 or 2 press passes, we offer a dedicated coverage pack:${contestGiveawayEN}
+                visibilityPointEN = `1. Multi-Platform Visibility (Agenda & Community): Your concert is already featured on our Agenda (https://dropsiders.fr/agenda). Additionally, our community can discover the date, interact, and share reviews.`;
+                exchangeOfferEN = `2. Partnership & Exchange Proposal: In exchange for 1 or 2 press passes, we offer a dedicated coverage pack:
    - Massive Story coverage (Pre-show teasing & On-site live reporting).
    - Dedicated articles, photos, and exclusive content on our platform.
    - Permanent posts on our social networks for long-term visibility.`;
@@ -845,8 +829,8 @@ ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
                 introPhraseEN = `to request press accreditation for the ${festivalUpper} club night / party.`;
                 pastExperienceEN = `As a key player in electronic nightlife, Dropsiders covers top club nights, warehouses, and collective events. We would like to bring our audience to highlight ${festivalUpper} scheduled ${prepositionEN} ${datesUpper}.`;
                 whyCollabEN = `Why collaborate with us? We activate a targeted digital package to maximize the buzz around your night:`;
-                visibilityPointEN = `1. Multi-Platform Visibility (Agenda & Club Guide): Your event is featured on our Agenda (https://dropsiders.fr/agenda) and Club directory, where our community checks weekend lineups.${contestSectionEN}`;
-                exchangeOfferEN = `${partnerNumEN}. Partnership & Exchange Proposal: In exchange for 1 or 2 press / guest passes, we offer dynamic coverage:${contestGiveawayEN}
+                visibilityPointEN = `1. Multi-Platform Visibility (Agenda & Club Guide): Your event is featured on our Agenda (https://dropsiders.fr/agenda) and Club directory, where our community checks weekend lineups.`;
+                exchangeOfferEN = `2. Partnership & Exchange Proposal: In exchange for 1 or 2 press / guest passes, we offer dynamic coverage:
    - Story teasing ahead of the event to boost ticket sales and table bookings.
    - On-site immersive Story reporting capturing the crowd, vibe, and production.
    - Spotlighting the lineup and resident DJs.`;
@@ -855,8 +839,8 @@ ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
                 introPhraseEN = `to request press accreditation for the ${festivalUpper} event.`;
                 pastExperienceEN = `Having covered major electronic music gatherings, showcases, conferences, and industry summits, we would like to bring our interactive tools to ${festivalUpper} scheduled ${prepositionEN} ${datesUpper}.`;
                 whyCollabEN = `Why collaborate with us? We activate a comprehensive digital package to maximize your event's visibility:`;
-                visibilityPointEN = `1. Multi-Platform Visibility (Agenda & Community): Your event is featured on our Agenda (https://dropsiders.fr/agenda). Additionally, we have integrated ${festivalUpper} into our Community hub.${contestSectionEN}`;
-                exchangeOfferEN = `${partnerNumEN}. Partnership & Exchange Proposal: In exchange for 1 or 2 press passes, we offer a full coverage pack:${contestGiveawayEN}
+                visibilityPointEN = `1. Multi-Platform Visibility (Agenda & Community): Your event is featured on our Agenda (https://dropsiders.fr/agenda). Additionally, we have integrated ${festivalUpper} into our Community hub.`;
+                exchangeOfferEN = `2. Partnership & Exchange Proposal: In exchange for 1 or 2 press passes, we offer a full coverage pack:
    - Massive Story coverage (Teasing & On-site reporting).
    - Dedicated articles and interviews on our platform.
    - Permanent posts on our social networks for long-term visibility.`;
@@ -866,8 +850,8 @@ ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
                 introPhraseEN = `to request press accreditation for the ${year} edition of ${festivalUpper}.`;
                 pastExperienceEN = `Having covered global events such as Tomorrowland, EDC Las Vegas, and Ultra Europe, we would like to bring our expertise and new interactive tools to ${festivalUpper} scheduled ${prepositionEN} ${datesUpper}.`;
                 whyCollabEN = `Why collaborate with us? We activate a comprehensive and professional digital package to maximize your festival's visibility:`;
-                visibilityPointEN = `1. Multi-Platform Visibility (Agenda & Community): Your festival is already featured on our Agenda (https://dropsiders.fr/agenda). Additionally, we have integrated ${festivalUpper} into our Community hub: our users can now vote, share their photos, and leave detailed reviews, creating a valuable social proof database for your promotion.${contestSectionEN}`;
-                exchangeOfferEN = `${partnerNumEN}. Partnership & Exchange Proposal: In exchange for 1 or 2 press passes, we offer a full coverage pack:${contestGiveawayEN}
+                visibilityPointEN = `1. Multi-Platform Visibility (Agenda & Community): Your festival is already featured on our Agenda (https://dropsiders.fr/agenda). Additionally, we have integrated ${festivalUpper} into our Community hub: our users can now vote, share their photos, and leave detailed reviews, creating a valuable social proof database for your promotion.`;
+                exchangeOfferEN = `2. Partnership & Exchange Proposal: In exchange for 1 or 2 press passes, we offer a full coverage pack:
    - Massive Story coverage (Pre-event teasing & On-site live reporting).
    - Dedicated articles and exclusive interviews on our platform.
    - Permanent posts on our social networks for long-term visibility.`;
@@ -902,8 +886,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         lastName: string,
         portfolio: string,
         name: string,
-        evtType: 'Festival' | 'Concert' | 'Soirée' | 'Événement' = 'Festival',
-        withContest: boolean = true
+        evtType: 'Festival' | 'Concert' | 'Soirée' | 'Événement' = 'Festival'
     ) => {
         const defaultName = evtType === 'Festival' ? '[NOM DU FESTIVAL]' :
             evtType === 'Concert' ? '[NOM DU CONCERT / ARTISTE]' :
@@ -934,7 +917,6 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
             : `for the ${year} edition of ${festivalUpper} scheduled ${prepositionEN} ${datesUpper}`;
 
         if (lang === 'FR') {
-            const contestLine = withContest ? '\n- Organisation d\'un Concours Blind Test (invitations à gagner pour notre communauté via Story Instagram).' : '';
             return `Bonjour,
 
 Dropsiders souhaite solliciter une accréditation photo ${targetPhraseFR}.
@@ -943,14 +925,13 @@ Photographe délégué : ${firstName || '[PRÉNOM]'} ${lastName || '[NOM]'}
 Portfolio : ${portfolio || '[LIEN PORTFOLIO]'}
 
 En échange de nos accès, nous proposons un pack de visibilité incluant :
-- Mise en avant sur notre Agenda et espace Communauté (Votes, Avis, Photos).${contestLine}
+- Mise en avant sur notre Agenda et espace Communauté (Votes, Avis, Photos).
 - Couverture complète en Stories, Articles et Posts permanents.
-- Mentions organiques massives pour votre compte via le partage des scores.
+- Mise à disposition des photos HD libres de droits pour vos supports officiels.
 
 Dans l'attente de votre retour,
 ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
         } else {
-            const contestLineEN = withContest ? '\n- Blind Test Contest hosting (ticket giveaways for our community via Instagram Story).' : '';
             return `Hello,
 
 Dropsiders would like to request photo accreditation ${targetPhraseEN}.
@@ -959,9 +940,9 @@ Delegated Photographer: ${firstName || '[FIRST NAME]'} ${lastName || '[LAST NAME
 Portfolio: ${portfolio || '[PORTFOLIO LINK]'}
 
 In exchange for our access, we propose a professional visibility package including:
-- Featured placement on our Agenda and Community hub (Votes, Reviews, Photos).${contestLineEN}
+- Featured placement on our Agenda and Community hub (Votes, Reviews, Photos).
 - Full coverage in Stories, Articles and permanent Posts.
-- Massive organic mentions for your account via score sharing.
+- Delivery of high-res, royalty-free photos for your official channels.
 
 Looking forward to hearing from you,
 ${name ? name + '\n' : ''}The Dropsiders Team.`;
@@ -1080,7 +1061,7 @@ Alex (Dropsiders)`;
         const currentName = signatureName;
 
         if (isAccreditationMode) {
-            setReplyBody(getAccreditationTemplate(accreditationLang, festivalName, festivalDates, currentName, eventType, includeContest));
+            setReplyBody(getAccreditationTemplate(accreditationLang, festivalName, festivalDates, currentName, eventType));
             const festivalPart = festivalName ? ` - ${festivalName.toUpperCase()}` : '';
             const typeLabelFR = eventType === 'Concert' ? 'CONCERT' : eventType === 'Soirée' ? 'SOIRÉE' : eventType === 'Événement' ? 'ÉVÉNEMENT' : 'FESTIVAL';
             const typeLabelEN = eventType === 'Concert' ? 'CONCERT' : eventType === 'Soirée' ? 'CLUB / EVENT' : eventType === 'Événement' ? 'EVENT' : 'FESTIVAL';
@@ -1090,7 +1071,7 @@ Alex (Dropsiders)`;
                 setMailSubject(`MEDIA ACCREDITATION REQUEST ${typeLabelEN}${festivalPart} - DROPSIDERS`);
             }
         } else if (isPhotoAccreditationMode) {
-            setReplyBody(getPhotoAccreditationTemplate(accreditationLang, festivalName, festivalDates, photoFirstName, photoLastName, photoPortfolio, currentName, eventType, includeContest));
+            setReplyBody(getPhotoAccreditationTemplate(accreditationLang, festivalName, festivalDates, photoFirstName, photoLastName, photoPortfolio, currentName, eventType));
             const festivalPart = festivalName ? ` - ${festivalName.toUpperCase()}` : '';
             const typeLabelFR = eventType === 'Concert' ? 'CONCERT' : eventType === 'Soirée' ? 'SOIRÉE' : eventType === 'Événement' ? 'ÉVÉNEMENT' : 'FESTIVAL';
             const typeLabelEN = eventType === 'Concert' ? 'CONCERT' : eventType === 'Soirée' ? 'CLUB / EVENT' : eventType === 'Événement' ? 'EVENT' : 'FESTIVAL';
@@ -1118,7 +1099,7 @@ Alex (Dropsiders)`;
                 setMailSubject('Dropsiders V2: New media platform & interactive agenda! 🎙️');
             }
         }
-    }, [isAccreditationMode, isPhotoAccreditationMode, isInterviewMode, festivalName, festivalDates, photoFirstName, photoLastName, photoPortfolio, djName, interviewType, interviewGender, interviewDate, interviewFestival, accreditationLang, isNewMail, signatureName, eventType, includeContest]);
+    }, [isAccreditationMode, isPhotoAccreditationMode, isInterviewMode, festivalName, festivalDates, photoFirstName, photoLastName, photoPortfolio, djName, interviewType, interviewGender, interviewDate, interviewFestival, accreditationLang, isNewMail, signatureName, eventType]);
 
     const filteredMessages = useMemo(() => {
         const inbox = messages.filter(m => !m.archived);
@@ -2250,33 +2231,7 @@ Alex (Dropsiders)`;
                                                             />
                                                         </div>
                                                     </div>
-                                                    {/* Concours checkbox - only for accreditation (not photo) */}
-                                                    {isAccreditationMode && (
-                                                        <label className="flex items-center gap-2.5 cursor-pointer group">
-                                                            <div
-                                                                onClick={() => setIncludeContest(v => !v)}
-                                                                className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${includeContest ? 'bg-neon-purple border-neon-purple' : 'border-white/20 bg-black/40'}`}
-                                                            >
-                                                                {includeContest && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
-                                                            </div>
-                                                            <span className="text-[10px] text-gray-400 group-hover:text-white transition-colors">
-                                                                Inclure le Concours Blind Test (point 2)
-                                                            </span>
-                                                        </label>
-                                                    )}
-                                                    {isPhotoAccreditationMode && (
-                                                        <label className="flex items-center gap-2.5 cursor-pointer group">
-                                                            <div
-                                                                onClick={() => setIncludeContest(v => !v)}
-                                                                className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${includeContest ? 'bg-neon-blue border-neon-blue' : 'border-white/20 bg-black/40'}`}
-                                                            >
-                                                                {includeContest && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
-                                                            </div>
-                                                            <span className="text-[10px] text-gray-400 group-hover:text-white transition-colors">
-                                                                Inclure le Concours Blind Test
-                                                            </span>
-                                                        </label>
-                                                    )}
+
                                                     {isPhotoAccreditationMode && (
                                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
                                                             <div className="space-y-1">
