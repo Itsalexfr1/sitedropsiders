@@ -1411,7 +1411,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'FOCUS': { label: 'FOCUS', grad: '255, 170, 0', color: '#ffaa00' },
         'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
         'RECAP': { label: 'RÉCAP', grad: '192, 38, 211', color: '#c026d3' },
-        'EVENTS': { label: 'EVENTS', grad: '255, 0, 127', color: '#ff007f' },
+        'EVENTS': { label: 'EVENTS', grad: '255, 55, 0', color: '#ff3700' },
         'LIVESTREAM': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' },
         'PLANNING': { label: 'AGENDA', grad: '255, 55, 0', color: '#ff3700' },
         'TRACKLIST': { label: 'TRACKLIST', grad: '255, 120, 0', color: '#ff7800' },
@@ -4922,8 +4922,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // 2. Top Capsule Badge
                 const badgeLabel = theme === 'EVENTS' ? 'EVENTS' : (theme === 'AFFICHE' ? 'AFFICHE' : (baseThemeData[theme]?.label || theme));
-                const badgeColor = activeColor.color || '#ff007f';
-                const badgeGrad = activeColor.grad || '255, 0, 127';
+                const badgeColor = activeColor.color || '#ff3700';
+                const badgeGrad = activeColor.grad || '255, 55, 0';
                 drawTopCapsuleBadge(badgeLabel, badgeColor, badgeGrad);
 
                 // 3. Dimensions de la carte d'affiche
@@ -4941,7 +4941,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // 4. Ombre portée 3D et halo ambiant néon
                 ctx.save();
                 if (afficheGlow) {
-                    ctx.shadowColor = `rgba(${activeColor.grad || '255, 0, 127'}, 0.35)`;
+                    ctx.shadowColor = `rgba(${activeColor.grad || '255, 55, 0'}, 0.35)`;
                     ctx.shadowBlur = 45;
                     ctx.shadowOffsetX = 0;
                     ctx.shadowOffsetY = 0;
@@ -9118,7 +9118,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => handleSetTheme('FOCUS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
             <button onClick={() => handleSetTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
             <button onClick={() => handleSetTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3]' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
-            <button onClick={() => { handleSetTheme('EVENTS'); setEventsSlide(1); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENTS' || theme === 'AFFICHE' ? 'bg-[#ff007f]/20 border-[#ff007f] text-[#ff007f] shadow-[0_0_12px_rgba(255,0,127,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENTS</button>
+            <button onClick={() => { handleSetTheme('EVENTS'); setEventsSlide(1); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENTS' || theme === 'AFFICHE' ? 'bg-[#ff3700]/20 border-[#ff3700] text-[#ff3700] shadow-[0_0_12px_rgba(255,55,0,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENTS</button>
             <button onClick={() => handleSetTheme('CONCOURS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONCOURS' ? 'bg-[#008cff]/20 border-[#008cff] text-[#008cff] shadow-[0_0_12px_rgba(0,140,255,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>CONCOURS</button>
             <button onClick={() => handleSetTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
             <button onClick={() => handleSetTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-[#ff3700]/20 border-[#ff3700] text-[#ff3700] shadow-[0_0_12px_rgba(255,55,0,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>AGENDA</button>
@@ -13177,10 +13177,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => downloadAfficheSlide(activeTab)}
                                 disabled={isDownloading}
-                                className="flex-1 min-w-[70px] py-1.5 bg-[#ff007f]/20 hover:bg-[#ff007f]/30 border border-[#ff007f]/40 text-[#ff007f] font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1 shadow-sm"
+                                className="flex-1 min-w-[70px] py-1.5 bg-[#ff3700]/20 hover:bg-[#ff3700]/30 border border-[#ff3700]/40 text-[#ff3700] font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1 shadow-sm"
                                 title="Télécharger la Slide Affiche isolée"
                             >
-                                <Download className="w-3.5 h-3.5 text-[#ff007f]" /> Affiche
+                                <Download className="w-3.5 h-3.5 text-[#ff3700]" /> Affiche
                             </button>
                         )}
                     </div>
@@ -13234,7 +13234,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
                     <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
                         <span>Export Carrousel Événement (2 Slides)</span>
-                        <span className="text-[#ff007f]">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
+                        <span className="text-[#ff3700]">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                         <button
@@ -13243,7 +13243,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             disabled={isDownloading}
                             className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
                         >
-                            <Download className="w-3.5 h-3.5 text-[#ff007f]" /> Slide 1 (Post)
+                            <Download className="w-3.5 h-3.5 text-[#ff3700]" /> Slide 1 (Post)
                         </button>
                         <button
                             type="button"
@@ -13251,14 +13251,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             disabled={isDownloading}
                             className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
                         >
-                            <Download className="w-3.5 h-3.5 text-[#ff007f]" /> Slide 2 (Affiche)
+                            <Download className="w-3.5 h-3.5 text-[#ff3700]" /> Slide 2 (Affiche)
                         </button>
                     </div>
                     <button
                         type="button"
                         onClick={() => downloadEventsCarousel()}
                         disabled={isDownloading}
-                        className="w-full py-2 bg-[#ff007f]/20 hover:bg-[#ff007f]/30 border border-[#ff007f]/40 text-[#ff007f] hover:text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-2"
+                        className="w-full py-2 bg-[#ff3700]/20 hover:bg-[#ff3700]/30 border border-[#ff3700]/40 text-[#ff3700] hover:text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-2"
                     >
                         <Sparkles className="w-3.5 h-3.5" /> Exporter le Carrousel Images (Slide 1 + 2)
                     </button>
@@ -13529,10 +13529,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             {/* Slide Affiche dédiée (gérée dans l'onglet Visuel) */}
             {isEditorialAfficheActive && (
-                <div className="p-3 bg-white/5 border border-[#ff007f]/30 rounded-2xl flex items-center justify-between gap-3 shadow-md">
+                <div className="p-3 bg-white/5 border border-[#ff3700]/30 rounded-2xl flex items-center justify-between gap-3 shadow-md">
                     <div className="flex items-center gap-2.5 min-w-0">
                         {afficheImage ? (
-                            <img src={afficheImage} alt="Affiche" className="w-10 h-12 rounded-lg object-cover border border-[#ff007f]/40 flex-shrink-0" />
+                            <img src={afficheImage} alt="Affiche" className="w-10 h-12 rounded-lg object-cover border border-[#ff3700]/40 flex-shrink-0" />
                         ) : (
                             <div className="w-10 h-12 rounded-lg bg-black/40 border border-dashed border-white/20 flex items-center justify-center flex-shrink-0">
                                 <ImageIcon className="w-5 h-5 text-gray-500" />
@@ -13548,7 +13548,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <button
                         type="button"
                         onClick={() => setSidebarStep('visual')}
-                        className="px-3 py-1.5 bg-[#ff007f] hover:bg-[#ff1a8c] text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-sm active:scale-95 flex-shrink-0"
+                        className="px-3 py-1.5 bg-[#ff3700] hover:bg-[#ff4400] text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-sm active:scale-95 flex-shrink-0"
                     >
                         <Sparkles className="w-3 h-3" />
                         <span>Gérer dans Visuel</span>
@@ -14785,14 +14785,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         {(theme === 'EVENTS' || theme === 'AFFICHE') && (
                             <div className="space-y-1.5 pt-1 border-t border-white/5">
-                                <span className="text-[8px] font-black text-[#ff007f] uppercase tracking-wider block">
+                                <span className="text-[8px] font-black text-[#ff3700] uppercase tracking-wider block">
                                     Carrousel Événement (Slide 1 + 2)
                                 </span>
                                 <button
                                     type="button"
                                     onClick={() => downloadEventsCarousel()}
                                     disabled={isDownloading}
-                                    className="w-full py-2.5 bg-gradient-to-r from-[#ff007f] to-[#ff4400] text-white font-black text-[9.5px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                                    className="w-full py-2.5 bg-gradient-to-r from-[#ff3700] to-[#ff6700] text-white font-black text-[9.5px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
                                 >
                                     <Download className="w-4 h-4" /> Télécharger Carrousel (Slide 1 + 2)
                                 </button>
@@ -14806,7 +14806,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => downloadAfficheSlide(activeTab)}
                                     disabled={isDownloading}
-                                    className="w-full py-2 bg-[#ff007f]/20 hover:bg-[#ff007f]/30 border border-[#ff007f]/40 text-[#ff007f] hover:text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-1.5"
+                                    className="w-full py-2 bg-[#ff3700]/20 hover:bg-[#ff3700]/30 border border-[#ff3700]/40 text-[#ff3700] hover:text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-1.5"
                                 >
                                     <Download className="w-3.5 h-3.5" /> Télécharger Slide Affiche Isolée
                                 </button>
@@ -15021,7 +15021,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="space-y-3">
                     <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
                         <span>Édition Post Événement</span>
-                        <span className="text-[#ff007f]">Slide 1</span>
+                        <span className="text-[#ff3700]">Slide 1</span>
                     </div>
                     {conseilsEditor}
                 </div>
@@ -15032,12 +15032,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="space-y-3">
                     <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
                         <span>Édition Affiche de l'Événement</span>
-                        <span className="text-[#ff007f]">Slide 2</span>
+                        <span className="text-[#ff3700]">Slide 2</span>
                     </div>
-                    <div className="p-3 bg-white/5 border border-[#ff007f]/30 rounded-2xl flex items-center justify-between gap-3 shadow-md">
+                    <div className="p-3 bg-white/5 border border-[#ff3700]/30 rounded-2xl flex items-center justify-between gap-3 shadow-md">
                         <div className="flex items-center gap-2.5 min-w-0">
                             {afficheImage ? (
-                                <img src={afficheImage} alt="Affiche" className="w-10 h-12 rounded-lg object-cover border border-[#ff007f]/40 flex-shrink-0" />
+                                <img src={afficheImage} alt="Affiche" className="w-10 h-12 rounded-lg object-cover border border-[#ff3700]/40 flex-shrink-0" />
                             ) : (
                                 <div className="w-10 h-12 rounded-lg bg-black/40 border border-dashed border-white/20 flex items-center justify-center flex-shrink-0">
                                     <ImageIcon className="w-5 h-5 text-gray-500" />
@@ -15053,7 +15053,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <button
                             type="button"
                             onClick={() => setSidebarStep('visual')}
-                            className="px-3 py-1.5 bg-[#ff007f] hover:bg-[#ff1a8c] text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-sm active:scale-95 flex-shrink-0"
+                            className="px-3 py-1.5 bg-[#ff3700] hover:bg-[#ff4400] text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-sm active:scale-95 flex-shrink-0"
                         >
                             <Sparkles className="w-3 h-3" />
                             <span>Gérer dans Visuel</span>
@@ -16428,7 +16428,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                                             // 📅 Agenda
                                             { id: 'PLANNING', label: 'AGENDA', category: 'AGENDA', action: () => handleSetTheme('PLANNING'), active: theme === 'PLANNING', style: 'bg-[#ff3700]/20 border-[#ff3700] text-[#ff3700] shadow-[0_0_12px_rgba(255,55,0,0.35)]' },
-                                            { id: 'EVENTS', label: 'EVENTS', category: 'AGENDA', action: () => { handleSetTheme('EVENTS'); setEventsSlide(1); }, active: theme === 'EVENTS' || theme === 'AFFICHE', style: 'bg-[#ff007f]/20 border-[#ff007f] text-[#ff007f] shadow-[0_0_12px_rgba(255,0,127,0.35)]' },
+                                            { id: 'EVENTS', label: 'EVENTS', category: 'AGENDA', action: () => { handleSetTheme('EVENTS'); setEventsSlide(1); }, active: theme === 'EVENTS' || theme === 'AFFICHE', style: 'bg-[#ff3700]/20 border-[#ff3700] text-[#ff3700] shadow-[0_0_12px_rgba(255,55,0,0.35)]' },
                                             ...(activeTab === 'REEL' ? [{ id: 'MAP', label: 'CARTE (STORY)', category: 'AGENDA', action: () => handleSetTheme('MAP'), active: theme === 'MAP', style: 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]' }] : []),
 
                                             // 🎮 Jeux
@@ -16618,7 +16618,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     ) : theme === 'ARTISTE FESTIVAL' ? (
                                         <><span className="text-[10px] font-black text-neon-red uppercase">Artiste Festival (Carrousel)</span>{artisteFestivalEditor}</>
                                     ) : (theme === 'EVENTS' || theme === 'AFFICHE') ? (
-                                        <><span className="text-[10px] font-black text-[#ff007f] uppercase">Événements & Affiche (Carrousel)</span>{eventsEditor}</>
+                                        <><span className="text-[10px] font-black text-[#ff3700] uppercase">Événements & Affiche (Carrousel)</span>{eventsEditor}</>
                                     ) : theme === 'MUSIQUE' ? (
                                         <><span className="text-[10px] font-black text-[#00ff66] uppercase">Musique & Morceaux (Carrousel)</span>{musiqueEditor}</>
                                     ) : theme === 'TOP 100 DROPSIDERS' ? (
@@ -16965,7 +16965,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     onClick={() => { setIsCarouselPromoActive(false); setEventsSlide(1); if (theme === 'AFFICHE') handleSetTheme('EVENTS'); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
                                         !isCarouselPromoActive && eventsSlide === 1 && theme !== 'AFFICHE'
-                                            ? 'bg-[#ff007f] text-white shadow-[0_0_12px_rgba(255,0,127,0.5)]'
+                                            ? 'bg-[#ff3700] text-white shadow-[0_0_12px_rgba(255,55,0,0.5)]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
                                 >
@@ -16976,7 +16976,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     onClick={() => { setIsCarouselPromoActive(false); setEventsSlide(2); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
                                         !isCarouselPromoActive && (eventsSlide === 2 || theme === 'AFFICHE')
-                                            ? 'bg-[#ff007f] text-white shadow-[0_0_12px_rgba(255,0,127,0.5)]'
+                                            ? 'bg-[#ff3700] text-white shadow-[0_0_12px_rgba(255,55,0,0.5)]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
                                 >
@@ -17213,8 +17213,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
                                         !isCarouselPromoActive && isEditorialAfficheActive
-                                            ? 'bg-[#ff007f] text-white shadow-[0_0_12px_rgba(255,0,127,0.5)]'
-                                            : 'bg-[#ff007f]/10 border border-[#ff007f]/30 text-[#ff007f] hover:bg-[#ff007f]/20'
+                                            ? 'bg-[#ff3700] text-white shadow-[0_0_12px_rgba(255,55,0,0.5)]'
+                                            : 'bg-[#ff3700]/10 border border-[#ff3700]/30 text-[#ff3700] hover:bg-[#ff3700]/20'
                                     }`}
                                 >
                                     🖼️ Slide AFFICHE
@@ -17427,7 +17427,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEventsSlide(1); if (theme === 'AFFICHE') handleSetTheme('EVENTS'); }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        !isCarouselPromoActive && eventsSlide === 1 && theme !== 'AFFICHE' ? 'bg-[#ff007f] text-white shadow-md' : 'text-gray-400'
+                                        !isCarouselPromoActive && eventsSlide === 1 && theme !== 'AFFICHE' ? 'bg-[#ff3700] text-white shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 1 (Post)
@@ -17436,7 +17436,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEventsSlide(2); }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        !isCarouselPromoActive && (eventsSlide === 2 || theme === 'AFFICHE') ? 'bg-[#ff007f] text-white shadow-md' : 'text-gray-400'
+                                        !isCarouselPromoActive && (eventsSlide === 2 || theme === 'AFFICHE') ? 'bg-[#ff3700] text-white shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     Slide 2 (Affiche)
@@ -17649,7 +17649,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        !isCarouselPromoActive && isEditorialAfficheActive ? 'bg-[#ff007f] text-white shadow-md' : 'text-[#ff007f]'
+                                        !isCarouselPromoActive && isEditorialAfficheActive ? 'bg-[#ff3700] text-white shadow-md' : 'text-[#ff3700]'
                                     }`}
                                 >
                                     🖼️ Affiche

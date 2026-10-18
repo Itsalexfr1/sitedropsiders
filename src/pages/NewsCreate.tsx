@@ -421,7 +421,7 @@ export function NewsCreate() {
                 'recap': { color: '#c026d3', grad: '192, 38, 211' },
                 'interview': { color: '#ffffff', grad: '255, 255, 255' },
                 'concours': { color: '#008cff', grad: '0, 140, 255' },
-                'events': { color: '#ff007f', grad: '255, 0, 127' },
+                'events': { color: '#ff3700', grad: '255, 55, 0' },
                 'tracklist': { color: '#ff7800', grad: '255, 120, 0' },
             };
 
