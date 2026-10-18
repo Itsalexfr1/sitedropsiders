@@ -382,6 +382,193 @@ async function mutateGitHubJsonFile<T = any>(
     return { ok: false, status: 409, error: `Conflict resolution failed after ${maxRetries} attempts` };
 }
 
+// ─── SoundCloud Channel & Label Sanitization Dictionary ──────────────────────────
+const KNOWN_CHANNELS_AND_LABELS = [
+    'spinnin', 'spinnin records', "spinnin'", "spinnin' records", 'toolroom', 'toolroom records',
+    'no art', 'defected', 'defected records', 'glitterbox', 'armada', 'armada music', 'ultra',
+    'ultra records', 'ultra music', 'musical freedom', 'revealed', 'stmpd', 'axtone', 'size records',
+    'protocol', 'afterlife', 'drumcode', 'anjuna', 'anjunabeats', 'anjunadeep', 'monstercat',
+    'ministry of sound', 'hexagon', 'dim mak', 'mau5trap', 'owsla', 'heldeep', 'future house music',
+    'selected', 'selected.', 'house nation', 'bass nation', 'trap nation', 'chill nation', 'nation',
+    'chillyourmind', 'electro posé', 'electro pose', 'sensual musique', 'mélodic', 'melodic',
+    'mrsuicidesheep', 'suicidesheep', 'ukf', 'boiler room', 'cercle', 'mixmag', 'dj mag', 'djmag',
+    'bbc radio 1', 'tomorrowland', 'slam!', 'slam', 'fun radio', 'fg radio', 'ncs', 'no copyright sounds',
+    'proximity', 'trap city', 'cloudx', 'xikito', 'xkito', 'the sound you need', 'blanc', 'subsoul',
+    'majestic casual', 'la belle musique', 'chillhop', 'lofi girl', 'soave', 'kontor', 'cr2 records',
+    'black book', 'solid grooves', 'experts only', 'off the grid', 'nervous records', 'dirtybird'
+];
+
+function isRecordLabelNameHelper(name: string): boolean {
+    if (!name) return false;
+    const lower = name.toLowerCase().trim();
+    const clean = lower.replace(/['’.]/g, '');
+    if (KNOWN_CHANNELS_AND_LABELS.some(k => lower.includes(k) || clean.includes(k))) return true;
+    if (/\b(records|recordings|record\b|recs|rec\b|label|imprint|publishing|distribution)\b/i.test(name)) return true;
+    if (/\b(nation|promotions?|curator|curation|channel|network|collective|station|sessions?|premiere|premieres|webradio|podcast|radio|tv)\b/i.test(name)) return true;
+    return false;
+}
+
+function cleanSoundCloudTrackMetadata(rawTitle: string, rawArtist: string): { title: string; artist: string } {
+    let title = (rawTitle || '').trim();
+    let artist = (rawArtist || '').trim();
+
+    title = title.replace(/^(\[|\()?(PREMIERE|EXCLUSIVE|OUT NOW|FREE DL|FREE DOWNLOAD|FREE TRACK|NEW TRACK|DROPSIDERS|TRACK OF THE WEEK|FULL STREAM|MUSIC VIDEO|OFFICIAL VIDEO|OFFICIAL AUDIO|OFFICIAL TRACK|LYRIC VIDEO|VISUALIZER|STREAM)(\]|\))?\s*[:|-]?\s*/i, '').trim();
+    title = title.replace(/^(premiere|exclusive|out now|free dl|free download|official audio|official video)\s*[:|-]\s*/i, '').trim();
+
+    if (artist) {
+        const escapedArtist = artist.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const prefixRegex = new RegExp(`^${escapedArtist}\\s*[-—–|:]\\s*`, 'i');
+        if (prefixRegex.test(title)) {
+            title = title.replace(prefixRegex, '').trim();
+        }
+    }
+
+    const sep = title.match(/^(.*?)\s+[-—–|]\s+(.*)$/);
+    if (sep) {
+        let potArtist = sep[1].trim();
+        let potTitle = sep[2].trim();
+
+        const secMatch = potTitle.match(/^(.*?)\s+[-—–|]\s+(.*)$/);
+        if (isRecordLabelNameHelper(potArtist) && secMatch) {
+            potArtist = secMatch[1].trim();
+            potTitle = secMatch[2].trim();
+        }
+
+        if (potArtist && potTitle) {
+            const isArtistChannel = isRecordLabelNameHelper(artist);
+            const isArtistGeneric = !artist || artist.toLowerCase() === 'artiste' || artist.toLowerCase() === 'dropsiders radio' || artist.toLowerCase() === 'unknown';
+            const isPotArtistValid = !isRecordLabelNameHelper(potArtist);
+
+            if (isArtistChannel || isArtistGeneric || isPotArtistValid) {
+                artist = potArtist;
+                title = potTitle;
+            }
+        }
+    }
+
+    if (isRecordLabelNameHelper(artist)) {
+        if (sep) {
+            artist = sep[1].trim();
+            title = sep[2].trim();
+        } else {
+            artist = 'Artiste';
+        }
+    }
+
+    title = title.replace(/\s*\[(FREE DOWNLOAD|FREE DL|OUT NOW|PREMIERE|EXCLUSIVE|OFFICIAL.*|CLIP|TEASER|DROPSIDERS)\]\s*$/i, '').trim();
+    title = title.replace(/\s*\((FREE DOWNLOAD|FREE DL|OUT NOW|OFFICIAL VIDEO|OFFICIAL AUDIO|OFFICIAL MUSIC VIDEO|LYRIC VIDEO|VISUALIZER|FULL STREAM)\)\s*$/i, '').trim();
+
+    title = title.replace(/^["'«]+|["'»]+$/g, '').trim();
+    artist = artist.replace(/^["'«]+|["'»]+$/g, '').trim();
+
+    return { title: title || 'Morceau', artist: artist || 'Artiste' };
+}
+
+async function resolveSoundCloudPlaylistDirect(targetUrl: string): Promise<{
+    success: boolean;
+    title: string;
+    author: string;
+    coverUrl?: string;
+    trackCount: number;
+    tracks: any[];
+} | null> {
+    if (!targetUrl || !targetUrl.includes('soundcloud.com')) return null;
+    try {
+        const scPageRes = await fetch(targetUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+        });
+        if (!scPageRes.ok) return null;
+        const html = await scPageRes.text();
+        const idx = html.indexOf('window.__sc_hydration = [');
+        if (idx === -1) return null;
+        const endIdx = html.indexOf('];', idx);
+        const hydration = JSON.parse(html.substring(idx + 'window.__sc_hydration = '.length, endIdx + 1));
+
+        const plItem = hydration.find((h: any) => h.hydratable === 'playlist' || (h.data && h.data.tracks));
+        if (!plItem || !plItem.data || !Array.isArray(plItem.data.tracks)) return null;
+
+        const rawTracks = plItem.data.tracks;
+        const plTitle = plItem.data.title || 'Playlist SoundCloud';
+        const plAuthor = plItem.data.user?.username || 'Artiste SoundCloud';
+        const plArtwork = plItem.data.artwork_url;
+
+        const missingIds = rawTracks.filter((t: any) => !t.title && t.id).map((t: any) => t.id);
+        const fullTrackMap = new Map<number, any>();
+
+        if (missingIds.length > 0) {
+            let clientId = 'tHzjkKIyQ5PCLhppl7qomsm6HKpf16tW';
+            try {
+                const scriptUrls = [...html.matchAll(/<script[^>]+src="([^">]+\.js)"/g)].map(m => m[1]);
+                for (const sUrl of scriptUrls) {
+                    const sRes = await fetch(sUrl);
+                    const sText = await sRes.text();
+                    const m = sText.match(/client_id[:=]["']([a-zA-Z0-9]{32})["']/);
+                    if (m) {
+                        clientId = m[1];
+                        break;
+                    }
+                }
+            } catch {}
+
+            const chunkSize = 50;
+            for (let i = 0; i < missingIds.length; i += chunkSize) {
+                const chunk = missingIds.slice(i, i + chunkSize);
+                try {
+                    const apiRes = await fetch(`https://api-v2.soundcloud.com/tracks?ids=${chunk.join(',')}&client_id=${clientId}`);
+                    if (apiRes.ok) {
+                        const apiTracks: any = await apiRes.json();
+                        if (Array.isArray(apiTracks)) {
+                            apiTracks.forEach((t: any) => fullTrackMap.set(t.id, t));
+                        }
+                    }
+                } catch {}
+            }
+        }
+
+        const LIVE_SET_KEYWORDS = [
+            'live', 'set', 'festival', 'tomorrowland', 'ultra', 'edc', 'lost lands', 'defqon',
+            'awakenings', 'b2b', 'stage', 'closing', 'opening', 'full set', 'session', 'journey',
+            'verknipt', 'teletech', 'blackworks', 'qlimax', 'intents', 'hardstyle', 'uptempo'
+        ];
+
+        const parsedTracks = rawTracks.map((t: any, index: number) => {
+            const full = fullTrackMap.get(t.id) || t;
+            const rawTitle = full.title || `Morceau ${index + 1}`;
+            const rawArtist = full.publisher_metadata?.artist || full.user?.username || plAuthor;
+            const { title, artist } = cleanSoundCloudTrackMetadata(rawTitle, rawArtist);
+            const duration = Math.max(30, Math.round((full.duration || 180000) / 1000));
+            const coverUrl = full.artwork_url || plArtwork;
+            const soundcloudUrl = full.permalink_url || `${targetUrl}#${index}`;
+            const isSet = duration >= 600 || LIVE_SET_KEYWORDS.some(k => (title || '').toLowerCase().includes(k));
+
+            return {
+                id: `sc_${full.id || Date.now()}_${index}`,
+                title,
+                artist,
+                duration,
+                category: isSet ? 'set' : 'clip',
+                soundcloudUrl,
+                coverUrl,
+                addedAt: Date.now()
+            };
+        });
+
+        return {
+            success: true,
+            title: plTitle,
+            author: plAuthor,
+            coverUrl: plArtwork,
+            trackCount: parsedTracks.length,
+            tracks: parsedTracks
+        };
+    } catch (err) {
+        console.error('[resolveSoundCloudPlaylistDirect] Error:', err);
+        return null;
+    }
+}
+
 export default {
     async fetch(request, env, ctx) {
         const url = new URL(request.url);
@@ -454,189 +641,15 @@ export default {
             }
 
             try {
-                const scPageRes = await fetch(targetUrl, {
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-                    }
-                });
-                if (!scPageRes.ok) {
-                    return new Response(JSON.stringify({ error: 'Page playlist introuvable sur SoundCloud' }), {
-                        status: 404,
-                        headers: { ...headers, 'Content-Type': 'application/json' }
-                    });
-                }
-                const html = await scPageRes.text();
-
-                const idx = html.indexOf('window.__sc_hydration = [');
-                if (idx === -1) {
-                    return new Response(JSON.stringify({ error: 'Données SoundCloud introuvables' }), {
-                        status: 500,
-                        headers: { ...headers, 'Content-Type': 'application/json' }
-                    });
-                }
-                const endIdx = html.indexOf('];', idx);
-                const hydration = JSON.parse(html.substring(idx + 'window.__sc_hydration = '.length, endIdx + 1));
-
-                const plItem = hydration.find((h: any) => h.hydratable === 'playlist' || (h.data && h.data.tracks));
-                if (!plItem || !plItem.data || !Array.isArray(plItem.data.tracks)) {
-                    return new Response(JSON.stringify({ error: 'Aucune piste trouvée dans la playlist' }), {
+                const resData = await resolveSoundCloudPlaylistDirect(targetUrl);
+                if (!resData) {
+                    return new Response(JSON.stringify({ error: 'Page playlist introuvable ou vide sur SoundCloud' }), {
                         status: 404,
                         headers: { ...headers, 'Content-Type': 'application/json' }
                     });
                 }
 
-                const rawTracks = plItem.data.tracks;
-                const plTitle = plItem.data.title || 'Playlist SoundCloud';
-                const plAuthor = plItem.data.user?.username || 'Artiste SoundCloud';
-                const plArtwork = plItem.data.artwork_url;
-
-                const missingIds = rawTracks.filter((t: any) => !t.title && t.id).map((t: any) => t.id);
-                const fullTrackMap = new Map<number, any>();
-
-                if (missingIds.length > 0) {
-                    let clientId = 'tHzjkKIyQ5PCLhppl7qomsm6HKpf16tW';
-                    try {
-                        const scriptUrls = [...html.matchAll(/<script[^>]+src="([^">]+\.js)"/g)].map(m => m[1]);
-                        for (const sUrl of scriptUrls) {
-                            const sRes = await fetch(sUrl);
-                            const sText = await sRes.text();
-                            const m = sText.match(/client_id[:=]["']([a-zA-Z0-9]{32})["']/);
-                            if (m) {
-                                clientId = m[1];
-                                break;
-                            }
-                        }
-                    } catch {}
-
-                    const chunkSize = 50;
-                    for (let i = 0; i < missingIds.length; i += chunkSize) {
-                        const chunk = missingIds.slice(i, i + chunkSize);
-                        try {
-                            const apiRes = await fetch(`https://api-v2.soundcloud.com/tracks?ids=${chunk.join(',')}&client_id=${clientId}`);
-                            if (apiRes.ok) {
-                                const apiTracks: any = await apiRes.json();
-                                if (Array.isArray(apiTracks)) {
-                                    apiTracks.forEach((t: any) => fullTrackMap.set(t.id, t));
-                                }
-                            }
-                        } catch {}
-                    }
-                }
-
-                const isRecordLabelName = (name: string) => {
-                    if (!name) return false;
-                    const lower = name.toLowerCase().trim();
-                    const clean = lower.replace(/['’.]/g, '');
-                    const known = [
-                        'spinnin', 'spinnin records', "spinnin'", "spinnin' records", 'toolroom', 'toolroom records',
-                        'no art', 'defected', 'defected records', 'glitterbox', 'armada', 'armada music', 'ultra',
-                        'ultra records', 'ultra music', 'musical freedom', 'revealed', 'stmpd', 'axtone', 'size records',
-                        'protocol', 'afterlife', 'drumcode', 'anjuna', 'anjunabeats', 'anjunadeep', 'monstercat',
-                        'ministry of sound', 'hexagon', 'dim mak', 'mau5trap', 'owsla', 'heldeep', 'future house music',
-                        'selected', 'selected.', 'house nation', 'bass nation', 'trap nation', 'chill nation', 'nation',
-                        'chillyourmind', 'electro posé', 'electro pose', 'sensual musique', 'mélodic', 'melodic',
-                        'mrsuicidesheep', 'suicidesheep', 'ukf', 'boiler room', 'cercle', 'mixmag', 'dj mag', 'djmag',
-                        'bbc radio 1', 'tomorrowland', 'slam!', 'slam', 'fun radio', 'fg radio', 'ncs', 'no copyright sounds',
-                        'proximity', 'trap city', 'cloudx', 'xikito', 'xkito', 'the sound you need', 'blanc', 'subsoul',
-                        'majestic casual', 'la belle musique', 'chillhop', 'lofi girl', 'soave', 'kontor', 'cr2 records',
-                        'black book', 'solid grooves', 'experts only', 'off the grid', 'nervous records', 'dirtybird'
-                    ];
-                    if (known.some(k => lower.includes(k) || clean.includes(k))) return true;
-                    if (/\b(records|recordings|record\b|recs|rec\b|label|imprint|publishing|distribution)\b/i.test(name)) return true;
-                    if (/\b(nation|promotions?|curator|curation|channel|network|collective|station|sessions?|premiere|premieres|webradio|podcast|radio|tv)\b/i.test(name)) return true;
-                    return false;
-                };
-
-                const cleanTrackMeta = (rawTitle: string, rawArtist: string) => {
-                    let title = (rawTitle || '').trim();
-                    let artist = (rawArtist || '').trim();
-
-                    // Nettoyage des badges de début de titre (ex: [PREMIERE], (FREE DOWNLOAD), etc.)
-                    title = title.replace(/^(\[|\()?(PREMIERE|EXCLUSIVE|OUT NOW|FREE DL|FREE DOWNLOAD|FREE TRACK|NEW TRACK|DROPSIDERS|TRACK OF THE WEEK|FULL STREAM|MUSIC VIDEO|OFFICIAL VIDEO|OFFICIAL AUDIO|OFFICIAL TRACK|LYRIC VIDEO|VISUALIZER|STREAM)(\]|\))?\s*[:|-]?\s*/i, '').trim();
-                    title = title.replace(/^(premiere|exclusive|out now|free dl|free download|official audio|official video)\s*[:|-]\s*/i, '').trim();
-
-                    // Si le titre commence par le nom de la chaîne/uploader
-                    if (artist) {
-                        const escapedArtist = artist.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                        const prefixRegex = new RegExp(`^${escapedArtist}\\s*[-—–|:]\\s*`, 'i');
-                        if (prefixRegex.test(title)) {
-                            title = title.replace(prefixRegex, '').trim();
-                        }
-                    }
-
-                    const sep = title.match(/^(.*?)\s+[-—–|]\s+(.*)$/);
-                    if (sep) {
-                        let potArtist = sep[1].trim();
-                        let potTitle = sep[2].trim();
-
-                        const secMatch = potTitle.match(/^(.*?)\s+[-—–|]\s+(.*)$/);
-                        if (isRecordLabelName(potArtist) && secMatch) {
-                            potArtist = secMatch[1].trim();
-                            potTitle = secMatch[2].trim();
-                        }
-
-                        if (potArtist && potTitle) {
-                            const isArtistChannel = isRecordLabelName(artist);
-                            const isArtistGeneric = !artist || artist.toLowerCase() === 'artiste' || artist.toLowerCase() === 'dropsiders radio' || artist.toLowerCase() === 'unknown';
-                            const isPotArtistValid = !isRecordLabelName(potArtist);
-
-                            if (isArtistChannel || isArtistGeneric || isPotArtistValid) {
-                                artist = potArtist;
-                                title = potTitle;
-                            }
-                        }
-                    }
-
-                    if (isRecordLabelName(artist)) {
-                        if (sep) {
-                            artist = sep[1].trim();
-                            title = sep[2].trim();
-                        } else {
-                            artist = 'Artiste';
-                        }
-                    }
-
-                    title = title.replace(/\s*\[(FREE DOWNLOAD|FREE DL|OUT NOW|PREMIERE|EXCLUSIVE|OFFICIAL.*|CLIP|TEASER|DROPSIDERS)\]\s*$/i, '').trim();
-                    title = title.replace(/\s*\((FREE DOWNLOAD|FREE DL|OUT NOW|OFFICIAL VIDEO|OFFICIAL AUDIO|OFFICIAL MUSIC VIDEO|LYRIC VIDEO|VISUALIZER|FULL STREAM)\)\s*$/i, '').trim();
-
-                    title = title.replace(/^["'«]+|["'»]+$/g, '').trim();
-                    artist = artist.replace(/^["'«]+|["'»]+$/g, '').trim();
-
-                    return { title: title || 'Morceau', artist: artist || 'Artiste' };
-                };
-
-                const parsedTracks = rawTracks.map((t: any, index: number) => {
-                    const full = fullTrackMap.get(t.id) || t;
-                    const rawTitle = full.title || `Morceau ${index + 1}`;
-                    const rawArtist = full.publisher_metadata?.artist || full.user?.username || plAuthor;
-                    const { title, artist } = cleanTrackMeta(rawTitle, rawArtist);
-                    const duration = Math.max(30, Math.round((full.duration || 180000) / 1000));
-                    const coverUrl = full.artwork_url || plArtwork;
-                    const soundcloudUrl = full.permalink_url || `${targetUrl}#${index}`;
-
-                    const LIVE_SET_KEYWORDS = ['live', 'set', 'festival', 'tomorrowland', 'ultra', 'edc', 'lost lands', 'defqon', 'awakenings', 'b2b', 'stage', 'closing', 'opening', 'full set', 'session', 'journey', 'verknipt', 'teletech', 'blackworks', 'qlimax', 'intents', 'hardstyle', 'uptempo'];
-                    const isSet = duration >= 600 || LIVE_SET_KEYWORDS.some(k => (title || '').toLowerCase().includes(k));
-
-                    return {
-                        id: `sc_${full.id || Date.now()}_${index}`,
-                        title,
-                        artist,
-                        duration,
-                        category: isSet ? 'set' : 'clip',
-                        soundcloudUrl,
-                        coverUrl,
-                        addedAt: Date.now()
-                    };
-                });
-
-                return new Response(JSON.stringify({
-                    success: true,
-                    title: plTitle,
-                    author: plAuthor,
-                    coverUrl: plArtwork,
-                    trackCount: parsedTracks.length,
-                    tracks: parsedTracks
-                }), {
+                return new Response(JSON.stringify(resData), {
                     headers: { ...headers, 'Content-Type': 'application/json' }
                 });
             } catch (err: any) {
@@ -10425,6 +10438,80 @@ const contentType = response.headers.get("content-type");
                 }
             }
         }
+
+        // --- AUTO-SYNC SOUNDCLOUD PLAYLISTS (Every hour at :30) ---
+        if (now.getUTCMinutes() === 30) {
+            const scSyncSlotKey = `${todayStr}_H${now.getUTCHours()}_30`;
+            const lastScSyncSlot = await env.CHAT_KV.get('last_auto_sc_sync_slot');
+            if (lastScSyncSlot !== scSyncSlotKey) {
+                await env.CHAT_KV.put('last_auto_sc_sync_slot', scSyncSlotKey, { expirationTtl: 7200 });
+                console.log(`[SCHEDULED] Running hourly SoundCloud playlists sync at :30 (${scSyncSlotKey})...`);
+
+                try {
+                    let blocksToSync: any[] = [];
+                    const dynSettingsRaw = await env.CHAT_KV.get('site_settings_dynamic');
+                    let dynSettings = dynSettingsRaw ? JSON.parse(dynSettingsRaw) : null;
+                    if (dynSettings && Array.isArray(dynSettings.radio_blocks) && dynSettings.radio_blocks.length > 0) {
+                        blocksToSync = dynSettings.radio_blocks;
+                    } else if (content && Array.isArray(content.radio_blocks) && content.radio_blocks.length > 0) {
+                        blocksToSync = content.radio_blocks;
+                    }
+
+                    const scBlocks = blocksToSync.filter((b: any) => b.soundcloudPlaylistUrl && b.soundcloudAutoSync !== false);
+                    if (scBlocks.length > 0) {
+                        let hasAnyUpdate = false;
+                        for (const b of scBlocks) {
+                            const scRes = await resolveSoundCloudPlaylistDirect(b.soundcloudPlaylistUrl);
+                            if (scRes && Array.isArray(scRes.tracks) && scRes.tracks.length > 0) {
+                                const jinglesAndPromos = (b.tracks || []).filter((t: any) =>
+                                    t.category === 'jingle' || t.category === 'promo' || t.category === 'pub' || t.isTopHoraire || t.isThemeJingle
+                                );
+
+                                const newMusic = scRes.tracks;
+                                const interleaved: any[] = [];
+                                let jingleIdx = 0;
+                                let promoIdx = 0;
+                                const jingles = jinglesAndPromos.filter((t: any) => t.category === 'jingle' || t.isTopHoraire || t.isThemeJingle);
+                                const promos = jinglesAndPromos.filter((t: any) => t.category === 'promo' || t.category === 'pub');
+
+                                newMusic.forEach((track: any, idx: number) => {
+                                    interleaved.push(track);
+                                    if (jingles.length > 0 && (idx + 1) % 3 === 0) {
+                                        interleaved.push(jingles[jingleIdx % jingles.length]);
+                                        jingleIdx++;
+                                    }
+                                    if (promos.length > 0 && (idx + 1) % 6 === 0) {
+                                        interleaved.push(promos[promoIdx % promos.length]);
+                                        promoIdx++;
+                                    }
+                                });
+
+                                b.tracks = interleaved;
+                                b.soundcloudPlaylistTitle = scRes.title || b.soundcloudPlaylistTitle;
+                                b.soundcloudPlaylistAuthor = scRes.author || b.soundcloudPlaylistAuthor;
+                                b.soundcloudPlaylistCover = scRes.coverUrl || b.soundcloudPlaylistCover;
+                                b.soundcloudLastSynced = new Date().toISOString();
+                                b.soundcloudTrackCount = scRes.tracks.length;
+                                hasAnyUpdate = true;
+                            }
+                        }
+
+                        if (hasAnyUpdate) {
+                            if (!dynSettings) dynSettings = { ...(content || {}) };
+                            dynSettings.radio_blocks = blocksToSync;
+                            await env.CHAT_KV.put('site_settings_dynamic', JSON.stringify(dynSettings));
+
+                            content.radio_blocks = blocksToSync;
+                            await saveGitHubFile(SETTINGS_PATH, content, 'Auto-sync SoundCloud playlists at :30 (Scheduled)', fileData.sha, scheduledGitConfig);
+                            console.log(`[SCHEDULED] Successfully synced ${scBlocks.length} SoundCloud playlists at :30.`);
+                        }
+                    }
+                } catch (scErr) {
+                    console.error('[SCHEDULED] SoundCloud hourly sync error:', scErr);
+                }
+            }
+        }
+
         // --- RECAP MESSAGES NON LUS (toutes les 12h) ---
         try {
             const BREVO_KEY = env.BREVO_API_KEY;

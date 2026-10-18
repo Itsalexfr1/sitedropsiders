@@ -12,7 +12,7 @@ import {
     isForbiddenAdTrack,
     isRadioJingleTrack, computeAutoGainVolumes,
     STORAGE_RADIO_AUTOGAIN_KEY, STORAGE_RADIO_JINGLE_BOOST_KEY,
-    syncAllSoundCloudPlaylists, cleanRadioTrackMetadata,
+    cleanRadioTrackMetadata,
     type RadioScheduleBlock, type ComputedRadioScheduleItem,
     type RadioJingleBoostLevel
 } from '../../utils/radioSchedule';
@@ -254,26 +254,48 @@ function useRadioAudio() {
                 }));
                 setRadioBlocks(cleanedDataBlocks);
                 localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(cleanedDataBlocks));
-
-                // Synchronisation automatique et nettoyage complet des playlists SoundCloud
-                syncAllSoundCloudPlaylists(cleanedDataBlocks).then(res => {
-                    if (res.changedCount > 0) {
-                        setRadioBlocks(res.updatedBlocks);
-                        try {
-                            localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(res.updatedBlocks));
-                            window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
-                        } catch {}
-                    }
-                }).catch(() => {});
+                // Les playlists SoundCloud sont synchronisées côté serveur chaque heure à :30 par le Cloudflare Worker
             }
         }).catch(() => {});
     }, []);
 
-    // ─── Horloge Paris (sert UNIQUEMENT au display schedule et au démarrage) ─────
+    // ─── Horloge Paris & Rechargement automatique chaque heure à :30 ─────────────
     const [uiTimeSec, setUiTimeSec] = useState<number>(getParisSeconds);
+    const lastHourlyRefreshSlotRef = useRef<string>('');
+
     useEffect(() => {
         // Tick toutes les 5s pour garder le schedule à jour (sync auto des transitions)
-        const id = setInterval(() => setUiTimeSec(getParisSeconds()), 5000);
+        const id = setInterval(() => {
+            const nowSec = getParisSeconds();
+            setUiTimeSec(nowSec);
+
+            // À chaque heure entre :30 et :32, recharger les paramètres pour récupérer les playlists fraîchement synchronisées
+            const now = new Date();
+            const minute = now.getMinutes();
+            if (minute >= 30 && minute <= 32) {
+                const currentSlot = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}_${now.getHours()}_30`;
+                if (lastHourlyRefreshSlotRef.current !== currentSlot) {
+                    lastHourlyRefreshSlotRef.current = currentSlot;
+                    fetch('/api/settings', { cache: 'no-store' })
+                        .then(r => r.ok ? r.json() : null)
+                        .then(data => {
+                            if (data && Array.isArray(data.radio_blocks) && data.radio_blocks.length > 0) {
+                                const cleaned = (data.radio_blocks as RadioScheduleBlock[]).map(b => ({
+                                    ...b,
+                                    tracks: (b.tracks || []).map(t => {
+                                        const { title, artist } = cleanRadioTrackMetadata(t.title, t.artist, t.category);
+                                        return { ...t, title, artist };
+                                    })
+                                }));
+                                setRadioBlocks(cleaned);
+                                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(cleaned));
+                                window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+                            }
+                        })
+                        .catch(() => {});
+                }
+            }
+        }, 5000);
         return () => clearInterval(id);
     }, []);
 
