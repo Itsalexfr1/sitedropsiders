@@ -3149,8 +3149,6 @@ export function AdminDashboard() {
         return <QrCode className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
       case "Share2":
         return <Share2 className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
-      case "Sparkles":
-        return <Sparkles className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
       default:
         return (
           <FileText className={`w-8 h-8 ${colorClass}`} style={colorStyle} />

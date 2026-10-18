@@ -2334,9 +2334,9 @@ export async function syncAllSoundCloudPlaylists(
     overrideJingles?: RadioTrackItem[]
 ): Promise<{ updatedBlocks: RadioScheduleBlock[]; changedCount: number; syncedCount: number }> {
     // 1. Nettoyer immédiatement toutes les pistes de toutes les émissions avec le filtre anti-chaîne
-    let nextBlocks = blocks.map(b => ({
+    let nextBlocks: RadioScheduleBlock[] = blocks.map(b => ({
         ...b,
-        tracks: (b.tracks || []).map(t => {
+        tracks: (b.tracks || []).map((t): RadioTrackItem => {
             const { title, artist } = cleanRadioTrackMetadata(t.title, t.artist, t.category);
             return {
                 ...t,
