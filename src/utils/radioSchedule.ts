@@ -294,6 +294,9 @@ export interface RadioScheduleBlock {
     soundcloudPlaylistTitle?: string; // Titre de la playlist SoundCloud
     soundcloudPlaylistAuthor?: string; // Curateur / Artiste SoundCloud
     soundcloudPlaylistCover?: string; // Image de pochette de la playlist
+    soundcloudAutoSync?: boolean; // Mise à jour automatique des morceaux depuis SoundCloud
+    soundcloudLastSynced?: string; // Horodatage ISO de la dernière synchronisation réussie
+    soundcloudTrackCount?: number; // Nombre de morceaux synchronisés
 }
 
 export interface ComputedRadioScheduleItem {
@@ -2193,6 +2196,98 @@ export function getRadioTimeBasedSchedule(
         upcomingCount: Math.max(0, filtered.length - (liveItem ? 1 : 0)),
         nowSec
     };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SYNCHRONISATION AUTOMATIQUE DES PLAYLISTS SOUNDCLOUD
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Synchronise les morceaux d'une émission depuis sa playlist SoundCloud
+ * tout en préservant ses jingles, promos et règles de rotation d'antenne.
+ */
+export async function syncBlockSoundCloudPlaylist(
+    block: RadioScheduleBlock,
+    overridePromos?: RadioTrackItem[],
+    overrideJingles?: RadioTrackItem[]
+): Promise<{ updatedBlock: RadioScheduleBlock; hasChanges: boolean; newTrackCount: number } | null> {
+    if (!block.soundcloudPlaylistUrl || block.soundcloudAutoSync === false) return null;
+    const trimmed = block.soundcloudPlaylistUrl.trim();
+    if (!trimmed.includes('soundcloud.com')) return null;
+
+    try {
+        let res = await fetch(`/api/soundcloud/resolve-playlist?url=${encodeURIComponent(trimmed)}`);
+        if (!res.ok) {
+            res = await fetch(`https://dropsiders.fr/api/soundcloud/resolve-playlist?url=${encodeURIComponent(trimmed)}`);
+        }
+        if (!res.ok) return null;
+
+        const data: any = await res.json();
+        if (!data || !Array.isArray(data.tracks) || data.tracks.length === 0) return null;
+
+        const newTracks: RadioTrackItem[] = data.tracks;
+        const existingMusicIds = new Set(
+            (block.tracks || [])
+                .filter(t => t.category !== 'jingle' && t.category !== 'promo' && t.category !== 'pub')
+                .map(t => t.youtubeId || t.audioUrl || `${t.title}-${t.artist}`)
+        );
+        const newMusicIds = newTracks.map(t => t.youtubeId || t.audioUrl || `${t.title}-${t.artist}`);
+
+        const hasChanges = newMusicIds.length !== existingMusicIds.size || newMusicIds.some(id => !existingMusicIds.has(id));
+
+        // Entrelacement automatique avec conservation de l'habillage radio (jingles, promos, tops horaires)
+        const interleaved = applyRotationPatternToTracks(block, newTracks, overrideJingles, overridePromos);
+
+        const updatedBlock: RadioScheduleBlock = {
+            ...block,
+            tracks: interleaved,
+            soundcloudPlaylistTitle: data.title || block.soundcloudPlaylistTitle,
+            soundcloudPlaylistAuthor: data.author || block.soundcloudPlaylistAuthor,
+            soundcloudPlaylistCover: data.coverUrl || block.soundcloudPlaylistCover,
+            soundcloudAutoSync: true,
+            soundcloudLastSynced: new Date().toISOString(),
+            soundcloudTrackCount: newTracks.length,
+        };
+
+        return { updatedBlock, hasChanges, newTrackCount: newTracks.length };
+    } catch (e) {
+        console.warn(`[Radio] Échec synchro auto SoundCloud pour ${block.title}:`, e);
+        return null;
+    }
+}
+
+/**
+ * Synchronise toutes les émissions configurées avec une playlist SoundCloud
+ */
+export async function syncAllSoundCloudPlaylists(
+    blocks: RadioScheduleBlock[],
+    overridePromos?: RadioTrackItem[],
+    overrideJingles?: RadioTrackItem[]
+): Promise<{ updatedBlocks: RadioScheduleBlock[]; changedCount: number; syncedCount: number }> {
+    const scBlocks = blocks.filter(b => Boolean(b.soundcloudPlaylistUrl && b.soundcloudAutoSync !== false));
+    if (scBlocks.length === 0) {
+        return { updatedBlocks: blocks, changedCount: 0, syncedCount: 0 };
+    }
+
+    let changedCount = 0;
+    let syncedCount = 0;
+    const nextBlocks = [...blocks];
+
+    await Promise.all(
+        scBlocks.map(async (b) => {
+            const res = await syncBlockSoundCloudPlaylist(b, overridePromos, overrideJingles);
+            if (res) {
+                syncedCount++;
+                if (res.hasChanges) changedCount++;
+                const idx = nextBlocks.findIndex(item => item.id === b.id);
+                if (idx !== -1) {
+                    nextBlocks[idx] = res.updatedBlock;
+                }
+            }
+        })
+    );
+
+    return { updatedBlocks: nextBlocks, changedCount, syncedCount };
 }
 
 

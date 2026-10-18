@@ -38,6 +38,7 @@ interface AdminSoundCloudPlaylistModalProps {
       coverUrl?: string;
       purgeClips?: boolean;
       extractedTracks?: RadioTrackItem[];
+      autoSync?: boolean;
     }
   ) => void;
   onRemoveSoundCloudPlaylist?: (blockId: string) => void;
@@ -65,6 +66,7 @@ export function AdminSoundCloudPlaylistModal({
   const [manualTracklistText, setManualTracklistText] = useState<string>('');
   const [randomize, setRandomize] = useState<boolean>(true);
   const [purgeClips, setPurgeClips] = useState<boolean>(true);
+  const [autoSync, setAutoSync] = useState<boolean>(true);
 
   const extractorIframeRef = useRef<HTMLIFrameElement | null>(null);
 
@@ -179,6 +181,7 @@ export function AdminSoundCloudPlaylistModal({
         setPlaylistTitle(targetBlock.soundcloudPlaylistTitle || '');
         setPlaylistAuthor(targetBlock.soundcloudPlaylistAuthor || '');
         setPlaylistCover(targetBlock.soundcloudPlaylistCover || '');
+        setAutoSync(targetBlock.soundcloudAutoSync !== false);
         // Si le bloc a déjà des morceaux individuels musicaux
         const existingClips = (targetBlock.tracks || []).filter(t => 
           t.category !== 'jingle' && 
@@ -198,6 +201,7 @@ export function AdminSoundCloudPlaylistModal({
         setPlaylistTitle('');
         setPlaylistAuthor('');
         setPlaylistCover('');
+        setAutoSync(true);
         setExtractedTracks([]);
       }
     }
@@ -212,6 +216,7 @@ export function AdminSoundCloudPlaylistModal({
       setPlaylistTitle(targetBlock.soundcloudPlaylistTitle || '');
       setPlaylistAuthor(targetBlock.soundcloudPlaylistAuthor || '');
       setPlaylistCover(targetBlock.soundcloudPlaylistCover || '');
+      setAutoSync(targetBlock.soundcloudAutoSync !== false);
       const existingClips = (targetBlock.tracks || []).filter(t => 
         t.category !== 'jingle' && 
         t.category !== 'promo' && 
@@ -230,6 +235,7 @@ export function AdminSoundCloudPlaylistModal({
       setPlaylistTitle('');
       setPlaylistAuthor('');
       setPlaylistCover('');
+      setAutoSync(true);
       setExtractedTracks([]);
     }
   };
@@ -335,6 +341,7 @@ export function AdminSoundCloudPlaylistModal({
       coverUrl: playlistCover.trim() || undefined,
       purgeClips,
       extractedTracks: extractedTracks.length > 0 ? extractedTracks : undefined,
+      autoSync,
     });
 
     const trackCountMsg = extractedTracks.length > 0 ? ` (${extractedTracks.length} morceaux individuels)` : '';
@@ -651,7 +658,37 @@ export function AdminSoundCloudPlaylistModal({
               )}
             </div>
 
-            {/* 3. Option Suppression des anciens clips & Fusion */}
+            {/* 3. Option Synchronisation & Mise à jour automatique */}
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-cyan-950/30 via-blue-950/20 to-black/40 border border-cyan-500/40 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-display font-black uppercase text-cyan-300 flex items-center gap-1.5">
+                  <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
+                  Mise à jour automatique de la playlist
+                </span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={autoSync}
+                    onChange={(e) => setAutoSync(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500" />
+                </label>
+              </div>
+              <p className="text-[11px] text-gray-300 leading-relaxed">
+                Vérifie périodiquement la playlist SoundCloud. Si l&apos;artiste ou le curateur ajoute ou retire des morceaux sur SoundCloud, le conducteur de la radio se synchronise automatiquement en préservant vos jingles, promos et règles de rotation sans couper l&apos;antenne.
+              </p>
+              {currentBlock?.soundcloudLastSynced && (
+                <div className="text-[10px] text-cyan-300/80 font-mono pt-1 flex items-center gap-1.5">
+                  <span>Dernière synchro : {new Date(currentBlock.soundcloudLastSynced).toLocaleString('fr-FR')}</span>
+                  {currentBlock.soundcloudTrackCount !== undefined && (
+                    <span className="text-gray-400">({currentBlock.soundcloudTrackCount} morceaux)</span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* 4. Option Suppression des anciens clips & Fusion */}
             <div className="p-4 rounded-2xl bg-gradient-to-r from-red-950/30 via-orange-950/20 to-black/40 border border-orange-500/40 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-display font-black uppercase text-orange-300 flex items-center gap-1.5">

@@ -82,6 +82,8 @@ import {
     getParisSeconds,
     isItemExpired,
     cleanRadioTrackMetadata,
+    syncAllSoundCloudPlaylists,
+    syncBlockSoundCloudPlaylist,
     type RadioRotationRule,
     type RadioScheduleBlock,
     type RadioTrackItem,
@@ -1090,6 +1092,8 @@ export function AdminRadioModal({
     };
 
     // ─── Enregistrer ou retirer une playlist SoundCloud liée à une émission ────
+    const [isSyncingSoundCloud, setIsSyncingSoundCloud] = useState(false);
+
     const handleSaveSoundCloudPlaylist = (
         blockId: string,
         data: {
@@ -1099,6 +1103,7 @@ export function AdminRadioModal({
             coverUrl?: string;
             purgeClips?: boolean;
             extractedTracks?: RadioTrackItem[];
+            autoSync?: boolean;
         }
     ) => {
         setBlocks(prev => {
@@ -1136,6 +1141,9 @@ export function AdminRadioModal({
                         soundcloudPlaylistTitle: data.title || undefined,
                         soundcloudPlaylistAuthor: data.author || undefined,
                         soundcloudPlaylistCover: data.coverUrl || undefined,
+                        soundcloudAutoSync: data.autoSync !== false,
+                        soundcloudLastSynced: new Date().toISOString(),
+                        soundcloudTrackCount: musicTracks.length,
                     };
                 }
 
@@ -1180,6 +1188,9 @@ export function AdminRadioModal({
                     soundcloudPlaylistTitle: data.title || undefined,
                     soundcloudPlaylistAuthor: data.author || undefined,
                     soundcloudPlaylistCover: data.coverUrl || undefined,
+                    soundcloudAutoSync: data.autoSync !== false,
+                    soundcloudLastSynced: new Date().toISOString(),
+                    soundcloudTrackCount: 1,
                 };
             });
             try {
@@ -1206,6 +1217,9 @@ export function AdminRadioModal({
                     soundcloudPlaylistTitle: undefined,
                     soundcloudPlaylistAuthor: undefined,
                     soundcloudPlaylistCover: undefined,
+                    soundcloudAutoSync: undefined,
+                    soundcloudLastSynced: undefined,
+                    soundcloudTrackCount: undefined,
                 };
             });
             try {
@@ -1219,6 +1233,103 @@ export function AdminRadioModal({
             } catch {}
             return next;
         });
+    };
+
+    // ─── Synchronisation automatique des playlists SoundCloud à la demande ───
+    const handleSyncAllSoundCloud = async () => {
+        const scBlocks = blocks.filter(b => b.soundcloudPlaylistUrl && b.soundcloudAutoSync !== false);
+        if (scBlocks.length === 0) {
+            showToast('Aucune émission n\'a de playlist SoundCloud avec mise à jour automatique active.', 'warn');
+            return;
+        }
+
+        setIsSyncingSoundCloud(true);
+        showToast(`🔄 Synchronisation de ${scBlocks.length} playlist${scBlocks.length > 1 ? 's' : ''} SoundCloud...`, 'info');
+
+        try {
+            const genPromos = generalJingles
+                .filter(j => (j.category === 'promo' || j.category === 'pub' || (j as any).type === 'promo' || (j as any).type === 'pub') && !isItemExpired(j))
+                .map(p => ({
+                    id: p.id,
+                    title: p.title,
+                    artist: p.category === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS',
+                    audioUrl: p.audioUrl,
+                    youtubeId: p.youtubeId,
+                    duration: p.duration || 30,
+                    category: (p.category || 'promo') as RadioTrackCategory
+                }));
+
+            const result = await syncAllSoundCloudPlaylists(blocks, genPromos.length > 0 ? genPromos : undefined);
+
+            setBlocks(result.updatedBlocks);
+            try {
+                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(result.updatedBlocks));
+                window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+                await apiFetch('/api/settings/update', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ radio_blocks: result.updatedBlocks })
+                });
+            } catch {}
+
+            if (result.changedCount > 0) {
+                showToast(`✓ Synchro terminée : ${result.changedCount} émission(s) mise(s) à jour avec les nouveaux morceaux !`, 'success');
+            } else {
+                showToast(`✓ ${result.syncedCount} playlist(s) SoundCloud vérifiées. Tout est déjà à jour !`, 'success');
+            }
+        } catch (e) {
+            console.error('Erreur synchronisation SoundCloud:', e);
+            showToast('Erreur lors de la synchronisation des playlists SoundCloud', 'warn');
+        } finally {
+            setIsSyncingSoundCloud(false);
+        }
+    };
+
+    const handleSyncSingleBlockSoundCloud = async (block: RadioScheduleBlock) => {
+        if (!block.soundcloudPlaylistUrl) return;
+        setIsSyncingSoundCloud(true);
+        showToast(`🔄 Synchronisation de « ${block.title} » depuis SoundCloud...`, 'info');
+        try {
+            const genPromos = generalJingles
+                .filter(j => (j.category === 'promo' || j.category === 'pub' || (j as any).type === 'promo' || (j as any).type === 'pub') && !isItemExpired(j))
+                .map(p => ({
+                    id: p.id,
+                    title: p.title,
+                    artist: p.category === 'pub' ? 'PUBLICITÉ / SPONSOR' : 'PROMO DROPSIDERS',
+                    audioUrl: p.audioUrl,
+                    youtubeId: p.youtubeId,
+                    duration: p.duration || 30,
+                    category: (p.category || 'promo') as RadioTrackCategory
+                }));
+
+            const result = await syncBlockSoundCloudPlaylist(block, genPromos.length > 0 ? genPromos : undefined);
+            if (result) {
+                setBlocks(prev => {
+                    const next = prev.map(b => b.id === block.id ? result.updatedBlock : b);
+                    try {
+                        localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
+                        window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+                        apiFetch('/api/settings/update', {
+                            method: 'POST',
+                            headers: getAuthHeaders(),
+                            body: JSON.stringify({ radio_blocks: next })
+                        }).catch(() => {});
+                    } catch {}
+                    return next;
+                });
+                if (result.hasChanges) {
+                    showToast(`✓ « ${block.title} » synchronisée avec ${result.newTrackCount} morceaux à jour !`, 'success');
+                } else {
+                    showToast(`✓ « ${block.title} » vérifiée. ${result.newTrackCount} morceaux (déjà à jour).`, 'success');
+                }
+            } else {
+                showToast('Impossible de synchroniser cette playlist SoundCloud.', 'warn');
+            }
+        } catch {
+            showToast('Erreur lors de la synchronisation.', 'warn');
+        } finally {
+            setIsSyncingSoundCloud(false);
+        }
     };
 
     // ─── Ajout multiple ou simple de morceaux MP3 / SoundCloud / etc. ─────────
@@ -2506,8 +2617,8 @@ export function AdminRadioModal({
                                                             </span>
                                                         )}
                                                         {b.soundcloudPlaylistUrl && (
-                                                            <span className="text-[8px] font-mono font-bold bg-orange-500/20 text-orange-300 border border-orange-500/40 px-1 rounded flex items-center gap-0.5" title="Playlist SoundCloud liée">
-                                                                <SoundCloudIcon className="w-2.5 h-2.5" /> SC
+                                                            <span className="text-[8px] font-mono font-bold bg-orange-500/20 text-orange-300 border border-orange-500/40 px-1 rounded flex items-center gap-0.5" title={`Playlist SoundCloud liée${b.soundcloudAutoSync !== false ? ' (Mise à jour automatique des morceaux activée)' : ''}`}>
+                                                                <SoundCloudIcon className="w-2.5 h-2.5" /> SC{b.soundcloudAutoSync !== false ? ' 🔄' : ''}
                                                             </span>
                                                         )}
                                                         {specialCount > 0 && (
@@ -3272,6 +3383,23 @@ export function AdminRadioModal({
                                             <Plus className="w-3.5 h-3.5" />
                                             <span>+ Nouvelle Émission</span>
                                         </button>
+
+                                        {blocks.some(b => b.soundcloudPlaylistUrl) && (
+                                            <button
+                                                type="button"
+                                                onClick={handleSyncAllSoundCloud}
+                                                disabled={isSyncingSoundCloud}
+                                                title="Mettre à jour automatiquement les morceaux des playlists SoundCloud de toutes les émissions"
+                                                className="px-3 py-1.5 rounded-xl bg-orange-500/20 hover:bg-orange-500 text-orange-300 hover:text-black border border-orange-500/40 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                                            >
+                                                {isSyncingSoundCloud ? (
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                ) : (
+                                                    <RefreshCw className="w-3.5 h-3.5" />
+                                                )}
+                                                <span>{isSyncingSoundCloud ? 'Synchro...' : '🔄 Synchro SoundCloud'}</span>
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 
@@ -4569,17 +4697,38 @@ export function AdminRadioModal({
 
                                 {/* Badge Playlist SoundCloud active sur cette émission */}
                                 {selectedBlock?.soundcloudPlaylistUrl && activeFolder.startsWith('emission:') && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsSoundCloudModalOpen(true)}
-                                        className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-orange-500/20 border border-orange-500/40 text-orange-300 hover:bg-orange-500 hover:text-black text-[11px] font-bold transition-all cursor-pointer shadow-sm"
-                                        title="Extraire tous les morceaux de la playlist SoundCloud dans le tableau"
-                                    >
-                                        <SoundCloudIcon className="w-3.5 h-3.5 text-orange-400" />
-                                        <span className="truncate max-w-[240px]">
-                                            {selectedBlock.soundcloudPlaylistTitle || 'SoundCloud'} • Extraire les morceaux
-                                        </span>
-                                    </button>
+                                    <div className="flex items-center gap-1.5">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsSoundCloudModalOpen(true)}
+                                            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-orange-500/20 border border-orange-500/40 text-orange-300 hover:bg-orange-500 hover:text-black text-[11px] font-bold transition-all cursor-pointer shadow-sm"
+                                            title="Gérer la playlist SoundCloud de cette émission"
+                                        >
+                                            <SoundCloudIcon className="w-3.5 h-3.5 text-orange-400" />
+                                            <span className="truncate max-w-[200px]">
+                                                {selectedBlock.soundcloudPlaylistTitle || 'SoundCloud'}
+                                            </span>
+                                            {selectedBlock.soundcloudAutoSync !== false && (
+                                                <span className="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-1 rounded font-mono">
+                                                    Auto-sync
+                                                 </span>
+                                            )}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSyncSingleBlockSoundCloud(selectedBlock)}
+                                            disabled={isSyncingSoundCloud}
+                                            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500 hover:text-black text-[11px] font-bold transition-all cursor-pointer disabled:opacity-50"
+                                            title="Mettre à jour immédiatement cette émission depuis SoundCloud"
+                                        >
+                                            {isSyncingSoundCloud ? (
+                                                <Loader2 className="w-3 h-3 animate-spin" />
+                                            ) : (
+                                                <RefreshCw className="w-3 h-3" />
+                                            )}
+                                            <span>Synchro</span>
+                                        </button>
+                                    </div>
                                 )}
 
                                 {/* Bouton rapide d'édition d'émission & réglage fréquence */}
