@@ -1078,8 +1078,35 @@ export const KNOWN_RECORD_LABELS = new Set([
     'mad decent',
     'heldeep', 'heldeep records',
     'future house music', 'fhm',
-    'selected', 'selected.',
-    'soave', 'soave records',
+    'selected', 'selected.', 'selected records', 'selected base',
+    'house nation', 'bass nation', 'trap nation', 'chill nation', 'rap nation', 'indie nation', 'nation',
+    'chillyourmind', 'chillyourmind radio', 'chillyourmind7',
+    'electro posé', 'electro pose',
+    'sensual musique',
+    'mélodic', 'melodic',
+    'mrsuicidesheep', 'suicidesheep',
+    'ukf', 'ukf dubstep', 'ukf drum & bass', 'ukf dnb', 'ukf music', 'ukf premiere',
+    'boiler room', 'boiler room tv',
+    'cercle', 'cercle stories', 'cercle records',
+    'mixmag', 'mixmag records', 'dj mag', 'djmag',
+    'bbc radio 1', 'bbc radio', '1xtra', 'bbc',
+    'tomorrowland', 'tomorrowland music', 'tomorrowland one world radio',
+    'slam!', 'slam', 'slam radio',
+    'fun radio', 'fg radio', 'radio fg',
+    'ncs', 'no copyright sounds', 'nocopyrightsounds',
+    'proximity',
+    'trap city',
+    'cloudx', 'cloudx music',
+    'xikito', 'xkito', 'xkito music',
+    'the sound you need', 'tsyn',
+    'dynmk',
+    'blanc', 'blanc audio',
+    'subsoul',
+    'majestic casual',
+    'la belle musique',
+    'chillhop', 'chillhop music',
+    'lofi girl', 'chilledcow',
+    'soave', 'soave records', 'soave radio', 'soave dusk',
     'kontor', 'kontor records',
     'cr2', 'cr2 records',
     'black book', 'black book records',
@@ -1114,14 +1141,14 @@ export const KNOWN_RECORD_LABELS = new Set([
     'kannibalen records',
     'disciple',
     'never say die',
-    'ukf',
     'subjekt', 'subjekt recordings',
     'glasgow underground',
     'sony music', 'warner music', 'universal music', 'columbia', 'interscope', 'def jam', 'republic', 'atlantic', 'virgin', 'polydor', 'island'
 ]);
 
 /**
- * Détermine si une chaîne correspond à un label de musique (et non à un artiste individuel).
+ * Détermine si une chaîne correspond à un label de musique ou à une chaîne/curateur SoundCloud
+ * (et non à un artiste individuel).
  */
 export function isRecordLabel(name?: string): boolean {
     if (!name) return false;
@@ -1133,18 +1160,22 @@ export function isRecordLabel(name?: string): boolean {
     const labelPattern = /\b(records|recordings|record\b|recs|rec\b|label|imprint|publishing|distribution)\b/i;
     if (labelPattern.test(name)) return true;
 
-    // Détection par suffixe/préfixe Music sur les labels connus
+    // Détection chaînes, réseaux, curateurs, radios, médias SoundCloud / YouTube :
+    const channelPattern = /\b(nation|promotions?|curator|curation|channel|network|collective|station|sessions?|premiere|premieres|webradio|podcast|radio|tv)\b/i;
+    if (channelPattern.test(name) && !/\b(live|band|orchestra|duo|trio)\b/i.test(name)) return true;
+
+    // Détection par suffixe/préfixe Music sur les labels ou chaînes connus
     if (/\b(music)\b/i.test(name) && !/\b(live|band|orchestra|duo|trio)\b/i.test(name)) {
-        if (/^(armada|ultra|sony|warner|universal|future house|soave|because)\b/i.test(name)) return true;
+        if (/^(armada|ultra|sony|warner|universal|future house|soave|because|cloudx|xkito|chillhop)\b/i.test(name)) return true;
     }
 
     return false;
 }
 
 /**
- * Nettoie et sépare intelligemment le titre et l'artiste d'un morceau radio.
- * Empêche formellement qu'un label (ex: Spinnin, Toolroom, No Art) ne soit affiché comme artiste,
- * et extrait le véritable artiste si le titre est sous la forme "Artiste - Titre".
+ * Nettoie et sépare intelligemment le titre et l'artiste d'un morceau radio SoundCloud / YouTube.
+ * Filtre les chaînes d'uploaders (ex: Selected., House Nation, Electro Posé, Cercle, Spinnin')
+ * pour extraire le VRAI nom de l'artiste depuis le titre sous la forme "Artiste - Titre".
  */
 export function cleanRadioTrackMetadata(
     rawTitle: string,
@@ -1163,42 +1194,67 @@ export function cleanRadioTrackMetadata(
         };
     }
 
-    // 1. Détection si le titre contient un séparateur "Artiste - Titre" (ex: "Keinemusik, Boys Noize, Vinson - Crazy For It")
+    // 0. Pré-nettoyage des badges promotionnels de début de titre fréquents sur SoundCloud / YouTube
+    // ex: "[PREMIERE] Fisher - Losing It", "(FREE DL) Martin Garrix - Animals", "PREMIERE : Artist - Track"
+    title = title.replace(/^(\[|\()?(PREMIERE|EXCLUSIVE|OUT NOW|FREE DL|FREE DOWNLOAD|FREE TRACK|NEW TRACK|DROPSIDERS|TRACK OF THE WEEK|FULL STREAM|MUSIC VIDEO|OFFICIAL VIDEO|OFFICIAL AUDIO|OFFICIAL TRACK|LYRIC VIDEO|VISUALIZER|STREAM)(\]|\))?\s*[:|-]?\s*/i, '').trim();
+    title = title.replace(/^(premiere|exclusive|out now|free dl|free download|official audio|official video)\s*[:|-]\s*/i, '').trim();
+
+    // 1. Si le titre commence par le nom de la chaîne/uploader (ex: "Selected. - Casso - Prada" ou "Spinnin' Records | Alok - Fuego")
+    if (artist) {
+        const escapedArtist = artist.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const channelPrefixRegex = new RegExp(`^${escapedArtist}\\s*[-—–|:]\\s*`, 'i');
+        if (channelPrefixRegex.test(title)) {
+            title = title.replace(channelPrefixRegex, '').trim();
+        }
+    }
+
+    // 2. Détection du format "Artiste - Titre" (ou "Artiste – Titre", "Artiste | Titre")
+    // Sur SoundCloud / YouTube, les uploaders mettent presque TOUJOURS "Artiste - Titre" dans le champ titre.
     const separatorMatch = title.match(/^(.*?)\s+[-—–|]\s+(.*)$/);
     if (separatorMatch) {
-        const potentialArtist = separatorMatch[1].trim();
-        const potentialTitle = separatorMatch[2].trim();
+        let potentialArtist = separatorMatch[1].trim();
+        let potentialTitle = separatorMatch[2].trim();
 
+        // Si potentialArtist est lui-même un nom de chaîne ou label (ex: "Selected." ou "UKF Premiere")
+        // et que potentialTitle contient lui aussi un séparateur (ex: "Fisher - Losing It")
+        const secondaryMatch = potentialTitle.match(/^(.*?)\s+[-—–|]\s+(.*)$/);
+        if (isRecordLabel(potentialArtist) && secondaryMatch) {
+            potentialArtist = secondaryMatch[1].trim();
+            potentialTitle = secondaryMatch[2].trim();
+        }
+
+        // Si potentialArtist existe et n'est pas vide
         if (potentialArtist && potentialTitle) {
-            // Si l'artiste renseigné est un label, ou vide, ou "Artiste", ou si potentialArtist contient l'artiste actuel
-            if (
-                !artist ||
-                isRecordLabel(artist) ||
-                artist.toLowerCase() === 'artiste' ||
-                artist.toLowerCase() === 'dropsiders radio' ||
-                artist.toLowerCase() === 'unknown' ||
-                potentialArtist.toLowerCase().includes(artist.toLowerCase())
-            ) {
+            // Si l'artiste renseigné est une chaîne, un label, ou si le titre contient le vrai artiste :
+            // Remplacer l'artiste (la chaîne) par le véritable artiste extrait du titre !
+            const isArtistAChannelOrLabel = isRecordLabel(artist);
+            const isArtistGeneric = !artist || artist.toLowerCase() === 'artiste' || artist.toLowerCase() === 'dropsiders radio' || artist.toLowerCase() === 'unknown';
+            const isPotentialArtistValid = !isRecordLabel(potentialArtist);
+
+            if (isArtistAChannelOrLabel || isArtistGeneric || isPotentialArtistValid) {
                 artist = potentialArtist;
                 title = potentialTitle;
             }
         }
     }
 
-    // 2. Si l'artiste restant est toujours identifié comme un label de musique (ex: "Toolroom Records", "No Art", "Spinnin' Records")
+    // 3. Si après analyse l'artiste est toujours identifié comme une chaîne ou un label
+    // (ex: titre simple sans tiret "Burnin' Deep" uploadé par "Spinnin' Records")
     if (isRecordLabel(artist)) {
-        // Le label ne doit JAMAIS être pris comme artiste.
         if (separatorMatch) {
             artist = separatorMatch[1].trim();
             title = separatorMatch[2].trim();
         } else {
-            // Titre simple sans séparateur (ex: "Too Much" ou "Burnin' Deep") :
-            // Remplacement par "Artiste" pour supprimer le label du champ artiste
             artist = 'Artiste';
         }
     }
 
-    // Nettoyage esthétique des guillemets éventuels
+    // 4. Nettoyage des suffixes promotionnels superflus à la fin du titre
+    // (Conserve précieusement les Remix, Extended Mix, VIP, Club Mix, Bootleg, Edit)
+    title = title.replace(/\s*\[(FREE DOWNLOAD|FREE DL|OUT NOW|PREMIERE|EXCLUSIVE|OFFICIAL.*|CLIP|TEASER|DROPSIDERS)\]\s*$/i, '').trim();
+    title = title.replace(/\s*\((FREE DOWNLOAD|FREE DL|OUT NOW|OFFICIAL VIDEO|OFFICIAL AUDIO|OFFICIAL MUSIC VIDEO|LYRIC VIDEO|VISUALIZER|FULL STREAM)\)\s*$/i, '').trim();
+
+    // 5. Nettoyage esthétique des guillemets éventuels
     title = title.replace(/^["'«]+|["'»]+$/g, '').trim();
     artist = artist.replace(/^["'«]+|["'»]+$/g, '').trim();
 

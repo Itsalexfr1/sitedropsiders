@@ -527,21 +527,60 @@ export default {
                     if (!name) return false;
                     const lower = name.toLowerCase().trim();
                     const clean = lower.replace(/['’.]/g, '');
-                    const known = ['spinnin', 'spinnin records', 'toolroom', 'toolroom records', 'no art', 'defected', 'defected records', 'armada', 'armada music', 'ultra', 'ultra records', 'musical freedom', 'revealed', 'stmpd', 'axtone', 'size records', 'protocol', 'afterlife', 'drumcode', 'anjuna', 'anjunabeats', 'anjunadeep', 'monstercat', 'ministry of sound', 'hexagon', 'dim mak', 'mau5trap', 'owsla', 'heldeep', 'future house music', 'selected', 'soave', 'kontor', 'cr2 records', 'black book', 'solid grooves', 'experts only', 'off the grid', 'nervous records', 'dirtybird'];
+                    const known = [
+                        'spinnin', 'spinnin records', "spinnin'", "spinnin' records", 'toolroom', 'toolroom records',
+                        'no art', 'defected', 'defected records', 'glitterbox', 'armada', 'armada music', 'ultra',
+                        'ultra records', 'ultra music', 'musical freedom', 'revealed', 'stmpd', 'axtone', 'size records',
+                        'protocol', 'afterlife', 'drumcode', 'anjuna', 'anjunabeats', 'anjunadeep', 'monstercat',
+                        'ministry of sound', 'hexagon', 'dim mak', 'mau5trap', 'owsla', 'heldeep', 'future house music',
+                        'selected', 'selected.', 'house nation', 'bass nation', 'trap nation', 'chill nation', 'nation',
+                        'chillyourmind', 'electro posé', 'electro pose', 'sensual musique', 'mélodic', 'melodic',
+                        'mrsuicidesheep', 'suicidesheep', 'ukf', 'boiler room', 'cercle', 'mixmag', 'dj mag', 'djmag',
+                        'bbc radio 1', 'tomorrowland', 'slam!', 'slam', 'fun radio', 'fg radio', 'ncs', 'no copyright sounds',
+                        'proximity', 'trap city', 'cloudx', 'xikito', 'xkito', 'the sound you need', 'blanc', 'subsoul',
+                        'majestic casual', 'la belle musique', 'chillhop', 'lofi girl', 'soave', 'kontor', 'cr2 records',
+                        'black book', 'solid grooves', 'experts only', 'off the grid', 'nervous records', 'dirtybird'
+                    ];
                     if (known.some(k => lower.includes(k) || clean.includes(k))) return true;
-                    return /\b(records|recordings|record\b|recs|rec\b|label|imprint)\b/i.test(name);
+                    if (/\b(records|recordings|record\b|recs|rec\b|label|imprint|publishing|distribution)\b/i.test(name)) return true;
+                    if (/\b(nation|promotions?|curator|curation|channel|network|collective|station|sessions?|premiere|premieres|webradio|podcast|radio|tv)\b/i.test(name)) return true;
+                    return false;
                 };
 
                 const cleanTrackMeta = (rawTitle: string, rawArtist: string) => {
                     let title = (rawTitle || '').trim();
                     let artist = (rawArtist || '').trim();
 
+                    // Nettoyage des badges de début de titre (ex: [PREMIERE], (FREE DOWNLOAD), etc.)
+                    title = title.replace(/^(\[|\()?(PREMIERE|EXCLUSIVE|OUT NOW|FREE DL|FREE DOWNLOAD|FREE TRACK|NEW TRACK|DROPSIDERS|TRACK OF THE WEEK|FULL STREAM|MUSIC VIDEO|OFFICIAL VIDEO|OFFICIAL AUDIO|OFFICIAL TRACK|LYRIC VIDEO|VISUALIZER|STREAM)(\]|\))?\s*[:|-]?\s*/i, '').trim();
+                    title = title.replace(/^(premiere|exclusive|out now|free dl|free download|official audio|official video)\s*[:|-]\s*/i, '').trim();
+
+                    // Si le titre commence par le nom de la chaîne/uploader
+                    if (artist) {
+                        const escapedArtist = artist.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        const prefixRegex = new RegExp(`^${escapedArtist}\\s*[-—–|:]\\s*`, 'i');
+                        if (prefixRegex.test(title)) {
+                            title = title.replace(prefixRegex, '').trim();
+                        }
+                    }
+
                     const sep = title.match(/^(.*?)\s+[-—–|]\s+(.*)$/);
                     if (sep) {
-                        const potArtist = sep[1].trim();
-                        const potTitle = sep[2].trim();
+                        let potArtist = sep[1].trim();
+                        let potTitle = sep[2].trim();
+
+                        const secMatch = potTitle.match(/^(.*?)\s+[-—–|]\s+(.*)$/);
+                        if (isRecordLabelName(potArtist) && secMatch) {
+                            potArtist = secMatch[1].trim();
+                            potTitle = secMatch[2].trim();
+                        }
+
                         if (potArtist && potTitle) {
-                            if (!artist || isRecordLabelName(artist) || artist.toLowerCase() === 'artiste' || potArtist.toLowerCase().includes(artist.toLowerCase())) {
+                            const isArtistChannel = isRecordLabelName(artist);
+                            const isArtistGeneric = !artist || artist.toLowerCase() === 'artiste' || artist.toLowerCase() === 'dropsiders radio' || artist.toLowerCase() === 'unknown';
+                            const isPotArtistValid = !isRecordLabelName(potArtist);
+
+                            if (isArtistChannel || isArtistGeneric || isPotArtistValid) {
                                 artist = potArtist;
                                 title = potTitle;
                             }
@@ -556,6 +595,12 @@ export default {
                             artist = 'Artiste';
                         }
                     }
+
+                    title = title.replace(/\s*\[(FREE DOWNLOAD|FREE DL|OUT NOW|PREMIERE|EXCLUSIVE|OFFICIAL.*|CLIP|TEASER|DROPSIDERS)\]\s*$/i, '').trim();
+                    title = title.replace(/\s*\((FREE DOWNLOAD|FREE DL|OUT NOW|OFFICIAL VIDEO|OFFICIAL AUDIO|OFFICIAL MUSIC VIDEO|LYRIC VIDEO|VISUALIZER|FULL STREAM)\)\s*$/i, '').trim();
+
+                    title = title.replace(/^["'«]+|["'»]+$/g, '').trim();
+                    artist = artist.replace(/^["'«]+|["'»]+$/g, '').trim();
 
                     return { title: title || 'Morceau', artist: artist || 'Artiste' };
                 };
