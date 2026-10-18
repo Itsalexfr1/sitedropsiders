@@ -130,6 +130,153 @@ import { AdminBlindTestModal } from "../components/admin/modals/AdminBlindTestMo
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
+const DEFAULT_DASHBOARD_ACTIONS = [
+  {
+    title: "Contenu",
+    description: "News, Musique, Interviews, Agenda...",
+    icon: "Music2",
+    category: "NEWS",
+    link: "#",
+    color: "border-neon-cyan/20 hover:border-neon-cyan",
+    bg: "bg-neon-cyan/5",
+    permission: "news_focus",
+    baseColor: "cyan",
+    columns: 2,
+  },
+  {
+    title: "Communauté",
+    description: "Modération, Jeux & Membres",
+    icon: "MessageSquare",
+    category: "COMMUNAUTÉ",
+    link: "#",
+    color: "border-neon-purple/20 hover:border-neon-purple",
+    bg: "bg-neon-purple/5",
+    permission: "community_mod",
+    baseColor: "purple",
+    columns: 2,
+  },
+  {
+    title: "Radio & TV",
+    description: "TV en direct · Radio Dropsiders",
+    icon: "Radio",
+    category: "DROPSIDERS_TV",
+    link: "#DROPSIDERS_TV_RADIO",
+    color: "border-neon-cyan/30 hover:border-neon-cyan",
+    bg: "bg-neon-cyan/5",
+    permission: "tv_schedule",
+    baseColor: "cyan",
+    columns: 2,
+  },
+  {
+    title: "Statistiques",
+    description: "Analyse Audience",
+    icon: "BarChart3",
+    category: "STUDIO",
+    link: "#",
+    color: "border-neon-cyan/20 hover:border-neon-cyan",
+    bg: "bg-neon-cyan/5",
+    permission: "stats_analytics",
+    baseColor: "cyan",
+    columns: 1,
+  },
+  {
+    title: "Générateurs",
+    description: "Studio de création visuelle",
+    icon: "Sparkles",
+    category: "STUDIO",
+    link: "#GENERATORS",
+    color: "border-neon-purple/20 hover:border-neon-purple",
+    bg: "bg-neon-purple/5",
+    permission: "social_studio",
+    baseColor: "purple",
+    columns: 1,
+  },
+  {
+    title: "Concours GTA 6",
+    description: "Paramètres, tirage & menu",
+    icon: "Gamepad2",
+    category: "STUDIO",
+    link: "#GTA_CONTEST_MODAL",
+    color: "border-[#ff007f]/40 hover:border-[#ff007f]",
+    bg: "bg-[#ff007f]/10",
+    permission: "all",
+    baseColor: "pink",
+    columns: 1,
+  },
+  {
+    title: "Fichiers Cloudflare",
+    description: "Images, Vidéos, MP3",
+    icon: "HardDrive",
+    category: "STUDIO",
+    link: "#CLOUDFLARE_R2",
+    color: "border-neon-red/20 hover:border-neon-red",
+    bg: "bg-neon-red/5",
+    permission: "studio_upload",
+    baseColor: "red",
+    columns: 1,
+  },
+  {
+    title: "Boutique",
+    description: "Ventes & Produits",
+    icon: "ShoppingBag",
+    category: "SHOP",
+    link: "#",
+    color: "border-neon-red/20 hover:border-neon-red",
+    bg: "bg-neon-red/5",
+    permission: "shop",
+    baseColor: "pink",
+    columns: 2,
+  },
+  {
+    title: "Messagerie & Newsletter",
+    description: "Emails, Contact & Newsletter",
+    icon: "Mail",
+    category: "SHOP",
+    link: "#",
+    color: "border-neon-orange/20 hover:border-neon-orange",
+    bg: "bg-neon-orange/5",
+    permission: "messages_contact",
+    baseColor: "orange",
+    columns: 1,
+  },
+  {
+    title: "Signatures Mail",
+    description: "Créateur iPhone & Webmail",
+    icon: "PenTool",
+    category: "SHOP",
+    link: "/admin/signatures",
+    color: "border-neon-orange/20 hover:border-neon-orange",
+    bg: "bg-neon-orange/5",
+    permission: "messages_contact",
+    baseColor: "orange",
+    columns: 1,
+  },
+  {
+    title: "TEAM & DROITS",
+    description: "Équipe & Accès Admin",
+    icon: "Users",
+    category: "TEAM",
+    link: "/admin/team",
+    color: "border-neon-purple/20 hover:border-neon-purple",
+    bg: "bg-neon-purple/5",
+    permission: "all",
+    baseColor: "purple",
+    columns: 1,
+  },
+  {
+    title: "Accueil",
+    description: "Sections & Vues",
+    icon: "Home",
+    category: "ALL",
+    link: "#",
+    color: "border-neon-cyan/20 hover:border-neon-cyan",
+    bg: "bg-neon-cyan/5",
+    permission: "superadmin",
+    baseColor: "cyan",
+    columns: 1,
+  },
+];
+
 export function AdminDashboard() {
   const navigate = useNavigate();
   const { showNotification } = useUser();
@@ -138,7 +285,7 @@ export function AdminDashboard() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [actions, setActions] = useState<any[]>([]);
+  const [actions, setActions] = useState<any[]>(() => DEFAULT_DASHBOARD_ACTIONS);
   const [isSaving, setIsSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -1727,12 +1874,15 @@ export function AdminDashboard() {
       if (storedUser) {
         setUsername(storedUser);
 
-        // EMERGENCY FIX: If user is alex, force 'all' permissions
+        // EMERGENCY FIX: If user is alex or super admin, force 'all' permissions
+        const normUser = storedUser.toLowerCase().trim();
         if (
-          storedUser.toLowerCase() === "alex" ||
-          storedUser.toLowerCase() === "alexf" ||
-          storedUser.toLowerCase() === "itsalexfr1" ||
-          storedUser.toLowerCase() === "contact@dropsiders.fr"
+          isSuperAdmin(storedUser) ||
+          normUser === "alex" ||
+          normUser === "alexf" ||
+          normUser === "itsalexfr1" ||
+          normUser === "contact@dropsiders.fr" ||
+          normUser.startsWith("alex")
         ) {
           const perms = JSON.parse(
             localStorage.getItem("admin_permissions") || "[]",
@@ -2602,7 +2752,7 @@ export function AdminDashboard() {
               return savedAction;
             });
 
-          setActions(finalActions);
+          setActions(finalActions.length > 0 ? finalActions : getFallbackActions());
         } else {
           setActions(getFallbackActions());
         }
@@ -2848,8 +2998,14 @@ export function AdminDashboard() {
   const storedPermissions = JSON.parse(
     localStorage.getItem("admin_permissions") || "[]",
   );
-  const adminUser = (localStorage.getItem("admin_user") || "").toLowerCase();
-  const isAlex = isSuperAdmin(adminUser);
+  const adminUser = (localStorage.getItem("admin_user") || "").toLowerCase().trim();
+  const isAlex =
+    isSuperAdmin(adminUser) ||
+    adminUser === "alex" ||
+    adminUser === "alexf" ||
+    adminUser === "itsalexfr1" ||
+    adminUser === "contact@dropsiders.fr" ||
+    adminUser.startsWith("alex");
 
   const hasPermission = (p: string) => checkPerm(storedPermissions, p, isAlex);
 
@@ -4513,8 +4669,8 @@ export function AdminDashboard() {
                     return (
                       <motion.div
                         key={action.title}
-                        layout
-                        initial={{ opacity: 0, scale: 0.9 }}
+                        layout={editMode}
+                        initial={false}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9 }}
                         transition={{
@@ -5008,6 +5164,53 @@ export function AdminDashboard() {
                     );
                   })}
                 </AnimatePresence>
+
+                {filteredActions.length === 0 && (
+                  <div className="col-span-full py-16 px-6 text-center bg-white/[0.02] border border-white/5 rounded-3xl">
+                    <LayoutDashboard className="w-12 h-12 text-gray-600 mx-auto mb-4 opacity-50" />
+                    <p className="text-white font-black uppercase tracking-widest text-sm mb-2">
+                      {searchTerm
+                        ? `Aucun module correspondant à "${searchTerm}"`
+                        : dashboardTab !== "ALL"
+                          ? "Aucun module dans la catégorie sélectionnée"
+                          : "Tableau de bord vide ou chargement..."}
+                    </p>
+                    <p className="text-gray-500 text-xs mb-6 max-w-md mx-auto">
+                      {searchTerm
+                        ? "Vérifiez l'orthographe ou effacez la recherche ci-dessous."
+                        : "Cliquez sur Réinitialiser pour restaurer immédiatement tous les accès du tableau de bord."}
+                    </p>
+                    <div className="flex flex-wrap items-center justify-center gap-3">
+                      {searchTerm && (
+                        <button
+                          onClick={() => setSearchTerm("")}
+                          className="px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                        >
+                          Effacer la recherche
+                        </button>
+                      )}
+                      {dashboardTab !== "ALL" && (
+                        <button
+                          onClick={() => setDashboardTab("ALL")}
+                          className="px-6 py-2.5 bg-neon-cyan/20 border border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan hover:text-black rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                        >
+                          Afficher tout le tableau de bord
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          setSearchTerm("");
+                          setDashboardTab("ALL");
+                          setActions(getFallbackActions());
+                          fetchActions();
+                        }}
+                        className="px-6 py-2.5 bg-neon-red/20 border border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                      >
+                        Réinitialiser tous les modules
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

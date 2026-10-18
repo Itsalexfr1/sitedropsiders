@@ -58,8 +58,23 @@ export const apiFetch = async (url: string, options: RequestInit = {}) => {
 export const isSuperAdmin = (user?: string | null) => {
     if (!user) return false;
     const normalized = user.toLowerCase().trim();
-    const admins = ['alex', 'alexflex30@gmail.com', 'alex@dropsiders.fr', 'alexlight3034@icloud.com'];
-    return admins.includes(normalized) || normalized === 'alex' || normalized.startsWith('alex_') || normalized.startsWith('alexlight');
+    const admins = [
+        'alex',
+        'alexf',
+        'itsalexfr1',
+        'alexflex30@gmail.com',
+        'alex@dropsiders.fr',
+        'contact@dropsiders.fr',
+        'alexlight3034@icloud.com'
+    ];
+    return (
+        admins.includes(normalized) ||
+        normalized === 'alex' ||
+        normalized.startsWith('alex') ||
+        normalized.startsWith('alex_') ||
+        normalized.startsWith('alexlight') ||
+        normalized.includes('itsalexfr1')
+    );
 };
 
 export const hasPermission = (storedPermissions: string[], p: string, isAlex: boolean = false) => {
