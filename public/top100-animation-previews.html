@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dropsiders - Top 100 Official Broadcast Reveal Master</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,800;1,900&family=Space+Grotesk:wght@500;700;900&display=swap" rel="stylesheet">
+  <!-- Three.js WebGL Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    :root {
+      --bg: #050508;
+      --card-bg: #0b0b12;
+      --border: rgba(255, 255, 255, 0.08);
+      --red: #ff1241;
+      --red-bright: #ff335f;
+      --red-glow: rgba(255, 18, 65, 0.65);
+      --font-ds: 'Montserrat', sans-serif;
+      --font-mono: 'Space Grotesk', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, #160812 0%, var(--bg) 60%);
+      color: #fff;
+      font-family: var(--font-ds);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 20px 80px;
+      overflow-x: hidden;
+    }
+
+    /* Top Broadcast Toolbar */
+    .header-bar {
+      max-width: 1120px;
+      width: 100%;
+      background: rgba(14, 14, 22, 0.85);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(25px);
+      padding: 16px 28px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 28px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 30px rgba(255, 18, 65, 0.08);
+      flex-wrap: wrap;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .brand-logo-img {
+      height: 24px;
+      width: auto;
+      display: block;
+      filter: drop-shadow(0 0 14px var(--red-glow));
+    }
+    .header-tag {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--red);
+      border-left: 1.5px solid rgba(255, 255, 255, 0.15);
+      padding-left: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-tag .badge-pill {
+      background: rgba(255, 18, 65, 0.2);
+      border: 1px solid var(--red);
+      color: #fff;
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+
+    .btn-action-main {
+      background: linear-gradient(135deg, #ff1241, #ff3865);
+      border: none;
+      color: #fff;
+      font-family: var(--font-ds);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 12px 26px;
+      border-radius: 999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 28px var(--red-glow);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-action-main:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 36px rgba(255, 18, 65, 0.85);
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: #d8d8e6;
+      font-family: var(--font-ds);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      padding: 11px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      border-color: rgba(255,255,255,0.25);
+    }
+
+    /* Main Studio Grid */
+    .studio-layout {
+      display: grid;
+      grid-template-columns: 440px 1fr;
+      gap: 36px;
+      max-width: 1120px;
+      width: 100%;
+      align-items: start;
+    }
+    @media (max-width: 960px) {
+      .studio-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* =========================================================
+       9:16 BROADCAST FRAME (PRO AFTER-EFFECTS / CINEMA MOTION)
+       ========================================================= */
+    .story-frame {
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      background: #020205;
+      border-radius: 36px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 
+        0 35px 80px -15px rgba(0, 0, 0, 0.95),
+        0 0 60px rgba(255, 18, 65, 0.2),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 30px 24px 30px;
+      user-select: none;
+      transform: translate3d(0, 0, 0);
+    }
+
+    /* Camera Shake on Final Drop */
+    .story-frame.shake-impact {
+      animation: cameraImpactShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+    @keyframes cameraImpactShake {
+      0% { transform: scale(1.04) translate(0, 0); }
+      15% { transform: scale(1.03) translate(-4px, 3px) rotate(-0.4deg); }
+      30% { transform: scale(1.02) translate(4px, -2px) rotate(0.3deg); }
+      45% { transform: scale(1.01) translate(-2px, 1px); }
+      100% { transform: scale(1) translate(0, 0); }
+    }
+
+    /* =========================================================
+       PURE ANIMATED CONCERT / FESTIVAL BACKGROUND CANVAS
+       (NO STATIC PHOTO AS MAIN BACKGROUND!)
+       ========================================================= */
+    .stage-bg-anim-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Broadcast Vignette & Gradients */
+    .story-vignette {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background: 
+        radial-gradient(circle at 50% 50%, transparent 20%, rgba(3, 3, 6, 0.85) 85%, rgba(2, 2, 4, 0.98) 100%),
+        linear-gradient(to bottom, rgba(2, 2, 5, 0.9) 0%, transparent 25%, rgba(2, 2, 5, 0.92) 100%);
+      pointer-events: none;
+    }
+
+    /* Subtle Scanlines */
+    .story-scanlines {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
+      background-size: 100% 4px;
+      opacity: 0.22;
+      pointer-events: none;
+    }
+
+    /* Three.js 3D WebGL Canvas Layer (Pure 3D Emblem & Volumetric Sparks) */
+    .webgl-stage-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 12;
+      pointer-events: none;
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .stage-countdown .webgl-stage-canvas,
+    .stage-reveal .webgl-stage-canvas {
+      opacity: 0;
+      transform: scale(0.85);
+    }
+
+    /* Anamorphic Horizontal Lens Flare Sweep */
+    .anamorphic-flare {
+      position: absolute;
+      top: 38%;
+      left: -20%;
+      width: 140%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 18, 65, 0.8) 35%, #fff 50%, rgba(255, 18, 65, 0.8) 65%, transparent 100%);
+      box-shadow: 
+        0 0 25px 4px var(--red),
+        0 0 60px 8px rgba(255, 18, 65, 0.5);
+      z-index: 15;
+      pointer-events: none;
+      opacity: 0;
+      transform: scaleX(0.01) rotate(-1.5deg);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .anamorphic-flare.active {
+      opacity: 1;
+      transform: scaleX(1) rotate(-1.5deg);
+    }
+
+    /* Fullscreen Impact Flash Strobe */
+    .impact-strobe-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, #ffffff 0%, rgba(255, 18, 65, 0.6) 55%, transparent 85%);
+      z-index: 45;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.08s ease-out;
+    }
+    .impact-strobe-overlay.flashing {
+      opacity: 1;
+      transition: none;
+    }
+
+    /* High-Tech Broadcast HUD Overlay */
+    .broadcast-hud-corners {
+      position: absolute;
+      inset: 16px;
+      pointer-events: none;
+      z-index: 25;
+    }
+    .hud-corner {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+    }
+    .hud-corner.tl { top: 0; left: 0; border-right: none; border-bottom: none; }
+    .hud-corner.tr { top: 0; right: 0; border-left: none; border-bottom: none; }
+    .hud-corner.bl { bottom: 0; left: 0; border-right: none; border-top: none; }
+    .hud-corner.br { bottom: 0; right: 0; border-left: none; border-top: none; }
+
+    /* Top Row : Dropsiders Live Pill + Docked Official Logo */
+    .story-header-row {
+      position: relative;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+    .badge-dropsiders {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(10, 10, 16, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 6px 14px 6px 10px;
+      border-radius: 999px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: #fff;
+      transform: translateX(-30px);
+      opacity: 0;
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .stage-countdown .badge-dropsiders,
+    .stage-reveal .badge-dropsiders {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    .dot-live {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 10px var(--red);
+      animation: livePulse 1.2s ease-in-out infinite alternate;
+    }
+    @keyframes livePulse {
+      0% { opacity: 0.4; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1.3); }
+    }
+
+    .logo-dock {
+      display: flex;
+      align-items: center;
+    }
+    .docked-logo {
+      height: 20px;
+      width: auto;
+      filter: drop-shadow(0 0 14px var(--red-glow));
+      transform: translateY(-20px);
+      opacity: 0;
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .stage-countdown .docked-logo,
+    .stage-reveal .docked-logo {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* CENTER BROADCAST STAGE */
+    .story-center-box {
+      position: relative;
+      z-index: 30;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      flex: 1;
+      min-height: 440px;
+    }
+
+    /* =========================================================
+       PHASE 1: PRO INTRO (MONOLITHIC TITLE & AMBIENT HUD)
+       ========================================================= */
+    .broadcast-intro-block {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .stage-intro .broadcast-intro-block {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      filter: blur(0px);
+    }
+    .stage-countdown .broadcast-intro-block,
+    .stage-reveal .broadcast-intro-block {
+      opacity: 0;
+      transform: translate(-50%, -65%) scale(0.9);
+      filter: blur(14px);
+    }
+
+    /* Space reserved for Three.js 3D Chrome Emblem */
+    .three-emblem-anchor {
+      width: 280px;
+      height: 90px;
+      margin-bottom: 20px;
+    }
+
+    .intro-main-title {
+      font-size: 56px;
+      font-weight: 900;
+      font-style: italic;
+      color: #fff;
+      text-transform: uppercase;
+      line-height: 0.92;
+      letter-spacing: -2px;
+      background: linear-gradient(180deg, #ffffff 30%, #d1d5db 70%, #9ca3af 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 35px var(--red-glow);
+      filter: drop-shadow(0 10px 25px rgba(0,0,0,0.9));
+      position: relative;
+    }
+    .intro-main-title::after {
+      content: attr(data-text);
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: none;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 45px var(--red-glow), 0 0 80px rgba(255, 18, 65, 0.4);
+    }
+
+    .intro-meta-line {
+      margin-top: 14px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3.5px;
+      color: #9ca3af;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .intro-meta-line .dot-sep {
+      color: var(--red);
+    }
+
+    /* =========================================================
+       ENCART PHOTO / VIDÉO (AU-DESSUS DU # ET DU DJ)
+       ========================================================= */
+    .artist-media-card {
+      width: 100%;
+      max-width: 320px;
+      aspect-ratio: 16 / 9;
+      background: #090912;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.85),
+        0 0 25px rgba(255, 18, 65, 0.15);
+      margin-bottom: 12px;
+      opacity: 0;
+      transform: scale(0.85) translateY(-15px);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .stage-countdown .artist-media-card {
+      opacity: 0.95;
+      transform: scale(0.96) translateY(0);
+      filter: contrast(1.1) brightness(0.9);
+    }
+    .stage-reveal .artist-media-card {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      filter: contrast(1.05) brightness(1);
+    }
+
+    .media-card-img,
+    .media-card-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .media-card-hud {
+      position: absolute;
+      top: 8px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 3px 8px;
+      border-radius: 999px;
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #e2e8f0;
+      text-transform: uppercase;
+      z-index: 5;
+    }
+    .media-rec-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--red);
+      animation: livePulse 1s infinite alternate;
+    }
+
+    /* Subtle Glass Sheen over media card */
+    .media-card-sheen {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 45%, rgba(0,0,0,0.4) 100%);
+      pointer-events: none;
+    }
+
+    /* =========================================================
+       PHASE 2: SPEED COUNTDOWN ACCELERATOR (2.5s)
+       (NO RED CONTOUR CIRCLE!)
+       ========================================================= */
+    .broadcast-countdown-block {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+      opacity: 0;
+      filter: blur(10px);
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .stage-countdown .broadcast-countdown-block {
+      opacity: 1;
+      filter: blur(0px);
+    }
+    .stage-reveal .broadcast-countdown-block {
+      opacity: 0;
+      filter: blur(10px);
+    }
+
+    .countdown-number {
+      font-family: var(--font-ds);
+      font-size: 96px;
+      font-weight: 900;
+      font-style: italic;
+      color: #fff;
+      letter-spacing: -2px;
+      text-shadow: 
+        0 0 30px rgba(255, 255, 255, 0.5),
+        0 4px 15px rgba(0,0,0,0.9);
+      position: relative;
+      z-index: 5;
+      line-height: 0.9;
+    }
+    .countdown-caption {
+      margin-top: 10px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: #94a3b8;
+      text-transform: uppercase;
+    }
+
+    /* =========================================================
+       PHASE 3: REVEAL CLIMAX (SIMULTANEOUS RANK + ARTIST)
+       (CLEAN RANK WITHOUT RED CONTOUR!)
+       ========================================================= */
+    .broadcast-reveal-block {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      opacity: 0;
+      transform: scale(0.94);
+      filter: blur(10px);
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .stage-reveal .broadcast-reveal-block {
+      opacity: 1;
+      transform: scale(1);
+      filter: blur(0px);
+    }
+
+    /* Giant Monolithic Rank Number (NO RED CONTOUR) */
+    .rank-stamp-wrap {
+      position: relative;
+      line-height: 0.88;
+      margin-bottom: 4px;
+    }
+    .rank-number-val {
+      font-family: var(--font-ds);
+      font-size: 118px;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: -3px;
+      background: linear-gradient(180deg, #ffffff 30%, #e2e8f0 70%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.45)) drop-shadow(0 15px 30px rgba(0,0,0,0.95));
+      transform: scale(1);
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .rank-number-val.impact-hit {
+      animation: rankImpactBounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+    @keyframes rankImpactBounce {
+      0% { transform: scale(0.7) translateY(-20px); filter: brightness(2); }
+      50% { transform: scale(1.1) translateY(3px); filter: brightness(1.3); }
+      100% { transform: scale(1) translateY(0); filter: brightness(1); }
+    }
+
+    /* Artist Name (Zero Spoiler: Enters at exact same millisecond) */
+    .artist-box-wrap {
+      overflow: hidden;
+      padding: 2px 10px;
+    }
+    .artist-name-val {
+      font-family: var(--font-ds);
+      font-size: 38px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      line-height: 1.05;
+      background: linear-gradient(180deg, #ffffff 40%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.9));
+      opacity: 0;
+      transform: translateY(120%);
+      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+    }
+    .artist-name-val.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Tag & Audio Visualizer Equalizer Row */
+    .editorial-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+      opacity: 0;
+      transform: translateY(18px);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .editorial-badge-row.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .editorial-tag-val {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 6px 16px;
+      border-radius: 999px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Animated Audio Spectrum Bars */
+    .audio-eq-bars {
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 14px;
+    }
+    .eq-bar {
+      width: 2.5px;
+      background: var(--red);
+      border-radius: 1px;
+      animation: eqDance 0.8s ease-in-out infinite alternate;
+    }
+    .eq-bar:nth-child(1) { height: 40%; animation-delay: 0.1s; }
+    .eq-bar:nth-child(2) { height: 85%; animation-delay: 0.3s; }
+    .eq-bar:nth-child(3) { height: 60%; animation-delay: 0.2s; }
+    .eq-bar:nth-child(4) { height: 100%; animation-delay: 0.4s; }
+    @keyframes eqDance {
+      0% { height: 25%; }
+      100% { height: 100%; }
+    }
+
+    /* Bottom Broadcast Feed Bar */
+    .story-bottom-row {
+      position: relative;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 14px;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: #64748b;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .feed-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #94a3b8;
+    }
+    .feed-indicator .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--red);
+    }
+
+    /* =========================================================
+       SIDE CONTROLS & INSPECTOR
+       ========================================================= */
+    .side-inspector {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+    }
+    .panel-title {
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      color: #fff;
+    }
+    .panel-title span {
+      color: var(--red);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Timeline Tracker */
+    .timeline-indicator {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      border-radius: 12px;
+    }
+    .timeline-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+    .timeline-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+    .timeline-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #ff1241, #ff3865);
+      box-shadow: 0 0 10px var(--red);
+      transition: width 0.08s linear;
+    }
+
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-row label {
+      font-size: 11px;
+      font-weight: 800;
+      color: #8888a0;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .input-field {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: #fff;
+      font-family: var(--font-ds);
+      font-size: 13px;
+      font-weight: 700;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-field:focus {
+      border-color: var(--red);
+    }
+
+    .quick-preset-btns {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .preset-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+      font-family: var(--font-ds);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+    }
+    .preset-btn:hover {
+      background: rgba(255, 18, 65, 0.2);
+      border-color: var(--red);
+      color: #fff;
+    }
+
+    .summary-card {
+      background: rgba(255, 18, 65, 0.08);
+      border: 1px solid rgba(255, 18, 65, 0.25);
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 12px;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+    .summary-card strong {
+      color: #fff;
+    }
+    .summary-card ul {
+      margin-top: 8px;
+      padding-left: 18px;
+    }
+    .summary-card li {
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Broadcast Toolbar -->
+  <div class="header-bar">
+    <div class="brand-group">
+      <img src="./logo_dropsiders_brand_pure.png" alt="Dropsiders" class="brand-logo-img" onerror="this.src='./logo_white_official.png'">
+      <div class="header-tag">
+        <span>TOP 100 BROADCAST MASTER</span>
+        <span class="badge-pill">FESTIVAL LASERS</span>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+      <button class="btn-action-main" onclick="playProBroadcastSequence()">
+        🔥 Lancer Séquence Pro (3.9s)
+      </button>
+      <button class="btn-secondary" onclick="showIntroShowcase()">
+        👁️ Intro 3D Seule
+      </button>
+      <button class="btn-secondary" onclick="showCountdownOnly()">
+        ⚡ Décompte Seul (2.5s)
+      </button>
+      <button class="btn-secondary" onclick="showRevealOnly()">
+        🎯 Révélation Fixe
+      </button>
+      <button class="btn-secondary" id="btnSoundToggle" onclick="toggleAudioFx()">
+        🔊 SFX : ACTIF
+      </button>
+    </div>
+  </div>
+
+  <!-- Studio Layout -->
+  <div class="studio-layout">
+
+    <!-- 9:16 Broadcast Frame (Continuité Totale) -->
+    <div class="story-frame stage-intro" id="storyFrame">
+      
+      <!-- 1. VRAI FOND ANIMÉ EN TEMPS RÉEL (Lasers concert, projecteurs, particules) -->
+      <canvas id="stageBgAnimCanvas" class="stage-bg-anim-canvas"></canvas>
+
+      <div class="story-vignette"></div>
+      <div class="story-scanlines"></div>
+
+      <!-- Anamorphic Light Flare Line -->
+      <div class="anamorphic-flare" id="anamorphicFlare"></div>
+
+      <!-- Impact Strobe Flash -->
+      <div class="impact-strobe-overlay" id="strobeOverlay"></div>
+
+      <!-- Broadcast HUD Target Brackets -->
+      <div class="broadcast-hud-corners">
+        <div class="hud-corner tl"></div>
+        <div class="hud-corner tr"></div>
+        <div class="hud-corner bl"></div>
+        <div class="hud-corner br"></div>
+      </div>
+
+      <!-- Real-time Three.js 3D WebGL Canvas Layer -->
+      <canvas id="webglCanvas" class="webgl-stage-canvas"></canvas>
+
+      <!-- Top Row : Pill Dropsiders + Logo Blanc Dock -->
+      <div class="story-header-row">
+        <div class="badge-dropsiders" id="badgePill">
+          <span class="dot-live"></span>
+          <span id="badgeText">DROPSIDERS TOP 100</span>
+        </div>
+        <div class="logo-dock">
+          <img src="./logo_dropsiders_brand_pure.png" id="dockedLogo" alt="Dropsiders" class="docked-logo" onerror="this.src='./logo_white_official.png'">
+        </div>
+      </div>
+
+      <!-- CENTER BROADCAST STAGE -->
+      <div class="story-center-box">
+        
+        <!-- 1. Intro Teaser (0.0s à 1.4s) -->
+        <div class="broadcast-intro-block" id="introBlock">
+          <div class="three-emblem-anchor"></div>
+          <div class="intro-main-title" id="introHeadline" data-text="TOP 100 DJ">TOP 100 DJ</div>
+          <div class="intro-meta-line">
+            <span>EDITION 2026</span>
+            <span class="dot-sep">•</span>
+            <span>DROPSIDERS.FR</span>
+          </div>
+        </div>
+
+        <!-- 2. ENCART PHOTO / VIDÉO (AU-DESSUS DU # ET DU NOM DU DJ) -->
+        <div class="artist-media-card" id="artistMediaCard">
+          <div class="media-card-hud">
+            <span class="media-rec-dot"></span>
+            <span id="mediaCardLabel">LIVE SET // MAIN STAGE</span>
+          </div>
+          <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=900&auto=format&fit=crop" id="artistMediaImg" class="media-card-img" alt="Artist Visual" />
+          <div class="media-card-sheen"></div>
+        </div>
+
+        <!-- 3. Countdown Accelerator Block (1.4s à 3.9s : Décompte 2.5s direct sous l'encart) -->
+        <div class="broadcast-countdown-block" id="countdownBlock">
+          <div class="countdown-number" id="countdownVal">#100</div>
+          <div class="countdown-caption">CALIBRATION DE LA PLACE...</div>
+        </div>
+
+        <!-- 4. Final Reveal Block (Verrouillage simultané #04 + Artiste sous l'encart) -->
+        <div class="broadcast-reveal-block" id="revealBlock">
+          <div class="rank-stamp-wrap">
+            <div class="rank-number-val" id="rankDisplay">#04</div>
+          </div>
+          <div class="artist-box-wrap">
+            <div class="artist-name-val" id="artistDisplay">MARTIN GARRIX</div>
+          </div>
+          <div class="editorial-badge-row" id="editorialRow">
+            <div class="editorial-tag-val" id="categoryDisplay">THE NETHERLANDS • MAIN STAGE</div>
+            <div class="audio-eq-bars">
+              <span class="eq-bar"></span>
+              <span class="eq-bar"></span>
+              <span class="eq-bar"></span>
+              <span class="eq-bar"></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Row : Telemetry & Watermark -->
+      <div class="story-bottom-row">
+        <div class="feed-indicator">
+          <span class="live-dot"></span>
+          <span>DROPSIDERS LIVE FEED</span>
+        </div>
+        <div>VIRTUAL STAGE // 2026</div>
+      </div>
+    </div>
+
+    <!-- Controls & Inspector -->
+    <div class="side-inspector">
+      <div class="panel-title">
+        <span>🎬 Régie Broadcast Top 100</span>
+        <span style="font-size: 11px; color: #94a3b8;">PRO ENGINE</span>
+      </div>
+
+      <!-- Timeline Bar -->
+      <div class="timeline-indicator">
+        <div class="timeline-header">
+          <span id="timelineLabel">Phase : Prêt</span>
+          <span id="timelineTime">0.0s / 3.9s</span>
+        </div>
+        <div class="timeline-track">
+          <div class="timeline-fill" id="timelineFill"></div>
+        </div>
+      </div>
+
+      <button class="btn-action-main" style="width: 100%; justify-content: center;" onclick="playProBroadcastSequence()">
+        🔥 Rejouer Séquence Broadcast (3.9s)
+      </button>
+
+      <div class="form-row">
+        <label>Presets Rapides :</label>
+        <div class="quick-preset-btns">
+          <button class="preset-btn" onclick="applyArtist(1, 'DAVID GUETTA', 'WORLD NO. 1 DJ', 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=900&auto=format&fit=crop')">#01 David Guetta</button>
+          <button class="preset-btn" onclick="applyArtist(4, 'MARTIN GARRIX', 'THE NETHERLANDS • MAIN STAGE', 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=900&auto=format&fit=crop')">#04 Martin Garrix</button>
+          <button class="preset-btn" onclick="applyArtist(3, 'ALOK', 'BRAZILIAN BASS / EDM', 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=900&auto=format&fit=crop')">#03 Alok</button>
+          <button class="preset-btn" onclick="applyArtist(7, 'AFROJACK', 'WALL RECORDINGS • LIVE', 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=900&auto=format&fit=crop')">#07 Afrojack</button>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>Classement Final (ex: 4 pour #04) :</label>
+        <input type="number" id="inputRank" class="input-field" value="4" min="1" max="100" oninput="updateLive()">
+      </div>
+
+      <div class="form-row">
+        <label>Nom de l'artiste :</label>
+        <input type="text" id="inputArtist" class="input-field" value="MARTIN GARRIX" oninput="updateLive()">
+      </div>
+
+      <div class="form-row">
+        <label>Titre de l'Intro :</label>
+        <input type="text" id="inputIntro" class="input-field" value="TOP 100 DJ" oninput="updateLive()">
+      </div>
+
+      <div class="form-row">
+        <label>Catégorie / Sous-titre :</label>
+        <input type="text" id="inputCategory" class="input-field" value="THE NETHERLANDS • MAIN STAGE" oninput="updateLive()">
+      </div>
+
+      <div class="form-row">
+        <label>URL Photo de l'Encart :</label>
+        <input type="text" id="inputMediaUrl" class="input-field" value="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=900&auto=format&fit=crop" oninput="updateMediaUrl(this.value)">
+      </div>
+
+      <div class="summary-card">
+        <strong>Exigences Validées :</strong>
+        <ul>
+          <li><strong>Zéro Photo en Fond</strong> : Vrai arrière-plan animé en temps réel avec faisceaux lasers de concert et projecteurs de festival.</li>
+          <li><strong>Encart Photo/Vidéo au-dessus du #</strong> : Placé directement au-dessus du numéro et du nom de l'artiste.</li>
+          <li><strong>Aucun contour rouge moche</strong> autour de la place : Numéro pur, massif en chrome blanc.</li>
+          <li><strong>Révélation Instantanée</strong> : Le nom du DJ apparaît à la même milliseconde exacte que le #04.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let sequenceTimer = null;
+    let odometerAnimId = null;
+    let timelineAnimId = null;
+    let audioContext = null;
+    let soundEnabled = true;
+
+    /* =========================================================
+       CANVAS 2D : REAL-TIME ANIMATED CONCERT LASER BACKGROUND
+       (Pas une photo statique : Faisceaux lasers, lumières de scène)
+       ========================================================= */
+    let bgCanvas, bgCtx;
+    let bgAnimId = null;
+    let lasers = [];
+
+    function initAnimatedBackground() {
+      bgCanvas = document.getElementById('stageBgAnimCanvas');
+      bgCtx = bgCanvas.getContext('2d');
+      resizeBgCanvas();
+      window.addEventListener('resize', resizeBgCanvas);
+
+      // Create sweeping laser beams
+      lasers = [
+        { angle: -0.6, speed: 0.015, color: 'rgba(255, 18, 65, 0.45)', width: 3, originX: 0.1, originY: 1.0 },
+        { angle: -0.2, speed: -0.018, color: 'rgba(255, 50, 90, 0.4)', width: 2.5, originX: 0.25, originY: 1.0 },
+        { angle: 0.3, speed: 0.02, color: 'rgba(255, 18, 65, 0.5)', width: 3.5, originX: 0.75, originY: 1.0 },
+        { angle: 0.7, speed: -0.014, color: 'rgba(255, 80, 110, 0.35)', width: 2, originX: 0.9, originY: 1.0 },
+        // Overhead sweeping beam
+        { angle: 0.1, speed: 0.025, color: 'rgba(0, 240, 255, 0.25)', width: 2, originX: 0.5, originY: 0.0 }
+      ];
+
+      animateBackground();
+    }
+
+    function resizeBgCanvas() {
+      if (!bgCanvas) return;
+      bgCanvas.width = bgCanvas.parentElement.clientWidth;
+      bgCanvas.height = bgCanvas.parentElement.clientHeight;
+    }
+
+    function animateBackground() {
+      bgAnimId = requestAnimationFrame(animateBackground);
+      const w = bgCanvas.width;
+      const h = bgCanvas.height;
+      const time = performance.now() * 0.001;
+
+      // Deep concert arena background gradient
+      const bgGrad = bgCtx.createRadialGradient(w * 0.5, h * 0.45, 20, w * 0.5, h * 0.5, Math.max(w, h));
+      bgGrad.addColorStop(0, '#150612');
+      bgGrad.addColorStop(0.5, '#09040c');
+      bgGrad.addColorStop(1, '#020205');
+      bgCtx.fillStyle = bgGrad;
+      bgCtx.fillRect(0, 0, w, h);
+
+      // Draw sweeping volumetric spotlights
+      bgCtx.save();
+      bgCtx.globalCompositeOperation = 'screen';
+
+      // Moving central cone spotlight
+      const spotAngle = Math.sin(time * 1.4) * 0.35;
+      const spotGrad = bgCtx.createRadialGradient(w * 0.5, h * 0.05, 10, w * (0.5 + Math.sin(time * 1.4) * 0.3), h * 0.9, w * 0.7);
+      spotGrad.addColorStop(0, 'rgba(255, 18, 65, 0.35)');
+      spotGrad.addColorStop(0.6, 'rgba(255, 18, 65, 0.08)');
+      spotGrad.addColorStop(1, 'transparent');
+      bgCtx.fillStyle = spotGrad;
+      bgCtx.fillRect(0, 0, w, h);
+
+      // Draw laser beams
+      lasers.forEach((laser, idx) => {
+        const sweep = Math.sin(time * (1.2 + idx * 0.3) + idx) * 0.55;
+        const currentAngle = laser.angle + sweep;
+        const startX = w * laser.originX;
+        const startY = h * laser.originY;
+        const rayLength = Math.max(w, h) * 1.5;
+        const endX = startX + Math.sin(currentAngle) * rayLength;
+        const endY = startY - Math.cos(currentAngle) * rayLength;
+
+        // Laser core line
+        bgCtx.beginPath();
+        bgCtx.moveTo(startX, startY);
+        bgCtx.lineTo(endX, endY);
+        bgCtx.strokeStyle = laser.color;
+        bgCtx.lineWidth = laser.width;
+        bgCtx.shadowColor = '#ff1241';
+        bgCtx.shadowBlur = 15;
+        bgCtx.stroke();
+
+        // Laser thin white center
+        bgCtx.beginPath();
+        bgCtx.moveTo(startX, startY);
+        bgCtx.lineTo(endX, endY);
+        bgCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        bgCtx.lineWidth = 1;
+        bgCtx.stroke();
+      });
+
+      // Ambient pulsing bass glow in center
+      const pulse = 0.85 + Math.sin(time * 3.5) * 0.15;
+      const centerGlow = bgCtx.createRadialGradient(w * 0.5, h * 0.55, 10, w * 0.5, h * 0.55, w * 0.6);
+      centerGlow.addColorStop(0, `rgba(255, 18, 65, ${0.18 * pulse})`);
+      centerGlow.addColorStop(1, 'transparent');
+      bgCtx.fillStyle = centerGlow;
+      bgCtx.fillRect(0, 0, w, h);
+
+      bgCtx.restore();
+    }
+
+    /* =========================================================
+       AUDIO FX SYNTHESIZER (CINEMATIC RISER & IMPACT HIT)
+       ========================================================= */
+    function initAudio() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+    }
+
+    function toggleAudioFx() {
+      soundEnabled = !soundEnabled;
+      const btn = document.getElementById('btnSoundToggle');
+      btn.textContent = soundEnabled ? '🔊 SFX : ACTIF' : '🔇 SFX : COUPE';
+      btn.style.color = soundEnabled ? '#fff' : '#888';
+    }
+
+    function playLaserWhoosh() {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, audioContext.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(120, audioContext.currentTime + 0.35);
+        gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.start();
+        osc.stop(audioContext.currentTime + 0.35);
+      } catch (e) {}
+    }
+
+    function playCountdownTick() {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(1400, audioContext.currentTime);
+        gain.gain.setValueAtTime(0.04, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.start();
+        osc.stop(audioContext.currentTime + 0.04);
+      } catch (e) {}
+    }
+
+    function playImpactSubBoom() {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        // 1. Deep Sub Bass Boom
+        const sub = audioContext.createOscillator();
+        const subGain = audioContext.createGain();
+        sub.type = 'sine';
+        sub.frequency.setValueAtTime(150, audioContext.currentTime);
+        sub.frequency.exponentialRampToValueAtTime(32, audioContext.currentTime + 0.8);
+        subGain.gain.setValueAtTime(0.45, audioContext.currentTime);
+        subGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.8);
+        sub.connect(subGain);
+        subGain.connect(audioContext.destination);
+        sub.start();
+        sub.stop(audioContext.currentTime + 0.8);
+
+        // 2. High Impact Snap
+        const snap = audioContext.createOscillator();
+        const snapGain = audioContext.createGain();
+        snap.type = 'square';
+        snap.frequency.setValueAtTime(2400, audioContext.currentTime);
+        snap.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.12);
+        snapGain.gain.setValueAtTime(0.2, audioContext.currentTime);
+        snapGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.12);
+        snap.connect(snapGain);
+        snapGain.connect(audioContext.destination);
+        snap.start();
+        snap.stop(audioContext.currentTime + 0.12);
+      } catch (e) {}
+    }
+
+    /* =========================================================
+       THREE.JS REAL 3D WEBGL CINEMA ENGINE (CLEAN LOGO)
+       ========================================================= */
+    let scene, camera, renderer, logoMeshGroup, redLight, keyLight, particlePoints;
+    let threeAnimId = null;
+    let threeStartTime = performance.now();
+    let threeMode = 'sequence'; // 'sequence' or 'showcase'
+
+    function initThreeJS() {
+      const canvas = document.getElementById('webglCanvas');
+      const width = canvas.parentElement.clientWidth;
+      const height = canvas.parentElement.clientHeight;
+
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
+      camera.position.set(0, 0, 5.4);
+
+      renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.45;
+
+      // Lights
+      const ambLight = new THREE.AmbientLight(0xffffff, 0.8);
+      scene.add(ambLight);
+
+      keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
+      keyLight.position.set(2, 4, 5);
+      scene.add(keyLight);
+
+      // Sweeping dynamic festival red neon spotlight
+      redLight = new THREE.PointLight(0xff1241, 6.0, 15);
+      redLight.position.set(-3, -1, 3.5);
+      scene.add(redLight);
+
+      const rimLight = new THREE.PointLight(0xff3366, 3.5, 12);
+      rimLight.position.set(2.5, -2, -2);
+      scene.add(rimLight);
+
+      // 3D Pure Emblem Group (Using clean border-free logo)
+      logoMeshGroup = new THREE.Group();
+      scene.add(logoMeshGroup);
+
+      const texLoader = new THREE.TextureLoader();
+      texLoader.load('./logo_dropsiders_brand_pure.png', (tex) => {
+        tex.generateMipmaps = true;
+        tex.minFilter = THREE.LinearMipmapLinearFilter;
+
+        // Perfectly calibrated 9:16 mobile dimensions
+        const logoW = 1.35;
+        const logoH = 0.38;
+        const numLayers = 14;
+        const totalDepth = 0.16;
+
+        for (let i = 0; i < numLayers; i++) {
+          const zProgress = i / (numLayers - 1);
+          const zPos = (zProgress - 0.5) * totalDepth;
+          const isFront = i === numLayers - 1;
+          const isBack = i === 0;
+
+          const geo = new THREE.PlaneGeometry(logoW, logoH);
+          let mat;
+
+          if (isFront) {
+            // Front face: Polished mirror chrome with strong specular shine
+            mat = new THREE.MeshStandardMaterial({
+              map: tex,
+              transparent: true,
+              metalness: 0.98,
+              roughness: 0.08,
+              color: 0xffffff,
+              emissive: 0x330810,
+              emissiveIntensity: 0.35
+            });
+          } else if (isBack) {
+            // Back face: Glowing red neon outline
+            mat = new THREE.MeshStandardMaterial({
+              map: tex,
+              transparent: true,
+              metalness: 0.7,
+              roughness: 0.3,
+              color: 0xff1241,
+              emissive: 0xff1241,
+              emissiveIntensity: 1.5
+            });
+          } else {
+            // Side extrusion layers: Dark brushed metallic steel
+            const shade = 0.15 + zProgress * 0.45;
+            mat = new THREE.MeshStandardMaterial({
+              map: tex,
+              transparent: true,
+              metalness: 0.92,
+              roughness: 0.22,
+              color: new THREE.Color(shade, shade * 0.8, shade * 0.85)
+            });
+          }
+
+          const mesh = new THREE.Mesh(geo, mat);
+          mesh.position.z = zPos;
+          logoMeshGroup.add(mesh);
+        }
+      });
+
+      // Position centered in upper slot clearly above TOP 100 DJ
+      logoMeshGroup.position.set(0, 0.95, 0);
+
+      // Volumetric Festival Embers & Sparks
+      const partCount = 140;
+      const partGeo = new THREE.BufferGeometry();
+      const partPos = new Float32Array(partCount * 3);
+      for (let i = 0; i < partCount * 3; i += 3) {
+        partPos[i] = (Math.random() - 0.5) * 8;
+        partPos[i + 1] = (Math.random() - 0.5) * 10;
+        partPos[i + 2] = (Math.random() - 0.5) * 6;
+      }
+      partGeo.setAttribute('position', new THREE.BufferAttribute(partPos, 3));
+      const partMat = new THREE.PointsMaterial({
+        color: 0xff1241,
+        size: 0.045,
+        transparent: true,
+        opacity: 0.8,
+        blending: THREE.AdditiveBlending
+      });
+      particlePoints = new THREE.Points(partGeo, partMat);
+      scene.add(particlePoints);
+
+      animateThree();
+    }
+
+    function animateThree() {
+      threeAnimId = requestAnimationFrame(animateThree);
+      const elapsed = (performance.now() - threeStartTime) / 1000;
+
+      // Sweeping festival red spotlight
+      if (redLight) {
+        redLight.position.x = Math.sin(elapsed * 2.8) * 3.8;
+        redLight.position.y = Math.cos(elapsed * 2.0) * 1.6;
+      }
+
+      // Drift floating embers
+      if (particlePoints) {
+        particlePoints.rotation.y = elapsed * 0.05;
+        particlePoints.rotation.x = elapsed * 0.02;
+      }
+
+      // Camera & 3D Logo Motion
+      if (logoMeshGroup) {
+        if (threeMode === 'showcase') {
+          // Continuous smooth 3D floating showcase
+          logoMeshGroup.rotation.y = Math.sin(elapsed * 1.4) * 0.32;
+          logoMeshGroup.rotation.x = Math.cos(elapsed * 1.1) * 0.12;
+          logoMeshGroup.position.y = 0.95 + Math.sin(elapsed * 1.8) * 0.025;
+          logoMeshGroup.position.x = 0;
+          camera.position.set(0, 0, 5.4);
+          camera.lookAt(0, 0, 0);
+        } else {
+          // Broadcast Sequence Motion (0.0s to 1.4s)
+          const introDuration = 1.35;
+          const p = Math.min(1, Math.max(0, elapsed / introDuration));
+          // Cubic ease-out
+          const ease = 1 - Math.pow(1 - p, 3);
+
+          if (p < 1) {
+            // Camera travelling & 3D swivel into place
+            logoMeshGroup.rotation.y = (-0.55 + ease * 0.55);
+            logoMeshGroup.rotation.x = (0.22 - ease * 0.22);
+            logoMeshGroup.scale.setScalar(0.82 + ease * 0.18);
+            logoMeshGroup.position.set(0, 0.95, 0);
+            camera.position.set(-0.6 * (1 - ease), -0.2 * (1 - ease), 5.6 - ease * 0.2);
+            camera.lookAt(0, 0, 0);
+          } else {
+            // Seamless flight towards top-right dock as countdown engages
+            const exitP = Math.min(1, (elapsed - introDuration) / 0.45);
+            const exitEase = Math.pow(exitP, 2);
+            logoMeshGroup.position.y = 0.95 + exitEase * 1.2;
+            logoMeshGroup.position.x = exitEase * 0.85;
+            logoMeshGroup.rotation.x = -exitEase * 0.35;
+            logoMeshGroup.scale.setScalar(1.0 - exitEase * 0.55);
+          }
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    /* =========================================================
+       HIGH-OCTANE ROLLING COUNTDOWN (100 -> TARGET IN 2.5s)
+       (DIRECTLY UNDER MEDIA ENCART, ZERO RED CONTOUR)
+       ========================================================= */
+    function runBroadcastCountdown(targetRank, duration = 2500, onComplete) {
+      if (odometerAnimId) cancelAnimationFrame(odometerAnimId);
+      const target = Math.max(1, Math.min(100, parseInt(targetRank, 10) || 1));
+      const countdownElem = document.getElementById('countdownVal');
+
+      const startTime = performance.now();
+      let lastTickNum = 100;
+
+      function update(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        // Exponential deceleration (starts blazing fast at 100, decelerates smoothly as it nears target)
+        const easeDecel = 1 - Math.pow(1 - progress, 3.2);
+        const currentNum = Math.max(target, Math.round(100 - easeDecel * (100 - target)));
+
+        countdownElem.textContent = '#' + (currentNum < 10 ? '0' + currentNum : currentNum);
+
+        // Audio ticks on milestones
+        if (Math.abs(currentNum - lastTickNum) >= 4 || progress > 0.8) {
+          if (currentNum !== lastTickNum) {
+            playCountdownTick();
+            lastTickNum = currentNum;
+          }
+        }
+
+        if (progress < 1) {
+          odometerAnimId = requestAnimationFrame(update);
+        } else {
+          countdownElem.textContent = '#' + (target < 10 ? '0' + target : target);
+          odometerAnimId = null;
+          if (onComplete) onComplete();
+        }
+      }
+      odometerAnimId = requestAnimationFrame(update);
+    }
+
+    /* =========================================================
+       MASTER PRO BROADCAST TIMELINE (3.9s TOTAL CONTINUITY)
+       ========================================================= */
+    function playProBroadcastSequence() {
+      if (sequenceTimer) clearTimeout(sequenceTimer);
+      if (odometerAnimId) cancelAnimationFrame(odometerAnimId);
+      if (timelineAnimId) cancelAnimationFrame(timelineAnimId);
+
+      const frame = document.getElementById('storyFrame');
+      const flare = document.getElementById('anamorphicFlare');
+      const strobe = document.getElementById('strobeOverlay');
+      const artist = document.getElementById('artistDisplay');
+      const editorialRow = document.getElementById('editorialRow');
+      const rankVal = document.getElementById('rankDisplay');
+      const timelineFill = document.getElementById('timelineFill');
+      const timelineLabel = document.getElementById('timelineLabel');
+      const timelineTime = document.getElementById('timelineTime');
+
+      const targetRank = document.getElementById('inputRank').value;
+      const formattedRank = '#' + (targetRank < 10 ? '0' + targetRank : targetRank);
+
+      // RESET ALL STATES: PHASE 1 INTRO
+      frame.className = 'story-frame stage-intro';
+      flare.className = 'anamorphic-flare';
+      strobe.className = 'impact-strobe-overlay';
+      artist.classList.remove('revealed');
+      editorialRow.classList.remove('revealed');
+      rankVal.classList.remove('impact-hit');
+      rankVal.textContent = formattedRank;
+
+      // Reset Three.js sequence mode
+      threeMode = 'sequence';
+      threeStartTime = performance.now();
+      if (logoMeshGroup) {
+        logoMeshGroup.position.set(0, 0.95, 0);
+        logoMeshGroup.scale.setScalar(0.82);
+      }
+
+      // Anamorphic laser flash & sound at 0.12s
+      setTimeout(() => {
+        flare.classList.add('active');
+        playLaserWhoosh();
+        setTimeout(() => flare.classList.remove('active'), 400);
+      }, 120);
+
+      // Timeline tracker (3.9s total)
+      const seqStart = performance.now();
+      const totalSeqDuration = 4000;
+      function updateTimeline(now) {
+        const el = now - seqStart;
+        const pct = Math.min(100, (el / totalSeqDuration) * 100);
+        timelineFill.style.width = pct + '%';
+        timelineTime.textContent = `${(el / 1000).toFixed(1)}s / 3.9s`;
+
+        if (el < 1350) {
+          timelineLabel.textContent = `Phase 1 : Intro 3D Cinéma`;
+        } else if (el < 3850) {
+          timelineLabel.textContent = `Phase 2 : Décompte 100 ➔ ${formattedRank} (2.5s)`;
+        } else {
+          timelineLabel.textContent = `Phase 3 : Révélation Verrouillée !`;
+        }
+
+        if (pct < 100) {
+          timelineAnimId = requestAnimationFrame(updateTimeline);
+        }
+      }
+      timelineAnimId = requestAnimationFrame(updateTimeline);
+
+      // PHASE 2 TRANSITION: Launch 2.5s Countdown at 1.35s
+      sequenceTimer = setTimeout(() => {
+        frame.className = 'story-frame stage-countdown';
+
+        // Run high-speed countdown from #100 to target for exactly 2500ms
+        runBroadcastCountdown(targetRank, 2500, () => {
+          
+          // =======================================================
+          // PHASE 3: FINAL IMPACT DROP (AT EXACT SAME MILLISECOND)
+          // =======================================================
+          frame.className = 'story-frame stage-reveal shake-impact';
+          setTimeout(() => frame.classList.remove('shake-impact'), 450);
+
+          // Optical flash strobe & deep sub impact boom
+          strobe.classList.add('flashing');
+          setTimeout(() => strobe.classList.remove('flashing'), 100);
+          playImpactSubBoom();
+
+          // Giant rank number hits with stamp pulse (NO RED CONTOUR!)
+          rankVal.classList.add('impact-hit');
+
+          // DJ Name & Editorial tag reveal AT THE EXACT SAME INSTANT (Zero spoiler before)
+          artist.classList.add('revealed');
+          editorialRow.classList.add('revealed');
+        });
+
+      }, 1350);
+    }
+
+    function showIntroShowcase() {
+      if (sequenceTimer) clearTimeout(sequenceTimer);
+      if (odometerAnimId) cancelAnimationFrame(odometerAnimId);
+      if (timelineAnimId) cancelAnimationFrame(timelineAnimId);
+      const frame = document.getElementById('storyFrame');
+      frame.className = 'story-frame stage-intro';
+
+      // Switch Three.js to infinite 3D showcase loop
+      threeMode = 'showcase';
+      threeStartTime = performance.now();
+      if (logoMeshGroup) {
+        logoMeshGroup.position.set(0, 0.95, 0);
+        logoMeshGroup.scale.setScalar(1.0);
+      }
+
+      document.getElementById('timelineLabel').textContent = 'Mode : Intro 3D Cinema (Showcase Boucle)';
+      document.getElementById('timelineFill').style.width = '30%';
+      document.getElementById('timelineTime').textContent = 'Showcase';
+    }
+
+    function showCountdownOnly() {
+      if (sequenceTimer) clearTimeout(sequenceTimer);
+      if (odometerAnimId) cancelAnimationFrame(odometerAnimId);
+      if (timelineAnimId) cancelAnimationFrame(timelineAnimId);
+      const frame = document.getElementById('storyFrame');
+      const strobe = document.getElementById('strobeOverlay');
+      const artist = document.getElementById('artistDisplay');
+      const editorialRow = document.getElementById('editorialRow');
+      const rankVal = document.getElementById('rankDisplay');
+
+      artist.classList.remove('revealed');
+      editorialRow.classList.remove('revealed');
+      rankVal.classList.remove('impact-hit');
+
+      frame.className = 'story-frame stage-countdown';
+      document.getElementById('timelineLabel').textContent = 'Mode : Décompte 100 ➔ Cible (2.5s)';
+      document.getElementById('timelineFill').style.width = '60%';
+      document.getElementById('timelineTime').textContent = '2.5s';
+
+      const targetRank = document.getElementById('inputRank').value;
+      runBroadcastCountdown(targetRank, 2500, () => {
+        frame.className = 'story-frame stage-reveal shake-impact';
+        setTimeout(() => frame.classList.remove('shake-impact'), 450);
+        strobe.classList.add('flashing');
+        setTimeout(() => strobe.classList.remove('flashing'), 100);
+        playImpactSubBoom();
+        rankVal.classList.add('impact-hit');
+        artist.classList.add('revealed');
+        editorialRow.classList.add('revealed');
+      });
+    }
+
+    function showRevealOnly() {
+      if (sequenceTimer) clearTimeout(sequenceTimer);
+      if (odometerAnimId) cancelAnimationFrame(odometerAnimId);
+      if (timelineAnimId) cancelAnimationFrame(timelineAnimId);
+      const frame = document.getElementById('storyFrame');
+      frame.className = 'story-frame stage-reveal';
+
+      const rank = document.getElementById('inputRank').value;
+      document.getElementById('rankDisplay').textContent = '#' + (rank < 10 ? '0' + rank : rank);
+      document.getElementById('artistDisplay').classList.add('revealed');
+      document.getElementById('editorialRow').classList.add('revealed');
+
+      document.getElementById('timelineLabel').textContent = 'Mode : Révélation Fixe';
+      document.getElementById('timelineFill').style.width = '100%';
+      document.getElementById('timelineTime').textContent = '3.9s';
+    }
+
+    function updateLive() {
+      const artist = document.getElementById('inputArtist').value.toUpperCase();
+      const intro = document.getElementById('inputIntro').value.toUpperCase();
+      const cat = document.getElementById('inputCategory').value.toUpperCase();
+      const rank = document.getElementById('inputRank').value;
+
+      document.getElementById('artistDisplay').textContent = artist;
+      document.getElementById('introHeadline').textContent = intro;
+      document.getElementById('introHeadline').setAttribute('data-text', intro);
+      document.getElementById('categoryDisplay').textContent = cat;
+      document.getElementById('rankDisplay').textContent = '#' + (rank < 10 ? '0' + rank : rank);
+    }
+
+    function updateMediaUrl(url) {
+      const img = document.getElementById('artistMediaImg');
+      if (img && url) {
+        img.src = url;
+      }
+    }
+
+    function applyArtist(rank, name, cat, imgUrl) {
+      document.getElementById('inputRank').value = rank;
+      document.getElementById('inputArtist').value = name;
+      document.getElementById('inputCategory').value = cat;
+      document.getElementById('inputMediaUrl').value = imgUrl;
+      updateMediaUrl(imgUrl);
+      updateLive();
+      playProBroadcastSequence();
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      initAnimatedBackground();
+      initThreeJS();
+      playProBroadcastSequence();
+    });
+  </script>
+</body>
+</html>

@@ -86,7 +86,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'EVENTS' | 'LIVESTREAM' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'REELS' | 'CONCOURS' | 'ARTISTE FESTIVAL' | 'AFFICHE' | 'PROMO' | 'MAP' | 'CALENDRIER' | 'JEU' | 'JEU_FESTIVAL' | 'JEU_DJ';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'EVENTS' | 'LIVESTREAM' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'REELS' | 'CONCOURS' | 'ARTISTE FESTIVAL' | 'AFFICHE' | 'PROMO' | 'MAP' | 'CALENDRIER' | 'JEU' | 'JEU_FESTIVAL' | 'JEU_DJ' | 'HIGHLIGHTS';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -372,6 +372,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isolationError, setIsolationError] = useState<string | null>(null);
     const [artistNameText, setArtistNameText] = useState('');
     const [festivalNameText, setFestivalNameText] = useState('');
+    const [highlightsArtist, setHighlightsArtist] = useState<string>('MARTIN GARRIX');
+    const [highlightsFestival, setHighlightsFestival] = useState<string>('TOMORROWLAND');
+    const [highlightsCity, setHighlightsCity] = useState<string>('BOOM');
+    const [highlightsCountry, setHighlightsCountry] = useState<string>('BELGIQUE');
+    const [highlightsDate, setHighlightsDate] = useState<string>('18 - 20 JUILLET 2026');
     const [isArtistLogoNegative, setIsArtistLogoNegative] = useState(true);
     const [citationAuthor, setCitationAuthor] = useState('');
     const [citationMedia, setCitationMedia] = useState('pour Dropsiders');
@@ -601,6 +606,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
     const afficheFileInputRef = useRef<HTMLInputElement>(null);
+
+    // TOP 100 DROPSIDERS REVEAL
+    const [top100Rank, setTop100Rank] = useState<number>(4);
+    const [top100ArtistName, setTop100ArtistName] = useState<string>('MARTIN GARRIX');
+    const [top100Category, setTop100Category] = useState<string>('CLASSEMENT OFFICIEL 2026');
+    const [top100Badge, setTop100Badge] = useState<string>('DROPSIDERS TOP 100');
+    const [top100AnimKey, setTop100AnimKey] = useState<number>(0);
+    const top100AnimStartRef = useRef<number>(Date.now());
 
     // MUSIQUE : Slide 1 = Annonce, Slides 2 à 19 = Tracks (pochette + titre + artiste + label + extrait audio), Slide 20 = Promo
     type MusicTrackSlide = { cover: string; title: string; artist: string; label: string; audio?: string; audioStartTime?: number };
@@ -1374,7 +1387,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'TOP 5 ARTISTE': { label: 'TOP 5 ARTISTES', grad: '255, 230, 0', color: '#ffe600' }, // Unique Yellow/Gold
         'TOP 5 STYLES': { label: 'TOP 5 STYLES', grad: '0, 240, 255', color: '#00f0ff' },
         'TOP 10 FESTIVAL': { label: 'TOP 10 ARTISTES', grad: '255, 0, 51', color: '#ff0033' }, // Neon Red
-        'TOP 100 DROPSIDERS': { label: 'TOP 100 DROPSIDERS', grad: '255, 230, 0', color: '#ffe600' },
+        'TOP 100 DROPSIDERS': { label: 'DROPSIDERS TOP 100', grad: '255, 18, 65', color: '#ff1241' },
         'NEWS': { label: 'NEWS', grad: '255, 0, 51', color: '#ff0033' },
         'FOCUS': { label: 'FOCUS', grad: '255, 170, 0', color: '#ffaa00' },
         'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
@@ -1397,6 +1410,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'JEU': { label: 'DEVINE LE CLIP', grad: '0, 240, 255', color: '#00f0ff' },
         'JEU_FESTIVAL': { label: 'DEVINE LE FESTIVAL', grad: '255, 170, 0', color: '#ffaa00' },
         'JEU_DJ': { label: 'DEVINE LE DJ', grad: '189, 0, 255', color: '#bd00ff' },
+        'HIGHLIGHTS': { label: 'HIGHLIGHTS', grad: '0, 240, 255', color: '#00f0ff' },
     };
 
     useEffect(() => {
@@ -1717,12 +1731,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // Image spécifique à la slide ou image de fond globale
-            // Dans le thème MUSIQUE, pour les slides tracks (>= 2), la cover du morceau prend le dessus sur le fond uploadé pour la slide 1 (bgImage) !
-            const activeSlideImgSrc = (theme === 'JEU_DJ' && effectiveEditorialSlide === 2 && (!editorialSlideImages[2] || editorialSlideImages[2] === djOriginalImage))
-                ? (editorialSlideImages[1] || bgImage)
-                : isMusiqueTrackSlide
-                    ? (editorialSlideImages[effectiveEditorialSlide] || (musiqueCoverUrl ? musiqueCoverUrl : bgImage))
-                    : (editorialSlideImages[effectiveEditorialSlide] || bgImage);
+            // Dans le slide AFFICHE ou MUSIQUE slide >= 2, le visuel dédié (affiche ou cover) prend la priorité absolue sur le fond uploadé pour la slide 1 (bgImage) !
+            const isCurrentSlideAffiche = Boolean(
+                theme === 'AFFICHE' || 
+                (theme === 'EVENTS' && eventsSlide === 2) || 
+                isEditorialAfficheRequested || 
+                (theme === 'PLANNING' && effectiveAgendaSlide >= 3)
+            );
+            const currentSlideAfficheUrl = (theme === 'PLANNING' && effectiveAgendaSlide >= 3)
+                ? (agendaAffiches[effectiveAgendaSlide - 3]?.image || '')
+                : (afficheImage || (isEditorialAfficheRequested ? (editorialSlideImages[effectiveEditorialSlide] || '') : '') || '');
+
+            const activeSlideImgSrc = isCurrentSlideAffiche
+                ? (currentSlideAfficheUrl || (isEditorialAfficheRequested ? editorialSlideImages[effectiveEditorialSlide] : '') || bgImage)
+                : (theme === 'JEU_DJ' && effectiveEditorialSlide === 2 && (!editorialSlideImages[2] || editorialSlideImages[2] === djOriginalImage))
+                    ? (editorialSlideImages[1] || bgImage)
+                    : isMusiqueTrackSlide
+                        ? (editorialSlideImages[effectiveEditorialSlide] || (musiqueCoverUrl ? musiqueCoverUrl : bgImage))
+                        : (editorialSlideImages[effectiveEditorialSlide] || bgImage);
             if (activeSlideImgSrc) {
                 if (imageCacheRef.current[activeSlideImgSrc]) {
                     img = imageCacheRef.current[activeSlideImgSrc];
@@ -1732,6 +1758,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     imgObj.src = activeSlideImgSrc;
                     imgObj.onload = () => {
                         imageCacheRef.current[activeSlideImgSrc] = imgObj;
+                        if (isCurrentSlideAffiche && currentSlideAfficheUrl && activeSlideImgSrc === currentSlideAfficheUrl && !afficheImageRef.current) {
+                            afficheImageRef.current = imgObj;
+                        }
                         generateImage();
                     };
                     img = null;
@@ -1778,10 +1807,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            // Dans MUSIQUE slide >= 2, la cover du morceau prend le dessus sur le fond uploadé pour la slide 1 (bgImage) !
-            let effectiveImg = isMusiqueTrackSlide
-                ? (editorialSlideImages[effectiveEditorialSlide] ? img : (musiqueCoverImg || img))
-                : img;
+            // Dans le slide AFFICHE ou MUSIQUE slide >= 2, le visuel dédié (affiche ou cover) prend la priorité absolue sur le fond uploadé pour la slide 1 (bgImage) !
+            let effectiveImg = isCurrentSlideAffiche
+                ? ((currentSlideAfficheUrl && (afficheImageRef.current || imageCacheRef.current[currentSlideAfficheUrl])) || img)
+                : isMusiqueTrackSlide
+                    ? (editorialSlideImages[effectiveEditorialSlide] ? img : (musiqueCoverImg || img))
+                    : img;
             if (theme === 'JEU_DJ') {
                 if (isCurrentSlideSilhouette) {
                     effectiveImg = djCutoutImgObj || img || null;
@@ -1790,7 +1821,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            const isAnyAnimationActive = (textAnimation !== 'NONE' || bgAnimation !== 'NONE' || (theme === 'JEU_DJ' && isCurrentSlideSilhouette && djAppearanceAnim !== 'STATIC') || (theme === 'PLANNING' && activeTab === 'REEL'));
+            const isAnyAnimationActive = (textAnimation !== 'NONE' || bgAnimation !== 'NONE' || (theme === 'JEU_DJ' && isCurrentSlideSilhouette && djAppearanceAnim !== 'STATIC') || (theme === 'PLANNING' && activeTab === 'REEL') || theme === 'TOP 100 DROPSIDERS');
             const animElapsed = isVideoRecordingRef.current
                 ? deterministicAnimTimeRef.current
                 : ((bgVideo && !isDownloading) || isAnyAnimationActive || (theme === 'MUSIQUE' && !isDownloading && (cdjPlayerRing || musicBgMotion)) || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying)
@@ -1941,7 +1972,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            const shouldUseBgVideo = bgVideo && (!isMusiqueTrackSlide || (!musiqueCoverImg && !musiqueCoverUrl && !editorialSlideImages[effectiveEditorialSlide]));
+            const hasAfficheVisual = isCurrentSlideAffiche && Boolean(currentSlideAfficheUrl);
+            const shouldUseBgVideo = bgVideo && 
+                (!isMusiqueTrackSlide || (!musiqueCoverImg && !musiqueCoverUrl && !editorialSlideImages[effectiveEditorialSlide])) &&
+                (!isCurrentSlideAffiche || !hasAfficheVisual);
             if (shouldUseBgVideo) {
                 const baseScale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
                 const scale = baseScale * bgAnimScale;
@@ -2651,7 +2685,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (!showText) return; 
 
             const isModernEditorialTheme = (
-                (!isEditorialAfficheRequested && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme)) ||
+                (!isEditorialAfficheRequested && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme)) ||
                 (theme === 'MUSIQUE' && effectiveEditorialSlide === 1) ||
                 (theme === 'EVENTS' && eventsSlide === 1) ||
                 (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1)
@@ -4910,14 +4944,38 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.roundRect(cardX, cardY, cardW, cardH, rad);
                 ctx.clip();
 
-                if (afficheImageRef.current) {
-                    const poster = afficheImageRef.current;
+                const posterUrl = currentSlideAfficheUrl;
+                let poster = (afficheImage && afficheImageRef.current) 
+                    || (posterUrl && imageCacheRef.current[posterUrl]) 
+                    || (isEditorialAfficheRequested && editorialSlideImages[effectiveEditorialSlide] ? imageCacheRef.current[editorialSlideImages[effectiveEditorialSlide]] : null)
+                    || img;
+
+                if (posterUrl && (!poster || !poster.complete || poster.naturalWidth === 0)) {
+                    if (imageCacheRef.current[posterUrl]) {
+                        poster = imageCacheRef.current[posterUrl];
+                    } else {
+                        const tempImg = new Image();
+                        tempImg.crossOrigin = 'anonymous';
+                        tempImg.onload = () => {
+                            imageCacheRef.current[posterUrl] = tempImg;
+                            if (afficheImage && posterUrl === afficheImage) {
+                                afficheImageRef.current = tempImg;
+                            }
+                            generateImage();
+                        };
+                        tempImg.src = posterUrl;
+                        if (!poster) poster = tempImg;
+                    }
+                }
+
+                if (poster && poster.complete && poster.naturalWidth > 0) {
+                    const posterImg = poster;
                     if (afficheMode === 'contain') {
                         ctx.fillStyle = '#0a0a0e';
                         ctx.fillRect(cardX, cardY, cardW, cardH);
                     }
                     // Zoom + déplacement interne : seule l'image bouge, le cadre reste fixe
-                    drawImageZoomPan(ctx, poster, cardX, cardY, cardW, cardH, afficheMode === 'contain' ? 'contain' : 'cover', afficheImgZoom, afficheImgPanX, afficheImgPanY);
+                    drawImageZoomPan(ctx, posterImg, cardX, cardY, cardW, cardH, afficheMode === 'contain' ? 'contain' : 'cover', afficheImgZoom, afficheImgPanX, afficheImgPanY);
                 } else {
                     // Carte placeholder élégante en attente d'image
                     const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
@@ -5437,43 +5495,293 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-            } else {
-                // Draw Stylized Footer for Top 100
-                if (theme === 'TOP 100 DROPSIDERS') {
-                    ctx.save();
-                    const ctaSize = 24;
-                    const prefix = 'VOTER SUR ';
-                    const domain = 'DROPSIDERS.FR';
-                    const centerX = canvas.width / 2;
-                    const footerY = canvas.height - 60;
-                    
-                    ctx.font = `600 ${ctaSize}px "Montserrat", sans-serif`;
-                    const w1 = ctx.measureText(prefix).width;
-                    ctx.font = `900 ${ctaSize}px "Montserrat", sans-serif`;
-                    const w2 = ctx.measureText(domain).width;
-                    const totalW = w1 + w2;
-                    let curX = centerX - totalW / 2;
+            } else if (theme === 'TOP 100 DROPSIDERS') {
+                const isReel = effectiveTab === 'REEL';
+                const isStory = canvas.height > 1500;
 
-                    ctx.textAlign = 'left';
+                // 1. Ambiance broadcast sombre & faisceau rouge néon au centre
+                const vig = ctx.createRadialGradient(
+                    canvas.width / 2, canvas.height / 2, canvas.width * 0.15,
+                    canvas.width / 2, canvas.height / 2, canvas.height * 0.75
+                );
+                vig.addColorStop(0, 'rgba(0, 0, 0, 0.20)');
+                vig.addColorStop(0.55, 'rgba(0, 0, 0, 0.65)');
+                vig.addColorStop(1, 'rgba(3, 3, 7, 0.94)');
+                ctx.fillStyle = vig;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const centerY = isStory ? 960 : 675;
+                const beamGrad = ctx.createRadialGradient(canvas.width / 2, centerY - 20, 40, canvas.width / 2, centerY - 20, 500);
+                beamGrad.addColorStop(0, 'rgba(255, 18, 65, 0.28)');
+                beamGrad.addColorStop(0.5, 'rgba(255, 18, 65, 0.06)');
+                beamGrad.addColorStop(1, 'rgba(255, 18, 65, 0)');
+                ctx.fillStyle = beamGrad;
+                ctx.fillRect(0, centerY - 520, canvas.width, 1040);
+
+                // 2. Top-Left Badge Dropsiders Officiel
+                drawTopCapsuleBadge(top100Badge || 'DROPSIDERS TOP 100', '#ff1241', '255, 18, 65');
+
+                // 3. Défilement du rang : commence à 100 et roule jusqu'au rang cible
+                const parsedTarget = Math.max(1, Math.min(100, Number(top100Rank) || 1));
+                const isVideoExport = isVideoRecordingRef.current;
+                const animTime = isVideoExport 
+                    ? deterministicAnimTimeRef.current 
+                    : (animElapsed !== 99.0 ? animElapsed : (Date.now() - top100AnimStartRef.current) / 1000);
+                const rollDuration = 2.5; // Déroulement de 100 jusqu'au rang cible (2.5 secondes)
+                const isLiveRolling = (!isDownloading || isVideoExport) && animTime < rollDuration;
+
+                let currentRank = parsedTarget;
+                if (isLiveRolling) {
+                    const progress = Math.min(1, Math.max(0, animTime / rollDuration));
+                    const easeOut = 1 - Math.pow(1 - progress, 3);
+                    currentRank = Math.max(parsedTarget, Math.round(100 - easeOut * (100 - parsedTarget)));
+                }
+                const rankStr = '#' + (currentRank < 10 ? '0' + currentRank : currentRank);
+
+                // A) Rang géant
+                ctx.save();
+                const rankFontSize = isStory ? 175 : 130;
+                ctx.font = `900 italic ${rankFontSize}px "Montserrat", sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = 'rgba(255, 18, 65, 0.55)';
+                ctx.shadowBlur = 35;
+                ctx.shadowOffsetY = 4;
+                ctx.fillStyle = '#ffffff';
+                const rankY = centerY - (isStory ? 75 : 55);
+                ctx.fillText(rankStr, canvas.width / 2, rankY);
+                ctx.restore();
+
+                // B) Nom de l'artiste démasqué en grand (Montserrat 900 Black)
+                // Apparaît EN MÊME TEMPS que le chiffre de la place (au terme du roulement de 2.5s)
+                ctx.save();
+                const postRollElapsed = Math.max(0, animTime - rollDuration);
+                const artistProgress = isLiveRolling ? 0 : Math.min(1, postRollElapsed / 0.35);
+                const artistEase = 1 - Math.pow(1 - artistProgress, 3);
+                const artistYOff = (!isDownloading || isVideoExport) ? (1 - artistEase) * 35 : 0;
+                const artistAlpha = (!isDownloading || isVideoExport) ? (isLiveRolling ? 0 : artistProgress) : 1.0;
+
+                ctx.globalAlpha *= artistAlpha;
+                let artistFontSize = isStory ? 68 : 52;
+                ctx.font = `900 ${artistFontSize}px "Montserrat", sans-serif`;
+                const artistText = (top100ArtistName || 'MARTIN GARRIX').toUpperCase();
+                let artistW = ctx.measureText(artistText).width;
+                const maxArtistW = 920;
+                if (artistW > maxArtistW) {
+                    artistFontSize = Math.max(28, Math.floor(artistFontSize * (maxArtistW / artistW)));
+                    ctx.font = `900 ${artistFontSize}px "Montserrat", sans-serif`;
+                }
+                const artistY = centerY + (isStory ? 65 : 45) + artistYOff;
+                const artistGrad = ctx.createLinearGradient(0, artistY - artistFontSize / 2, 0, artistY + artistFontSize / 2);
+                artistGrad.addColorStop(0, '#ffffff');
+                artistGrad.addColorStop(1, '#c6c6d8');
+                ctx.fillStyle = artistGrad;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                ctx.shadowBlur = 20;
+                ctx.fillText(artistText, canvas.width / 2, artistY);
+                ctx.restore();
+
+                // C) Capsule Catégorie / Sous-titre
+                ctx.save();
+                const catAlpha = (!isDownloading || isVideoExport) ? (isLiveRolling ? 0 : Math.min(1, postRollElapsed / 0.35)) : 1.0;
+                ctx.globalAlpha *= catAlpha;
+                const catText = (top100Category || 'CLASSEMENT OFFICIEL 2026').toUpperCase();
+                const catFontSize = isStory ? 18 : 15;
+                ctx.font = `800 ${catFontSize}px "Montserrat", sans-serif`;
+                if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
+                const catTextW = ctx.measureText(catText).width;
+                const catPillW = catTextW + 48;
+                const catPillH = isStory ? 40 : 34;
+                const catY = centerY + (isStory ? 150 : 110);
+                const catX = (canvas.width - catPillW) / 2;
+
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+                ctx.beginPath();
+                ctx.roundRect(catX, catY - catPillH / 2, catPillW, catPillH, 999);
+                ctx.fill();
+
+                ctx.strokeStyle = 'rgba(255, 18, 65, 0.55)';
+                ctx.lineWidth = 1.5;
+                ctx.shadowColor = 'rgba(255, 18, 65, 0.45)';
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.roundRect(catX, catY - catPillH / 2, catPillW, catPillH, 999);
+                ctx.stroke();
+
+                ctx.fillStyle = '#ff1241';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = 'rgba(255, 18, 65, 0.6)';
+                ctx.shadowBlur = 15;
+                ctx.fillText(catText, canvas.width / 2, catY);
+                ctx.restore();
+
+            } else if (theme === 'HIGHLIGHTS') {
+                const isReel = effectiveTab === 'REEL';
+                const centerX = canvas.width / 2;
+
+                // 1. Top subtle shadow for top-left framed logo legibility
+                const topGrad = ctx.createLinearGradient(0, 0, 0, 220);
+                topGrad.addColorStop(0, 'rgba(0, 0, 0, 0.7)');
+                topGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                ctx.fillStyle = topGrad;
+                ctx.fillRect(0, 0, canvas.width, 220);
+
+                // 2. Cinematic dark gradient from mid-height down to bottom
+                const gradStart = canvas.height * 0.44;
+                const bGrad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
+                bGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+                bGrad.addColorStop(0.35, 'rgba(0, 0, 0, 0.55)');
+                bGrad.addColorStop(0.70, 'rgba(0, 0, 0, 0.90)');
+                bGrad.addColorStop(1, 'rgba(0, 0, 0, 0.98)');
+                ctx.fillStyle = bGrad;
+                ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
+
+                // 3. Ambient cyan glow at the bottom edge
+                const ambientGlow = ctx.createLinearGradient(0, canvas.height - 180, 0, canvas.height);
+                ambientGlow.addColorStop(0, 'rgba(0, 240, 255, 0)');
+                ambientGlow.addColorStop(1, 'rgba(0, 240, 255, 0.12)');
+                ctx.fillStyle = ambientGlow;
+                ctx.fillRect(0, canvas.height - 180, canvas.width, 180);
+
+                // 4. Safe bottom position for the 3 stacked text lines
+                const safeBottom = canvas.height - (isReel ? 180 : 100);
+
+                // Animation support (if animated)
+                const animElapsed = isVideoRecordingRef.current
+                    ? deterministicAnimTimeRef.current
+                    : ((bgVideo && !isDownloading) || textAnimation !== 'NONE'
+                        ? (Date.now() - animStartTimeRef.current) / 1000
+                        : 99.0);
+
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                ctx.shadowBlur = 14;
+                ctx.shadowOffsetY = 4;
+
+                // --- LINE 1 : L'ARTISTE EN ASSEZ GROS ---
+                const artistStr = (highlightsArtist || '').trim().toUpperCase();
+                if (artistStr) {
+                    let artistFontSize = isReel ? 82 : 74;
+                    const maxArtistW = canvas.width - (isReel ? 160 : 120);
+                    ctx.font = `900 italic ${artistFontSize}px "Montserrat", sans-serif`;
+                    const w = ctx.measureText(artistStr).width;
+                    if (w > maxArtistW) {
+                        artistFontSize = Math.max(36, Math.floor(artistFontSize * (maxArtistW / w)));
+                        ctx.font = `900 italic ${artistFontSize}px "Montserrat", sans-serif`;
+                    }
                     ctx.fillStyle = '#ffffff';
-                    ctx.font = `600 ${ctaSize}px "Montserrat", sans-serif`;
-                    ctx.fillText(prefix, curX, footerY);
-                    curX += w1;
-                    
-                    ctx.font = `900 ${ctaSize}px "Montserrat", sans-serif`;
-                    ctx.fillStyle = '#ffe600';
-                    ctx.shadowColor = 'rgba(255, 230, 0, 0.5)';
-                    ctx.shadowBlur = 10;
-                    ctx.fillText(domain, curX, footerY);
-                    
-                    ctx.beginPath();
-                    ctx.strokeStyle = '#ffe600';
-                    ctx.lineWidth = 2.5;
-                    ctx.moveTo(curX, footerY + 8);
-                    ctx.lineTo(curX + w2, footerY + 8);
-                    ctx.stroke();
+
+                    let xOff = 0;
+                    let yOff = 0;
+                    let alpha = 1;
+                    if (textAnimation === 'SLIDE_LEFT') {
+                        const t = Math.max(0, Math.min(1, animElapsed / 0.5));
+                        const ease = 1 - Math.pow(1 - t, 3);
+                        xOff = -400 * (1 - ease);
+                        alpha = t;
+                    } else if (textAnimation === 'POP_UP') {
+                        const t = Math.max(0, Math.min(1, animElapsed / 0.5));
+                        const ease = 1 - Math.pow(1 - t, 3);
+                        yOff = 80 * (1 - ease);
+                        alpha = t;
+                    }
+
+                    const artistY = safeBottom - (isReel ? 130 : 110);
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.fillText(artistStr, centerX + xOff, artistY + yOff);
                     ctx.restore();
                 }
+
+                // --- LINE 2 : FESTIVAL + VILLE + PAYS ---
+                const metaParts = [
+                    highlightsFestival?.trim().toUpperCase(),
+                    highlightsCity?.trim().toUpperCase(),
+                    highlightsCountry?.trim().toUpperCase()
+                ].filter(Boolean);
+                const festivalLine = metaParts.join(' • ');
+
+                if (festivalLine) {
+                    let festFontSize = isReel ? 34 : 30;
+                    const maxFestW = canvas.width - (isReel ? 160 : 120);
+                    ctx.font = `800 ${festFontSize}px "Montserrat", sans-serif`;
+                    if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
+                    const fw = ctx.measureText(festivalLine).width;
+                    if (fw > maxFestW) {
+                        festFontSize = Math.max(18, Math.floor(festFontSize * (maxFestW / fw)));
+                        ctx.font = `800 ${festFontSize}px "Montserrat", sans-serif`;
+                    }
+                    ctx.fillStyle = '#00f0ff';
+
+                    let xOff = 0;
+                    let yOff = 0;
+                    let alpha = 1;
+                    if (textAnimation === 'SLIDE_LEFT') {
+                        const t = Math.max(0, Math.min(1, (animElapsed - 0.15) / 0.5));
+                        const ease = 1 - Math.pow(1 - t, 3);
+                        xOff = -400 * (1 - ease);
+                        alpha = t;
+                    } else if (textAnimation === 'POP_UP') {
+                        const t = Math.max(0, Math.min(1, (animElapsed - 0.15) / 0.5));
+                        const ease = 1 - Math.pow(1 - t, 3);
+                        yOff = 80 * (1 - ease);
+                        alpha = t;
+                    }
+
+                    const festY = safeBottom - (isReel ? 68 : 58);
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.fillText(festivalLine, centerX + xOff, festY + yOff);
+                    ctx.restore();
+                }
+
+                // --- LINE 3 : DATE EN DESSOUS ---
+                const dateStr = (highlightsDate || '').trim().toUpperCase();
+                if (dateStr) {
+                    let dateFontSize = isReel ? 24 : 21;
+                    ctx.font = `700 ${dateFontSize}px "Montserrat", sans-serif`;
+                    if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '4px';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
+
+                    let xOff = 0;
+                    let yOff = 0;
+                    let alpha = 1;
+                    if (textAnimation === 'SLIDE_LEFT') {
+                        const t = Math.max(0, Math.min(1, (animElapsed - 0.3) / 0.5));
+                        const ease = 1 - Math.pow(1 - t, 3);
+                        xOff = -400 * (1 - ease);
+                        alpha = t;
+                    } else if (textAnimation === 'POP_UP') {
+                        const t = Math.max(0, Math.min(1, (animElapsed - 0.3) / 0.5));
+                        const ease = 1 - Math.pow(1 - t, 3);
+                        yOff = 80 * (1 - ease);
+                        alpha = t;
+                    }
+
+                    const dateY = safeBottom;
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.fillText(dateStr, centerX + xOff, dateY + yOff);
+                    ctx.restore();
+                }
+
+                ctx.restore();
+
+                // Swipe indicator if enabled
+                if (showSwipe) {
+                    drawAnimatedSwipeIndicator(
+                        canvas.width - (isReel ? 80 : 60),
+                        safeBottom - 35,
+                        '#00f0ff',
+                        24
+                    );
+                }
+
+            } else {
 
                 // Draw Stylized CTA Banner for Devine le Clip / Devine le Festival / Devine le DJ (Slide 2 Reveal uniquement - masqué en Slide 1)
                 const shouldDrawDevinetteCta = theme === 'JEU_DJ'
@@ -6129,7 +6437,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.save();
                 ctx.shadowColor = 'rgba(0,0,0,0.6)';
                 ctx.shadowBlur = 18;
-                ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, logoH);
+                if (theme === 'HIGHLIGHTS') {
+                    ctx.drawImage(logo, xOffset, yOffset, w, logoH);
+                } else {
+                    ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, logoH);
+                }
                 ctx.restore();
             }
 
@@ -6265,7 +6577,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         const isBadgeTheme = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'AFFICHE', 'PLANNING'].includes(theme);
         const shouldAnimateBadge = isBadgeTheme && activeTab === 'REEL';
-        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying)) {
+        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS') {
             let lastRender = 0;
             let isRendering = false;
             const loop = (timestamp: number) => {
@@ -8219,14 +8531,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 setConseilsSubtext('RÉPONSE :\n*NOM DU DJ*\nTu avais reconnu sa silhouette ?');
             }
         } else if (newTheme === 'TOP 100 DROPSIDERS') {
-            if (!conseilsTitle || conseilsTitle === 'LE TITRE ICI' || conseilsTitle.includes('CLIP') || conseilsTitle.includes('FESTIVAL')) {
-                const defT = '*TOP 100 DROPSIDERS 2026* : LES VOTES SONT OUVERTS';
-                setConseilsTitle(defT);
-                setCustomText(defT);
-            }
-            if (!conseilsSubtext) {
-                setConseilsSubtext('VOTE DÈS MAINTENANT POUR TES ARTISTES, CLUBS & FESTIVALS SUR DROPSIDERS.FR !');
-            }
+            top100AnimStartRef.current = Date.now();
+            animStartTimeRef.current = Date.now();
+            setTop100AnimKey(k => k + 1);
         } else if (newTheme === 'CONCOURS') {
             if (!conseilsTitle || conseilsTitle === 'LE TITRE ICI') {
                 const defT = '*1X PASS VIP 3 JOURS* À GAGNER';
@@ -8415,6 +8722,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(2); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2) ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>SPOTLIGHT</button>
             <button onClick={() => handleSetTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
             <button onClick={() => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(1); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1 ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>ARTISTE FESTIVAL</button>
+            <button onClick={() => handleSetTheme('HIGHLIGHTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400 shadow-[0_0_12px_rgba(0,240,255,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>HIGHLIGHTS</button>
             <button
                 onClick={() => {
                     if (theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ') {
@@ -8434,7 +8742,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             >
                 {theme === 'JEU_FESTIVAL' ? '🎪 DEVINE FESTIVAL' : theme === 'JEU_DJ' ? '👤 DEVINE LE DJ' : theme === 'JEU' ? '🎬 DEVINE CLIP' : 'DEVINETTE (JEU)'}
             </button>
-            <button onClick={() => handleSetTheme('TOP 100 DROPSIDERS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 100 DROPSIDERS' ? 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600] shadow-[0_0_12px_rgba(255,230,0,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>TOP 100 DROPSIDERS</button>
+            <button onClick={() => handleSetTheme('TOP 100 DROPSIDERS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 100 DROPSIDERS' ? 'bg-neon-red/20 border-neon-red text-white shadow-[0_0_12px_rgba(255,18,65,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>TOP 100 DROPSIDERS</button>
             
             {activeTab === 'REEL' && (
                 <>
@@ -10122,6 +10430,63 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
+    const highlightsEditor = (
+        <div className="space-y-3">
+            <div className="space-y-1">
+                <span className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Artiste (Gros texte)</span>
+                <input 
+                    value={highlightsArtist} 
+                    onChange={e => setHighlightsArtist(e.target.value)} 
+                    placeholder="NOM DE L'ARTISTE (ex: MARTIN GARRIX)" 
+                    spellCheck={false}
+                    className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white text-base font-black italic focus:border-cyan-400 outline-none transition-all uppercase" 
+                />
+            </div>
+            <div className="space-y-1">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Festival</span>
+                <input 
+                    value={highlightsFestival} 
+                    onChange={e => setHighlightsFestival(e.target.value)} 
+                    placeholder="FESTIVAL (ex: TOMORROWLAND)" 
+                    spellCheck={false}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-cyan-400 outline-none transition-all" 
+                />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Ville</span>
+                    <input 
+                        value={highlightsCity} 
+                        onChange={e => setHighlightsCity(e.target.value)} 
+                        placeholder="VILLE (ex: BOOM)" 
+                        spellCheck={false}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-cyan-400 outline-none transition-all" 
+                    />
+                </div>
+                <div className="space-y-1">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Pays</span>
+                    <input 
+                        value={highlightsCountry} 
+                        onChange={e => setHighlightsCountry(e.target.value)} 
+                        placeholder="PAYS (ex: BELGIQUE)" 
+                        spellCheck={false}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-cyan-400 outline-none transition-all" 
+                    />
+                </div>
+            </div>
+            <div className="space-y-1">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Date</span>
+                <input 
+                    value={highlightsDate} 
+                    onChange={e => setHighlightsDate(e.target.value)} 
+                    placeholder="DATE (ex: 18 - 20 JUILLET 2026)" 
+                    spellCheck={false}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-cyan-400 outline-none transition-all" 
+                />
+            </div>
+        </div>
+    );
+
     const tracklistEditor = (
         <div className="space-y-4">
             <div className="space-y-2">
@@ -10679,7 +11044,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         const effectiveAfficheImg = isPlanningAffiche
             ? (currentPlanningAffiche?.image || '')
-            : afficheImage;
+            : (afficheImage || (isEditorialAfficheActive ? (editorialSlideImages[editorialSlide] || '') : ''));
 
         const accentTextClass = isMusicTheme ? 'text-[#00ff66]' : (isPlanningAffiche ? 'text-[#ff3700]' : 'text-neon-red');
         const accentGlowBorder = isMusicTheme ? 'border-[#00ff66]/40 text-[#00ff66] bg-[#00ff66]/20' : (isPlanningAffiche ? 'border-[#ff3700]/40 text-[#ff3700] bg-[#ff3700]/20' : 'border-neon-red/40 text-neon-red bg-neon-red/20');
@@ -10769,6 +11134,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     updateAgendaAffiche(planningAfficheIdx, 'image', url);
                                 } else {
                                     setAfficheImage(url);
+                                    if (isEditorialAfficheActive) {
+                                        setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
+                                    }
                                 }
                             }}
                             className={`w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-medium placeholder-gray-500 outline-none ${isMusicTheme ? 'focus:border-[#00ff66]/50' : (isPlanningAffiche ? 'focus:border-[#ff3700]/50' : 'focus:border-neon-red/50')} transition-all`}
@@ -12249,7 +12617,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="flex items-center justify-between pl-1">
                     <label className="text-[9px] font-black text-neon-cyan uppercase tracking-widest flex items-center gap-1.5">
                         <span>Titre Principal</span>
-                        <span className="text-[8px] font-bold text-gray-400">({theme === 'TOP 100 DROPSIDERS' ? 'TOP 100' : theme === 'JEU' ? 'DEVINE LE CLIP' : theme === 'JEU_FESTIVAL' ? 'DEVINE LE FESTIVAL' : theme === 'JEU_DJ' ? 'DEVINE LE DJ' : theme})</span>
+                        <span className="text-[8px] font-bold text-gray-400">({theme === 'JEU' ? 'DEVINE LE CLIP' : theme === 'JEU_FESTIVAL' ? 'DEVINE LE FESTIVAL' : theme === 'JEU_DJ' ? 'DEVINE LE DJ' : theme})</span>
                     </label>
                     <span className="text-[8px] font-bold text-gray-500">Astuce: entoure un mot avec *étoiles*</span>
                 </div>
@@ -12580,54 +12948,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     )}
 
-                    {theme === 'TOP 100 DROPSIDERS' && (
-                        <div className="p-2.5 bg-[#ffe600]/10 border border-[#ffe600]/25 rounded-xl space-y-1.5 shadow-lg">
-                            <span className="text-[8px] font-black uppercase text-[#ffe600] tracking-wider flex items-center gap-1.5">
-                                🏆 Modèles rapides Top 100 Dropsiders en 1 clic :
-                            </span>
-                            <div className="grid grid-cols-3 gap-1.5">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        const t = '*TOP 100 DROPSIDERS 2026* : LES VOTES SONT OUVERTS';
-                                        const s = 'VOTE DÈS MAINTENANT POUR TES ARTISTES, CLUBS ET FESTIVALS PRÉFÉRÉS SUR DROPSIDERS.FR !\nLES RÉSULTATS SERONT DÉVOILÉS EN DÉCEMBRE.';
-                                        setConseilsTitle(t);
-                                        setCustomText(t);
-                                        setConseilsSubtext(s);
-                                    }}
-                                    className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
-                                >
-                                    🗳️ Votes Ouverts
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        const t = '*TOP 100 DROPSIDERS* : DÉCOUVRE LE N°1';
-                                        const s = 'LE CLASSEMENT OFFICIEL DE LA COMMUNAUTÉ EST EN LIGNE.\nRETROUVE LE TOP 100 COMPLET SUR DROPSIDERS.FR.';
-                                        setConseilsTitle(t);
-                                        setCustomText(t);
-                                        setConseilsSubtext(s);
-                                    }}
-                                    className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
-                                >
-                                    🏆 Le Classement
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        const t = '*DERNIERS JOURS* DE VOTE TOP 100';
-                                        const s = 'CLÔTURE DES VOTES CE DIMANCHE À 23H59 !\nFAIS MONTER TES FAVORIS DANS LE TOP 100 DROPSIDERS.';
-                                        setConseilsTitle(t);
-                                        setCustomText(t);
-                                        setConseilsSubtext(s);
-                                    }}
-                                    className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
-                                >
-                                    ⏳ Phase Finale
-                                </button>
-                            </div>
-                        </div>
-                    )}
+
 
                     {(theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ') && (
                         <div className="space-y-3">
@@ -12822,6 +13143,198 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     )}
                 </>
             )}
+        </div>
+    );
+
+    const top100Editor = (
+        <div className="space-y-4">
+            {/* PRESETS RAPIDES 1 CLIC */}
+            <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2 shadow-lg">
+                <span className="text-[9px] font-black text-neon-red uppercase tracking-wider flex items-center gap-1.5">
+                    🏆 Presets Rapides Révélation (1 clic) :
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setTop100Rank(1);
+                            setTop100ArtistName('DAVID GUETTA');
+                            setTop100Category('WORLD NO. 1 DJ');
+                            top100AnimStartRef.current = Date.now();
+                            animStartTimeRef.current = Date.now();
+                            generateImage();
+                        }}
+                        className={`py-2 px-2.5 rounded-xl text-[9px] font-black uppercase border transition-all text-left flex items-center justify-between ${
+                            top100Rank === 1 ? 'bg-neon-red/20 border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
+                        }`}
+                    >
+                        <span>#01 DAVID GUETTA</span>
+                        <span className="text-[8px] text-neon-red">★ N°1</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setTop100Rank(4);
+                            setTop100ArtistName('MARTIN GARRIX');
+                            setTop100Category('THE NETHERLANDS • MAIN');
+                            top100AnimStartRef.current = Date.now();
+                            animStartTimeRef.current = Date.now();
+                            generateImage();
+                        }}
+                        className={`py-2 px-2.5 rounded-xl text-[9px] font-black uppercase border transition-all text-left flex items-center justify-between ${
+                            top100Rank === 4 ? 'bg-neon-red/20 border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
+                        }`}
+                    >
+                        <span>#04 MARTIN GARRIX</span>
+                        <span className="text-[8px] text-neon-red">#04</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setTop100Rank(3);
+                            setTop100ArtistName('ALOK');
+                            setTop100Category('BRAZILIAN BASS / EDM');
+                            top100AnimStartRef.current = Date.now();
+                            animStartTimeRef.current = Date.now();
+                            generateImage();
+                        }}
+                        className={`py-2 px-2.5 rounded-xl text-[9px] font-black uppercase border transition-all text-left flex items-center justify-between ${
+                            top100Rank === 3 ? 'bg-neon-red/20 border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
+                        }`}
+                    >
+                        <span>#03 ALOK</span>
+                        <span className="text-[8px] text-neon-red">#03</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setTop100Rank(7);
+                            setTop100ArtistName('AFROJACK');
+                            setTop100Category('WALL RECORDINGS');
+                            top100AnimStartRef.current = Date.now();
+                            animStartTimeRef.current = Date.now();
+                            generateImage();
+                        }}
+                        className={`py-2 px-2.5 rounded-xl text-[9px] font-black uppercase border transition-all text-left flex items-center justify-between ${
+                            top100Rank === 7 ? 'bg-neon-red/20 border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
+                        }`}
+                    >
+                        <span>#07 AFROJACK</span>
+                        <span className="text-[8px] text-neon-red">#07</span>
+                    </button>
+                </div>
+            </div>
+
+            {/* CONFIGURATION DU RANG */}
+            <div className="space-y-3 p-3.5 bg-black/40 border border-white/10 rounded-2xl shadow-lg">
+                <div className="flex items-center justify-between">
+                    <label className="text-[9px] font-black text-neon-red uppercase tracking-widest flex items-center gap-1.5">
+                        <span>🎯 Position / Rang</span>
+                        <span className="text-[8px] text-gray-500 font-mono">(1 à 100)</span>
+                    </label>
+                    <span className="text-[14px] font-black italic text-white font-mono">
+                        #{top100Rank < 10 ? '0' + top100Rank : top100Rank}
+                    </span>
+                </div>
+                <div className="flex items-center gap-3">
+                    <input
+                        type="range"
+                        min={1}
+                        max={100}
+                        value={top100Rank}
+                        onChange={e => {
+                            const val = Number(e.target.value);
+                            setTop100Rank(val);
+                            top100AnimStartRef.current = Date.now();
+                            animStartTimeRef.current = Date.now();
+                            generateImage();
+                        }}
+                        className="flex-1 accent-neon-red bg-white/10 rounded-lg h-2 cursor-pointer"
+                    />
+                    <input
+                        type="number"
+                        min={1}
+                        max={100}
+                        value={top100Rank}
+                        onChange={e => {
+                            const val = Math.max(1, Math.min(100, Number(e.target.value) || 1));
+                            setTop100Rank(val);
+                            top100AnimStartRef.current = Date.now();
+                            animStartTimeRef.current = Date.now();
+                            generateImage();
+                        }}
+                        className="w-16 bg-white/5 border border-white/10 rounded-xl p-2 text-white text-center font-black text-[12px] font-mono outline-none focus:border-neon-red/50"
+                    />
+                </div>
+                <p className="text-[8px] text-gray-400">
+                    💡 Le compteur part de <strong>100</strong> et roule automatiquement jusqu'à la position <strong>#{top100Rank < 10 ? '0' + top100Rank : top100Rank}</strong>.
+                </p>
+            </div>
+
+            {/* ARTISTE & SOUS-TITRE */}
+            <div className="space-y-3 p-3.5 bg-black/40 border border-white/10 rounded-2xl shadow-lg">
+                <div className="space-y-1">
+                    <label className="text-[9px] font-black text-white uppercase tracking-wider">
+                        Nom de l'Artiste
+                    </label>
+                    <input
+                        type="text"
+                        value={top100ArtistName}
+                        onChange={e => {
+                            setTop100ArtistName(e.target.value.toUpperCase());
+                            generateImage();
+                        }}
+                        placeholder="EX: MARTIN GARRIX"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[12px] tracking-wider focus:border-neon-red/50 outline-none"
+                    />
+                </div>
+
+                <div className="space-y-1">
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-wider">
+                        Sous-titre / Catégorie
+                    </label>
+                    <input
+                        type="text"
+                        value={top100Category}
+                        onChange={e => {
+                            setTop100Category(e.target.value.toUpperCase());
+                            generateImage();
+                        }}
+                        placeholder="EX: CLASSEMENT OFFICIEL 2026"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-bold uppercase text-[11px] focus:border-neon-red/50 outline-none"
+                    />
+                </div>
+
+                <div className="space-y-1">
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-wider">
+                        Badge en haut à gauche
+                    </label>
+                    <input
+                        type="text"
+                        value={top100Badge}
+                        onChange={e => {
+                            setTop100Badge(e.target.value.toUpperCase());
+                            generateImage();
+                        }}
+                        placeholder="EX: DROPSIDERS TOP 100"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-bold uppercase text-[11px] focus:border-neon-red/50 outline-none"
+                    />
+                </div>
+            </div>
+
+            {/* BOUTON REJOUER LA RÉVÉLATION */}
+            <button
+                type="button"
+                onClick={() => {
+                    top100AnimStartRef.current = Date.now();
+                    animStartTimeRef.current = Date.now();
+                    setTop100AnimKey(k => k + 1);
+                    generateImage();
+                }}
+                className="w-full py-3 bg-neon-red text-white hover:bg-red-600 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,18,65,0.4)] active:scale-98"
+            >
+                <Sparkles className="w-4 h-4" /> Rejouer la Révélation (100 ➔ #{top100Rank < 10 ? '0' + top100Rank : top100Rank})
+            </button>
         </div>
     );
 
@@ -15210,8 +15723,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <div className="space-y-1.5">
                                     {(() => {
                                         const getThemeMeta = (t: string) => {
-                                            if (['MUSIQUE', 'TRACKLIST', 'ARTISTE FESTIVAL', 'SPOTLIGHT'].includes(t)) {
-                                                return { category: 'MUSIC' as const, catLabel: 'Musique', icon: '🎵', color: '#00ff66', border: 'border-[#00ff66]/40', bg: 'bg-[#00ff66]/15', text: 'text-[#00ff66]' };
+                                            if (['MUSIQUE', 'TRACKLIST', 'ARTISTE FESTIVAL', 'SPOTLIGHT', 'HIGHLIGHTS'].includes(t)) {
+                                                return { category: 'MUSIC' as const, catLabel: 'Musique', icon: '🎵', color: '#00f0ff', border: 'border-cyan-400/40', bg: 'bg-cyan-500/15', text: 'text-cyan-400' };
                                             }
                                             if (['PLANNING', 'CALENDRIER', 'EVENTS', 'AFFICHE', 'MAP'].includes(t)) {
                                                 return { category: 'AGENDA' as const, catLabel: 'Agenda', icon: '📅', color: '#ff3700', border: 'border-[#ff3700]/40', bg: 'bg-[#ff3700]/15', text: 'text-[#ff3700]' };
@@ -15242,6 +15755,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                                             // 🎵 Musique
                                             { id: 'MUSIQUE', label: 'MUSIQUE', category: 'MUSIC', action: () => handleSetTheme('MUSIQUE'), active: theme === 'MUSIQUE', style: 'bg-neon-green/20 border-neon-green text-neon-green shadow-[0_0_12px_rgba(0,255,102,0.35)]' },
+                                            { id: 'HIGHLIGHTS', label: 'HIGHLIGHTS', category: 'MUSIC', action: () => handleSetTheme('HIGHLIGHTS'), active: theme === 'HIGHLIGHTS', style: 'bg-cyan-500/20 border-cyan-500 text-cyan-400 shadow-[0_0_12px_rgba(0,240,255,0.35)]' },
                                             { id: 'SPOTLIGHT', label: 'SPOTLIGHT', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(2); }, active: theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2), style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' },
                                             { id: 'ARTISTE FESTIVAL', label: 'ARTISTE FESTIVAL', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(1); }, active: theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1, style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' },
                                             ...(activeTab === 'REEL' ? [{ id: 'TRACKLIST', label: 'TRACKLIST', category: 'MUSIC', action: () => handleSetTheme('TRACKLIST'), active: theme === 'TRACKLIST', style: 'bg-orange-500/20 border-orange-500 text-orange-500 shadow-[0_0_12px_rgba(255,120,0,0.35)]' }] : []),
@@ -15261,7 +15775,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 style: theme === 'JEU_FESTIVAL' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_12px_rgba(255,170,0,0.35)]' : theme === 'JEU_DJ' ? 'bg-[#bd00ff]/20 border-[#bd00ff] text-[#bd00ff] shadow-[0_0_12px_rgba(189,0,255,0.35)]' : 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]'
                                             },
                                             { id: 'CONCOURS', label: 'CONCOURS', category: 'GAMES', action: () => handleSetTheme('CONCOURS'), active: theme === 'CONCOURS', style: 'bg-[#008cff]/20 border-[#008cff] text-[#008cff] shadow-[0_0_12px_rgba(0,140,255,0.35)]' },
-                                            { id: 'TOP 100 DROPSIDERS', label: 'TOP 100 DROPSIDERS', category: 'GAMES', action: () => handleSetTheme('TOP 100 DROPSIDERS'), active: theme === 'TOP 100 DROPSIDERS', style: 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600] shadow-[0_0_12px_rgba(255,230,0,0.35)]' }
+                                            { id: 'TOP 100 DROPSIDERS', label: 'TOP 100 DROPSIDERS', category: 'GAMES', action: () => handleSetTheme('TOP 100 DROPSIDERS'), active: theme === 'TOP 100 DROPSIDERS', style: 'bg-neon-red/20 border-neon-red text-white shadow-[0_0_12px_rgba(255,18,65,0.4)]' }
                                         ];
 
                                         const filteredThemes = themeCategoryFilter === 'ALL'
@@ -15441,8 +15955,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <><span className="text-[10px] font-black text-[#ff007f] uppercase">Événements & Affiche (Carrousel)</span>{eventsEditor}</>
                                     ) : theme === 'MUSIQUE' ? (
                                         <><span className="text-[10px] font-black text-[#00ff66] uppercase">Musique & Morceaux (Carrousel)</span>{musiqueEditor}</>
-                                    ) : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
-                                        <><span className="text-[10px] font-black text-neon-cyan uppercase">Contenu Titre & Sous-titre ({theme === 'TOP 100 DROPSIDERS' ? 'TOP 100' : theme === 'JEU' ? 'DEVINE LE CLIP' : theme === 'JEU_FESTIVAL' ? 'DEVINE LE FESTIVAL' : theme === 'JEU_DJ' ? 'DEVINE LE DJ' : theme})</span>{conseilsEditor}</>
+                                    ) : theme === 'TOP 100 DROPSIDERS' ? (
+                                        <><span className="text-[10px] font-black text-neon-red uppercase">🏆 Révélation Top 100 Dropsiders</span>{top100Editor}</>
+                                    ) : theme === 'HIGHLIGHTS' ? (
+                                        <><span className="text-[10px] font-black text-cyan-400 uppercase">Infos Highlights (Artiste & Festival)</span>{highlightsEditor}</>
+                                    ) : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
+                                        <><span className="text-[10px] font-black text-neon-cyan uppercase">Contenu Titre & Sous-titre ({theme === 'JEU' ? 'DEVINE LE CLIP' : theme === 'JEU_FESTIVAL' ? 'DEVINE LE FESTIVAL' : theme === 'JEU_DJ' ? 'DEVINE LE DJ' : theme})</span>{conseilsEditor}</>
                                     ) : theme === 'CITATION' ? (
                                         <><span className="text-[10px] font-black text-gray-500 uppercase">Citation & Auteur</span>{citationEditor}</>
                                     ) : theme === 'PROMO' ? (
@@ -16584,7 +17102,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 ))}
                                                 <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter</button>
                                             </div>
-                                        ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'ARTISTE FESTIVAL' ? artisteFestivalEditor : (theme === 'EVENTS' || theme === 'AFFICHE') ? eventsEditor : theme === 'MUSIQUE' ? musiqueEditor : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'PROMO' ? promoEditor : textEditor}
+                                        ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'ARTISTE FESTIVAL' ? artisteFestivalEditor : (theme === 'EVENTS' || theme === 'AFFICHE') ? eventsEditor : theme === 'MUSIQUE' ? musiqueEditor : theme === 'TOP 100 DROPSIDERS' ? top100Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'PROMO' ? promoEditor : textEditor}
                                         {/* Animation du texte & transitions de slide en dessous du cadre texte */}
                                         {theme !== 'MAP' && textAnimationControl}
                                         {theme !== 'MAP' && isMultiSlideTheme && slideTransitionControl}
@@ -16631,7 +17149,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'PLANNING' && agendaSlide >= 3)) && afficheEditor}
                                             {theme === 'MUSIQUE' && (editorialSlide === 1 ? musicSlide1VisualEditor : musicCoverEditor)}
                                             {(theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) && spotlightVisualEditor}
-                                            {slideVisualEditor}
+                                            {!(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'PLANNING' && agendaSlide >= 3)) && slideVisualEditor}
                                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                         </div>
                                     </div>
@@ -16844,6 +17362,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     setDjOriginalImage(finalUrl);
                                 }
                                 setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: finalUrl }));
+                                if (isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2)) {
+                                    setAfficheImage(finalUrl);
+                                    afficheImageRef.current = img;
+                                }
                                 generateImage();
                             };
                             img.src = finalUrl;
@@ -16870,7 +17392,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             };
                             img.src = finalUrl;
                         } else {
+                            const img = new Image();
+                            img.crossOrigin = 'anonymous';
+                            img.onload = () => {
+                                imageCacheRef.current[finalUrl] = img;
+                                afficheImageRef.current = img;
+                                generateImage();
+                            };
+                            img.src = finalUrl;
                             setAfficheImage(finalUrl);
+                            if (isEditorialAfficheActive) {
+                                setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: finalUrl }));
+                            }
                         }
                     } else if (r2TargetType === 'musicCover') {
                         if (r2TargetIdx !== null) {
