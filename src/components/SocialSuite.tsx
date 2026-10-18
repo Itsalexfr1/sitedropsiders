@@ -399,6 +399,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isArtistLogoNegative, setIsArtistLogoNegative] = useState(true);
     const [citationAuthor, setCitationAuthor] = useState('');
     const [citationMedia, setCitationMedia] = useState('pour Dropsiders');
+    const citationTextareaRef = useRef<HTMLTextAreaElement | null>(null);
     const [conseilsTitle, setConseilsTitle] = useState('LE TITRE ICI');
     const [conseilsSubtext, setConseilsSubtext] = useState('');
     const conseilsTitleInputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -1426,7 +1427,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'TRACKLIST': { label: 'TRACKLIST', grad: '255, 120, 0', color: '#ff7800' },
         'INTERVIEW': { label: 'INTERVIEW', grad: '255, 255, 255', color: '#ffffff' },
         'SPOTLIGHT': { label: 'SPOTLIGHT', grad: '255, 0, 51', color: '#ff0033' },
-        'CITATION': { label: 'CITATION', grad: '255, 255, 255', color: '#ffffff' },
+        'CITATION': { label: 'CITATION', grad: '255, 18, 65', color: '#ff1241' },
         'CONSEILS': { label: 'REELS', grad: '255, 0, 51', color: '#ff0033' },
         'REELS': { label: 'REELS', grad: '255, 0, 51', color: '#ff0033' },
         'CONCOURS': { label: 'JEUX CONCOURS', grad: '0, 140, 255', color: '#008cff' },
@@ -4858,56 +4859,158 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
             } else if (theme === 'CITATION') {
-                const safeW = 1012;
-                
-                if (customText) {
-                    const lines = customText.split('\n').filter(l => l.trim() !== '');
-                    const quote = lines.join('\n');
+                const isStory = canvas.height > 1500;
+                const isReel = effectiveTab === 'REEL';
+                const startX = isReel ? 60 : 44;
+                const safeW = canvas.width - (startX * 2);
 
+                // 1. Badge supérieur CITATION (Capsule stylisée avec rouge néon Dropsiders)
+                drawTopCapsuleBadge('CITATION', activeData.color || '#ff1241', activeData.grad || '255, 18, 65');
+
+                // 2. Logo Dropsiders en haut à droite
+                if (logoRef.current) {
+                    const logo = logoRef.current;
+                    const lw = 320;
+                    const lh = (logo.height / logo.width) * lw;
+                    const xOffset = bgVideo ? 140 : 40;
+                    const yOffset = bgVideo ? 70 : 20;
                     ctx.save();
-                    applyTextAnimCtx(ctx, 0.15, 500, 500);
-                    
-                    ctx.textAlign = 'left';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 italic 140px "Montserrat", sans-serif';
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                    ctx.shadowBlur = 10;
-                    ctx.fillText('“', 34, 400);
+                    ctx.drawImage(logo, canvas.width - lw - xOffset, yOffset, lw, lh);
+                    ctx.restore();
+                }
+
+                if (customText) {
+                    const quote = customText.trim().toUpperCase();
+                    const paragraphs = quote.split('\n');
+                    const quoteLines: string[] = [];
 
                     ctx.font = '700 48px "Montserrat", sans-serif';
                     ctx.letterSpacing = "-1px";
-                    
-                    const words = quote.split(' ');
-                    let line = '';
-                    let y = 480;
-                    
-                    words.forEach(word => {
-                        const testLine = line + word + ' ';
-                        if (ctx.measureText(stripTags(testLine)).width > safeW) {
-                            drawRichText(ctx, line, 34, y, '#ffffff', 'left');
-                            line = word + ' ';
-                            y += 65;
-                        } else {
-                            line = testLine;
-                        }
+
+                    paragraphs.forEach(para => {
+                        if (!para.trim()) return;
+                        const words = para.trim().split(/\s+/);
+                        let curLine = '';
+                        words.forEach(w => {
+                            const testLine = curLine ? `${curLine} ${w}` : w;
+                            if (ctx.measureText(stripTags(testLine)).width > safeW) {
+                                if (curLine) quoteLines.push(curLine);
+                                curLine = w;
+                            } else {
+                                curLine = testLine;
+                            }
+                        });
+                        if (curLine) quoteLines.push(curLine);
                     });
-                    drawRichText(ctx, line, 34, y, '#ffffff', 'left');
-                    
+
+                    const quoteStartY = isStory ? 540 : 450;
+                    const quoteMarkY = quoteStartY - 80;
+                    const lineHeight = 66;
+
+                    // 3. Guillemet ouvrant
+                    const quoteMarkAnim = getTextAnimTransform(0.10);
+                    ctx.save();
+                    ctx.globalAlpha = quoteMarkAnim.alpha;
+                    ctx.translate(startX + quoteMarkAnim.xOff, quoteMarkY + quoteMarkAnim.yOff);
+                    if (quoteMarkAnim.scale !== 1) ctx.scale(quoteMarkAnim.scale, quoteMarkAnim.scale);
+                    ctx.translate(-startX, -quoteMarkY);
+
+                    ctx.textAlign = 'left';
+                    ctx.fillStyle = activeData.color || '#ff1241';
+                    ctx.font = '900 italic 140px "Montserrat", sans-serif';
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 10;
+                    ctx.fillText('“', startX, quoteMarkY);
+                    ctx.restore();
+
+                    // 4. Lignes de la citation - animées LIGNE PAR LIGNE avec un décalage progressif
+                    let curY = quoteStartY;
+                    ctx.font = '700 48px "Montserrat", sans-serif';
+                    ctx.letterSpacing = "-1px";
+
+                    quoteLines.forEach((qLine, qIndex) => {
+                        const lineDelay = 0.16 + (qIndex * 0.20);
+                        const lineAnim = getTextAnimTransform(lineDelay);
+
+                        let lineToDraw = qLine;
+                        if (textAnimation === 'TYPEWRITER') {
+                            const el = animElapsed - lineDelay;
+                            if (el < 0) {
+                                lineToDraw = '';
+                            } else {
+                                const words = qLine.split(/\s+/);
+                                const wordsToShow = Math.min(words.length, Math.floor(el / 0.12));
+                                if (wordsToShow <= 0) {
+                                    lineToDraw = '';
+                                } else {
+                                    lineToDraw = words.slice(0, wordsToShow).join(' ') + (wordsToShow < words.length ? ' ▌' : '');
+                                }
+                            }
+                        }
+
+                        if (lineToDraw) {
+                            ctx.save();
+                            ctx.globalAlpha = lineAnim.alpha;
+                            ctx.translate(startX + lineAnim.xOff, curY + lineAnim.yOff);
+                            if (lineAnim.scale !== 1) ctx.scale(lineAnim.scale, lineAnim.scale);
+                            ctx.translate(-startX, -curY);
+
+                            drawRichText(ctx, lineToDraw, startX, curY, '#ffffff', 'left');
+                            ctx.restore();
+                        }
+                        curY += lineHeight;
+                    });
+
+                    // 5. Auteur de la citation (animé successivement après la dernière ligne)
                     if (citationAuthor) {
-                        y += 100;
+                        curY += (isStory ? 70 : 50);
+                        const authorDelay = 0.16 + (quoteLines.length * 0.20) + 0.12;
+                        const authorAnim = getTextAnimTransform(authorDelay);
+
+                        ctx.save();
+                        ctx.globalAlpha = authorAnim.alpha;
+                        ctx.translate(startX + authorAnim.xOff, curY + authorAnim.yOff);
+                        if (authorAnim.scale !== 1) ctx.scale(authorAnim.scale, authorAnim.scale);
+                        ctx.translate(-startX, -curY);
+
                         ctx.font = '600 italic 36px "Montserrat", sans-serif';
                         ctx.fillStyle = '#ffffff';
-                        ctx.fillText(citationAuthor.toUpperCase(), 34, y);
+                        ctx.shadowColor = 'rgba(0,0,0,0.9)';
+                        ctx.shadowBlur = 8;
+                        ctx.fillText(citationAuthor.toUpperCase(), startX, curY);
+                        ctx.restore();
                     }
-                    
+
+                    // 6. Média / Contexte (animé en dernier)
                     if (citationMedia) {
-                        y += (citationAuthor ? 40 : 100);
+                        curY += (citationAuthor ? 45 : 55);
+                        const mediaDelay = 0.16 + (quoteLines.length * 0.20) + 0.24;
+                        const mediaAnim = getTextAnimTransform(mediaDelay);
+
+                        ctx.save();
+                        ctx.globalAlpha = mediaAnim.alpha;
+                        ctx.translate(startX + mediaAnim.xOff, curY + mediaAnim.yOff);
+                        if (mediaAnim.scale !== 1) ctx.scale(mediaAnim.scale, mediaAnim.scale);
+                        ctx.translate(-startX, -curY);
+
                         ctx.font = '400 italic 28px "Montserrat", sans-serif';
                         ctx.fillStyle = 'rgba(255,255,255,0.7)';
-                        ctx.fillText(citationMedia, 34, y);
+                        ctx.shadowColor = 'rgba(0,0,0,0.85)';
+                        ctx.shadowBlur = 6;
+                        ctx.fillText(citationMedia, startX, curY);
+                        ctx.restore();
                     }
-                    
-                    ctx.restore();
+                }
+
+                // 7. Mention Swipe (Chevrons en Cascade)
+                if (showSwipe) {
+                    const swipeY = canvas.height - (isStory ? 80 : 50);
+                    drawAnimatedSwipeIndicator(
+                        canvas.width - (isStory ? 80 : 60),
+                        swipeY,
+                        activeData.color || '#ff1241',
+                        24
+                    );
                 }
 
 
@@ -6781,7 +6884,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide
     useEffect(() => {
@@ -9130,7 +9233,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => handleSetTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-[#ff3700]/20 border-[#ff3700] text-[#ff3700] shadow-[0_0_12px_rgba(255,55,0,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>AGENDA</button>
             <button onClick={() => handleSetTheme('INTERVIEW')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTERVIEW' ? 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTERVIEW</button>
             <button onClick={() => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(2); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2) ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>SPOTLIGHT</button>
-            <button onClick={() => handleSetTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
+            <button onClick={() => handleSetTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,18,65,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
             <button onClick={() => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(1); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1 ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>ARTISTE FESTIVAL</button>
             <button onClick={() => handleSetTheme('HIGHLIGHTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>HIGHLIGHTS</button>
             <button
@@ -14733,29 +14836,163 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
-    const citationEditor = (
-        <div className="space-y-4">
-            {textEditor}
-            <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Auteur de la citation</label>
-                <input 
-                    value={citationAuthor} 
-                    onChange={e => setCitationAuthor(e.target.value)} 
-                    placeholder="EX: LAURENT GARNIER" 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold italic uppercase focus:border-white/40 outline-none transition-all shadow-md" 
-                />
+    const citationEditor = (() => {
+        const currentQuote = customText || '';
+        const rawWords = currentQuote ? currentQuote.split(/\s+/).filter(Boolean) : [];
+
+        return (
+            <div className="space-y-4">
+                {/* CADRE TEXTE DE LA CITATION */}
+                <div className="space-y-2 p-3 bg-black/40 border border-white/10 rounded-2xl shadow-lg">
+                    <div className="flex items-center justify-between pl-1">
+                        <label className="text-[9px] font-black text-neon-red uppercase tracking-widest flex items-center gap-1.5">
+                            <span>Texte de la Citation (Majuscules)</span>
+                        </label>
+                        <span className="text-[8px] font-bold text-gray-500">Astuce : entoure un mot avec *étoiles*</span>
+                    </div>
+                    <textarea 
+                        ref={citationTextareaRef}
+                        rows={3}
+                        value={customText || ''} 
+                        onChange={e => {
+                            setCustomText(e.target.value.toUpperCase());
+                            setTimeout(() => generateImage(), 50);
+                        }} 
+                        placeholder="EX: LA MUSIQUE ÉLECTRONIQUE EST LE DERNIER GRAND MOUVEMENT MUSICAL DU XXE SIÈCLE" 
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-neon-red/50 outline-none transition-all shadow-md resize-none text-xs" 
+                    />
+
+                    {/* CHOIX DES MOTS EN ROUGE */}
+                    {rawWords.length > 0 && (
+                        <div className="space-y-1.5 pt-1">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                    <span 
+                                        className="w-2 h-2 rounded-full inline-block animate-pulse bg-neon-red" 
+                                        style={{ boxShadow: '0 0 8px #ff1241' }}
+                                    />
+                                    Clique pour illuminer un mot en rouge :
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const el = citationTextareaRef.current;
+                                        if (!el) return;
+                                        const start = el.selectionStart;
+                                        const end = el.selectionEnd;
+                                        if (start === end) return;
+                                        const sel = currentQuote.substring(start, end);
+                                        const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
+                                        const updated = currentQuote.substring(0, start) + rep + currentQuote.substring(end);
+                                        setCustomText(updated.toUpperCase());
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
+                                    title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
+                                >
+                                    Colorer sélection
+                                </button>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
+                                {rawWords.map((word, idx) => {
+                                    const isHighlighted = word.startsWith('*') && word.endsWith('*') && word.length >= 2;
+                                    const cleanWord = isHighlighted ? word.slice(1, -1) : word;
+                                    return (
+                                        <button
+                                            key={idx}
+                                            type="button"
+                                            onClick={() => {
+                                                const parts = currentQuote.split(/(\s+)/);
+                                                let curIdx = 0;
+                                                const res = parts.map(p => {
+                                                    if (/^\s+$/.test(p) || !p) return p;
+                                                    if (curIdx === idx) {
+                                                        curIdx++;
+                                                        if (p.startsWith('*') && p.endsWith('*') && p.length >= 2) {
+                                                            return p.slice(1, -1);
+                                                        } else {
+                                                            const clean = p.replace(/^\*+|\*+$/g, '');
+                                                            return `*${clean}*`;
+                                                        }
+                                                    }
+                                                    curIdx++;
+                                                    return p;
+                                                });
+                                                const updated = res.join('');
+                                                setCustomText(updated.toUpperCase());
+                                                setTimeout(() => generateImage(), 50);
+                                            }}
+                                            className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${
+                                                isHighlighted 
+                                                    ? 'bg-neon-red/25 border-neon-red text-neon-red shadow-[0_0_10px_rgba(255,18,65,0.4)]' 
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
+                                            }`}
+                                            title={isHighlighted ? "Cliquer pour repasser en blanc" : "Cliquer pour illuminer en rouge"}
+                                        >
+                                            {cleanWord}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* AUTEUR & MÉDIA */}
+                <div className="space-y-3 p-3 bg-black/40 border border-white/10 rounded-2xl shadow-lg">
+                    <div className="space-y-1.5">
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest pl-1">Auteur de la citation</label>
+                        <input 
+                            value={citationAuthor} 
+                            onChange={e => {
+                                setCitationAuthor(e.target.value.toUpperCase());
+                                setTimeout(() => generateImage(), 50);
+                            }} 
+                            placeholder="EX: LAURENT GARNIER" 
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold italic uppercase focus:border-neon-red/50 outline-none transition-all shadow-md text-xs" 
+                        />
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest pl-1">Média / Contexte</label>
+                        <input 
+                            value={citationMedia} 
+                            onChange={e => {
+                                setCitationMedia(e.target.value);
+                                setTimeout(() => generateImage(), 50);
+                            }} 
+                            placeholder="EX: pour Toca UOL" 
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold italic focus:border-neon-red/50 outline-none transition-all shadow-md text-xs" 
+                        />
+                    </div>
+                </div>
+
+                {/* OPTION SWIPE DÉDIÉE CITATION */}
+                <div className="flex items-center justify-between p-3 bg-black/40 border border-white/10 rounded-2xl shadow-lg">
+                    <div className="flex items-center gap-2">
+                        <Layout className="w-4 h-4 text-neon-red" />
+                        <div>
+                            <span className="text-[9.5px] font-black text-white uppercase block">Indicateur Swipe</span>
+                            <span className="text-[8px] text-gray-400 block">Flèches animées de swipe en bas à droite</span>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setShowSwipe(!showSwipe);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 border ${
+                            showSwipe
+                                ? 'bg-neon-red/20 border-neon-red/50 text-neon-red shadow-[0_0_10px_rgba(255,18,65,0.35)]'
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                        }`}
+                    >
+                        {showSwipe ? '● Swipe ON' : '○ Swipe OFF'}
+                    </button>
+                </div>
             </div>
-            <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Média / Contexte</label>
-                <input 
-                    value={citationMedia} 
-                    onChange={e => setCitationMedia(e.target.value)} 
-                    placeholder="EX: pour Toca UOL" 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold italic focus:border-white/40 outline-none transition-all shadow-md" 
-                />
-            </div>
-        </div>
-    );
+        );
+    })();
 
     const exportButtons = (
         <div className="p-4 bg-gradient-to-b from-white/[0.08] to-black/60 border border-white/15 rounded-3xl space-y-3 shadow-2xl">
@@ -16505,7 +16742,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             { id: 'FOCUS', label: 'FOCUS', category: 'EDITO', action: () => handleSetTheme('FOCUS'), active: theme === 'FOCUS', style: 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_12px_rgba(255,170,0,0.35)]' },
                                             { id: 'RECAP', label: 'RÉCAP', category: 'EDITO', action: () => handleSetTheme('RECAP'), active: theme === 'RECAP', style: 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3] shadow-[0_0_12px_rgba(192,38,211,0.35)]' },
                                             { id: 'INTERVIEW', label: 'INTERVIEW', category: 'EDITO', action: () => handleSetTheme('INTERVIEW'), active: theme === 'INTERVIEW', style: 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' },
-                                            { id: 'CITATION', label: 'CITATION', category: 'EDITO', action: () => handleSetTheme('CITATION'), active: theme === 'CITATION', style: 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.2)]' },
+                                            { id: 'CITATION', label: 'CITATION', category: 'EDITO', action: () => handleSetTheme('CITATION'), active: theme === 'CITATION', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,18,65,0.35)]' },
                                             { id: 'LIVESTREAM', label: 'DIRECT', category: 'EDITO', action: () => handleSetTheme('LIVESTREAM'), active: theme === 'LIVESTREAM', style: 'bg-pink-500/20 border-pink-500 text-pink-500 shadow-[0_0_12px_rgba(236,72,153,0.35)]' },
                                             ...(activeTab === 'REEL' ? [{ id: 'REELS', label: 'REELS', category: 'EDITO', action: () => handleSetTheme('REELS'), active: theme === 'REELS' || theme === 'CONSEILS', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' }] : []),
 
@@ -16718,7 +16955,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     ) : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
                                         <><span className="text-[10px] font-black text-neon-cyan uppercase">Contenu Titre & Sous-titre ({theme === 'JEU' ? 'DEVINE LE CLIP' : theme === 'JEU_FESTIVAL' ? 'DEVINE LE FESTIVAL' : theme === 'JEU_DJ' ? 'DEVINE LE DJ' : theme})</span>{conseilsEditor}</>
                                     ) : theme === 'CITATION' ? (
-                                        <><span className="text-[10px] font-black text-gray-500 uppercase">Citation & Auteur</span>{citationEditor}</>
+                                        <><span className="text-[10px] font-black text-neon-red uppercase">Citation & Auteur</span>{citationEditor}</>
                                     ) : theme === 'PROMO' ? (
                                         <><span className="text-[10px] font-black text-neon-red uppercase">Question & Outro Réseaux</span>{promoEditor}</>
                                     ) : (
