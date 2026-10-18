@@ -31,6 +31,7 @@ import {
     Square,
     Play,
     Volume2,
+    VolumeX,
     Music,
     Scissors,
     ChevronDown,
@@ -271,6 +272,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [customText, setCustomText] = useState(title || '');
     const [bgImage, setBgImage] = useState<string>(imageUrl);
     const [bgVideo, setBgVideo] = useState<HTMLVideoElement | null>(null);
+    const [isVideoAudioMuted, setIsVideoAudioMuted] = useState<boolean>(true);
     const [textColor, setTextColor] = useState('#ffffff');
     const [textBgColor, setTextBgColor] = useState('transparent');
     const [isDownloading, setIsDownloading] = useState(false);
@@ -6843,13 +6845,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const file = e.target.files?.[0];
         if (!file) return;
         const url = URL.createObjectURL(file);
-        if (file.type.startsWith('video/')) {
+        const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|webm|m4v|3gp|mkv|avi)$/i.test(file.name);
+        if (isVideo) {
             bgVideoBlobRef.current = file;
             const video = document.createElement('video');
             video.crossOrigin = "anonymous";
             video.src = url;
             video.loop = true;
-            video.playsInline = true; // Important for mobile preview
+            video.playsInline = true; // Indispensable pour Safari / Chrome mobile
+            video.muted = true; // Autoplay sécurisé pour éviter le blocage audio sur mobile
             video.currentTime = 0;
             const onLoaded = () => {
                 video.currentTime = 0;
@@ -6859,6 +6863,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             video.addEventListener('loadedmetadata', onLoaded);
             video.play().catch(e => console.warn("Auto-preview play failed", e));
             setBgVideo(video);
+            setIsVideoAudioMuted(true);
             setBgImage('');
             setEditorialSlideImages(prev => {
                 const next = { ...prev };
@@ -7706,10 +7711,38 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (offlineWavBlob) {
                         console.log(`[Audio] ✅ Audio de bgVideo extrait avec succès en WAV (${Math.round(offlineWavBlob.size / 1024)} KB)`);
                     } else {
-                        console.log('[Audio] bgVideo ne contient aucune piste audio détectable.');
+                        console.log('[Audio] Décodage direct conteneur MP4 non supporté nativement (ex: iOS Safari), bascule FFmpeg wasm...');
                     }
                 } catch (e) {
                     console.warn('[Audio] Échec de l\'extraction Web Audio :', e);
+                }
+
+                // Fallback FFmpeg si Web Audio API n\'a pas pu décoder directement le conteneur MP4 (cas classique Safari iOS)
+                if (!offlineWavBlob) {
+                    try {
+                        if (!ffmpegRef.current) {
+                            const ffmpeg = new FFmpeg();
+                            const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
+                            await ffmpeg.load({
+                                coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+                                wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+                            });
+                            ffmpegRef.current = ffmpeg;
+                        }
+                        const ffmpeg = ffmpegRef.current;
+                        const bgExt = bgVideoBlob.type.includes('webm') ? 'webm' : (bgVideoBlob.type.includes('quicktime') ? 'mov' : 'mp4');
+                        const bgFilename = `bg_extract.${bgExt}`;
+                        await ffmpeg.writeFile(bgFilename, await fetchFile(bgVideoBlob));
+                        await ffmpeg.exec(['-i', bgFilename, '-vn', '-c:a', 'pcm_s16le', '-ar', '44100', '-ac', '2', 'extracted_audio.wav']);
+                        const wavData: any = await ffmpeg.readFile('extracted_audio.wav');
+                        if (wavData && wavData.byteLength > 44) {
+                            const rawWavBlob = new Blob([wavData.buffer], { type: 'audio/wav' });
+                            offlineWavBlob = (await extractAudioFromBlob(rawWavBlob, totalDuration)) || rawWavBlob;
+                            console.log(`[Audio] ✅ Audio extrait avec succès via FFmpeg et prêt pour muxage (${Math.round(offlineWavBlob.size / 1024)} KB)`);
+                        }
+                    } catch (ffErr) {
+                        console.warn('[Audio] Extraction FFmpeg fallback échouée :', ffErr);
+                    }
                 }
             }
 
@@ -7795,13 +7828,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (hasExtracted) {
                         const targetSec = (totalDuration / 1000).toFixed(2);
                         if (videoBlob.type.includes('mp4')) {
-                            ffmpegArgs = ['-i', inputFileName, '-stream_loop', '-1', '-i', 'audio.wav',
+                            ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav',
                                 '-map', '0:v:0', '-map', '1:a:0',
-                                '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-avoid_negative_ts', 'make_zero', '-t', targetSec, '-movflags', '+faststart', 'output.mp4'];
+                                '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-avoid_negative_ts', 'make_zero', '-t', targetSec, '-shortest', '-movflags', '+faststart', 'output.mp4'];
                         } else {
-                            ffmpegArgs = ['-i', inputFileName, '-stream_loop', '-1', '-i', 'audio.wav', ...videoArgs,
+                            ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
                                 '-map', '0:v:0', '-map', '1:a:0',
-                                '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-avoid_negative_ts', 'make_zero', '-t', targetSec, 'output.mp4'];
+                                '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-avoid_negative_ts', 'make_zero', '-t', targetSec, '-shortest', 'output.mp4'];
                         }
                     } else {
                         ffmpegArgs = ['-i', inputFileName, '-c:v', 'copy', '-an', '-movflags', '+faststart', 'output.mp4'];
@@ -7816,13 +7849,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 try {
                     await ffmpeg.exec(ffmpegArgs);
                 } catch (execErr) {
-                    if (offlineWavBlob && videoBlob.type.includes('mp4')) {
-                        console.warn('Direct copy mux failed, retrying with libx264 re-encode:', execErr);
+                    console.warn('Direct copy mux failed, checking audio before re-encode:', execErr);
+                    let audioFileExists = false;
+                    try {
+                        const checkAudio: any = await ffmpeg.readFile('audio.wav');
+                        if (checkAudio && checkAudio.byteLength > 44) audioFileExists = true;
+                    } catch {}
+
+                    if (audioFileExists) {
+                        console.warn('Retrying with libx264 re-encode preserving audio track:');
                         ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
                             '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
                         await ffmpeg.exec(ffmpegArgs);
                     } else {
-                        console.warn('FFmpeg mux failed, falling back to video only:', execErr);
+                        console.warn('No audio file found, falling back to video only:', execErr);
                         ffmpegArgs = ['-i', inputFileName, '-c:v', 'copy', '-an', '-movflags', '+faststart', 'output.mp4'];
                         await ffmpeg.exec(ffmpegArgs);
                     }
@@ -15678,8 +15718,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     const video = document.createElement('video');
                                     video.crossOrigin = "anonymous";
                                     video.src = url;
+                                    video.loop = true;
+                                    video.playsInline = true;
+                                    video.muted = true;
+                                    video.currentTime = 0;
                                     video.onloadeddata = () => {
+                                        video.play().catch(e => console.warn("Downloader video play failed", e));
                                         setBgVideo(video);
+                                        setIsVideoAudioMuted(true);
                                         setBgImage('');
                                         setEditorialSlideImages(prev => {
                                             const next = { ...prev };
@@ -16455,17 +16501,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             <span className="text-[8px] text-gray-400 uppercase font-bold">Image, Vidéo ou Cloud</span>
                                         </div>
 
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setR2TargetType('background');
-                                                setIsR2ModalOpen(true);
-                                            }}
-                                            className="w-full py-3.5 border border-white/10 hover:border-neon-cyan/40 rounded-xl flex items-center justify-center gap-2 text-white text-[9.5px] font-black uppercase transition-all bg-white/5 group active:scale-98 shadow-sm"
-                                        >
-                                            <ImageIcon className="w-4 h-4 text-neon-cyan group-hover:scale-110 transition-transform" />
-                                            <span>Cloud R2</span>
-                                        </button>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="py-3 px-2 border border-dashed border-white/20 hover:border-neon-red/50 rounded-xl flex items-center justify-center gap-1.5 text-gray-200 text-[9px] font-black uppercase hover:text-white transition-all bg-white/5 group shadow-sm active:scale-98"
+                                            >
+                                                <Upload className="w-4 h-4 text-neon-red group-hover:scale-110 transition-transform" />
+                                                <span>Mon Appareil</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setR2TargetType('background');
+                                                    setIsR2ModalOpen(true);
+                                                }}
+                                                className="py-3 px-2 border border-white/10 hover:border-neon-cyan/40 rounded-xl flex items-center justify-center gap-1.5 text-gray-300 text-[9px] font-black uppercase hover:text-white transition-all bg-white/5 group active:scale-98"
+                                            >
+                                                <ImageIcon className="w-4 h-4 text-neon-cyan group-hover:scale-110 transition-transform" />
+                                                <span>Cloud R2</span>
+                                            </button>
+                                        </div>
                                         <button onClick={() => setIsDownloaderOpen(true)} className="w-full py-2.5 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[8.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
                                             <LinkIcon className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
                                             Télécharger Vidéo/Photo (URL)
@@ -16495,17 +16551,39 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                         {bgVideo && (
                                             <div className="space-y-1.5 pt-1">
-                                                <div className="flex gap-2">
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            if (bgVideo.muted) {
+                                                                bgVideo.muted = false;
+                                                                bgVideo.play().catch(() => {});
+                                                                setIsVideoAudioMuted(false);
+                                                            } else {
+                                                                bgVideo.muted = true;
+                                                                setIsVideoAudioMuted(true);
+                                                            }
+                                                        }}
+                                                        className={`py-2 px-2 rounded-xl border text-[8.5px] font-black uppercase flex items-center justify-center gap-1 transition-all active:scale-95 ${
+                                                            !isVideoAudioMuted
+                                                                ? 'bg-[#00ff66]/15 border-[#00ff66]/40 text-[#00ff66]'
+                                                                : 'bg-white/5 border-white/10 text-gray-300 hover:text-white'
+                                                        }`}
+                                                        title={!isVideoAudioMuted ? 'Couper le son' : 'Activer le son'}
+                                                    >
+                                                        {!isVideoAudioMuted ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+                                                        <span>{!isVideoAudioMuted ? 'Son ON' : 'Son OFF'}</span>
+                                                    </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => {
                                                             bgVideo.currentTime = 0;
                                                             bgVideo.play().catch(() => {});
                                                         }}
-                                                        className="flex-1 py-2 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl text-[9px] font-black text-neon-cyan uppercase hover:bg-neon-cyan/20 transition-all flex items-center justify-center gap-1.5 active:scale-95 shadow-sm"
+                                                        className="py-2 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl text-[8.5px] font-black text-neon-cyan uppercase hover:bg-neon-cyan/20 transition-all flex items-center justify-center gap-1 active:scale-95 shadow-sm"
                                                         title="Remettre la vidéo à 0:00 et relancer"
                                                     >
-                                                        <RotateCcw className="w-3.5 h-3.5" /> Recommencer à 0:00
+                                                        <RotateCcw className="w-3.5 h-3.5" /> 0:00
                                                     </button>
                                                     <button
                                                         type="button"
@@ -16516,10 +16594,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                                 bgVideo.pause();
                                                             }
                                                         }}
-                                                        className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-gray-300 uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                                                        className="py-2 bg-white/5 border border-white/10 rounded-xl text-[8.5px] font-black text-gray-300 uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-1 active:scale-95"
                                                         title="Mettre en pause ou relancer la lecture"
                                                     >
-                                                        <Video className="w-3.5 h-3.5" /> Play / Pause
+                                                        <Video className="w-3.5 h-3.5" /> Play/Pause
                                                     </button>
                                                 </div>
                                                 <p className="text-[7.5px] text-gray-400 italic text-center">
@@ -17010,6 +17088,41 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     }}
                                     onTouchEnd={() => setIsDrawing(false)}
                                 />
+                                {bgVideo && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (!bgVideo) return;
+                                            if (bgVideo.muted) {
+                                                bgVideo.muted = false;
+                                                bgVideo.play().catch(err => console.warn("Unmute failed", err));
+                                                setIsVideoAudioMuted(false);
+                                            } else {
+                                                bgVideo.muted = true;
+                                                setIsVideoAudioMuted(true);
+                                            }
+                                        }}
+                                        className={`absolute top-3.5 right-3.5 z-40 px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[9px] font-black uppercase backdrop-blur-md shadow-2xl transition-all active:scale-95 border ${
+                                            !isVideoAudioMuted
+                                                ? 'bg-[#00ff66]/20 border-[#00ff66]/60 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.4)]'
+                                                : 'bg-black/75 border-white/20 text-white hover:bg-black/90 hover:border-white/40'
+                                        }`}
+                                        title={isVideoAudioMuted ? "Activer le son de la vidéo" : "Couper le son de la vidéo"}
+                                    >
+                                        {!isVideoAudioMuted ? (
+                                            <>
+                                                <Volume2 className="w-3.5 h-3.5 animate-pulse text-[#00ff66]" />
+                                                <span>Son Actif</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <VolumeX className="w-3.5 h-3.5 text-red-400" />
+                                                <span>Son Coupé • Activer</span>
+                                            </>
+                                        )}
+                                    </button>
+                                )}
 
                                 <AnimatePresence>
                                     {/* The global overlay at the end of the file handles desktop and mobile now */}
@@ -17421,6 +17534,41 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }}
                             onMouseUp={() => setIsDrawing(false)}
                         />
+                        {bgVideo && (
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (!bgVideo) return;
+                                    if (bgVideo.muted) {
+                                        bgVideo.muted = false;
+                                        bgVideo.play().catch(err => console.warn("Unmute mobile failed", err));
+                                        setIsVideoAudioMuted(false);
+                                    } else {
+                                        bgVideo.muted = true;
+                                        setIsVideoAudioMuted(true);
+                                    }
+                                }}
+                                className={`absolute top-4 right-4 z-40 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 text-[9px] font-black uppercase backdrop-blur-md shadow-2xl transition-all active:scale-95 border ${
+                                    !isVideoAudioMuted
+                                        ? 'bg-[#00ff66]/20 border-[#00ff66]/60 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.4)]'
+                                        : 'bg-black/80 border-white/20 text-white hover:bg-black hover:border-white/40'
+                                }`}
+                                title={isVideoAudioMuted ? "Activer le son de la vidéo" : "Couper le son de la vidéo"}
+                            >
+                                {!isVideoAudioMuted ? (
+                                    <>
+                                        <Volume2 className="w-3.5 h-3.5 animate-pulse text-[#00ff66]" />
+                                        <span>Son Actif</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <VolumeX className="w-3.5 h-3.5 text-red-400" />
+                                        <span>Son Coupé • Activer</span>
+                                    </>
+                                )}
+                            </button>
+                        )}
 
                         <AnimatePresence>
                             {isVideoRecording && (
@@ -17549,13 +17697,61 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <div className="space-y-3">
                                             {/* Module Dédié Devine le DJ (Silhouette Mystère) */}
                                             {theme === 'JEU_DJ' && djSilhouetteEditor}
-                                            <button onClick={() => { setActivePanel(null); setR2TargetType('background'); setIsR2ModalOpen(true); }} className="w-full py-3.5 border border-white/10 rounded-2xl flex items-center justify-center gap-2 text-white text-[9.5px] font-black uppercase hover:border-neon-cyan/40 hover:text-white transition-all bg-white/5 group">
-                                                <ImageIcon className="w-4 h-4 text-neon-cyan group-hover:scale-110 transition-transform" />
-                                                <span>Cloud R2</span>
-                                            </button>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <button onClick={() => fileInputRef.current?.click()} className="py-3.5 border border-dashed border-white/20 rounded-2xl flex items-center justify-center gap-2 text-gray-200 text-[9.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                                                    <Upload className="w-4 h-4 text-neon-red group-hover:scale-110 transition-transform" />
+                                                    <span>Mon Appareil</span>
+                                                </button>
+                                                <button onClick={() => { setActivePanel(null); setR2TargetType('background'); setIsR2ModalOpen(true); }} className="py-3.5 border border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-300 text-[9.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                                                    <ImageIcon className="w-4 h-4 text-neon-cyan group-hover:scale-110 transition-transform" />
+                                                    <span>Cloud R2</span>
+                                                </button>
+                                            </div>
                                             <button onClick={() => { setActivePanel(null); setIsDownloaderOpen(true); }} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
                                                 <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />Télécharger Vidéo/Photo (URL)
                                             </button>
+                                            {bgVideo && (
+                                                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2">
+                                                    <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-300">
+                                                        <span className="flex items-center gap-1.5">🎬 Piste Vidéo Mobile</span>
+                                                        <span className={!isVideoAudioMuted ? 'text-[#00ff66]' : 'text-gray-400'}>{!isVideoAudioMuted ? 'Son Actif' : 'Muet'}</span>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                if (bgVideo.muted) {
+                                                                    bgVideo.muted = false;
+                                                                    bgVideo.play().catch(() => {});
+                                                                    setIsVideoAudioMuted(false);
+                                                                } else {
+                                                                    bgVideo.muted = true;
+                                                                    setIsVideoAudioMuted(true);
+                                                                }
+                                                            }}
+                                                            className={`py-2.5 px-3 rounded-xl border text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+                                                                !isVideoAudioMuted
+                                                                    ? 'bg-[#00ff66]/15 border-[#00ff66]/40 text-[#00ff66]'
+                                                                    : 'bg-white/5 border-white/10 text-gray-300 hover:text-white'
+                                                            }`}
+                                                        >
+                                                            {!isVideoAudioMuted ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+                                                            <span>{!isVideoAudioMuted ? 'Couper le son' : 'Activer le son'}</span>
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                bgVideo.currentTime = 0;
+                                                                bgVideo.play().catch(() => {});
+                                                            }}
+                                                            className="py-2.5 px-3 rounded-xl bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan text-[9px] font-black uppercase flex items-center justify-center gap-1.5 hover:bg-neon-cyan/20 transition-all active:scale-95"
+                                                        >
+                                                            <RotateCcw className="w-3.5 h-3.5" />
+                                                            <span>Reset 0:00</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
                                             {bgPositionControls}
                                             <button onClick={() => { setActivePanel(null); setIsRecapPickerOpen(true); }} className="w-full py-4 bg-[#c026d3]/10 border border-[#c026d3]/30 rounded-2xl flex items-center justify-center gap-2 text-[#c026d3] text-[10px] font-black uppercase hover:bg-[#c026d3]/20 transition-all group">
                                                 <PlusCircle className="w-4 h-4" />Importer un RÉCAP ÉCRIT
@@ -17772,7 +17968,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             video.muted = true;
                             video.loop = true;
                             video.playsInline = true;
+                            video.currentTime = 0;
                             video.play().catch(e => console.warn("Auto-preview play failed", e));
+                            setIsVideoAudioMuted(true);
                             fetch(finalUrl)
                                 .then(r => r.ok ? r.blob() : null)
                                 .then(b => { if (b) bgVideoBlobRef.current = b; })
