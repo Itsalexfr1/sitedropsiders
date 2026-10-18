@@ -406,6 +406,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isConseilsLargeTitle, setIsConseilsLargeTitle] = useState(false);
     const [showTitleOnSlide2, setShowTitleOnSlide2] = useState<boolean>(false);
     const [showMusicDate, setShowMusicDate] = useState<boolean>(false); // Masquer ou afficher la date sous le titre en thème MUSIQUE
+    const [editorialDate, setEditorialDate] = useState<string>(''); // Date personnalisée au centre de la barre blanche (vide = aujourd'hui)
+    const [showDividerDate, setShowDividerDate] = useState<boolean>(true); // Afficher ou masquer la date au centre de la barre blanche
+    const getTodayFormattedDate = () => {
+        const now = new Date();
+        const dayStr = String(now.getDate()).padStart(2, '0');
+        const monthStr = now.toLocaleDateString('fr-FR', { month: 'long' }).toUpperCase();
+        const yearStr = now.getFullYear();
+        return `${dayStr} ${monthStr} ${yearStr}`;
+    };
     const [extraEditorialSlides, setExtraEditorialSlides] = useState<string[]>([]); // Slides 3, 4, 5... (texte de chaque slide)
     const [skipEditorialSlide2, setSkipEditorialSlide2] = useState<boolean>(false); // Masquer Slide 2 dans l'export Reel (Slide 1 + Promo uniquement)
     const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(5); // Durée Slide 1 (en secondes, min 2s, max 15s)
@@ -6074,8 +6083,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ? (Date.now() - animStartTimeRef.current) / 1000
                         : 99.0);
 
-                // Date automatique centrée dans la barre blanche (avec un segment de barre blanche de chaque côté)
-                const showEditorialDate = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'CONCOURS', 'REELS', 'CONSEILS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
+                // Date centrée dans la barre blanche (avec un segment de barre blanche de chaque côté)
+                const showEditorialDate = showDividerDate && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'CONCOURS', 'REELS', 'CONSEILS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'TRACKLIST', 'SPOTLIGHT', 'CITATION'].includes(theme);
 
                 ctx.save();
                 ctx.strokeStyle = '#ffffff';
@@ -6089,11 +6098,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 if (showEditorialDate) {
-                    const now = new Date();
-                    const dayStr = String(now.getDate()).padStart(2, '0');
-                    const monthStr = now.toLocaleDateString('fr-FR', { month: 'long' }).toUpperCase();
-                    const yearStr = now.getFullYear();
-                    const dateText = `${dayStr} ${monthStr} ${yearStr}`;
+                    const defaultDateText = getTodayFormattedDate();
+                    const dateText = (editorialDate && editorialDate.trim()) ? editorialDate.trim().toUpperCase() : defaultDateText;
 
                     const dateFontSize = isReel ? 18 : 16;
                     const dateLetterSpacing = 3;
@@ -6775,7 +6781,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide
     useEffect(() => {
@@ -10170,6 +10176,90 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             })()}
         </div>
     );
+
+    const hasWhiteDividerBar = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'CONCOURS', 'REELS', 'CONSEILS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'TRACKLIST', 'SPOTLIGHT', 'CITATION', 'PROMO'].includes(theme);
+
+    const editorialDateControl = hasWhiteDividerBar ? (
+        <div className="p-3 bg-black/40 border border-white/10 rounded-2xl shadow-lg space-y-2.5">
+            <div className="flex items-center justify-between pl-1">
+                <label className="text-[9px] font-black text-white uppercase tracking-widest flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-neon-cyan" />
+                    <span>Date (Barre Blanche)</span>
+                </label>
+                <div className="flex items-center gap-1.5">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setShowDividerDate(!showDividerDate);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`text-[8px] font-black px-2 py-0.5 rounded-lg border transition-all ${
+                            showDividerDate
+                                ? 'bg-neon-cyan/20 border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/30'
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                        }`}
+                        title={showDividerDate ? "Masquer la date et rendre la barre blanche continue" : "Afficher la date au centre de la barre blanche"}
+                    >
+                        {showDividerDate ? '👁️ Affichée' : '👁️ Masquée'}
+                    </button>
+                    {editorialDate && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setEditorialDate('');
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="text-[8px] font-bold text-gray-400 hover:text-white transition-colors"
+                            title="Réinitialiser à la date d'aujourd'hui"
+                        >
+                            🔄 Aujourd'hui
+                        </button>
+                    )}
+                </div>
+            </div>
+            {showDividerDate && (
+                <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                        <input
+                            type="text"
+                            value={editorialDate}
+                            onChange={(e) => {
+                                setEditorialDate(e.target.value);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            placeholder={getTodayFormattedDate()}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white font-bold text-xs uppercase focus:border-neon-cyan/50 outline-none transition-all shadow-md placeholder:text-gray-500"
+                        />
+                    </div>
+                    <label
+                        className="px-2.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-300 hover:text-white cursor-pointer transition-all flex items-center justify-center shrink-0"
+                        title="Choisir une date dans le calendrier"
+                    >
+                        <Calendar className="w-4 h-4 text-neon-cyan" />
+                        <input
+                            type="date"
+                            className="sr-only"
+                            onChange={(e) => {
+                                if (!e.target.value) return;
+                                const [y, m, d] = e.target.value.split('-').map(Number);
+                                const selDate = new Date(y, m - 1, d);
+                                const dayStr = String(selDate.getDate()).padStart(2, '0');
+                                const monthStr = selDate.toLocaleDateString('fr-FR', { month: 'long' }).toUpperCase();
+                                const yearStr = selDate.getFullYear();
+                                setEditorialDate(`${dayStr} ${monthStr} ${yearStr}`);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                        />
+                    </label>
+                </div>
+            )}
+            <p className="text-[8px] text-gray-400 pl-1">
+                {showDividerDate
+                    ? "Texte centré dans la barre blanche (par défaut : date du jour). Modifiable librement ou via le calendrier."
+                    : "La barre blanche est affichée continue sans texte au milieu."}
+            </p>
+        </div>
+    ) : null;
 
     const textAnimationControl = (
         <div className={`p-3 bg-white/5 border border-white/10 rounded-2xl transition-all ${animOptionsOpen ? 'space-y-2.5' : ''}`}>
@@ -16635,6 +16725,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>{textEditor}</>
                                     )}
 
+                                    {/* Option Date dans la barre blanche */}
+                                    {editorialDateControl}
+
                                     {/* Animation universelle du texte & éléments (regroupée directement sous le cadre texte) */}
                                     {theme !== 'MAP' && textAnimationControl}
                                     {theme !== 'MAP' && isMultiSlideTheme && slideTransitionControl}
@@ -17875,6 +17968,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter</button>
                                             </div>
                                         ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'ARTISTE FESTIVAL' ? artisteFestivalEditor : (theme === 'EVENTS' || theme === 'AFFICHE') ? eventsEditor : theme === 'MUSIQUE' ? musiqueEditor : theme === 'TOP 100 DROPSIDERS' ? top100Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'PROMO' ? promoEditor : textEditor}
+                                        {/* Option Date dans la barre blanche */}
+                                        {editorialDateControl}
+
                                         {/* Animation du texte & transitions de slide en dessous du cadre texte */}
                                         {theme !== 'MAP' && textAnimationControl}
                                         {theme !== 'MAP' && isMultiSlideTheme && slideTransitionControl}
