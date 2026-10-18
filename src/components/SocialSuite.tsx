@@ -10327,16 +10327,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <button
                             type="button"
                             onClick={() => {
-                                if (editorialDateInputRef.current) {
-                                    try {
-                                        if ('showPicker' in editorialDateInputRef.current) {
-                                            editorialDateInputRef.current.showPicker();
-                                        } else {
-                                            editorialDateInputRef.current.focus();
-                                        }
-                                    } catch {
-                                        editorialDateInputRef.current.focus();
+                                const input = editorialDateInputRef.current;
+                                if (!input) return;
+                                try {
+                                    if (typeof (input as any).showPicker === 'function') {
+                                        (input as any).showPicker();
+                                    } else {
+                                        input.focus();
                                     }
+                                } catch {
+                                    input.focus();
                                 }
                             }}
                             className="px-2.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-neon-cyan/50 rounded-xl text-gray-300 hover:text-white transition-all flex items-center justify-center cursor-pointer relative overflow-hidden group shadow-sm active:scale-95"
