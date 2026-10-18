@@ -4868,18 +4868,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // 1. Badge supérieur CITATION (Capsule stylisée avec rouge néon Dropsiders)
                 drawTopCapsuleBadge('CITATION', activeData.color || '#ff1241', activeData.grad || '255, 18, 65');
 
-                // 2. Logo Dropsiders en haut à droite
-                if (logoRef.current) {
-                    const logo = logoRef.current;
-                    const lw = 320;
-                    const lh = (logo.height / logo.width) * lw;
-                    const xOffset = bgVideo ? 140 : 40;
-                    const yOffset = bgVideo ? 70 : 20;
-                    ctx.save();
-                    ctx.drawImage(logo, canvas.width - lw - xOffset, yOffset, lw, lh);
-                    ctx.restore();
-                }
-
                 if (customText) {
                     const quote = customText.trim().toUpperCase();
                     const paragraphs = quote.split('\n');
