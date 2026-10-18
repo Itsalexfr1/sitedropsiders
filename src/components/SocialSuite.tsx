@@ -1788,6 +1788,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
 
         // Pendant l'export vidéo déterministe, seul l'encodeur exportateur a le droit de dessiner sur le canvas
         if (isVideoRecordingRef.current && !isExportRenderingRef.current) return;
@@ -7029,7 +7031,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const targetHeight = activeTab === 'REEL' ? 1920 : 1350;
         if (canvas.width !== targetWidth) canvas.width = targetWidth;
         if (canvas.height !== targetHeight) canvas.height = targetHeight;
-        const bitrate = isMobile ? 6000000 : (fps === 60 ? 14000000 : 10000000);
+        const bitrate = isMobile ? 15000000 : (fps === 60 ? 28000000 : 20000000);
 
         // ── DÉTECTION WEBCODECS (EXPORT FRAME-PAR-FRAME DÉTERMINISTE) ───────────────
         // WebCodecs élimine à 100% les saccades et baisses de FPS : chaque frame est
@@ -7039,6 +7041,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             && typeof (window as any).VideoFrame !== 'undefined';
 
         let chosenCodec: string | null = null;
+        let chosenCodecConfig: any = null;
         if (webCodecsAvailable) {
             const candidates = [
                 // High Profile (Levels 5.2, 5.1, 5.0, 4.2, 4.1, 4.0) - requis pour 1080x1920 @ 60 FPS
@@ -7051,7 +7054,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             ];
             for (const cand of candidates) {
                 try {
-                    const check = await (window as any).VideoEncoder.isConfigSupported({
+                    const qualityCfg: any = {
                         codec: cand,
                         width: targetWidth,
                         height: targetHeight,
@@ -7059,9 +7062,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         framerate: fps,
                         hardwareAcceleration: 'no-preference',
                         avc: { format: 'avc' },
-                    });
-                    if (check && check.supported) {
+                        latencyMode: 'quality',
+                        bitrateMode: 'variable',
+                    };
+                    const checkQuality = await (window as any).VideoEncoder.isConfigSupported(qualityCfg);
+                    if (checkQuality && checkQuality.supported) {
                         chosenCodec = cand;
+                        chosenCodecConfig = checkQuality.config || qualityCfg;
+                        break;
+                    }
+                    const stdCfg: any = {
+                        codec: cand,
+                        width: targetWidth,
+                        height: targetHeight,
+                        bitrate,
+                        framerate: fps,
+                        hardwareAcceleration: 'no-preference',
+                        avc: { format: 'avc' },
+                    };
+                    const checkStd = await (window as any).VideoEncoder.isConfigSupported(stdCfg);
+                    if (checkStd && checkStd.supported) {
+                        chosenCodec = cand;
+                        chosenCodecConfig = checkStd.config || stdCfg;
                         break;
                     }
                 } catch {}
@@ -7120,7 +7142,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             });
 
             try {
-                videoEncoder.configure({
+                videoEncoder.configure(chosenCodecConfig || {
                     codec: chosenCodec,
                     width: targetWidth,
                     height: targetHeight,
@@ -7142,8 +7164,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     await new Promise(r => setTimeout(r, 4));
                 }
                 const timestampUs = Math.round((totalFramesEncoded * 1_000_000) / fps);
-                // Utiliser createImageBitmap pour forcer le flush GPU du canvas
-                const bitmap = await createImageBitmap(canvas);
+                // Utiliser createImageBitmap avec resizeQuality: 'high' pour forcer le flush GPU net du canvas
+                const bitmap = await createImageBitmap(canvas, { resizeQuality: 'high' });
                 const frame = new (window as any).VideoFrame(bitmap, {
                     timestamp: timestampUs,
                     duration: frameDurationUs,
@@ -7307,18 +7329,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             outgoingCanvas.width = canvas.width;
             outgoingCanvas.height = canvas.height;
             const outCtx = outgoingCanvas.getContext('2d');
-            if (outCtx) outCtx.drawImage(canvas, 0, 0);
+            if (outCtx) {
+                outCtx.imageSmoothingEnabled = true;
+                outCtx.imageSmoothingQuality = 'high';
+                outCtx.drawImage(canvas, 0, 0);
+            }
 
             // Basculement vers la slide entrante (après snapshot)
             if (onSwitch) onSwitch();
 
             const ctx = canvas.getContext('2d');
+            if (ctx) {
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+            }
 
             // Canvas réutilisable pour le snapshot de chaque frame entrante (alloué une fois)
             const incomingSnap = document.createElement('canvas');
             incomingSnap.width = canvas.width;
             incomingSnap.height = canvas.height;
             const inSnapCtx = incomingSnap.getContext('2d');
+            if (inSnapCtx) {
+                inSnapCtx.imageSmoothingEnabled = true;
+                inSnapCtx.imageSmoothingQuality = 'high';
+            }
 
             if (useWebCodecs) {
                 const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
@@ -7692,7 +7726,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             recorder = new MediaRecorder(combinedStream, {
                 mimeType,
                 videoBitsPerSecond: bitrate,
-                ...(hasAudioTrack ? { audioBitsPerSecond: 192000 } : {}),
+                ...(hasAudioTrack ? { audioBitsPerSecond: 256000 } : {}),
             });
             recorder.ondataavailable = (e: any) => {
                 if (e.data && e.data.size > 0) chunks.push(e.data);
@@ -8016,8 +8050,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const keyframeInterval = String(fps * 2);
                 const videoArgs = [
-                    '-c:v', 'libx264', '-preset', 'veryfast', '-profile:v', 'main', '-level', '4.0',
-                    '-crf', '19',
+                    '-c:v', 'libx264', '-preset', 'veryfast', '-profile:v', 'high', '-level', '4.2',
+                    '-crf', '18',
                     '-g', keyframeInterval, '-pix_fmt', 'yuv420p',
                     '-r', String(fps), '-movflags', '+faststart'
                 ];
@@ -8029,11 +8063,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (videoBlob.type.includes('mp4')) {
                         ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav',
                             '-map', '0:v:0', '-map', '1:a:0',
-                            '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-avoid_negative_ts', 'make_zero', '-shortest', '-movflags', '+faststart', 'output.mp4'];
+                            '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-avoid_negative_ts', 'make_zero', '-shortest', '-movflags', '+faststart', 'output.mp4'];
                     } else {
                         ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
                             '-map', '0:v:0', '-map', '1:a:0',
-                            '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-avoid_negative_ts', 'make_zero', '-shortest', 'output.mp4'];
+                            '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-avoid_negative_ts', 'make_zero', '-shortest', 'output.mp4'];
                     }
                 } else if (bgVideoBlob) {
                     // Fallback FFmpeg audio extraction si decodeAudioData natif a échoué
@@ -8042,7 +8076,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     await ffmpeg.writeFile(bgFilename, await fetchFile(bgVideoBlob));
                     let hasExtracted = false;
                     try {
-                        await ffmpeg.exec(['-i', bgFilename, '-vn', '-c:a', 'pcm_s16le', '-ar', '44100', '-ac', '2', 'audio.wav']);
+                        await ffmpeg.exec(['-i', bgFilename, '-vn', '-c:a', 'pcm_s16le', '-ar', '48000', '-ac', '2', 'audio.wav']);
                         hasExtracted = true;
                     } catch (e) {
                         console.warn('[Audio] Extraction FFmpeg échouée, bg_source sans piste audio :', e);
@@ -8052,18 +8086,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         if (videoBlob.type.includes('mp4')) {
                             ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav',
                                 '-map', '0:v:0', '-map', '1:a:0',
-                                '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-avoid_negative_ts', 'make_zero', '-t', targetSec, '-shortest', '-movflags', '+faststart', 'output.mp4'];
+                                '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-avoid_negative_ts', 'make_zero', '-t', targetSec, '-shortest', '-movflags', '+faststart', 'output.mp4'];
                         } else {
                             ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
                                 '-map', '0:v:0', '-map', '1:a:0',
-                                '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-avoid_negative_ts', 'make_zero', '-t', targetSec, '-shortest', 'output.mp4'];
+                                '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-avoid_negative_ts', 'make_zero', '-t', targetSec, '-shortest', 'output.mp4'];
                         }
                     } else {
                         ffmpegArgs = ['-i', inputFileName, '-c:v', 'copy', '-an', '-movflags', '+faststart', 'output.mp4'];
                     }
                 } else if (hasAudioTrack) {
                     ffmpegArgs = ['-i', inputFileName, ...videoArgs,
-                        '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', 'output.mp4'];
+                        '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', 'output.mp4'];
                 } else {
                     ffmpegArgs = ['-i', inputFileName, ...videoArgs, '-an', 'output.mp4'];
                 }
