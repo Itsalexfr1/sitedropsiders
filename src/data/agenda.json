@@ -610,5 +610,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1139,
+    "title": "Mosimann",
+    "date": "2027-10-16",
+    "startDate": "2027-10-16",
+    "endDate": "2027-10-16",
+    "venue": "Accor Arena",
+    "location": "PARIS",
+    "country": "FRANCE",
+    "type": "Concert",
+    "image": "/uploads/32031b3f9dc33a18-format_instagram_3_4_768x1024.jpg",
+    "url": "https://billetterie.accorarena.com/fr/manifestation/mosimann-billet/idmanif/655531",
+    "genre": "House",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
