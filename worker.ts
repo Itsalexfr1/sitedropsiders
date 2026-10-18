@@ -8269,9 +8269,8 @@ ${urls.map(u => `  <url>
                     // We limit to 2000 objects to avoid timeout/memory issues, 
                     // usually enough for a photo library
                     let safetyCounter = 0;
-                    
-                    while (safetyCounter < 60) { // Max 6000 items (60 * 100) - bucket has 5861+ objects
-                        const res = await env.R2.list({ cursor: currentCursor, prefix, limit: 100 });
+                    while (safetyCounter < 20) { // Max 20,000 items (20 * 1000) using native R2 limit 1000
+                        const res = await env.R2.list({ cursor: currentCursor, prefix, limit: 1000 });
                         allObjects.push(...res.objects);
                         if (!res.truncated) break;
                         currentCursor = res.cursor;

@@ -2742,7 +2742,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, canvas.height * 0.82, canvas.width, canvas.height * 0.18);
                 }
             } else {
-                if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && eventsSlide === 2) && !(theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) && !isEditorialAfficheRequested && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
+                if (theme !== 'HIGHLIGHTS' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && eventsSlide === 2) && !(theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) && !isEditorialAfficheRequested && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
                     const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                         ? canvas.height * 0.8
                         : canvas.height * 0.4;
@@ -2758,7 +2758,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 // Lignes de scan rétro (uniquement sur les thèmes non modernisés)
-                if (theme !== 'PLANNING' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ') {
+                if (theme !== 'HIGHLIGHTS' && theme !== 'PLANNING' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ') {
                     const scanlineLimitY = canvas.height;
                     ctx.fillStyle = 'rgba(0,0,0,0.1)';
                     for (let i = 0; i < scanlineLimitY; i += 6) ctx.fillRect(0, i, canvas.width, 2);

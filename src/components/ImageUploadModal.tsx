@@ -69,11 +69,13 @@ export function ImageUploadModal({
     const [mediaFilter, setMediaFilter] = useState<'all' | 'images' | 'videos'>('all');
 
     const isVideoFile = (keyOrUrl: string) => {
+        if (!keyOrUrl) return false;
         const ext = (keyOrUrl.split('.').pop() || '').split('?')[0].toLowerCase();
         return ['mp4', 'webm', 'mov', 'm4v', 'mkv', 'avi'].includes(ext);
     };
 
     const isImageFile = (keyOrUrl: string) => {
+        if (!keyOrUrl) return false;
         const ext = (keyOrUrl.split('.').pop() || '').split('?')[0].toLowerCase();
         return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'avif', 'ico'].includes(ext);
     };
@@ -242,18 +244,33 @@ export function ImageUploadModal({
             const sortParam = sortBy === 'newest' ? '&sort=date' : '';
 
             if (mediaFilter === 'videos') {
-                const url = `/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${sortParam}&prefix=VIDEOS%2F`;
-                const res = await fetch(url, { headers: getAuthHeaders() });
-                if (res.ok) {
-                    const data = await res.json();
-                    const processed = (data.objects || []).map((p: any) => ({ ...p, url: p.url ? p.url : (p.key.startsWith('http') ? p.key : `/uploads/${p.key}`) }));
-                    if (targetCursor) {
-                        setR2Photos(prev => [...prev, ...processed]);
-                    } else {
-                        setR2Photos(processed);
-                    }
-                    setR2Cursor(data.cursor || null);
+                const [resUpper, resLower] = await Promise.all([
+                    fetch(`/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${sortParam}&prefix=VIDEOS%2F`, { headers: getAuthHeaders() }),
+                    fetch(`/api/r2/list?limit=100${sortParam}&prefix=videos%2F`, { headers: getAuthHeaders() })
+                ]);
+                const dataUpper = resUpper.ok ? await resUpper.json() : { objects: [] };
+                const dataLower = resLower.ok ? await resLower.json() : { objects: [] };
+                const combined = [...(dataUpper.objects || []), ...(dataLower.objects || [])].map((p: any) => ({
+                    ...p,
+                    url: p.url ? p.url : (p.key.startsWith('http') ? p.key : `/uploads/${p.key}`)
+                }));
+                const map = new Map<string, any>();
+                combined.forEach((p: any) => { if (p.key && !map.has(p.key)) map.set(p.key, p); });
+                const sorted = Array.from(map.values()).sort((a: any, b: any) => {
+                    const ta = new Date(a.uploaded || 0).getTime();
+                    const tb = new Date(b.uploaded || 0).getTime();
+                    return tb - ta;
+                });
+                if (targetCursor) {
+                    setR2Photos(prev => {
+                        const existingKeys = new Set(prev.map(p => p.key));
+                        const additions = sorted.filter(p => !existingKeys.has(p.key));
+                        return [...prev, ...additions];
+                    });
+                } else {
+                    setR2Photos(sorted);
                 }
+                setR2Cursor(dataUpper.cursor || null);
             } else if (mediaFilter === 'images') {
                 const url = `/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${sortParam}&prefix=uploads%2F`;
                 const res = await fetch(url, { headers: getAuthHeaders() });
@@ -269,17 +286,27 @@ export function ImageUploadModal({
                 }
             } else {
                 // 'all' : fetch BOTH uploads/ (images & uploads) and VIDEOS/ (all uploaded videos) in parallel!
-                const [resUploads, resVideos] = await Promise.all([
+                const [resUploads, resVideosUpper, resVideosLower] = await Promise.all([
                     fetch(`/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${sortParam}&prefix=uploads%2F`, { headers: getAuthHeaders() }),
-                    fetch(`/api/r2/list?limit=100${sortParam}&prefix=VIDEOS%2F`, { headers: getAuthHeaders() })
+                    fetch(`/api/r2/list?limit=100${sortParam}&prefix=VIDEOS%2F`, { headers: getAuthHeaders() }),
+                    fetch(`/api/r2/list?limit=100${sortParam}&prefix=videos%2F`, { headers: getAuthHeaders() })
                 ]);
                 const dataUploads = resUploads.ok ? await resUploads.json() : { objects: [] };
-                const dataVideos = resVideos.ok ? await resVideos.json() : { objects: [] };
+                const dataVideosUpper = resVideosUpper.ok ? await resVideosUpper.json() : { objects: [] };
+                const dataVideosLower = resVideosLower.ok ? await resVideosLower.json() : { objects: [] };
 
                 const processedUploads = (dataUploads.objects || []).map((p: any) => ({ ...p, url: p.url ? p.url : (p.key.startsWith('http') ? p.key : `/uploads/${p.key}`) }));
-                const processedVideos = (dataVideos.objects || []).map((p: any) => ({ ...p, url: p.url ? p.url : (p.key.startsWith('http') ? p.key : `/uploads/${p.key}`) }));
+                const processedVideos = [...(dataVideosUpper.objects || []), ...(dataVideosLower.objects || [])].map((p: any) => ({ ...p, url: p.url ? p.url : (p.key.startsWith('http') ? p.key : `/uploads/${p.key}`) }));
 
-                const merged = [...processedUploads, ...processedVideos].sort((a: any, b: any) => {
+                // Combine and deduplicate by key
+                const fileMap = new Map<string, any>();
+                [...processedVideos, ...processedUploads].forEach((p: any) => {
+                    if (p.key && !fileMap.has(p.key)) {
+                        fileMap.set(p.key, p);
+                    }
+                });
+
+                const merged = Array.from(fileMap.values()).sort((a: any, b: any) => {
                     const ta = new Date(a.uploaded || 0).getTime();
                     const tb = new Date(b.uploaded || 0).getTime();
                     return tb - ta;
@@ -791,21 +818,21 @@ export function ImageUploadModal({
                                                                 onClick={() => setMediaFilter('all')}
                                                                 className={`px-2 py-1 rounded text-[8px] font-black uppercase transition-all ${mediaFilter === 'all' ? 'bg-neon-blue text-black' : 'text-gray-400 hover:text-white'}`}
                                                             >
-                                                                Tout
+                                                                Tout ({r2Photos.length})
                                                             </button>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setMediaFilter('images')}
                                                                 className={`px-2 py-1 rounded text-[8px] font-black uppercase transition-all ${mediaFilter === 'images' ? 'bg-neon-cyan text-black' : 'text-gray-400 hover:text-white'}`}
                                                             >
-                                                                Images ({r2Photos.filter(p => isImageFile(p.key)).length})
+                                                                Images ({r2Photos.filter(p => isImageFile(p.key) || (p.url && isImageFile(p.url))).length})
                                                             </button>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setMediaFilter('videos')}
                                                                 className={`px-2 py-1 rounded text-[8px] font-black uppercase transition-all ${mediaFilter === 'videos' ? 'bg-[#ff3700] text-white' : 'text-gray-400 hover:text-white'}`}
                                                             >
-                                                                Vidéos ({r2Photos.filter(p => isVideoFile(p.key)).length})
+                                                                Vidéos ({r2Photos.filter(p => isVideoFile(p.key) || (p.url && isVideoFile(p.url))).length})
                                                             </button>
                                                         </div>
                                                     </div>
@@ -888,14 +915,14 @@ export function ImageUploadModal({
                                                 <>
                                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6 max-h-[60vh] overflow-y-auto no-scrollbar rounded-3xl p-4 w-full auto-rows-max content-start">
                                                         {r2Photos.filter(p => {
-                                                            const isImg = isImageFile(p.key);
-                                                            const isVid = isVideoFile(p.key);
+                                                            const isImg = isImageFile(p.key) || (p.url && isImageFile(p.url));
+                                                            const isVid = isVideoFile(p.key) || (p.url && isVideoFile(p.url));
                                                             if (!isImg && !isVid) return false;
                                                             if (mediaFilter === 'images' && !isImg) return false;
                                                             if (mediaFilter === 'videos' && !isVid) return false;
                                                             return (!searchTerm || p.key.toLowerCase().includes(searchTerm.toLowerCase()));
                                                         }).map(photo => {
-                                                            const isVid = isVideoFile(photo.key);
+                                                            const isVid = isVideoFile(photo.key) || (photo.url && isVideoFile(photo.url));
                                                             return (
                                                             <div 
                                                                 key={photo.key} 
