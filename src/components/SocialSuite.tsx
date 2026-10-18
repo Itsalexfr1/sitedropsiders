@@ -409,6 +409,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [showMusicDate, setShowMusicDate] = useState<boolean>(false); // Masquer ou afficher la date sous le titre en thème MUSIQUE
     const [editorialDate, setEditorialDate] = useState<string>(''); // Date personnalisée au centre de la barre blanche (vide = aujourd'hui)
     const [showDividerDate, setShowDividerDate] = useState<boolean>(true); // Afficher ou masquer la date au centre de la barre blanche
+    const editorialDateInputRef = useRef<HTMLInputElement | null>(null);
     const getTodayFormattedDate = () => {
         const now = new Date();
         const dayStr = String(now.getDate()).padStart(2, '0');
@@ -10334,26 +10335,43 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white font-bold text-xs uppercase focus:border-neon-cyan/50 outline-none transition-all shadow-md placeholder:text-gray-500"
                         />
                     </div>
-                    <label
-                        className="px-2.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-300 hover:text-white cursor-pointer transition-all flex items-center justify-center shrink-0"
-                        title="Choisir une date dans le calendrier"
-                    >
-                        <Calendar className="w-4 h-4 text-neon-cyan" />
-                        <input
-                            type="date"
-                            className="sr-only"
-                            onChange={(e) => {
-                                if (!e.target.value) return;
-                                const [y, m, d] = e.target.value.split('-').map(Number);
-                                const selDate = new Date(y, m - 1, d);
-                                const dayStr = String(selDate.getDate()).padStart(2, '0');
-                                const monthStr = selDate.toLocaleDateString('fr-FR', { month: 'long' }).toUpperCase();
-                                const yearStr = selDate.getFullYear();
-                                setEditorialDate(`${dayStr} ${monthStr} ${yearStr}`);
-                                setTimeout(() => generateImage(), 50);
+                    <div className="relative shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (editorialDateInputRef.current) {
+                                    try {
+                                        if ('showPicker' in editorialDateInputRef.current) {
+                                            editorialDateInputRef.current.showPicker();
+                                        } else {
+                                            editorialDateInputRef.current.focus();
+                                        }
+                                    } catch {
+                                        editorialDateInputRef.current.focus();
+                                    }
+                                }
                             }}
-                        />
-                    </label>
+                            className="px-2.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-neon-cyan/50 rounded-xl text-gray-300 hover:text-white transition-all flex items-center justify-center cursor-pointer relative overflow-hidden group shadow-sm active:scale-95"
+                            title="Choisir une date dans le calendrier"
+                        >
+                            <Calendar className="w-4 h-4 text-neon-cyan group-hover:scale-110 transition-transform pointer-events-none" />
+                            <input
+                                ref={editorialDateInputRef}
+                                type="date"
+                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                onChange={(e) => {
+                                    if (!e.target.value) return;
+                                    const [y, m, d] = e.target.value.split('-').map(Number);
+                                    const selDate = new Date(y, m - 1, d);
+                                    const dayStr = String(selDate.getDate()).padStart(2, '0');
+                                    const monthStr = selDate.toLocaleDateString('fr-FR', { month: 'long' }).toUpperCase();
+                                    const yearStr = selDate.getFullYear();
+                                    setEditorialDate(`${dayStr} ${monthStr} ${yearStr}`);
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                            />
+                        </button>
+                    </div>
                 </div>
             )}
             <p className="text-[8px] text-gray-400 pl-1">
