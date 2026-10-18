@@ -377,7 +377,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [highlightsCity, setHighlightsCity] = useState<string>('BOOM');
     const [highlightsCountry, setHighlightsCountry] = useState<string>('BELGIQUE');
     const [highlightsDate, setHighlightsDate] = useState<string>('18 - 20 JUILLET 2026');
-    const [showHighlightsLine, setShowHighlightsLine] = useState<boolean>(false);
+    const [highlightsSlideArtists, setHighlightsSlideArtists] = useState<Record<number, { artist?: string; festival?: string; city?: string; country?: string; date?: string }>>({});
     const [isArtistLogoNegative, setIsArtistLogoNegative] = useState(true);
     const [citationAuthor, setCitationAuthor] = useState('');
     const [citationMedia, setCitationMedia] = useState('pour Dropsiders');
@@ -1681,7 +1681,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const forceTheme = typeof exportMode === 'string' ? (exportMode as ThemeType) : forceThemeParam;
         const isPromoRequested = Boolean(promoOutroOverrideRef.current || (isCarouselPromoActive && isMultiSlideTheme));
         const effectiveTheme = isPromoRequested ? 'PROMO' : (forceTheme || theme);
-        const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(effectiveTheme);
+        const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(effectiveTheme);
         const isEditorialAfficheRequested = Boolean(isEditorialCarouselTheme && !isPromoRequested && (editorialAfficheOverrideRef.current || isEditorialAfficheActive));
 
         try {
@@ -2427,6 +2427,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const dotCenterY = badgeY + (badgeH / 2);
                 const textStartX = dotCenterX + dotRadius + dotGap;
                 const badgeW = Math.ceil(badgePadLeft + (dotRadius * 2) + dotGap + textWidth + italicSlantBuffer + badgePadRight);
+
+                if (theme === 'HIGHLIGHTS') {
+                    ctx.save();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+                    ctx.shadowBlur = 12;
+                    ctx.shadowOffsetY = 2;
+                    ctx.beginPath();
+                    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
+                    ctx.fill();
+
+                    ctx.shadowColor = 'transparent';
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#000000';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(label, badgeX + badgeW / 2, badgeY + badgeH / 2);
+                    ctx.restore();
+                    return;
+                }
 
                 // Détection export image (PNG) vs export vidéo (MP4)
                 const isPngExport = isDownloading || Boolean(exportMode);
@@ -5618,7 +5638,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.shadowBlur = 15;
                 ctx.fillText(catText, canvas.width / 2, catY);
                 ctx.restore();
-
             } else if (theme === 'HIGHLIGHTS') {
                 const isReel = effectiveTab === 'REEL';
                 const centerX = canvas.width / 2;
@@ -5675,22 +5694,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // 3. Safe bottom position for the 3 stacked text lines
                 const safeBottom = canvas.height - (isReel ? 180 : 100);
 
-                // Ligne de séparation optionnelle
-                if (showHighlightsLine) {
-                    const lineMarginX = isReel ? 80 : 60;
-                    const lineY = safeBottom - (isReel ? 180 : 155);
-                    ctx.save();
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 4;
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-                    ctx.shadowBlur = 6;
-                    ctx.beginPath();
-                    ctx.moveTo(lineMarginX, lineY);
-                    ctx.lineTo(canvas.width - lineMarginX, lineY);
-                    ctx.stroke();
-                    ctx.restore();
-                }
-
                 // Animation support (if animated)
                 const animElapsed = isVideoRecordingRef.current
                     ? deterministicAnimTimeRef.current
@@ -5705,7 +5708,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.shadowOffsetY = 4;
 
                 // --- LINE 1 : L'ARTISTE EN ASSEZ GROS (BLANC PUR) ---
-                const artistStr = (highlightsArtist || '').trim().toUpperCase();
+                const activeArtist = highlightsSlideArtists[effectiveEditorialSlide]?.artist ?? highlightsArtist;
+                const artistStr = (activeArtist || '').trim().toUpperCase();
                 if (artistStr) {
                     let artistFontSize = isReel ? 82 : 74;
                     const maxArtistW = canvas.width - (isReel ? 160 : 120);
@@ -5740,10 +5744,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 // --- LINE 2 : FESTIVAL + VILLE + PAYS (BLANC PUR - AUCUNE COULEUR) ---
+                const activeFestival = highlightsSlideArtists[effectiveEditorialSlide]?.festival ?? highlightsFestival;
+                const activeCity = highlightsSlideArtists[effectiveEditorialSlide]?.city ?? highlightsCity;
+                const activeCountry = highlightsSlideArtists[effectiveEditorialSlide]?.country ?? highlightsCountry;
                 const metaParts = [
-                    highlightsFestival?.trim().toUpperCase(),
-                    highlightsCity?.trim().toUpperCase(),
-                    highlightsCountry?.trim().toUpperCase()
+                    activeFestival?.trim().toUpperCase(),
+                    activeCity?.trim().toUpperCase(),
+                    activeCountry?.trim().toUpperCase()
                 ].filter(Boolean);
                 const festivalLine = metaParts.join(' • ');
 
@@ -5782,7 +5789,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 // --- LINE 3 : DATE EN DESSOUS (BLANC PUR) ---
-                const dateStr = (highlightsDate || '').trim().toUpperCase();
+                const activeDate = highlightsSlideArtists[effectiveEditorialSlide]?.date ?? highlightsDate;
+                const dateStr = (activeDate || '').trim().toUpperCase();
                 if (dateStr) {
                     let dateFontSize = isReel ? 24 : 21;
                     ctx.font = `700 ${dateFontSize}px "Montserrat", sans-serif`;
@@ -5871,7 +5879,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // 1. TOP-LEFT STYLIZED CAPSULE BADGE (French Crowd / Modern Editorial)
                 const isReel = effectiveTab === 'REEL';
-                const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'ARTISTE FESTIVAL'].includes(theme);
+                const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'ARTISTE FESTIVAL', 'HIGHLIGHTS'].includes(theme);
 
                 ctx.save();
                 if (isEditorialCarouselTheme) {
@@ -6635,7 +6643,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide
     useEffect(() => {
@@ -10468,71 +10476,104 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
+    const currentHighlightsArtist = highlightsSlideArtists[editorialSlide]?.artist ?? highlightsArtist;
+    const currentHighlightsFestival = highlightsSlideArtists[editorialSlide]?.festival ?? highlightsFestival;
+    const currentHighlightsCity = highlightsSlideArtists[editorialSlide]?.city ?? highlightsCity;
+    const currentHighlightsCountry = highlightsSlideArtists[editorialSlide]?.country ?? highlightsCountry;
+    const currentHighlightsDate = highlightsSlideArtists[editorialSlide]?.date ?? highlightsDate;
+
     const highlightsEditor = (
         <div className="space-y-3">
             <div className="space-y-1">
-                <span className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Artiste (Gros texte)</span>
+                <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black text-white uppercase tracking-wider">Artiste (Slide {editorialSlide})</span>
+                    <span className="text-[8.5px] font-bold text-gray-400">Gros texte blanc</span>
+                </div>
                 <input 
-                    value={highlightsArtist} 
-                    onChange={e => setHighlightsArtist(e.target.value)} 
+                    value={currentHighlightsArtist} 
+                    onChange={e => {
+                        const val = e.target.value;
+                        if (editorialSlide === 1) setHighlightsArtist(val);
+                        setHighlightsSlideArtists(prev => ({
+                            ...prev,
+                            [editorialSlide]: { ...(prev[editorialSlide] || {}), artist: val }
+                        }));
+                    }} 
                     placeholder="NOM DE L'ARTISTE (ex: MARTIN GARRIX)" 
                     spellCheck={false}
-                    className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white text-base font-black italic focus:border-cyan-400 outline-none transition-all uppercase" 
+                    className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white text-base font-black italic focus:border-white outline-none transition-all uppercase shadow-inner" 
                 />
             </div>
             <div className="space-y-1">
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Festival</span>
                 <input 
-                    value={highlightsFestival} 
-                    onChange={e => setHighlightsFestival(e.target.value)} 
+                    value={currentHighlightsFestival} 
+                    onChange={e => {
+                        const val = e.target.value;
+                        if (editorialSlide === 1) setHighlightsFestival(val);
+                        setHighlightsSlideArtists(prev => ({
+                            ...prev,
+                            [editorialSlide]: { ...(prev[editorialSlide] || {}), festival: val }
+                        }));
+                    }} 
                     placeholder="FESTIVAL (ex: TOMORROWLAND)" 
                     spellCheck={false}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-cyan-400 outline-none transition-all" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-white outline-none transition-all" 
                 />
             </div>
             <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Ville</span>
                     <input 
-                        value={highlightsCity} 
-                        onChange={e => setHighlightsCity(e.target.value)} 
+                        value={currentHighlightsCity} 
+                        onChange={e => {
+                            const val = e.target.value;
+                            if (editorialSlide === 1) setHighlightsCity(val);
+                            setHighlightsSlideArtists(prev => ({
+                                ...prev,
+                               [editorialSlide]: { ...(prev[editorialSlide] || {}), city: val }
+                            }));
+                        }} 
                         placeholder="VILLE (ex: BOOM)" 
                         spellCheck={false}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-cyan-400 outline-none transition-all" 
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-white outline-none transition-all" 
                     />
                 </div>
                 <div className="space-y-1">
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Pays</span>
                     <input 
-                        value={highlightsCountry} 
-                        onChange={e => setHighlightsCountry(e.target.value)} 
+                        value={currentHighlightsCountry} 
+                        onChange={e => {
+                            const val = e.target.value;
+                            if (editorialSlide === 1) setHighlightsCountry(val);
+                            setHighlightsSlideArtists(prev => ({
+                                ...prev,
+                                [editorialSlide]: { ...(prev[editorialSlide] || {}), country: val }
+                            }));
+                        }} 
                         placeholder="PAYS (ex: BELGIQUE)" 
                         spellCheck={false}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-cyan-400 outline-none transition-all" 
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-white outline-none transition-all" 
                     />
                 </div>
             </div>
             <div className="space-y-1">
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Date</span>
                 <input 
-                    value={highlightsDate} 
-                    onChange={e => setHighlightsDate(e.target.value)} 
+                    value={currentHighlightsDate} 
+                    onChange={e => {
+                        const val = e.target.value;
+                        if (editorialSlide === 1) setHighlightsDate(val);
+                        setHighlightsSlideArtists(prev => ({
+                            ...prev,
+                            [editorialSlide]: { ...(prev[editorialSlide] || {}), date: val }
+                        }));
+                    }} 
                     placeholder="DATE (ex: 18 - 20 JUILLET 2026)" 
                     spellCheck={false}
                     className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-white outline-none transition-all" 
                 />
             </div>
-            <button 
-                type="button"
-                onClick={() => setShowHighlightsLine(!showHighlightsLine)}
-                className={`w-full py-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-2 border ${
-                    showHighlightsLine 
-                        ? 'bg-white/20 text-white border-white shadow-md' 
-                        : 'bg-white/5 text-gray-400 border-white/10 hover:text-white'
-                }`}
-            >
-                {showHighlightsLine ? '— Ligne de séparation : Activée' : '— Ligne de séparation : Désactivée'}
-            </button>
         </div>
     );
 
@@ -10886,7 +10927,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
-    const isMultiSlideTheme = ['PLANNING', 'ARTISTE FESTIVAL', 'EVENTS', 'AFFICHE', 'MUSIQUE', 'NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 5 STYLES', 'TOP 5 ARTISTE', 'TOP 10 FESTIVAL', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
+    const isMultiSlideTheme = ['PLANNING', 'ARTISTE FESTIVAL', 'EVENTS', 'AFFICHE', 'MUSIQUE', 'NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 5 STYLES', 'TOP 5 ARTISTE', 'TOP 10 FESTIVAL', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(theme);
 
     const slideTransitionQuickBar = (
         <div className="flex items-center gap-1 pl-2 ml-1 border-l border-white/15">
@@ -12360,7 +12401,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     ) : null;
 
-    const slideVisualEditor = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
+    const slideVisualEditor = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(theme) ? (
         <div className="p-3 bg-black/60 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
             <div className="flex items-center justify-between">
                 <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
@@ -12542,7 +12583,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             );
         }
 
-        if (['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme)) {
+        if (['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(theme)) {
             return (
                 <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
                     <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
@@ -12945,7 +12986,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             )}
 
-            {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) && (
+            {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(theme) && (
                 <>
 
                     {theme === 'CONCOURS' && (
@@ -14140,7 +14181,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </div>
                         )}
 
-                        {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) && (
+                        {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(theme) && (
                             <div className="space-y-1.5 pt-1 border-t border-white/5">
                                 <span className="text-[8px] font-black text-neon-cyan uppercase tracking-wider block">
                                     Carrousel Complet ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)} Slides)
@@ -16007,7 +16048,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     ) : theme === 'TOP 100 DROPSIDERS' ? (
                                         <><span className="text-[10px] font-black text-neon-red uppercase">🏆 Révélation Top 100 Dropsiders</span>{top100Editor}</>
                                     ) : theme === 'HIGHLIGHTS' ? (
-                                        <><span className="text-[10px] font-black text-cyan-400 uppercase">Infos Highlights (Artiste & Festival)</span>{highlightsEditor}</>
+                                        <><span className="text-[10px] font-black text-white uppercase">Infos Highlights (Slide {editorialSlide})</span>{highlightsEditor}</>
                                     ) : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
                                         <><span className="text-[10px] font-black text-neon-cyan uppercase">Contenu Titre & Sous-titre ({theme === 'JEU' ? 'DEVINE LE CLIP' : theme === 'JEU_FESTIVAL' ? 'DEVINE LE FESTIVAL' : theme === 'JEU_DJ' ? 'DEVINE LE DJ' : theme})</span>{conseilsEditor}</>
                                     ) : theme === 'CITATION' ? (
@@ -16490,7 +16531,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {slideTransitionQuickBar}
                             </div>
                         )}
-                        {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) && (
+                        {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(theme) && (
                             <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20 flex-wrap justify-center">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
                                 <button
@@ -16554,6 +16595,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         ➕ Slide
                                     </button>
                                 )}
+                                {theme !== 'HIGHLIGHTS' && (
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -16569,6 +16611,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     🖼️ Slide AFFICHE
                                 </button>
+                                )}
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -16889,7 +16932,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {slideTransitionQuickBar}
                             </div>
                         )}
-                        {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) && (
+                        {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(theme) && (
                             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
                                     type="button"
@@ -16953,6 +16996,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         ➕ Slide
                                     </button>
                                 )}
+                                {theme !== 'HIGHLIGHTS' && (
                                 <button
                                     type="button"
                                     onClick={(e) => {
@@ -16967,6 +17011,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     🖼️ Affiche
                                 </button>
+                                )}
                                 <button
                                     type="button"
                                     onClick={(e) => {
