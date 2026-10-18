@@ -6970,7 +6970,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } catch {}
             }
         }
-        const useWebCodecs = Boolean(chosenCodec);
+        const isActualMobileDevice = typeof navigator !== 'undefined' && (
+            /iPad|iPhone|iPod|Android/i.test(navigator.userAgent) ||
+            ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 2 && window.innerWidth < 1024)
+        );
+        const useWebCodecs = Boolean(chosenCodec) && (!isActualMobileDevice || !bgVideo);
 
         let videoEncoder: any = null;
         let muxerTarget: any = null;
@@ -7420,14 +7424,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         if (!useWebCodecs) {
             const formats = [
+                'video/mp4;codecs=avc1,mp4a.40.2',
                 'video/mp4;codecs=h264',
                 'video/mp4',
                 'video/quicktime',
                 'video/webm;codecs=h264',
-                'video/webm;codecs=vp9',
+                'video/webm;codecs=vp9,opus',
+                'video/webm;codecs=vp8,opus',
                 'video/webm'
             ];
-            mimeType = formats.find(f => MediaRecorder.isTypeSupported(f)) || 'video/webm';
+            mimeType = formats.find(f => {
+                try { return MediaRecorder.isTypeSupported(f); } catch { return false; }
+            }) || 'video/webm';
             canvasStream = (canvas as any).captureStream ? (canvas as any).captureStream(fps) : (canvas as any).mozCaptureStream ? (canvas as any).mozCaptureStream(fps) : null;
 
             if (!canvasStream) {
@@ -7488,15 +7496,79 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // En mode WebCodecs déterministe, bgVideo DOIT RESTER PAUSED pour que le seek frame-par-frame soit parfait !
                 // On ne play() bgVideo que si useWebCodecs est faux (MediaRecorder temps réel).
                 if (!useWebCodecs) {
-                    try { bgVideo.muted = false; await bgVideo.play(); }
-                    catch { bgVideo.muted = true; await bgVideo.play().catch(() => {}); }
+                    try {
+                        const AudioCtxClass = (window as any).AudioContext || (window as any).webkitAudioContext;
+                        if (AudioCtxClass) {
+                            if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+                                audioCtxRef.current = new AudioCtxClass();
+                                audioSourceNodeRef.current = null;
+                                audioDestNodeRef.current = null;
+                                audioSourceVideoRef.current = null;
+                            }
+                            const actx = audioCtxRef.current;
+                            if (actx) {
+                                if (actx.state === 'suspended') {
+                                    await actx.resume().catch(() => {});
+                                }
 
-                    if (!bgVideo.muted && canvasStream) {
+                                if (!audioDestNodeRef.current) {
+                                    audioDestNodeRef.current = actx.createMediaStreamDestination();
+                                }
+
+                                if (audioSourceVideoRef.current !== bgVideo || !audioSourceNodeRef.current) {
+                                    try {
+                                        audioSourceNodeRef.current = actx.createMediaElementSource(bgVideo);
+                                        audioSourceVideoRef.current = bgVideo;
+                                    } catch (e) {
+                                        console.warn('createMediaElementSource warning:', e);
+                                    }
+                                }
+                            }
+
+                            if (audioSourceNodeRef.current && audioDestNodeRef.current) {
+                                try {
+                                    audioSourceNodeRef.current.disconnect();
+                                } catch {}
+                                try {
+                                    audioSourceNodeRef.current.connect(audioDestNodeRef.current);
+                                } catch (e) {
+                                    console.warn('audioSourceNodeRef connect warning:', e);
+                                }
+                            }
+
+                            const destAudioTracks = audioDestNodeRef.current?.stream.getAudioTracks() || [];
+                            if (destAudioTracks.length > 0 && canvasStream) {
+                                hasAudioTrack = true;
+                                combinedStream = new MediaStream([
+                                    ...canvasStream.getVideoTracks(),
+                                    destAudioTracks[0]
+                                ]);
+                                console.log('[Export] ✅ Piste audio de bgVideo connectée avec succès au flux d\'enregistrement via Web Audio.');
+                            }
+                        }
+                    } catch (audioErr) {
+                        console.warn('[Export] AudioContext setup error:', audioErr);
+                    }
+
+                    // Fallback captureStream si AudioContext n'a pas pu créer la track audio
+                    if (!hasAudioTrack && canvasStream) {
                         const vidStream = (bgVideo as any).captureStream?.() ?? (bgVideo as any).mozCaptureStream?.() ?? null;
                         if (vidStream?.getAudioTracks().length > 0) {
                             hasAudioTrack = true;
-                            combinedStream = new MediaStream([...canvasStream.getTracks(), vidStream.getAudioTracks()[0]]);
+                            combinedStream = new MediaStream([...canvasStream.getVideoTracks(), vidStream.getAudioTracks()[0]]);
+                            console.log('[Export] ✅ Piste audio de bgVideo connectée via captureStream.');
                         }
+                    }
+
+                    // Démarrage de la lecture vidéo avec son activé pour alimenter le graph Web Audio
+                    bgVideo.muted = false;
+                    bgVideo.volume = 1;
+                    try {
+                        await bgVideo.play();
+                    } catch (playErr) {
+                        console.warn('[Export] bgVideo.play() avec son échoué, essai en sourdine:', playErr);
+                        bgVideo.muted = true;
+                        await bgVideo.play().catch(() => {});
                     }
                 }
             } catch (e) {
@@ -7572,6 +7644,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             // Détection de présence de son dans le projet
             const hasAnyAudioSource = Boolean(bgVideoBlob || hasAnyMusicAudio || (bgVideo && (bgVideo.currentSrc || bgVideo.src)));
+
+            // FAST-PATH MP4 : si videoBlob est déjà un MP4 valide (ex: iOS Safari MediaRecorder avec audio AAC natif, ou MP4 muet)
+            // ET qu'aucun rendu multipiste MUSIQUE offline n'est nécessaire :
+            if (!hasAnyMusicAudio && (hasAudioTrack || !hasAnyAudioSource) && videoBlob.type.includes('mp4')) {
+                console.log('[Export] ✅ MP4 natif complet (vidéo + audio AAC intégré), export direct immédiat sans conversion.');
+                isVideoRecordingRef.current = false;
+                setIsVideoRecording(false);
+                setRecordingProgress(0);
+                const url = URL.createObjectURL(videoBlob);
+                setReadyVideoBlob(videoBlob);
+                setReadyVideoUrl(url);
+                setActivePanel(null);
+                const exportThemeName = combinedMode === 'PROMO_ONLY' ? 'promo' : theme.toLowerCase().replace(/\s+/g, '-');
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `dropsiders-${exportThemeName}-${activeTab.toLowerCase()}-${Date.now()}.mp4`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                return;
+            }
 
             // Sur mobile natif sans WebCodecs : modal de prévisualisation directe WebM UNIQUEMENT s'il n'y a STRICTEMENT aucun son
             const isActualMobileDevice = typeof navigator !== 'undefined' && (/iPad|iPhone|iPod|Android/.test(navigator.userAgent) || ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 2 && window.innerWidth < 1024));
@@ -7703,8 +7796,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 console.warn('Rendu audio offline échoué (fallback vidéo seule) :', audioRenderErr);
             }
 
-            // ── PHASE 2b : EXTRACTION AUDIO DEPUIS bgVideo (si pas de thème MUSIQUE) ────
-            if (!offlineWavBlob && bgVideoBlob && !(theme === 'MUSIQUE' && (isCarouselPromoActive || combinedMode === 'PROMO_ONLY'))) {
+            // ── PHASE 2b : EXTRACTION AUDIO DEPUIS bgVideo (si pas de thème MUSIQUE et pas déjà capturé) ────
+            if (!offlineWavBlob && !hasAudioTrack && bgVideoBlob && !(theme === 'MUSIQUE' && (isCarouselPromoActive || combinedMode === 'PROMO_ONLY'))) {
                 console.log('[Audio] Extraction haute-fidélité de la piste audio de bgVideo via Web Audio API...');
                 try {
                     offlineWavBlob = await extractAudioFromBlob(bgVideoBlob, totalDuration);
@@ -7717,7 +7810,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     console.warn('[Audio] Échec de l\'extraction Web Audio :', e);
                 }
 
-                // Fallback FFmpeg si Web Audio API n\'a pas pu décoder directement le conteneur MP4 (cas classique Safari iOS)
+                // Fallback FFmpeg si Web Audio API n'a pas pu décoder directement le conteneur MP4 (cas classique Safari iOS)
                 if (!offlineWavBlob) {
                     try {
                         if (!ffmpegRef.current) {
@@ -7736,8 +7829,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         await ffmpeg.exec(['-i', bgFilename, '-vn', '-c:a', 'pcm_s16le', '-ar', '44100', '-ac', '2', 'extracted_audio.wav']);
                         const wavData: any = await ffmpeg.readFile('extracted_audio.wav');
                         if (wavData && wavData.byteLength > 44) {
-                            const rawWavBlob = new Blob([wavData.buffer], { type: 'audio/wav' });
-                            offlineWavBlob = (await extractAudioFromBlob(rawWavBlob, totalDuration)) || rawWavBlob;
+                            const rawWavBlob = new Blob([wavData], { type: 'audio/wav' });
+                            offlineWavBlob = rawWavBlob;
                             console.log(`[Audio] ✅ Audio extrait avec succès via FFmpeg et prêt pour muxage (${Math.round(offlineWavBlob.size / 1024)} KB)`);
                         }
                     } catch (ffErr) {
@@ -7861,6 +7954,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
                             '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-shortest', 'output.mp4'];
                         await ffmpeg.exec(ffmpegArgs);
+                    } else if (hasAudioTrack) {
+                        console.warn('Retrying preserving existing audio track from input:');
+                        ffmpegArgs = ['-i', inputFileName, '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-movflags', '+faststart', 'output.mp4'];
+                        try {
+                            await ffmpeg.exec(ffmpegArgs);
+                        } catch {
+                            ffmpegArgs = ['-i', inputFileName, ...videoArgs, '-c:a', 'aac', '-b:a', '192k', '-ar', '44100', '-movflags', '+faststart', 'output.mp4'];
+                            await ffmpeg.exec(ffmpegArgs);
+                        }
                     } else {
                         console.warn('No audio file found, falling back to video only:', execErr);
                         ffmpegArgs = ['-i', inputFileName, '-c:v', 'copy', '-an', '-movflags', '+faststart', 'output.mp4'];
@@ -8085,7 +8187,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         transitionTargetRef.current = null;
         setTransitionProgress(0);
         if (bgVideo) {
-            bgVideo.muted = true; // remet en silencieux pour le preview
+            bgVideo.muted = isVideoAudioMuted; // restaure le choix de sourdine du preview
             bgVideo.loop = true;
             bgVideo.play().catch(() => { });
         }
