@@ -10,11 +10,15 @@ import {
     getParisSeconds, formatDurationExact, getCurrentLiveRadioTrack,
     computeRadioDaySchedule, getCachedRadioDurations, saveCachedRadioDuration,
     isForbiddenAdTrack,
-    type RadioScheduleBlock, type ComputedRadioScheduleItem
+    isRadioJingleTrack, computeAutoGainVolumes,
+    STORAGE_RADIO_AUTOGAIN_KEY, STORAGE_RADIO_JINGLE_BOOST_KEY,
+    type RadioScheduleBlock, type ComputedRadioScheduleItem,
+    type RadioJingleBoostLevel
 } from '../../utils/radioSchedule';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePlayer } from '../../context/PlayerContext';
 import { RadioDedicationModal } from './RadioDedicationModal';
+import { RadioAutoGainModal } from './RadioAutoGainModal';
 
 // ─── Modes d'enchaînement radio ──────────────────────────────────────────────
 export type RadioTransitionMode = 'RAPIDE' | 'CROSSFADE' | 'STANDARD';
@@ -282,6 +286,56 @@ function useRadioAudio() {
         catch { return 80; }
     });
 
+    // ─── Système de Réglage Automatique du Son & Boost des Jingles (Auto-Gain) ─
+    const [autoGainEnabled, setAutoGainEnabled] = useState<boolean>(() => {
+        try { return localStorage.getItem(STORAGE_RADIO_AUTOGAIN_KEY) !== 'false'; }
+        catch { return true; }
+    });
+    const autoGainEnabledRef = useRef<boolean>(autoGainEnabled);
+    useEffect(() => { autoGainEnabledRef.current = autoGainEnabled; }, [autoGainEnabled]);
+
+    const [jingleBoost, setJingleBoost] = useState<RadioJingleBoostLevel>(() => {
+        try {
+            const raw = localStorage.getItem(STORAGE_RADIO_JINGLE_BOOST_KEY);
+            const num = raw ? parseInt(raw, 10) : 4;
+            if (num === 0 || num === 2 || num === 4 || num === 6) return num as RadioJingleBoostLevel;
+        } catch {}
+        return 4;
+    });
+    const jingleBoostRef = useRef<RadioJingleBoostLevel>(jingleBoost);
+    useEffect(() => { jingleBoostRef.current = jingleBoost; }, [jingleBoost]);
+
+    const changeAutoGainEnabled = useCallback((enabled: boolean) => {
+        setAutoGainEnabled(enabled);
+        autoGainEnabledRef.current = enabled;
+        try { localStorage.setItem(STORAGE_RADIO_AUTOGAIN_KEY, enabled ? 'true' : 'false'); } catch {}
+        window.dispatchEvent(new CustomEvent('dropsiders_radio_autogain_changed', { detail: { enabled, boost: jingleBoostRef.current } }));
+    }, []);
+
+    const changeJingleBoost = useCallback((boost: RadioJingleBoostLevel) => {
+        setJingleBoost(boost);
+        jingleBoostRef.current = boost;
+        try { localStorage.setItem(STORAGE_RADIO_JINGLE_BOOST_KEY, String(boost)); } catch {}
+        window.dispatchEvent(new CustomEvent('dropsiders_radio_autogain_changed', { detail: { enabled: autoGainEnabledRef.current, boost } }));
+    }, []);
+
+    useEffect(() => {
+        const handler = (e: any) => {
+            if (e.detail) {
+                if (typeof e.detail.enabled === 'boolean') {
+                    setAutoGainEnabled(e.detail.enabled);
+                    autoGainEnabledRef.current = e.detail.enabled;
+                }
+                if (typeof e.detail.boost === 'number') {
+                    setJingleBoost(e.detail.boost as RadioJingleBoostLevel);
+                    jingleBoostRef.current = e.detail.boost as RadioJingleBoostLevel;
+                }
+            }
+        };
+        window.addEventListener('dropsiders_radio_autogain_changed', handler);
+        return () => window.removeEventListener('dropsiders_radio_autogain_changed', handler);
+    }, []);
+
     // ─── Mode d'enchaînement (Option 1: Rapide 0 blanc, Option 2: Crossfade fondu, Standard) ──
     const [transitionMode, setTransitionMode] = useState<RadioTransitionMode>(() => {
         try {
@@ -386,21 +440,28 @@ function useRadioAudio() {
         [300, 800, 1500].forEach(delay => setTimeout(bindWidget, delay));
     }, []);
 
-    // Re-forcer le volume utilisateur sur le lecteur actif (Audio, YouTube et SoundCloud)
+    // Calcul dynamique des volumes selon le type de piste (Jingle boosté vs Musique normalisée)
+    const getActiveVolumes = useCallback(() => {
+        const isJingle = isRadioJingleTrack(currentSetRef.current);
+        const baseVol = isMutedRef.current ? 0 : effectiveVolumeRef.current;
+        return computeAutoGainVolumes(baseVol, isJingle, autoGainEnabledRef.current, jingleBoostRef.current);
+    }, []);
+
+    // Re-forcer le volume utilisateur sur le lecteur actif (Audio, YouTube et SoundCloud) avec égalisation auto
     const applyVolumeToActiveMedia = useCallback(() => {
         if (IS_MOBILE) return;
-        const vol = isMutedRef.current ? 0 : effectiveVolumeRef.current;
+        const { targetAudioVol, effectiveMusicVol } = getActiveVolumes();
         if (audioRef.current) {
-            audioRef.current.volume = vol / 100;
+            audioRef.current.volume = isMutedRef.current ? 0 : targetAudioVol;
         }
         if (isMutedRef.current) {
             sendCmd('mute');
         } else {
             sendCmd('unMute');
         }
-        sendCmd('setVolume', [vol]);
-        applySoundCloudVolume(vol);
-    }, [sendCmd, applySoundCloudVolume]);
+        sendCmd('setVolume', [isMutedRef.current ? 0 : effectiveMusicVol]);
+        applySoundCloudVolume(isMutedRef.current ? 0 : effectiveMusicVol);
+    }, [sendCmd, applySoundCloudVolume, getActiveVolumes]);
 
     // Répéter l'application du volume aux moments clés de chargement d'un nouveau son
     const scheduleVolumeEnforcement = useCallback(() => {
@@ -622,7 +683,15 @@ function useRadioAudio() {
             return;
         }
 
-        const targetAudioVol = isMutedRef.current ? 0 : (effectiveVolumeRef.current / 100);
+        const isJingle = isRadioJingleTrack(currentSet);
+        const { targetAudioVol, effectiveMusicVol } = computeAutoGainVolumes(
+            effectiveVolumeRef.current,
+            isJingle,
+            autoGainEnabledRef.current,
+            jingleBoostRef.current
+        );
+        const finalAudioVol = isMutedRef.current ? 0 : targetAudioVol;
+        const finalMusicVol = isMutedRef.current ? 0 : effectiveMusicVol;
 
         if (currentSet.audioUrl) {
             const isSameAudio = currentPlayingMediaRef.current === currentSet.audioUrl && audioRef.current && !audioRef.current.paused;
@@ -850,7 +919,14 @@ function useRadioAudio() {
                     preloadedAudioUrlRef.current === nextTrack.audioUrl &&
                     audioPreloadRef.current.readyState >= 3;
 
-                const targetVol = isMutedRef.current ? 0 : (effectiveVolumeRef.current / 100);
+                const isJingleNext = isRadioJingleTrack(nextTrack);
+                const { targetAudioVol: nextAudioVol } = computeAutoGainVolumes(
+                    effectiveVolumeRef.current,
+                    isJingleNext,
+                    autoGainEnabledRef.current,
+                    jingleBoostRef.current
+                );
+                const targetVol = isMutedRef.current ? 0 : nextAudioVol;
                 const targetAudioOffset = nextTrack.mediaOffsetSeconds || 0;
                 if (isPreloaded && audioPreloadRef.current) {
                     const preEl = audioPreloadRef.current;
@@ -1511,7 +1587,14 @@ function useRadioAudio() {
                     audioRef.current.pause();
                     audioRef.current.src = liveTrack.audioUrl;
                     audioRef.current.currentTime = safeOffset;
-                    audioRef.current.volume = isMutedRef.current ? 0 : (effectiveVolumeRef.current / 100);
+                    const isJingleLive = isRadioJingleTrack(liveTrack);
+                    const { targetAudioVol: liveAudioVol } = computeAutoGainVolumes(
+                        effectiveVolumeRef.current,
+                        isJingleLive,
+                        autoGainEnabledRef.current,
+                        jingleBoostRef.current
+                    );
+                    audioRef.current.volume = isMutedRef.current ? 0 : liveAudioVol;
                     audioRef.current.play().then(() => {
                         currentPlayingMediaRef.current = liveTrack.id || liveTrack.audioUrl || null;
                     }).catch(() => {});
@@ -1681,26 +1764,32 @@ function useRadioAudio() {
     // ─── Volume & Ducking sync ───────────────────────────────────────────────
     useEffect(() => {
         try { localStorage.setItem('dropsiders_radio_volume', String(volume)); } catch {}
-        if (audioRef.current) {
-            audioRef.current.volume = isMuted ? 0 : effectiveVolume / 100;
-        }
-        if (!isPlaying) return;
-        // FIX MOBILE SOUND: ne pas appeler setVolume sur iOS (ignoré)
-        if (!isMuted && !IS_MOBILE) sendCmd('setVolume', [effectiveVolume]);
-        applySoundCloudVolume(isMuted ? 0 : effectiveVolume);
-    }, [volume, effectiveVolume, isPlaying, isMuted, sendCmd, applySoundCloudVolume]);
+        applyVolumeToActiveMedia();
+    }, [volume, effectiveVolume, autoGainEnabled, jingleBoost, isPlaying, isMuted, applyVolumeToActiveMedia]);
 
     // ─── Broadcast vers autres composants ────────────────────────────────────
-    const stateRef = useRef({ isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking, transitionMode });
+    const isCurrentTrackJingle = isRadioJingleTrack(currentSet);
+    const { activeGainDb } = computeAutoGainVolumes(effectiveVolume, isCurrentTrackJingle, autoGainEnabled, jingleBoost);
+
+    const stateRef = useRef({
+        isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking, transitionMode,
+        autoGainEnabled, jingleBoost, isCurrentTrackJingle, activeGainDb
+    });
     useEffect(() => {
-        stateRef.current = { isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking, transitionMode };
-    }, [isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking, transitionMode]);
+        stateRef.current = {
+            isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking, transitionMode,
+            autoGainEnabled, jingleBoost, isCurrentTrackJingle, activeGainDb
+        };
+    }, [isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking, transitionMode, autoGainEnabled, jingleBoost, isCurrentTrackJingle, activeGainDb]);
 
     useEffect(() => {
         window.dispatchEvent(new CustomEvent('dropsiders_radio_state', {
-            detail: { isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking, transitionMode }
+            detail: {
+                isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking, transitionMode,
+                autoGainEnabled, jingleBoost, isCurrentTrackJingle, activeGainDb
+            }
         }));
-    }, [isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking, transitionMode]);
+    }, [isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking, transitionMode, autoGainEnabled, jingleBoost, isCurrentTrackJingle, activeGainDb]);
 
     useEffect(() => {
         const broadcast = () => window.dispatchEvent(new CustomEvent('dropsiders_radio_state', { detail: stateRef.current }));
@@ -1718,6 +1807,19 @@ function useRadioAudio() {
                 changeTransitionMode(e.detail);
             }
         };
+        const onToggleAutoGain = (e: any) => {
+            if (typeof e.detail === 'boolean') {
+                changeAutoGainEnabled(e.detail);
+            } else {
+                changeAutoGainEnabled(!autoGainEnabledRef.current);
+            }
+        };
+        const onSetJingleBoost = (e: any) => {
+            if (typeof e.detail === 'number' && (e.detail === 0 || e.detail === 2 || e.detail === 4 || e.detail === 6)) {
+                changeJingleBoost(e.detail as RadioJingleBoostLevel);
+            }
+        };
+
         window.addEventListener('dropsiders_radio_cmd_toggle', onToggle);
         window.addEventListener('dropsiders_radio_cmd_play', onPlay);
         window.addEventListener('dropsiders_radio_cmd_pause', onPause);
@@ -1726,6 +1828,8 @@ function useRadioAudio() {
         window.addEventListener('dropsiders_radio_cmd_mute', onMute);
         window.addEventListener('dropsiders_radio_cmd_volume', onVolume);
         window.addEventListener('dropsiders_radio_cmd_transition_mode', onSetMode);
+        window.addEventListener('dropsiders_radio_cmd_autogain_toggle', onToggleAutoGain);
+        window.addEventListener('dropsiders_radio_cmd_autogain_boost', onSetJingleBoost);
         window.addEventListener('dropsiders_radio_query_state', broadcast);
         broadcast();
         return () => {
@@ -1737,14 +1841,18 @@ function useRadioAudio() {
             window.removeEventListener('dropsiders_radio_cmd_mute', onMute);
             window.removeEventListener('dropsiders_radio_cmd_volume', onVolume);
             window.removeEventListener('dropsiders_radio_cmd_transition_mode', onSetMode);
+            window.removeEventListener('dropsiders_radio_cmd_autogain_toggle', onToggleAutoGain);
+            window.removeEventListener('dropsiders_radio_cmd_autogain_boost', onSetJingleBoost);
             window.removeEventListener('dropsiders_radio_query_state', broadcast);
         };
-    }, [handlePlay, handleStop, handleNext, toggleMute, isMuted, changeTransitionMode]);
+    }, [handlePlay, handleStop, handleNext, toggleMute, isMuted, changeTransitionMode, changeAutoGainEnabled, changeJingleBoost]);
 
     return {
         isEnabled, currentSet, uiOffset, iframeRef, iframeRefB, audioRef,
         isPlaying, isMuted, volume, effectiveVolume, isDucking, listenersCount,
         transitionMode, changeTransitionMode,
+        autoGainEnabled, jingleBoost, changeAutoGainEnabled, changeJingleBoost,
+        isCurrentTrackJingle, activeGainDb,
         setVolume, setIsMuted, handlePlay, handleStop, handleNext, toggleMute,
     };
 }
@@ -1856,6 +1964,7 @@ export function useMessagesEnabled() {
 function MobileRadioPlayer({ audio }: { audio: AudioState }) {
     const [expanded, setExpanded] = useState(false);
     const [isDedicationOpen, setIsDedicationOpen] = useState(false);
+    const [isAutoGainOpen, setIsAutoGainOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [dragMode, setDragMode] = useState(false);
     const navigate = useNavigate();
@@ -2105,6 +2214,27 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                     </div>
                                 </div>
 
+                                {/* Système Réglage Son Automatique (Auto-Gain) */}
+                                <div className="flex items-center justify-between gap-2 px-1 mb-4 relative z-10">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAutoGainOpen(true)}
+                                        className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-[10px] font-display font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                            audio.autoGainEnabled
+                                                ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.2)] active:scale-95'
+                                                : 'bg-white/5 border-white/10 text-gray-400'
+                                        }`}
+                                    >
+                                        <Sliders className="w-3.5 h-3.5" />
+                                        <span>Auto-Gain : {audio.autoGainEnabled ? `Jingles +${audio.jingleBoost}dB` : 'Désactivé'}</span>
+                                    </button>
+                                    {audio.isCurrentTrackJingle && audio.autoGainEnabled && (
+                                        <span className="shrink-0 px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[8px] font-black uppercase tracking-wider animate-pulse flex items-center gap-1">
+                                            <Zap className="w-2.5 h-2.5 fill-current" /> Boost Jingle
+                                        </span>
+                                    )}
+                                </div>
+
                                 {/* Volume slider mobile */}
                                 <div className="flex items-center gap-3 px-2 mb-5 relative z-10">
                                     <VolumeX className={`w-3.5 h-3.5 shrink-0 ${isMuted ? 'text-neon-red' : 'text-gray-500'}`} />
@@ -2157,6 +2287,18 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                 isOpen={isDedicationOpen}
                 onClose={() => setIsDedicationOpen(false)}
                 currentTrackTitle={currentSet ? `${currentSet.artist} - ${currentSet.title}` : undefined}
+            />
+
+            <RadioAutoGainModal
+                isOpen={isAutoGainOpen}
+                onClose={() => setIsAutoGainOpen(false)}
+                autoGainEnabled={audio.autoGainEnabled}
+                onToggleAutoGain={audio.changeAutoGainEnabled}
+                jingleBoost={audio.jingleBoost}
+                onChangeBoost={audio.changeJingleBoost}
+                currentTrackTitle={currentSet ? `${currentSet.artist} - ${currentSet.title}` : undefined}
+                isCurrentTrackJingle={audio.isCurrentTrackJingle}
+                activeGainDb={audio.activeGainDb}
             />
 
             {/* ── Mini-bouton flottant DRAGGABLE ── */}
@@ -2262,6 +2404,7 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
         try { return sessionStorage.getItem('radio_desktop_hidden') === 'true'; } catch { return false; }
     });
     const [isDedicationOpen, setIsDedicationOpen] = useState(false);
+    const [isAutoGainOpen, setIsAutoGainOpen] = useState(false);
     const navigate = useNavigate();
     const messagesEnabled = useMessagesEnabled();
 
@@ -2456,8 +2599,13 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                             {/* Track en cours + Nom émission + Animateur + Bouton Like */}
                             <div className="flex-1 min-w-0 flex items-center justify-between gap-4">
                                 <div className="min-w-0 text-left">
-                                    <div className="text-[7.5px] font-black uppercase tracking-widest text-neon-cyan mb-0.5 flex items-center gap-1">
+                                    <div className="text-[7.5px] font-black uppercase tracking-widest text-neon-cyan mb-0.5 flex items-center gap-1.5">
                                         <Sparkles className="w-2.5 h-2.5" /><span>EN CE MOMENT</span>
+                                        {audio.isCurrentTrackJingle && audio.autoGainEnabled && (
+                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/25 text-amber-300 border border-amber-500/50 text-[7px] font-black tracking-wider animate-pulse">
+                                                <Zap className="w-2 h-2 fill-current" /> JINGLE BOOST +{audio.jingleBoost}dB
+                                            </span>
+                                        )}
                                     </div>
                                     <h4 className="text-[15px] font-display font-black text-white uppercase italic tracking-tight truncate leading-tight">
                                         {currentSet.title || (currentSet as any).event}
@@ -2508,14 +2656,30 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                             {/* Divider */}
                             <div className="h-8 w-px bg-white/10 shrink-0" />
 
-                            {/* Volume */}
-                            <div className="flex items-center gap-2 shrink-0 w-32">
+                            {/* Volume & Auto-Gain */}
+                            <div className="flex items-center gap-2 shrink-0">
                                 <button onClick={toggleMute} className="p-1 text-gray-300 hover:text-white transition-colors cursor-pointer shrink-0">
                                     {isMuted || volume === 0 ? <VolumeX className="w-4 h-4 text-neon-red" /> : <Volume2 className="w-4 h-4 text-neon-cyan" />}
                                 </button>
                                 <input type="range" min="0" max="100" value={isMuted ? 0 : volume}
                                     onChange={e => { setVolume(Number(e.target.value)); if (isMuted) setIsMuted(false); }}
-                                    className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
+                                    className="w-20 sm:w-24 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
+
+                                <button
+                                    type="button"
+                                    onClick={() => setIsAutoGainOpen(true)}
+                                    className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-[10px] font-display font-black uppercase tracking-wider transition-all cursor-pointer shadow-sm active:scale-95 ${
+                                        audio.autoGainEnabled
+                                            ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.2)] hover:bg-neon-cyan/25'
+                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                    }`}
+                                    title={`Égalisation automatique du son (${audio.autoGainEnabled ? `Auto-Gain +${audio.jingleBoost}dB actif` : 'Désactivé'})`}
+                                >
+                                    <Sliders className="w-3.5 h-3.5" />
+                                    <span className="hidden xl:inline">
+                                        {audio.autoGainEnabled ? `Auto-Gain +${audio.jingleBoost}dB` : 'Gain Brut'}
+                                    </span>
+                                </button>
                             </div>
 
                             {/* Bouton Message / Dédicace à l'animateur */}
@@ -2562,6 +2726,18 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                 isOpen={isDedicationOpen}
                 onClose={() => setIsDedicationOpen(false)}
                 currentTrackTitle={currentSet ? `${currentSet.artist} - ${currentSet.title}` : undefined}
+            />
+
+            <RadioAutoGainModal
+                isOpen={isAutoGainOpen}
+                onClose={() => setIsAutoGainOpen(false)}
+                autoGainEnabled={audio.autoGainEnabled}
+                onToggleAutoGain={audio.changeAutoGainEnabled}
+                jingleBoost={audio.jingleBoost}
+                onChangeBoost={audio.changeJingleBoost}
+                currentTrackTitle={currentSet ? `${currentSet.artist} - ${currentSet.title}` : undefined}
+                isCurrentTrackJingle={audio.isCurrentTrackJingle}
+                activeGainDb={audio.activeGainDb}
             />
         </>
     );

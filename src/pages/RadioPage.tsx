@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Radio, Play, Pause, Volume2, VolumeX, Clock, Sparkles,
     MessageSquare, Send, Calendar, History,
-    User, MapPin, Disc3, Music2, Zap, Check, Search, X, Heart
+    User, MapPin, Disc3, Music2, Zap, Check, Search, X, Heart, Sliders
 } from 'lucide-react';
+import { RadioAutoGainModal } from '../components/radio/RadioAutoGainModal';
 import {
     DEFAULT_RADIO_BLOCKS,
     STORAGE_RADIO_BLOCKS_KEY,
@@ -15,7 +16,8 @@ import {
     computeRadioHistory,
     type RadioScheduleBlock,
     type ComputedRadioScheduleItem,
-    type RadioHistoryEntry
+    type RadioHistoryEntry,
+    type RadioJingleBoostLevel
 } from '../utils/radioSchedule';
 
 const RADIO_HISTORY_KEY = 'dropsiders_radio_history';
@@ -47,9 +49,14 @@ function useRadioState() {
         isEnabled: boolean;
         listenersCount: number;
         volume: number;
+        autoGainEnabled?: boolean;
+        jingleBoost?: RadioJingleBoostLevel;
+        isCurrentTrackJingle?: boolean;
+        activeGainDb?: number;
     }>({
         isPlaying: false, isMuted: false, currentSet: null,
-        uiOffset: 0, isEnabled: true, listenersCount: 0, volume: 80
+        uiOffset: 0, isEnabled: true, listenersCount: 0, volume: 80,
+        autoGainEnabled: true, jingleBoost: 4, isCurrentTrackJingle: false, activeGainDb: 0
     });
 
     useEffect(() => {
@@ -797,6 +804,7 @@ function MessageForm({ currentTrackTitle }: { currentTrackTitle?: string }) {
 
 export function RadioPage() {
     const radioState = useRadioState();
+    const [isAutoGainModalOpen, setIsAutoGainModalOpen] = useState(false);
 
     const [radioBlocks, setRadioBlocks] = useState<RadioScheduleBlock[]>(() => {
         try {
@@ -1078,7 +1086,14 @@ export function RadioPage() {
                                         </div>
                                     </>
                                 ) : (
-                                    <p className="text-sm font-bold text-gray-400 italic mt-1">🎶 Jingle / Promo en cours...</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <p className="text-sm font-bold text-gray-400 italic">🎶 Jingle / Promo en cours...</p>
+                                        {radioState.autoGainEnabled && (
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[8px] font-black uppercase tracking-wider animate-pulse">
+                                                <Zap className="w-2.5 h-2.5 fill-current" /> Jingle Boost +{radioState.jingleBoost || 4}dB
+                                            </span>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                             <button
@@ -1109,6 +1124,19 @@ export function RadioPage() {
                                 onChange={e => window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_volume', { detail: Number(e.target.value) }))}
                                 className="flex-1 h-1.5 rounded-full appearance-none accent-cyan-400 bg-white/10 cursor-pointer" />
                             <span className="text-[9px] font-mono text-gray-500 w-8 text-right">{radioState.isMuted ? 0 : radioState.volume}%</span>
+                            <button
+                                type="button"
+                                onClick={() => setIsAutoGainModalOpen(true)}
+                                className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-[10px] font-display font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                    radioState.autoGainEnabled
+                                        ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-400 shadow-[0_0_10px_rgba(0,255,255,0.25)]'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                }`}
+                                title={`Réglage Auto-Gain (${radioState.autoGainEnabled ? `Jingle Boost +${radioState.jingleBoost || 4}dB actif` : 'Désactivé'})`}
+                            >
+                                <Sliders className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Auto-Gain</span>
+                            </button>
                         </div>
                     </motion.div>
                 ) : (
@@ -1197,6 +1225,19 @@ export function RadioPage() {
                     )}
                 </AnimatePresence>
             </div>
+
+            {/* Modale Réglage Son Automatique & Boost Jingles */}
+            <RadioAutoGainModal
+                isOpen={isAutoGainModalOpen}
+                onClose={() => setIsAutoGainModalOpen(false)}
+                autoGainEnabled={radioState.autoGainEnabled ?? true}
+                onToggleAutoGain={(enabled) => window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_autogain_toggle', { detail: enabled }))}
+                jingleBoost={radioState.jingleBoost ?? 4}
+                onChangeBoost={(boost) => window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_autogain_boost', { detail: boost }))}
+                currentTrackTitle={currentTrackTitle}
+                isCurrentTrackJingle={radioState.isCurrentTrackJingle}
+                activeGainDb={radioState.activeGainDb}
+            />
         </div>
     );
 }

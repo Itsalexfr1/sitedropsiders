@@ -122,6 +122,102 @@ export function getRadioCategoryMeta(category?: string, isTheme?: boolean, isTop
     }
 }
 
+// ─── Système d'Égalisation Automatique du Son & Boost des Jingles ───────────
+export const STORAGE_RADIO_AUTOGAIN_KEY = 'dropsiders_radio_autogain_enabled';
+export const STORAGE_RADIO_JINGLE_BOOST_KEY = 'dropsiders_radio_jingle_boost';
+
+export type RadioJingleBoostLevel = 0 | 2 | 4 | 6; // dB
+
+/**
+ * Détecte si un élément de la radio est un jingle, une promo, un top horaire ou un générique
+ * (éléments parlés / courts qui nécessitent un étalonnage de volume pour ne pas être écrasés par la musique)
+ */
+export function isRadioJingleTrack(item: {
+    category?: string;
+    isTopHoraire?: boolean;
+    isThemeJingle?: boolean;
+    isSpecialJingle?: boolean;
+    title?: string;
+    artist?: string;
+    audioUrl?: string;
+} | null | undefined): boolean {
+    if (!item) return false;
+    if (item.isTopHoraire || item.isThemeJingle || item.isSpecialJingle) return true;
+    const cat = (item.category || '').toLowerCase();
+    if (cat === 'jingle' || cat === 'promo' || cat === 'top_horaire' || cat === 'pub' || cat === 'generique') return true;
+    
+    const title = (item.title || '').toLowerCase();
+    const artist = (item.artist || '').toLowerCase();
+    const url = (item.audioUrl || '').toLowerCase();
+
+    if (title.includes('jingle') || title.includes('promo dropsiders') || title.includes('top horaire')) return true;
+    if (artist.includes('jingle') || artist === 'dropsiders jingle') return true;
+    if (url.includes('/jingles/') || url.includes('jingle')) return true;
+
+    return false;
+}
+
+/**
+ * Calcule l'égalisation automatique du son entre la musique et les jingles.
+ * Les morceaux YouTube/SoundCloud/MP3 EDM ont souvent un loudness très élevé (-7 LUFS).
+ * Les jingles (voix/wav) sont souvent mixés plus bas (-14 à -18 LUFS).
+ * Quand l'Auto-Gain est activé :
+ * - Les jingles sont joués avec boost de présence (+2 à +6 dB)
+ * - Les morceaux musicaux sont calibrés pour équilibrer la dynamique et éviter d'écraser les jingles
+ */
+export function computeAutoGainVolumes(
+    baseVolume: number, // 0..100
+    isJingle: boolean,
+    autoGainEnabled: boolean = true,
+    jingleBoostDb: number = 4
+): {
+    targetAudioVol: number;   // 0.0 .. 1.0 (pour <audio>)
+    effectiveMusicVol: number; // 0 .. 100 (pour YouTube / SoundCloud)
+    activeGainDb: number;      // Pour l'affichage UI
+} {
+    const clampedBase = Math.max(0, Math.min(100, Math.round(baseVolume)));
+
+    if (!autoGainEnabled || jingleBoostDb <= 0) {
+        return {
+            targetAudioVol: clampedBase / 100,
+            effectiveMusicVol: clampedBase,
+            activeGainDb: 0
+        };
+    }
+
+    // Coefficients d'égalisation selon le niveau de boost choisi
+    // Ex pour +4 dB (défaut recommandé) :
+    // - Jingle audio HTML5 : boosté à 1.30x (plafonné à 1.0 sur la balise native)
+    // - Musique YouTube / SoundCloud : normalisée à 0.74x
+    // Résultat : écart dynamique perçu de +4 dB en faveur du jingle !
+    let jingleMultiplier = 1.30;
+    let musicMultiplier = 0.74;
+
+    if (jingleBoostDb >= 6) {
+        jingleMultiplier = 1.45;
+        musicMultiplier = 0.68;
+    } else if (jingleBoostDb <= 2) {
+        jingleMultiplier = 1.15;
+        musicMultiplier = 0.85;
+    }
+
+    if (isJingle) {
+        const jinglePercent = Math.min(100, Math.round(clampedBase * jingleMultiplier));
+        return {
+            targetAudioVol: jinglePercent / 100,
+            effectiveMusicVol: clampedBase,
+            activeGainDb: jingleBoostDb
+        };
+    } else {
+        const musicVal = Math.max(5, Math.min(100, Math.round(clampedBase * musicMultiplier)));
+        return {
+            targetAudioVol: musicVal / 100,
+            effectiveMusicVol: musicVal,
+            activeGainDb: -Math.round(20 * Math.log10(1 / musicMultiplier))
+        };
+    }
+}
+
 export interface RadioThemeJingle {
     enabled: boolean;
     title: string;

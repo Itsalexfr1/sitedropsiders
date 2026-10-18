@@ -9,15 +9,19 @@ import {
     Sparkles, 
     Disc3, 
     Clock,
-    MessageSquare
+    MessageSquare,
+    Sliders,
+    Zap
 } from 'lucide-react';
 import { RadioDedicationModal } from './RadioDedicationModal';
+import { RadioAutoGainModal } from './RadioAutoGainModal';
 import { useMessagesEnabled } from './DropsidersRadioPlayer';
 import { 
     formatDurationExact, 
     getCurrentLiveRadioTrack, 
     DEFAULT_RADIO_BLOCKS, 
-    type ComputedRadioScheduleItem 
+    type ComputedRadioScheduleItem,
+    type RadioJingleBoostLevel
 } from '../../utils/radioSchedule';
 
 export function DropsidersRadioCard({ className = '' }: { className?: string }) {
@@ -46,6 +50,11 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
     const [uiOffset, setUiOffset] = useState(() => initialLive?.offsetSeconds || 0);
     const [listenersCount, setListenersCount] = useState<number>(0);
     const [isDedicationModalOpen, setIsDedicationModalOpen] = useState(false);
+    const [isAutoGainModalOpen, setIsAutoGainModalOpen] = useState(false);
+    const [autoGainEnabled, setAutoGainEnabled] = useState(true);
+    const [jingleBoost, setJingleBoost] = useState<RadioJingleBoostLevel>(4);
+    const [isCurrentTrackJingle, setIsCurrentTrackJingle] = useState(false);
+    const [activeGainDb, setActiveGainDb] = useState(0);
     const messagesEnabled = useMessagesEnabled();
 
     // Synchronisation avec DropsidersRadioPlayer via custom events
@@ -59,6 +68,10 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
             if (e.detail.currentSet) setCurrentSet(e.detail.currentSet);
             if (typeof e.detail.uiOffset === 'number') setUiOffset(e.detail.uiOffset);
             if (typeof e.detail.listenersCount === 'number') setListenersCount(e.detail.listenersCount);
+            if (typeof e.detail.autoGainEnabled === 'boolean') setAutoGainEnabled(e.detail.autoGainEnabled);
+            if (typeof e.detail.jingleBoost === 'number') setJingleBoost(e.detail.jingleBoost as RadioJingleBoostLevel);
+            if (typeof e.detail.isCurrentTrackJingle === 'boolean') setIsCurrentTrackJingle(e.detail.isCurrentTrackJingle);
+            if (typeof e.detail.activeGainDb === 'number') setActiveGainDb(e.detail.activeGainDb);
         };
 
         const handleToggle = () => {
@@ -101,6 +114,16 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
     const handleVolumeChange = (v: number) => {
         setVolume(v);
         window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_volume', { detail: v }));
+    };
+
+    const handleToggleAutoGain = (enabled: boolean) => {
+        setAutoGainEnabled(enabled);
+        window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_autogain_toggle', { detail: enabled }));
+    };
+
+    const handleChangeBoost = (boost: RadioJingleBoostLevel) => {
+        setJingleBoost(boost);
+        window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_autogain_boost', { detail: boost }));
     };
 
     if (!isEnabled) return null;
@@ -256,8 +279,8 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
                 </button>
                 )}
 
-                {/* Volume & Mute */}
-                <div className="flex items-center gap-2">
+                {/* Volume, Auto-Gain & Mute */}
+                <div className="flex items-center gap-1.5 sm:gap-2">
                     <button 
                         onClick={handleMuteToggle} 
                         className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
@@ -275,9 +298,21 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
                         max="100"
                         value={isMuted ? 0 : volume}
                         onChange={e => handleVolumeChange(Number(e.target.value))}
-                        className="w-16 sm:w-20 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-neon-cyan hidden xs:block"
+                        className="w-14 sm:w-16 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-neon-cyan hidden xs:block"
                         title={`Volume: ${isMuted ? 0 : volume}%`}
                     />
+                    <button
+                        type="button"
+                        onClick={() => setIsAutoGainModalOpen(true)}
+                        className={`p-2 rounded-lg border transition-all cursor-pointer ${
+                            autoGainEnabled
+                                ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.25)]'
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                        }`}
+                        title={`Réglage Auto-Gain (${autoGainEnabled ? `Jingle Boost +${jingleBoost}dB actif` : 'Désactivé'})`}
+                    >
+                        <Sliders className="w-3.5 h-3.5" />
+                    </button>
                 </div>
             </div>
 
@@ -286,6 +321,19 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
                 isOpen={isDedicationModalOpen}
                 onClose={() => setIsDedicationModalOpen(false)}
                 currentTrackTitle={currentSet ? `${currentSet.title} - ${currentSet.artist}` : undefined}
+            />
+
+            {/* Modale Réglage Son Automatique */}
+            <RadioAutoGainModal
+                isOpen={isAutoGainModalOpen}
+                onClose={() => setIsAutoGainModalOpen(false)}
+                autoGainEnabled={autoGainEnabled}
+                onToggleAutoGain={handleToggleAutoGain}
+                jingleBoost={jingleBoost}
+                onChangeBoost={handleChangeBoost}
+                currentTrackTitle={currentSet ? `${currentSet.title} - ${currentSet.artist}` : undefined}
+                isCurrentTrackJingle={isCurrentTrackJingle}
+                activeGainDb={activeGainDb}
             />
         </motion.div>
     );
