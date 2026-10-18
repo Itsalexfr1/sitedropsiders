@@ -12,7 +12,7 @@ import {
     isForbiddenAdTrack,
     isRadioJingleTrack, computeAutoGainVolumes,
     STORAGE_RADIO_AUTOGAIN_KEY, STORAGE_RADIO_JINGLE_BOOST_KEY,
-    syncAllSoundCloudPlaylists,
+    syncAllSoundCloudPlaylists, cleanRadioTrackMetadata,
     type RadioScheduleBlock, type ComputedRadioScheduleItem,
     type RadioJingleBoostLevel
 } from '../../utils/radioSchedule';
@@ -145,7 +145,12 @@ function useRadioAudio() {
                     if (Array.isArray(parsed)) {
                         const cleaned = parsed.map((item: any) => {
                             if (item && Array.isArray(item.tracks)) {
-                                item.tracks = item.tracks.filter((t: any) => !isForbiddenAdTrack(t));
+                                item.tracks = item.tracks
+                                    .filter((t: any) => !isForbiddenAdTrack(t))
+                                    .map((t: any) => {
+                                        const { title, artist } = cleanRadioTrackMetadata(t.title, t.artist, t.category);
+                                        return { ...t, title, artist };
+                                    });
                             }
                             return item;
                         }).filter((item: any) => !isForbiddenAdTrack(item));
@@ -240,29 +245,26 @@ function useRadioAudio() {
                 localStorage.setItem('dropsiders_radio_enabled', data.radio_enabled ? 'true' : 'false');
             }
             if (Array.isArray(data.radio_blocks) && data.radio_blocks.length > 0) {
-                setRadioBlocks(data.radio_blocks);
-                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(data.radio_blocks));
+                const cleanedDataBlocks = (data.radio_blocks as RadioScheduleBlock[]).map(b => ({
+                    ...b,
+                    tracks: (b.tracks || []).map(t => {
+                        const { title, artist } = cleanRadioTrackMetadata(t.title, t.artist, t.category);
+                        return { ...t, title, artist };
+                    })
+                }));
+                setRadioBlocks(cleanedDataBlocks);
+                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(cleanedDataBlocks));
 
-                // Synchronisation automatique en arrière-plan des playlists SoundCloud si nécessaire (> 2h depuis la dernière synchro)
-                const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
-                const now = Date.now();
-                const needsSync = data.radio_blocks.some((b: RadioScheduleBlock) => 
-                    Boolean(b.soundcloudPlaylistUrl && b.soundcloudAutoSync !== false && (
-                        !b.soundcloudLastSynced || (now - new Date(b.soundcloudLastSynced).getTime() > TWO_HOURS_MS)
-                    ))
-                );
-
-                if (needsSync) {
-                    syncAllSoundCloudPlaylists(data.radio_blocks).then(res => {
-                        if (res.changedCount > 0) {
-                            setRadioBlocks(res.updatedBlocks);
-                            try {
-                                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(res.updatedBlocks));
-                                window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
-                            } catch {}
-                        }
-                    }).catch(() => {});
-                }
+                // Synchronisation automatique et nettoyage complet des playlists SoundCloud
+                syncAllSoundCloudPlaylists(cleanedDataBlocks).then(res => {
+                    if (res.changedCount > 0) {
+                        setRadioBlocks(res.updatedBlocks);
+                        try {
+                            localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(res.updatedBlocks));
+                            window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+                        } catch {}
+                    }
+                }).catch(() => {});
             }
         }).catch(() => {});
     }, []);

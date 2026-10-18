@@ -836,7 +836,7 @@ export function AdminRadioModal({
                     if (rawDel) JSON.parse(rawDel).forEach((k: string) => deletedSet.add((k + '').toLowerCase().trim()));
                 } catch {}
 
-                const sanitizeTrackList = <T extends { id?: string; title?: string; audioUrl?: string; youtubeId?: string }>(tracks: T[]): T[] => {
+                const sanitizeTrackList = <T extends { id?: string; title?: string; artist?: string; category?: any; audioUrl?: string; youtubeId?: string }>(tracks: T[]): T[] => {
                     return (tracks || []).filter(t => {
                         const title = (t.title || '').trim().toLowerCase();
                         if (title.includes('promo dropsiders tv & live stream 24/7') || t.youtubeId === 'DuXXMZLfAkQ') return false;
@@ -845,6 +845,13 @@ export function AdminRadioModal({
                         if (t.audioUrl && deletedSet.has(t.audioUrl.toLowerCase())) return false;
                         if (t.youtubeId && deletedSet.has(t.youtubeId.toLowerCase())) return false;
                         return true;
+                    }).map(t => {
+                        const { title, artist } = cleanRadioTrackMetadata(t.title || '', t.artist || '', t.category);
+                        return {
+                            ...t,
+                            title,
+                            artist
+                        };
                     });
                 };
 

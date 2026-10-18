@@ -512,7 +512,13 @@ export function buildDefaultRadioBlocksFromTV(): RadioScheduleBlock[] {
 export const DEFAULT_RADIO_BLOCKS: RadioScheduleBlock[] = (() => {
     const fromSettings = (settings as any)?.radio_blocks;
     if (Array.isArray(fromSettings) && fromSettings.length > 0) {
-        return fromSettings;
+        return fromSettings.map((b: RadioScheduleBlock) => ({
+            ...b,
+            tracks: (b.tracks || []).map(t => {
+                const { title, artist } = cleanRadioTrackMetadata(t.title, t.artist, t.category);
+                return { ...t, title, artist };
+            })
+        }));
     }
     return buildDefaultRadioBlocksFromTV();
 })();
@@ -2281,22 +2287,28 @@ export async function syncBlockSoundCloudPlaylist(
         const data: any = await res.json();
         if (!data || !Array.isArray(data.tracks) || data.tracks.length === 0) return null;
 
-        const newTracks: RadioTrackItem[] = data.tracks;
-        const existingMusicIds = new Set(
-            (block.tracks || [])
-                .filter(t => t.category !== 'jingle' && t.category !== 'promo' && t.category !== 'pub')
-                .map(t => t.youtubeId || t.audioUrl || `${t.title}-${t.artist}`)
-        );
-        const newMusicIds = newTracks.map(t => t.youtubeId || t.audioUrl || `${t.title}-${t.artist}`);
-
-        const hasChanges = newMusicIds.length !== existingMusicIds.size || newMusicIds.some(id => !existingMusicIds.has(id));
+        const newTracks: RadioTrackItem[] = data.tracks.map((t: any) => {
+            const { title: cleanT, artist: cleanA } = cleanRadioTrackMetadata(t.title, t.artist, t.category);
+            return {
+                ...t,
+                title: cleanT,
+                artist: cleanA
+            };
+        });
 
         // Entrelacement automatique avec conservation de l'habillage radio (jingles, promos, tops horaires)
         const interleaved = applyRotationPatternToTracks(block, newTracks, overrideJingles, overridePromos);
 
         const updatedBlock: RadioScheduleBlock = {
             ...block,
-            tracks: interleaved,
+            tracks: interleaved.map(t => {
+                const { title: cleanT, artist: cleanA } = cleanRadioTrackMetadata(t.title, t.artist, t.category);
+                return {
+                    ...t,
+                    title: cleanT,
+                    artist: cleanA
+                };
+            }),
             soundcloudPlaylistTitle: data.title || block.soundcloudPlaylistTitle,
             soundcloudPlaylistAuthor: data.author || block.soundcloudPlaylistAuthor,
             soundcloudPlaylistCover: data.coverUrl || block.soundcloudPlaylistCover,
@@ -2305,7 +2317,7 @@ export async function syncBlockSoundCloudPlaylist(
             soundcloudTrackCount: newTracks.length,
         };
 
-        return { updatedBlock, hasChanges, newTrackCount: newTracks.length };
+        return { updatedBlock, hasChanges: true, newTrackCount: newTracks.length };
     } catch (e) {
         console.warn(`[Radio] Échec synchro auto SoundCloud pour ${block.title}:`, e);
         return null;
@@ -2314,36 +2326,47 @@ export async function syncBlockSoundCloudPlaylist(
 
 /**
  * Synchronise toutes les émissions configurées avec une playlist SoundCloud
+ * et nettoie en profondeur les métadonnées de toutes les émissions.
  */
 export async function syncAllSoundCloudPlaylists(
     blocks: RadioScheduleBlock[],
     overridePromos?: RadioTrackItem[],
     overrideJingles?: RadioTrackItem[]
 ): Promise<{ updatedBlocks: RadioScheduleBlock[]; changedCount: number; syncedCount: number }> {
-    const scBlocks = blocks.filter(b => Boolean(b.soundcloudPlaylistUrl && b.soundcloudAutoSync !== false));
-    if (scBlocks.length === 0) {
-        return { updatedBlocks: blocks, changedCount: 0, syncedCount: 0 };
-    }
+    // 1. Nettoyer immédiatement toutes les pistes de toutes les émissions avec le filtre anti-chaîne
+    let nextBlocks = blocks.map(b => ({
+        ...b,
+        tracks: (b.tracks || []).map(t => {
+            const { title, artist } = cleanRadioTrackMetadata(t.title, t.artist, t.category);
+            return {
+                ...t,
+                title,
+                artist
+            };
+        })
+    }));
 
+    const scBlocks = nextBlocks.filter(b => Boolean(b.soundcloudPlaylistUrl && b.soundcloudAutoSync !== false));
     let changedCount = 0;
     let syncedCount = 0;
-    const nextBlocks = [...blocks];
 
-    await Promise.all(
-        scBlocks.map(async (b) => {
-            const res = await syncBlockSoundCloudPlaylist(b, overridePromos, overrideJingles);
-            if (res) {
-                syncedCount++;
-                if (res.hasChanges) changedCount++;
-                const idx = nextBlocks.findIndex(item => item.id === b.id);
-                if (idx !== -1) {
-                    nextBlocks[idx] = res.updatedBlock;
+    if (scBlocks.length > 0) {
+        await Promise.all(
+            scBlocks.map(async (b) => {
+                const res = await syncBlockSoundCloudPlaylist(b, overridePromos, overrideJingles);
+                if (res) {
+                    syncedCount++;
+                    changedCount++;
+                    const idx = nextBlocks.findIndex(item => item.id === b.id);
+                    if (idx !== -1) {
+                        nextBlocks[idx] = res.updatedBlock;
+                    }
                 }
-            }
-        })
-    );
+            })
+        );
+    }
 
-    return { updatedBlocks: nextBlocks, changedCount, syncedCount };
+    return { updatedBlocks: nextBlocks, changedCount: Math.max(changedCount, 1), syncedCount };
 }
 
 

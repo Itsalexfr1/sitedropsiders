@@ -15,7 +15,8 @@ import {
     computeRadioHistory,
     type RadioScheduleBlock,
     type ComputedRadioScheduleItem,
-    type RadioHistoryEntry
+    type RadioHistoryEntry,
+    cleanRadioTrackMetadata
 } from '../utils/radioSchedule';
 
 const RADIO_HISTORY_KEY = 'dropsiders_radio_history';
@@ -801,7 +802,18 @@ export function RadioPage() {
     const [radioBlocks, setRadioBlocks] = useState<RadioScheduleBlock[]>(() => {
         try {
             const s = localStorage.getItem(STORAGE_RADIO_BLOCKS_KEY);
-            if (s) { const p = JSON.parse(s); if (Array.isArray(p) && p.length > 0) return p; }
+            if (s) {
+                const p = JSON.parse(s);
+                if (Array.isArray(p) && p.length > 0) {
+                    return p.map((b: RadioScheduleBlock) => ({
+                        ...b,
+                        tracks: (b.tracks || []).map(t => {
+                            const { title, artist } = cleanRadioTrackMetadata(t.title, t.artist, t.category);
+                            return { ...t, title, artist };
+                        })
+                    }));
+                }
+            }
         } catch {}
         return DEFAULT_RADIO_BLOCKS;
     });
@@ -810,7 +822,18 @@ export function RadioPage() {
         const h = () => {
             try {
                 const s = localStorage.getItem(STORAGE_RADIO_BLOCKS_KEY);
-                if (s) { const p = JSON.parse(s); if (Array.isArray(p) && p.length > 0) setRadioBlocks(p); }
+                if (s) {
+                    const p = JSON.parse(s);
+                    if (Array.isArray(p) && p.length > 0) {
+                        setRadioBlocks(p.map((b: RadioScheduleBlock) => ({
+                            ...b,
+                            tracks: (b.tracks || []).map(t => {
+                                const { title, artist } = cleanRadioTrackMetadata(t.title, t.artist, t.category);
+                                return { ...t, title, artist };
+                            })
+                        })));
+                    }
+                }
             } catch {}
         };
         window.addEventListener('dropsiders_radio_blocks_updated', h);
