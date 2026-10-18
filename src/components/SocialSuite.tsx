@@ -53,6 +53,8 @@ import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 // @ts-ignore
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
+// @ts-ignore
+import * as MP4Box from 'mp4box';
 
 const FESTIVAL_TIMEZONES = [
     { group: "🌍 Europe (Aucun décalage)", options: [{ label: "🇫🇷 Heure Française", offset: 0 }] },
@@ -735,6 +737,101 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         })();
         audioBufferPendingRef.current.set(url, job);
         return job;
+    };
+
+    interface ExtractedAudioTrack {
+        channelCount: number;
+        sampleRate: number;
+        durationUs: number;
+        samples: Array<{
+            data: Uint8Array;
+            is_sync: boolean;
+            timestampUs: number;
+            durationUs: number;
+        }>;
+    }
+
+    /** Extrait les paquets audio originaux AAC/MP4 directement via MP4Box en pur JS (ultra-rapide, zéro wasm, 100% mobile) */
+    const extractMp4AudioTrack = async (blob: Blob): Promise<ExtractedAudioTrack | null> => {
+        try {
+            const arrayBuf = await blob.arrayBuffer();
+            const createBox = (MP4Box as any).createFile || (MP4Box as any).default?.createFile;
+            if (!createBox) return null;
+
+            const mp4boxfile = createBox();
+            let audioTrack: any = null;
+            const samples: Array<{ data: Uint8Array; is_sync: boolean; timestampUs: number; durationUs: number }> = [];
+
+            return await new Promise<ExtractedAudioTrack | null>((resolve) => {
+                let resolved = false;
+                const finish = () => {
+                    if (resolved) return;
+                    resolved = true;
+                    if (audioTrack && samples.length > 0) {
+                        const sampleRate = audioTrack.audio?.sample_rate || 44100;
+                        const channelCount = audioTrack.audio?.channel_count || 2;
+                        const durationUs = audioTrack.duration && audioTrack.timescale
+                            ? Math.round((audioTrack.duration * 1_000_000) / audioTrack.timescale)
+                            : (samples[samples.length - 1].timestampUs + samples[samples.length - 1].durationUs);
+
+                        console.log(`[MP4Box] ✅ ${samples.length} paquets audio AAC extraits avec succès (${channelCount} canaux, ${sampleRate}Hz, ${(durationUs / 1_000_000).toFixed(2)}s)`);
+                        resolve({
+                            channelCount,
+                            sampleRate,
+                            durationUs,
+                            samples,
+                        });
+                    } else {
+                        resolve(null);
+                    }
+                };
+
+                mp4boxfile.onReady = (info: any) => {
+                    audioTrack = info.audioTracks?.[0];
+                    if (!audioTrack) {
+                        finish();
+                        return;
+                    }
+                    mp4boxfile.setExtractionOptions(audioTrack.id);
+                    mp4boxfile.start();
+                };
+
+                mp4boxfile.onSamples = (id: number, user: any, rawSamples: any[]) => {
+                    if (audioTrack && id === audioTrack.id) {
+                        for (const s of rawSamples) {
+                            const timestampUs = Math.round((s.cts * 1_000_000) / s.timescale);
+                            const durationUs = Math.round((s.duration * 1_000_000) / s.timescale);
+                            samples.push({
+                                data: new Uint8Array(s.data.buffer, s.data.byteOffset, s.data.byteLength),
+                                is_sync: Boolean(s.is_sync),
+                                timestampUs,
+                                durationUs,
+                            });
+                        }
+                    }
+                };
+
+                mp4boxfile.onError = (err: any) => {
+                    console.warn('[MP4Box] Parsing warning:', err);
+                    finish();
+                };
+
+                try {
+                    const buffer = arrayBuf.slice(0);
+                    (buffer as any).fileStart = 0;
+                    mp4boxfile.appendBuffer(buffer);
+                    mp4boxfile.flush();
+                } catch (appendErr) {
+                    console.warn('[MP4Box] appendBuffer warning:', appendErr);
+                    finish();
+                }
+
+                setTimeout(finish, 400);
+            });
+        } catch (e) {
+            console.warn('[MP4Box] extractMp4AudioTrack warning:', e);
+            return null;
+        }
     };
 
     /** Extrait la piste audio d'une vidéo en WAV 16-bit uncompressed offline via Web Audio API */
@@ -6970,17 +7067,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } catch {}
             }
         }
-        const isActualMobileDevice = typeof navigator !== 'undefined' && (
-            /iPad|iPhone|iPod|Android/i.test(navigator.userAgent) ||
-            ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 2 && window.innerWidth < 1024)
-        );
-        const useWebCodecs = Boolean(chosenCodec) && (!isActualMobileDevice || !bgVideo);
+        const useWebCodecs = Boolean(chosenCodec);
 
         let videoEncoder: any = null;
         let muxerTarget: any = null;
         let muxer: any = null;
         let totalFramesEncoded = 0;
         let webEncoderErrored = false;
+        let bgAudioData: ExtractedAudioTrack | null = null;
+
+        if (useWebCodecs && bgVideoBlob && theme !== 'MUSIQUE') {
+            try {
+                console.log('[Export] Analyse de la piste audio de bgVideo via MP4Box...');
+                bgAudioData = await extractMp4AudioTrack(bgVideoBlob);
+            } catch (e) {
+                console.warn('[Export] Extraction MP4Box warning:', e);
+            }
+        }
 
         if (useWebCodecs && chosenCodec) {
             muxerTarget = new ArrayBufferTarget();
@@ -6991,6 +7094,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     width: targetWidth,
                     height: targetHeight,
                 },
+                ...(bgAudioData ? {
+                    audio: {
+                        codec: 'aac',
+                        numberOfChannels: bgAudioData.channelCount,
+                        sampleRate: bgAudioData.sampleRate,
+                    }
+                } : {}),
                 fastStart: 'in-memory',
                 firstTimestampBehavior: 'offset',
             });
@@ -7609,6 +7719,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (totalFramesEncoded === 0 || webEncoderErrored) {
                         throw new Error(webEncoderErrored ? "Encodeur H.264 WebCodecs en erreur sur ce GPU." : "Aucune frame vidéo encodée.");
                     }
+
+                    // Injection des paquets audio de bgVideo directement dans l'arbre MP4
+                    if (bgAudioData && bgAudioData.samples.length > 0) {
+                        const totalDurationUs = totalDuration * 1000;
+                        const bgDurationUs = bgAudioData.durationUs || (bgAudioData.samples[bgAudioData.samples.length - 1].timestampUs + bgAudioData.samples[bgAudioData.samples.length - 1].durationUs);
+
+                        let loopOffsetUs = 0;
+                        while (loopOffsetUs < totalDurationUs) {
+                            for (const s of bgAudioData.samples) {
+                                const currentTsUs = loopOffsetUs + s.timestampUs;
+                                if (currentTsUs >= totalDurationUs) break;
+                                muxer.addAudioChunkRaw(s.data, s.is_sync ? 'key' : 'delta', currentTsUs, s.durationUs);
+                            }
+                            if (bgDurationUs <= 0) break;
+                            loopOffsetUs += bgDurationUs;
+                        }
+                        console.log(`[Export] ✅ Audio AAC (${bgAudioData.samples.length} paquets) muxé directement dans le conteneur MP4 final !`);
+                    }
+
                     muxer.finalize();
                     videoBlob = new Blob([muxerTarget.buffer], { type: 'video/mp4' });
                 } catch (e: any) {
@@ -7645,9 +7774,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // Détection de présence de son dans le projet
             const hasAnyAudioSource = Boolean(bgVideoBlob || hasAnyMusicAudio || (bgVideo && (bgVideo.currentSrc || bgVideo.src)));
 
-            // FAST-PATH MP4 : si videoBlob est déjà un MP4 valide (ex: iOS Safari MediaRecorder avec audio AAC natif, ou MP4 muet)
+            // FAST-PATH MP4 : si videoBlob est déjà un MP4 valide (ex: WebCodecs avec audio AAC injecté par MP4Box, ou iOS Safari MediaRecorder avec audio AAC natif, ou MP4 muet)
             // ET qu'aucun rendu multipiste MUSIQUE offline n'est nécessaire :
-            if (!hasAnyMusicAudio && (hasAudioTrack || !hasAnyAudioSource) && videoBlob.type.includes('mp4')) {
+            if (!hasAnyMusicAudio && (bgAudioData || hasAudioTrack || !hasAnyAudioSource) && videoBlob.type.includes('mp4')) {
                 console.log('[Export] ✅ MP4 natif complet (vidéo + audio AAC intégré), export direct immédiat sans conversion.');
                 isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
