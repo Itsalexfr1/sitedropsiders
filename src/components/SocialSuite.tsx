@@ -6281,8 +6281,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isDevinetteReveal = isDevinetteTheme && effectiveEditorialSlide === 2;
                 const isSlide1Editorial = (effectiveEditorialSlide === 1 && isEditorialCarouselTheme);
 
-                // 1. Définition et préparation du Titre (sur Slide 1, le titre a toujours la grande taille standard 64px comme la phrase 1 des autres thèmes)
-                let titleFontSize = (isTitleOnly || isSlide1Editorial) ? 64 : (isDevinetteReveal ? (isReel ? 44 : 38) : (isEditorialCarouselTheme ? 50 : 44));
+                // 1. Définition et préparation du Titre (taille standard 64px comme NEWS pour Slide 1, Révélation et thèmes éditoriaux)
+                let titleFontSize = (isTitleOnly || isSlide1Editorial || isDevinetteReveal) ? 64 : (isEditorialCarouselTheme ? 60 : 54);
                 const formatTitleLines = (fSize: number) => {
                     ctx.font = `900 ${fSize}px "Montserrat", sans-serif`;
                     const lines: string[] = [];
@@ -6311,13 +6311,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     titleLines = formatTitleLines(titleFontSize);
                 }
                 const titleLineHeight = Math.round(titleFontSize * (isDevinetteReveal ? 1.15 : 1.18));
-                const titleHeight = mainTitleText ? (titleLines.length * titleLineHeight) : 0;
+                let titleHeight = mainTitleText ? (titleLines.length * titleLineHeight) : 0;
 
-                // 2. Définition et préparation du Sous-titre / Réponse
+                // 2. Définition et préparation du Sous-titre / Réponse (64px sur la Révélation pour être identique au Titre et à NEWS)
                 const subFontWeight = isDevinetteReveal ? '900' : '400';
                 let subFontSize = isDevinetteReveal
-                    ? (isReel ? 44 : 38)
-                    : (!mainTitleText ? (isReel ? 38 : 34) : (isEditorialCarouselTheme ? 32 : 26));
+                    ? 64
+                    : (!mainTitleText ? (isReel ? 64 : 58) : (isEditorialCarouselTheme ? 40 : 34));
 
                 const formatSubLines = (fSize: number) => {
                     ctx.font = `italic ${subFontWeight} ${fSize}px "Montserrat", sans-serif`;
@@ -6343,7 +6343,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const isMusicSlide1 = (theme === 'MUSIQUE' && effectiveEditorialSlide === 1);
                 const gapBetween = (mainTitleText && bodyText) ? (isDevinetteReveal ? 14 : (isMusicSlide1 ? 16 : 22)) : 0;
-                let subLineHeight = Math.round(subFontSize * (isDevinetteReveal ? 1.25 : 1.38));
+                let subLineHeight = Math.round(subFontSize * (isDevinetteReveal ? 1.18 : 1.38));
                 let subLines = formatSubLines(subFontSize);
                 let subHeight = bodyText ? (subLines.length * subLineHeight) : 0;
                 let totalTextHeight = titleHeight + gapBetween + subHeight;
@@ -6353,14 +6353,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const availableSpace = Math.max(100, bottomLimit - dividerY);
 
                 // Réduction automatique si le texte dépasse en hauteur ou en largeur
-                const minSubFontSize = isDevinetteReveal ? 24 : 18;
-                while (subFontSize > minSubFontSize && 
-                       (totalTextHeight > (availableSpace - 16) || subLines.some(l => ctx.measureText(stripTags(l)).width > lineWidth))) {
-                    subFontSize -= 1;
-                    subLines = formatSubLines(subFontSize);
-                    subLineHeight = Math.round(subFontSize * (isDevinetteReveal ? 1.25 : 1.38));
-                    subHeight = subLines.length * subLineHeight;
-                    totalTextHeight = titleHeight + gapBetween + subHeight;
+                if (isDevinetteReveal) {
+                    while ((titleFontSize > 28 || subFontSize > 28) && 
+                           (totalTextHeight > (availableSpace - 16) || 
+                            titleLines.some(l => ctx.measureText(stripTags(l).toUpperCase()).width > lineWidth) ||
+                            subLines.some(l => ctx.measureText(stripTags(l)).width > lineWidth))) {
+                        if (titleFontSize > 28) titleFontSize -= 1;
+                        if (subFontSize > 28) subFontSize -= 1;
+                        titleLines = formatTitleLines(titleFontSize);
+                        subLines = formatSubLines(subFontSize);
+                        titleHeight = mainTitleText ? (titleLines.length * Math.round(titleFontSize * 1.15)) : 0;
+                        subHeight = bodyText ? (subLines.length * Math.round(subFontSize * 1.18)) : 0;
+                        totalTextHeight = titleHeight + gapBetween + subHeight;
+                    }
+                } else {
+                    const minSubFontSize = 18;
+                    while (subFontSize > minSubFontSize && 
+                           (totalTextHeight > (availableSpace - 16) || subLines.some(l => ctx.measureText(stripTags(l)).width > lineWidth))) {
+                        subFontSize -= 1;
+                        subLines = formatSubLines(subFontSize);
+                        subLineHeight = Math.round(subFontSize * 1.38);
+                        subHeight = subLines.length * subLineHeight;
+                        totalTextHeight = titleHeight + gapBetween + subHeight;
+                    }
                 }
 
                 // Positionnement vertical net et stable sous la barre divider (strictement identique à NEWS pour TOUS les thèmes)
