@@ -81,7 +81,7 @@ export const hasPermission = (storedPermissions: string[], p: string, isAlex: bo
     if (p === "alex_only") return isAlex;
     if (p === "superadmin") return isAlex || storedPermissions.includes("all");
     if (isAlex || storedPermissions.includes('all')) return true;
-    if (p === 'all') return true;
+    if (p === 'all') return isAlex || storedPermissions.includes('all');
     
     const mapping: Record<string, string> = {
       // New to Old / Aliases
