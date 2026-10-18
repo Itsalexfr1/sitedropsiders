@@ -81,6 +81,7 @@ import {
     getCurrentLiveRadioTrack,
     getParisSeconds,
     isItemExpired,
+    cleanRadioTrackMetadata,
     type RadioRotationRule,
     type RadioScheduleBlock,
     type RadioTrackItem,
@@ -3311,12 +3312,19 @@ export function AdminRadioModal({
                                                                     {liveTrackInfo.item.blockTitle}
                                                                 </span>
                                                             </div>
-                                                            <h3 className="text-base font-display font-black text-white uppercase italic tracking-tight truncate mt-1">
-                                                                {liveTrackInfo.item.title}
-                                                            </h3>
-                                                            <p className="text-xs font-sans text-gray-300 truncate">
-                                                                {liveTrackInfo.item.artist || 'DROPSIDERS RADIO'}
-                                                            </p>
+                                                            {(() => {
+                                                                const liveMeta = cleanRadioTrackMetadata(liveTrackInfo.item.title, liveTrackInfo.item.artist, liveTrackInfo.item.category);
+                                                                return (
+                                                                    <>
+                                                                        <h3 className="text-base font-display font-black text-white uppercase italic tracking-tight truncate mt-1">
+                                                                            {liveMeta.title}
+                                                                        </h3>
+                                                                        <p className="text-xs font-sans text-gray-300 truncate">
+                                                                            {liveMeta.artist || 'DROPSIDERS RADIO'}
+                                                                        </p>
+                                                                    </>
+                                                                );
+                                                            })()}
                                                         </div>
                                                     </div>
 
@@ -3529,12 +3537,19 @@ export function AdminRadioModal({
                                                                     </td>
 
                                                                     <td className="py-2 px-3 min-w-0">
-                                                                        <div className="truncate font-bold text-white text-xs group-hover:text-cyan-300 transition-colors">
-                                                                            {item.title}
-                                                                        </div>
-                                                                        <div className="truncate text-gray-400 text-[11px]">
-                                                                            {item.artist || 'Artiste'}
-                                                                        </div>
+                                                                        {(() => {
+                                                                            const metaClean = cleanRadioTrackMetadata(item.title, item.artist, item.category);
+                                                                            return (
+                                                                                <>
+                                                                                    <div className="truncate font-bold text-white text-xs group-hover:text-cyan-300 transition-colors">
+                                                                                        {metaClean.title}
+                                                                                    </div>
+                                                                                    <div className="truncate text-gray-400 text-[11px]">
+                                                                                        {metaClean.artist || 'Artiste'}
+                                                                                    </div>
+                                                                                </>
+                                                                            );
+                                                                        })()}
                                                                     </td>
 
                                                                     <td className="py-2 px-3 text-gray-300 text-xs truncate">

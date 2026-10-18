@@ -20,7 +20,8 @@ import {
     type RadioTrackItem,
     type RadioTrackCategory,
     formatDurationExact,
-    getRadioCategoryMeta
+    getRadioCategoryMeta,
+    cleanRadioTrackMetadata
 } from '../../../utils/radioSchedule';
 import { extractYouTubeId, fetchYouTubeTitle } from '../modals/AdminTVModal';
 
@@ -94,10 +95,11 @@ export function RadioEmissionTracksPanel({
 
         const durSec = Math.max(10, (parseInt(trackDurationMinutes) || 4) * 60);
 
+        const { title: cleanTitle, artist: cleanArtist } = cleanRadioTrackMetadata(trackTitle.trim(), trackArtist.trim(), trackCategory);
         const newTrack: RadioTrackItem = {
             id: `radio_track_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-            title: trackTitle.trim(),
-            artist: trackArtist.trim() || undefined,
+            title: cleanTitle,
+            artist: cleanArtist || undefined,
             youtubeId: ytId || undefined,
             audioUrl: isAudioUrl ? trackUrl.trim() : undefined,
             duration: durSec,
@@ -314,28 +316,33 @@ export function RadioEmissionTracksPanel({
                                     )}
 
                                     {/* Infos titre & artiste */}
-                                    <div className="min-w-0 flex-1">
-                                        <div className="flex items-center gap-2">
-                                            <p className="text-xs font-display font-black text-white uppercase italic tracking-tight truncate">
-                                                {track.title}
-                                            </p>
-                                            <span
-                                                className="text-[9px] font-mono uppercase font-bold px-1.5 py-0.5 rounded border shrink-0"
-                                                style={{
-                                                    color: meta.color,
-                                                    borderColor: `${meta.color}40`,
-                                                    backgroundColor: `${meta.color}15`
-                                                }}
-                                            >
-                                                {meta.emoji} {meta.label}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-[10px] text-gray-400 mt-0.5">
-                                            {track.artist && <span>{track.artist}</span>}
-                                            <span>•</span>
-                                            <span className="font-mono text-gray-400">{formatDurationExact(dur)}</span>
-                                        </div>
-                                    </div>
+                                    {(() => {
+                                        const metaClean = cleanRadioTrackMetadata(track.title, track.artist, track.category);
+                                        return (
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <p className="text-xs font-display font-black text-white uppercase italic tracking-tight truncate">
+                                                        {metaClean.title}
+                                                    </p>
+                                                    <span
+                                                        className="text-[9px] font-mono uppercase font-bold px-1.5 py-0.5 rounded border shrink-0"
+                                                        style={{
+                                                            color: meta.color,
+                                                            borderColor: `${meta.color}40`,
+                                                            backgroundColor: `${meta.color}15`
+                                                        }}
+                                                    >
+                                                        {meta.emoji} {meta.label}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-[10px] text-gray-400 mt-0.5">
+                                                    {metaClean.artist && <span>{metaClean.artist}</span>}
+                                                    <span>•</span>
+                                                    <span className="font-mono text-gray-400">{formatDurationExact(dur)}</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
 
                                 {/* Actions */}

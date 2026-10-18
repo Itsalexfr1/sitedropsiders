@@ -13,7 +13,7 @@ import {
     Sparkles,
     Image as ImageIcon
 } from 'lucide-react';
-import { type RadioScheduleBlock, type RadioTrackItem, type RadioTrackCategory, formatDurationExact } from '../../../utils/radioSchedule';
+import { type RadioScheduleBlock, type RadioTrackItem, type RadioTrackCategory, formatDurationExact, cleanRadioTrackMetadata } from '../../../utils/radioSchedule';
 import { SoundCloudIcon } from '../modals/AdminSoundCloudPlaylistModal';
 
 interface RadioSoundCloudTrackModalProps {
@@ -71,21 +71,9 @@ export function RadioSoundCloudTrackModal({
             const res = await fetch(endpoint);
             if (res.ok) {
                 const data = await res.json();
-                let extractedArtist = data.author_name || '';
-                let extractedTitle = data.title || '';
-
-                if (extractedTitle.includes(' - ')) {
-                    const parts = extractedTitle.split(' - ');
-                    if (!extractedArtist) extractedArtist = parts[0].trim();
-                    extractedTitle = parts.slice(1).join(' - ').trim();
-                } else if (extractedTitle.includes(' — ')) {
-                    const parts = extractedTitle.split(' — ');
-                    if (!extractedArtist) extractedArtist = parts[0].trim();
-                    extractedTitle = parts.slice(1).join(' — ').trim();
-                }
-
-                setTitle(extractedTitle);
-                setArtist(extractedArtist);
+                const { title: cleanTitle, artist: cleanArtist } = cleanRadioTrackMetadata(data.title || '', data.author_name || '');
+                setTitle(cleanTitle);
+                setArtist(cleanArtist);
                 if (data.thumbnail_url) {
                     // Try to get higher quality artwork if available (replace -large with -t500x500)
                     const hdCover = data.thumbnail_url.replace('-large.', '-t500x500.');

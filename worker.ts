@@ -523,10 +523,48 @@ export default {
                     }
                 }
 
+                const isRecordLabelName = (name: string) => {
+                    if (!name) return false;
+                    const lower = name.toLowerCase().trim();
+                    const clean = lower.replace(/['’.]/g, '');
+                    const known = ['spinnin', 'spinnin records', 'toolroom', 'toolroom records', 'no art', 'defected', 'defected records', 'armada', 'armada music', 'ultra', 'ultra records', 'musical freedom', 'revealed', 'stmpd', 'axtone', 'size records', 'protocol', 'afterlife', 'drumcode', 'anjuna', 'anjunabeats', 'anjunadeep', 'monstercat', 'ministry of sound', 'hexagon', 'dim mak', 'mau5trap', 'owsla', 'heldeep', 'future house music', 'selected', 'soave', 'kontor', 'cr2 records', 'black book', 'solid grooves', 'experts only', 'off the grid', 'nervous records', 'dirtybird'];
+                    if (known.some(k => lower.includes(k) || clean.includes(k))) return true;
+                    return /\b(records|recordings|record\b|recs|rec\b|label|imprint)\b/i.test(name);
+                };
+
+                const cleanTrackMeta = (rawTitle: string, rawArtist: string) => {
+                    let title = (rawTitle || '').trim();
+                    let artist = (rawArtist || '').trim();
+
+                    const sep = title.match(/^(.*?)\s+[-—–|]\s+(.*)$/);
+                    if (sep) {
+                        const potArtist = sep[1].trim();
+                        const potTitle = sep[2].trim();
+                        if (potArtist && potTitle) {
+                            if (!artist || isRecordLabelName(artist) || artist.toLowerCase() === 'artiste' || potArtist.toLowerCase().includes(artist.toLowerCase())) {
+                                artist = potArtist;
+                                title = potTitle;
+                            }
+                        }
+                    }
+
+                    if (isRecordLabelName(artist)) {
+                        if (sep) {
+                            artist = sep[1].trim();
+                            title = sep[2].trim();
+                        } else {
+                            artist = 'Artiste';
+                        }
+                    }
+
+                    return { title: title || 'Morceau', artist: artist || 'Artiste' };
+                };
+
                 const parsedTracks = rawTracks.map((t: any, index: number) => {
                     const full = fullTrackMap.get(t.id) || t;
-                    const title = full.title || `Morceau ${index + 1}`;
-                    const artist = full.user?.username || full.publisher_metadata?.artist || plAuthor;
+                    const rawTitle = full.title || `Morceau ${index + 1}`;
+                    const rawArtist = full.publisher_metadata?.artist || full.user?.username || plAuthor;
+                    const { title, artist } = cleanTrackMeta(rawTitle, rawArtist);
                     const duration = Math.max(30, Math.round((full.duration || 180000) / 1000));
                     const coverUrl = full.artwork_url || plArtwork;
                     const soundcloudUrl = full.permalink_url || `${targetUrl}#${index}`;

@@ -16,7 +16,7 @@ import {
   RefreshCw,
   FileText
 } from 'lucide-react';
-import { type RadioScheduleBlock, type RadioTrackItem, formatRadioTimeSlot, isLikelySingleTrack } from '../../../utils/radioSchedule';
+import { type RadioScheduleBlock, type RadioTrackItem, formatRadioTimeSlot, isLikelySingleTrack, cleanRadioTrackMetadata } from '../../../utils/radioSchedule';
 
 export const SoundCloudIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -127,12 +127,14 @@ export function AdminSoundCloudPlaylistModal({
           if (Array.isArray(sounds) && sounds.length > 0) {
             const parsed: RadioTrackItem[] = sounds.map((s, idx) => {
               const durSec = Math.max(30, Math.round((s.duration || 180000) / 1000));
-              const title = s.title || `Morceau ${idx + 1}`;
-              const isSet = durSec >= 600 || !isLikelySingleTrack(title);
+              const rawTitle = s.title || `Morceau ${idx + 1}`;
+              const isSet = durSec >= 600 || !isLikelySingleTrack(rawTitle);
+              const rawArtist = s.publisher_metadata?.artist || s.user?.username || playlistAuthor;
+              const { title, artist } = cleanRadioTrackMetadata(rawTitle, rawArtist, isSet ? 'set' : 'clip');
               return {
                 id: `sc_${s.id || Date.now()}_${idx}`,
                 title,
-                artist: s.user?.username || s.publisher_metadata?.artist || playlistAuthor || 'Artiste SoundCloud',
+                artist,
                 duration: durSec,
                 category: isSet ? 'set' : 'clip',
                 soundcloudUrl: s.permalink_url || `${trimmed}#${idx}`,

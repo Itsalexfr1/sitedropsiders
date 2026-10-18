@@ -351,10 +351,11 @@ export function buildDefaultRadioBlocksFromTV(): RadioScheduleBlock[] {
         return rawTvBlocks.map((b: any, idx: number) => {
             const rawTracks: RadioTrackItem[] = (b.videos || []).map((v: any, vIdx: number) => {
                 const { artist } = parseArtistAndEvent(v.title || '');
+                const metaClean = cleanRadioTrackMetadata(v.title || '', v.artist || artist, v.category);
                 return {
                     id: `rt_${v.id || v.youtubeId || vIdx}`,
-                    title: v.title,
-                    artist: artist || 'Artiste',
+                    title: metaClean.title,
+                    artist: metaClean.artist,
                     youtubeId: v.youtubeId,
                     duration: v.duration || 3600,
                     category: (v.category === 'clip' ? 'clip' : 'liveset') as RadioTrackCategory
@@ -949,15 +950,176 @@ export function applyRotationPatternToTracks(
 }
 
 /**
+ * Liste complète des labels de musique électronique majeurs
+ * pour éviter qu'un compte label (ex: Spinnin, Toolroom, No Art) ne soit pris comme artiste.
+ */
+export const KNOWN_RECORD_LABELS = new Set([
+    'spinnin', 'spinnin records', "spinnin' records", "spinnin'", 'spinnin deep', 'spinnin talent pool',
+    'toolroom', 'toolroom records', 'toolroom trax', 'toolroom academy',
+    'no art', 'no art records',
+    'defected', 'defected records', 'dftd', 'glitterbox',
+    'armada', 'armada music', 'armind',
+    'ultra', 'ultra records', 'ultra music',
+    'musical freedom', 'musical freedom records',
+    'revealed', 'revealed recordings',
+    'stmpd', 'stmpd rcrds', 'stmpd records',
+    'axtone', 'axtone records',
+    'size', 'size records',
+    'protocol', 'protocol recordings',
+    'afterlife', 'afterlife records',
+    'drumcode', 'drumcode records',
+    'anjuna', 'anjunabeats', 'anjunadeep',
+    'monstercat', 'monstercat silk', 'monstercat instinct', 'monstercat uncaged',
+    'ministry of sound',
+    'hexagon',
+    'smash the house', 'smash deep',
+    'dim mak', 'dim mak records',
+    'mau5trap',
+    'owsla',
+    'mad decent',
+    'heldeep', 'heldeep records',
+    'future house music', 'fhm',
+    'selected', 'selected.',
+    'soave', 'soave records',
+    'kontor', 'kontor records',
+    'cr2', 'cr2 records',
+    'black book', 'black book records',
+    'repopulate mars', 'south of saturn',
+    'solid grooves', 'solid grooves records', 'solid grooves raw',
+    'experts only', 'off the grid', 'off the grid recs',
+    'cuttin headz', "cuttin' headz",
+    'nervous', 'nervous records',
+    'suara',
+    'innervisions',
+    'diynamic',
+    'crosstown rebels',
+    'hot creations',
+    'circus', 'circus recordings',
+    'relief', 'relief records',
+    'dirtybird', 'dirtybird records',
+    'catch & release', 'catch and release',
+    'trick',
+    'higher ground',
+    'big beat', 'big beat records',
+    'casablanca', 'casablanca records',
+    'astralwerks',
+    'ed banger', 'ed banger records',
+    'because music',
+    'parlophone',
+    'strictly rhythm',
+    'enormous tunes',
+    'confession', 'confession label',
+    'barong family',
+    'dharma', 'dharma worldwide',
+    'skink',
+    'kannibalen records',
+    'disciple',
+    'never say die',
+    'ukf',
+    'subjekt', 'subjekt recordings',
+    'glasgow underground',
+    'sony music', 'warner music', 'universal music', 'columbia', 'interscope', 'def jam', 'republic', 'atlantic', 'virgin', 'polydor', 'island'
+]);
+
+/**
+ * Détermine si une chaîne correspond à un label de musique (et non à un artiste individuel).
+ */
+export function isRecordLabel(name?: string): boolean {
+    if (!name) return false;
+    const trimmed = name.trim().toLowerCase();
+    const clean = trimmed.replace(/['’.]/g, '');
+    if (KNOWN_RECORD_LABELS.has(trimmed) || KNOWN_RECORD_LABELS.has(clean)) return true;
+
+    // Détection par mots-clés de labels : "Records", "Recordings", "Recs", "Label", "Imprint", etc.
+    const labelPattern = /\b(records|recordings|record\b|recs|rec\b|label|imprint|publishing|distribution)\b/i;
+    if (labelPattern.test(name)) return true;
+
+    // Détection par suffixe/préfixe Music sur les labels connus
+    if (/\b(music)\b/i.test(name) && !/\b(live|band|orchestra|duo|trio)\b/i.test(name)) {
+        if (/^(armada|ultra|sony|warner|universal|future house|soave|because)\b/i.test(name)) return true;
+    }
+
+    return false;
+}
+
+/**
+ * Nettoie et sépare intelligemment le titre et l'artiste d'un morceau radio.
+ * Empêche formellement qu'un label (ex: Spinnin, Toolroom, No Art) ne soit affiché comme artiste,
+ * et extrait le véritable artiste si le titre est sous la forme "Artiste - Titre".
+ */
+export function cleanRadioTrackMetadata(
+    rawTitle: string,
+    rawArtist?: string,
+    category?: string
+): { title: string; artist: string } {
+    const isJingleOrPromo = category === 'jingle' || category === 'promo' || category === 'pub' || category === 'top_horaire';
+    let title = (rawTitle || '').trim();
+    let artist = (rawArtist || '').trim();
+
+    // Jingles et promos conservent leurs mentions officielles (ex: DROPSIDERS JINGLE, PROMO DROPSIDERS)
+    if (isJingleOrPromo) {
+        return {
+            title: title || 'Jingle Dropsiders',
+            artist: artist || 'DROPSIDERS RADIO'
+        };
+    }
+
+    // 1. Détection si le titre contient un séparateur "Artiste - Titre" (ex: "Keinemusik, Boys Noize, Vinson - Crazy For It")
+    const separatorMatch = title.match(/^(.*?)\s+[-—–|]\s+(.*)$/);
+    if (separatorMatch) {
+        const potentialArtist = separatorMatch[1].trim();
+        const potentialTitle = separatorMatch[2].trim();
+
+        if (potentialArtist && potentialTitle) {
+            // Si l'artiste renseigné est un label, ou vide, ou "Artiste", ou si potentialArtist contient l'artiste actuel
+            if (
+                !artist ||
+                isRecordLabel(artist) ||
+                artist.toLowerCase() === 'artiste' ||
+                artist.toLowerCase() === 'dropsiders radio' ||
+                artist.toLowerCase() === 'unknown' ||
+                potentialArtist.toLowerCase().includes(artist.toLowerCase())
+            ) {
+                artist = potentialArtist;
+                title = potentialTitle;
+            }
+        }
+    }
+
+    // 2. Si l'artiste restant est toujours identifié comme un label de musique (ex: "Toolroom Records", "No Art", "Spinnin' Records")
+    if (isRecordLabel(artist)) {
+        // Le label ne doit JAMAIS être pris comme artiste.
+        if (separatorMatch) {
+            artist = separatorMatch[1].trim();
+            title = separatorMatch[2].trim();
+        } else {
+            // Titre simple sans séparateur (ex: "Too Much" ou "Burnin' Deep") :
+            // Remplacement par "Artiste" pour supprimer le label du champ artiste
+            artist = 'Artiste';
+        }
+    }
+
+    // Nettoyage esthétique des guillemets éventuels
+    title = title.replace(/^["'«]+|["'»]+$/g, '').trim();
+    artist = artist.replace(/^["'«]+|["'»]+$/g, '').trim();
+
+    return {
+        title: title || 'Morceau',
+        artist: artist || 'Artiste'
+    };
+}
+
+/**
  * Normalise le nom d'un artiste pour les comparaisons et quotas d'antenne
  * Nettoie les feat, ft, remix, vs, ponctuation.
  */
 export function normalizeArtistName(rawArtist?: string, rawTitle?: string): string {
-    let artist = rawArtist || '';
+    const { artist: cleanArt } = cleanRadioTrackMetadata(rawTitle || '', rawArtist || '');
+    let artist = cleanArt || rawArtist || '';
     if (!artist && rawTitle) {
         artist = parseArtistAndEvent(rawTitle).artist || '';
     }
-    if (!artist) return '';
+    if (!artist || isRecordLabel(artist) || artist.toLowerCase() === 'artiste') return '';
 
     const clean = artist
         .toLowerCase()
@@ -1391,6 +1553,7 @@ export function computeRadioDaySchedule(
                             ? `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}:${String(eS).padStart(2, '0')}`
                             : `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}`;
 
+                        const metaClean = cleanRadioTrackMetadata(track.title, track.artist || artist, track.category);
                         items.push({
                             id: `${block.id}_t${trackIdx}_p${partIdx}_${track.id || track.youtubeId}`,
                             blockId: block.id,
@@ -1398,8 +1561,8 @@ export function computeRadioDaySchedule(
                             blockHost: block.host,
                             blockColor: block.color,
                             blockEmoji: block.emoji,
-                            title: partIdx === 1 ? track.title : `${track.title} (Suite)`,
-                            artist: track.artist || artist || 'Artiste',
+                            title: partIdx === 1 ? metaClean.title : `${metaClean.title} (Suite)`,
+                            artist: metaClean.artist,
                             event: block.title,
                             youtubeId: track.youtubeId,
                             audioUrl: track.audioUrl,
@@ -1498,6 +1661,7 @@ export function computeRadioDaySchedule(
                             ? `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}:${String(eS).padStart(2, '0')}`
                             : `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}`;
 
+                        const metaClean = cleanRadioTrackMetadata(track.title, track.artist || artist, track.category);
                         items.push({
                             id: `${block.id}_t${trackIdx}_p${partIdx}_${track.id || track.youtubeId}`,
                             blockId: block.id,
@@ -1505,8 +1669,8 @@ export function computeRadioDaySchedule(
                             blockHost: block.host,
                             blockColor: block.color,
                             blockEmoji: block.emoji,
-                            title: partIdx === 1 ? track.title : `${track.title} (Suite)`,
-                            artist: track.artist || artist || 'Artiste',
+                            title: partIdx === 1 ? metaClean.title : `${metaClean.title} (Suite)`,
+                            artist: metaClean.artist,
                             event: block.title,
                             youtubeId: track.youtubeId,
                             audioUrl: track.audioUrl,
@@ -1615,6 +1779,7 @@ export function computeRadioDaySchedule(
                     ? `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}:${String(eS).padStart(2, '0')}`
                     : `${String(eH).padStart(2, '0')}h${String(eM).padStart(2, '0')}`;
 
+                const metaClean = cleanRadioTrackMetadata(track.title, track.artist || artist, track.category);
                 items.push({
                     id: `${block.id}_t${trackIdx}_${track.id || track.youtubeId}`,
                     blockId: block.id,
@@ -1622,8 +1787,8 @@ export function computeRadioDaySchedule(
                     blockHost: block.host,
                     blockColor: block.color,
                     blockEmoji: block.emoji,
-                    title: track.title,
-                    artist: track.artist || artist || 'Artiste',
+                    title: metaClean.title,
+                    artist: metaClean.artist,
                     event: block.title,
                     youtubeId: track.youtubeId,
                     audioUrl: track.audioUrl,
