@@ -6896,8 +6896,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const canvas = canvasRef.current;
         if (!canvas) return;
 
+        // ── 0. DÉVERROUILLAGE AUDIO SYNCHRONE IMMÉDIAT (iOS Safari / Mobile) ─────
+        // Sur Safari iOS, AudioContext.resume() et video.play() DOIVENT être déclenchés
+        // immédiatement lors du clic utilisateur, AVANT tout appel asynchrone / await réseau.
+        const AudioCtxClass = (typeof window !== 'undefined' && ((window as any).AudioContext || (window as any).webkitAudioContext));
+        if (AudioCtxClass) {
+            if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+                audioCtxRef.current = new AudioCtxClass();
+                audioSourceNodeRef.current = null;
+                audioDestNodeRef.current = null;
+                audioSourceVideoRef.current = null;
+            }
+            if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
+                audioCtxRef.current.resume().catch(() => {});
+            }
+        }
+        if (bgVideo) {
+            bgVideo.playsInline = true;
+            bgVideo.muted = false;
+            bgVideo.volume = 1;
+            bgVideo.play().catch(() => {});
+        }
+
+        const isActualMobileDevice = typeof navigator !== 'undefined' && (
+            /iPad|iPhone|iPod|Android/i.test(navigator.userAgent) ||
+            ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 2 && window.innerWidth < 1024) ||
+            Boolean(isMobile)
+        );
+
         let bgVideoBlob: Blob | null = bgVideoBlobRef.current;
-        if (!bgVideoBlob && bgVideo) {
+        if (!bgVideoBlob && bgVideo && !isActualMobileDevice) {
             const bgUrl = bgVideo.currentSrc || bgVideo.src;
             if (bgUrl) {
                 try {
@@ -6936,16 +6964,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (canvas.height !== targetHeight) canvas.height = targetHeight;
         const bitrate = isMobile ? 15000000 : (fps === 60 ? 28000000 : 20000000);
 
-        // ── DÉTECTION WEBCODECS (EXPORT FRAME-PAR-FRAME DÉTERMINISTE) ───────────────
-        // WebCodecs élimine à 100% les saccades et baisses de FPS : chaque frame est
-        // calculée et encodée mathématiquement au timestamp exact (0 drop, 0 doublon).
+        // ── DÉTECTION WEBCODECS (EXPORT FRAME-PAR-FRAME DÉTERMINISTE SUR DESKTOP) ───
+        // WebCodecs élimine à 100% les saccades et baisses de FPS sur Desktop.
+        // Sur Mobile avec vidéo de fond, MediaRecorder capture directement le flux audio
+        // stéréo natif dans le conteneur MP4 avec zéro latence et sans dépendre de wasm.
         const webCodecsAvailable = typeof window !== 'undefined'
             && typeof (window as any).VideoEncoder !== 'undefined'
             && typeof (window as any).VideoFrame !== 'undefined';
 
+        const shouldProbeWebCodecs = webCodecsAvailable && (!isActualMobileDevice || !bgVideo);
+
         let chosenCodec: string | null = null;
         let chosenCodecConfig: any = null;
-        if (webCodecsAvailable) {
+        if (shouldProbeWebCodecs) {
             const candidates = [
                 // High Profile (Levels 5.2, 5.1, 5.0, 4.2, 4.1, 4.0) - requis pour 1080x1920 @ 60 FPS
                 'avc1.640034', 'avc1.640033', 'avc1.640032', 'avc1.64002a', 'avc1.640029', 'avc1.640028',
@@ -6992,7 +7023,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } catch {}
             }
         }
-        const useWebCodecs = Boolean(chosenCodec);
+        const useWebCodecs = Boolean(chosenCodec) && (!isActualMobileDevice || !bgVideo);
 
         let videoEncoder: any = null;
         let muxerTarget: any = null;
@@ -7703,9 +7734,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 return;
             }
 
-            // FAST-PATH MediaRecorder iOS Safari : uniquement si MediaRecorder a capturé directement l'audio dans un conteneur MP4
-            if (!useWebCodecs && hasAudioTrack && !hasAnyMusicAudio && videoBlob.type.includes('mp4')) {
-                console.log('[Export] ✅ MediaRecorder MP4 natif avec piste audio AAC intégrée, export direct.');
+            // FAST-PATH MediaRecorder iOS Safari : uniquement si MediaRecorder a capturé directement l'audio dans un conteneur MP4 ou MOV
+            if (!useWebCodecs && hasAudioTrack && !hasAnyMusicAudio && (videoBlob.type.includes('mp4') || videoBlob.type.includes('quicktime'))) {
+                console.log('[Export] ✅ MediaRecorder MP4/MOV natif avec piste audio AAC intégrée, export direct.');
                 isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
                 setRecordingProgress(0);
