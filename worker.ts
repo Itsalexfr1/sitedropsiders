@@ -4340,12 +4340,55 @@ ${urls.map(u => `  <url>
             }
         }
 
+        // --- API: RADIO LISTENER PING (Real-time radio listener tracking) ---
+        if (path === '/api/analytics/radio/ping' && request.method === 'POST') {
+            if (!env.CHAT_KV) return new Response(JSON.stringify({ liveListeners: 0 }), { status: 200, headers });
+            try {
+                const body = await request.json().catch(() => ({}));
+                const sessionId = body.sessionId || request.headers.get('X-Session-ID') || 'unknown';
+                const now = new Date();
+                const parisHour = (now.getUTCHours() + 2) % 24;
+                const today = now.toISOString().split('T')[0];
+
+                if (body.isPlaying) {
+                    await env.CHAT_KV.put(`radio_online_${sessionId}`, Date.now().toString(), { expirationTtl: 90 });
+                    const hourlyKey = `radio_hourly_${today}`;
+                    const hourlyRaw = await env.CHAT_KV.get(hourlyKey);
+                    const hourlyMap = hourlyRaw ? JSON.parse(hourlyRaw) : {};
+                    hourlyMap[parisHour] = (hourlyMap[parisHour] || 0) + 1;
+                    await env.CHAT_KV.put(hourlyKey, JSON.stringify(hourlyMap), { expirationTtl: 60 * 60 * 48 });
+
+                    const sessKey = `radio_sess_${sessionId}`;
+                    const existingSess = await env.CHAT_KV.get(sessKey);
+                    if (!existingSess) {
+                        await env.CHAT_KV.put(sessKey, '1', { expirationTtl: 60 * 60 * 24 });
+                        const curTotal = parseInt(await env.CHAT_KV.get('radio_total_sessions') || '0');
+                        await env.CHAT_KV.put('radio_total_sessions', (curTotal + 1).toString());
+                    }
+                } else {
+                    await env.CHAT_KV.delete(`radio_online_${sessionId}`);
+                }
+
+                const { keys: onlineKeys } = await env.CHAT_KV.list({ prefix: 'radio_online_' });
+                const liveCount = onlineKeys.length;
+                const peakVal = parseInt(await env.CHAT_KV.get('radio_peak_listeners') || '0');
+                if (liveCount > peakVal) {
+                    await env.CHAT_KV.put('radio_peak_listeners', liveCount.toString());
+                }
+
+                return new Response(JSON.stringify({ liveListeners: liveCount, success: true }), { status: 200, headers });
+            } catch (err: any) {
+                return new Response(JSON.stringify({ error: 'Radio ping failed' }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/analytics/stats' && request.method === 'GET') {
             if (!env.CHAT_KV) return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 500, headers });
 
             try {
+                const todayStr = new Date().toISOString().split('T')[0];
                 // Fetch all stats from KV
-                const [totalVisitsRaw, countriesRaw, sourcesRaw, devicesRaw, clicksRaw, osRaw, browsersRaw, categoriesRaw] = await Promise.all([
+                const [totalVisitsRaw, countriesRaw, sourcesRaw, devicesRaw, clicksRaw, osRaw, browsersRaw, categoriesRaw, radioPeakRaw, radioSessionsRaw, radioHourlyRaw] = await Promise.all([
                     env.CHAT_KV.get('analytics_total_visits'),
                     env.CHAT_KV.get('analytics_countries'),
                     env.CHAT_KV.get('analytics_sources'),
@@ -4353,7 +4396,10 @@ ${urls.map(u => `  <url>
                     env.CHAT_KV.get('analytics_clicks'),
                     env.CHAT_KV.get('analytics_os'),
                     env.CHAT_KV.get('analytics_browsers'),
-                    env.CHAT_KV.get('analytics_categories')
+                    env.CHAT_KV.get('analytics_categories'),
+                    env.CHAT_KV.get('radio_peak_listeners'),
+                    env.CHAT_KV.get('radio_total_sessions'),
+                    env.CHAT_KV.get(`radio_hourly_${todayStr}`)
                 ]);
 
                 const totalVisits = parseInt(totalVisitsRaw || '0');
@@ -4364,10 +4410,17 @@ ${urls.map(u => `  <url>
                 const osMap = osRaw ? JSON.parse(osRaw) : {};
                 const browsersMap = browsersRaw ? JSON.parse(browsersRaw) : {};
                 const categoriesMap = categoriesRaw ? JSON.parse(categoriesRaw) : {};
+                const radioPeak = parseInt(radioPeakRaw || '0');
+                const radioTotalSessions = parseInt(radioSessionsRaw || '0');
+                const radioHourlyMap = radioHourlyRaw ? JSON.parse(radioHourlyRaw) : {};
 
-                // Online Users
+                // Online Users & Radio Listeners
                 const onlinePrefix = 'analytics_online_';
-                const { keys: onlineKeys } = await env.CHAT_KV.list({ prefix: onlinePrefix });
+                const [{ keys: onlineKeys }, { keys: radioOnlineKeys }] = await Promise.all([
+                    env.CHAT_KV.list({ prefix: onlinePrefix }),
+                    env.CHAT_KV.list({ prefix: 'radio_online_' })
+                ]);
+                const radioLiveListeners = radioOnlineKeys.length;
 
                 // Timeline (Last 90 days)
                 const timelineKeysMap = new Map<string, any>();
@@ -4472,7 +4525,17 @@ ${urls.map(u => `  <url>
                     onlineUsers: onlineKeys.length,
                     timeline,
                     topArticles: topArticles.slice(0, 50), // More articles
-                    countryArticles
+                    countryArticles,
+                    radioStats: {
+                        liveListeners: radioLiveListeners,
+                        peakListeners: Math.max(radioPeak, radioLiveListeners),
+                        totalSessions: radioTotalSessions,
+                        hourly: Array.from({ length: 24 }, (_, h) => ({
+                            hour: `${String(h).padStart(2, '0')}h`,
+                            hourNum: h,
+                            listeners: Number(radioHourlyMap[h] || 0)
+                        }))
+                    }
                 }), { status: 200, headers });
             } catch (err: any) {
                 return new Response(JSON.stringify({ error: 'Stats failed', details: err?.message || String(err) }), { status: 500, headers });

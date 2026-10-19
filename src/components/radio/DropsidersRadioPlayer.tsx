@@ -1836,6 +1836,32 @@ function useRadioAudio() {
         }));
     }, [isPlaying, isMuted, volume, effectiveVolume, currentSet, uiOffset, isEnabled, listenersCount, isDucking, transitionMode, autoGainEnabled, jingleBoost, isCurrentTrackJingle, activeGainDb]);
 
+    // Ping radio listening state to server for real analytics
+    useEffect(() => {
+        if (!isPlaying) return;
+        const pingServer = (active: boolean) => {
+            try {
+                let sessId = sessionStorage.getItem('dropsiders_session_id');
+                if (!sessId) {
+                    sessId = Math.random().toString(36).substring(2, 15);
+                    sessionStorage.setItem('dropsiders_session_id', sessId);
+                }
+                fetch('/api/analytics/radio/ping', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId: sessId, isPlaying: active })
+                }).catch(() => {});
+            } catch {}
+        };
+
+        pingServer(true);
+        const itv = setInterval(() => pingServer(true), 30000);
+        return () => {
+            clearInterval(itv);
+            pingServer(false);
+        };
+    }, [isPlaying]);
+
     useEffect(() => {
         const broadcast = () => window.dispatchEvent(new CustomEvent('dropsiders_radio_state', { detail: stateRef.current }));
         const onToggle = () => handlePlay();
