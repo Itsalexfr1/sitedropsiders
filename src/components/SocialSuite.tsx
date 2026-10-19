@@ -322,6 +322,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [agendaCoverYear, setAgendaCoverYear] = useState<string>(() => String(new Date().getFullYear()));
     const [agendaCoverGenres, setAgendaCoverGenres] = useState<string>('HARD TECHNO • RAWSTYLE • MULTI-GENRES');
     const [agendaCoverCta, setAgendaCoverCta] = useState<string>('Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️');
+    const [showAgendaCoverCta, setShowAgendaCoverCta] = useState<boolean>(true);
     const [artisteFestivalSlide, setArtisteFestivalSlide] = useState<1 | 2>(1);
     const [eventsSlide, setEventsSlide] = useState<number>(1);
     const [eventNormalSlidesCount, setEventNormalSlidesCount] = useState<number>(0);
@@ -3947,8 +3948,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     // 5. BOTTOM CTA PILL (Clean & Centered)
-                    const ctaText = (agendaCoverCta || 'Les meilleurs events et coups de cœur du mois rassemblés en un post').trim();
-                    if (ctaText) {
+                    const ctaText = (showAgendaCoverCta && agendaCoverCta) ? agendaCoverCta.trim() : '';
+                    if (showAgendaCoverCta && ctaText) {
                         const ctaY = canvas.height - (isStory ? 170 : (showSwipe ? 110 : 92));
 
                         let ctaFontSize = isStory ? 17 : 14;
@@ -6889,7 +6890,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide
     useEffect(() => {
@@ -9844,41 +9845,79 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     </div>
 
-                    {/* Call to action Swipe */}
+                    {/* Call to action Swipe / Phrase du bas */}
                     <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
                         <div className="flex items-center justify-between">
-                            <label className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider">
-                                ➡️ Call to Action (Bas de page)
+                            <label className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider flex items-center gap-1.5">
+                                💬 PHRASE DU BAS (SLIDE 1)
                             </label>
-                            <span className="text-[8px] font-bold text-gray-500 uppercase">Incitation Swipe</span>
+                            <button
+                                type="button"
+                                onClick={() => setShowAgendaCoverCta(!showAgendaCoverCta)}
+                                className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase transition-all border flex items-center gap-1.5 cursor-pointer ${
+                                    showAgendaCoverCta
+                                        ? 'bg-[#ff3700]/20 border-[#ff3700]/50 text-[#ff3700] shadow-[0_0_8px_rgba(255,55,0,0.3)]'
+                                        : 'bg-white/5 border-white/15 text-gray-400 hover:text-white'
+                                }`}
+                                title={showAgendaCoverCta ? "Cliquer pour masquer la phrase" : "Cliquer pour afficher la phrase"}
+                            >
+                                {showAgendaCoverCta ? '👁️ AFFICHÉE' : '🚫 MASQUÉE'}
+                            </button>
                         </div>
-                        <input
-                            value={agendaCoverCta}
-                            onChange={e => setAgendaCoverCta(e.target.value)}
-                            placeholder="ex: Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️"
-                            className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black text-xs focus:border-[#ff3700] focus:outline-none"
-                        />
-                        <div className="flex flex-wrap gap-1 pt-1">
-                            {[
-                                'Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️',
-                                'Glisse pour découvrir la sélection complète ➡️',
-                                'Swipe pour ton agenda du mois ➡️',
-                                'Swipe pour voir toutes les dates ➡️'
-                            ].map(cta => (
+                        {showAgendaCoverCta ? (
+                            <>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        value={agendaCoverCta}
+                                        onChange={e => setAgendaCoverCta(e.target.value)}
+                                        placeholder="ex: Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️"
+                                        className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black text-xs focus:border-[#ff3700] focus:outline-none"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAgendaCoverCta(false)}
+                                        className="px-2.5 py-2 bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 rounded-xl text-[8px] font-black uppercase text-red-400 whitespace-nowrap transition-all"
+                                        title="Masquer la phrase"
+                                    >
+                                        Masquer
+                                    </button>
+                                </div>
+                                <div className="flex flex-wrap gap-1 pt-1">
+                                    {[
+                                        'Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️',
+                                        'Glisse pour découvrir la sélection complète ➡️',
+                                        'Swipe pour ton agenda du mois ➡️',
+                                        'Swipe pour voir toutes les dates ➡️'
+                                    ].map(cta => (
+                                        <button
+                                            key={cta}
+                                            type="button"
+                                            onClick={() => setAgendaCoverCta(cta)}
+                                            className={`px-2 py-0.5 rounded text-[7px] font-black transition-all border text-left ${
+                                                agendaCoverCta === cta
+                                                    ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-sm'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            {cta}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex items-center justify-between p-2.5 bg-white/[0.02] border border-white/5 rounded-xl">
+                                <span className="text-[8px] font-mono text-gray-500 italic">
+                                    La phrase au bas de l'affiche est masquée.
+                                </span>
                                 <button
-                                    key={cta}
                                     type="button"
-                                    onClick={() => setAgendaCoverCta(cta)}
-                                    className={`px-2 py-0.5 rounded text-[7px] font-black transition-all border text-left ${
-                                        agendaCoverCta === cta
-                                            ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-sm'
-                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
-                                    }`}
+                                    onClick={() => setShowAgendaCoverCta(true)}
+                                    className="px-2 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-[8px] font-black uppercase text-white transition-all"
                                 >
-                                    {cta}
+                                    Réafficher
                                 </button>
-                            ))}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             ) : agendaSlide === 2 ? (
