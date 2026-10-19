@@ -127,10 +127,13 @@ import { AdminCardsModal } from "../components/admin/modals/AdminCardsModal";
 import { FacebookRecoveryModal } from "../components/admin/FacebookRecoveryModal";
 import { GTAContestAdminModal } from "../components/admin/modals/GTAContestAdminModal";
 import { AdminBlindTestModal } from "../components/admin/modals/AdminBlindTestModal";
+import dashboardActionsData from "../data/dashboard_actions.json";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
-const DEFAULT_DASHBOARD_ACTIONS = [
+const DEFAULT_DASHBOARD_ACTIONS = (Array.isArray(dashboardActionsData) && dashboardActionsData.length > 0)
+  ? (dashboardActionsData as any[])
+  : [
   {
     title: "Contenu",
     description: "News, Musique, Interviews, Agenda...",
@@ -285,7 +288,19 @@ export function AdminDashboard() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [actions, setActions] = useState<any[]>(() => DEFAULT_DASHBOARD_ACTIONS);
+  const [actions, setActions] = useState<any[]>(() => {
+    try {
+      const cached = localStorage.getItem("dropsiders_dashboard_actions");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    if (Array.isArray(dashboardActionsData) && dashboardActionsData.length > 0) {
+      return dashboardActionsData as any[];
+    }
+    return DEFAULT_DASHBOARD_ACTIONS;
+  });
   const [isSaving, setIsSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -2752,7 +2767,11 @@ export function AdminDashboard() {
               return savedAction;
             });
 
-          setActions(finalActions.length > 0 ? finalActions : getFallbackActions());
+          const resultActions = finalActions.length > 0 ? finalActions : getFallbackActions();
+          setActions(resultActions);
+          try {
+            localStorage.setItem("dropsiders_dashboard_actions", JSON.stringify(resultActions));
+          } catch (e) {}
         } else {
           setActions(getFallbackActions());
         }
@@ -3202,6 +3221,9 @@ export function AdminDashboard() {
         headers: getAuthHeaders(),
         body: JSON.stringify({ actions }),
       });
+      try {
+        localStorage.setItem("dropsiders_dashboard_actions", JSON.stringify(actions));
+      } catch (e) {}
 
       setHasChanges(false);
       setEditMode(false);
