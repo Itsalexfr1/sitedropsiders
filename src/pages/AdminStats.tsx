@@ -4,7 +4,7 @@ import {
     TrendingUp, TrendingDown, MousePointer2, ChevronRight, RefreshCcw,
     Activity, Users, Eye, Clock, Ticket, Flame, Compass,
     CheckCircle2, Laptop, Download, Printer, Filter, Sparkles,
-    Copy, Check, Share2
+    Copy, Check, Share2, Radio, Tv, Star
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
@@ -13,6 +13,9 @@ import { twMerge } from 'tailwind-merge';
 import { Badge } from '../components/ui/Badge';
 import { isSuperAdmin, hasPermission } from '../utils/auth';
 import { WorldAudienceMap, getCountryFlag, COUNTRY_META } from '../components/admin/WorldAudienceMap';
+import { RadioStatsView } from '../components/admin/stats/RadioStatsView';
+import { TvStatsView } from '../components/admin/stats/TvStatsView';
+import { StarsStatsView } from '../components/admin/stats/StarsStatsView';
 
 // --- GLASS CARD CONTAINER ---
 const BentoCard = ({ 
@@ -353,6 +356,7 @@ export function AdminStats() {
     const [recapsData, setRecapsData] = useState<any[]>([]);
     const [selectedModal, setSelectedModal] = useState<'articles' | 'media-kit' | null>(null);
     const [copiedSummary, setCopiedSummary] = useState(false);
+    const [activeTab, setActiveTab] = useState<'web' | 'radio' | 'tv' | 'stars'>('web');
 
     // Filter Drilldown state
     const [selectedCountryFilter, setSelectedCountryFilter] = useState<string | null>(null);
@@ -665,6 +669,58 @@ export function AdminStats() {
                     </div>
                 </header>
 
+                {/* --- NAVIGATION TABS BAR (WEB / RADIO / TV / STARS) --- */}
+                <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none border-b border-white/[0.08] pt-1">
+                    {[
+                        { id: 'web', label: 'Audience Web', icon: Globe, badge: `${stats.periodVisits.toLocaleString()} visites` },
+                        { id: 'radio', label: 'Stats Radio', icon: Radio, badge: 'Live 24/7' },
+                        { id: 'tv', label: 'Stats TV', icon: Tv, badge: 'Flux HD' },
+                        { id: 'stars', label: 'Stars Radio & TV', icon: Star, badge: 'Top DJs' },
+                    ].map((tab) => {
+                        const Icon = tab.icon;
+                        const isActive = activeTab === tab.id;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id as any)}
+                                className={twMerge(
+                                    "flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs font-mono font-bold uppercase transition-all duration-300 relative shrink-0",
+                                    isActive
+                                        ? tab.id === 'stars'
+                                            ? "bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-white border border-amber-400/50 shadow-[0_0_25px_rgba(245,158,11,0.3)]"
+                                            : tab.id === 'tv'
+                                                ? "bg-cyan-500/15 text-white border border-cyan-400/40 shadow-[0_0_25px_rgba(6,182,212,0.25)]"
+                                                : tab.id === 'radio'
+                                                    ? "bg-neon-red/15 text-white border border-neon-red/40 shadow-[0_0_25px_rgba(255,18,65,0.25)]"
+                                                    : "bg-white/10 text-white border border-white/20 shadow-[0_0_25px_rgba(255,255,255,0.1)]"
+                                        : "bg-white/[0.03] text-gray-400 hover:text-white hover:bg-white/[0.06] border border-white/[0.06]"
+                                )}
+                            >
+                                <Icon className={twMerge(
+                                    "w-4 h-4",
+                                    isActive 
+                                        ? tab.id === 'stars' ? "text-amber-400 fill-amber-400/30" : tab.id === 'tv' ? "text-neon-cyan" : "text-neon-red"
+                                        : "text-gray-400"
+                                )} />
+                                <span>{tab.label}</span>
+                                <span className={twMerge(
+                                    "px-2 py-0.5 rounded-full text-[9px] font-bold",
+                                    isActive
+                                        ? tab.id === 'stars' ? "bg-amber-400/20 text-amber-300 border border-amber-400/30"
+                                          : tab.id === 'tv' ? "bg-cyan-500/20 text-neon-cyan border border-cyan-500/30"
+                                          : "bg-neon-red/20 text-neon-red border border-neon-red/30"
+                                        : "bg-white/5 text-gray-500"
+                                )}>
+                                    {tab.badge}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* --- TAB 1: WEB ANALYTICS --- */}
+                {activeTab === 'web' && (
+                    <div className="space-y-8">
                 {/* --- ACTIVE FILTER CHIP (IF DRILLDOWN ACTIVE) --- */}
                 {(selectedCountryFilter || selectedCategoryFilter) && (
                     <motion.div
@@ -1182,6 +1238,17 @@ export function AdminStats() {
                         </table>
                     </div>
                 </BentoCard>
+                    </div>
+                )}
+
+                {/* --- TAB 2: RADIO ANALYTICS --- */}
+                {activeTab === 'radio' && <RadioStatsView period={period} />}
+
+                {/* --- TAB 3: TV ANALYTICS --- */}
+                {activeTab === 'tv' && <TvStatsView period={period} />}
+
+                {/* --- TAB 4: STARS RADIO & TV --- */}
+                {activeTab === 'stars' && <StarsStatsView />}
             </div>
 
             {/* --- FULL ARTICLES RANKING MODAL --- */}
