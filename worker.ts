@@ -6010,6 +6010,13 @@ ${urls.map(u => `  <url>
                 const { id, title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek, additionalDates } = body;
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
+                const normalizeCountryVal = (c: any) => {
+                    if (!c || typeof c !== 'string') return '';
+                    if (/états-unis|etats-unis|united states/i.test(c)) return 'USA';
+                    return c;
+                };
+                const cleanCountry = normalizeCountryVal(country);
+
                 const agendaFile = await fetchGitHubFile(FILE_PATH, gitConfig);
                 if (!agendaFile) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
 
@@ -6046,7 +6053,7 @@ ${urls.map(u => `  <url>
                             endDate: currentDate.toISOString().split('T')[0],
                             venue: venue || existing.venue || '',
                             location: location || existing.location,
-                            country: country || existing.country || '',
+                            country: cleanCountry || normalizeCountryVal(existing.country) || '',
                             type: type || existing.type,
                             image: image || existing.image,
                             description: description || existing.description,
@@ -6071,7 +6078,7 @@ ${urls.map(u => `  <url>
                         endDate: endDate || existing.endDate,
                         venue: venue !== undefined ? venue : existing.venue || '',
                         location: location || existing.location,
-                        country: country || existing.country || '',
+                        country: cleanCountry || normalizeCountryVal(existing.country) || '',
                         type: type || existing.type,
                         image: image || existing.image,
                         description: description || existing.description,
@@ -6120,6 +6127,13 @@ ${urls.map(u => `  <url>
                 const { title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek, additionalDates } = body;
                 if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
 
+                const normalizeCountryVal = (c: any) => {
+                    if (!c || typeof c !== 'string') return '';
+                    if (/états-unis|etats-unis|united states/i.test(c)) return 'USA';
+                    return c;
+                };
+                const cleanCountry = normalizeCountryVal(country);
+
                 const agendaFile = await fetchGitHubFile(FILE_PATH, gitConfig) || { content: [], sha: null };
                 let currentData = agendaFile.content;
                 let maxId = currentData.reduce((max, item) => (item.id > max ? item.id : max), 0);
@@ -6142,7 +6156,7 @@ ${urls.map(u => `  <url>
                             endDate: currentDate.toISOString().split('T')[0],
                             venue: venue || '',
                             location,
-                            country: country || '',
+                            country: cleanCountry || '',
                             type,
                             image,
                             description,
@@ -6167,7 +6181,7 @@ ${urls.map(u => `  <url>
                         endDate: endDate,
                         venue: venue || '',
                         location,
-                        country: country || '',
+                        country: cleanCountry || '',
                         type,
                         image,
                         description,

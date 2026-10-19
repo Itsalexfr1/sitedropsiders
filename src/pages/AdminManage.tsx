@@ -1183,7 +1183,7 @@ export function AdminManage() {
                                                                     {item.country && (
                                                                         <>
                                                                             <span className="text-neon-cyan not-italic">•</span>
-                                                                            <span className="text-neon-cyan not-italic">{item.country}</span>
+                                                                            <span className="text-neon-cyan not-italic">{/états-unis|etats-unis|united states/i.test(item.country) ? 'USA' : item.country}</span>
                                                                             <FlagIcon location={item.country} className="w-3.5 h-2.5 ml-0.5" />
                                                                         </>
                                                                     )}

@@ -95,12 +95,18 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
 
                 const locations = new Map<string, string>();
 
+                const normalizeCountry = (c: string) => {
+                    if (!c) return '';
+                    if (/états-unis|etats-unis|united states/i.test(c)) return 'USA';
+                    return c;
+                };
+
                 // From recaps
                 (recaps as any[]).forEach(item => {
                     if (item.location) {
                         const city = item.location.split(',')[0].trim();
                         if (city && !locations.has(city.toLowerCase())) {
-                            locations.set(city.toLowerCase(), item.country || '');
+                            locations.set(city.toLowerCase(), normalizeCountry(item.country || ''));
                         }
                     }
                 });
@@ -111,7 +117,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                         const city = item.location.split(',')[0].trim();
                         const countryVal = item.country || (item.location.split(',').length > 1 ? item.location.split(',')[1].trim() : '');
                         if (city && !locations.has(city.toLowerCase())) {
-                            locations.set(city.toLowerCase(), countryVal);
+                            locations.set(city.toLowerCase(), normalizeCountry(countryVal));
                         }
                     }
                 });
@@ -181,9 +187,12 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                     if (data && data.length > 0) {
                         const displayName = data[0].display_name;
                         const parts = displayName.split(',');
-                        const detectedCountry = parts[parts.length - 1].trim();
+                        let detectedCountry = parts[parts.length - 1].trim();
                         const detectedCity = parts[0].trim();
                         if (detectedCountry) {
+                            if (/états-unis|etats-unis|united states/i.test(detectedCountry)) {
+                                detectedCountry = 'USA';
+                            }
                             setCountry(detectedCountry.toUpperCase());
                         }
                         if (!locationInput && detectedCity) {
@@ -248,7 +257,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                 dayOfWeek: isWeekly ? new Date(startDate).getDay() : undefined,
                 venue,
                 location: locationInput,
-                country,
+                country: country && /états-unis|etats-unis|united states/i.test(country) ? 'USA' : country,
                 type,
                 image: imageUrl,
                 url,

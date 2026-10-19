@@ -67,7 +67,12 @@ export function Agenda() {
             const response = await fetch('/api/agenda');
             if (response.ok) {
                 const data = await response.json();
-                setAgendaData(data);
+                const normalizedData = (Array.isArray(data) ? data : []).map((e: any) => ({
+                    ...e,
+                    country: e.country && /états-unis|etats-unis|united states/i.test(e.country) ? 'USA' : e.country,
+                    location: (e.location || '').replace(/états-unis d'amérique|etats-unis d'amérique|états-unis|etats-unis/gi, 'USA')
+                }));
+                setAgendaData(normalizedData);
             }
             try {
                 const response = await fetch('/api/settings');
@@ -793,8 +798,9 @@ export function Agenda() {
                                                         setSearchParams(params);
                                                     }}
                                                 >
-                                                    <MapPin className="w-4 h-4 text-neon-fuchsia" />
+                                                    <MapPin className="w-4 h-4 text-neon-fuchsia shrink-0" />
                                                     <span className="truncate">{event.location}</span>
+                                                    <FlagIcon location={event.country || event.location} className="w-3.5 h-2.5 ml-1 shrink-0" />
                                                 </div>
                                             </div>
                                         </div>

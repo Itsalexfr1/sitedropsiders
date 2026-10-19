@@ -39,6 +39,14 @@ export const getCountryCode = (location: string): string => {
         'Etats Unis': 'US',
         'Etats-Unis': 'US',
         'États-Unis': 'US',
+        'États-Unis d\'Amérique': 'US',
+        'Etats-Unis d\'Amérique': 'US',
+        'États-Unis d’Amérique': 'US',
+        'Etats-Unis d’Amérique': 'US',
+        'Etats Unis d\'Amerique': 'US',
+        'Etats Unis d’Amerique': 'US',
+        'Etats Unis dAmerique': 'US',
+        'United States of America': 'US',
         'Suède': 'SE',
         'Sweden': 'SE',
         'Norvège': 'NO',
@@ -222,6 +230,12 @@ export const getCountryCode = (location: string): string => {
     const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
     const normalizedCountry = normalize(country);
     const normalizedFirstPart = normalize(parts[0]);
+
+    // Direct check for USA / États-Unis variations
+    if (/\b(usa|u\.s\.a|u\.s|united states|etats[- ]unis)\b/i.test(normalizedCountry) ||
+        /\b(usa|u\.s\.a|u\.s|united states|etats[- ]unis)\b/i.test(normalizedFirstPart)) {
+        return 'US';
+    }
 
     const foundCode = Object.entries(countryCodes).find(
         ([key]) => normalize(key) === normalizedCountry || normalize(key) === normalizedFirstPart

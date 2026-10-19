@@ -408,7 +408,14 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                                                 window.location.href = `/agenda?location=${encodeURIComponent(event.location)}`;
                                             }}
                                         >
-                                            <MapPin className="w-3 h-3 text-neon-red shadow-[0_0_5px_rgba(255,0,51,0.5)]" /> {event.venue && `${event.venue}, `}{event.location}{event.location && event.country ? ', ' : ''}{event.country} <FlagIcon location={event.country || event.location} className="w-3 h-2" />
+                                            {(() => {
+                                                const displayCountry = event.country && /états-unis|etats-unis|united states/i.test(event.country) ? 'USA' : event.country;
+                                                return (
+                                                    <>
+                                                        <MapPin className="w-3 h-3 text-neon-red shadow-[0_0_5px_rgba(255,0,51,0.5)]" /> {event.venue && `${event.venue}, `}{event.location}{event.location && displayCountry ? ', ' : ''}{displayCountry} <FlagIcon location={displayCountry || event.location} className="w-3 h-2" />
+                                                    </>
+                                                );
+                                            })()}
                                         </span>
                                     </div>
                                 </div>
