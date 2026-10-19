@@ -629,5 +629,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1140,
+    "title": "Mau P - GENERATION REBRAND",
+    "date": "2027-01-30",
+    "startDate": "2027-01-30",
+    "endDate": "2027-01-30",
+    "venue": "BMO Stadium",
+    "location": "LOS ANGELES",
+    "country": "USA",
+    "type": "Concert",
+    "image": "/uploads/136880636984198a-bmo_stadium_la__first_ever_sho.jpg",
+    "url": "https://maupmusic.com",
+    "genre": "House",
+    "month": "JANVIER",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
