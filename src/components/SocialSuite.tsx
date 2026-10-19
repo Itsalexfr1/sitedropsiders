@@ -323,7 +323,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [agendaCoverGenres, setAgendaCoverGenres] = useState<string>('HARD TECHNO • RAWSTYLE • MULTI-GENRES');
     const [agendaCoverCta, setAgendaCoverCta] = useState<string>('Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️');
     const [artisteFestivalSlide, setArtisteFestivalSlide] = useState<1 | 2>(1);
-    const [eventsSlide, setEventsSlide] = useState<1 | 2>(1);
+    const [eventsSlide, setEventsSlide] = useState<number>(1);
+    const [eventNormalSlidesCount, setEventNormalSlidesCount] = useState<number>(0);
     const [editorialSlide, setEditorialSlide] = useState<number>(1);
     const [planningDate, setPlanningDate] = useState('OCTOBRE');
     const [calendarMonth, setCalendarMonth] = useState('MARS 2025');
@@ -1712,7 +1713,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const forceTheme = typeof exportMode === 'string' ? (exportMode as ThemeType) : forceThemeParam;
         const isPromoRequested = Boolean(promoOutroOverrideRef.current || (isCarouselPromoActive && isMultiSlideTheme));
         const effectiveTheme = isPromoRequested ? 'PROMO' : (forceTheme || theme);
-        const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(effectiveTheme);
+        const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS', 'EVENTS'].includes(effectiveTheme);
         const isEditorialAfficheRequested = Boolean(isEditorialCarouselTheme && !isPromoRequested && (editorialAfficheOverrideRef.current || isEditorialAfficheActive));
 
         try {
@@ -1766,7 +1767,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // Dans le slide AFFICHE ou MUSIQUE slide >= 2, le visuel dédié (affiche ou cover) prend la priorité absolue sur le fond uploadé pour la slide 1 (bgImage) !
             const isCurrentSlideAffiche = Boolean(
                 theme === 'AFFICHE' || 
-                (theme === 'EVENTS' && eventsSlide === 2) || 
+                (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || 
                 isEditorialAfficheRequested || 
                 (theme === 'PLANNING' && effectiveAgendaSlide >= 3)
             );
@@ -2022,7 +2023,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else if (imgLayoutMode === 'BAS_LIGNE') {
                     y = ((canvas.height * 0.85 - vh) / 2) + bgOffsetY + bgAnimY;
                 }
-                if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested) {
+                if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested) {
                     ctx.save();
                     ctx.filter = 'blur(14px)';
                     const blurBleed = 28;
@@ -2304,7 +2305,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     } else if (imgLayoutMode === 'BAS_LIGNE') {
                         y = ((canvas.height * 0.85 - ih) / 2) + bgOffsetY + bgAnimY;
                     }
-                    if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested) {
+                    if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested) {
                         ctx.save();
                         const blurBleed = 80;
                         const targetW = Math.round(iw + blurBleed * 2);
@@ -2721,7 +2722,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const isModernEditorialTheme = (
                 (!isEditorialAfficheRequested && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme)) ||
                 (theme === 'MUSIQUE' && effectiveEditorialSlide === 1) ||
-                (theme === 'EVENTS' && eventsSlide === 1) ||
+                (theme === 'EVENTS' && (eventsSlide !== 2 || eventNormalSlidesCount > 0) && !isEditorialAfficheActive) ||
                 (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1)
             );
 
@@ -2755,7 +2756,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, canvas.height * 0.82, canvas.width, canvas.height * 0.18);
                 }
             } else {
-                if (theme !== 'HIGHLIGHTS' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && eventsSlide === 2) && !(theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) && !isEditorialAfficheRequested && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
+                if (theme !== 'HIGHLIGHTS' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) && !(theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) && !isEditorialAfficheRequested && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
                     const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                         ? canvas.height * 0.8
                         : canvas.height * 0.4;
@@ -5007,7 +5008,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
 
 
-            } else if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || isEditorialAfficheRequested) {
+            } else if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || isEditorialAfficheRequested) {
                 const isStory = canvas.height > 1500;
 
                 // 1. Dark Vignette overlay (Atmosphère sombre et immersive Dropsiders)
@@ -6112,7 +6113,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // 1. TOP-LEFT STYLIZED CAPSULE BADGE (French Crowd / Modern Editorial)
                 const isReel = effectiveTab === 'REEL';
-                const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'ARTISTE FESTIVAL', 'HIGHLIGHTS'].includes(theme);
+                const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'ARTISTE FESTIVAL', 'HIGHLIGHTS', 'EVENTS'].includes(theme);
 
                 ctx.save();
                 if (isEditorialCarouselTheme) {
@@ -8815,38 +8816,65 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const downloadEventsCarousel = async (format: TabType = (activeTab || 'PUBLICATION')) => {
         if (!canvasRef.current) return;
         setIsDownloading(true);
-        const prevSlide = eventsSlide;
+        const prevSlide = editorialSlide;
+        const prevEventsSlide = eventsSlide;
+        const prevAffiche = isEditorialAfficheActive;
         try {
             // 1. Slide 1 (Post)
+            setIsEditorialAfficheActive(false);
+            setEditorialSlide(1);
             setEventsSlide(1);
             await new Promise(r => setTimeout(r, 60));
             await generateImage(format, true);
-            const dataUrl1 = canvasRef.current.toDataURL('image/png');
-            const a1 = document.createElement('a');
-            a1.href = dataUrl1;
-            a1.download = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide1-post.png`;
-            document.body.appendChild(a1);
-            a1.click();
-            document.body.removeChild(a1);
+            let dataUrl = canvasRef.current.toDataURL('image/png');
+            let a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide1-post.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
 
-            // 2. Slide 2 (Affiche)
+            // 2. Slides normales supplémentaires si ajoutées (Slide 2, 3...)
+            for (let i = 0; i < eventNormalSlidesCount; i++) {
+                const sNum = i + 2;
+                await new Promise(r => setTimeout(r, 350));
+                setEditorialSlide(sNum);
+                setEventsSlide(sNum);
+                await new Promise(r => setTimeout(r, 60));
+                await generateImage(format, true);
+                dataUrl = canvasRef.current.toDataURL('image/png');
+                a = document.createElement('a');
+                a.href = dataUrl;
+                a.download = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide${sNum}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+
+            // 3. Slide Affiche
             await new Promise(r => setTimeout(r, 350));
+            editorialAfficheOverrideRef.current = true;
+            setIsEditorialAfficheActive(true);
             setEventsSlide(2);
             await new Promise(r => setTimeout(r, 60));
             await generateImage(format, true);
-            const dataUrl2 = canvasRef.current.toDataURL('image/png');
-            const a2 = document.createElement('a');
-            a2.href = dataUrl2;
-            a2.download = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide2-affiche.png`;
-            document.body.appendChild(a2);
-            a2.click();
-            document.body.removeChild(a2);
+            dataUrl = canvasRef.current.toDataURL('image/png');
+            a = document.createElement('a');
+            a.href = dataUrl;
+            const afficheNum = eventNormalSlidesCount === 0 ? 2 : (2 + eventNormalSlidesCount);
+            a.download = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide${afficheNum}-affiche.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            editorialAfficheOverrideRef.current = false;
         } catch (e) {
             console.error(e);
             setErrorMessage("Erreur lors de l'exportation du carrousel.");
         } finally {
             setTimeout(() => {
-                setEventsSlide(prevSlide);
+                setEditorialSlide(prevSlide);
+                setEventsSlide(prevEventsSlide);
+                setIsEditorialAfficheActive(prevAffiche);
                 setIsDownloading(false);
                 generateImage();
             }, 500);
@@ -15134,7 +15162,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {(theme === 'EVENTS' || theme === 'AFFICHE') && (
                             <div className="space-y-1.5 pt-1 border-t border-white/5">
                                 <span className="text-[8px] font-black text-[#ff3700] uppercase tracking-wider block">
-                                    Carrousel Événement (Slide 1 + 2)
+                                    Carrousel Événement ({2 + eventNormalSlidesCount} Slides)
                                 </span>
                                 <button
                                     type="button"
@@ -15142,7 +15170,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     disabled={isDownloading}
                                     className="w-full py-2.5 bg-gradient-to-r from-[#ff3700] to-[#ff6700] text-white font-black text-[9.5px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
                                 >
-                                    <Download className="w-4 h-4" /> Télécharger Carrousel (Slide 1 + 2)
+                                    <Download className="w-4 h-4" /> Télécharger Carrousel ({2 + eventNormalSlidesCount} Slides)
                                 </button>
                             </div>
                         )}
@@ -15301,7 +15329,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <Video className="w-4 h-4 text-black" />
                                 {isVideoRecording ? 'CAPTURE VIDÉO EN COURS...' : `🎬 EXPORTER CARROUSEL VIDÉO COMPLET (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${2 + agendaAffiches.length} SLIDES + PROMO) • MP4`}
                             </button>
-                        ) : ['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
+                        ) : ['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'EVENTS'].includes(theme) ? (
                             <button
                                 type="button"
                                 onClick={() => startVideoRecording('EDITORIAL')}
@@ -15362,25 +15390,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
+    const isEventsAfficheSelected = isEditorialAfficheActive || (eventsSlide === 2 && eventNormalSlidesCount === 0);
     const eventsEditor = (
         <div className="space-y-4">
-            {/* Slide 1 Content */}
-            {eventsSlide === 1 && (
-                <div className="space-y-3">
-                    <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
-                        <span>Édition Post Événement</span>
-                        <span className="text-[#ff3700]">Slide 1</span>
-                    </div>
-                    {conseilsEditor}
-                </div>
-            )}
-
-            {/* Slide 2 Content (Affiche gérée dans l'onglet Visuel) */}
-            {eventsSlide === 2 && (
+            {/* Affiche de l'Événement (gérée dans l'onglet Visuel) */}
+            {isEventsAfficheSelected ? (
                 <div className="space-y-3">
                     <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
                         <span>Édition Affiche de l'Événement</span>
-                        <span className="text-[#ff3700]">Slide 2</span>
+                        <span className="text-[#ff3700]">{eventNormalSlidesCount === 0 ? 'Slide 2' : 'Slide Affiche'}</span>
                     </div>
                     <div className="p-3 bg-white/5 border border-[#ff3700]/30 rounded-2xl flex items-center justify-between gap-3 shadow-md">
                         <div className="flex items-center gap-2.5 min-w-0">
@@ -15392,7 +15410,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                             )}
                             <div className="min-w-0">
-                                <span className="text-[9.5px] font-black text-white uppercase block truncate">Affiche Événement (Slide 2)</span>
+                                <span className="text-[9.5px] font-black text-white uppercase block truncate">Affiche Événement ({eventNormalSlidesCount === 0 ? 'Slide 2' : 'Slide Affiche'})</span>
                                 <span className="text-[8px] text-gray-400 block truncate">
                                     {afficheImage ? 'Affiche configurée' : 'Gérer l\'affiche & visuel dans l\'onglet Visuel'}
                                 </span>
@@ -15407,6 +15425,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <span>Gérer dans Visuel</span>
                         </button>
                     </div>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
+                        <span>Édition Post Événement</span>
+                        <span className="text-[#ff3700]">Slide {editorialSlide}</span>
+                    </div>
+                    {conseilsEditor}
                 </div>
             )}
         </div>
@@ -17010,7 +17036,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ══════════════════════════════════════════════ */}
                         {sidebarStep === 'visual' && (
                             <div className="space-y-4 animate-in fade-in duration-150">
-                                {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'PLANNING' && agendaSlide >= 3)) ? (
+                                {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'PLANNING' && agendaSlide >= 3)) ? (
                                     afficheEditor
                                 ) : (
                                     <div className="space-y-3">
@@ -18320,10 +18346,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 </div>
                                             )}
                                             {theme !== 'MAP' && bgAnimationControl}
-                                            {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'PLANNING' && agendaSlide >= 3)) && afficheEditor}
+                                            {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'PLANNING' && agendaSlide >= 3)) && afficheEditor}
                                             {theme === 'MUSIQUE' && (editorialSlide === 1 ? musicSlide1VisualEditor : musicCoverEditor)}
                                             {(theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) && spotlightVisualEditor}
-                                            {!(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2) || (theme === 'PLANNING' && agendaSlide >= 3)) && slideVisualEditor}
+                                            {!(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'PLANNING' && agendaSlide >= 3)) && slideVisualEditor}
                                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                         </div>
                                     </div>
@@ -18538,7 +18564,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     setDjOriginalImage(finalUrl);
                                 }
                                 setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: finalUrl }));
-                                if (isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2)) {
+                                if (isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive))) {
                                     setAfficheImage(finalUrl);
                                     afficheImageRef.current = img;
                                 }
