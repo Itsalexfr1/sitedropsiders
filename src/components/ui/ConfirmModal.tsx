@@ -4,17 +4,18 @@ import { AlertTriangle, Info, X } from 'lucide-react';
 export interface ConfirmModalData {
     isOpen: boolean;
     title: string;
-    message: string;
+    message: React.ReactNode;
     type?: 'danger' | 'warning' | 'info';
     confirmText?: string;
     cancelText?: string;
+    hideCancel?: boolean;
     onConfirm?: () => void;
 }
 
 interface ConfirmModalProps {
     isOpen: boolean;
     title: string;
-    message: string;
+    message: React.ReactNode;
     onConfirm: () => void;
     onCancel: () => void;
     type?: 'danger' | 'warning' | 'info';
@@ -43,9 +44,9 @@ export function ConfirmModal({
             border: 'border-red-500/20'
         },
         warning: {
-            icon: <AlertTriangle className="w-8 h-8 text-yellow-500" />,
-            btn: 'bg-yellow-500 hover:bg-yellow-600 shadow-yellow-500/20',
-            border: 'border-yellow-500/20'
+            icon: <AlertTriangle className="w-8 h-8 text-amber-400" />,
+            btn: 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black shadow-amber-500/20',
+            border: 'border-amber-500/30'
         },
         info: {
             icon: <Info className="w-8 h-8 text-blue-500" />,
@@ -86,9 +87,9 @@ export function ConfirmModal({
                             {title}
                         </h3>
 
-                        <p className="text-gray-400 font-medium leading-relaxed mb-10 whitespace-pre-line">
+                        <div className="text-gray-400 font-medium leading-relaxed mb-8 whitespace-pre-line w-full text-center">
                             {message}
-                        </p>
+                        </div>
 
                         <div className={`grid ${hideCancel ? 'grid-cols-1' : 'grid-cols-2'} gap-4 w-full`}>
                             {!hideCancel && (

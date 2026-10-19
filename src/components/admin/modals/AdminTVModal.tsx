@@ -17,6 +17,7 @@ import { uploadFile } from '../../../utils/uploadService';
 import type { TVVideo, PromoVideo } from '../../../pages/DropsidersTVPage';
 import type { TVScheduleBlock } from '../../../utils/tvSchedule';
 import { DuplicateAuditModal, detectTVDuplicates, type DuplicateEntry } from '../../ui/DuplicateAuditModal';
+import { ConfirmModal, type ConfirmModalData } from '../../ui/ConfirmModal';
 import { 
     DEFAULT_TV_BLOCKS, 
     STORAGE_TV_BLOCKS_KEY, 
@@ -319,6 +320,16 @@ export function AdminTVModal({
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isRadionomyOpen, setIsRadionomyOpen] = useState(false);
     const [isYouTubeSearchOpen, setIsYouTubeSearchOpen] = useState(false);
+    const [confirmModal, setConfirmModal] = useState<ConfirmModalData>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'warning',
+        confirmText: 'Confirmer',
+        cancelText: 'Annuler',
+        hideCancel: false,
+        onConfirm: () => {}
+    });
 
     // 5 Time Blocks Schedule
     // 5 Time Blocks Schedule (trié automatiquement selon l'ordre chronologique de passage 06h -> 06h)
@@ -748,7 +759,15 @@ export function AdminTVModal({
     const handleAddVideoToBlock = () => {
         const ytid = extractYouTubeId(blockVideoUrl);
         if (!ytid) {
-            alert('Veuillez entrer un lien YouTube valide.');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Lien Invalide',
+                type: 'warning',
+                confirmText: 'Compris',
+                hideCancel: true,
+                message: 'Veuillez entrer un lien YouTube valide.',
+                onConfirm: () => {}
+            });
             return;
         }
         const block = blocks.find(b => b.id === selectedBlockId);
@@ -757,35 +776,85 @@ export function AdminTVModal({
         // Anti-doublon créneau courant
         const existingInCurrent = block.videos?.find(v => v.youtubeId === ytid);
         if (existingInCurrent) {
-            alert(`⚠️ Sécurité anti-doublon :\n\nCette vidéo YouTube est déjà programmée dans cette émission ("${block.title}") :\n"${existingInCurrent.title}".\n\nL'ajout d'un doublon dans le même créneau est bloqué.`);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Sécurité Anti-Doublon',
+                type: 'danger',
+                confirmText: 'Compris',
+                hideCancel: true,
+                message: (
+                    <div className="flex flex-col items-center gap-3">
+                        <p className="text-sm text-gray-300">
+                            Cette vidéo YouTube est déjà programmée dans cette émission <span className="text-red-400 font-black">"{block.title}"</span> :
+                        </p>
+                        <div className="w-full p-3 rounded-2xl bg-white/5 border border-red-500/30 text-red-300 font-semibold text-xs text-center flex items-center justify-center gap-2">
+                            <span>🚫</span>
+                            <span className="truncate max-w-[280px]">"{existingInCurrent.title}"</span>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">
+                            L'ajout d'un doublon dans le même créneau est bloqué pour éviter les répétitions.
+                        </p>
+                    </div>
+                ),
+                onConfirm: () => {}
+            });
             return;
         }
+
+        const commitAdd = () => {
+            const newVid: TVVideo = {
+                id: `bv_${Date.now()}`,
+                title: blockVideoTitle.trim() || `Vidéo ${ytid}`,
+                description: `Diffusé sur Dropsiders TV · ${block?.title || ''}`,
+                youtubeId: ytid,
+                duration: 3600,
+                category: blockVideoCategory
+            };
+            setBlocks(prev => prev.map(b => {
+                if (b.id !== selectedBlockId) return b;
+                return {
+                    ...b,
+                    videos: [...(b.videos || []), newVid]
+                };
+            }));
+            setBlockVideoUrl('');
+            setBlockVideoTitle('');
+        };
 
         // Information si déjà dans un autre créneau
         const otherBlock = blocks.find(b => b.id !== selectedBlockId && b.videos?.some(v => v.youtubeId === ytid));
         if (otherBlock) {
             const existingInOther = otherBlock.videos?.find(v => v.youtubeId === ytid);
-            const confirmAdd = window.confirm(`ℹ️ Information doublon :\n\nCette vidéo est déjà programmée dans le créneau "${otherBlock.title}" :\n"${existingInOther?.title || ytid}".\n\nSouhaitez-vous tout de même l'ajouter à cette autre émission ?`);
-            if (!confirmAdd) return;
+            const videoTitle = existingInOther?.title || blockVideoTitle.trim() || ytid;
+            setConfirmModal({
+                isOpen: true,
+                title: 'Information Doublon',
+                type: 'warning',
+                confirmText: 'Ajouter tout de même',
+                cancelText: 'Annuler',
+                hideCancel: false,
+                message: (
+                    <div className="flex flex-col items-center gap-3">
+                        <p className="text-sm text-gray-300">
+                            Cette vidéo est déjà programmée dans le créneau <span className="text-amber-400 font-black">"{otherBlock.title}"</span> :
+                        </p>
+                        <div className="w-full p-3.5 rounded-2xl bg-white/5 border border-amber-500/30 text-amber-300 font-semibold text-xs text-center flex items-center justify-center gap-2">
+                            <span>🎬</span>
+                            <span className="truncate max-w-[280px]">"{videoTitle}"</span>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">
+                            Souhaitez-vous tout de même l'ajouter à l'émission <span className="text-white font-bold">"{block.title}"</span> ?
+                        </p>
+                    </div>
+                ),
+                onConfirm: () => {
+                    commitAdd();
+                }
+            });
+            return;
         }
 
-        const newVid: TVVideo = {
-            id: `bv_${Date.now()}`,
-            title: blockVideoTitle.trim() || `Vidéo ${ytid}`,
-            description: `Diffusé sur Dropsiders TV · ${block?.title || ''}`,
-            youtubeId: ytid,
-            duration: 3600,
-            category: blockVideoCategory
-        };
-        setBlocks(prev => prev.map(b => {
-            if (b.id !== selectedBlockId) return b;
-            return {
-                ...b,
-                videos: [...(b.videos || []), newVid]
-            };
-        }));
-        setBlockVideoUrl('');
-        setBlockVideoTitle('');
+        commitAdd();
     };
 
     // Nettoyage rapide des doublons dans une émission
@@ -966,19 +1035,35 @@ export function AdminTVModal({
     // Delete an emission block
     const handleDeleteBlock = (blockId: string) => {
         if (blocks.length <= 1) {
-            alert('Il doit rester au moins une émission dans la grille.');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Action Impossible',
+                message: 'Il doit rester au moins une émission dans la grille.',
+                type: 'warning',
+                confirmText: 'Compris',
+                hideCancel: true,
+                onConfirm: () => {}
+            });
             return;
         }
         const blockToDelete = blocks.find(b => b.id === blockId);
-        if (!confirm(`Supprimer l'émission "${blockToDelete?.title || blockId}" et toutes ses vidéos associées ?`)) {
-            return;
-        }
-        setBlocks(prev => {
-            const next = sortBlocksByBroadcastOrder(prev.filter(b => b.id !== blockId), true);
-            if (selectedBlockId === blockId && next.length > 0) {
-                setSelectedBlockId(next[0].id);
+        setConfirmModal({
+            isOpen: true,
+            title: "Supprimer l'émission",
+            message: `Supprimer l'émission "${blockToDelete?.title || blockId}" et toutes ses vidéos associées ?`,
+            type: 'danger',
+            confirmText: 'Supprimer',
+            cancelText: 'Annuler',
+            hideCancel: false,
+            onConfirm: () => {
+                setBlocks(prev => {
+                    const next = sortBlocksByBroadcastOrder(prev.filter(b => b.id !== blockId), true);
+                    if (selectedBlockId === blockId && next.length > 0) {
+                        setSelectedBlockId(next[0].id);
+                    }
+                    return next;
+                });
             }
-            return next;
         });
     };
 
@@ -1179,14 +1264,32 @@ export function AdminTVModal({
 
     const handleReset = () => {
         if (activeTab === 'blocks') {
-            if (confirm('Restaurer la grille des 5 blocs par défaut avec les sets recommandés ?')) {
-                setBlocks(DEFAULT_TV_BLOCKS);
-            }
+            setConfirmModal({
+                isOpen: true,
+                title: 'Réinitialiser la grille',
+                message: 'Voulez-vous restaurer la grille des 5 blocs par défaut avec les sets recommandés ?',
+                type: 'warning',
+                confirmText: 'Restaurer',
+                cancelText: 'Annuler',
+                hideCancel: false,
+                onConfirm: () => {
+                    setBlocks(DEFAULT_TV_BLOCKS);
+                }
+            });
         } else {
-            if (confirm('Restaurer la liste par défaut des sets de festivals ?')) {
-                setPlaylist(DEFAULT_MAIN_PLAYLIST);
-                setPromos([]);
-            }
+            setConfirmModal({
+                isOpen: true,
+                title: 'Réinitialiser les sets',
+                message: 'Voulez-vous restaurer la liste par défaut des sets de festivals ?',
+                type: 'warning',
+                confirmText: 'Restaurer',
+                cancelText: 'Annuler',
+                hideCancel: false,
+                onConfirm: () => {
+                    setPlaylist(DEFAULT_MAIN_PLAYLIST);
+                    setPromos([]);
+                }
+            });
         }
     };
 
@@ -4706,6 +4809,22 @@ export function AdminTVModal({
             mode="tv"
             blockTitle={blocks.find(b => b.id === selectedBlockId)?.title || 'Programmation TV'}
             onAddVideo={handleYouTubeAddVideo}
+        />
+
+        {/* ── MODAL DE CONFIRMATION DROPSIDERS ── */}
+        <ConfirmModal
+            isOpen={confirmModal.isOpen}
+            title={confirmModal.title}
+            message={confirmModal.message}
+            type={confirmModal.type}
+            confirmText={confirmModal.confirmText}
+            cancelText={confirmModal.cancelText}
+            hideCancel={confirmModal.hideCancel}
+            onConfirm={() => {
+                confirmModal.onConfirm?.();
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+            }}
+            onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
         />
         </>
     );
