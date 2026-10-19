@@ -13,10 +13,10 @@ import {
 
 interface TvStatsViewProps {
     period: number;
+    serverStats?: any;
 }
 
-export function TvStatsView({ period }: TvStatsViewProps) {
-    const [liveViewers, setLiveViewers] = useState<number>(142);
+export function TvStatsView({ period, serverStats }: TvStatsViewProps) {
     const [blocks, setBlocks] = useState<TVScheduleBlock[]>(DEFAULT_TV_BLOCKS);
 
     useEffect(() => {
@@ -29,17 +29,20 @@ export function TvStatsView({ period }: TvStatsViewProps) {
                 }
             }
         } catch {}
-
-        // Dynamic viewer variation
-        const interval = setInterval(() => {
-            setLiveViewers(prev => {
-                const delta = Math.floor(Math.random() * 9) - 4;
-                return Math.max(85, Math.min(320, prev + delta));
-            });
-        }, 5000);
-
-        return () => clearInterval(interval);
     }, []);
+
+    // Real viewers based on server online users (Cloudflare KV active sessions)
+    const liveViewers = useMemo(() => {
+        if (serverStats?.onlineUsers !== undefined) {
+            return Number(serverStats.onlineUsers) || 0;
+        }
+        let saved = 0;
+        try {
+            const sv = localStorage.getItem('dropsiders_tv_live_viewers');
+            if (sv) saved = Number(sv);
+        } catch {}
+        return saved;
+    }, [serverStats]);
 
     // Catalog stats
     const catalogStats = useMemo(() => {

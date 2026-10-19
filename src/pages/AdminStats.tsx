@@ -1245,7 +1245,7 @@ export function AdminStats() {
                 {activeTab === 'radio' && <RadioStatsView period={period} serverStats={serverStats} onRefresh={() => fetchAll(true)} />}
 
                 {/* --- TAB 3: TV ANALYTICS --- */}
-                {activeTab === 'tv' && <TvStatsView period={period} />}
+                {activeTab === 'tv' && <TvStatsView period={period} serverStats={serverStats} />}
 
                 {/* --- TAB 4: STARS RADIO & TV --- */}
                 {activeTab === 'stars' && <StarsStatsView />}
