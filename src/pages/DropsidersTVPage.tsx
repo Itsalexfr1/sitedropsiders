@@ -1,12 +1,36 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tv, Volume2, VolumeX, Volume1, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings, X, ListMusic, Home, Clock, CalendarDays, ChevronRight, Shuffle, Share2, Sparkles } from 'lucide-react';
+import { Tv, Volume2, VolumeX, Volume1, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings, X, ListMusic, Home, Clock, CalendarDays, ChevronRight, Shuffle, Share2, Sparkles, MessageSquare, ExternalLink } from 'lucide-react';
 import { SEO } from '../components/utils/SEO';
 import { apiFetch } from '../utils/auth';
 import { AdminTVModal } from '../components/admin/modals/AdminTVModal';
 import { TVShareScheduleModal } from '../components/tv/TVShareScheduleModal';
 import type { TVScheduleBlock, TVVideoCategory } from '../utils/tvSchedule';
+
+const DEFAULT_TWITCH_CHANNEL = 'dropsiderstv';
+
+const TwitchIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z" />
+    </svg>
+);
+
+const buildTwitchChatUrl = (channel: string) => {
+    const parents = new Set<string>([
+        'localhost',
+        '127.0.0.1',
+        'dropsiders.com',
+        'www.dropsiders.com',
+        'dropsiders.fr',
+        'www.dropsiders.fr'
+    ]);
+    if (typeof window !== 'undefined' && window.location.hostname) {
+        parents.add(window.location.hostname);
+    }
+    const parentParams = Array.from(parents).map(p => `parent=${encodeURIComponent(p)}`).join('&');
+    return `https://www.twitch.tv/embed/${encodeURIComponent(channel)}/chat?${parentParams}&darkpopout`;
+};
 import { 
     DEFAULT_TV_BLOCKS, 
     STORAGE_TV_BLOCKS_KEY, 
@@ -509,6 +533,37 @@ export function DropsidersTVPage() {
 
     // Overlay to hide YouTube end-screen suggestions immediately when video ends
     const [showEndscreenOverlay, setShowEndscreenOverlay] = useState(false);
+
+    // Twitch Chat Sidebar State (Canal dropsiderstv)
+    const [isChatOpen, setIsChatOpen] = useState(() => {
+        try {
+            const saved = localStorage.getItem('dropsiders_tv_chat_open');
+            if (saved !== null) return saved === 'true';
+        } catch {}
+        return typeof window !== 'undefined' ? window.innerWidth >= 1024 : true;
+    });
+
+    const [isMobileScreen, setIsMobileScreen] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobileScreen(window.innerWidth < 768);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const toggleChat = useCallback(() => {
+        setIsChatOpen(prev => {
+            const next = !prev;
+            try {
+                localStorage.setItem('dropsiders_tv_chat_open', String(next));
+            } catch {}
+            return next;
+        });
+    }, []);
+
+    const twitchChatUrl = useMemo(() => buildTwitchChatUrl(DEFAULT_TWITCH_CHANNEL), []);
 
     const [isYtApiReady, setIsYtApiReady] = useState(() => {
         return !!(typeof window !== 'undefined' && window.YT && window.YT.Player);
@@ -1352,6 +1407,9 @@ export function DropsidersTVPage() {
             } else if (e.code === 'KeyF') {
                 e.preventDefault();
                 toggleFullscreen();
+            } else if (e.code === 'KeyC') {
+                e.preventDefault();
+                toggleChat();
             } else if (e.code === 'KeyG') {
                 e.preventDefault();
                 setShowEPG(prev => !prev);
@@ -1376,70 +1434,88 @@ export function DropsidersTVPage() {
                 data-tv-playing={isPlaying ? 'true' : 'false'}
                 ref={containerRef}
                 onMouseMove={handleMouseMove}
-                className={`${isFullscreen ? 'fixed inset-0 z-[9999] w-screen h-[100dvh]' : 'relative w-full h-[100dvh]'} bg-black overflow-hidden select-none flex flex-col justify-between`}
+                className={`${isFullscreen ? 'fixed inset-0 z-[9999] w-screen h-[100dvh]' : 'relative w-full h-[100dvh]'} bg-black overflow-hidden select-none flex flex-row`}
             >
-                {/* Live Takeover Banner Override */}
-                {liveSettings?.enabled && (
-                    <motion.div
-                        initial={{ y: -50, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        className="absolute top-0 left-0 w-full z-50 bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan px-4 py-2.5 flex items-center justify-between shadow-2xl backdrop-blur-md"
-                    >
-                        <div className="flex items-center gap-3">
-                            <span className="flex h-3 w-3 relative">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-                            </span>
-                            <span className="text-white font-black text-xs uppercase tracking-wider flex items-center gap-2">
-                                <Radio className="w-4 h-4" />
-                                FESTIVAL EN DIRECT : {liveSettings.title || 'FESTIVAL LIVE'}
-                            </span>
-                        </div>
-                        <a
-                            href="/live"
-                            className="px-3.5 py-1 rounded-full bg-white text-black font-black text-[11px] uppercase tracking-wider hover:scale-105 transition-transform"
-                        >
-                            Basculer sur le Live →
-                        </a>
-                    </motion.div>
-                )}
-
-                {/* Top Channel Header Bar */}
-                <AnimatePresence>
-                    {showControls && !isAdminTVModalOpen && (
+                {/* Main Video & Controls Column */}
+                <div className="relative flex-1 h-full min-w-0 flex flex-col justify-between overflow-hidden bg-black">
+                    {/* Live Takeover Banner Override */}
+                    {liveSettings?.enabled && (
                         <motion.div
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.2 }}
-                            className={`absolute ${liveSettings?.enabled ? 'top-14' : 'top-0'} left-0 w-full z-40 p-4 md:p-6 flex items-center justify-between bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-auto`}
+                            initial={{ y: -50, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            className="absolute top-0 left-0 w-full z-50 bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan px-4 py-2.5 flex items-center justify-between shadow-2xl backdrop-blur-md"
                         >
-                            <div className="flex items-center gap-3 flex-wrap">
-                                <div className="flex flex-col px-3.5 py-1.5 rounded-2xl bg-black/70 backdrop-blur-md border border-white/10 shadow-xl">
-                                    <div className="flex items-center gap-2">
-                                        <Tv className="w-3.5 h-3.5 text-neon-red animate-pulse" />
-                                        <span className="text-white font-display font-black text-sm uppercase tracking-tight leading-none">
-                                            DROPSIDERS <span className="text-neon-red">TV</span>
+                            <div className="flex items-center gap-3">
+                                <span className="flex h-3 w-3 relative">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                                </span>
+                                <span className="text-white font-black text-xs uppercase tracking-wider flex items-center gap-2">
+                                    <Radio className="w-4 h-4" />
+                                    FESTIVAL EN DIRECT : {liveSettings.title || 'FESTIVAL LIVE'}
+                                </span>
+                            </div>
+                            <a
+                                href="/live"
+                                className="px-3.5 py-1 rounded-full bg-white text-black font-black text-[11px] uppercase tracking-wider hover:scale-105 transition-transform"
+                            >
+                                Basculer sur le Live →
+                            </a>
+                        </motion.div>
+                    )}
+
+                    {/* Top Channel Header Bar */}
+                    <AnimatePresence>
+                        {showControls && !isAdminTVModalOpen && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                transition={{ duration: 0.2 }}
+                                className={`absolute ${liveSettings?.enabled ? 'top-14' : 'top-0'} left-0 w-full z-40 p-4 md:p-6 flex items-center justify-between bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-auto`}
+                            >
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <div className="flex flex-col px-3.5 py-1.5 rounded-2xl bg-black/70 backdrop-blur-md border border-white/10 shadow-xl">
+                                        <div className="flex items-center gap-2">
+                                            <Tv className="w-3.5 h-3.5 text-neon-red animate-pulse" />
+                                            <span className="text-white font-display font-black text-sm uppercase tracking-tight leading-none">
+                                                DROPSIDERS <span className="text-neon-red">TV</span>
+                                            </span>
+                                        </div>
+                                        <span
+                                            className="text-[10px] font-black uppercase tracking-wider mt-1 leading-none"
+                                            style={{ color: activeScheduleBlock?.color || '#00f0ff' }}
+                                        >
+                                            {isPlayingPromo ? 'Promo Dropsiders' : activeScheduleBlock?.title}
                                         </span>
                                     </div>
-                                    <span
-                                        className="text-[10px] font-black uppercase tracking-wider mt-1 leading-none"
-                                        style={{ color: activeScheduleBlock?.color || '#00f0ff' }}
-                                    >
-                                        {isPlayingPromo ? 'Promo Dropsiders' : activeScheduleBlock?.title}
-                                    </span>
-                                </div>
 
-                                {/* Partager le programme button: accessible to all viewers */}
-                                <button
-                                    onClick={() => setIsShareScheduleOpen(true)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest text-white hover:text-white bg-gradient-to-r from-neon-red/30 to-neon-purple/30 hover:from-neon-red/50 hover:to-neon-purple/50 border border-neon-red/40 backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto shadow-[0_0_15px_rgba(255,18,65,0.2)] hover:shadow-[0_0_20px_rgba(255,18,65,0.4)]"
-                                    title="Partager le programme du jour avec la vraie durée des sets"
-                                >
-                                    <Sparkles className="w-3 h-3 text-neon-cyan animate-pulse" />
-                                    <span className="hidden xs:inline">Partager le programme</span>
-                                    <span className="xs:hidden">Programme</span>
-                                </button>
+                                    {/* Partager le programme button: accessible to all viewers */}
+                                    <button
+                                        onClick={() => setIsShareScheduleOpen(true)}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest text-white hover:text-white bg-gradient-to-r from-neon-red/30 to-neon-purple/30 hover:from-neon-red/50 hover:to-neon-purple/50 border border-neon-red/40 backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto shadow-[0_0_15px_rgba(255,18,65,0.2)] hover:shadow-[0_0_20px_rgba(255,18,65,0.4)]"
+                                        title="Partager le programme du jour avec la vraie durée des sets"
+                                    >
+                                        <Sparkles className="w-3 h-3 text-neon-cyan animate-pulse" />
+                                        <span className="hidden xs:inline">Partager le programme</span>
+                                        <span className="xs:hidden">Programme</span>
+                                    </button>
+
+                                    {/* Bouton Chat Twitch DropsidersTV */}
+                                    <button
+                                        onClick={toggleChat}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 cursor-pointer pointer-events-auto backdrop-blur-md shadow-lg ${
+                                            isChatOpen
+                                                ? 'bg-[#9146FF] hover:bg-[#772ce8] text-white shadow-[#9146FF]/40 border border-[#9146FF]'
+                                                : 'bg-white/10 hover:bg-[#9146FF]/30 text-white/90 hover:text-white border border-white/20 hover:border-[#9146FF]/50'
+                                        }`}
+                                        title={isChatOpen ? "Masquer le chat Twitch (C)" : "Afficher le chat Twitch @dropsiderstv (C)"}
+                                    >
+                                        <TwitchIcon className="w-3 h-3 text-white" />
+                                        <span className="hidden xs:inline">Chat Twitch</span>
+                                        <span className="xs:hidden">Chat</span>
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
+                                    </button>
 
                                 {/* Filtre de catégorie : affiché uniquement pour les admins (masqué pour les viewers) */}
                                 {isAdmin && (
@@ -1861,6 +1937,18 @@ export function DropsidersTVPage() {
                                     </div>
 
                                     <div className="flex items-center gap-2">
+                                        {/* Bouton Chat Twitch */}
+                                        <button
+                                            onClick={toggleChat}
+                                            title={isChatOpen ? "Masquer le chat Twitch (C)" : "Afficher le chat Twitch @dropsiderstv (C)"}
+                                            className={`w-11 h-11 rounded-full flex items-center justify-center border transition-all active:scale-95 cursor-pointer shadow-lg ${
+                                                isChatOpen
+                                                    ? 'bg-[#9146FF] hover:bg-[#772ce8] text-white border-[#9146FF] shadow-[#9146FF]/40'
+                                                    : 'bg-white/10 hover:bg-[#9146FF]/20 border-white/10 hover:border-[#9146FF]/40 text-white'
+                                            }`}
+                                        >
+                                            <TwitchIcon className="w-4 h-4" />
+                                        </button>
                                         <button
                                             onClick={() => setIsShareScheduleOpen(true)}
                                             title="Partager le programme du jour"
@@ -1881,6 +1969,102 @@ export function DropsidersTVPage() {
                         )}
                     </AnimatePresence>
                 </div>
+            </div> {/* End Main Video & Controls Column */}
+
+            {/* Mobile Backdrop when Twitch Chat is open */}
+            <AnimatePresence>
+                {isMobileScreen && isChatOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={toggleChat}
+                        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[90]"
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* Twitch Chat Sidebar (Station @dropsiderstv) */}
+            <AnimatePresence>
+                {isChatOpen && (
+                    <motion.aside
+                        key="twitch-chat-sidebar"
+                        initial={{ width: 0, opacity: 0, x: 20 }}
+                        animate={{ 
+                            width: isMobileScreen ? '100%' : (isFullscreen ? 380 : 360), 
+                            opacity: 1, 
+                            x: 0 
+                        }}
+                        exit={{ width: 0, opacity: 0, x: 20 }}
+                        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                        className={`${
+                            isMobileScreen 
+                                ? 'fixed inset-y-0 right-0 w-[88vw] max-w-[380px] z-[100]' 
+                                : 'relative z-30'
+                        } h-full shrink-0 flex flex-col bg-[#0e0e14]/95 backdrop-blur-2xl border-l border-white/10 shadow-2xl overflow-hidden`}
+                    >
+                        {/* Chat Header */}
+                        <div className="h-14 px-4 border-b border-white/10 flex items-center justify-between bg-black/70 backdrop-blur-md shrink-0">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-xl bg-[#9146FF]/20 border border-[#9146FF]/40 flex items-center justify-center text-[#9146FF] shadow-[0_0_15px_rgba(145,70,255,0.25)]">
+                                    <TwitchIcon className="w-4 h-4" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-white text-xs font-black uppercase tracking-wider">Chat TV</span>
+                                        <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Salon Twitch actif 24/7" />
+                                    </div>
+                                    <a 
+                                        href="https://www.twitch.tv/dropsiderstv"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-[10px] text-gray-400 hover:text-[#9146FF] font-semibold transition-colors"
+                                    >
+                                        @dropsiderstv
+                                    </a>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <a
+                                    href="https://www.twitch.tv/dropsiderstv"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                                    title="Ouvrir sur Twitch.tv"
+                                >
+                                    <ExternalLink className="w-4 h-4" />
+                                </a>
+                                <button
+                                    onClick={toggleChat}
+                                    className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                                    title="Masquer le chat (C)"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Twitch Chat Iframe Embed */}
+                        <div className="flex-1 w-full h-full bg-[#18181b] relative overflow-hidden">
+                            <iframe
+                                src={twitchChatUrl}
+                                title="Twitch Chat DropsidersTV"
+                                className="w-full h-full border-0"
+                                allow="encrypted-media"
+                            />
+                        </div>
+
+                        {/* Chat Footer Info */}
+                        <div className="px-3.5 py-2 border-t border-white/10 bg-black/60 flex items-center justify-between text-[10px] text-gray-400 shrink-0">
+                            <span className="flex items-center gap-1.5">
+                                <MessageSquare className="w-3 h-3 text-[#9146FF]" />
+                                <span>Chat officiel Twitch 24/7</span>
+                            </span>
+                            <span className="text-[9px] font-mono opacity-60">Touche [C]</span>
+                        </div>
+                    </motion.aside>
+                )}
+            </AnimatePresence>
 
                 {/* Modal Dropsiders TV & Live */}
                 <AdminTVModal
