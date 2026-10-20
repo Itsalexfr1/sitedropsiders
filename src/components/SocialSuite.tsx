@@ -1320,7 +1320,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [mapLongitude, setMapLongitude] = useState(-117.2917);
     const [isMapLoading, setIsMapLoading] = useState(false);
     const [mapStyle, setMapStyle] = useState<'dark' | 'voyager' | 'satellite'>('satellite');
-    const [mapPinColor, setMapPinColor] = useState('#ff0033');
+    const [mapPinColor, setMapPinColor] = useState('#00f0ff');
     const [mapLabelText, setMapLabelText] = useState('ESCAPE HALLOWEEN • SAN BERNARDINO');
     const [showMapPin, setShowMapPin] = useState(true);
     const [showMapLabel, setShowMapLabel] = useState(true);
@@ -1366,6 +1366,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
     const [selection, setSelection] = useState({ start: 0, end: 0 });
     const selectionRef = useRef({ start: 0, end: 0 });
+    const isMapAnimPlayingRef = useRef<boolean>(isMapAnimPlaying);
+    const mapScrubTimeRef = useRef<number | null>(mapScrubTime);
+    useEffect(() => {
+        isMapAnimPlayingRef.current = isMapAnimPlaying;
+    }, [isMapAnimPlaying]);
+    useEffect(() => {
+        mapScrubTimeRef.current = mapScrubTime;
+    }, [mapScrubTime]);
     const dragControls = useDragControls();
     const [isTakeoverLoading, setIsTakeoverLoading] = useState(false);
     const [takeoverData, setTakeoverData] = useState<{ lineup: any[], streams: any[] } | null>(null);
@@ -1453,7 +1461,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'ARTISTE FESTIVAL': { label: 'ARTISTE FESTIVAL', grad: '255, 0, 51', color: '#ff0033' },
         'AFFICHE': { label: 'AFFICHE', grad: '255, 0, 51', color: '#ff0033' },
         'PROMO': { label: 'PROMO', grad: '255, 0, 51', color: '#ff0033' },
-        'MAP': { label: 'MAP', grad: '255, 0, 51', color: '#ff0033' },
+        'MAP': { label: 'CARTE EN TEMPS RÉEL', grad: '0, 240, 255', color: '#00f0ff' },
         'CALENDRIER': { label: 'CALENDRIER', grad: '255, 103, 0', color: '#ff6700' },
         'JEU': { label: 'DEVINE LE CLIP', grad: '0, 240, 255', color: '#00f0ff' },
         'JEU_FESTIVAL': { label: 'DEVINE LE FESTIVAL', grad: '255, 170, 0', color: '#ffaa00' },
@@ -1580,6 +1588,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
+    const getTileUrlForService = (z: number, x: number, y: number, style: string) => {
+        const maxT = Math.pow(2, z);
+        if (y < 0 || y >= maxT) return '';
+        const wX = ((x % maxT) + maxT) % maxT;
+        if (style === 'voyager') {
+            return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${z}/${y}/${wX}`;
+        } else if (style === 'satellite') {
+            return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${wX}`;
+        }
+        return `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/${z}/${y}/${wX}`;
+    };
+
     const drawMap = (
         ctx: CanvasRenderingContext2D,
         lat: number,
@@ -1591,11 +1611,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         dy: number = 0,
         renderPinAndLabel: boolean = true
     ) => {
-        // Support fractional zoom via canvas transform around center
         const clampedZoom = Math.max(1, Math.min(18.5, zoom));
-        const intZoom = Math.max(1, Math.min(18, Math.round(clampedZoom)));
-        const scaleFrac = Math.pow(2, clampedZoom - intZoom);
 
+        // 4 Paliers clés discrets (Terre: 2, Continent: 6, Métropole/Ville: 11, Salle: 17)
+        // Zoom fluide continu via transform 2D scale ultra-rapide (60 FPS sans requête réseau intempestive)
+        let baseTier = 2;
+        if (clampedZoom >= 14.0) baseTier = 17;
+        else if (clampedZoom >= 8.5) baseTier = 11;
+        else if (clampedZoom >= 4.5) baseTier = 6;
+        else baseTier = 2;
+
+        const scaleFrac = Math.pow(2, clampedZoom - baseTier);
         const canvasCenterX = dx + width / 2;
         const canvasCenterY = dy + height / 2;
 
@@ -1604,66 +1630,58 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         ctx.rect(dx, dy, width, height);
         ctx.clip();
 
-        // Sub-pixel zoom transform
+        // 1. Fond sombre immédiat
+        ctx.fillStyle = '#03050a';
+        ctx.fillRect(dx, dy, width, height);
+
+        // Transformation fluide sub-pixel continue
         ctx.translate(canvasCenterX, canvasCenterY);
         ctx.scale(scaleFrac, scaleFrac);
         ctx.translate(-canvasCenterX, -canvasCenterY);
 
-        const centerTileX = lon2tile(lon, intZoom);
-        const centerTileY = lat2tile(lat, intZoom);
+        const centerTileX = lon2tile(lon, baseTier);
+        const centerTileY = lat2tile(lat, baseTier);
 
-        // Compute needed tile range at intZoom
-        const tilesX = Math.ceil(width / (256 * scaleFrac)) + 2;
-        const tilesY = Math.ceil(height / (256 * scaleFrac)) + 2;
+        // Zone de tuiles nécessaires (3x3 en général, 5x5 max)
+        const effectiveScale = Math.max(0.2, scaleFrac);
+        const tilesRadius = Math.min(2, Math.ceil(Math.max(width, height) / (512 * effectiveScale)));
 
-        const startX = Math.floor(centerTileX - tilesX / 2);
-        const endX = Math.ceil(centerTileX + tilesX / 2);
-        const startY = Math.floor(centerTileY - tilesY / 2);
-        const endY = Math.ceil(centerTileY + tilesY / 2);
+        const startX = Math.floor(centerTileX - tilesRadius);
+        const endX = Math.ceil(centerTileX + tilesRadius);
+        const startY = Math.floor(centerTileY - tilesRadius);
+        const endY = Math.ceil(centerTileY + tilesRadius);
 
         const renderSingleTile = (z: number, tx: number, ty: number, drawX: number, drawY: number, drawSize: number) => {
             const maxT = Math.pow(2, z);
             if (ty < 0 || ty >= maxT) return;
             const wX = ((tx % maxT) + maxT) % maxT;
 
-            let tileUrl = '';
-            let tileRefUrl = '';
-            if (mapStyle === 'voyager') {
-                tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${z}/${ty}/${wX}`;
-            } else if (mapStyle === 'satellite') {
-                tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${ty}/${wX}`;
-                tileRefUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/${z}/${ty}/${wX}`;
-            } else {
-                tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/${z}/${ty}/${wX}`;
-                tileRefUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/${z}/${ty}/${wX}`;
-            }
+            const tileUrl = getTileUrlForService(z, wX, ty, mapStyle);
+            if (!tileUrl) return;
 
-            const drawImageWithCache = (url: string) => {
-                if (!url) return;
-                let tileImg = imageCacheRef.current[url];
-                if (!tileImg) {
-                    const imgObj = new Image();
-                    imgObj.crossOrigin = 'anonymous';
-                    imgObj.src = url;
-                    imgObj.onload = () => {
-                        imageCacheRef.current[url] = imgObj;
+            const tileImg = imageCacheRef.current[tileUrl];
+            if (tileImg && tileImg.complete && tileImg.naturalWidth > 0) {
+                ctx.drawImage(tileImg, drawX, drawY, drawSize, drawSize);
+            } else if (!tileImg) {
+                const imgObj = new Image();
+                imgObj.crossOrigin = 'anonymous';
+                imgObj.src = tileUrl;
+                imgObj.onload = () => {
+                    imageCacheRef.current[tileUrl] = imgObj;
+                    // Ne jamais déclencher de re-render lourd si l'animation tourne déjà
+                    if (!isMapAnimPlayingRef.current && !isVideoRecordingRef.current && mapScrubTimeRef.current === null) {
                         generateImage();
-                    };
-                    imageCacheRef.current[url] = imgObj;
-                } else if (tileImg.complete && tileImg.naturalWidth > 0) {
-                    ctx.drawImage(tileImg, drawX, drawY, drawSize, drawSize);
-                }
-            };
-
-            drawImageWithCache(tileUrl);
-            if (tileRefUrl) drawImageWithCache(tileRefUrl);
+                    }
+                };
+                imageCacheRef.current[tileUrl] = imgObj;
+            }
         };
 
         for (let x = startX; x <= endX; x++) {
             for (let y = startY; y <= endY; y++) {
                 const tileDx = canvasCenterX + (x - centerTileX) * 256;
                 const tileDy = canvasCenterY + (y - centerTileY) * 256;
-                renderSingleTile(intZoom, Math.floor(x), Math.floor(y), tileDx, tileDy, 256);
+                renderSingleTile(baseTier, Math.floor(x), Math.floor(y), tileDx, tileDy, 256);
             }
         }
 
@@ -1722,6 +1740,51 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             ctx.restore();
         }
     };
+
+    // Pré-chargement automatique ultra-rapide des tuiles clés (Terre, Pays, Ville, Salle)
+    useEffect(() => {
+        if (theme !== 'MAP') return;
+
+        const style = mapStyle || 'satellite';
+        const coords = [
+            { lat: mapLatitude, lon: mapLongitude },
+            ...(mapAnimMode === 'FLIGHT_ROUTE' ? [{ lat: mapDestLatitude, lon: mapDestLongitude }] : [])
+        ];
+
+        const zoomTiers = [2, 6, 11, 17];
+
+        coords.forEach(coord => {
+            zoomTiers.forEach(z => {
+                const cx = lon2tile(coord.lon, z);
+                const cy = lat2tile(coord.lat, z);
+                const maxT = Math.pow(2, z);
+                const range = z === 2 ? 1 : 1; // 3x3 tiles = ~9 tuiles légères par palier
+
+                for (let dx = -range; dx <= range; dx++) {
+                    for (let dy = -range; dy <= range; dy++) {
+                        const tx = cx + dx;
+                        const ty = cy + dy;
+                        if (ty >= 0 && ty < maxT) {
+                            const wx = ((tx % maxT) + maxT) % maxT;
+                            const url = getTileUrlForService(z, wx, ty, style);
+                            if (url && !imageCacheRef.current[url]) {
+                                const imgObj = new Image();
+                                imgObj.crossOrigin = 'anonymous';
+                                imgObj.src = url;
+                                imgObj.onload = () => {
+                                    imageCacheRef.current[url] = imgObj;
+                                    if (!isMapAnimPlayingRef.current && !isVideoRecordingRef.current && mapScrubTimeRef.current === null) {
+                                        generateImage();
+                                    }
+                                };
+                                imageCacheRef.current[url] = imgObj;
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    }, [theme, mapLatitude, mapLongitude, mapDestLatitude, mapDestLongitude, mapStyle, mapAnimMode]);
 
     const checkImageHasAlpha = (imgElement: HTMLImageElement | null): boolean => {
         if (!imgElement) return false;
@@ -2796,7 +2859,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
 
                 // Subtle ambient colored glow at the bottom edge (max 14% opacity, skip for Interview pure white)
-                if (activeData?.grad && theme !== 'INTERVIEW') {
+                if (activeData?.grad && theme !== 'INTERVIEW' && theme !== 'MAP') {
                     const edgeGrad = ctx.createLinearGradient(0, canvas.height * 0.82, 0, canvas.height);
                     edgeGrad.addColorStop(0, `rgba(${activeData.grad}, 0)`);
                     edgeGrad.addColorStop(1, `rgba(${activeData.grad}, 0.14)`);
@@ -2804,7 +2867,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, canvas.height * 0.82, canvas.width, canvas.height * 0.18);
                 }
             } else {
-                if (theme !== 'HIGHLIGHTS' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) && !(theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) && !isEditorialAfficheRequested && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
+                if (theme !== 'MAP' && theme !== 'HIGHLIGHTS' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) && !(theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) && !isEditorialAfficheRequested && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
                     const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                         ? canvas.height * 0.8
                         : canvas.height * 0.4;
@@ -2820,7 +2883,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 // Lignes de scan rétro (uniquement sur les thèmes non modernisés)
-                if (theme !== 'HIGHLIGHTS' && theme !== 'PLANNING' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ') {
+                if (theme !== 'MAP' && theme !== 'HIGHLIGHTS' && theme !== 'PLANNING' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ') {
                     const scanlineLimitY = canvas.height;
                     ctx.fillStyle = 'rgba(0,0,0,0.1)';
                     for (let i = 0; i < scanlineLimitY; i += 6) ctx.fillRect(0, i, canvas.width, 2);
@@ -5604,6 +5667,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isStory = canvas.height > 1500;
                 const isExport = isVideoRecordingRef.current;
 
+                // Fond d'espace cosmique propre (élimine tout résidu ou dégradé rouge en bas)
+                ctx.fillStyle = '#03050a';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
                 // 1. Calcul du temps et du progrès
                 let animTime = 0;
                 const duration = Math.max(4, mapAnimDuration || 8);
@@ -5703,16 +5770,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     venueName: string,
                     cityCountryStr: string,
                     badgeLabel: string = 'LIVE FROM',
-                    badgeCol: string = '#ff0033',
+                    badgeCol: string = '#00f0ff',
                     cardAlpha: number = 1.0,
                     customY?: number
                 ) => {
                     ctx.save();
                     ctx.globalAlpha = Math.max(0, Math.min(1, cardAlpha));
                     const frameW = canvas.width - 120;
-                    const frameH = 220;
+                    const frameH = 210;
                     const frameX = 60;
-                    const frameY = customY ?? (canvas.height - frameH - 120);
+                    const frameY = customY ?? (canvas.height - frameH - 100);
 
                     // Glow & Fond verre sombre
                     ctx.shadowColor = badgeCol;
@@ -5844,9 +5911,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // Helper Bannière Header HUD
                 const drawHudTopBar = (leftText: string, rightText: string) => {
                     ctx.save();
-                    const barY = isStory ? 100 : 70;
-                    ctx.fillStyle = 'rgba(8, 10, 18, 0.85)';
-                    ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+                    const barY = isStory ? 170 : 130;
+                    ctx.fillStyle = 'rgba(8, 10, 18, 0.88)';
+                    ctx.strokeStyle = 'rgba(0, 240, 255, 0.45)';
                     ctx.lineWidth = 2;
                     ctx.beginPath();
                     ctx.roundRect(50, barY, canvas.width - 100, 56, 16);
@@ -5981,7 +6048,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         // Traînée lumineuse néon
                         const arcGrad = ctx.createLinearGradient(arcStartX, arcStartY, arcEndX, arcEndY);
-                        arcGrad.addColorStop(0, '#ff0033');
+                        arcGrad.addColorStop(0, '#00f0ff');
+                        arcGrad.addColorStop(0.5, '#bd00ff');
                         arcGrad.addColorStop(1, '#00f0ff');
                         ctx.strokeStyle = arcGrad;
                         ctx.lineWidth = 5;
@@ -6123,7 +6191,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(`LAT: ${(mapLatitude + jitter).toFixed(5)}° N  |  LON: ${(mapLongitude + jitter).toFixed(5)}° E`, cx, cy + 180);
 
                     ctx.font = '900 16px "Montserrat", sans-serif';
-                    ctx.fillStyle = t >= 0.75 ? '#39ff14' : '#ff0055';
+                    ctx.fillStyle = t >= 0.75 ? '#39ff14' : '#00f0ff';
                     ctx.fillText(t >= 0.75 ? '● TARGET LOCKED (SATELLITE 0.2M)' : '○ SCANNING RECONNAISSANCE...', cx, cy + 215);
 
                     ctx.restore();
@@ -15683,9 +15751,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Couleur du Marqueur (Néon)</label>
                 <div className="flex gap-2.5 p-2 bg-white/5 border border-white/10 rounded-xl justify-around">
                     {[
-                        { name: 'Red', hex: '#ff0033' },
                         { name: 'Cyan', hex: '#00f0ff' },
                         { name: 'Green', hex: '#39ff14' },
+                        { name: 'Red', hex: '#ff0033' },
                         { name: 'Orange', hex: '#ff5e00' },
                         { name: 'Purple', hex: '#b026ff' },
                         { name: 'Yellow', hex: '#ffe600' },
