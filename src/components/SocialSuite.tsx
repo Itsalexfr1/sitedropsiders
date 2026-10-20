@@ -1327,7 +1327,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     // Modes d'Animation Carte en Reel (Trajet 2 Events, Zoom Terre)
     const [mapAnimMode, setMapAnimMode] = useState<'DEEP_DIVE' | 'FLIGHT_ROUTE'>('FLIGHT_ROUTE');
-    const [mapAnimDuration, setMapAnimDuration] = useState<number>(15); // 12s, 15s
+    const [mapAnimDuration, setMapAnimDuration] = useState<number>(12); // 12s (dynamique / viral), 15s (détaillé)
     const [isMapAnimPlaying, setIsMapAnimPlaying] = useState<boolean>(true);
     const [mapScrubTime, setMapScrubTime] = useState<number | null>(null);
 
@@ -15624,7 +15624,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 border-white/10 text-gray-400'
                                 }`}
                             >
-                                {sec}s {sec === 15 && '(Recommandé)'}
+                                {sec}s {sec === 12 ? '(Dynamique / Viral)' : '(Détaillé)'}
                             </button>
                         ))}
                     </div>
