@@ -6152,59 +6152,238 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         drawSpeedStreaks(rel * 1.2);
                         drawHudTopBar('DÉCOLLAGE ORBITAL', 'ALT: 10 000 KM');
                     } else if (t < 0.65) {
-                        // Phase 3 (3.6 à 7.8s) : Vol Orbital A ➔ B avec Arc Laser Néon
+                        // Phase 3 (3.6 à 7.8s) : Vol Orbital A ➔ B avec Trajectoire Réelle & Arc Laser Géodésique
                         const rel = (t - 0.30) / 0.35;
-                        const curLat = latA + (latB - latA) * rel;
-                        const curLon = lonA + (lonB - lonA) * rel;
+                        const easeRel = rel < 0.5 ? 2 * rel * rel : 1 - Math.pow(-2 * rel + 2, 2) / 2; // Accélération & décélération douce
+
+                        // Calcul de la différence de longitude la plus courte (-180 à +180)
+                        const shortestLonDiff = ((((lonB - lonA) + 540) % 360) - 180);
+                        const midLat = (latA + latB) / 2;
+                        const midLon = lonA + shortestLonDiff / 2;
+
+                        // Cadrage dynamique de la caméra :
+                        // Si trajet régional (< 3500 km), cadrage centré sur le milieu pour voir les 2 festivals simultanément
+                        // Si trajet intercontinental (> 3500 km), la Terre tourne majestueusement de A vers B
+                        let camLat: number;
+                        let camLon: number;
+                        if (distKm < 3500) {
+                            camLat = latA + (midLat - latA) * Math.min(1, easeRel * 2);
+                            camLon = lonA + (midLon - lonA) * Math.min(1, easeRel * 2);
+                        } else {
+                            camLat = latA + (latB - latA) * easeRel;
+                            camLon = lonA + shortestLonDiff * easeRel;
+                        }
 
                         drawSpaceBackground(1.0);
                         const radius = Math.min(canvas.width, canvas.height) * 0.36;
                         const cx = canvas.width / 2;
                         const cy = canvas.height / 2;
-                        drawEarthGlobe(cx, cy, radius, curLat, curLon, 1.0);
+                        drawEarthGlobe(cx, cy, radius, camLat, camLon, 1.0);
 
-                        // Arc laser néon courbe
+                        // Helper de projection géographique exacte sur le globe terrestre Dropsiders
+                        const projectOnGlobe = (pLat: number, pLon: number, altitudePx: number = 0) => {
+                            const diffLon = ((((pLon - camLon) + 540) % 360) - 180);
+                            const sx = cx + (diffLon / 90) * radius;
+                            const sy = cy - (pLat / 90) * radius;
+
+                            // Altitude au-dessus de la surface terrestre (élévation orbitale)
+                            const distFromCenter = Math.hypot(sx - cx, sy - cy);
+                            if (altitudePx !== 0 && distFromCenter > 0.001) {
+                                const ux = (sx - cx) / distFromCenter;
+                                const uy = (sy - cy) / distFromCenter;
+                                return {
+                                    x: sx + ux * altitudePx,
+                                    y: sy + uy * altitudePx,
+                                    isVisible: distFromCenter <= radius * 1.05
+                                };
+                            }
+                            return {
+                                x: sx,
+                                y: sy,
+                                isVisible: distFromCenter <= radius * 1.05
+                            };
+                        };
+
+                        // Points de départ (Festival 1) et d'arrivée (Festival 2) réels
+                        const posA = projectOnGlobe(latA, lonA, 0);
+                        const posB = projectOnGlobe(latB, lonB, 0);
+
+                        // Calcul de l'arc de grand cercle (orthodromie géodésique réelle)
+                        const phiA = (latA * Math.PI) / 180;
+                        const lamA = (lonA * Math.PI) / 180;
+                        const phiB = (latB * Math.PI) / 180;
+                        const lamB = (lonB * Math.PI) / 180;
+                        const cosDelta = Math.sin(phiA) * Math.sin(phiB) + Math.cos(phiA) * Math.cos(phiB) * Math.cos(lamB - lamA);
+                        const delta = Math.acos(Math.max(-1, Math.min(1, cosDelta)));
+
+                        // Échantillonnage de la trajectoire réelle en 40 points précis
+                        const numSteps = 40;
+                        const curvePoints: { x: number; y: number; s: number }[] = [];
+                        const maxArcAltitude = Math.min(110, Math.max(35, radius * 0.24));
+
+                        for (let i = 0; i <= numSteps; i++) {
+                            const s = i / numSteps;
+                            let ptLat: number;
+                            let ptLon: number;
+
+                            if (delta > 0.001) {
+                                const sinDelta = Math.sin(delta);
+                                const factorA = Math.sin((1 - s) * delta) / sinDelta;
+                                const factorB = Math.sin(s * delta) / sinDelta;
+
+                                const xVec = factorA * Math.cos(phiA) * Math.cos(lamA) + factorB * Math.cos(phiB) * Math.cos(lamB);
+                                const yVec = factorA * Math.cos(phiA) * Math.sin(lamA) + factorB * Math.cos(phiB) * Math.sin(lamB);
+                                const zVec = factorA * Math.sin(phiA) + factorB * Math.sin(phiB);
+
+                                ptLat = Math.atan2(zVec, Math.hypot(xVec, yVec)) * (180 / Math.PI);
+                                ptLon = Math.atan2(yVec, xVec) * (180 / Math.PI);
+                            } else {
+                                ptLat = latA + (latB - latA) * s;
+                                ptLon = lonA + shortestLonDiff * s;
+                            }
+
+                            // Altitude parabolique (décollage orbital A -> sommet -> atterrissage B)
+                            const alt = Math.sin(s * Math.PI) * maxArcAltitude;
+                            const pt = projectOnGlobe(ptLat, ptLon, alt);
+                            curvePoints.push({ x: pt.x, y: pt.y, s });
+                        }
+
+                        // 1. Ligne de vol prospective (couloir aérien futuriste en tirets cyan)
                         ctx.save();
-                        const arcStartX = cx - radius * 0.55;
-                        const arcStartY = cy + radius * 0.1;
-                        const arcEndX = cx + radius * 0.55;
-                        const arcEndY = cy - radius * 0.1;
-                        const arcCtrlX = cx;
-                        const arcCtrlY = cy - radius * 0.95;
-
-                        const arcGrad = ctx.createLinearGradient(arcStartX, arcStartY, arcEndX, arcEndY);
-                        arcGrad.addColorStop(0, '#00f0ff');
-                        arcGrad.addColorStop(0.5, '#bd00ff');
-                        arcGrad.addColorStop(1, '#00f0ff');
-                        ctx.strokeStyle = arcGrad;
-                        ctx.lineWidth = 5;
-                        ctx.shadowColor = '#00f0ff';
-                        ctx.shadowBlur = 20;
-
+                        ctx.setLineDash([6, 8]);
+                        ctx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
+                        ctx.lineWidth = 2.5;
                         ctx.beginPath();
-                        ctx.moveTo(arcStartX, arcStartY);
-                        ctx.quadraticCurveTo(arcCtrlX, arcCtrlY, arcEndX, arcEndY);
+                        curvePoints.forEach((pt, idx) => {
+                            if (idx === 0) ctx.moveTo(pt.x, pt.y);
+                            else ctx.lineTo(pt.x, pt.y);
+                        });
                         ctx.stroke();
-
-                        // Navette / point lumineux qui parcourt l'arc
-                        const tPt = rel;
-                        const px = (1 - tPt) * (1 - tPt) * arcStartX + 2 * (1 - tPt) * tPt * arcCtrlX + tPt * tPt * arcEndX;
-                        const py = (1 - tPt) * (1 - tPt) * arcStartY + 2 * (1 - tPt) * tPt * arcCtrlY + tPt * tPt * arcEndY;
-
-                        ctx.fillStyle = '#ffffff';
-                        ctx.beginPath();
-                        ctx.arc(px, py, 9, 0, Math.PI * 2);
-                        ctx.fill();
-
-                        ctx.beginPath();
-                        ctx.arc(px, py, 18, 0, Math.PI * 2);
-                        ctx.strokeStyle = '#00f0ff';
-                        ctx.lineWidth = 3;
-                        ctx.stroke();
+                        ctx.setLineDash([]);
                         ctx.restore();
 
-                        // Distance en direct
-                        const curKm = Math.round(distKm * rel);
+                        // 2. Traînée laser active (parcourue jusqu'à la position actuelle du vol)
+                        ctx.save();
+                        const activeSteps = Math.max(1, Math.floor(easeRel * numSteps));
+                        const activePoints = curvePoints.slice(0, activeSteps + 1);
+
+                        if (activePoints.length >= 2) {
+                            const grad = ctx.createLinearGradient(
+                                posA.x, posA.y,
+                                activePoints[activePoints.length - 1].x, activePoints[activePoints.length - 1].y
+                            );
+                            grad.addColorStop(0, mapPinColor || '#00f0ff');
+                            grad.addColorStop(0.65, '#bd00ff');
+                            grad.addColorStop(1, '#00f0ff');
+
+                            ctx.strokeStyle = grad;
+                            ctx.lineWidth = 5;
+                            ctx.shadowColor = '#00f0ff';
+                            ctx.shadowBlur = 18;
+                            ctx.lineCap = 'round';
+                            ctx.lineJoin = 'round';
+
+                            ctx.beginPath();
+                            activePoints.forEach((pt, idx) => {
+                                if (idx === 0) ctx.moveTo(pt.x, pt.y);
+                                else ctx.lineTo(pt.x, pt.y);
+                            });
+                            ctx.stroke();
+                        }
+                        ctx.restore();
+
+                        // 3. Pin & Balise Réelle Départ (Festival 1 - Point A)
+                        if (posA.isVisible) {
+                            ctx.save();
+                            ctx.shadowColor = mapPinColor;
+                            ctx.shadowBlur = 12;
+                            ctx.fillStyle = mapPinColor;
+                            ctx.beginPath();
+                            ctx.arc(posA.x, posA.y, 6, 0, Math.PI * 2);
+                            ctx.fill();
+
+                            const pA = 0.5 + 0.5 * Math.sin(animTime * 6);
+                            ctx.strokeStyle = mapPinColor;
+                            ctx.lineWidth = 2;
+                            ctx.beginPath();
+                            ctx.arc(posA.x, posA.y, 9 + pA * 5, 0, Math.PI * 2);
+                            ctx.stroke();
+
+                            ctx.font = '900 12px "Orbitron", sans-serif';
+                            ctx.fillStyle = '#ffffff';
+                            ctx.textAlign = 'center';
+                            ctx.shadowColor = '#000000';
+                            ctx.shadowBlur = 8;
+                            ctx.fillText((mapFestivalText || 'DÉPART').toUpperCase(), posA.x, posA.y - 14);
+                            ctx.restore();
+                        }
+
+                        // 4. Pin & Cible Réelle Arrivée (Festival 2 - Point B)
+                        if (posB.isVisible) {
+                            ctx.save();
+                            const pB = 0.5 + 0.5 * Math.sin(animTime * 8);
+                            ctx.shadowColor = mapDestPinColor;
+                            ctx.shadowBlur = 15;
+                            ctx.fillStyle = mapDestPinColor;
+                            ctx.beginPath();
+                            ctx.arc(posB.x, posB.y, 6, 0, Math.PI * 2);
+                            ctx.fill();
+
+                            ctx.strokeStyle = mapDestPinColor;
+                            ctx.lineWidth = 2.5;
+                            ctx.beginPath();
+                            ctx.arc(posB.x, posB.y, 12 + pB * 6, 0, Math.PI * 2);
+                            ctx.stroke();
+
+                            ctx.font = '900 12px "Orbitron", sans-serif';
+                            ctx.fillStyle = '#00f0ff';
+                            ctx.textAlign = 'center';
+                            ctx.shadowColor = '#000000';
+                            ctx.shadowBlur = 8;
+                            ctx.fillText((mapDestFestivalText || 'DESTINATION').toUpperCase(), posB.x, posB.y - 18);
+                            ctx.restore();
+                        }
+
+                        // 5. Navette / Tête du Laser (Interpolation fine)
+                        const exactIdx = easeRel * numSteps;
+                        const lowerIdx = Math.floor(exactIdx);
+                        const upperIdx = Math.min(numSteps, Math.ceil(exactIdx));
+                        const subRatio = exactIdx - lowerIdx;
+                        const pLow = curvePoints[lowerIdx] || curvePoints[0];
+                        const pUp = curvePoints[upperIdx] || pLow;
+                        const shipX = pLow.x + (pUp.x - pLow.x) * subRatio;
+                        const shipY = pLow.y + (pUp.y - pLow.y) * subRatio;
+
+                        ctx.save();
+                        ctx.shadowColor = '#00f0ff';
+                        ctx.shadowBlur = 24;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.beginPath();
+                        ctx.arc(shipX, shipY, 8, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        ctx.strokeStyle = '#00f0ff';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.arc(shipX, shipY, 15, 0, Math.PI * 2);
+                        ctx.stroke();
+
+                        // Flèche / Navette orientée dans la direction réelle du vol
+                        const angle = Math.atan2(pUp.y - pLow.y, pUp.x - pLow.x);
+                        ctx.translate(shipX, shipY);
+                        ctx.rotate(angle);
+                        ctx.fillStyle = '#00f0ff';
+                        ctx.beginPath();
+                        ctx.moveTo(11, 0);
+                        ctx.lineTo(-6, -6);
+                        ctx.lineTo(-3, 0);
+                        ctx.lineTo(-6, 6);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.restore();
+
+                        // 6. HUD Télémétrie en direct
+                        const curKm = Math.round(distKm * easeRel);
                         drawHudTopBar(`${(mapFestivalText || 'A').toUpperCase()} ➔ ${(mapDestFestivalText || 'B').toUpperCase()}`, `${curKm.toLocaleString()} / ${distKm.toLocaleString()} KM`);
                     } else if (t < 0.80) {
                         // Phase 4 (7.8 à 9.6s) : Plongeon vers la destination (Dream Nation Paris)
