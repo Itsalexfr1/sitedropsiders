@@ -1325,9 +1325,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [showMapPin, setShowMapPin] = useState(true);
     const [showMapLabel, setShowMapLabel] = useState(true);
 
-    // Modes d'Animation Carte en Reel (Terre ➔ Salle, Trajet 2 Events, HUD Scanner, Fixe)
-    const [mapAnimMode, setMapAnimMode] = useState<'DEEP_DIVE' | 'FLIGHT_ROUTE' | 'TACTICAL_HUD' | 'STATIC'>('DEEP_DIVE');
-    const [mapAnimDuration, setMapAnimDuration] = useState<number>(8); // 6s, 8s, 10s
+    // Modes d'Animation Carte en Reel (Trajet 2 Events, Zoom Terre)
+    const [mapAnimMode, setMapAnimMode] = useState<'DEEP_DIVE' | 'FLIGHT_ROUTE'>('FLIGHT_ROUTE');
+    const [mapAnimDuration, setMapAnimDuration] = useState<number>(12); // 10s, 12s, 15s
     const [isMapAnimPlaying, setIsMapAnimPlaying] = useState<boolean>(true);
     const [mapScrubTime, setMapScrubTime] = useState<number | null>(null);
 
@@ -1368,6 +1368,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const selectionRef = useRef({ start: 0, end: 0 });
     const isMapAnimPlayingRef = useRef<boolean>(isMapAnimPlaying);
     const mapScrubTimeRef = useRef<number | null>(mapScrubTime);
+    const venueMapCacheRef = useRef<Map<string, {
+        cityCanvas: HTMLCanvasElement;
+        venueCanvas: HTMLCanvasElement;
+        cityCenterX: number;
+        cityCenterY: number;
+        cityStartX: number;
+        cityStartY: number;
+        venueCenterX: number;
+        venueCenterY: number;
+        venueStartX: number;
+        venueStartY: number;
+    }>>(new Map());
     useEffect(() => {
         isMapAnimPlayingRef.current = isMapAnimPlaying;
     }, [isMapAnimPlaying]);
@@ -1600,6 +1612,97 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/${z}/${y}/${wX}`;
     };
 
+    const getVenueCanvas = (lat: number, lon: number, style: string) => {
+        const key = `${lat.toFixed(4)}_${lon.toFixed(4)}_${style}`;
+        let entry = venueMapCacheRef.current.get(key);
+        if (!entry) {
+            // 1. Niveau Métropole / Ville (Zoom 14 : 5x8 tuiles = 1280x2048px)
+            const cityCanvas = document.createElement('canvas');
+            cityCanvas.width = 1280;
+            cityCanvas.height = 2048;
+            const cityCtx = cityCanvas.getContext('2d');
+            if (cityCtx) {
+                cityCtx.fillStyle = '#060a14';
+                cityCtx.fillRect(0, 0, cityCanvas.width, cityCanvas.height);
+            }
+            const zCity = 14;
+            const cXCity = lon2tile(lon, zCity);
+            const cYCity = lat2tile(lat, zCity);
+            const sXCity = Math.floor(cXCity) - 2;
+            const sYCity = Math.floor(cYCity) - 4;
+
+            // 2. Niveau Salle / Festival (Zoom 17 : 5x8 tuiles = 1280x2048px)
+            const venueCanvas = document.createElement('canvas');
+            venueCanvas.width = 1280;
+            venueCanvas.height = 2048;
+            const venueCtx = venueCanvas.getContext('2d');
+            if (venueCtx) {
+                venueCtx.fillStyle = '#060a14';
+                venueCtx.fillRect(0, 0, venueCanvas.width, venueCanvas.height);
+            }
+            const zVenue = 17;
+            const cXVenue = lon2tile(lon, zVenue);
+            const cYVenue = lat2tile(lat, zVenue);
+            const sXVenue = Math.floor(cXVenue) - 2;
+            const sYVenue = Math.floor(cYVenue) - 4;
+
+            entry = {
+                cityCanvas,
+                venueCanvas,
+                cityCenterX: cXCity,
+                cityCenterY: cYCity,
+                cityStartX: sXCity,
+                cityStartY: sYCity,
+                venueCenterX: cXVenue,
+                venueCenterY: cYVenue,
+                venueStartX: sXVenue,
+                venueStartY: sYVenue,
+            };
+            venueMapCacheRef.current.set(key, entry);
+
+            const loadGrid = (z: number, sX: number, sY: number, targetCtx: CanvasRenderingContext2D | null) => {
+                const maxT = Math.pow(2, z);
+                for (let x = sX; x < sX + 5; x++) {
+                    for (let y = sY; y < sY + 8; y++) {
+                        if (y >= 0 && y < maxT) {
+                            const wx = ((x % maxT) + maxT) % maxT;
+                            const tileUrl = getTileUrlForService(z, wx, y, style);
+                            if (tileUrl) {
+                                const drawTile = (img: HTMLImageElement) => {
+                                    if (targetCtx) {
+                                        const dx = (x - sX) * 256;
+                                        const dy = (y - sY) * 256;
+                                        targetCtx.drawImage(img, dx, dy, 256, 256);
+                                    }
+                                };
+                                const existing = imageCacheRef.current[tileUrl];
+                                if (existing && existing.complete && existing.naturalWidth > 0) {
+                                    drawTile(existing);
+                                } else {
+                                    const imgObj = new Image();
+                                    imgObj.crossOrigin = 'anonymous';
+                                    imgObj.src = tileUrl;
+                                    imgObj.onload = () => {
+                                        imageCacheRef.current[tileUrl] = imgObj;
+                                        drawTile(imgObj);
+                                        if (!isMapAnimPlayingRef.current && !isVideoRecordingRef.current && mapScrubTimeRef.current === null) {
+                                            generateImage();
+                                        }
+                                    };
+                                    imageCacheRef.current[tileUrl] = imgObj;
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            loadGrid(zCity, sXCity, sYCity, cityCtx);
+            loadGrid(zVenue, sXVenue, sYVenue, venueCtx);
+        }
+        return entry;
+    };
+
     const drawMap = (
         ctx: CanvasRenderingContext2D,
         lat: number,
@@ -1611,17 +1714,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         dy: number = 0,
         renderPinAndLabel: boolean = true
     ) => {
-        const clampedZoom = Math.max(1, Math.min(18.5, zoom));
-
-        // 4 Paliers clés discrets (Terre: 2, Continent: 6, Métropole/Ville: 11, Salle: 17)
-        // Zoom fluide continu via transform 2D scale ultra-rapide (60 FPS sans requête réseau intempestive)
-        let baseTier = 2;
-        if (clampedZoom >= 14.0) baseTier = 17;
-        else if (clampedZoom >= 8.5) baseTier = 11;
-        else if (clampedZoom >= 4.5) baseTier = 6;
-        else baseTier = 2;
-
-        const scaleFrac = Math.pow(2, clampedZoom - baseTier);
+        const clampedZoom = Math.max(13.5, Math.min(18.0, zoom));
         const canvasCenterX = dx + width / 2;
         const canvasCenterY = dy + height / 2;
 
@@ -1630,59 +1723,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         ctx.rect(dx, dy, width, height);
         ctx.clip();
 
-        // 1. Fond sombre immédiat
+        // Fond sombre cosmique
         ctx.fillStyle = '#03050a';
         ctx.fillRect(dx, dy, width, height);
 
-        // Transformation fluide sub-pixel continue
-        ctx.translate(canvasCenterX, canvasCenterY);
-        ctx.scale(scaleFrac, scaleFrac);
-        ctx.translate(-canvasCenterX, -canvasCenterY);
+        const entry = getVenueCanvas(lat, lon, mapStyle);
 
-        const centerTileX = lon2tile(lon, baseTier);
-        const centerTileY = lat2tile(lat, baseTier);
-
-        // Zone de tuiles nécessaires (3x3 en général, 5x5 max)
-        const effectiveScale = Math.max(0.2, scaleFrac);
-        const tilesRadius = Math.min(2, Math.ceil(Math.max(width, height) / (512 * effectiveScale)));
-
-        const startX = Math.floor(centerTileX - tilesRadius);
-        const endX = Math.ceil(centerTileX + tilesRadius);
-        const startY = Math.floor(centerTileY - tilesRadius);
-        const endY = Math.ceil(centerTileY + tilesRadius);
-
-        const renderSingleTile = (z: number, tx: number, ty: number, drawX: number, drawY: number, drawSize: number) => {
-            const maxT = Math.pow(2, z);
-            if (ty < 0 || ty >= maxT) return;
-            const wX = ((tx % maxT) + maxT) % maxT;
-
-            const tileUrl = getTileUrlForService(z, wX, ty, mapStyle);
-            if (!tileUrl) return;
-
-            const tileImg = imageCacheRef.current[tileUrl];
-            if (tileImg && tileImg.complete && tileImg.naturalWidth > 0) {
-                ctx.drawImage(tileImg, drawX, drawY, drawSize, drawSize);
-            } else if (!tileImg) {
-                const imgObj = new Image();
-                imgObj.crossOrigin = 'anonymous';
-                imgObj.src = tileUrl;
-                imgObj.onload = () => {
-                    imageCacheRef.current[tileUrl] = imgObj;
-                    // Ne jamais déclencher de re-render lourd si l'animation tourne déjà
-                    if (!isMapAnimPlayingRef.current && !isVideoRecordingRef.current && mapScrubTimeRef.current === null) {
-                        generateImage();
-                    }
-                };
-                imageCacheRef.current[tileUrl] = imgObj;
-            }
-        };
-
-        for (let x = startX; x <= endX; x++) {
-            for (let y = startY; y <= endY; y++) {
-                const tileDx = canvasCenterX + (x - centerTileX) * 256;
-                const tileDy = canvasCenterY + (y - centerTileY) * 256;
-                renderSingleTile(baseTier, Math.floor(x), Math.floor(y), tileDx, tileDy, 256);
-            }
+        if (clampedZoom < 16.0) {
+            // Vue Métropole / Ville (Zoom 14) avec mise à l'échelle continue
+            const scale = Math.pow(2, clampedZoom - 14.0);
+            const gpsX = (entry.cityCenterX - entry.cityStartX) * 256;
+            const gpsY = (entry.cityCenterY - entry.cityStartY) * 256;
+            ctx.save();
+            ctx.translate(canvasCenterX, canvasCenterY);
+            ctx.scale(scale, scale);
+            ctx.drawImage(entry.cityCanvas, -gpsX, -gpsY);
+            ctx.restore();
+        } else {
+            // Vue Salle / Festival (Zoom 17) avec ultra-haute définition
+            const scale = Math.pow(2, clampedZoom - 17.0);
+            const gpsX = (entry.venueCenterX - entry.venueStartX) * 256;
+            const gpsY = (entry.venueCenterY - entry.venueStartY) * 256;
+            ctx.save();
+            ctx.translate(canvasCenterX, canvasCenterY);
+            ctx.scale(scale, scale);
+            ctx.drawImage(entry.venueCanvas, -gpsX, -gpsY);
+            ctx.restore();
         }
 
         ctx.restore();
@@ -1741,49 +1807,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    // Pré-chargement automatique ultra-rapide des tuiles clés (Terre, Pays, Ville, Salle)
+    // Pré-chargement automatique immédiat des festivals en tâche de fond
     useEffect(() => {
         if (theme !== 'MAP') return;
-
         const style = mapStyle || 'satellite';
-        const coords = [
-            { lat: mapLatitude, lon: mapLongitude },
-            ...(mapAnimMode === 'FLIGHT_ROUTE' ? [{ lat: mapDestLatitude, lon: mapDestLongitude }] : [])
-        ];
-
-        const zoomTiers = [2, 6, 11, 17];
-
-        coords.forEach(coord => {
-            zoomTiers.forEach(z => {
-                const cx = lon2tile(coord.lon, z);
-                const cy = lat2tile(coord.lat, z);
-                const maxT = Math.pow(2, z);
-                const range = z === 2 ? 1 : 1; // 3x3 tiles = ~9 tuiles légères par palier
-
-                for (let dx = -range; dx <= range; dx++) {
-                    for (let dy = -range; dy <= range; dy++) {
-                        const tx = cx + dx;
-                        const ty = cy + dy;
-                        if (ty >= 0 && ty < maxT) {
-                            const wx = ((tx % maxT) + maxT) % maxT;
-                            const url = getTileUrlForService(z, wx, ty, style);
-                            if (url && !imageCacheRef.current[url]) {
-                                const imgObj = new Image();
-                                imgObj.crossOrigin = 'anonymous';
-                                imgObj.src = url;
-                                imgObj.onload = () => {
-                                    imageCacheRef.current[url] = imgObj;
-                                    if (!isMapAnimPlayingRef.current && !isVideoRecordingRef.current && mapScrubTimeRef.current === null) {
-                                        generateImage();
-                                    }
-                                };
-                                imageCacheRef.current[url] = imgObj;
-                            }
-                        }
-                    }
-                }
-            });
-        });
+        getVenueCanvas(mapLatitude, mapLongitude, style);
+        if (mapAnimMode === 'FLIGHT_ROUTE') {
+            getVenueCanvas(mapDestLatitude, mapDestLongitude, style);
+        }
     }, [theme, mapLatitude, mapLongitude, mapDestLatitude, mapDestLongitude, mapStyle, mapAnimMode]);
 
     const checkImageHasAlpha = (imgElement: HTMLImageElement | null): boolean => {
@@ -5681,7 +5712,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else {
                     animTime = ((Date.now() - animStartTimeRef.current) / 1000);
                 }
-                const rawProgress = mapAnimMode === 'STATIC' ? 1.0 : ((animTime % duration) / duration);
+                const rawProgress = (animTime % duration) / duration;
                 const progress = Math.max(0, Math.min(1, rawProgress));
 
                 // Helper Espace étoilé & nébuleuses cosmiques
@@ -5908,95 +5939,80 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 };
 
-                // Helper Bannière Header HUD
+                // Helper Bannière Header HUD - Capsule élégante à gauche du logo Dropsiders (Zéro chevauchement !)
                 const drawHudTopBar = (leftText: string, rightText: string) => {
                     ctx.save();
-                    const barY = isStory ? 170 : 130;
-                    ctx.fillStyle = 'rgba(8, 10, 18, 0.88)';
-                    ctx.strokeStyle = 'rgba(0, 240, 255, 0.45)';
+                    const isReel = effectiveTab === 'REEL';
+                    const barX = isReel ? 80 : 60;
+                    const barY = isReel ? 74 : 50;
+                    const barH = 50;
+
+                    // Le logo officiel Dropsiders commence à x = canvas.width - 275 - 80 = 725.
+                    // Donc la capsule HUD s'arrête à 660 maximum pour un espace parfait garanti !
+                    const maxBarW = canvas.width - (isReel ? 420 : 380);
+
+                    ctx.font = '900 15px "Montserrat", sans-serif';
+                    if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '1.2px';
+                    const leftW = ctx.measureText(leftText).width;
+
+                    ctx.font = '900 15px "Orbitron", sans-serif';
+                    const rightW = ctx.measureText(rightText).width;
+
+                    const neededW = Math.min(maxBarW, Math.max(340, leftW + rightW + 75));
+
+                    // Capsule verre sombre futuriste
+                    ctx.fillStyle = 'rgba(8, 12, 22, 0.92)';
+                    ctx.strokeStyle = 'rgba(0, 240, 255, 0.55)';
                     ctx.lineWidth = 2;
+                    ctx.shadowColor = 'rgba(0, 240, 255, 0.3)';
+                    ctx.shadowBlur = 12;
                     ctx.beginPath();
-                    ctx.roundRect(50, barY, canvas.width - 100, 56, 16);
+                    ctx.roundRect(barX, barY, neededW, barH, 16);
                     ctx.fill();
                     ctx.stroke();
+                    ctx.shadowBlur = 0;
 
-                    // Pastille live cyan
+                    // Pastille live cyan clignotante
                     const p = 0.5 + 0.5 * Math.sin(animTime * 6);
                     ctx.beginPath();
-                    ctx.arc(75, barY + 28, 6 + p * 2.5, 0, Math.PI * 2);
+                    ctx.arc(barX + 22, barY + barH / 2, 5 + p * 2, 0, Math.PI * 2);
                     ctx.fillStyle = '#00f0ff';
+                    ctx.shadowColor = '#00f0ff';
+                    ctx.shadowBlur = 8;
                     ctx.fill();
+                    ctx.shadowBlur = 0;
 
+                    // Texte gauche
                     ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 18px "Montserrat", sans-serif';
-                    ctx.letterSpacing = '2px';
+                    ctx.font = '900 14px "Montserrat", sans-serif';
+                    if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '1.2px';
                     ctx.textAlign = 'left';
-                    ctx.fillText(leftText, 95, barY + 34);
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(leftText, barX + 38, barY + barH / 2 + 1);
 
-                    ctx.font = '900 18px "Orbitron", sans-serif';
+                    // Texte droite (altitude / distance)
+                    ctx.font = '900 15px "Orbitron", sans-serif';
                     ctx.fillStyle = '#00f0ff';
                     ctx.textAlign = 'right';
-                    ctx.fillText(rightText, canvas.width - 75, barY + 34);
+                    ctx.fillText(rightText, barX + neededW - 18, barY + barH / 2 + 1);
+
                     ctx.restore();
                 };
 
                 // ==============================================================
                 // EXÉCUTION DU MODE CHOISI
                 // ==============================================================
-                if (mapAnimMode === 'DEEP_DIVE') {
-                    // MODE 1 : ZOOM TERRE ➔ LIEU DU FESTIVAL
-                    const t = progress;
-                    let curZoom = 2.0;
-                    let speedIntensity = 0;
-                    let altText = 'ALT: 12 500 KM';
-
-                    if (t < 0.18) {
-                        // Phase 1 : Orbite spatiale
-                        curZoom = 2.0;
-                        drawSpaceBackground(1.0);
-                        const radius = Math.min(canvas.width, canvas.height) * 0.36;
-                        drawEarthGlobe(canvas.width / 2, canvas.height / 2, radius, mapLatitude, mapLongitude, 1.0);
-                        drawHudTopBar('DROPSIDERS ORBITAL FEED', 'ALT: 12 500 KM');
-                    } else if (t < 0.75) {
-                        // Phase 2 : Plongeon supersonique
-                        const rel = (t - 0.18) / 0.57;
-                        const ease = Math.pow(rel, 2.2);
-                        curZoom = 2.0 + ease * 15.5; // 2.0 -> 17.5
-                        speedIntensity = Math.sin(rel * Math.PI) * 1.2;
-
-                        if (curZoom < 3.8) {
-                            const globeAlpha = Math.max(0, 1 - (curZoom - 2.0) / 1.8);
-                            drawSpaceBackground(globeAlpha);
-                            const radius = Math.min(canvas.width, canvas.height) * (0.36 + ease * 0.8);
-                            drawEarthGlobe(canvas.width / 2, canvas.height / 2, radius, mapLatitude, mapLongitude, globeAlpha);
-                        } else {
-                            drawMap(ctx, mapLatitude, mapLongitude, curZoom, canvas.width, canvas.height, 0, 0, false);
-                        }
-
-                        drawSpeedStreaks(speedIntensity);
-                        const altKm = Math.round(12500 * (1 - ease));
-                        altText = altKm > 10 ? `ALT: ${altKm.toLocaleString()} KM` : `ALT: ${Math.round(altKm * 100 + 80)} M`;
-                        drawHudTopBar('PLONGEON ATMOSPHÉRIQUE', altText);
-                    } else {
-                        // Phase 3 : Atterrissage sur la salle & Badge
-                        curZoom = 17.5;
-                        drawMap(ctx, mapLatitude, mapLongitude, curZoom, canvas.width, canvas.height, 0, 0, false);
-                        const shockProg = (t - 0.75) / 0.25;
-                        drawShockwave(canvas.width / 2, canvas.height / 2, shockProg, mapPinColor);
-                        drawPinDrop(canvas.width / 2, canvas.height / 2, shockProg * 2, mapPinColor);
-                        drawFestivalCard(mapFestivalText, mapVenue, mapCityCountry, 'LIVE FROM', mapPinColor, 1.0);
-                        drawHudTopBar('ATTERRISSAGE RÉUSSI', 'ALT: 45 M');
-                    }
-
-                } else if (mapAnimMode === 'FLIGHT_ROUTE') {
-                    // MODE 2 : TRAJET 2 EVENTS (Escape Halloween ➔ Dream Nation)
+                // ==============================================================
+                // EXÉCUTION DU MODE CHOISI (TRAJET 2 EVENTS OU ZOOM TERRE)
+                // ==============================================================
+                if (mapAnimMode === 'FLIGHT_ROUTE') {
+                    // MODE 1 : TRAJET 2 EVENTS (ex: Escape Halloween ➔ Dream Nation)
                     const t = progress;
                     const latA = mapLatitude;
                     const lonA = mapLongitude;
                     const latB = mapDestLatitude;
                     const lonB = mapDestLongitude;
 
-                    // Distance Haversine en KM
                     const dLat = ((latB - latA) * Math.PI) / 180;
                     const dLon = ((lonB - lonA) * Math.PI) / 180;
                     const aH = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -6006,28 +6022,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const distKm = Math.round(6371 * cH);
 
                     if (t < 0.20) {
-                        // Phase 1 : Départ Event A (Escape Halloween)
-                        drawMap(ctx, latA, lonA, 16.5, canvas.width, canvas.height, 0, 0, false);
+                        // Phase 1 (0 à 2.4s) : Event 1 sur le terrain (Escape Halloween)
+                        drawMap(ctx, latA, lonA, 17.2, canvas.width, canvas.height, 0, 0, false);
                         drawPinDrop(canvas.width / 2, canvas.height / 2, 1.0, mapPinColor);
                         drawFestivalCard(mapFestivalText, mapVenue, mapCityCountry, 'DÉPART (EVENT 1)', mapPinColor, 1.0);
                         drawHudTopBar('VOL FESTIVAL HOPPER', 'POINT DE DÉPART');
-                    } else if (t < 0.35) {
-                        // Phase 2 : Dézoom vers l'espace
-                        const rel = (t - 0.20) / 0.15;
-                        const curZ = 16.5 - rel * 14.5; // 16.5 -> 2.0
-                        if (curZ < 3.8) {
-                            const globeAlpha = Math.min(1, (3.8 - curZ) / 1.8);
-                            drawSpaceBackground(globeAlpha);
-                            const radius = Math.min(canvas.width, canvas.height) * 0.36;
-                            drawEarthGlobe(canvas.width / 2, canvas.height / 2, radius, latA, lonA, globeAlpha);
-                        } else {
-                            drawMap(ctx, latA, lonA, curZ, canvas.width, canvas.height, 0, 0, false);
+                    } else if (t < 0.30) {
+                        // Phase 2 (2.4 à 3.6s) : Décollage fluide vers l'orbite
+                        const rel = (t - 0.20) / 0.10;
+                        drawMap(ctx, latA, lonA, 17.2 - rel * 1.5, canvas.width, canvas.height, 0, 0, false);
+                        const fadeToSpace = Math.min(1, rel * 1.4);
+                        if (fadeToSpace > 0) {
+                            drawSpaceBackground(fadeToSpace);
+                            const radius = Math.min(canvas.width, canvas.height) * (0.32 + (1 - rel) * 0.4);
+                            drawEarthGlobe(canvas.width / 2, canvas.height / 2, radius, latA, lonA, fadeToSpace);
                         }
-                        drawSpeedStreaks(rel * 0.8);
+                        drawSpeedStreaks(rel * 1.2);
                         drawHudTopBar('DÉCOLLAGE ORBITAL', 'ALT: 10 000 KM');
                     } else if (t < 0.65) {
-                        // Phase 3 : Vol orbital A -> B avec arc laser néon
-                        const rel = (t - 0.35) / 0.30;
+                        // Phase 3 (3.6 à 7.8s) : Vol Orbital A ➔ B avec Arc Laser Néon
+                        const rel = (t - 0.30) / 0.35;
                         const curLat = latA + (latB - latA) * rel;
                         const curLon = lonA + (lonB - lonA) * rel;
 
@@ -6037,7 +6051,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const cy = canvas.height / 2;
                         drawEarthGlobe(cx, cy, radius, curLat, curLon, 1.0);
 
-                        // Traçage de l'Arc laser de vol A -> B
+                        // Arc laser néon courbe
                         ctx.save();
                         const arcStartX = cx - radius * 0.55;
                         const arcStartY = cy + radius * 0.1;
@@ -6046,7 +6060,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const arcCtrlX = cx;
                         const arcCtrlY = cy - radius * 0.95;
 
-                        // Traînée lumineuse néon
                         const arcGrad = ctx.createLinearGradient(arcStartX, arcStartY, arcEndX, arcEndY);
                         arcGrad.addColorStop(0, '#00f0ff');
                         arcGrad.addColorStop(0.5, '#bd00ff');
@@ -6061,7 +6074,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.quadraticCurveTo(arcCtrlX, arcCtrlY, arcEndX, arcEndY);
                         ctx.stroke();
 
-                        // Point avion / navette qui voyage le long de l'arc
+                        // Navette / point lumineux qui parcourt l'arc
                         const tPt = rel;
                         const px = (1 - tPt) * (1 - tPt) * arcStartX + 2 * (1 - tPt) * tPt * arcCtrlX + tPt * tPt * arcEndX;
                         const py = (1 - tPt) * (1 - tPt) * arcStartY + 2 * (1 - tPt) * tPt * arcCtrlY + tPt * tPt * arcEndY;
@@ -6080,177 +6093,72 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         // Distance en direct
                         const curKm = Math.round(distKm * rel);
-                        drawHudTopBar(`${(mapFestivalText || 'A').toUpperCase()} ➔ ${(mapDestFestivalText || 'B').toUpperCase()}`, `${curKm} / ${distKm} KM`);
+                        drawHudTopBar(`${(mapFestivalText || 'A').toUpperCase()} ➔ ${(mapDestFestivalText || 'B').toUpperCase()}`, `${curKm.toLocaleString()} / ${distKm.toLocaleString()} KM`);
                     } else if (t < 0.80) {
-                        // Phase 4 : Plongeon vers Event B (Dream Nation Paris)
+                        // Phase 4 (7.8 à 9.6s) : Plongeon vers la destination (Dream Nation Paris)
                         const rel = (t - 0.65) / 0.15;
-                        const ease = Math.pow(rel, 2.2);
-                        const curZ = 2.0 + ease * 15.5; // 2.0 -> 17.5
+                        const ease = Math.pow(rel, 1.8);
+                        const curZ = 14.0 + ease * 3.5; // 14.0 (métropole) -> 17.5 (salle)
 
-                        if (curZ < 3.8) {
-                            const globeAlpha = Math.max(0, 1 - (curZ - 2.0) / 1.8);
+                        // Globe terrestre qui s'agrandit pour accueillir le plongeon
+                        if (rel < 0.35) {
+                            const globeAlpha = Math.max(0, 1 - rel / 0.35);
                             drawSpaceBackground(globeAlpha);
-                            const radius = Math.min(canvas.width, canvas.height) * (0.36 + ease * 0.8);
+                            const radius = Math.min(canvas.width, canvas.height) * (0.36 + ease * 1.2);
                             drawEarthGlobe(canvas.width / 2, canvas.height / 2, radius, latB, lonB, globeAlpha);
-                        } else {
-                            drawMap(ctx, latB, lonB, curZ, canvas.width, canvas.height, 0, 0, false);
                         }
-                        drawSpeedStreaks(rel * 0.9);
+                        drawMap(ctx, latB, lonB, curZ, canvas.width, canvas.height, 0, 0, false);
+                        drawSpeedStreaks(rel * 0.85);
                         drawHudTopBar('DESCENTE SUR DESTINATION', 'APPROCHE FINALE');
                     } else {
-                        // Phase 5 : Arrivée sur la salle Event B (Dream Nation)
+                        // Phase 5 (9.6 à 12.0s) : Touchdown sur la salle Event 2 & Badge final
                         drawMap(ctx, latB, lonB, 17.5, canvas.width, canvas.height, 0, 0, false);
                         const shockProg = (t - 0.80) / 0.20;
                         drawShockwave(canvas.width / 2, canvas.height / 2, shockProg, mapDestPinColor);
                         drawPinDrop(canvas.width / 2, canvas.height / 2, shockProg * 2, mapDestPinColor);
                         drawFestivalCard(mapDestFestivalText, mapDestVenue, `${mapDestCity}, ${mapDestCountry}`, 'DESTINATION (EVENT 2)', mapDestPinColor, 1.0);
-                        drawHudTopBar('DESTINATION ATTEINTE', `${distKm} KM PARCOURUS`);
+                        drawHudTopBar('DESTINATION ATTEINTE', `${distKm.toLocaleString()} KM PARCOURUS`);
                     }
-
-                } else if (mapAnimMode === 'TACTICAL_HUD') {
-                    // MODE 3 : SCANNER HUD TACTIQUE CYBERPUNK
-                    const t = progress;
-                    const rel = t < 0.75 ? Math.pow(t / 0.75, 2.0) : 1.0;
-                    const curZoom = 2.5 + rel * 15.0; // 2.5 -> 17.5
-
-                    drawMap(ctx, mapLatitude, mapLongitude, curZoom, canvas.width, canvas.height, 0, 0, false);
-
-                    // Overlay HUD Cyberpunk
-                    ctx.save();
-                    const cx = canvas.width / 2;
-                    const cy = canvas.height / 2;
-
-                    // Viseur central réticule
-                    ctx.strokeStyle = '#00f0ff';
-                    ctx.lineWidth = 2.5;
-                    ctx.shadowColor = '#00f0ff';
-                    ctx.shadowBlur = 15;
-
-                    // Anneau tournant
-                    const rotAngle = animTime * 1.5;
-                    ctx.beginPath();
-                    ctx.arc(cx, cy, 140, rotAngle, rotAngle + Math.PI * 0.4);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.arc(cx, cy, 140, rotAngle + Math.PI, rotAngle + Math.PI * 1.4);
-                    ctx.stroke();
-
-                    // Anneau interne avec croix
-                    ctx.beginPath();
-                    ctx.arc(cx, cy, 80, 0, Math.PI * 2);
-                    ctx.stroke();
-
-                    ctx.beginPath();
-                    ctx.moveTo(cx - 100, cy);
-                    ctx.lineTo(cx - 30, cy);
-                    ctx.moveTo(cx + 30, cy);
-                    ctx.lineTo(cx + 100, cy);
-                    ctx.moveTo(cx, cy - 100);
-                    ctx.lineTo(cx, cy - 30);
-                    ctx.moveTo(cx, cy + 30);
-                    ctx.lineTo(cx, cy + 100);
-                    ctx.stroke();
-
-                    // Faisceau radar balayage
-                    const radarAngle = animTime * 3;
-                    const sweepGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 220);
-                    sweepGrad.addColorStop(0, 'rgba(0, 240, 255, 0.4)');
-                    sweepGrad.addColorStop(1, 'rgba(0, 240, 255, 0)');
-                    ctx.fillStyle = sweepGrad;
-                    ctx.beginPath();
-                    ctx.moveTo(cx, cy);
-                    ctx.arc(cx, cy, 220, radarAngle, radarAngle + 0.6);
-                    ctx.closePath();
-                    ctx.fill();
-
-                    // 4 Coins tactiques [ + ]
-                    const corners = [
-                        { x: 50, y: 180 },
-                        { x: canvas.width - 50, y: 180 },
-                        { x: 50, y: canvas.height - 360 },
-                        { x: canvas.width - 50, y: canvas.height - 360 }
-                    ];
-                    ctx.lineWidth = 3;
-                    corners.forEach(c => {
-                        const len = 30;
-                        const sX = c.x < cx ? 1 : -1;
-                        const sY = c.y < cy ? 1 : -1;
-                        ctx.beginPath();
-                        ctx.moveTo(c.x, c.y + len * sY);
-                        ctx.lineTo(c.x, c.y);
-                        ctx.lineTo(c.x + len * sX, c.y);
-                        ctx.stroke();
-                    });
-
-                    // Coordonnées GPS ultra-précises en bas du réticule
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#00f0ff';
-                    ctx.font = '900 18px "Orbitron", sans-serif';
-                    ctx.textAlign = 'center';
-                    const jitter = Math.sin(animTime * 10) * 0.00005;
-                    ctx.fillText(`LAT: ${(mapLatitude + jitter).toFixed(5)}° N  |  LON: ${(mapLongitude + jitter).toFixed(5)}° E`, cx, cy + 180);
-
-                    ctx.font = '900 16px "Montserrat", sans-serif';
-                    ctx.fillStyle = t >= 0.75 ? '#39ff14' : '#00f0ff';
-                    ctx.fillText(t >= 0.75 ? '● TARGET LOCKED (SATELLITE 0.2M)' : '○ SCANNING RECONNAISSANCE...', cx, cy + 215);
-
-                    ctx.restore();
-
-                    if (t >= 0.75) {
-                        drawFestivalCard(mapFestivalText, mapVenue, mapCityCountry, 'CIBLE VERROUILLÉE', '#00f0ff', 1.0);
-                    }
-                    drawHudTopBar('SATELLITE RECON PROTOCOL', `ZOOM: ${curZoom.toFixed(1)}X`);
 
                 } else {
-                    // MODE 4 : STATIC (CARTE CLASSIQUE FIXE)
-                    drawMap(ctx, mapLatitude, mapLongitude, mapZoom, canvas.width, canvas.height, 0, 0, true);
-                    const frameX = 80;
-                    const frameY = bgVideo ? 160 : 100;
-                    const frameW = 440;
-                    const frameH = 200;
+                    // MODE 2 : ZOOM TERRE ➔ LIEU DU FESTIVAL (DEEP_DIVE)
+                    const t = progress;
 
-                    ctx.save();
-                    ctx.shadowColor = mapPinColor;
-                    ctx.shadowBlur = 20;
-                    ctx.fillStyle = 'rgba(10, 10, 10, 0.9)';
-                    ctx.beginPath();
-                    ctx.roundRect(frameX, frameY, frameW, frameH, 24);
-                    ctx.fill();
+                    if (t < 0.25) {
+                        // Phase 1 (0 à 3.0s) : Orbite spatiale
+                        drawSpaceBackground(1.0);
+                        const radius = Math.min(canvas.width, canvas.height) * (0.34 + t * 0.15);
+                        drawEarthGlobe(canvas.width / 2, canvas.height / 2, radius, mapLatitude, mapLongitude, 1.0);
+                        drawHudTopBar('ORBITE SPATIALE', 'ALT: 12 500 KM');
+                    } else if (t < 0.45) {
+                        // Phase 2 (3.0 à 5.4s) : Approche atmosphérique
+                        const rel = (t - 0.25) / 0.20;
+                        const ease = Math.pow(rel, 1.6);
+                        drawSpaceBackground(1.0 - rel * 0.4);
+                        const radius = Math.min(canvas.width, canvas.height) * (0.38 + ease * 1.5);
+                        drawEarthGlobe(canvas.width / 2, canvas.height / 2, radius, mapLatitude, mapLongitude, 1.0);
+                        drawSpeedStreaks(rel * 1.1);
+                        const altKm = Math.round(12500 * (1 - ease));
+                        drawHudTopBar('PLONGEON ATMOSPHÉRIQUE', `ALT: ${altKm.toLocaleString()} KM`);
+                    } else if (t < 0.80) {
+                        // Phase 3 (5.4 à 9.6s) : Descente vers la salle en continu (14.0 Métropole -> 17.5 Salle)
+                        const rel = (t - 0.45) / 0.35;
+                        const ease = Math.pow(rel, 1.8);
+                        const curZoom = 14.0 + ease * 3.5;
 
-                    ctx.strokeStyle = mapPinColor;
-                    ctx.lineWidth = 3.5;
-                    ctx.stroke();
-                    ctx.shadowBlur = 0;
-
-                    const dotPulse = isExport
-                        ? (Math.sin((deterministicAnimTimeRef.current * 1000) / 300) + 1) / 2
-                        : (Math.sin(Date.now() / 300) + 1) / 2;
-                    ctx.beginPath();
-                    ctx.arc(frameX + 45, frameY + 50, 8 + (dotPulse * 2.5), 0, Math.PI * 2);
-                    ctx.fillStyle = mapPinColor;
-                    ctx.fill();
-
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 26px "Montserrat", sans-serif';
-                    ctx.letterSpacing = '4px';
-                    ctx.textAlign = 'left';
-                    ctx.fillText('LIVE FROM', frameX + 75, frameY + 58);
-
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-                    ctx.fillRect(frameX + 30, frameY + 95, frameW - 60, 2);
-
-                    ctx.fillStyle = '#ffffff';
-                    ctx.textAlign = 'center';
-                    let festFontSize = 36;
-                    ctx.font = `900 italic ${festFontSize}px "Orbitron", sans-serif`;
-                    const festName = mapFestivalText.toUpperCase();
-
-                    while (ctx.measureText(festName).width > frameW - 60 && festFontSize > 18) {
-                        festFontSize--;
-                        ctx.font = `900 italic ${festFontSize}px "Orbitron", sans-serif`;
+                        drawMap(ctx, mapLatitude, mapLongitude, curZoom, canvas.width, canvas.height, 0, 0, false);
+                        drawSpeedStreaks((1 - rel) * 0.6);
+                        const altM = Math.round(2500 * (1 - ease) + 45);
+                        drawHudTopBar('APPROCHE DU FESTIVAL', `ALT: ${altM} M`);
+                    } else {
+                        // Phase 4 (9.6 à 12.0s) : Atterrissage sur la salle & Festival Card
+                        drawMap(ctx, mapLatitude, mapLongitude, 17.5, canvas.width, canvas.height, 0, 0, false);
+                        const shockProg = (t - 0.80) / 0.20;
+                        drawShockwave(canvas.width / 2, canvas.height / 2, shockProg, mapPinColor);
+                        drawPinDrop(canvas.width / 2, canvas.height / 2, shockProg * 2, mapPinColor);
+                        drawFestivalCard(mapFestivalText, mapVenue, mapCityCountry, 'LIVE FROM', mapPinColor, 1.0);
+                        drawHudTopBar('ATTERRISSAGE RÉUSSI', 'ALT: 45 M');
                     }
-                    ctx.fillText(festName, frameX + frameW / 2, frameY + 152);
-                    ctx.restore();
                 }
 
                 if (isMapLoading || isMapDestLoading) {
@@ -7514,7 +7422,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         const isBadgeTheme = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'AFFICHE', 'PLANNING', 'HIGHLIGHTS'].includes(theme);
         const shouldAnimateBadge = isBadgeTheme && activeTab === 'REEL';
-        const shouldAnimateMap = theme === 'MAP' && mapAnimMode !== 'STATIC' && isMapAnimPlaying;
+        const shouldAnimateMap = theme === 'MAP' && isMapAnimPlaying;
         if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS' || shouldAnimateMap) {
             let lastRender = 0;
             let isRendering = false;
@@ -15297,6 +15205,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         onClick={() => {
+                            setMapAnimMode('FLIGHT_ROUTE');
+                            setIsMapAnimPlaying(true);
+                            setMapScrubTime(null);
+                            animStartTimeRef.current = Date.now();
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                            mapAnimMode === 'FLIGHT_ROUTE'
+                                ? 'bg-neon-cyan/20 border-neon-cyan text-white shadow-[0_0_12px_rgba(0,240,255,0.35)]'
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                        }`}
+                    >
+                        <div className="text-[10px] font-black uppercase text-neon-cyan flex items-center gap-1.5">
+                            ✈️ Trajet 2 Festivals
+                        </div>
+                        <div className="text-[7.5px] text-gray-400 font-medium mt-0.5">
+                            Vol orbital A ➔ B (Laser néon)
+                        </div>
+                    </button>
+
+                    <button
+                        onClick={() => {
                             setMapAnimMode('DEEP_DIVE');
                             setIsMapAnimPlaying(true);
                             setMapScrubTime(null);
@@ -15313,256 +15243,104 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             🚀 Zoom Terre
                         </div>
                         <div className="text-[7.5px] text-gray-400 font-medium mt-0.5">
-                            Espace ➔ Plongeon vers le festival
-                        </div>
-                    </button>
-
-                    <button
-                        onClick={() => {
-                            setMapAnimMode('FLIGHT_ROUTE');
-                            setIsMapAnimPlaying(true);
-                            setMapScrubTime(null);
-                            animStartTimeRef.current = Date.now();
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className={`p-2.5 rounded-xl border text-left transition-all ${
-                            mapAnimMode === 'FLIGHT_ROUTE'
-                                ? 'bg-neon-red/20 border-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.35)]'
-                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
-                        }`}
-                    >
-                        <div className="text-[10px] font-black uppercase text-neon-red flex items-center gap-1.5">
-                            ✈️ Trajet 2 Events
-                        </div>
-                        <div className="text-[7.5px] text-gray-400 font-medium mt-0.5">
-                            Vol A ➔ B avec arc laser néon
-                        </div>
-                    </button>
-
-                    <button
-                        onClick={() => {
-                            setMapAnimMode('TACTICAL_HUD');
-                            setIsMapAnimPlaying(true);
-                            setMapScrubTime(null);
-                            animStartTimeRef.current = Date.now();
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className={`p-2.5 rounded-xl border text-left transition-all ${
-                            mapAnimMode === 'TACTICAL_HUD'
-                                ? 'bg-purple-500/20 border-purple-500 text-white shadow-[0_0_12px_rgba(168,85,247,0.35)]'
-                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
-                        }`}
-                    >
-                        <div className="text-[10px] font-black uppercase text-purple-400 flex items-center gap-1.5">
-                            🎯 Scanner HUD
-                        </div>
-                        <div className="text-[7.5px] text-gray-400 font-medium mt-0.5">
-                            Radar 360° & télémétrie GPS
-                        </div>
-                    </button>
-
-                    <button
-                        onClick={() => {
-                            setMapAnimMode('STATIC');
-                            setIsMapAnimPlaying(false);
-                            setMapScrubTime(null);
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className={`p-2.5 rounded-xl border text-left transition-all ${
-                            mapAnimMode === 'STATIC'
-                                ? 'bg-white/20 border-white text-white'
-                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
-                        }`}
-                    >
-                        <div className="text-[10px] font-black uppercase text-white flex items-center gap-1.5">
-                            📍 Carte Fixe
-                        </div>
-                        <div className="text-[7.5px] text-gray-400 font-medium mt-0.5">
-                            Photo classique sans animation
+                            Espace ➔ Plongeon vers la salle
                         </div>
                     </button>
                 </div>
             </div>
 
             {/* 2. CONTRÔLEUR DE LECTURE & TEST INSTANTANÉ */}
-            {mapAnimMode !== 'STATIC' && (
-                <div className="p-3 bg-neon-cyan/5 border border-neon-cyan/30 rounded-2xl space-y-2.5">
-                    <div className="flex items-center justify-between">
-                        <span className="text-[8.5px] font-black uppercase text-neon-cyan tracking-wider flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-neon-cyan animate-ping" />
-                            Aperçu Vidéo & Scrubber
-                        </span>
-                        <div className="flex items-center gap-1.5">
-                            <button
-                                onClick={() => {
-                                    setIsMapAnimPlaying(!isMapAnimPlaying);
-                                    if (!isMapAnimPlaying) {
-                                        setMapScrubTime(null);
-                                        animStartTimeRef.current = Date.now();
-                                    }
-                                    setTimeout(() => generateImage(), 50);
-                                }}
-                                className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-black text-[8px] uppercase transition-all"
-                            >
-                                {isMapAnimPlaying ? '⏸ PAUSE' : '▶ LIRE'}
-                            </button>
-                            <button
-                                onClick={() => {
+            <div className="p-3 bg-neon-cyan/5 border border-neon-cyan/30 rounded-2xl space-y-2.5">
+                <div className="flex items-center justify-between">
+                    <span className="text-[8.5px] font-black uppercase text-neon-cyan tracking-wider flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-neon-cyan animate-ping" />
+                        Aperçu Vidéo & Scrubber
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                        <button
+                            onClick={() => {
+                                setIsMapAnimPlaying(!isMapAnimPlaying);
+                                if (!isMapAnimPlaying) {
                                     setMapScrubTime(null);
                                     animStartTimeRef.current = Date.now();
-                                    setIsMapAnimPlaying(true);
-                                    setTimeout(() => generateImage(), 50);
-                                }}
-                                className="px-2 py-1 rounded-lg bg-neon-cyan/20 hover:bg-neon-cyan/30 border border-neon-cyan/40 text-neon-cyan font-black text-[8px] uppercase transition-all"
-                                title="Recommencer depuis le début"
-                            >
-                                🔄 REJOUER
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Curseur Scrubber temporel pour voir seconde par seconde */}
-                    <div className="space-y-1">
-                        <div className="flex justify-between items-center text-[7.5px] font-black uppercase text-gray-400">
-                            <span>Avancement temporel</span>
-                            <span className="text-neon-cyan font-bold">
-                                {mapScrubTime !== null
-                                    ? `${mapScrubTime.toFixed(1)}s / ${mapAnimDuration}s (Fige)`
-                                    : 'Lecture en continu ⟳'}
-                            </span>
-                        </div>
-                        <input
-                            type="range"
-                            min="0"
-                            max={mapAnimDuration}
-                            step="0.05"
-                            value={mapScrubTime !== null ? mapScrubTime : 0}
-                            onChange={e => {
-                                setIsMapAnimPlaying(false);
-                                setMapScrubTime(parseFloat(e.target.value));
+                                }
                                 setTimeout(() => generateImage(), 50);
                             }}
-                            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
-                        />
-                        <div className="flex justify-between text-[6.5px] text-gray-500 font-bold px-0.5">
-                            <span>0s (Orbite)</span>
-                            <span>{Math.round(mapAnimDuration / 2)}s (Vol / Plongeon)</span>
-                            <span>{mapAnimDuration}s (Arrivée)</span>
-                        </div>
-                    </div>
-
-                    {/* Sélecteur de Durée */}
-                    <div className="flex items-center justify-between pt-1">
-                        <span className="text-[7.5px] font-black uppercase text-gray-400">Durée du Reel</span>
-                        <div className="flex gap-1.5">
-                            {[6, 8, 10].map(sec => (
-                                <button
-                                    key={sec}
-                                    onClick={() => {
-                                        setMapAnimDuration(sec);
-                                        animStartTimeRef.current = Date.now();
-                                        setTimeout(() => generateImage(), 50);
-                                    }}
-                                    className={`px-2 py-0.5 rounded-md text-[7.5px] font-black border transition-all ${
-                                        mapAnimDuration === sec
-                                            ? 'bg-neon-cyan/30 border-neon-cyan text-white'
-                                            : 'bg-white/5 border-white/10 text-gray-400'
-                                    }`}
-                                >
-                                    {sec}s
-                                </button>
-                            ))}
-                        </div>
+                            className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-black text-[8px] uppercase transition-all"
+                        >
+                            {isMapAnimPlaying ? '⏸ PAUSE' : '▶ LIRE'}
+                        </button>
+                        <button
+                            onClick={() => {
+                                setMapScrubTime(null);
+                                animStartTimeRef.current = Date.now();
+                                setIsMapAnimPlaying(true);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="px-2 py-1 rounded-lg bg-neon-cyan/20 hover:bg-neon-cyan/30 border border-neon-cyan/40 text-neon-cyan font-black text-[8px] uppercase transition-all"
+                            title="Recommencer depuis le début"
+                        >
+                            🔄 REJOUER
+                        </button>
                     </div>
                 </div>
-            )}
 
-            {/* 3. BOUTONS DÉMO 1-CLIC */}
-            <div className="space-y-1.5">
-                <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">Exemples en 1 clic pour tester :</label>
-                <div className="grid grid-cols-2 gap-1.5">
-                    <button
-                        onClick={() => {
-                            setMapAnimMode('FLIGHT_ROUTE');
-                            setMapFestivalText('ESCAPE HALLOWEEN');
-                            setMapVenue('NOS Events Center');
-                            setMapCity('San Bernardino');
-                            setMapCountry('USA');
-                            setMapLatitude(34.0933);
-                            setMapLongitude(-117.2917);
-                            setMapDestFestivalText('DREAM NATION');
-                            setMapDestVenue('Parc des Expositions Paris Nord');
-                            setMapDestCity('Paris');
-                            setMapDestCountry('France');
-                            setMapDestLatitude(48.9714);
-                            setMapDestLongitude(2.5186);
-                            setIsMapAnimPlaying(true);
-                            setMapScrubTime(null);
-                            animStartTimeRef.current = Date.now();
+                {/* Curseur Scrubber temporel pour voir seconde par seconde */}
+                <div className="space-y-1">
+                    <div className="flex justify-between items-center text-[7.5px] font-black uppercase text-gray-400">
+                        <span>Avancement temporel</span>
+                        <span className="text-neon-cyan font-bold">
+                            {mapScrubTime !== null
+                                ? `${mapScrubTime.toFixed(1)}s / ${mapAnimDuration}s (Fige)`
+                                : 'Lecture en continu ⟳'}
+                        </span>
+                    </div>
+                    <input
+                        type="range"
+                        min="0"
+                        max={mapAnimDuration}
+                        step="0.05"
+                        value={mapScrubTime !== null ? mapScrubTime : 0}
+                        onChange={e => {
+                            setIsMapAnimPlaying(false);
+                            setMapScrubTime(parseFloat(e.target.value));
                             setTimeout(() => generateImage(), 50);
                         }}
-                        className="py-2 px-2.5 rounded-xl bg-gradient-to-r from-red-500/20 to-cyan-500/20 border border-white/20 hover:border-white/50 text-white font-black text-[7.5px] uppercase tracking-wider text-left transition-all hover:scale-[1.02]"
-                    >
-                        🔥 Escape ➔ Dream Nation
-                    </button>
-                    <button
-                        onClick={() => {
-                            setMapAnimMode('DEEP_DIVE');
-                            setMapFestivalText('ESCAPE HALLOWEEN');
-                            setMapVenue('NOS Events Center');
-                            setMapCity('San Bernardino');
-                            setMapCountry('USA');
-                            setMapLatitude(34.0933);
-                            setMapLongitude(-117.2917);
-                            setIsMapAnimPlaying(true);
-                            setMapScrubTime(null);
-                            animStartTimeRef.current = Date.now();
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className="py-2 px-2.5 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 hover:border-neon-cyan text-white font-black text-[7.5px] uppercase tracking-wider text-left transition-all hover:scale-[1.02]"
-                    >
-                        🚀 Escape (Zoom Terre)
-                    </button>
-                    <button
-                        onClick={() => {
-                            setMapAnimMode('TACTICAL_HUD');
-                            setMapFestivalText('DREAM NATION');
-                            setMapVenue('Parc des Expositions Paris Nord');
-                            setMapCity('Paris');
-                            setMapCountry('France');
-                            setMapLatitude(48.9714);
-                            setMapLongitude(2.5186);
-                            setIsMapAnimPlaying(true);
-                            setMapScrubTime(null);
-                            animStartTimeRef.current = Date.now();
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className="py-2 px-2.5 rounded-xl bg-purple-500/15 border border-purple-500/30 hover:border-purple-500 text-white font-black text-[7.5px] uppercase tracking-wider text-left transition-all hover:scale-[1.02]"
-                    >
-                        🎯 Dream Nation (Scanner)
-                    </button>
-                    <button
-                        onClick={() => {
-                            setMapAnimMode('DEEP_DIVE');
-                            setMapFestivalText('TOMORROWLAND');
-                            setMapVenue('De Schorre');
-                            setMapCity('Boom');
-                            setMapCountry('Belgique');
-                            setMapLatitude(51.0914);
-                            setMapLongitude(4.3854);
-                            setIsMapAnimPlaying(true);
-                            setMapScrubTime(null);
-                            animStartTimeRef.current = Date.now();
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className="py-2 px-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/30 text-white font-black text-[7.5px] uppercase tracking-wider text-left transition-all hover:scale-[1.02]"
-                    >
-                        🏰 Tomorrowland (Belgique)
-                    </button>
+                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
+                    />
+                    <div className="flex justify-between text-[6.5px] text-gray-500 font-bold px-0.5">
+                        <span>0s (Départ)</span>
+                        <span>{Math.round(mapAnimDuration / 2)}s (Vol / Plongeon)</span>
+                        <span>{mapAnimDuration}s (Arrivée)</span>
+                    </div>
+                </div>
+
+                {/* Sélecteur de Durée (10s, 12s, 15s) */}
+                <div className="flex items-center justify-between pt-1">
+                    <span className="text-[7.5px] font-black uppercase text-gray-400">Durée du Reel</span>
+                    <div className="flex gap-1.5">
+                        {[10, 12, 15].map(sec => (
+                            <button
+                                key={sec}
+                                onClick={() => {
+                                    setMapAnimDuration(sec);
+                                    animStartTimeRef.current = Date.now();
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                className={`px-2.5 py-0.5 rounded-md text-[7.5px] font-black border transition-all ${
+                                    mapAnimDuration === sec
+                                        ? 'bg-neon-cyan/30 border-neon-cyan text-white shadow-[0_0_8px_rgba(0,240,255,0.4)]'
+                                        : 'bg-white/5 border-white/10 text-gray-400'
+                                }`}
+                            >
+                                {sec}s {sec === 12 && '(Idéal)'}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
-            {/* 4. ÉVÉNEMENT A (DÉPART / PRINCIPAL) */}
+            {/* 3. ÉVÉNEMENT A (DÉPART / PRINCIPAL) */}
             <div className="space-y-3 p-3 bg-white/5 border border-white/10 rounded-2xl">
                 <div className="flex items-center justify-between">
                     <span className="text-[9px] font-black text-neon-red uppercase tracking-wider flex items-center gap-1.5">
@@ -15629,7 +15407,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </button>
             </div>
 
-            {/* 5. ÉVÉNEMENT B (ARRIVÉE - AFFICHÉ SI MODE TRAJET 2 EVENTS) */}
+            {/* 4. ÉVÉNEMENT B (ARRIVÉE - AFFICHÉ SI MODE TRAJET 2 EVENTS) */}
             {mapAnimMode === 'FLIGHT_ROUTE' && (
                 <div className="space-y-3 p-3 bg-neon-cyan/5 border border-neon-cyan/30 rounded-2xl">
                     <div className="flex items-center justify-between">
@@ -15725,26 +15503,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             </div>
 
-            {/* 7. Zoom de référence (en mode fixe) */}
-            {mapAnimMode === 'STATIC' && (
-                <div className="space-y-2">
-                    <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-500 pl-1">
-                        <span>Zoom de la carte</span>
-                        <span className="text-neon-red font-black">{mapZoom}</span>
-                    </div>
-                    <input 
-                        type="range" 
-                        min="3" 
-                        max="18" 
-                        value={mapZoom} 
-                        onChange={e => {
-                            setMapZoom(parseInt(e.target.value));
-                            setTimeout(() => generateImage(), 50);
-                        }} 
-                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-red" 
-                    />
-                </div>
-            )}
+
 
             {/* 8. Couleur du Marqueur Néon */}
             <div className="space-y-2">
