@@ -1327,7 +1327,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     // Modes d'Animation Carte en Reel (Trajet 2 Events, Zoom Terre)
     const [mapAnimMode, setMapAnimMode] = useState<'DEEP_DIVE' | 'FLIGHT_ROUTE'>('FLIGHT_ROUTE');
-    const [mapAnimDuration, setMapAnimDuration] = useState<number>(12); // 10s, 12s, 15s
+    const [mapAnimDuration, setMapAnimDuration] = useState<number>(15); // 12s, 15s
     const [isMapAnimPlaying, setIsMapAnimPlaying] = useState<boolean>(true);
     const [mapScrubTime, setMapScrubTime] = useState<number | null>(null);
 
@@ -5704,7 +5704,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // 1. Calcul du temps et du progrès
                 let animTime = 0;
-                const duration = Math.max(4, mapAnimDuration || 8);
+                const duration = Math.max(4, mapAnimDuration || 15);
                 if (mapScrubTime !== null && !isExport) {
                     animTime = mapScrubTime;
                 } else if (isExport) {
@@ -15315,11 +15315,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
 
-                {/* Sélecteur de Durée (10s, 12s, 15s) */}
+                {/* Sélecteur de Durée (12s, 15s) */}
                 <div className="flex items-center justify-between pt-1">
                     <span className="text-[7.5px] font-black uppercase text-gray-400">Durée du Reel</span>
                     <div className="flex gap-1.5">
-                        {[10, 12, 15].map(sec => (
+                        {[12, 15].map(sec => (
                             <button
                                 key={sec}
                                 onClick={() => {
@@ -15333,7 +15333,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 border-white/10 text-gray-400'
                                 }`}
                             >
-                                {sec}s {sec === 12 && '(Idéal)'}
+                                {sec}s {sec === 15 && '(Recommandé)'}
                             </button>
                         ))}
                     </div>
