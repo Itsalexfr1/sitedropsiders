@@ -1525,22 +1525,20 @@ export function DropsidersTVPage() {
                                 </div>
 
                                 <div className="flex items-center gap-3">
-                                    {/* Bouton Chat Twitch réservé aux éditeurs / admins du site, à côté de Gestion TV et Site */}
-                                    {isAdmin && (
-                                        <button
-                                            onClick={toggleChat}
-                                            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-[11px] font-black uppercase tracking-wider backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto shadow-lg ${
-                                                isChatOpen
-                                                    ? 'bg-[#9146FF] hover:bg-[#772ce8] text-white border-[#9146FF] shadow-[#9146FF]/30'
-                                                    : 'bg-white/10 hover:bg-[#9146FF]/20 border-white/20 text-white hover:border-[#9146FF]/40'
-                                            }`}
-                                            title={isChatOpen ? "Masquer le chat Twitch (C)" : "Ouvrir le chat Twitch @dropsiderstv (C)"}
-                                        >
-                                            <TwitchIcon className="w-3.5 h-3.5 text-white" />
-                                            <span className="hidden sm:inline">Chat</span>
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                        </button>
-                                    )}
+                                    {/* Bouton Chat Twitch visible par tous les visiteurs */}
+                                    <button
+                                        onClick={toggleChat}
+                                        className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-[11px] font-black uppercase tracking-wider backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto shadow-lg ${
+                                            isChatOpen
+                                                ? 'bg-[#9146FF] hover:bg-[#772ce8] text-white border-[#9146FF] shadow-[#9146FF]/30'
+                                                : 'bg-white/10 hover:bg-[#9146FF]/20 border-white/20 text-white hover:border-[#9146FF]/40'
+                                        }`}
+                                        title={isChatOpen ? "Masquer le chat Twitch (C)" : "Ouvrir le chat Twitch @dropsiderstv (C)"}
+                                    >
+                                        <TwitchIcon className="w-3.5 h-3.5 text-white" />
+                                        <span className="hidden sm:inline">Chat</span>
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                    </button>
 
                                     {/* Admin TV Settings Button */}
                                     {isAdmin && (
