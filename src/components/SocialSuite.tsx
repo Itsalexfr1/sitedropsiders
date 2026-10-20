@@ -1380,6 +1380,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         venueStartX: number;
         venueStartY: number;
     }>>(new Map());
+    const earthWorldTextureRef = useRef<HTMLCanvasElement | null>(null);
     useEffect(() => {
         isMapAnimPlayingRef.current = isMapAnimPlaying;
     }, [isMapAnimPlaying]);
@@ -1610,6 +1611,107 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${wX}`;
         }
         return `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/${z}/${y}/${wX}`;
+    };
+
+    const getEarthWorldTexture = () => {
+        if (!earthWorldTextureRef.current) {
+            const w = 1024;
+            const h = 512;
+            const cvs = document.createElement('canvas');
+            cvs.width = w;
+            cvs.height = h;
+            const c = cvs.getContext('2d');
+            if (c) {
+                // Fond océan profond
+                c.fillStyle = '#06162d';
+                c.fillRect(0, 0, w, h);
+
+                // Graticule cosmique
+                c.strokeStyle = 'rgba(0, 240, 255, 0.08)';
+                c.lineWidth = 1;
+                for (let x = 0; x < w; x += w / 12) {
+                    c.beginPath();
+                    c.moveTo(x, 0);
+                    c.lineTo(x, h);
+                    c.stroke();
+                }
+                for (let y = 0; y < h; y += h / 6) {
+                    c.beginPath();
+                    c.moveTo(0, y);
+                    c.lineTo(w, y);
+                    c.stroke();
+                }
+
+                // Continents peints en vectoriel (immédiatement visibles, zéro délai)
+                const drawPoly = (pts: [number, number][], fill: string = '#0c3830') => {
+                    c.fillStyle = fill;
+                    c.strokeStyle = 'rgba(0, 240, 255, 0.6)';
+                    c.lineWidth = 1.5;
+                    c.beginPath();
+                    pts.forEach(([px, py], idx) => {
+                        const sx = (px / 360) * w;
+                        const sy = (py / 180) * h;
+                        if (idx === 0) c.moveTo(sx, sy);
+                        else c.lineTo(sx, sy);
+                    });
+                    c.closePath();
+                    c.fill();
+                    c.stroke();
+                };
+
+                // Amérique du Nord
+                drawPoly([
+                    [20, 20], [60, 20], [90, 35], [110, 50], [95, 75],
+                    [80, 95], [68, 115], [78, 125], [72, 135], [60, 115],
+                    [40, 95], [30, 70], [15, 45], [20, 20]
+                ]);
+
+                // Amérique du Sud
+                drawPoly([
+                    [75, 125], [95, 130], [105, 145], [100, 165], [90, 185],
+                    [80, 205], [75, 215], [70, 195], [72, 160], [70, 140], [75, 125]
+                ]);
+
+                // Europe & Scandinavie
+                drawPoly([
+                    [165, 30], [190, 25], [210, 35], [215, 60], [200, 70],
+                    [175, 75], [160, 65], [155, 45], [165, 30]
+                ]);
+
+                // Afrique
+                drawPoly([
+                    [165, 75], [205, 75], [225, 95], [225, 125], [205, 160],
+                    [190, 185], [180, 160], [165, 130], [150, 105], [165, 75]
+                ]);
+
+                // Asie
+                drawPoly([
+                    [210, 35], [280, 25], [330, 35], [340, 65], [315, 85],
+                    [290, 105], [260, 110], [240, 95], [215, 60], [210, 35]
+                ]);
+
+                // Australie
+                drawPoly([
+                    [295, 145], [325, 140], [335, 160], [325, 180], [300, 175],
+                    [290, 160], [295, 145]
+                ]);
+
+                // 4 tuiles satellites mondiales réelles de zoom 1
+                for (let tx = 0; tx < 2; tx++) {
+                    for (let ty = 0; ty < 2; ty++) {
+                        const tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/1/${ty}/${tx}`;
+                        const tileImg = new Image();
+                        tileImg.crossOrigin = 'anonymous';
+                        tileImg.src = tileUrl;
+                        tileImg.onload = () => {
+                            c.drawImage(tileImg, tx * 512, ty * 256, 512, 256);
+                        };
+                    }
+                }
+            }
+            earthWorldTextureRef.current = cvs;
+        }
+        return earthWorldTextureRef.current;
     };
 
     const getVenueCanvas = (lat: number, lon: number, style: string) => {
@@ -5743,19 +5845,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 };
 
-                // Helper Globe Terrestre 3D réaliste
+                // Helper Globe Terrestre 3D réaliste (Texture mondiale pré-chargée, 0ms, 60 FPS garanti)
                 const drawEarthGlobe = (cx: number, cy: number, radius: number, centerLat: number, centerLon: number, globeAlpha: number = 1.0) => {
                     ctx.save();
                     ctx.globalAlpha = Math.max(0, Math.min(1, globeAlpha));
 
                     // Halo atmosphérique externe néon cyan
-                    const atmoGlow = ctx.createRadialGradient(cx, cy, radius * 0.95, cx, cy, radius * 1.25);
+                    const atmoGlow = ctx.createRadialGradient(cx, cy, radius * 0.95, cx, cy, radius * 1.30);
                     atmoGlow.addColorStop(0, 'rgba(0, 240, 255, 0.55)');
                     atmoGlow.addColorStop(0.35, 'rgba(0, 160, 255, 0.22)');
                     atmoGlow.addColorStop(1, 'rgba(0, 100, 255, 0)');
                     ctx.fillStyle = atmoGlow;
                     ctx.beginPath();
-                    ctx.arc(cx, cy, radius * 1.25, 0, Math.PI * 2);
+                    ctx.arc(cx, cy, radius * 1.30, 0, Math.PI * 2);
                     ctx.fill();
 
                     // Disque de découpe de la planète Terre
@@ -5765,27 +5867,37 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.clip();
 
                     // Fond océan profond
-                    ctx.fillStyle = '#051833';
+                    ctx.fillStyle = '#06162d';
                     ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
 
-                    // Dessin des tuiles satellites à l'intérieur de la sphère
-                    drawMap(ctx, centerLat, centerLon, 2.0, radius * 2, radius * 2, cx - radius, cy - radius, false);
+                    // Texture mondiale avec rotation longitude instantanée (aucun lag réseau)
+                    const worldTex = getEarthWorldTexture();
+                    const texW = radius * 4.0;
+                    const texH = radius * 2.0;
+                    const normLon = ((centerLon + 180) % 360 + 360) % 360;
+                    const offsetPct = normLon / 360;
+                    const drawX = cx - (offsetPct * texW);
+                    const drawY = cy - radius;
 
-                    // Ombrage 3D sphérique (terminateur jour / nuit)
+                    ctx.drawImage(worldTex, drawX - texW, drawY, texW, texH);
+                    ctx.drawImage(worldTex, drawX, drawY, texW, texH);
+                    ctx.drawImage(worldTex, drawX + texW, drawY, texW, texH);
+
+                    // Ombrage 3D sphérique photoréaliste (effet boule / éclairage jour & nuit)
                     const sphere3d = ctx.createRadialGradient(
-                        cx - radius * 0.35, cy - radius * 0.35, radius * 0.1,
+                        cx - radius * 0.35, cy - radius * 0.35, radius * 0.05,
                         cx, cy, radius
                     );
-                    sphere3d.addColorStop(0, 'rgba(255, 255, 255, 0.16)');
-                    sphere3d.addColorStop(0.55, 'rgba(0, 0, 0, 0.08)');
-                    sphere3d.addColorStop(0.85, 'rgba(2, 6, 18, 0.65)');
-                    sphere3d.addColorStop(1, 'rgba(1, 3, 10, 0.92)');
+                    sphere3d.addColorStop(0, 'rgba(255, 255, 255, 0.22)');
+                    sphere3d.addColorStop(0.45, 'rgba(0, 0, 0, 0.0)');
+                    sphere3d.addColorStop(0.80, 'rgba(2, 6, 18, 0.70)');
+                    sphere3d.addColorStop(1, 'rgba(1, 3, 10, 0.95)');
                     ctx.fillStyle = sphere3d;
                     ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
 
-                    ctx.restore(); // fin clip disque
+                    ctx.restore(); // Fin clip disque
 
-                    // Anneau atmosphère fine
+                    // Anneau atmosphère fine néon
                     ctx.strokeStyle = 'rgba(0, 240, 255, 0.7)';
                     ctx.lineWidth = 3.5;
                     ctx.beginPath();
