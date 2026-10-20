@@ -1315,15 +1315,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const mapSearchQuery = mapVenue.trim()
         ? `${mapVenue.trim()}, ${mapCity}, ${mapCountry}`
         : mapCityCountry;
-    const [mapZoom, setMapZoom] = useState(11);
-    const [mapLatitude, setMapLatitude] = useState(48.8566);
-    const [mapLongitude, setMapLongitude] = useState(2.3522);
+    const [mapZoom, setMapZoom] = useState(16);
+    const [mapLatitude, setMapLatitude] = useState(34.0933);
+    const [mapLongitude, setMapLongitude] = useState(-117.2917);
     const [isMapLoading, setIsMapLoading] = useState(false);
-    const [mapStyle, setMapStyle] = useState<'dark' | 'voyager' | 'satellite'>('dark');
+    const [mapStyle, setMapStyle] = useState<'dark' | 'voyager' | 'satellite'>('satellite');
     const [mapPinColor, setMapPinColor] = useState('#ff0033');
-    const [mapLabelText, setMapLabelText] = useState('PARIS, FRANCE');
+    const [mapLabelText, setMapLabelText] = useState('ESCAPE HALLOWEEN • SAN BERNARDINO');
     const [showMapPin, setShowMapPin] = useState(true);
     const [showMapLabel, setShowMapLabel] = useState(true);
+
+    // Modes d'Animation Carte en Reel (Terre ➔ Salle, Trajet 2 Events, HUD Scanner, Fixe)
+    const [mapAnimMode, setMapAnimMode] = useState<'DEEP_DIVE' | 'FLIGHT_ROUTE' | 'TACTICAL_HUD' | 'STATIC'>('DEEP_DIVE');
+    const [mapAnimDuration, setMapAnimDuration] = useState<number>(8); // 6s, 8s, 10s
+    const [isMapAnimPlaying, setIsMapAnimPlaying] = useState<boolean>(true);
+    const [mapScrubTime, setMapScrubTime] = useState<number | null>(null);
+
+    // Événement Destination B (pour le Mode Trajet 2 Events, ex: Dream Nation Paris)
+    const [mapDestFestivalText, setMapDestFestivalText] = useState('DREAM NATION');
+    const [mapDestVenue, setMapDestVenue] = useState('Parc des Expositions Paris Nord');
+    const [mapDestCity, setMapDestCity] = useState('Paris');
+    const [mapDestCountry, setMapDestCountry] = useState('France');
+    const [mapDestLatitude, setMapDestLatitude] = useState(48.9714);
+    const [mapDestLongitude, setMapDestLongitude] = useState(2.5186);
+    const [isMapDestLoading, setIsMapDestLoading] = useState(false);
+    const [mapDestPinColor, setMapDestPinColor] = useState('#00f0ff');
 
     // Selected Music Style state
     const [themeColor, setThemeColor] = useState<typeof STYLE_PRESETS[0] | null>(null);
@@ -1541,13 +1557,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    useEffect(() => {
-        if (!mapSearchQuery.trim() || mapSearchQuery.trim().length < 3) return;
-        const timer = setTimeout(() => {
-            handleGeocode();
-        }, 600);
-        return () => clearTimeout(timer);
-    }, [mapSearchQuery]);
+    const mapDestSearchQuery = mapDestVenue.trim()
+        ? `${mapDestVenue.trim()}, ${mapDestCity}, ${mapDestCountry}`
+        : `${mapDestCity}, ${mapDestCountry}`;
+
+    const handleGeocodeDest = async () => {
+        if (!mapDestSearchQuery.trim()) return;
+        setIsMapDestLoading(true);
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapDestSearchQuery)}&limit=1`);
+            const data = await response.json();
+            if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lon = parseFloat(data[0].lon);
+                setMapDestLatitude(lat);
+                setMapDestLongitude(lon);
+            }
+        } catch (error) {
+            console.error("Geocoding Dest error:", error);
+        } finally {
+            setIsMapDestLoading(false);
+        }
+    };
 
     const drawMap = (
         ctx: CanvasRenderingContext2D,
@@ -1556,124 +1587,140 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         zoom: number,
         width: number,
         height: number,
-        dx: number,
-        dy: number
+        dx: number = 0,
+        dy: number = 0,
+        renderPinAndLabel: boolean = true
     ) => {
-        const centerTileX = lon2tile(lon, zoom);
-        const centerTileY = lat2tile(lat, zoom);
+        // Support fractional zoom via canvas transform around center
+        const clampedZoom = Math.max(1, Math.min(18.5, zoom));
+        const intZoom = Math.max(1, Math.min(18, Math.round(clampedZoom)));
+        const scaleFrac = Math.pow(2, clampedZoom - intZoom);
 
         const canvasCenterX = dx + width / 2;
         const canvasCenterY = dy + height / 2;
-
-        const tilesX = Math.ceil(width / 256) + 1;
-        const tilesY = Math.ceil(height / 256) + 1;
-
-        const startX = Math.floor(centerTileX - tilesX / 2);
-        const endX = Math.ceil(centerTileX + tilesX / 2);
-        const startY = Math.floor(centerTileY - tilesY / 2);
-        const endY = Math.ceil(centerTileY + tilesY / 2);
 
         ctx.save();
         ctx.beginPath();
         ctx.rect(dx, dy, width, height);
         ctx.clip();
 
+        // Sub-pixel zoom transform
+        ctx.translate(canvasCenterX, canvasCenterY);
+        ctx.scale(scaleFrac, scaleFrac);
+        ctx.translate(-canvasCenterX, -canvasCenterY);
+
+        const centerTileX = lon2tile(lon, intZoom);
+        const centerTileY = lat2tile(lat, intZoom);
+
+        // Compute needed tile range at intZoom
+        const tilesX = Math.ceil(width / (256 * scaleFrac)) + 2;
+        const tilesY = Math.ceil(height / (256 * scaleFrac)) + 2;
+
+        const startX = Math.floor(centerTileX - tilesX / 2);
+        const endX = Math.ceil(centerTileX + tilesX / 2);
+        const startY = Math.floor(centerTileY - tilesY / 2);
+        const endY = Math.ceil(centerTileY + tilesY / 2);
+
+        const renderSingleTile = (z: number, tx: number, ty: number, drawX: number, drawY: number, drawSize: number) => {
+            const maxT = Math.pow(2, z);
+            if (ty < 0 || ty >= maxT) return;
+            const wX = ((tx % maxT) + maxT) % maxT;
+
+            let tileUrl = '';
+            let tileRefUrl = '';
+            if (mapStyle === 'voyager') {
+                tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${z}/${ty}/${wX}`;
+            } else if (mapStyle === 'satellite') {
+                tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${ty}/${wX}`;
+                tileRefUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/${z}/${ty}/${wX}`;
+            } else {
+                tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/${z}/${ty}/${wX}`;
+                tileRefUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/${z}/${ty}/${wX}`;
+            }
+
+            const drawImageWithCache = (url: string) => {
+                if (!url) return;
+                let tileImg = imageCacheRef.current[url];
+                if (!tileImg) {
+                    const imgObj = new Image();
+                    imgObj.crossOrigin = 'anonymous';
+                    imgObj.src = url;
+                    imgObj.onload = () => {
+                        imageCacheRef.current[url] = imgObj;
+                        generateImage();
+                    };
+                    imageCacheRef.current[url] = imgObj;
+                } else if (tileImg.complete && tileImg.naturalWidth > 0) {
+                    ctx.drawImage(tileImg, drawX, drawY, drawSize, drawSize);
+                }
+            };
+
+            drawImageWithCache(tileUrl);
+            if (tileRefUrl) drawImageWithCache(tileRefUrl);
+        };
+
         for (let x = startX; x <= endX; x++) {
             for (let y = startY; y <= endY; y++) {
-                const mapX = Math.floor(x);
-                const mapY = Math.floor(y);
-                const maxTileVal = Math.pow(2, zoom);
-                
-                if (mapY < 0 || mapY >= maxTileVal) continue;
-                const wrappedX = ((mapX % maxTileVal) + maxTileVal) % maxTileVal;
-
-                let tileUrl = '';
-                let tileRefUrl = '';
-                if (mapStyle === 'voyager') {
-                    tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${zoom}/${mapY}/${wrappedX}`;
-                } else if (mapStyle === 'satellite') {
-                    tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${mapY}/${wrappedX}`;
-                    tileRefUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/${zoom}/${mapY}/${wrappedX}`;
-                } else {
-                    tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/${zoom}/${mapY}/${wrappedX}`;
-                    tileRefUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/${zoom}/${mapY}/${wrappedX}`;
-                }
-
                 const tileDx = canvasCenterX + (x - centerTileX) * 256;
                 const tileDy = canvasCenterY + (y - centerTileY) * 256;
-
-                const renderTile = (url: string) => {
-                    if (!url) return;
-                    let tileImg = imageCacheRef.current[url];
-                    if (!tileImg) {
-                        const imgObj = new Image();
-                        imgObj.crossOrigin = 'anonymous';
-                        imgObj.src = url;
-                        imgObj.onload = () => {
-                            imageCacheRef.current[url] = imgObj;
-                            generateImage();
-                        };
-                        imageCacheRef.current[url] = imgObj;
-                    } else if (tileImg.complete && tileImg.naturalWidth > 0) {
-                        ctx.drawImage(tileImg, tileDx, tileDy, 256, 256);
-                    }
-                };
-
-                renderTile(tileUrl);
-                if (tileRefUrl) {
-                    renderTile(tileRefUrl);
-                }
+                renderSingleTile(intZoom, Math.floor(x), Math.floor(y), tileDx, tileDy, 256);
             }
         }
 
-        if (showMapPin) {
-            ctx.shadowColor = mapPinColor;
-            ctx.shadowBlur = 20;
-            ctx.fillStyle = mapPinColor;
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 4;
+        ctx.restore();
 
-            ctx.beginPath();
-            ctx.arc(canvasCenterX, canvasCenterY, 16, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.arc(canvasCenterX, canvasCenterY, 6, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffffff';
-            ctx.fill();
-        }
-
-        if (showMapLabel && mapLabelText) {
-            const locationText = mapLabelText.toUpperCase();
+        if (renderPinAndLabel) {
             ctx.save();
-            ctx.shadowColor = mapPinColor;
-            ctx.shadowBlur = 10;
-            ctx.font = '900 italic 28px "Montserrat", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            const tagW = ctx.measureText(locationText).width + 60;
-            const tagH = 56;
-            const tagX = canvasCenterX;
-            const tagY = showMapPin ? canvasCenterY + 70 : canvasCenterY;
-
-            ctx.fillStyle = 'rgba(10, 10, 10, 0.9)';
             ctx.beginPath();
-            ctx.roundRect(tagX - tagW / 2, tagY - tagH / 2, tagW, tagH, 12);
-            ctx.fill();
+            ctx.rect(dx, dy, width, height);
+            ctx.clip();
 
-            ctx.strokeStyle = mapPinColor;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.roundRect(tagX - tagW / 2, tagY - tagH / 2, tagW, tagH, 12);
-            ctx.stroke();
+            if (showMapPin) {
+                ctx.shadowColor = mapPinColor;
+                ctx.shadowBlur = 20;
+                ctx.fillStyle = mapPinColor;
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 4;
 
-            ctx.fillStyle = '#ffffff';
-            ctx.fillText(locationText, tagX, tagY + 2);
+                ctx.beginPath();
+                ctx.arc(canvasCenterX, canvasCenterY, 16, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(canvasCenterX, canvasCenterY, 6, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+            }
+
+            if (showMapLabel && mapLabelText) {
+                const locationText = mapLabelText.toUpperCase();
+                ctx.shadowColor = mapPinColor;
+                ctx.shadowBlur = 10;
+                ctx.font = '900 italic 28px "Montserrat", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const tagW = ctx.measureText(locationText).width + 60;
+                const tagH = 56;
+                const tagX = canvasCenterX;
+                const tagY = showMapPin ? canvasCenterY + 70 : canvasCenterY;
+
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.9)';
+                ctx.beginPath();
+                ctx.roundRect(tagX - tagW / 2, tagY - tagH / 2, tagW, tagH, 12);
+                ctx.fill();
+
+                ctx.strokeStyle = mapPinColor;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.roundRect(tagX - tagW / 2, tagY - tagH / 2, tagW, tagH, 12);
+                ctx.stroke();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(locationText, tagX, tagY + 2);
+            }
             ctx.restore();
         }
-
-        ctx.restore();
     };
 
     const checkImageHasAlpha = (imgElement: HTMLImageElement | null): boolean => {
@@ -5553,71 +5600,600 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 renderPromoOutro(ctx, 0, 1.0);
 
             } else if (theme === 'MAP') {
-                // 1. Draw Map Tiles
-                drawMap(ctx, mapLatitude, mapLongitude, mapZoom, canvas.width, canvas.height, 0, 0);
+                const isReel = effectiveTab === 'REEL';
+                const isStory = canvas.height > 1500;
+                const isExport = isVideoRecordingRef.current;
 
-                // 2. LIVE FROM Badge Frame
-                const frameX = 80;
-                const frameY = bgVideo ? 160 : 100;
-                const frameW = 440;
-                const frameH = 200;
-
-                ctx.save();
-                ctx.shadowColor = '#ff0033';
-                ctx.shadowBlur = 20;
-
-                ctx.fillStyle = 'rgba(10, 10, 10, 0.9)';
-                ctx.beginPath();
-                ctx.roundRect(frameX, frameY, frameW, frameH, 24);
-                ctx.fill();
-
-                ctx.strokeStyle = '#ff0033';
-                ctx.lineWidth = 3.5;
-                ctx.beginPath();
-                ctx.roundRect(frameX, frameY, frameW, frameH, 24);
-                ctx.stroke();
-
-                ctx.shadowBlur = 0;
-
-                const dotPulse = isVideoRecordingRef.current
-                    ? (Math.sin((deterministicAnimTimeRef.current * 1000) / 300) + 1) / 2
-                    : (Math.sin(Date.now() / 300) + 1) / 2;
-                ctx.beginPath();
-                ctx.arc(frameX + 45, frameY + 50, 8 + (dotPulse * 2.5), 0, Math.PI * 2);
-                ctx.fillStyle = '#ff0033';
-                ctx.fill();
-
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '900 26px "Montserrat", sans-serif';
-                ctx.letterSpacing = '4px';
-                ctx.textAlign = 'left';
-                ctx.fillText('LIVE FROM', frameX + 75, frameY + 58);
-
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-                ctx.fillRect(frameX + 30, frameY + 95, frameW - 60, 2);
-
-                ctx.fillStyle = '#ffffff';
-                ctx.textAlign = 'center';
-                let festFontSize = 36;
-                ctx.font = `900 italic ${festFontSize}px "Orbitron", sans-serif`;
-                const festName = mapFestivalText.toUpperCase();
-
-                while (ctx.measureText(festName).width > frameW - 60 && festFontSize > 18) {
-                    festFontSize--;
-                    ctx.font = `900 italic ${festFontSize}px "Orbitron", sans-serif`;
+                // 1. Calcul du temps et du progrès
+                let animTime = 0;
+                const duration = Math.max(4, mapAnimDuration || 8);
+                if (mapScrubTime !== null && !isExport) {
+                    animTime = mapScrubTime;
+                } else if (isExport) {
+                    animTime = deterministicAnimTimeRef.current;
+                } else {
+                    animTime = ((Date.now() - animStartTimeRef.current) / 1000);
                 }
-                ctx.fillText(festName, frameX + frameW / 2, frameY + 152);
-                ctx.restore();
+                const rawProgress = mapAnimMode === 'STATIC' ? 1.0 : ((animTime % duration) / duration);
+                const progress = Math.max(0, Math.min(1, rawProgress));
 
-                if (isMapLoading) {
+                // Helper Espace étoilé & nébuleuses cosmiques
+                const drawSpaceBackground = (alpha: number = 1.0) => {
                     ctx.save();
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                    ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+                    ctx.fillStyle = '#020208';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    const neb1 = ctx.createRadialGradient(canvas.width * 0.35, canvas.height * 0.3, 40, canvas.width * 0.35, canvas.height * 0.3, 700);
+                    neb1.addColorStop(0, 'rgba(0, 240, 255, 0.16)');
+                    neb1.addColorStop(0.5, 'rgba(189, 0, 255, 0.08)');
+                    neb1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = neb1;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    ctx.fillStyle = '#ffffff';
+                    for (let i = 0; i < 75; i++) {
+                        const sx = ((i * 137.5) % 1) * canvas.width;
+                        const sy = (((i * 269.3) + 0.15) % 1) * canvas.height;
+                        const sr = (i % 6 === 0) ? 2.8 : (i % 3 === 0) ? 1.8 : 1.1;
+                        const starPulse = 0.5 + 0.5 * Math.sin(animTime * 2.5 + i);
+                        ctx.globalAlpha = Math.max(0, Math.min(1, alpha * (0.35 + 0.65 * starPulse)));
+                        ctx.beginPath();
+                        ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.restore();
+                };
+
+                // Helper Globe Terrestre 3D réaliste
+                const drawEarthGlobe = (cx: number, cy: number, radius: number, centerLat: number, centerLon: number, globeAlpha: number = 1.0) => {
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, Math.min(1, globeAlpha));
+
+                    // Halo atmosphérique externe néon cyan
+                    const atmoGlow = ctx.createRadialGradient(cx, cy, radius * 0.95, cx, cy, radius * 1.25);
+                    atmoGlow.addColorStop(0, 'rgba(0, 240, 255, 0.55)');
+                    atmoGlow.addColorStop(0.35, 'rgba(0, 160, 255, 0.22)');
+                    atmoGlow.addColorStop(1, 'rgba(0, 100, 255, 0)');
+                    ctx.fillStyle = atmoGlow;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius * 1.25, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Disque de découpe de la planète Terre
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                    ctx.clip();
+
+                    // Fond océan profond
+                    ctx.fillStyle = '#051833';
+                    ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+
+                    // Dessin des tuiles satellites à l'intérieur de la sphère
+                    drawMap(ctx, centerLat, centerLon, 2.0, radius * 2, radius * 2, cx - radius, cy - radius, false);
+
+                    // Ombrage 3D sphérique (terminateur jour / nuit)
+                    const sphere3d = ctx.createRadialGradient(
+                        cx - radius * 0.35, cy - radius * 0.35, radius * 0.1,
+                        cx, cy, radius
+                    );
+                    sphere3d.addColorStop(0, 'rgba(255, 255, 255, 0.16)');
+                    sphere3d.addColorStop(0.55, 'rgba(0, 0, 0, 0.08)');
+                    sphere3d.addColorStop(0.85, 'rgba(2, 6, 18, 0.65)');
+                    sphere3d.addColorStop(1, 'rgba(1, 3, 10, 0.92)');
+                    ctx.fillStyle = sphere3d;
+                    ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+
+                    ctx.restore(); // fin clip disque
+
+                    // Anneau atmosphère fine
+                    ctx.strokeStyle = 'rgba(0, 240, 255, 0.7)';
+                    ctx.lineWidth = 3.5;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    ctx.restore();
+                };
+
+                // Helper Card Festival Information
+                const drawFestivalCard = (
+                    title: string,
+                    venueName: string,
+                    cityCountryStr: string,
+                    badgeLabel: string = 'LIVE FROM',
+                    badgeCol: string = '#ff0033',
+                    cardAlpha: number = 1.0,
+                    customY?: number
+                ) => {
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, Math.min(1, cardAlpha));
+                    const frameW = canvas.width - 120;
+                    const frameH = 220;
+                    const frameX = 60;
+                    const frameY = customY ?? (canvas.height - frameH - 120);
+
+                    // Glow & Fond verre sombre
+                    ctx.shadowColor = badgeCol;
+                    ctx.shadowBlur = 25;
+                    ctx.fillStyle = 'rgba(8, 10, 18, 0.90)';
+                    ctx.beginPath();
+                    ctx.roundRect(frameX, frameY, frameW, frameH, 28);
+                    ctx.fill();
+
+                    // Bordure néon
+                    ctx.strokeStyle = badgeCol;
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+
+                    // Pastille clignotante REC
+                    const dotPulse = 0.5 + 0.5 * Math.sin(animTime * 8);
+                    ctx.beginPath();
+                    ctx.arc(frameX + 45, frameY + 45, 8 + dotPulse * 3, 0, Math.PI * 2);
+                    ctx.fillStyle = badgeCol;
+                    ctx.fill();
+
+                    // Badge text
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '900 22px "Montserrat", sans-serif';
+                    ctx.letterSpacing = '4px';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(badgeLabel, frameX + 70, frameY + 52);
+
+                    // Ligne de séparation
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+                    ctx.fillRect(frameX + 35, frameY + 75, frameW - 70, 2);
+
+                    // Nom du Festival en grand
+                    let festFontSize = 42;
+                    ctx.font = `900 italic ${festFontSize}px "Orbitron", sans-serif`;
+                    const nameStr = (title || 'FESTIVAL').toUpperCase();
+                    while (ctx.measureText(nameStr).width > frameW - 70 && festFontSize > 22) {
+                        festFontSize--;
+                        ctx.font = `900 italic ${festFontSize}px "Orbitron", sans-serif`;
+                    }
+                    ctx.textAlign = 'center';
+                    ctx.fillText(nameStr, frameX + frameW / 2, frameY + 130);
+
+                    // Lieu / Salle / Ville
+                    const subLoc = [venueName, cityCountryStr].filter(Boolean).join(' • ').toUpperCase();
+                    ctx.font = '800 20px "Montserrat", sans-serif';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                    let subSize = 20;
+                    while (ctx.measureText(subLoc).width > frameW - 70 && subSize > 13) {
+                        subSize--;
+                        ctx.font = `800 ${subSize}px "Montserrat", sans-serif`;
+                    }
+                    ctx.fillText(subLoc, frameX + frameW / 2, frameY + 175);
+
+                    ctx.restore();
+                };
+
+                // Helper Traînées de vitesse supersonique (Hyperspeed lines)
+                const drawSpeedStreaks = (intensity: number) => {
+                    if (intensity <= 0.02) return;
+                    ctx.save();
+                    ctx.globalAlpha = Math.min(0.65, intensity);
+                    const cx = canvas.width / 2;
+                    const cy = canvas.height / 2;
+                    ctx.lineWidth = 2.5;
+                    for (let i = 0; i < 36; i++) {
+                        const angle = (i / 36) * Math.PI * 2;
+                        const distStart = 140 + ((i * 37) % 180);
+                        const distEnd = distStart + 160 * intensity;
+                        const x1 = cx + Math.cos(angle) * distStart;
+                        const y1 = cy + Math.sin(angle) * distStart;
+                        const x2 = cx + Math.cos(angle) * distEnd;
+                        const y2 = cy + Math.sin(angle) * distEnd;
+
+                        const streakGrad = ctx.createLinearGradient(x1, y1, x2, y2);
+                        streakGrad.addColorStop(0, 'rgba(0, 240, 255, 0)');
+                        streakGrad.addColorStop(1, 'rgba(0, 240, 255, 0.8)');
+                        ctx.strokeStyle = streakGrad;
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.stroke();
+                    }
+                    ctx.restore();
+                };
+
+                // Helper Onde de choc d'impact
+                const drawShockwave = (cx: number, cy: number, shockProgress: number, col: string) => {
+                    if (shockProgress <= 0 || shockProgress >= 1) return;
+                    ctx.save();
+                    const radius = 20 + shockProgress * 450;
+                    const alpha = Math.max(0, 1 - shockProgress);
+                    ctx.globalAlpha = alpha;
+                    ctx.shadowColor = col;
+                    ctx.shadowBlur = 30;
+                    ctx.strokeStyle = col;
+                    ctx.lineWidth = 6 * (1 - shockProgress);
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.restore();
+                };
+
+                // Helper Pin GPS avec rebond
+                const drawPinDrop = (cx: number, cy: number, dropProgress: number, col: string) => {
+                    ctx.save();
+                    const bounce = Math.sin(Math.min(1, dropProgress) * Math.PI * 1.5) * Math.exp(-dropProgress * 3);
+                    const pinY = cy - Math.max(0, (1 - Math.min(1, dropProgress)) * 120) + bounce * 25;
+
+                    ctx.shadowColor = col;
+                    ctx.shadowBlur = 24;
+                    ctx.fillStyle = col;
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 4;
+
+                    ctx.beginPath();
+                    ctx.arc(cx, pinY, 20, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.arc(cx, pinY, 7, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fill();
+                    ctx.restore();
+                };
+
+                // Helper Bannière Header HUD
+                const drawHudTopBar = (leftText: string, rightText: string) => {
+                    ctx.save();
+                    const barY = isStory ? 100 : 70;
+                    ctx.fillStyle = 'rgba(8, 10, 18, 0.85)';
+                    ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.roundRect(50, barY, canvas.width - 100, 56, 16);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Pastille live cyan
+                    const p = 0.5 + 0.5 * Math.sin(animTime * 6);
+                    ctx.beginPath();
+                    ctx.arc(75, barY + 28, 6 + p * 2.5, 0, Math.PI * 2);
+                    ctx.fillStyle = '#00f0ff';
+                    ctx.fill();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '900 18px "Montserrat", sans-serif';
+                    ctx.letterSpacing = '2px';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(leftText, 95, barY + 34);
+
+                    ctx.font = '900 18px "Orbitron", sans-serif';
+                    ctx.fillStyle = '#00f0ff';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(rightText, canvas.width - 75, barY + 34);
+                    ctx.restore();
+                };
+
+                // ==============================================================
+                // EXÉCUTION DU MODE CHOISI
+                // ==============================================================
+                if (mapAnimMode === 'DEEP_DIVE') {
+                    // MODE 1 : ZOOM TERRE ➔ LIEU DU FESTIVAL
+                    const t = progress;
+                    let curZoom = 2.0;
+                    let speedIntensity = 0;
+                    let altText = 'ALT: 12 500 KM';
+
+                    if (t < 0.18) {
+                        // Phase 1 : Orbite spatiale
+                        curZoom = 2.0;
+                        drawSpaceBackground(1.0);
+                        const radius = Math.min(canvas.width, canvas.height) * 0.36;
+                        drawEarthGlobe(canvas.width / 2, canvas.height / 2, radius, mapLatitude, mapLongitude, 1.0);
+                        drawHudTopBar('DROPSIDERS ORBITAL FEED', 'ALT: 12 500 KM');
+                    } else if (t < 0.75) {
+                        // Phase 2 : Plongeon supersonique
+                        const rel = (t - 0.18) / 0.57;
+                        const ease = Math.pow(rel, 2.2);
+                        curZoom = 2.0 + ease * 15.5; // 2.0 -> 17.5
+                        speedIntensity = Math.sin(rel * Math.PI) * 1.2;
+
+                        if (curZoom < 3.8) {
+                            const globeAlpha = Math.max(0, 1 - (curZoom - 2.0) / 1.8);
+                            drawSpaceBackground(globeAlpha);
+                            const radius = Math.min(canvas.width, canvas.height) * (0.36 + ease * 0.8);
+                            drawEarthGlobe(canvas.width / 2, canvas.height / 2, radius, mapLatitude, mapLongitude, globeAlpha);
+                        } else {
+                            drawMap(ctx, mapLatitude, mapLongitude, curZoom, canvas.width, canvas.height, 0, 0, false);
+                        }
+
+                        drawSpeedStreaks(speedIntensity);
+                        const altKm = Math.round(12500 * (1 - ease));
+                        altText = altKm > 10 ? `ALT: ${altKm.toLocaleString()} KM` : `ALT: ${Math.round(altKm * 100 + 80)} M`;
+                        drawHudTopBar('PLONGEON ATMOSPHÉRIQUE', altText);
+                    } else {
+                        // Phase 3 : Atterrissage sur la salle & Badge
+                        curZoom = 17.5;
+                        drawMap(ctx, mapLatitude, mapLongitude, curZoom, canvas.width, canvas.height, 0, 0, false);
+                        const shockProg = (t - 0.75) / 0.25;
+                        drawShockwave(canvas.width / 2, canvas.height / 2, shockProg, mapPinColor);
+                        drawPinDrop(canvas.width / 2, canvas.height / 2, shockProg * 2, mapPinColor);
+                        drawFestivalCard(mapFestivalText, mapVenue, mapCityCountry, 'LIVE FROM', mapPinColor, 1.0);
+                        drawHudTopBar('ATTERRISSAGE RÉUSSI', 'ALT: 45 M');
+                    }
+
+                } else if (mapAnimMode === 'FLIGHT_ROUTE') {
+                    // MODE 2 : TRAJET 2 EVENTS (Escape Halloween ➔ Dream Nation)
+                    const t = progress;
+                    const latA = mapLatitude;
+                    const lonA = mapLongitude;
+                    const latB = mapDestLatitude;
+                    const lonB = mapDestLongitude;
+
+                    // Distance Haversine en KM
+                    const dLat = ((latB - latA) * Math.PI) / 180;
+                    const dLon = ((lonB - lonA) * Math.PI) / 180;
+                    const aH = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                              Math.cos((latA * Math.PI) / 180) * Math.cos((latB * Math.PI) / 180) *
+                              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                    const cH = 2 * Math.atan2(Math.sqrt(aH), Math.sqrt(1 - aH));
+                    const distKm = Math.round(6371 * cH);
+
+                    if (t < 0.20) {
+                        // Phase 1 : Départ Event A (Escape Halloween)
+                        drawMap(ctx, latA, lonA, 16.5, canvas.width, canvas.height, 0, 0, false);
+                        drawPinDrop(canvas.width / 2, canvas.height / 2, 1.0, mapPinColor);
+                        drawFestivalCard(mapFestivalText, mapVenue, mapCityCountry, 'DÉPART (EVENT 1)', mapPinColor, 1.0);
+                        drawHudTopBar('VOL FESTIVAL HOPPER', 'POINT DE DÉPART');
+                    } else if (t < 0.35) {
+                        // Phase 2 : Dézoom vers l'espace
+                        const rel = (t - 0.20) / 0.15;
+                        const curZ = 16.5 - rel * 14.5; // 16.5 -> 2.0
+                        if (curZ < 3.8) {
+                            const globeAlpha = Math.min(1, (3.8 - curZ) / 1.8);
+                            drawSpaceBackground(globeAlpha);
+                            const radius = Math.min(canvas.width, canvas.height) * 0.36;
+                            drawEarthGlobe(canvas.width / 2, canvas.height / 2, radius, latA, lonA, globeAlpha);
+                        } else {
+                            drawMap(ctx, latA, lonA, curZ, canvas.width, canvas.height, 0, 0, false);
+                        }
+                        drawSpeedStreaks(rel * 0.8);
+                        drawHudTopBar('DÉCOLLAGE ORBITAL', 'ALT: 10 000 KM');
+                    } else if (t < 0.65) {
+                        // Phase 3 : Vol orbital A -> B avec arc laser néon
+                        const rel = (t - 0.35) / 0.30;
+                        const curLat = latA + (latB - latA) * rel;
+                        const curLon = lonA + (lonB - lonA) * rel;
+
+                        drawSpaceBackground(1.0);
+                        const radius = Math.min(canvas.width, canvas.height) * 0.36;
+                        const cx = canvas.width / 2;
+                        const cy = canvas.height / 2;
+                        drawEarthGlobe(cx, cy, radius, curLat, curLon, 1.0);
+
+                        // Traçage de l'Arc laser de vol A -> B
+                        ctx.save();
+                        const arcStartX = cx - radius * 0.55;
+                        const arcStartY = cy + radius * 0.1;
+                        const arcEndX = cx + radius * 0.55;
+                        const arcEndY = cy - radius * 0.1;
+                        const arcCtrlX = cx;
+                        const arcCtrlY = cy - radius * 0.95;
+
+                        // Traînée lumineuse néon
+                        const arcGrad = ctx.createLinearGradient(arcStartX, arcStartY, arcEndX, arcEndY);
+                        arcGrad.addColorStop(0, '#ff0033');
+                        arcGrad.addColorStop(1, '#00f0ff');
+                        ctx.strokeStyle = arcGrad;
+                        ctx.lineWidth = 5;
+                        ctx.shadowColor = '#00f0ff';
+                        ctx.shadowBlur = 20;
+
+                        ctx.beginPath();
+                        ctx.moveTo(arcStartX, arcStartY);
+                        ctx.quadraticCurveTo(arcCtrlX, arcCtrlY, arcEndX, arcEndY);
+                        ctx.stroke();
+
+                        // Point avion / navette qui voyage le long de l'arc
+                        const tPt = rel;
+                        const px = (1 - tPt) * (1 - tPt) * arcStartX + 2 * (1 - tPt) * tPt * arcCtrlX + tPt * tPt * arcEndX;
+                        const py = (1 - tPt) * (1 - tPt) * arcStartY + 2 * (1 - tPt) * tPt * arcCtrlY + tPt * tPt * arcEndY;
+
+                        ctx.fillStyle = '#ffffff';
+                        ctx.beginPath();
+                        ctx.arc(px, py, 9, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        ctx.beginPath();
+                        ctx.arc(px, py, 18, 0, Math.PI * 2);
+                        ctx.strokeStyle = '#00f0ff';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                        ctx.restore();
+
+                        // Distance en direct
+                        const curKm = Math.round(distKm * rel);
+                        drawHudTopBar(`${(mapFestivalText || 'A').toUpperCase()} ➔ ${(mapDestFestivalText || 'B').toUpperCase()}`, `${curKm} / ${distKm} KM`);
+                    } else if (t < 0.80) {
+                        // Phase 4 : Plongeon vers Event B (Dream Nation Paris)
+                        const rel = (t - 0.65) / 0.15;
+                        const ease = Math.pow(rel, 2.2);
+                        const curZ = 2.0 + ease * 15.5; // 2.0 -> 17.5
+
+                        if (curZ < 3.8) {
+                            const globeAlpha = Math.max(0, 1 - (curZ - 2.0) / 1.8);
+                            drawSpaceBackground(globeAlpha);
+                            const radius = Math.min(canvas.width, canvas.height) * (0.36 + ease * 0.8);
+                            drawEarthGlobe(canvas.width / 2, canvas.height / 2, radius, latB, lonB, globeAlpha);
+                        } else {
+                            drawMap(ctx, latB, lonB, curZ, canvas.width, canvas.height, 0, 0, false);
+                        }
+                        drawSpeedStreaks(rel * 0.9);
+                        drawHudTopBar('DESCENTE SUR DESTINATION', 'APPROCHE FINALE');
+                    } else {
+                        // Phase 5 : Arrivée sur la salle Event B (Dream Nation)
+                        drawMap(ctx, latB, lonB, 17.5, canvas.width, canvas.height, 0, 0, false);
+                        const shockProg = (t - 0.80) / 0.20;
+                        drawShockwave(canvas.width / 2, canvas.height / 2, shockProg, mapDestPinColor);
+                        drawPinDrop(canvas.width / 2, canvas.height / 2, shockProg * 2, mapDestPinColor);
+                        drawFestivalCard(mapDestFestivalText, mapDestVenue, `${mapDestCity}, ${mapDestCountry}`, 'DESTINATION (EVENT 2)', mapDestPinColor, 1.0);
+                        drawHudTopBar('DESTINATION ATTEINTE', `${distKm} KM PARCOURUS`);
+                    }
+
+                } else if (mapAnimMode === 'TACTICAL_HUD') {
+                    // MODE 3 : SCANNER HUD TACTIQUE CYBERPUNK
+                    const t = progress;
+                    const rel = t < 0.75 ? Math.pow(t / 0.75, 2.0) : 1.0;
+                    const curZoom = 2.5 + rel * 15.0; // 2.5 -> 17.5
+
+                    drawMap(ctx, mapLatitude, mapLongitude, curZoom, canvas.width, canvas.height, 0, 0, false);
+
+                    // Overlay HUD Cyberpunk
+                    ctx.save();
+                    const cx = canvas.width / 2;
+                    const cy = canvas.height / 2;
+
+                    // Viseur central réticule
+                    ctx.strokeStyle = '#00f0ff';
+                    ctx.lineWidth = 2.5;
+                    ctx.shadowColor = '#00f0ff';
+                    ctx.shadowBlur = 15;
+
+                    // Anneau tournant
+                    const rotAngle = animTime * 1.5;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 140, rotAngle, rotAngle + Math.PI * 0.4);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 140, rotAngle + Math.PI, rotAngle + Math.PI * 1.4);
+                    ctx.stroke();
+
+                    // Anneau interne avec croix
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 80, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(cx - 100, cy);
+                    ctx.lineTo(cx - 30, cy);
+                    ctx.moveTo(cx + 30, cy);
+                    ctx.lineTo(cx + 100, cy);
+                    ctx.moveTo(cx, cy - 100);
+                    ctx.lineTo(cx, cy - 30);
+                    ctx.moveTo(cx, cy + 30);
+                    ctx.lineTo(cx, cy + 100);
+                    ctx.stroke();
+
+                    // Faisceau radar balayage
+                    const radarAngle = animTime * 3;
+                    const sweepGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 220);
+                    sweepGrad.addColorStop(0, 'rgba(0, 240, 255, 0.4)');
+                    sweepGrad.addColorStop(1, 'rgba(0, 240, 255, 0)');
+                    ctx.fillStyle = sweepGrad;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.arc(cx, cy, 220, radarAngle, radarAngle + 0.6);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // 4 Coins tactiques [ + ]
+                    const corners = [
+                        { x: 50, y: 180 },
+                        { x: canvas.width - 50, y: 180 },
+                        { x: 50, y: canvas.height - 360 },
+                        { x: canvas.width - 50, y: canvas.height - 360 }
+                    ];
+                    ctx.lineWidth = 3;
+                    corners.forEach(c => {
+                        const len = 30;
+                        const sX = c.x < cx ? 1 : -1;
+                        const sY = c.y < cy ? 1 : -1;
+                        ctx.beginPath();
+                        ctx.moveTo(c.x, c.y + len * sY);
+                        ctx.lineTo(c.x, c.y);
+                        ctx.lineTo(c.x + len * sX, c.y);
+                        ctx.stroke();
+                    });
+
+                    // Coordonnées GPS ultra-précises en bas du réticule
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#00f0ff';
+                    ctx.font = '900 18px "Orbitron", sans-serif';
+                    ctx.textAlign = 'center';
+                    const jitter = Math.sin(animTime * 10) * 0.00005;
+                    ctx.fillText(`LAT: ${(mapLatitude + jitter).toFixed(5)}° N  |  LON: ${(mapLongitude + jitter).toFixed(5)}° E`, cx, cy + 180);
+
+                    ctx.font = '900 16px "Montserrat", sans-serif';
+                    ctx.fillStyle = t >= 0.75 ? '#39ff14' : '#ff0055';
+                    ctx.fillText(t >= 0.75 ? '● TARGET LOCKED (SATELLITE 0.2M)' : '○ SCANNING RECONNAISSANCE...', cx, cy + 215);
+
+                    ctx.restore();
+
+                    if (t >= 0.75) {
+                        drawFestivalCard(mapFestivalText, mapVenue, mapCityCountry, 'CIBLE VERROUILLÉE', '#00f0ff', 1.0);
+                    }
+                    drawHudTopBar('SATELLITE RECON PROTOCOL', `ZOOM: ${curZoom.toFixed(1)}X`);
+
+                } else {
+                    // MODE 4 : STATIC (CARTE CLASSIQUE FIXE)
+                    drawMap(ctx, mapLatitude, mapLongitude, mapZoom, canvas.width, canvas.height, 0, 0, true);
+                    const frameX = 80;
+                    const frameY = bgVideo ? 160 : 100;
+                    const frameW = 440;
+                    const frameH = 200;
+
+                    ctx.save();
+                    ctx.shadowColor = mapPinColor;
+                    ctx.shadowBlur = 20;
+                    ctx.fillStyle = 'rgba(10, 10, 10, 0.9)';
+                    ctx.beginPath();
+                    ctx.roundRect(frameX, frameY, frameW, frameH, 24);
+                    ctx.fill();
+
+                    ctx.strokeStyle = mapPinColor;
+                    ctx.lineWidth = 3.5;
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+
+                    const dotPulse = isExport
+                        ? (Math.sin((deterministicAnimTimeRef.current * 1000) / 300) + 1) / 2
+                        : (Math.sin(Date.now() / 300) + 1) / 2;
+                    ctx.beginPath();
+                    ctx.arc(frameX + 45, frameY + 50, 8 + (dotPulse * 2.5), 0, Math.PI * 2);
+                    ctx.fillStyle = mapPinColor;
+                    ctx.fill();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '900 26px "Montserrat", sans-serif';
+                    ctx.letterSpacing = '4px';
+                    ctx.textAlign = 'left';
+                    ctx.fillText('LIVE FROM', frameX + 75, frameY + 58);
+
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+                    ctx.fillRect(frameX + 30, frameY + 95, frameW - 60, 2);
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    let festFontSize = 36;
+                    ctx.font = `900 italic ${festFontSize}px "Orbitron", sans-serif`;
+                    const festName = mapFestivalText.toUpperCase();
+
+                    while (ctx.measureText(festName).width > frameW - 60 && festFontSize > 18) {
+                        festFontSize--;
+                        ctx.font = `900 italic ${festFontSize}px "Orbitron", sans-serif`;
+                    }
+                    ctx.fillText(festName, frameX + frameW / 2, frameY + 152);
+                    ctx.restore();
+                }
+
+                if (isMapLoading || isMapDestLoading) {
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     ctx.fillStyle = '#ffffff';
                     ctx.font = '900 italic 30px "Montserrat", sans-serif';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.fillText('RECHERCHE EN COURS...', canvas.width / 2, canvas.height / 2);
+                    ctx.fillText('CALCUL DES COORDONNÉES SATELLITE...', canvas.width / 2, canvas.height / 2);
                     ctx.restore();
                 }
 
@@ -6870,7 +7446,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         const isBadgeTheme = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'AFFICHE', 'PLANNING', 'HIGHLIGHTS'].includes(theme);
         const shouldAnimateBadge = isBadgeTheme && activeTab === 'REEL';
-        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS') {
+        const shouldAnimateMap = theme === 'MAP' && mapAnimMode !== 'STATIC' && isMapAnimPlaying;
+        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS' || shouldAnimateMap) {
             let lastRender = 0;
             let isRendering = false;
             const loop = (timestamp: number) => {
@@ -6890,7 +7467,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide
     useEffect(() => {
@@ -9050,6 +9627,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setIsEditorialAfficheActive(false);
         if (newTheme === 'MAP') {
             setActiveTab('REEL');
+            setMapAnimMode('DEEP_DIVE');
+            setIsMapAnimPlaying(true);
+            setMapStyle('satellite');
+            animStartTimeRef.current = Date.now();
         }
         setTheme(newTheme);
         if (newTheme !== 'PROMO') {
@@ -14636,149 +15217,468 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const mapEditor = (
         <div className="space-y-4">
-            {/* 1. Nom du Festival */}
-            <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Nom du Festival</label>
-                <input 
-                    value={mapFestivalText} 
-                    onChange={e => {
-                        setMapFestivalText(e.target.value);
-                        setTimeout(() => generateImage(), 50);
-                    }} 
-                    placeholder="EX: LOLLAPALOOZA" 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold italic uppercase focus:border-white/40 outline-none transition-all shadow-md" 
-                />
+            {/* 1. SÉLECTEUR DE MODE D'ANIMATION */}
+            <div className="space-y-2 p-3 bg-white/5 border border-white/10 rounded-2xl">
+                <div className="flex items-center justify-between pl-1">
+                    <label className="text-[9px] font-black text-neon-cyan uppercase tracking-widest flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse" />
+                        Mode d'Animation Reel (9:16)
+                    </label>
+                    <span className="text-[7.5px] font-bold text-gray-400 uppercase">Choisis ton style</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                    <button
+                        onClick={() => {
+                            setMapAnimMode('DEEP_DIVE');
+                            setIsMapAnimPlaying(true);
+                            setMapScrubTime(null);
+                            animStartTimeRef.current = Date.now();
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                            mapAnimMode === 'DEEP_DIVE'
+                                ? 'bg-neon-cyan/20 border-neon-cyan text-white shadow-[0_0_12px_rgba(0,240,255,0.35)]'
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                        }`}
+                    >
+                        <div className="text-[10px] font-black uppercase text-neon-cyan flex items-center gap-1.5">
+                            🚀 Zoom Terre
+                        </div>
+                        <div className="text-[7.5px] text-gray-400 font-medium mt-0.5">
+                            Espace ➔ Plongeon vers le festival
+                        </div>
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            setMapAnimMode('FLIGHT_ROUTE');
+                            setIsMapAnimPlaying(true);
+                            setMapScrubTime(null);
+                            animStartTimeRef.current = Date.now();
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                            mapAnimMode === 'FLIGHT_ROUTE'
+                                ? 'bg-neon-red/20 border-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.35)]'
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                        }`}
+                    >
+                        <div className="text-[10px] font-black uppercase text-neon-red flex items-center gap-1.5">
+                            ✈️ Trajet 2 Events
+                        </div>
+                        <div className="text-[7.5px] text-gray-400 font-medium mt-0.5">
+                            Vol A ➔ B avec arc laser néon
+                        </div>
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            setMapAnimMode('TACTICAL_HUD');
+                            setIsMapAnimPlaying(true);
+                            setMapScrubTime(null);
+                            animStartTimeRef.current = Date.now();
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                            mapAnimMode === 'TACTICAL_HUD'
+                                ? 'bg-purple-500/20 border-purple-500 text-white shadow-[0_0_12px_rgba(168,85,247,0.35)]'
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                        }`}
+                    >
+                        <div className="text-[10px] font-black uppercase text-purple-400 flex items-center gap-1.5">
+                            🎯 Scanner HUD
+                        </div>
+                        <div className="text-[7.5px] text-gray-400 font-medium mt-0.5">
+                            Radar 360° & télémétrie GPS
+                        </div>
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            setMapAnimMode('STATIC');
+                            setIsMapAnimPlaying(false);
+                            setMapScrubTime(null);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                            mapAnimMode === 'STATIC'
+                                ? 'bg-white/20 border-white text-white'
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                        }`}
+                    >
+                        <div className="text-[10px] font-black uppercase text-white flex items-center gap-1.5">
+                            📍 Carte Fixe
+                        </div>
+                        <div className="text-[7.5px] text-gray-400 font-medium mt-0.5">
+                            Photo classique sans animation
+                        </div>
+                    </button>
+                </div>
             </div>
 
-            {/* 2. Recherche Lieu, Ville & Pays */}
-            <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Localisation</label>
-
-                {/* Lieu spécifique (optionnel) */}
-                <div className="space-y-1">
-                    <div className="flex items-center gap-1.5 pl-1">
-                        <span className="text-[8px] font-black text-neon-cyan/70 uppercase tracking-widest">📍 Lieu</span>
-                        <span className="text-[7px] font-bold text-gray-600 uppercase">(optionnel)</span>
-                    </div>
-                    <div className="relative">
-                        <input 
-                            value={mapVenue}
-                            onChange={e => setMapVenue(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') handleGeocode(); }}
-                            placeholder="EX: Parc de Schoore, Adidas Arena Paris..."
-                            className={`w-full bg-neon-cyan/5 border rounded-xl p-3 pr-10 text-white font-bold focus:outline-none transition-all shadow-md text-xs placeholder-gray-600 ${
-                                mapVenue.trim()
-                                    ? 'border-neon-cyan/40 focus:border-neon-cyan/70 shadow-[0_0_8px_rgba(0,240,255,0.1)]'
-                                    : 'border-white/10 focus:border-neon-cyan/30'
-                            }`}
-                        />
-                        {mapVenue.trim() && (
+            {/* 2. CONTRÔLEUR DE LECTURE & TEST INSTANTANÉ */}
+            {mapAnimMode !== 'STATIC' && (
+                <div className="p-3 bg-neon-cyan/5 border border-neon-cyan/30 rounded-2xl space-y-2.5">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[8.5px] font-black uppercase text-neon-cyan tracking-wider flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-neon-cyan animate-ping" />
+                            Aperçu Vidéo & Scrubber
+                        </span>
+                        <div className="flex items-center gap-1.5">
                             <button
-                                onClick={() => setMapVenue('')}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full bg-white/10 hover:bg-red-500/30 text-gray-400 hover:text-white transition-all text-[10px]"
-                                title="Effacer le lieu"
+                                onClick={() => {
+                                    setIsMapAnimPlaying(!isMapAnimPlaying);
+                                    if (!isMapAnimPlaying) {
+                                        setMapScrubTime(null);
+                                        animStartTimeRef.current = Date.now();
+                                    }
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-black text-[8px] uppercase transition-all"
                             >
-                                ✕
+                                {isMapAnimPlaying ? '⏸ PAUSE' : '▶ LIRE'}
                             </button>
-                        )}
+                            <button
+                                onClick={() => {
+                                    setMapScrubTime(null);
+                                    animStartTimeRef.current = Date.now();
+                                    setIsMapAnimPlaying(true);
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                className="px-2 py-1 rounded-lg bg-neon-cyan/20 hover:bg-neon-cyan/30 border border-neon-cyan/40 text-neon-cyan font-black text-[8px] uppercase transition-all"
+                                title="Recommencer depuis le début"
+                            >
+                                🔄 REJOUER
+                            </button>
+                        </div>
                     </div>
-                    {mapVenue.trim() && (
-                        <p className="text-[8px] text-neon-cyan/60 pl-1 italic">🔍 Recherche : «&nbsp;{mapVenue.trim()}, {mapCity}, {mapCountry}&nbsp;»</p>
+
+                    {/* Curseur Scrubber temporel pour voir seconde par seconde */}
+                    <div className="space-y-1">
+                        <div className="flex justify-between items-center text-[7.5px] font-black uppercase text-gray-400">
+                            <span>Avancement temporel</span>
+                            <span className="text-neon-cyan font-bold">
+                                {mapScrubTime !== null
+                                    ? `${mapScrubTime.toFixed(1)}s / ${mapAnimDuration}s (Fige)`
+                                    : 'Lecture en continu ⟳'}
+                            </span>
+                        </div>
+                        <input
+                            type="range"
+                            min="0"
+                            max={mapAnimDuration}
+                            step="0.05"
+                            value={mapScrubTime !== null ? mapScrubTime : 0}
+                            onChange={e => {
+                                setIsMapAnimPlaying(false);
+                                setMapScrubTime(parseFloat(e.target.value));
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
+                        />
+                        <div className="flex justify-between text-[6.5px] text-gray-500 font-bold px-0.5">
+                            <span>0s (Orbite)</span>
+                            <span>{Math.round(mapAnimDuration / 2)}s (Vol / Plongeon)</span>
+                            <span>{mapAnimDuration}s (Arrivée)</span>
+                        </div>
+                    </div>
+
+                    {/* Sélecteur de Durée */}
+                    <div className="flex items-center justify-between pt-1">
+                        <span className="text-[7.5px] font-black uppercase text-gray-400">Durée du Reel</span>
+                        <div className="flex gap-1.5">
+                            {[6, 8, 10].map(sec => (
+                                <button
+                                    key={sec}
+                                    onClick={() => {
+                                        setMapAnimDuration(sec);
+                                        animStartTimeRef.current = Date.now();
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-2 py-0.5 rounded-md text-[7.5px] font-black border transition-all ${
+                                        mapAnimDuration === sec
+                                            ? 'bg-neon-cyan/30 border-neon-cyan text-white'
+                                            : 'bg-white/5 border-white/10 text-gray-400'
+                                    }`}
+                                >
+                                    {sec}s
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 3. BOUTONS DÉMO 1-CLIC */}
+            <div className="space-y-1.5">
+                <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">Exemples en 1 clic pour tester :</label>
+                <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                        onClick={() => {
+                            setMapAnimMode('FLIGHT_ROUTE');
+                            setMapFestivalText('ESCAPE HALLOWEEN');
+                            setMapVenue('NOS Events Center');
+                            setMapCity('San Bernardino');
+                            setMapCountry('USA');
+                            setMapLatitude(34.0933);
+                            setMapLongitude(-117.2917);
+                            setMapDestFestivalText('DREAM NATION');
+                            setMapDestVenue('Parc des Expositions Paris Nord');
+                            setMapDestCity('Paris');
+                            setMapDestCountry('France');
+                            setMapDestLatitude(48.9714);
+                            setMapDestLongitude(2.5186);
+                            setIsMapAnimPlaying(true);
+                            setMapScrubTime(null);
+                            animStartTimeRef.current = Date.now();
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="py-2 px-2.5 rounded-xl bg-gradient-to-r from-red-500/20 to-cyan-500/20 border border-white/20 hover:border-white/50 text-white font-black text-[7.5px] uppercase tracking-wider text-left transition-all hover:scale-[1.02]"
+                    >
+                        🔥 Escape ➔ Dream Nation
+                    </button>
+                    <button
+                        onClick={() => {
+                            setMapAnimMode('DEEP_DIVE');
+                            setMapFestivalText('ESCAPE HALLOWEEN');
+                            setMapVenue('NOS Events Center');
+                            setMapCity('San Bernardino');
+                            setMapCountry('USA');
+                            setMapLatitude(34.0933);
+                            setMapLongitude(-117.2917);
+                            setIsMapAnimPlaying(true);
+                            setMapScrubTime(null);
+                            animStartTimeRef.current = Date.now();
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="py-2 px-2.5 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 hover:border-neon-cyan text-white font-black text-[7.5px] uppercase tracking-wider text-left transition-all hover:scale-[1.02]"
+                    >
+                        🚀 Escape (Zoom Terre)
+                    </button>
+                    <button
+                        onClick={() => {
+                            setMapAnimMode('TACTICAL_HUD');
+                            setMapFestivalText('DREAM NATION');
+                            setMapVenue('Parc des Expositions Paris Nord');
+                            setMapCity('Paris');
+                            setMapCountry('France');
+                            setMapLatitude(48.9714);
+                            setMapLongitude(2.5186);
+                            setIsMapAnimPlaying(true);
+                            setMapScrubTime(null);
+                            animStartTimeRef.current = Date.now();
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="py-2 px-2.5 rounded-xl bg-purple-500/15 border border-purple-500/30 hover:border-purple-500 text-white font-black text-[7.5px] uppercase tracking-wider text-left transition-all hover:scale-[1.02]"
+                    >
+                        🎯 Dream Nation (Scanner)
+                    </button>
+                    <button
+                        onClick={() => {
+                            setMapAnimMode('DEEP_DIVE');
+                            setMapFestivalText('TOMORROWLAND');
+                            setMapVenue('De Schorre');
+                            setMapCity('Boom');
+                            setMapCountry('Belgique');
+                            setMapLatitude(51.0914);
+                            setMapLongitude(4.3854);
+                            setIsMapAnimPlaying(true);
+                            setMapScrubTime(null);
+                            animStartTimeRef.current = Date.now();
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="py-2 px-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/30 text-white font-black text-[7.5px] uppercase tracking-wider text-left transition-all hover:scale-[1.02]"
+                    >
+                        🏰 Tomorrowland (Belgique)
+                    </button>
+                </div>
+            </div>
+
+            {/* 4. ÉVÉNEMENT A (DÉPART / PRINCIPAL) */}
+            <div className="space-y-3 p-3 bg-white/5 border border-white/10 rounded-2xl">
+                <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-black text-neon-red uppercase tracking-wider flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-neon-red" />
+                        {mapAnimMode === 'FLIGHT_ROUTE' ? 'Événement 1 (Départ)' : 'Événement (Lieu du Festival)'}
+                    </span>
+                    {isMapLoading && (
+                        <div className="w-3.5 h-3.5 border-2 border-neon-red/50 border-t-neon-red rounded-full animate-spin" />
                     )}
                 </div>
 
-                {/* Ville & Pays */}
+                <div className="space-y-1">
+                    <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">Nom du Festival</label>
+                    <input 
+                        value={mapFestivalText} 
+                        onChange={e => {
+                            setMapFestivalText(e.target.value);
+                            setTimeout(() => generateImage(), 50);
+                        }} 
+                        placeholder="EX: ESCAPE HALLOWEEN" 
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-bold italic uppercase focus:border-white/40 outline-none transition-all shadow-md text-xs" 
+                    />
+                </div>
+
+                <div className="space-y-1">
+                    <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">📍 Lieu / Salle (Précis)</label>
+                    <input 
+                        value={mapVenue}
+                        onChange={e => setMapVenue(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') handleGeocode(); }}
+                        placeholder="EX: NOS Events Center, Parc des Expositions..."
+                        className="w-full bg-neon-cyan/5 border border-white/10 focus:border-neon-cyan rounded-xl p-2.5 text-white font-bold outline-none transition-all text-xs placeholder-gray-600"
+                    />
+                </div>
+
                 <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest pl-1">Ville *</label>
+                        <label className="text-[7.5px] font-black text-gray-600 uppercase tracking-widest pl-1">Ville</label>
                         <input 
                             value={mapCity}
                             onChange={e => setMapCity(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter') handleGeocode(); }}
-                            placeholder="EX: Las Vegas"
-                            required
-                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold focus:border-white/40 outline-none transition-all shadow-md text-xs placeholder-gray-600"
+                            placeholder="EX: San Bernardino"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-white font-bold focus:border-white/40 outline-none text-xs"
                         />
                     </div>
-                    <div className="space-y-1 relative">
-                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest pl-1">Pays *</label>
+                    <div className="space-y-1">
+                        <label className="text-[7.5px] font-black text-gray-600 uppercase tracking-widest pl-1">Pays</label>
                         <input 
                             value={mapCountry}
                             onChange={e => setMapCountry(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter') handleGeocode(); }}
-                            placeholder="EX: France"
-                            required
-                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 pr-10 text-white font-bold focus:border-white/40 outline-none transition-all shadow-md text-xs placeholder-gray-600"
+                            placeholder="EX: USA"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-white font-bold focus:border-white/40 outline-none text-xs"
                         />
-                        {isMapLoading && (
-                            <div className="absolute right-3 bottom-3 w-4 h-4 border-2 border-neon-red/50 border-t-neon-red rounded-full animate-spin" />
-                        )}
                     </div>
                 </div>
-                <p className="text-[8px] text-gray-600 pl-1 italic">Appuie sur Entrée pour centrer la carte</p>
+
+                <button
+                    onClick={handleGeocode}
+                    className="w-full py-1.5 bg-neon-red/15 hover:bg-neon-red/25 border border-neon-red/30 rounded-xl text-neon-red font-black text-[8px] uppercase tracking-wider transition-all"
+                >
+                    🔍 Localiser Event 1 par GPS
+                </button>
             </div>
 
-            {/* 3. Texte du Badge personnalisé */}
-            <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Texte de l'étiquette (Badge)</label>
-                <input 
-                    value={mapLabelText} 
-                    onChange={e => {
-                        setMapLabelText(e.target.value);
-                        setTimeout(() => generateImage(), 50);
-                    }} 
-                    placeholder="EX: PARIS, FRANCE (Ou nom de scène...)" 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold focus:border-white/40 outline-none transition-all shadow-md text-xs" 
-                />
-            </div>
+            {/* 5. ÉVÉNEMENT B (ARRIVÉE - AFFICHÉ SI MODE TRAJET 2 EVENTS) */}
+            {mapAnimMode === 'FLIGHT_ROUTE' && (
+                <div className="space-y-3 p-3 bg-neon-cyan/5 border border-neon-cyan/30 rounded-2xl">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[9px] font-black text-neon-cyan uppercase tracking-wider flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-neon-cyan" />
+                            Événement 2 (Destination / Arrivée)
+                        </span>
+                        {isMapDestLoading && (
+                            <div className="w-3.5 h-3.5 border-2 border-neon-cyan/50 border-t-neon-cyan rounded-full animate-spin" />
+                        )}
+                    </div>
 
-            {/* 4. Style de la carte */}
+                    <div className="space-y-1">
+                        <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">Nom du Festival Arrivée</label>
+                        <input 
+                            value={mapDestFestivalText} 
+                            onChange={e => {
+                                setMapDestFestivalText(e.target.value);
+                                setTimeout(() => generateImage(), 50);
+                            }} 
+                            placeholder="EX: DREAM NATION" 
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-bold italic uppercase focus:border-neon-cyan outline-none transition-all text-xs" 
+                        />
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">📍 Lieu / Salle Arrivée</label>
+                        <input 
+                            value={mapDestVenue}
+                            onChange={e => setMapDestVenue(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') handleGeocodeDest(); }}
+                            placeholder="EX: Parc des Expositions Paris Nord..."
+                            className="w-full bg-neon-cyan/10 border border-neon-cyan/30 focus:border-neon-cyan rounded-xl p-2.5 text-white font-bold outline-none transition-all text-xs"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                            <label className="text-[7.5px] font-black text-gray-600 uppercase tracking-widest pl-1">Ville Arrivée</label>
+                            <input 
+                                value={mapDestCity}
+                                onChange={e => setMapDestCity(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter') handleGeocodeDest(); }}
+                                placeholder="EX: Paris"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-white font-bold focus:border-neon-cyan outline-none text-xs"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[7.5px] font-black text-gray-600 uppercase tracking-widest pl-1">Pays Arrivée</label>
+                            <input 
+                                value={mapDestCountry}
+                                onChange={e => setMapDestCountry(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter') handleGeocodeDest(); }}
+                                placeholder="EX: France"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-white font-bold focus:border-neon-cyan outline-none text-xs"
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={handleGeocodeDest}
+                        className="w-full py-1.5 bg-neon-cyan/15 hover:bg-neon-cyan/25 border border-neon-cyan/40 rounded-xl text-neon-cyan font-black text-[8px] uppercase tracking-wider transition-all"
+                    >
+                        🔍 Localiser Event 2 par GPS
+                    </button>
+                </div>
+            )}
+
+            {/* 6. STYLE & COULEURS */}
             <div className="space-y-2">
                 <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-500 pl-1">
                     <span>Style de la carte</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                     <button 
+                        onClick={() => { setMapStyle('satellite'); setTimeout(() => generateImage(), 50); }}
+                        className={`py-2 text-[9px] font-black uppercase rounded-lg border transition-all ${mapStyle === 'satellite' ? 'bg-white/10 border-white text-white font-black' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                    >
+                        🛰️ Satellite
+                    </button>
+                    <button 
                         onClick={() => { setMapStyle('dark'); setTimeout(() => generateImage(), 50); }}
                         className={`py-2 text-[9px] font-black uppercase rounded-lg border transition-all ${mapStyle === 'dark' ? 'bg-white/10 border-white text-white font-black' : 'bg-white/5 border-white/10 text-gray-400'}`}
                     >
-                        Sombre
+                        🕶️ Sombre
                     </button>
                     <button 
                         onClick={() => { setMapStyle('voyager'); setTimeout(() => generateImage(), 50); }}
                         className={`py-2 text-[9px] font-black uppercase rounded-lg border transition-all ${mapStyle === 'voyager' ? 'bg-white/10 border-white text-white font-black' : 'bg-white/5 border-white/10 text-gray-400'}`}
                     >
-                        Couleur
-                    </button>
-                    <button 
-                        onClick={() => { setMapStyle('satellite'); setTimeout(() => generateImage(), 50); }}
-                        className={`py-2 text-[9px] font-black uppercase rounded-lg border transition-all ${mapStyle === 'satellite' ? 'bg-white/10 border-white text-white font-black' : 'bg-white/5 border-white/10 text-gray-400'}`}
-                    >
-                        Satellite
+                        🗺️ Couleur
                     </button>
                 </div>
             </div>
 
-            {/* 5. Zoom de la carte */}
-            <div className="space-y-2">
-                <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-500 pl-1">
-                    <span>Zoom de la carte</span>
-                    <span className="text-neon-red font-black">{mapZoom}</span>
+            {/* 7. Zoom de référence (en mode fixe) */}
+            {mapAnimMode === 'STATIC' && (
+                <div className="space-y-2">
+                    <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-500 pl-1">
+                        <span>Zoom de la carte</span>
+                        <span className="text-neon-red font-black">{mapZoom}</span>
+                    </div>
+                    <input 
+                        type="range" 
+                        min="3" 
+                        max="18" 
+                        value={mapZoom} 
+                        onChange={e => {
+                            setMapZoom(parseInt(e.target.value));
+                            setTimeout(() => generateImage(), 50);
+                        }} 
+                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-red" 
+                    />
                 </div>
-                <input 
-                    type="range" 
-                    min="3" 
-                    max="18" 
-                    value={mapZoom} 
-                    onChange={e => {
-                        setMapZoom(parseInt(e.target.value));
-                        setTimeout(() => generateImage(), 50);
-                    }} 
-                    className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-red" 
-                />
-            </div>
+            )}
 
-            {/* 6. Couleur du Marqueur & Badge */}
+            {/* 8. Couleur du Marqueur Néon */}
             <div className="space-y-2">
                 <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Couleur du Marqueur (Néon)</label>
                 <div className="flex gap-2.5 p-2 bg-white/5 border border-white/10 rounded-xl justify-around">
@@ -14801,124 +15701,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             title={col.name}
                         />
                     ))}
-                </div>
-            </div>
-
-            {/* 7. Options d'affichage */}
-            <div className="grid grid-cols-2 gap-2 bg-white/5 border border-white/10 rounded-xl p-2">
-                <button
-                    onClick={() => {
-                        setShowMapPin(!showMapPin);
-                        setTimeout(() => generateImage(), 50);
-                    }}
-                    className={`py-1.5 rounded-lg text-[8px] font-black uppercase transition-all border ${showMapPin ? 'bg-white/10 border-white/30 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}
-                >
-                    {showMapPin ? '✅ PIN ACTIVÉ' : '❌ PIN MASQUÉ'}
-                </button>
-                <button
-                    onClick={() => {
-                        setShowMapLabel(!showMapLabel);
-                        setTimeout(() => generateImage(), 50);
-                    }}
-                    className={`py-1.5 rounded-lg text-[8px] font-black uppercase transition-all border ${showMapLabel ? 'bg-white/10 border-white/30 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}
-                >
-                    {showMapLabel ? '✅ BADGE ACTIVÉ' : '❌ BADGE MASQUÉ'}
-                </button>
-            </div>
-
-            {/* 8. Ajustement GPS (D-pad & Manuel) */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
-                <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest text-center">Décalage GPS de la carte</p>
-                
-                {/* D-pad */}
-                <div className="grid grid-cols-3 gap-2 max-w-[120px] mx-auto">
-                    <div></div>
-                    <button
-                        onClick={() => {
-                            const step = 0.01 / Math.pow(2, mapZoom - 11);
-                            setMapLatitude(prev => prev + step);
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className="py-1.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/30 text-white font-black text-[12px] flex items-center justify-center transition-all"
-                        title="Nord"
-                    >
-                        ▲
-                    </button>
-                    <div></div>
-                    <button
-                        onClick={() => {
-                            const step = 0.01 / Math.pow(2, mapZoom - 11);
-                            setMapLongitude(prev => prev - step);
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className="py-1.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/30 text-white font-black text-[12px] flex items-center justify-center transition-all"
-                        title="Ouest"
-                    >
-                        ◀
-                    </button>
-                    <button
-                        onClick={() => {
-                            handleGeocode();
-                        }}
-                        className="py-1.5 bg-neon-red/10 border border-neon-red/30 rounded-xl hover:bg-neon-red/20 text-neon-red font-black text-[9px] flex items-center justify-center uppercase transition-all"
-                        title="Recenter sur la recherche"
-                    >
-                        ◉
-                    </button>
-                    <button
-                        onClick={() => {
-                            const step = 0.01 / Math.pow(2, mapZoom - 11);
-                            setMapLongitude(prev => prev + step);
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className="py-1.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/30 text-white font-black text-[12px] flex items-center justify-center transition-all"
-                        title="Est"
-                    >
-                        ▶
-                    </button>
-                    <div></div>
-                    <button
-                        onClick={() => {
-                            const step = 0.01 / Math.pow(2, mapZoom - 11);
-                            setMapLatitude(prev => prev - step);
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className="py-1.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/30 text-white font-black text-[12px] flex items-center justify-center transition-all"
-                        title="Sud"
-                    >
-                        ▼
-                    </button>
-                    <div></div>
-                </div>
-
-                {/* Saisie Manuelle */}
-                <div className="grid grid-cols-2 gap-2 text-[8px]">
-                    <div className="space-y-1">
-                        <label className="text-gray-500 uppercase font-black">Latitude (GPS)</label>
-                        <input
-                            type="number"
-                            step="0.000001"
-                            value={mapLatitude}
-                            onChange={e => {
-                                setMapLatitude(parseFloat(e.target.value) || 0);
-                                setTimeout(() => generateImage(), 50);
-                            }}
-                            className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white text-center font-bold outline-none focus:border-white/30"
-                        />
-                    </div>
-                    <div className="space-y-1">
-                        <label className="text-gray-500 uppercase font-black">Longitude (GPS)</label>
-                        <input
-                            type="number"
-                            step="0.000001"
-                            value={mapLongitude}
-                            onChange={e => {
-                                setMapLongitude(parseFloat(e.target.value) || 0);
-                                setTimeout(() => generateImage(), 50);
-                            }}
-                            className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white text-center font-bold outline-none focus:border-white/30"
-                        />
-                    </div>
                 </div>
             </div>
         </div>
