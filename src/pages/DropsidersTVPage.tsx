@@ -534,13 +534,13 @@ export function DropsidersTVPage() {
     // Overlay to hide YouTube end-screen suggestions immediately when video ends
     const [showEndscreenOverlay, setShowEndscreenOverlay] = useState(false);
 
-    // Twitch Chat Sidebar State (Canal dropsiderstv)
+    // Twitch Chat Sidebar State (Canal dropsiderstv) - Masqué par défaut pour garantir 0 lag
     const [isChatOpen, setIsChatOpen] = useState(() => {
         try {
             const saved = localStorage.getItem('dropsiders_tv_chat_open');
             if (saved !== null) return saved === 'true';
         } catch {}
-        return typeof window !== 'undefined' ? window.innerWidth >= 1024 : true;
+        return false;
     });
 
     const [isMobileScreen, setIsMobileScreen] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
@@ -561,6 +561,16 @@ export function DropsidersTVPage() {
             } catch {}
             return next;
         });
+    }, []);
+
+    const openTwitchPopout = useCallback(() => {
+        if (typeof window !== 'undefined') {
+            window.open(
+                'https://www.twitch.tv/popout/dropsiderstv/chat',
+                'TwitchChatPopout',
+                'width=420,height=680,resizable=yes,scrollbars=yes'
+            );
+        }
     }, []);
 
     const twitchChatUrl = useMemo(() => buildTwitchChatUrl(DEFAULT_TWITCH_CHANNEL), []);
@@ -1501,110 +1511,58 @@ export function DropsidersTVPage() {
                                         <span className="xs:hidden">Programme</span>
                                     </button>
 
-                                    {/* Bouton Chat Twitch DropsidersTV */}
-                                    <button
-                                        onClick={toggleChat}
-                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 cursor-pointer pointer-events-auto backdrop-blur-md shadow-lg ${
-                                            isChatOpen
-                                                ? 'bg-[#9146FF] hover:bg-[#772ce8] text-white shadow-[#9146FF]/40 border border-[#9146FF]'
-                                                : 'bg-white/10 hover:bg-[#9146FF]/30 text-white/90 hover:text-white border border-white/20 hover:border-[#9146FF]/50'
-                                        }`}
-                                        title={isChatOpen ? "Masquer le chat Twitch (C)" : "Afficher le chat Twitch @dropsiderstv (C)"}
-                                    >
-                                        <TwitchIcon className="w-3 h-3 text-white" />
-                                        <span className="hidden xs:inline">Chat Twitch</span>
-                                        <span className="xs:hidden">Chat</span>
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
-                                    </button>
-
-                                {/* Filtre de catégorie : affiché uniquement pour les admins (masqué pour les viewers) */}
-                                {isAdmin && (
-                                    <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/15 p-1 rounded-full shadow-lg">
+                                    {/* Programmation Button: only displayed for admins, hidden for regular visitors */}
+                                    {isAdmin && (
                                         <button
-                                            onClick={() => setSelectedCategory('all')}
-                                            className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer ${
-                                                selectedCategory === 'all'
-                                                    ? 'bg-white text-black shadow'
-                                                    : 'text-gray-400 hover:text-white'
-                                            }`}
+                                            onClick={() => setShowSchedule(true)}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto shadow-lg"
+                                            title="Voir toute la programmation continue (vidéos + promos)"
                                         >
-                                            Tout
+                                            <ListMusic className="w-3 h-3 text-neon-red" />
+                                            <span>Programmation ({allSegments.length})</span>
                                         </button>
-                                        <button
-                                            onClick={() => setSelectedCategory('liveset')}
-                                            className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 ${
-                                                selectedCategory === 'liveset'
-                                                    ? 'bg-neon-cyan text-black shadow'
-                                                    : 'text-gray-400 hover:text-white'
-                                            }`}
-                                            title="Filtrer les Livesets"
-                                        >
-                                            <span>🎪</span>
-                                            <span className="hidden sm:inline">Liveset</span>
-                                        </button>
-                                        <button
-                                            onClick={() => setSelectedCategory('clip')}
-                                            className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 ${
-                                                selectedCategory === 'clip'
-                                                    ? 'bg-neon-purple text-white shadow'
-                                                    : 'text-gray-400 hover:text-white'
-                                            }`}
-                                            title="Filtrer les Clips"
-                                        >
-                                            <span>🎬</span>
-                                            <span className="hidden sm:inline">Clips</span>
-                                        </button>
-                                        <button
-                                            onClick={() => setSelectedCategory('interview')}
-                                            className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 ${
-                                                selectedCategory === 'interview'
-                                                    ? 'bg-neon-red text-white shadow'
-                                                    : 'text-gray-400 hover:text-white'
-                                            }`}
-                                            title="Filtrer les Interviews"
-                                        >
-                                            <span>🎙️</span>
-                                            <span className="hidden sm:inline">Interviews</span>
-                                        </button>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
 
-                                {/* Programmation Button: only displayed for admins, hidden for regular visitors */}
-                                {isAdmin && (
-                                    <button
-                                        onClick={() => setShowSchedule(true)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto shadow-lg"
-                                        title="Voir toute la programmation continue (vidéos + promos)"
-                                    >
-                                        <ListMusic className="w-3 h-3 text-neon-red" />
-                                        <span>Programmation ({allSegments.length})</span>
-                                    </button>
-                                )}
-                            </div>
+                                <div className="flex items-center gap-3">
+                                    {/* Bouton Chat Twitch réservé aux éditeurs / admins du site, à côté de Gestion TV et Site */}
+                                    {isAdmin && (
+                                        <button
+                                            onClick={toggleChat}
+                                            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-[11px] font-black uppercase tracking-wider backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto shadow-lg ${
+                                                isChatOpen
+                                                    ? 'bg-[#9146FF] hover:bg-[#772ce8] text-white border-[#9146FF] shadow-[#9146FF]/30'
+                                                    : 'bg-white/10 hover:bg-[#9146FF]/20 border-white/20 text-white hover:border-[#9146FF]/40'
+                                            }`}
+                                            title={isChatOpen ? "Masquer le chat Twitch (C)" : "Ouvrir le chat Twitch @dropsiderstv (C)"}
+                                        >
+                                            <TwitchIcon className="w-3.5 h-3.5 text-white" />
+                                            <span className="hidden sm:inline">Chat</span>
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                        </button>
+                                    )}
 
-                            <div className="flex items-center gap-3">
+                                    {/* Admin TV Settings Button */}
+                                    {isAdmin && (
+                                        <button
+                                            onClick={openAdminModal}
+                                            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[11px] font-black uppercase tracking-wider backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto"
+                                            title="Gérer la programmation Dropsiders TV & Live"
+                                        >
+                                            <Settings className="w-3.5 h-3.5 text-neon-red" />
+                                            <span className="hidden sm:inline">Gestion TV</span>
+                                        </button>
+                                    )}
 
-                                {/* Admin TV Settings Button */}
-                                {isAdmin && (
-                                    <button
-                                        onClick={openAdminModal}
+                                    {/* Back to site button */}
+                                    <a
+                                        href="/"
                                         className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[11px] font-black uppercase tracking-wider backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto"
-                                        title="Gérer la programmation Dropsiders TV & Live"
+                                        title="Retour sur le site Dropsiders"
                                     >
-                                        <Settings className="w-3.5 h-3.5 text-neon-red" />
-                                        <span className="hidden sm:inline">Gestion TV</span>
-                                    </button>
-                                )}
-
-                                {/* Back to site button */}
-                                <a
-                                    href="/"
-                                    className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[11px] font-black uppercase tracking-wider backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto"
-                                    title="Retour sur le site Dropsiders"
-                                >
-                                    <Home className="w-3.5 h-3.5 text-neon-cyan" />
-                                    <span className="hidden sm:inline">Site</span>
-                                </a>
+                                        <Home className="w-3.5 h-3.5 text-neon-cyan" />
+                                        <span className="hidden sm:inline">Site</span>
+                                    </a>
 
                                 {/* Unmute alert button when muted (ensures user discovers sound easily) */}
                                 {isMuted && (
@@ -1937,18 +1895,6 @@ export function DropsidersTVPage() {
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                        {/* Bouton Chat Twitch */}
-                                        <button
-                                            onClick={toggleChat}
-                                            title={isChatOpen ? "Masquer le chat Twitch (C)" : "Afficher le chat Twitch @dropsiderstv (C)"}
-                                            className={`w-11 h-11 rounded-full flex items-center justify-center border transition-all active:scale-95 cursor-pointer shadow-lg ${
-                                                isChatOpen
-                                                    ? 'bg-[#9146FF] hover:bg-[#772ce8] text-white border-[#9146FF] shadow-[#9146FF]/40'
-                                                    : 'bg-white/10 hover:bg-[#9146FF]/20 border-white/10 hover:border-[#9146FF]/40 text-white'
-                                            }`}
-                                        >
-                                            <TwitchIcon className="w-4 h-4" />
-                                        </button>
                                         <button
                                             onClick={() => setIsShareScheduleOpen(true)}
                                             title="Partager le programme du jour"
@@ -2001,10 +1947,10 @@ export function DropsidersTVPage() {
                             isMobileScreen 
                                 ? 'fixed inset-y-0 right-0 w-[88vw] max-w-[380px] z-[100]' 
                                 : 'relative z-30'
-                        } h-full shrink-0 flex flex-col bg-[#0e0e14]/95 backdrop-blur-2xl border-l border-white/10 shadow-2xl overflow-hidden`}
+                        } h-full shrink-0 flex flex-col bg-[#0e0e14] border-l border-white/10 shadow-2xl overflow-hidden`}
                     >
                         {/* Chat Header */}
-                        <div className="h-14 px-4 border-b border-white/10 flex items-center justify-between bg-black/70 backdrop-blur-md shrink-0">
+                        <div className="h-14 px-4 border-b border-white/10 flex items-center justify-between bg-black/90 shrink-0">
                             <div className="flex items-center gap-2.5">
                                 <div className="w-8 h-8 rounded-xl bg-[#9146FF]/20 border border-[#9146FF]/40 flex items-center justify-center text-[#9146FF] shadow-[0_0_15px_rgba(145,70,255,0.25)]">
                                     <TwitchIcon className="w-4 h-4" />
@@ -2025,15 +1971,13 @@ export function DropsidersTVPage() {
                                 </div>
                             </div>
                             <div className="flex items-center gap-1">
-                                <a
-                                    href="https://www.twitch.tv/dropsiderstv"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-                                    title="Ouvrir sur Twitch.tv"
+                                <button
+                                    onClick={openTwitchPopout}
+                                    className="p-2 rounded-lg text-gray-400 hover:text-[#9146FF] hover:bg-white/10 transition-colors cursor-pointer"
+                                    title="Détacher le chat (Popout) pour chatter directement avec son compte"
                                 >
                                     <ExternalLink className="w-4 h-4" />
-                                </a>
+                                </button>
                                 <button
                                     onClick={toggleChat}
                                     className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
