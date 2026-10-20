@@ -3,7 +3,6 @@ import { Navbar } from './Navbar';
 import { MobileNavbar } from './MobileNavbar';
 import { MobileHeader } from './MobileHeader';
 import { MobileSearchOverlay } from '../mobile/MobileSearchOverlay';
-import { VinylCursor } from '../ui/VinylCursor';
 import { UserAuthModal } from '../auth/UserAuthModal';
 import { useUser } from '../../context/UserContext';
 
@@ -82,7 +81,7 @@ export function Layout({ children }: LayoutProps) {
                 }}
             />
 
-            {!isMobile && !isAdminPage && <VinylCursor />}
+            {/* Normal cursor restored globally */}
 
             {!isMobile && !isHideLayout && <Navbar />}
             {!isMobile && !isHideLayout && <AnnouncementBanner />}
