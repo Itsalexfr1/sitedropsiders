@@ -833,12 +833,23 @@ export function AdminRadioModal({
                 const deletedSet = new Set<string>();
                 try {
                     const rawDel = localStorage.getItem('dropsiders_deleted_media_keys');
-                    if (rawDel) JSON.parse(rawDel).forEach((k: string) => deletedSet.add((k + '').toLowerCase().trim()));
+                    if (rawDel) {
+                        const parsed: string[] = JSON.parse(rawDel);
+                        const cleaned = parsed.filter(k => {
+                            const low = (k + '').toLowerCase().trim();
+                            return !low.includes('tomorrowland') && !low.includes('promo_sys_tml_winter');
+                        });
+                        if (cleaned.length !== parsed.length) {
+                            localStorage.setItem('dropsiders_deleted_media_keys', JSON.stringify(cleaned));
+                        }
+                        cleaned.forEach((k: string) => deletedSet.add((k + '').toLowerCase().trim()));
+                    }
                 } catch {}
 
                 const sanitizeTrackList = <T extends { id?: string; title?: string; artist?: string; category?: any; audioUrl?: string; youtubeId?: string }>(tracks: T[]): T[] => {
                     return (tracks || []).filter(t => {
                         const title = (t.title || '').trim().toLowerCase();
+                        if (title.includes('tomorrowland winter') || (t.id && t.id.includes('tml_winter'))) return true;
                         if (title.includes('promo dropsiders tv & live stream 24/7') || t.youtubeId === 'DuXXMZLfAkQ') return false;
                         if (t.id && deletedSet.has(t.id.toLowerCase())) return false;
                         if (title && deletedSet.has(title)) return false;
@@ -962,6 +973,23 @@ export function AdminRadioModal({
         return promoPubKeys.size;
     }, [blocks, generalJingles]);
 
+    // Retirer un média de la blacklist mémorisée quand l'utilisateur le recrée ou l'ajoute
+    const unmarkDeletedMedia = (id?: string, title?: string, audioUrl?: string, ytId?: string) => {
+        try {
+            const rawDel = localStorage.getItem('dropsiders_deleted_media_keys');
+            if (!rawDel) return;
+            const arr: string[] = JSON.parse(rawDel);
+            const targets = [id, title, audioUrl, ytId]
+                .filter(Boolean)
+                .map(s => (s + '').toLowerCase().trim());
+            const next = arr.filter(k => {
+                const low = (k + '').toLowerCase().trim();
+                return !targets.some(t => t && (t === low || (t.length > 5 && low.includes(t)) || (low.length > 5 && t.includes(low))));
+            });
+            localStorage.setItem('dropsiders_deleted_media_keys', JSON.stringify(next));
+        } catch {}
+    };
+
     // ─── Enregistrement d'un jingle / promo / pub uploadé ─────────────────────
     const handleSaveJingleForBlock = (
         blockId: string,
@@ -970,6 +998,7 @@ export function AdminRadioModal({
         category?: 'jingle' | 'promo' | 'pub'
     ) => {
         const cat = category || 'jingle';
+        unmarkDeletedMedia(jingle.id, jingle.title, jingle.audioUrl, jingle.youtubeId);
         setBlocks(prev => {
             const next = prev.map(b => {
                 if (b.id !== blockId) return b;
@@ -1019,6 +1048,7 @@ export function AdminRadioModal({
     // Promo/Pub générale → palette + injection dans la programmation de TOUTES les émissions
     const handleSaveGeneralJingle = (item: RadionomyItem) => {
         const cat = (item as any).category as string | undefined;
+        unmarkDeletedMedia(item.id, item.title, item.audioUrl, item.youtubeId);
 
         // 1. Toujours sauvegarder dans la palette générale
         let nextGeneral: RadionomyItem[] = [];
@@ -1796,6 +1826,87 @@ export function AdminRadioModal({
         }
     };
 
+    // Restaurer les promos officielles (Tomorrowland Winter, Titan Lyon, Escape Circus)
+    const handleRestoreSystemPromos = () => {
+        try {
+            const rawDel = localStorage.getItem('dropsiders_deleted_media_keys');
+            if (rawDel) {
+                const arr: string[] = JSON.parse(rawDel);
+                const filtered = arr.filter(k => {
+                    const low = (k + '').toLowerCase().trim();
+                    return !DEFAULT_SYSTEM_PROMOS.some(p => 
+                        p.id.toLowerCase() === low || 
+                        p.title.toLowerCase() === low || 
+                        (p.audioUrl && p.audioUrl.toLowerCase() === low) ||
+                        low.includes('tomorrowland') ||
+                        low.includes('promo_sys_tml_winter')
+                    );
+                });
+                localStorage.setItem('dropsiders_deleted_media_keys', JSON.stringify(filtered));
+            }
+        } catch {}
+
+        let nextGen = generalJingles;
+        setGeneralJingles(prev => {
+            const existingTitles = new Set(prev.map(p => (p.title || '').toLowerCase().trim()));
+            const toAdd: RadionomyItem[] = DEFAULT_SYSTEM_PROMOS
+                .filter(p => !existingTitles.has((p.title || '').toLowerCase().trim()))
+                .map(p => ({
+                    id: p.id,
+                    title: p.title,
+                    category: 'promo',
+                    duration: p.duration || 30,
+                    audioUrl: p.audioUrl,
+                    youtubeId: p.youtubeId,
+                    isCustom: false
+                }));
+            const updated = [...toAdd, ...prev];
+            nextGen = updated;
+            try {
+                localStorage.setItem('dropsiders_radionomy_palette', JSON.stringify(updated));
+            } catch {}
+            return updated;
+        });
+
+        let nextBlk = blocks;
+        setBlocks(prev => {
+            const next = prev.map(b => {
+                const existingTitles = new Set((b.tracks || []).map(t => (t.title || '').toLowerCase().trim()));
+                const tracksToAdd: RadioTrackItem[] = DEFAULT_SYSTEM_PROMOS
+                    .filter(p => !existingTitles.has((p.title || '').toLowerCase().trim()))
+                    .map(p => ({
+                        id: `track_promo_restored_${p.id}_${b.id.slice(-4)}_${Date.now()}`,
+                        title: p.title,
+                        artist: 'PROMO DROPSIDERS',
+                        audioUrl: p.audioUrl,
+                        youtubeId: p.youtubeId,
+                        duration: p.duration || 30,
+                        category: 'promo' as RadioTrackCategory
+                    }));
+                return tracksToAdd.length > 0 ? { ...b, tracks: [...tracksToAdd, ...(b.tracks || [])] } : b;
+            });
+            nextBlk = next;
+            try {
+                localStorage.setItem(STORAGE_RADIO_BLOCKS_KEY, JSON.stringify(next));
+                window.dispatchEvent(new Event('dropsiders_radio_blocks_updated'));
+            } catch {}
+            return next;
+        });
+
+        try {
+            apiFetch('/api/settings/update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    radio_general_jingles: nextGen,
+                    radio_blocks: nextBlk
+                })
+            }).catch(() => {});
+        } catch {}
+
+        showToast('✓ Promos officielles (dont Tomorrowland Winter) restaurées avec succès !', 'success');
+    };
+
     // Régénération complète des émissions depuis la bibliothèque TV
     const handleRegenerateEmissions = () => {
         setConfirmModal({
@@ -2071,10 +2182,19 @@ export function AdminRadioModal({
             const deletedSet = new Set<string>();
             try {
                 const rawDel = localStorage.getItem('dropsiders_deleted_media_keys');
-                if (rawDel) JSON.parse(rawDel).forEach((k: string) => deletedSet.add((k + '').toLowerCase().trim()));
+                if (rawDel) {
+                    JSON.parse(rawDel).forEach((k: string) => {
+                        const low = (k + '').toLowerCase().trim();
+                        if (!low.includes('tomorrowland') && !low.includes('promo_sys_tml_winter')) {
+                            deletedSet.add(low);
+                        }
+                    });
+                }
             } catch {}
 
             const isDeleted = (id?: string, title?: string, audio?: string, yt?: string) => {
+                if (title && title.toLowerCase().includes('tomorrowland winter')) return false;
+                if (id && id.toLowerCase().includes('tml_winter')) return false;
                 if (id && deletedSet.has(id.toLowerCase())) return true;
                 if (title) {
                     const low = title.toLowerCase().trim();
@@ -4863,6 +4983,19 @@ export function AdminRadioModal({
                                     >
                                         <Trash2 className="w-3.5 h-3.5" />
                                         <span>Purger expirées</span>
+                                    </button>
+                                )}
+
+                                {/* Bouton Restaurer Promos Officielles */}
+                                {(activeFolder === 'promos' || activeFolder === 'pubs') && (
+                                    <button
+                                        type="button"
+                                        onClick={handleRestoreSystemPromos}
+                                        className="px-3.5 py-2 rounded-xl bg-orange-500/20 hover:bg-orange-500 text-orange-300 hover:text-black border border-orange-500/40 text-xs font-display font-black uppercase italic tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-sm"
+                                        title="Restaure les promos officielles (Tomorrowland Winter, Titan Lyon, Escape Circus)"
+                                    >
+                                        <Sparkles className="w-3.5 h-3.5" />
+                                        <span>Restaurer Promos</span>
                                     </button>
                                 )}
 
