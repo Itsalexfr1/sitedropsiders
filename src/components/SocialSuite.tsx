@@ -1327,7 +1327,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     // Modes d'Animation Carte en Reel (Trajet 2 Events, Zoom Terre)
     const [mapAnimMode, setMapAnimMode] = useState<'DEEP_DIVE' | 'FLIGHT_ROUTE'>('FLIGHT_ROUTE');
-    const [mapAnimDuration, setMapAnimDuration] = useState<number>(12); // 12s (dynamique / viral), 15s (détaillé)
+    const [mapAnimDuration, setMapAnimDuration] = useState<number>(15); // 15s (Cinématique - Recommandé)
     const [isMapAnimPlaying, setIsMapAnimPlaying] = useState<boolean>(true);
     const [mapScrubTime, setMapScrubTime] = useState<number | null>(null);
 
@@ -1912,22 +1912,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         ctx.fillStyle = '#020208';
         ctx.fillRect(dx, dy, width, height);
 
+        // Optimisation rendu 60 FPS ultra-fluide sans surcharge CPU/GPU
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'medium';
+
         const entry = getVenueCanvas(lat, lon, mapStyle);
 
-        // NIVEAU 1 : ESPACE & GLOBE TERRESTRE 3D CENTRÉ (Zoom 3.0 à 7.2)
-        if (clampedZoom < 7.2) {
+        // NIVEAU 1 : ESPACE & GLOBE TERRESTRE 3D CENTRÉ (Zoom 3.0 à 6.8)
+        if (clampedZoom < 6.8) {
             drawSpaceBackgroundGlobal(ctx, width, height, 1.0, animTimeVal);
             const globeRadius = (256 * Math.pow(2, clampedZoom)) / (2 * Math.PI);
-            const globeAlpha = clampedZoom < 5.8 ? 1.0 : Math.max(0, 1 - (clampedZoom - 5.8) / 1.4);
+            const globeAlpha = clampedZoom < 5.8 ? 1.0 : Math.max(0, 1 - (clampedZoom - 5.8) / 1.0);
             drawEarthGlobeGlobal(ctx, canvasCenterX + droneDriftX, canvasCenterY + droneDriftY, globeRadius, lat, lon, globeAlpha);
         }
 
-        // NIVEAU 2 : CONTINENT / PAYS (Zoom 5.8 à 12.8 - countryCanvas à zoom 9)
-        if (clampedZoom >= 5.8 && clampedZoom < 12.8) {
-            const countryAlpha = clampedZoom < 7.2
-                ? (clampedZoom - 5.8) / 1.4
-                : clampedZoom > 11.2
-                    ? Math.max(0, 1 - (clampedZoom - 11.2) / 1.6)
+        // NIVEAU 2 : CONTINENT / PAYS (Zoom 5.8 à 12.2 - countryCanvas à zoom 9)
+        if (clampedZoom >= 5.8 && clampedZoom < 12.2) {
+            const countryAlpha = clampedZoom < 6.8
+                ? (clampedZoom - 5.8) / 1.0
+                : clampedZoom > 11.4
+                    ? Math.max(0, 1 - (clampedZoom - 11.4) / 0.8)
                     : 1.0;
 
             const scale = Math.pow(2, clampedZoom - 9.0);
@@ -1943,12 +1947,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             ctx.restore();
         }
 
-        // NIVEAU 3 : MÉTROPOLE / VILLE (Zoom 11.2 à 16.8 - cityCanvas à zoom 14)
-        if (clampedZoom >= 11.2 && clampedZoom < 16.8) {
-            const cityAlpha = clampedZoom < 12.8
-                ? (clampedZoom - 11.2) / 1.6
-                : clampedZoom > 15.2
-                    ? Math.max(0, 1 - (clampedZoom - 15.2) / 1.6)
+        // NIVEAU 3 : MÉTROPOLE / VILLE (Zoom 11.4 à 16.5 - cityCanvas à zoom 14)
+        if (clampedZoom >= 11.4 && clampedZoom < 16.5) {
+            const cityAlpha = clampedZoom < 12.2
+                ? (clampedZoom - 11.4) / 0.8
+                : clampedZoom > 15.6
+                    ? Math.max(0, 1 - (clampedZoom - 15.6) / 0.9)
                     : 1.0;
 
             const scale = Math.pow(2, clampedZoom - 14.0);
@@ -1964,9 +1968,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             ctx.restore();
         }
 
-        // NIVEAU 4 : SALLE / SCÈNE / FESTIVAL ULTRA RAPPROCHÉ (Zoom 15.2 à 20.5 - venueCanvas à zoom 18)
-        if (clampedZoom >= 15.2) {
-            const venueAlpha = clampedZoom < 16.8 ? (clampedZoom - 15.2) / 1.6 : 1.0;
+        // NIVEAU 4 : SALLE / SCÈNE / FESTIVAL ULTRA RAPPROCHÉ (Zoom 15.6 à 20.5 - venueCanvas à zoom 18)
+        if (clampedZoom >= 15.6) {
+            const venueAlpha = clampedZoom < 16.5 ? (clampedZoom - 15.6) / 0.9 : 1.0;
             const scale = Math.pow(2, clampedZoom - 18.0);
             const gpsX = (entry.venueCenterX - entry.venueStartX) * 256;
             const gpsY = (entry.venueCenterY - entry.venueStartY) * 256;
@@ -6291,31 +6295,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const cH = 2 * Math.atan2(Math.sqrt(aH), Math.sqrt(1 - aH));
                     const distKm = Math.round(6371 * cH);
 
-                    if (t < 0.20) {
-                        // Phase 1 (0 à 2.4s) : Mode Drone FPV ultra-rapproché sur la salle (Event 1)
-                        const rel = t / 0.20;
-                        const droneZoom = 18.5 + rel * 1.5; // Zoom très profond de 18.5 à 20.0 sur la scène/salle !
-                        const droneAngle = Math.sin(t * 2.8) * 0.035; // Balancement cinématique doux ~2°
-                        const driftX = Math.sin(t * 3.5) * 22;
-                        const driftY = Math.cos(t * 3.0) * 15;
-                        const altM = Math.round(45 - rel * 20);
+                    if (t < 0.16) {
+                        // Phase 1 (0 à 16%) : Mode Drone FPV Event 1 au ras de la scène
+                        const rel = t / 0.16;
+                        const droneZoom = 18.2 + rel * 1.3;
+                        const droneAngle = Math.sin(t * 2.0) * 0.025;
+                        const driftX = Math.sin(t * 2.5) * 18;
+                        const driftY = Math.cos(t * 2.0) * 12;
+                        const altM = Math.round(40 - rel * 15);
 
                         drawMap(ctx, latA, lonA, droneZoom, canvas.width, canvas.height, 0, 0, false, droneAngle, driftX, driftY, animTime);
-                        drawDroneHudOverlay(altM, 24, 98, -55, 1.0);
+                        drawDroneHudOverlay(altM, 20, 96, -45, 1.0);
                         drawPinDrop(canvas.width / 2 + driftX, canvas.height / 2 + driftY, 1.0, mapPinColor);
                         drawFestivalCard(mapFestivalText, mapVenue, mapCityCountry, 'DRONE FPV (EVENT 1)', mapPinColor, 1.0);
                         drawHudTopBar('MODE DRONE FPV', 'POINT DE DÉPART');
-                    } else if (t < 0.30) {
-                        // Phase 2 (2.4 à 3.6s) : Décollage fluide continu vers l'orbite (Zero Cut)
-                        const rel = (t - 0.20) / 0.10;
-                        const ease = Math.pow(rel, 1.5);
-                        const curZ = 20.0 - ease * 16.4; // Dézoom continu de 20.0 à 3.6 !
+                    } else if (t < 0.28) {
+                        // Phase 2 (16% à 28%) : Décollage fluide vers l'orbite (S-Curve sinusoïdale douce)
+                        const rel = (t - 0.16) / 0.12;
+                        const ease = 0.5 - 0.5 * Math.cos(rel * Math.PI);
+                        const curZ = 19.5 - ease * 15.9; // 19.5 -> 3.6 continu !
                         drawMap(ctx, latA, lonA, curZ, canvas.width, canvas.height, 0, 0, false, 0, 0, 0, animTime);
                         drawHudTopBar('DÉCOLLAGE ORBITAL', 'ALT: 10 000 KM');
-                    } else if (t < 0.65) {
-                        // Phase 3 (3.6 à 7.8s) : Vol Orbital A ➔ B avec Trajectoire 3D Réelle & Faisceau Laser Haute Définition
-                        const rel = (t - 0.30) / 0.35;
-                        const easeRel = rel < 0.5 ? 2 * rel * rel : 1 - Math.pow(-2 * rel + 2, 2) / 2;
+                    } else if (t < 0.68) {
+                        // Phase 3 (28% à 68%) : Vol Orbital A ➔ B avec Trajectoire 3D Réelle & Faisceau Laser Haute Définition
+                        const rel = (t - 0.28) / 0.40;
+                        const easeRel = 0.5 - 0.5 * Math.cos(rel * Math.PI);
 
                         // Calcul de la distance géodésique et du point médian du Grand Cercle
                         const shortestLonDiff = ((((lonB - lonA) + 540) % 360) - 180);
@@ -6608,24 +6612,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         // 6. HUD Télémétrie en direct
                         const curKm = Math.round(distKm * easeRel);
                         drawHudTopBar(`${(mapFestivalText || 'A').toUpperCase()} ➔ ${(mapDestFestivalText || 'B').toUpperCase()}`, `${curKm.toLocaleString()} / ${distKm.toLocaleString()} KM`);
-                    } else if (t < 0.80) {
-                        // Phase 4 (7.8 à 9.6s) : Plongeon continu vers la destination (Event 2) sans coupure
-                        const rel = (t - 0.65) / 0.15;
-                        const ease = Math.pow(rel, 1.8);
-                        const curZ = 3.6 + ease * 14.9; // 3.6 (orbite) -> 18.5 (salle) continu !
+                    } else if (t < 0.82) {
+                        // Phase 4 (68% à 82%) : Descente régulière et cinématique vers Event 2 (S-Curve sinusoïdale douce)
+                        const rel = (t - 0.68) / 0.14;
+                        const ease = 0.5 - 0.5 * Math.cos(rel * Math.PI);
+                        const curZ = 3.6 + ease * 14.6; // 3.6 (orbite) -> 18.2 (salle) continu sans à-coup !
                         drawMap(ctx, latB, lonB, curZ, canvas.width, canvas.height, 0, 0, false, 0, 0, 0, animTime);
                         drawHudTopBar('DESCENTE SUR DESTINATION', 'APPROCHE FINALE');
                     } else {
-                        // Phase 5 (9.6 à 12.0s) : Mode Drone FPV ultra-rapproché sur la salle Event 2
-                        const rel = (t - 0.80) / 0.20;
-                        const droneZoom = 18.5 + rel * 1.5; // Zoom très profond de 18.5 à 20.0 sur la scène !
-                        const droneAngle = Math.sin(t * 2.5) * 0.035;
-                        const driftX = Math.sin(t * 3.2) * 22;
-                        const driftY = Math.cos(t * 2.6) * 14;
-                        const altM = Math.round(38 - rel * 18);
+                        // Phase 5 (82% à 100%) : Mode Drone FPV ultra-rapproché sur la salle Event 2
+                        const rel = (t - 0.82) / 0.18;
+                        const droneZoom = 18.2 + rel * 1.4; // Glisse délicatement de 18.2 à 19.6
+                        const droneAngle = Math.sin(t * 2.0) * 0.025;
+                        const driftX = Math.sin(t * 2.5) * 18;
+                        const driftY = Math.cos(t * 2.0) * 12;
+                        const altM = Math.round(35 - rel * 15);
 
                         drawMap(ctx, latB, lonB, droneZoom, canvas.width, canvas.height, 0, 0, false, droneAngle, driftX, driftY, animTime);
-                        drawDroneHudOverlay(altM, 20, 91, -45, 1.0);
+                        drawDroneHudOverlay(altM, 18, 94, -45, 1.0);
                         const shockProg = rel;
                         drawShockwave(canvas.width / 2 + driftX, canvas.height / 2 + driftY, shockProg, mapDestPinColor);
                         drawPinDrop(canvas.width / 2 + driftX, canvas.height / 2 + driftY, shockProg * 2, mapDestPinColor);
@@ -6634,41 +6638,42 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                 } else {
-                    // MODE 2 : ZOOM TERRE ➔ LIEU DU FESTIVAL (DEEP_DIVE) - 100% FLUIDE ET CONTINU SANS AUCUNE COUPURE
+                    // MODE 2 : ZOOM TERRE ➔ LIEU DU FESTIVAL (DEEP_DIVE) - PROGRESSION CINÉMATIQUE FLUIDE & RÉGULIÈRE
                     const t = progress;
 
-                    if (t < 0.18) {
-                        // Phase 1 (0 à 18%) : Orbite spatiale photoréaliste verrouillée sur le festival
-                        const rel = t / 0.18;
-                        const zoom = 3.2 + rel * 0.8; // Zoom de 3.2 à 4.0
+                    if (t < 0.20) {
+                        // Phase 1 (0 à 20%) : Orbite spatiale photoréaliste - rotation douce & cible verrouillée
+                        const rel = t / 0.20;
+                        const zoom = 3.2 + rel * 0.8; // Zoom très lent et majestueux de 3.2 à 4.0
                         drawMap(ctx, mapLatitude, mapLongitude, zoom, canvas.width, canvas.height, 0, 0, false, 0, 0, 0, animTime);
                         drawHudTopBar('ORBITE SPATIALE', 'CIBLE VERROUILLÉE');
-                    } else if (t < 0.62) {
-                        // Phase 2 (18% à 62%) : Plongeon Hypersonique continu de l'Espace jusqu'à la Salle (ZERO CUT !)
-                        const rel = (t - 0.18) / 0.44;
-                        const ease = rel < 0.5 ? 4 * rel * rel * rel : 1 - Math.pow(-2 * rel + 2, 3) / 2;
-                        const zoom = 4.0 + ease * 14.5; // Zoom continu de 4.0 (globe) -> 18.5 (salle) !
+                    } else if (t < 0.74) {
+                        // Phase 2 (20% à 74%) : Plongeon Cinématique fluide et régulier (54% du temps total pour admirer chaque niveau !)
+                        const rel = (t - 0.20) / 0.54;
+                        // S-Curve sinusoïdale douce (aucune accélération brutale, descente fluide et progressive)
+                        const ease = 0.5 - 0.5 * Math.cos(rel * Math.PI);
+                        const zoom = 4.0 + ease * 14.2; // 4.0 -> 18.2 continu et régulier
 
                         drawMap(ctx, mapLatitude, mapLongitude, zoom, canvas.width, canvas.height, 0, 0, false, 0, 0, 0, animTime);
 
                         let altDisplay: string;
                         if (zoom < 6.0) altDisplay = `${Math.round(12500 - (zoom - 3.2) * 2000).toLocaleString()} KM`;
-                        else if (zoom < 10.0) altDisplay = `${Math.round(2500 - (zoom - 6.0) * 500)} KM`;
-                        else if (zoom < 14.0) altDisplay = `${Math.round(500 - (zoom - 10.0) * 100)} KM`;
-                        else altDisplay = `${Math.round(4000 - (zoom - 14.0) * 850)} M`;
+                        else if (zoom < 9.5) altDisplay = `${Math.round(2500 - (zoom - 6.0) * 450)} KM`;
+                        else if (zoom < 13.5) altDisplay = `${Math.round(600 - (zoom - 9.5) * 120)} KM`;
+                        else altDisplay = `${Math.round(2500 - (zoom - 13.5) * 450)} M`;
 
-                        drawHudTopBar('PLONGEON CONTINU', `ALT: ${altDisplay}`);
+                        drawHudTopBar('DESCENTE CINÉMATIQUE', `ALT: ${altDisplay}`);
                     } else {
-                        // Phase 3 (62% à 100%) : Mode Drone FPV ultra-proche au ras de la scène/salle (Zoom 18.5 -> 20.0 !)
-                        const rel = (t - 0.62) / 0.38;
-                        const droneZoom = 18.5 + rel * 1.5; // Zoom ultra-profond de 18.5 à 20.0 au cœur de la salle !
-                        const droneAngle = Math.sin(t * 2.5) * 0.035;
-                        const driftX = Math.sin(t * 3.2) * 22;
-                        const driftY = Math.cos(t * 2.6) * 14;
-                        const altM = Math.round(35 - rel * 15); // Descend jusqu'à 20M !
+                        // Phase 3 (74% à 100%) : Mode Drone FPV ultra-proche au ras de la scène (Zoom 18.2 -> 19.6 !)
+                        const rel = (t - 0.74) / 0.26;
+                        const droneZoom = 18.2 + rel * 1.4; // Glisse délicatement de 18.2 à 19.6
+                        const droneAngle = Math.sin(t * 2.0) * 0.025; // Balancement très doux
+                        const driftX = Math.sin(t * 2.2) * 18;
+                        const driftY = Math.cos(t * 1.8) * 12;
+                        const altM = Math.round(35 - rel * 15); // 35M -> 20M
 
                         drawMap(ctx, mapLatitude, mapLongitude, droneZoom, canvas.width, canvas.height, 0, 0, false, droneAngle, driftX, driftY, animTime);
-                        drawDroneHudOverlay(altM, 20, 94, -50, 1.0);
+                        drawDroneHudOverlay(altM, 18, 96, -45, 1.0);
 
                         const shockProg = rel;
                         drawShockwave(canvas.width / 2 + driftX, canvas.height / 2 + driftY, shockProg, mapPinColor);
@@ -7941,19 +7946,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const shouldAnimateBadge = isBadgeTheme && activeTab === 'REEL';
         const shouldAnimateMap = theme === 'MAP' && isMapAnimPlaying;
         if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS' || shouldAnimateMap) {
-            let lastRender = 0;
             let isRendering = false;
-            const loop = (timestamp: number) => {
+            const loop = () => {
                 if (isVideoRecordingRef.current) return;
-                // Throttle fluide à ~30 FPS pour préserver 100% des ressources CPU pour l'audio et éliminer tout micro-lag
-                if (timestamp - lastRender >= 30) {
-                    if (!isRendering) {
-                        isRendering = true;
-                        generateImage().finally(() => {
-                            isRendering = false;
-                        });
-                        lastRender = timestamp;
-                    }
+                if (!isRendering) {
+                    isRendering = true;
+                    generateImage().finally(() => {
+                        isRendering = false;
+                    });
                 }
                 anim = requestAnimationFrame(loop);
             };
@@ -15832,11 +15832,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
 
-                {/* Sélecteur de Durée (12s, 15s) */}
+                {/* Sélecteur de Durée (12s, 15s, 18s) */}
                 <div className="flex items-center justify-between pt-1">
                     <span className="text-[7.5px] font-black uppercase text-gray-400">Durée du Reel</span>
                     <div className="flex gap-1.5">
-                        {[12, 15].map(sec => (
+                        {[12, 15, 18].map(sec => (
                             <button
                                 key={sec}
                                 onClick={() => {
@@ -15850,7 +15850,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 border-white/10 text-gray-400'
                                 }`}
                             >
-                                {sec}s {sec === 12 ? '(Dynamique / Viral)' : '(Détaillé)'}
+                                {sec}s {sec === 12 ? '(Rapide)' : sec === 15 ? '(Cinématique)' : '(Ultra-Fluide)'}
                             </button>
                         ))}
                     </div>
