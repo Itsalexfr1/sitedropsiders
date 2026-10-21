@@ -5981,34 +5981,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 };
 
-                // Helper Traînées de vitesse supersonique (Hyperspeed lines)
-                const drawSpeedStreaks = (intensity: number) => {
-                    if (intensity <= 0.02) return;
-                    ctx.save();
-                    ctx.globalAlpha = Math.min(0.65, intensity);
-                    const cx = canvas.width / 2;
-                    const cy = canvas.height / 2;
-                    ctx.lineWidth = 2.5;
-                    for (let i = 0; i < 36; i++) {
-                        const angle = (i / 36) * Math.PI * 2;
-                        const distStart = 140 + ((i * 37) % 180);
-                        const distEnd = distStart + 160 * intensity;
-                        const x1 = cx + Math.cos(angle) * distStart;
-                        const y1 = cy + Math.sin(angle) * distStart;
-                        const x2 = cx + Math.cos(angle) * distEnd;
-                        const y2 = cy + Math.sin(angle) * distEnd;
-
-                        const streakGrad = ctx.createLinearGradient(x1, y1, x2, y2);
-                        streakGrad.addColorStop(0, 'rgba(0, 240, 255, 0)');
-                        streakGrad.addColorStop(1, 'rgba(0, 240, 255, 0.8)');
-                        ctx.strokeStyle = streakGrad;
-                        ctx.beginPath();
-                        ctx.moveTo(x1, y1);
-                        ctx.lineTo(x2, y2);
-                        ctx.stroke();
-                    }
-                    ctx.restore();
-                };
+                // Helper Traînées de vitesse désactivées (retrait des feux d'artifice bleus)
+                const drawSpeedStreaks = (_intensity: number) => {};
 
                 // Helper Onde de choc d'impact
                 const drawShockwave = (cx: number, cy: number, shockProgress: number, col: string) => {
@@ -6152,63 +6126,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         drawSpeedStreaks(rel * 1.2);
                         drawHudTopBar('DÉCOLLAGE ORBITAL', 'ALT: 10 000 KM');
                     } else if (t < 0.65) {
-                        // Phase 3 (3.6 à 7.8s) : Vol Orbital A ➔ B avec Trajectoire Réelle & Arc Laser Géodésique
+                        // Phase 3 (3.6 à 7.8s) : Vol Orbital A ➔ B avec Trajectoire 3D Réelle & Faisceau Laser Haute Définition
                         const rel = (t - 0.30) / 0.35;
-                        const easeRel = rel < 0.5 ? 2 * rel * rel : 1 - Math.pow(-2 * rel + 2, 2) / 2; // Accélération & décélération douce
+                        const easeRel = rel < 0.5 ? 2 * rel * rel : 1 - Math.pow(-2 * rel + 2, 2) / 2;
 
-                        // Calcul de la différence de longitude la plus courte (-180 à +180)
+                        // Calcul de la distance géodésique et du point médian du Grand Cercle
                         const shortestLonDiff = ((((lonB - lonA) + 540) % 360) - 180);
-                        const midLat = (latA + latB) / 2;
-                        const midLon = lonA + shortestLonDiff / 2;
-
-                        // Cadrage dynamique de la caméra :
-                        // Si trajet régional (< 3500 km), cadrage centré sur le milieu pour voir les 2 festivals simultanément
-                        // Si trajet intercontinental (> 3500 km), la Terre tourne majestueusement de A vers B
-                        let camLat: number;
-                        let camLon: number;
-                        if (distKm < 3500) {
-                            camLat = latA + (midLat - latA) * Math.min(1, easeRel * 2);
-                            camLon = lonA + (midLon - lonA) * Math.min(1, easeRel * 2);
-                        } else {
-                            camLat = latA + (latB - latA) * easeRel;
-                            camLon = lonA + shortestLonDiff * easeRel;
-                        }
-
-                        drawSpaceBackground(1.0);
-                        const radius = Math.min(canvas.width, canvas.height) * 0.36;
-                        const cx = canvas.width / 2;
-                        const cy = canvas.height / 2;
-                        drawEarthGlobe(cx, cy, radius, camLat, camLon, 1.0);
-
-                        // Helper de projection géographique exacte sur le globe terrestre Dropsiders
-                        const projectOnGlobe = (pLat: number, pLon: number, altitudePx: number = 0) => {
-                            const diffLon = ((((pLon - camLon) + 540) % 360) - 180);
-                            const sx = cx + (diffLon / 90) * radius;
-                            const sy = cy - (pLat / 90) * radius;
-
-                            // Altitude au-dessus de la surface terrestre (élévation orbitale)
-                            const distFromCenter = Math.hypot(sx - cx, sy - cy);
-                            if (altitudePx !== 0 && distFromCenter > 0.001) {
-                                const ux = (sx - cx) / distFromCenter;
-                                const uy = (sy - cy) / distFromCenter;
-                                return {
-                                    x: sx + ux * altitudePx,
-                                    y: sy + uy * altitudePx,
-                                    isVisible: distFromCenter <= radius * 1.05
-                                };
-                            }
-                            return {
-                                x: sx,
-                                y: sy,
-                                isVisible: distFromCenter <= radius * 1.05
-                            };
-                        };
-
-                        // Points de départ (Festival 1) et d'arrivée (Festival 2) réels
-                        const posA = projectOnGlobe(latA, lonA, 0);
-                        const posB = projectOnGlobe(latB, lonB, 0);
-
-                        // Calcul de l'arc de grand cercle (orthodromie géodésique réelle)
                         const phiA = (latA * Math.PI) / 180;
                         const lamA = (lonA * Math.PI) / 180;
                         const phiB = (latB * Math.PI) / 180;
@@ -6216,10 +6139,62 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const cosDelta = Math.sin(phiA) * Math.sin(phiB) + Math.cos(phiA) * Math.cos(phiB) * Math.cos(lamB - lamA);
                         const delta = Math.acos(Math.max(-1, Math.min(1, cosDelta)));
 
-                        // Échantillonnage de la trajectoire réelle en 40 points précis
-                        const numSteps = 40;
-                        const curvePoints: { x: number; y: number; s: number }[] = [];
-                        const maxArcAltitude = Math.min(110, Math.max(35, radius * 0.24));
+                        // Point médian géographique réel pour centrer les 2 festivals simultanément sur la Terre
+                        let midLat = (latA + latB) / 2;
+                        let midLon = lonA + shortestLonDiff / 2;
+                        if (delta > 0.001) {
+                            const sinDelta = Math.sin(delta);
+                            const fA = Math.sin(0.5 * delta) / sinDelta;
+                            const fB = Math.sin(0.5 * delta) / sinDelta;
+                            const xM = fA * Math.cos(phiA) * Math.cos(lamA) + fB * Math.cos(phiB) * Math.cos(lamB);
+                            const yM = fA * Math.cos(phiA) * Math.sin(lamA) + fB * Math.cos(phiB) * Math.sin(lamB);
+                            const zM = fA * Math.sin(phiA) + fB * Math.sin(phiB);
+                            midLat = Math.atan2(zM, Math.hypot(xM, yM)) * (180 / Math.PI);
+                            midLon = Math.atan2(yM, xM) * (180 / Math.PI);
+                        }
+
+                        // Cadrage caméra parfait : centré au milieu avec une micro-rotation douce qui suit la progression
+                        const camLat = midLat + (latB - latA) * 0.15 * (easeRel - 0.5);
+                        const camLon = midLon + shortestLonDiff * 0.15 * (easeRel - 0.5);
+
+                        drawSpaceBackground(1.0);
+                        const radius = Math.min(canvas.width, canvas.height) * 0.36;
+                        const cx = canvas.width / 2;
+                        const cy = canvas.height / 2;
+                        drawEarthGlobe(cx, cy, radius, camLat, camLon, 1.0);
+
+                        // Helper de projection 3D rigoureuse (ne déborde JAMAIS du disque terrestre)
+                        const projectOnGlobe = (pLat: number, pLon: number, altitudePx: number = 0) => {
+                            const diffLon = ((((pLon - camLon) + 540) % 360) - 180);
+                            const pPhi = (pLat * Math.PI) / 180;
+                            const pPhi0 = (camLat * Math.PI) / 180;
+                            const pLam = diffLon * (Math.PI / 180);
+
+                            // Coordonnées 3D sur la sphère (Z = profondeur face à la caméra)
+                            const vx = Math.cos(pPhi) * Math.sin(pLam);
+                            const vy = Math.cos(pPhi0) * Math.sin(pPhi) - Math.sin(pPhi0) * Math.cos(pPhi) * Math.cos(pLam);
+                            const vz = Math.sin(pPhi0) * Math.sin(pPhi) + Math.cos(pPhi0) * Math.cos(pPhi) * Math.cos(pLam);
+
+                            const effR = radius + altitudePx;
+                            const sx = cx + vx * effR;
+                            const sy = cy - vy * effR;
+                            const distFromCenter = Math.hypot(sx - cx, sy - cy);
+
+                            return {
+                                x: sx,
+                                y: sy,
+                                z: vz,
+                                isVisible: vz > -0.05 && distFromCenter <= radius * 1.15
+                            };
+                        };
+
+                        const posA = projectOnGlobe(latA, lonA, 0);
+                        const posB = projectOnGlobe(latB, lonB, 0);
+
+                        // Échantillonnage de la trajectoire orbitale réelle en 50 points
+                        const numSteps = 50;
+                        const curvePoints: { x: number; y: number; s: number; isVisible: boolean }[] = [];
+                        const maxArcAltitude = Math.min(32, Math.max(16, radius * 0.09)); // Élévation orbitale discrète et élégante
 
                         for (let i = 0; i <= numSteps; i++) {
                             const s = i / numSteps;
@@ -6242,83 +6217,124 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ptLon = lonA + shortestLonDiff * s;
                             }
 
-                            // Altitude parabolique (décollage orbital A -> sommet -> atterrissage B)
+                            // Parabole d'altitude orbitale au-dessus de la Terre
                             const alt = Math.sin(s * Math.PI) * maxArcAltitude;
                             const pt = projectOnGlobe(ptLat, ptLon, alt);
-                            curvePoints.push({ x: pt.x, y: pt.y, s });
+                            curvePoints.push({ x: pt.x, y: pt.y, s, isVisible: pt.isVisible });
                         }
 
-                        // 1. Ligne de vol prospective (couloir aérien futuriste en tirets cyan)
+                        // 1. Couloir de vol futuriste (pointillés fins très élégants sur tout le trajet)
                         ctx.save();
-                        ctx.setLineDash([6, 8]);
-                        ctx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
-                        ctx.lineWidth = 2.5;
+                        ctx.setLineDash([4, 6]);
+                        ctx.strokeStyle = 'rgba(0, 240, 255, 0.30)';
+                        ctx.lineWidth = 1.5;
                         ctx.beginPath();
-                        curvePoints.forEach((pt, idx) => {
-                            if (idx === 0) ctx.moveTo(pt.x, pt.y);
-                            else ctx.lineTo(pt.x, pt.y);
+                        let startedDash = false;
+                        curvePoints.forEach((pt) => {
+                            if (!pt.isVisible) {
+                                startedDash = false;
+                                return;
+                            }
+                            if (!startedDash) {
+                                ctx.moveTo(pt.x, pt.y);
+                                startedDash = true;
+                            } else {
+                                ctx.lineTo(pt.x, pt.y);
+                            }
                         });
                         ctx.stroke();
-                        ctx.setLineDash([]);
                         ctx.restore();
 
-                        // 2. Traînée laser active (parcourue jusqu'à la position actuelle du vol)
-                        ctx.save();
+                        // 2. Faisceau Laser Cyber en 3 couches (Halo lumineux + Faisceau dégradé + Cœur blanc éclatant)
                         const activeSteps = Math.max(1, Math.floor(easeRel * numSteps));
-                        const activePoints = curvePoints.slice(0, activeSteps + 1);
+                        const activePoints = curvePoints.slice(0, activeSteps + 1).filter(p => p.isVisible);
 
                         if (activePoints.length >= 2) {
-                            const grad = ctx.createLinearGradient(
-                                posA.x, posA.y,
-                                activePoints[activePoints.length - 1].x, activePoints[activePoints.length - 1].y
-                            );
-                            grad.addColorStop(0, mapPinColor || '#00f0ff');
-                            grad.addColorStop(0.65, '#bd00ff');
-                            grad.addColorStop(1, '#00f0ff');
-
-                            ctx.strokeStyle = grad;
-                            ctx.lineWidth = 5;
-                            ctx.shadowColor = '#00f0ff';
-                            ctx.shadowBlur = 18;
+                            ctx.save();
                             ctx.lineCap = 'round';
                             ctx.lineJoin = 'round';
 
+                            // Couche 1 : Halo néon d'ambiance
+                            ctx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
+                            ctx.lineWidth = 7;
+                            ctx.shadowColor = '#00f0ff';
+                            ctx.shadowBlur = 18;
                             ctx.beginPath();
                             activePoints.forEach((pt, idx) => {
                                 if (idx === 0) ctx.moveTo(pt.x, pt.y);
                                 else ctx.lineTo(pt.x, pt.y);
                             });
                             ctx.stroke();
-                        }
-                        ctx.restore();
 
-                        // 3. Pin & Balise Réelle Départ (Festival 1 - Point A)
+                            // Couche 2 : Faisceau dégradé néon cyan vers magenta
+                            const grad = ctx.createLinearGradient(posA.x, posA.y, posB.x, posB.y);
+                            grad.addColorStop(0, mapPinColor || '#00f0ff');
+                            grad.addColorStop(0.5, '#00f0ff');
+                            grad.addColorStop(1, mapDestPinColor || '#fe2c55');
+                            ctx.strokeStyle = grad;
+                            ctx.lineWidth = 3.5;
+                            ctx.shadowBlur = 0;
+                            ctx.beginPath();
+                            activePoints.forEach((pt, idx) => {
+                                if (idx === 0) ctx.moveTo(pt.x, pt.y);
+                                else ctx.lineTo(pt.x, pt.y);
+                            });
+                            ctx.stroke();
+
+                            // Couche 3 : Cœur de faisceau blanc intense (effet énergie pure)
+                            ctx.strokeStyle = '#ffffff';
+                            ctx.lineWidth = 1.2;
+                            ctx.beginPath();
+                            activePoints.forEach((pt, idx) => {
+                                if (idx === 0) ctx.moveTo(pt.x, pt.y);
+                                else ctx.lineTo(pt.x, pt.y);
+                            });
+                            ctx.stroke();
+                            ctx.restore();
+                        }
+
+                        // 3. Balise & Pin Départ (Festival 1 - Point A)
                         if (posA.isVisible) {
                             ctx.save();
                             ctx.shadowColor = mapPinColor;
                             ctx.shadowBlur = 12;
                             ctx.fillStyle = mapPinColor;
                             ctx.beginPath();
-                            ctx.arc(posA.x, posA.y, 6, 0, Math.PI * 2);
+                            ctx.arc(posA.x, posA.y, 5, 0, Math.PI * 2);
                             ctx.fill();
 
                             const pA = 0.5 + 0.5 * Math.sin(animTime * 6);
                             ctx.strokeStyle = mapPinColor;
                             ctx.lineWidth = 2;
                             ctx.beginPath();
-                            ctx.arc(posA.x, posA.y, 9 + pA * 5, 0, Math.PI * 2);
+                            ctx.arc(posA.x, posA.y, 8 + pA * 4, 0, Math.PI * 2);
                             ctx.stroke();
 
-                            ctx.font = '900 12px "Orbitron", sans-serif';
+                            // Badge capsule départ
+                            const labelA = (mapFestivalText || 'DÉPART').toUpperCase();
+                            ctx.font = '900 10.5px "Orbitron", sans-serif';
+                            const twA = ctx.measureText(labelA).width;
+                            const badgeW = twA + 16;
+                            const badgeH = 20;
+                            const bx = posA.x - badgeW / 2;
+                            const by = posA.y - 30;
+
+                            ctx.fillStyle = 'rgba(6, 10, 20, 0.85)';
+                            ctx.strokeStyle = mapPinColor;
+                            ctx.lineWidth = 1.5;
+                            ctx.beginPath();
+                            ctx.roundRect(bx, by, badgeW, badgeH, 10);
+                            ctx.fill();
+                            ctx.stroke();
+
                             ctx.fillStyle = '#ffffff';
                             ctx.textAlign = 'center';
-                            ctx.shadowColor = '#000000';
-                            ctx.shadowBlur = 8;
-                            ctx.fillText((mapFestivalText || 'DÉPART').toUpperCase(), posA.x, posA.y - 14);
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(labelA, posA.x, by + badgeH / 2);
                             ctx.restore();
                         }
 
-                        // 4. Pin & Cible Réelle Arrivée (Festival 2 - Point B)
+                        // 4. Balise & Cible Arrivée (Festival 2 - Point B)
                         if (posB.isVisible) {
                             ctx.save();
                             const pB = 0.5 + 0.5 * Math.sin(animTime * 8);
@@ -6326,25 +6342,41 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.shadowBlur = 15;
                             ctx.fillStyle = mapDestPinColor;
                             ctx.beginPath();
-                            ctx.arc(posB.x, posB.y, 6, 0, Math.PI * 2);
+                            ctx.arc(posB.x, posB.y, 5, 0, Math.PI * 2);
                             ctx.fill();
 
+                            // Viseur radar destination
                             ctx.strokeStyle = mapDestPinColor;
-                            ctx.lineWidth = 2.5;
+                            ctx.lineWidth = 2;
                             ctx.beginPath();
-                            ctx.arc(posB.x, posB.y, 12 + pB * 6, 0, Math.PI * 2);
+                            ctx.arc(posB.x, posB.y, 11 + pB * 5, 0, Math.PI * 2);
                             ctx.stroke();
 
-                            ctx.font = '900 12px "Orbitron", sans-serif';
+                            // Badge capsule destination
+                            const labelB = (mapDestFestivalText || 'DESTINATION').toUpperCase();
+                            ctx.font = '900 10.5px "Orbitron", sans-serif';
+                            const twB = ctx.measureText(labelB).width;
+                            const badgeWB = twB + 16;
+                            const badgeHB = 20;
+                            const bxB = posB.x - badgeWB / 2;
+                            const byB = posB.y - 30;
+
+                            ctx.fillStyle = 'rgba(6, 10, 20, 0.85)';
+                            ctx.strokeStyle = mapDestPinColor;
+                            ctx.lineWidth = 1.5;
+                            ctx.beginPath();
+                            ctx.roundRect(bxB, byB, badgeWB, badgeHB, 10);
+                            ctx.fill();
+                            ctx.stroke();
+
                             ctx.fillStyle = '#00f0ff';
                             ctx.textAlign = 'center';
-                            ctx.shadowColor = '#000000';
-                            ctx.shadowBlur = 8;
-                            ctx.fillText((mapDestFestivalText || 'DESTINATION').toUpperCase(), posB.x, posB.y - 18);
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(labelB, posB.x, byB + badgeHB / 2);
                             ctx.restore();
                         }
 
-                        // 5. Navette / Tête du Laser (Interpolation fine)
+                        // 5. Navette / Tête du Laser supersonique
                         const exactIdx = easeRel * numSteps;
                         const lowerIdx = Math.floor(exactIdx);
                         const upperIdx = Math.min(numSteps, Math.ceil(exactIdx));
@@ -6354,33 +6386,37 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const shipX = pLow.x + (pUp.x - pLow.x) * subRatio;
                         const shipY = pLow.y + (pUp.y - pLow.y) * subRatio;
 
-                        ctx.save();
-                        ctx.shadowColor = '#00f0ff';
-                        ctx.shadowBlur = 24;
-                        ctx.fillStyle = '#ffffff';
-                        ctx.beginPath();
-                        ctx.arc(shipX, shipY, 8, 0, Math.PI * 2);
-                        ctx.fill();
+                        if (pLow.isVisible || pUp.isVisible) {
+                            ctx.save();
+                            // Point lumineux central intense
+                            ctx.shadowColor = '#00f0ff';
+                            ctx.shadowBlur = 20;
+                            ctx.fillStyle = '#ffffff';
+                            ctx.beginPath();
+                            ctx.arc(shipX, shipY, 6, 0, Math.PI * 2);
+                            ctx.fill();
 
-                        ctx.strokeStyle = '#00f0ff';
-                        ctx.lineWidth = 3;
-                        ctx.beginPath();
-                        ctx.arc(shipX, shipY, 15, 0, Math.PI * 2);
-                        ctx.stroke();
+                            // Anneau d'onde d'énergie
+                            ctx.strokeStyle = '#00f0ff';
+                            ctx.lineWidth = 2.5;
+                            ctx.beginPath();
+                            ctx.arc(shipX, shipY, 13, 0, Math.PI * 2);
+                            ctx.stroke();
 
-                        // Flèche / Navette orientée dans la direction réelle du vol
-                        const angle = Math.atan2(pUp.y - pLow.y, pUp.x - pLow.x);
-                        ctx.translate(shipX, shipY);
-                        ctx.rotate(angle);
-                        ctx.fillStyle = '#00f0ff';
-                        ctx.beginPath();
-                        ctx.moveTo(11, 0);
-                        ctx.lineTo(-6, -6);
-                        ctx.lineTo(-3, 0);
-                        ctx.lineTo(-6, 6);
-                        ctx.closePath();
-                        ctx.fill();
-                        ctx.restore();
+                            // Flèche supersonique orientée
+                            const angle = Math.atan2(pUp.y - pLow.y, pUp.x - pLow.x);
+                            ctx.translate(shipX, shipY);
+                            ctx.rotate(angle);
+                            ctx.fillStyle = '#00f0ff';
+                            ctx.beginPath();
+                            ctx.moveTo(9, 0);
+                            ctx.lineTo(-5, -5);
+                            ctx.lineTo(-2, 0);
+                            ctx.lineTo(-5, 5);
+                            ctx.closePath();
+                            ctx.fill();
+                            ctx.restore();
+                        }
 
                         // 6. HUD Télémétrie en direct
                         const curKm = Math.round(distKm * easeRel);
