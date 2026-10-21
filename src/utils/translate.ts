@@ -38,6 +38,39 @@ export async function translateText(text: string, targetLang: string): Promise<s
     }
 }
 
+export async function translateToFrench(text: string, sourceLang: string = 'auto'): Promise<string> {
+    const trimmed = text.trim();
+    if (!trimmed) return '';
+
+    const cacheKey = `fr:${sourceLang}:${trimmed}`;
+    if (translationCache[cacheKey]) return translationCache[cacheKey];
+
+    try {
+        const params = new URLSearchParams({
+            client: 'gtx',
+            sl: sourceLang,
+            tl: 'fr',
+            dt: 't',
+            q: trimmed
+        });
+
+        const response = await fetch(`${GOOGLE_TRANSLATE_API}?${params}`);
+        if (!response.ok) throw new Error(`Translate API error: ${response.status}`);
+
+        const data = await response.json();
+        if (data && data[0]) {
+            const translated = data[0].map((item: any) => item[0]).join('');
+            translationCache[cacheKey] = translated;
+            return translated;
+        }
+
+        return text;
+    } catch (error: any) {
+        console.error('Translation to French error:', error);
+        return text;
+    }
+}
+
 export async function translateHTML(html: string, targetLang: string): Promise<string> {
     if (!html || !html.trim() || targetLang === 'fr') return html;
 

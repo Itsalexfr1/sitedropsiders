@@ -47,6 +47,7 @@ import { resolveImageUrl } from '../utils/image';
 import { resolveMusicSnippet } from '../utils/musicResolver';
 import { fixWebmDuration } from '../utils/fixWebm';
 import recapsData from '../data/recaps.json';
+import { translateToFrench } from '../utils/translate';
 // @ts-ignore
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 // @ts-ignore
@@ -594,6 +595,41 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [afficheImgZoom, setAfficheImgZoom] = useState<number>(100);
     const [afficheImgPanX, setAfficheImgPanX] = useState<number>(0);
     const [afficheImgPanY, setAfficheImgPanY] = useState<number>(0);
+
+    // TWEET / POST X Theme States (Capture d'écran flottante cadrée avec précision)
+    const [isEditorialTweetActive, setIsEditorialTweetActive] = useState<boolean>(false);
+    const editorialTweetOverrideRef = useRef<boolean>(false);
+    const [tweetImage, setTweetImage] = useState<string>('');
+    const tweetImageRef = useRef<HTMLImageElement | null>(null);
+    const tweetFileInputRef = useRef<HTMLInputElement | null>(null);
+    const [tweetScale, setTweetScale] = useState<number>(100);
+    const [tweetOffsetY, setTweetOffsetY] = useState<number>(0);
+    const [tweetGlow, setTweetGlow] = useState<boolean>(true);
+    const [tweetHeadline, setTweetHeadline] = useState<string>('');
+    const [tweetBadge, setTweetBadge] = useState<string>('SOURCE X');
+    const [tweetBorderColor, setTweetBorderColor] = useState<string>('rgba(255, 255, 255, 0.16)');
+    const [tweetOriginalText, setTweetOriginalText] = useState<string>('');
+    const [tweetTranslation, setTweetTranslation] = useState<string>('');
+    const [showTweetTranslation, setShowTweetTranslation] = useState<boolean>(true);
+    const [isTranslatingTweet, setIsTranslatingTweet] = useState<boolean>(false);
+
+    const handleAutoTranslateTweet = async (textToTranslateParam?: string) => {
+        const textToTranslate = textToTranslateParam !== undefined ? textToTranslateParam : tweetOriginalText;
+        if (!textToTranslate || !textToTranslate.trim()) return;
+        setIsTranslatingTweet(true);
+        try {
+            const res = await translateToFrench(textToTranslate.trim(), 'en');
+            if (res) {
+                setTweetTranslation(res);
+                setShowTweetTranslation(true);
+                setTimeout(() => generateImage(), 60);
+            }
+        } catch (e) {
+            console.error("Auto translate error:", e);
+        } finally {
+            setIsTranslatingTweet(false);
+        }
+    };
 
     const renderImageCropControls = (
         zoom: number, panX: number, panY: number,
@@ -1368,6 +1404,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const selectionRef = useRef({ start: 0, end: 0 });
     const isMapAnimPlayingRef = useRef<boolean>(isMapAnimPlaying);
     const mapScrubTimeRef = useRef<number | null>(mapScrubTime);
+    const pendingTilesRef = useRef<Set<string>>(new Set());
     const venueMapCacheRef = useRef<Map<string, {
         countryCanvas: HTMLCanvasElement;
         cityCanvas: HTMLCanvasElement;
@@ -1545,6 +1582,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         imgObj.onload = () => {
             festivalLogoRef.current = imgObj;
             setFestivalLogo(url);
+            generateImage();
+        };
+    };
+
+    const handleTweetImageChange = (e: any) => {
+        const file = e.target?.files?.[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        const imgObj = new Image();
+        imgObj.crossOrigin = "anonymous";
+        imgObj.src = url;
+        imgObj.onload = () => {
+            tweetImageRef.current = imgObj;
+            imageCacheRef.current[url] = imgObj;
+            setTweetImage(url);
             generateImage();
         };
     };
@@ -1782,6 +1834,42 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return entry;
     };
 
+    const loadTileAsync = (url: string) => {
+        if (!url || imageCacheRef.current[url] || pendingTilesRef.current.has(url)) return;
+        pendingTilesRef.current.add(url);
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = url;
+        img.onload = () => {
+            imageCacheRef.current[url] = img;
+            pendingTilesRef.current.delete(url);
+            if (!isMapAnimPlayingRef.current && !isVideoRecordingRef.current && mapScrubTimeRef.current === null) {
+                generateImage();
+            }
+        };
+        img.onerror = () => {
+            pendingTilesRef.current.delete(url);
+        };
+    };
+
+    const preloadMapPyramid = (lat: number, lon: number, style: string) => {
+        for (let z = 4; z <= 19; z++) {
+            const maxT = Math.pow(2, z);
+            const cX = lon2tile(lon, z);
+            const cY = lat2tile(lat, z);
+            const radius = z <= 6 ? 2 : 2;
+            for (let x = Math.floor(cX) - radius; x <= Math.floor(cX) + radius; x++) {
+                for (let y = Math.floor(cY) - radius; y <= Math.floor(cY) + radius; y++) {
+                    if (y >= 0 && y < maxT) {
+                        const wx = ((x % maxT) + maxT) % maxT;
+                        const url = getTileUrlForService(z, wx, y, style);
+                        loadTileAsync(url);
+                    }
+                }
+            }
+        }
+    };
+
     const drawSpaceBackgroundGlobal = (ctx: CanvasRenderingContext2D, width: number, height: number, alpha: number = 1.0, animTimeVal: number = 0) => {
         ctx.save();
         ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
@@ -1916,71 +2004,125 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'medium';
 
-        const entry = getVenueCanvas(lat, lon, mapStyle);
-
-        // NIVEAU 1 : ESPACE & GLOBE TERRESTRE 3D CENTRÉ (Zoom 3.0 à 6.8)
-        if (clampedZoom < 6.8) {
+        // 1. ESPACE & GLOBE TERRESTRE 3D (Zoom 3.0 à 5.8)
+        if (clampedZoom < 5.8) {
             drawSpaceBackgroundGlobal(ctx, width, height, 1.0, animTimeVal);
             const globeRadius = (256 * Math.pow(2, clampedZoom)) / (2 * Math.PI);
-            const globeAlpha = clampedZoom < 5.8 ? 1.0 : Math.max(0, 1 - (clampedZoom - 5.8) / 1.0);
+            const globeAlpha = clampedZoom < 4.8 ? 1.0 : Math.max(0, 1 - (clampedZoom - 4.8) / 1.0);
             drawEarthGlobeGlobal(ctx, canvasCenterX + droneDriftX, canvasCenterY + droneDriftY, globeRadius, lat, lon, globeAlpha);
         }
 
-        // NIVEAU 2 : CONTINENT / PAYS (Zoom 5.8 à 12.2 - countryCanvas à zoom 9)
-        if (clampedZoom >= 5.8 && clampedZoom < 12.2) {
-            const countryAlpha = clampedZoom < 6.8
-                ? (clampedZoom - 5.8) / 1.0
-                : clampedZoom > 11.4
-                    ? Math.max(0, 1 - (clampedZoom - 11.4) / 0.8)
-                    : 1.0;
+        // 2. RENDU DYNAMIQUE PLEIN ÉCRAN DES TUILES SATELLITE (Zoom 4.8 à 20.5)
+        // Remplit 100% de la surface du canvas sans aucun bord noir
+        if (clampedZoom >= 4.8) {
+            const surfaceAlpha = clampedZoom < 5.8 ? (clampedZoom - 4.8) / 1.0 : 1.0;
+            const baseZ = Math.min(19, Math.max(3, Math.round(clampedZoom)));
+            const maxTiles = Math.pow(2, baseZ);
+            const scale = Math.pow(2, clampedZoom - baseZ);
+            const tileSize = 256 * scale;
 
-            const scale = Math.pow(2, clampedZoom - 9.0);
-            const gpsX = (entry.countryCenterX - entry.countryStartX) * 256;
-            const gpsY = (entry.countryCenterY - entry.countryStartY) * 256;
+            const centerTileX = lon2tile(lon, baseZ);
+            const centerTileY = lat2tile(lat, baseZ);
 
-            ctx.save();
-            ctx.globalAlpha = Math.max(0, Math.min(1, countryAlpha));
-            ctx.translate(canvasCenterX + droneDriftX, canvasCenterY + droneDriftY);
-            if (droneAngle !== 0) ctx.rotate(droneAngle);
-            ctx.scale(scale, scale);
-            ctx.drawImage(entry.countryCanvas, -gpsX, -gpsY);
-            ctx.restore();
-        }
+            // Rayon pour couvrir tout l'écran y compris diagonale sous rotation drone
+            const diag = Math.hypot(width, height);
+            const radiusTiles = Math.ceil((diag / 2 + 128) / tileSize) + 1;
 
-        // NIVEAU 3 : MÉTROPOLE / VILLE (Zoom 11.4 à 16.5 - cityCanvas à zoom 14)
-        if (clampedZoom >= 11.4 && clampedZoom < 16.5) {
-            const cityAlpha = clampedZoom < 12.2
-                ? (clampedZoom - 11.4) / 0.8
-                : clampedZoom > 15.6
-                    ? Math.max(0, 1 - (clampedZoom - 15.6) / 0.9)
-                    : 1.0;
-
-            const scale = Math.pow(2, clampedZoom - 14.0);
-            const gpsX = (entry.cityCenterX - entry.cityStartX) * 256;
-            const gpsY = (entry.cityCenterY - entry.cityStartY) * 256;
+            const minTx = Math.floor(centerTileX - radiusTiles);
+            const maxTx = Math.ceil(centerTileX + radiusTiles);
+            const minTy = Math.floor(centerTileY - radiusTiles);
+            const maxTy = Math.ceil(centerTileY + radiusTiles);
 
             ctx.save();
-            ctx.globalAlpha = Math.max(0, Math.min(1, cityAlpha));
-            ctx.translate(canvasCenterX + droneDriftX, canvasCenterY + droneDriftY);
+            ctx.globalAlpha = Math.max(0, Math.min(1, surfaceAlpha));
+            ctx.translate(canvasCenterX, canvasCenterY);
             if (droneAngle !== 0) ctx.rotate(droneAngle);
-            ctx.scale(scale, scale);
-            ctx.drawImage(entry.cityCanvas, -gpsX, -gpsY);
-            ctx.restore();
-        }
 
-        // NIVEAU 4 : SALLE / SCÈNE / FESTIVAL ULTRA RAPPROCHÉ (Zoom 15.6 à 20.5 - venueCanvas à zoom 18)
-        if (clampedZoom >= 15.6) {
-            const venueAlpha = clampedZoom < 16.5 ? (clampedZoom - 15.6) / 0.9 : 1.0;
-            const scale = Math.pow(2, clampedZoom - 18.0);
-            const gpsX = (entry.venueCenterX - entry.venueStartX) * 256;
-            const gpsY = (entry.venueCenterY - entry.venueStartY) * 256;
+            // A) Couche de secours régionale (Zoom inférieur) pour garantir 100% d'image même si chargement réseau
+            const fallbackZ = Math.min(baseZ, Math.max(4, Math.floor(clampedZoom) - 2));
+            if (fallbackZ < baseZ) {
+                const fbMaxT = Math.pow(2, fallbackZ);
+                const fbScale = Math.pow(2, clampedZoom - fallbackZ);
+                const fbTileSize = 256 * fbScale;
+                const fbCenterX = lon2tile(lon, fallbackZ);
+                const fbCenterY = lat2tile(lat, fallbackZ);
+                const fbRadius = Math.ceil((diag / 2 + 64) / fbTileSize) + 1;
 
-            ctx.save();
-            ctx.globalAlpha = Math.max(0, Math.min(1, venueAlpha));
-            ctx.translate(canvasCenterX + droneDriftX, canvasCenterY + droneDriftY);
-            if (droneAngle !== 0) ctx.rotate(droneAngle);
-            ctx.scale(scale, scale);
-            ctx.drawImage(entry.venueCanvas, -gpsX, -gpsY);
+                const fbMinX = Math.floor(fbCenterX - fbRadius);
+                const fbMaxX = Math.ceil(fbCenterX + fbRadius);
+                const fbMinY = Math.floor(fbCenterY - fbRadius);
+                const fbMaxY = Math.ceil(fbCenterY + fbRadius);
+
+                for (let fbx = fbMinX; fbx <= fbMaxX; fbx++) {
+                    for (let fby = fbMinY; fby <= fbMaxY; fby++) {
+                        if (fby < 0 || fby >= fbMaxT) continue;
+                        const wFbx = ((fbx % fbMaxT) + fbMaxT) % fbMaxT;
+                        const fbUrl = getTileUrlForService(fallbackZ, wFbx, fby, mapStyle);
+                        const fbImg = imageCacheRef.current[fbUrl];
+                        if (fbImg && fbImg.complete && fbImg.naturalWidth > 0) {
+                            const rx = (fbx - fbCenterX) * fbTileSize + droneDriftX;
+                            const ry = (fby - fbCenterY) * fbTileSize + droneDriftY;
+                            ctx.drawImage(fbImg, rx, ry, fbTileSize + 0.6, fbTileSize + 0.6);
+                        } else if (!fbImg) {
+                            loadTileAsync(fbUrl);
+                        }
+                    }
+                }
+            }
+
+            // B) Couche haute résolution principale
+            for (let tx = minTx; tx <= maxTx; tx++) {
+                for (let ty = minTy; ty <= maxTy; ty++) {
+                    if (ty < 0 || ty >= maxTiles) continue;
+                    const wrappedTx = ((tx % maxTiles) + maxTiles) % maxTiles;
+                    const tileUrl = getTileUrlForService(baseZ, wrappedTx, ty, mapStyle);
+
+                    const relX = (tx - centerTileX) * tileSize + droneDriftX;
+                    const relY = (ty - centerTileY) * tileSize + droneDriftY;
+
+                    const img = imageCacheRef.current[tileUrl];
+                    if (img && img.complete && img.naturalWidth > 0) {
+                        ctx.drawImage(img, relX, relY, tileSize + 0.6, tileSize + 0.6);
+                    } else {
+                        // Fallback vers tuile parente (baseZ - 1)
+                        let drawnParent = false;
+                        if (baseZ > 3) {
+                            const pZ = baseZ - 1;
+                            const pTx = Math.floor(wrappedTx / 2);
+                            const pTy = Math.floor(ty / 2);
+                            const pUrl = getTileUrlForService(pZ, pTx, pTy, mapStyle);
+                            const pImg = imageCacheRef.current[pUrl];
+                            if (pImg && pImg.complete && pImg.naturalWidth > 0) {
+                                const subX = (wrappedTx % 2) * 128;
+                                const subY = (ty % 2) * 128;
+                                ctx.drawImage(pImg, subX, subY, 128, 128, relX, relY, tileSize + 0.6, tileSize + 0.6);
+                                drawnParent = true;
+                            } else {
+                                loadTileAsync(pUrl);
+                            }
+                        }
+                        if (!drawnParent && baseZ > 4) {
+                            // Fallback vers grand-parent (baseZ - 2)
+                            const p2Z = baseZ - 2;
+                            const p2Tx = Math.floor(wrappedTx / 4);
+                            const p2Ty = Math.floor(ty / 4);
+                            const p2Url = getTileUrlForService(p2Z, p2Tx, p2Ty, mapStyle);
+                            const p2Img = imageCacheRef.current[p2Url];
+                            if (p2Img && p2Img.complete && p2Img.naturalWidth > 0) {
+                                const subX2 = (wrappedTx % 4) * 64;
+                                const subY2 = (ty % 4) * 64;
+                                ctx.drawImage(p2Img, subX2, subY2, 64, 64, relX, relY, tileSize + 0.6, tileSize + 0.6);
+                            } else {
+                                loadTileAsync(p2Url);
+                            }
+                        }
+                        if (!img) {
+                            loadTileAsync(tileUrl);
+                        }
+                    }
+                }
+            }
+
             ctx.restore();
         }
 
@@ -2040,13 +2182,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    // Pré-chargement automatique immédiat des festivals en tâche de fond
+    // Pré-chargement automatique immédiat des festivals en tâche de fond (pyramide complète de zooms)
     useEffect(() => {
         if (theme !== 'MAP') return;
         const style = mapStyle || 'satellite';
-        getVenueCanvas(mapLatitude, mapLongitude, style);
+        preloadMapPyramid(mapLatitude, mapLongitude, style);
         if (mapAnimMode === 'FLIGHT_ROUTE') {
-            getVenueCanvas(mapDestLatitude, mapDestLongitude, style);
+            preloadMapPyramid(mapDestLatitude, mapDestLongitude, style);
         }
     }, [theme, mapLatitude, mapLongitude, mapDestLatitude, mapDestLongitude, mapStyle, mapAnimMode]);
 
@@ -2090,6 +2232,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const effectiveTheme = isPromoRequested ? 'PROMO' : (forceTheme || theme);
         const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS', 'EVENTS'].includes(effectiveTheme);
         const isEditorialAfficheRequested = Boolean(isEditorialCarouselTheme && !isPromoRequested && (editorialAfficheOverrideRef.current || isEditorialAfficheActive));
+        const isEditorialTweetRequested = Boolean(isEditorialCarouselTheme && !isPromoRequested && !isEditorialAfficheRequested && (editorialTweetOverrideRef.current || isEditorialTweetActive));
 
         try {
             await (async (theme: ThemeType) => {
@@ -2398,7 +2541,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else if (imgLayoutMode === 'BAS_LIGNE') {
                     y = ((canvas.height * 0.85 - vh) / 2) + bgOffsetY + bgAnimY;
                 }
-                if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested) {
+                if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested || isEditorialTweetRequested) {
                     ctx.save();
                     ctx.filter = 'blur(14px)';
                     const blurBleed = 28;
@@ -2680,7 +2823,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     } else if (imgLayoutMode === 'BAS_LIGNE') {
                         y = ((canvas.height * 0.85 - ih) / 2) + bgOffsetY + bgAnimY;
                     }
-                    if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested) {
+                    if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested || isEditorialTweetRequested) {
                         ctx.save();
                         const blurBleed = 80;
                         const targetW = Math.round(iw + blurBleed * 2);
@@ -5523,6 +5666,284 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     );
                 }
 
+            } else if (isEditorialTweetRequested) {
+                const isStory = canvas.height > 1500;
+
+                // 1. Dark Vignette overlay (Atmosphère cinéma sombre Dropsiders)
+                const vig = ctx.createRadialGradient(
+                    canvas.width / 2, canvas.height / 2, canvas.width * 0.15,
+                    canvas.width / 2, canvas.height / 2, canvas.height * 0.72
+                );
+                vig.addColorStop(0, 'rgba(0, 0, 0, 0.35)');
+                vig.addColorStop(0.65, 'rgba(0, 0, 0, 0.72)');
+                vig.addColorStop(1, 'rgba(0, 0, 0, 0.94)');
+                ctx.fillStyle = vig;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 2. Top Capsule Badge (ex: "• SOURCE X" ou personnalisé)
+                const badgeLabel = (tweetBadge || 'SOURCE X').toUpperCase();
+                const badgeColor = '#00f0ff';
+                const badgeGrad = '0, 240, 255';
+                drawTopCapsuleBadge(badgeLabel, badgeColor, badgeGrad);
+
+                // 3. Optionnel : Titre / Accroche contextuelle au-dessus du tweet
+                let headlineBottomY = isStory ? 340 : 280;
+                if (tweetHeadline && tweetHeadline.trim()) {
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const cleanHeadline = tweetHeadline.trim().toUpperCase();
+                    const headY = isStory ? 320 : 260;
+                    headlineBottomY = headY + 50;
+
+                    ctx.font = '900 italic 38px "Montserrat", sans-serif';
+                    ctx.shadowColor = 'rgba(0, 240, 255, 0.6)';
+                    ctx.shadowBlur = 18;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(cleanHeadline, canvas.width / 2, headY);
+                    ctx.restore();
+                }
+
+                // 4. Dimensions et proportions de la carte Tweet (calculées selon le ratio naturel du screenshot)
+                let tweetImg = (tweetImage && tweetImageRef.current) || (tweetImage && imageCacheRef.current[tweetImage]) || null;
+                if (tweetImage && (!tweetImg || !tweetImg.complete || tweetImg.naturalWidth === 0)) {
+                    if (imageCacheRef.current[tweetImage]) {
+                        tweetImg = imageCacheRef.current[tweetImage];
+                    } else {
+                        const tempImg = new Image();
+                        tempImg.crossOrigin = 'anonymous';
+                        tempImg.onload = () => {
+                            imageCacheRef.current[tweetImage] = tempImg;
+                            tweetImageRef.current = tempImg;
+                            generateImage();
+                        };
+                        tempImg.src = tweetImage;
+                        if (!tweetImg) tweetImg = tempImg;
+                    }
+                }
+
+                const scale = (tweetScale || 100) / 100;
+                const baseCardW = 960;
+                const cardW = Math.round(baseCardW * scale);
+                
+                let cardAspect = 2.1;
+                if (tweetImg && tweetImg.complete && tweetImg.naturalWidth > 0 && tweetImg.naturalHeight > 0) {
+                    cardAspect = tweetImg.naturalWidth / tweetImg.naturalHeight;
+                }
+                const maxCardH = isStory ? 1200 : 820;
+                let cardH = Math.round(cardW / cardAspect);
+                if (cardH > maxCardH) {
+                    cardH = maxCardH;
+                }
+
+                // Calcul de la carte Traduction FR si active
+                const hasTranslation = Boolean(showTweetTranslation && tweetTranslation && tweetTranslation.trim());
+                let transLines: string[] = [];
+                let transCardH = 0;
+                const transPadX = 36;
+                const transPadY = 24;
+                const transLineH = 34;
+                const transFontSize = 24;
+
+                if (hasTranslation) {
+                    ctx.save();
+                    ctx.font = `600 ${transFontSize}px "Montserrat", sans-serif`;
+                    const maxTextW = cardW - (transPadX * 2);
+                    const words = tweetTranslation.trim().split(/\s+/);
+                    let currentLine = '';
+                    for (const word of words) {
+                        const testLine = currentLine ? `${currentLine} ${word}` : word;
+                        const w = ctx.measureText(testLine).width;
+                        if (w > maxTextW && currentLine) {
+                            transLines.push(currentLine);
+                            currentLine = word;
+                        } else {
+                            currentLine = testLine;
+                        }
+                    }
+                    if (currentLine) transLines.push(currentLine);
+                    ctx.restore();
+
+                    // Hauteur de la carte de traduction : header (48px) + lignes de texte + padding
+                    transCardH = 48 + (transLines.length * transLineH) + transPadY;
+                }
+
+                // Ajustement de la hauteur du Tweet et centrage vertical de l'ensemble
+                const gap = 20;
+                const totalBlockH = cardH + (hasTranslation ? (gap + transCardH) : 0);
+                const maxAvailableH = canvas.height - (isStory ? 140 : 100) - headlineBottomY;
+                
+                // Si l'ensemble dépasse la hauteur disponible, on réduit la hauteur du Tweet proportionnellement
+                let finalCardH = cardH;
+                if (totalBlockH > maxAvailableH) {
+                    const excess = totalBlockH - maxAvailableH;
+                    finalCardH = Math.max(220, cardH - excess);
+                }
+                const finalTotalBlockH = finalCardH + (hasTranslation ? (gap + transCardH) : 0);
+                const availableCenterY = headlineBottomY + (canvas.height - (isStory ? 140 : 100) - headlineBottomY) / 2;
+                const cardX = Math.round((canvas.width - cardW) / 2);
+                const cardY = Math.round(availableCenterY - finalTotalBlockH / 2 + (tweetOffsetY || 0));
+                const transCardY = cardY + finalCardH + gap;
+                const rad = 28;
+
+                // 5. Ombre portée 3D et halo ambiant néon
+                ctx.save();
+                if (tweetGlow) {
+                    ctx.shadowColor = 'rgba(0, 240, 255, 0.30)';
+                    ctx.shadowBlur = 55;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 0;
+                    ctx.beginPath();
+                    ctx.roundRect(cardX, cardY, cardW, finalCardH, rad);
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                    ctx.fill();
+                }
+
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.90)';
+                ctx.shadowBlur = 60;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 24;
+                ctx.beginPath();
+                ctx.roundRect(cardX, cardY, cardW, finalCardH, rad);
+                ctx.fillStyle = '#000000';
+                ctx.fill();
+                ctx.restore();
+
+                // 6. Rendu du screenshot ou du placeholder
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(cardX, cardY, cardW, finalCardH, rad);
+                ctx.clip();
+
+                if (tweetImg && tweetImg.complete && tweetImg.naturalWidth > 0) {
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(cardX, cardY, cardW, finalCardH);
+                    ctx.drawImage(tweetImg, cardX, cardY, cardW, finalCardH);
+                } else {
+                    const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + finalCardH);
+                    phGrad.addColorStop(0, 'rgba(18, 18, 24, 0.96)');
+                    phGrad.addColorStop(1, 'rgba(8, 8, 12, 0.98)');
+                    ctx.fillStyle = phGrad;
+                    ctx.fillRect(cardX, cardY, cardW, finalCardH);
+
+                    const cx = cardX + cardW / 2;
+                    const cy = cardY + finalCardH / 2 - 35;
+                    ctx.save();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '900 64px "Montserrat", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('𝕏', cx, cy);
+
+                    ctx.font = '900 italic 26px "Orbitron", sans-serif';
+                    ctx.fillStyle = '#00f0ff';
+                    ctx.fillText('SCREENSHOT DU TWEET', cx, cy + 60);
+
+                    ctx.font = '600 15px "Montserrat", sans-serif';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                    ctx.fillText("Importez la capture d'écran du post dans le panneau latéral", cx, cy + 95);
+                    ctx.restore();
+                }
+
+                // Reflet subtil en dégradé sur le haut de la carte
+                const glossGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + Math.min(finalCardH * 0.4, 120));
+                glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
+                glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = glossGrad;
+                ctx.fillRect(cardX, cardY, cardW, Math.min(finalCardH * 0.4, 120));
+                ctx.restore();
+
+                // 7. Contour bordure élégant
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(cardX, cardY, cardW, finalCardH, rad);
+                ctx.strokeStyle = tweetBorderColor || 'rgba(255, 255, 255, 0.16)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+
+                // 8. Rendu de la Carte Traduction FR en dessous
+                if (hasTranslation && transLines.length > 0) {
+                    const transRad = 22;
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                    ctx.shadowBlur = 40;
+                    ctx.shadowOffsetY = 16;
+                    ctx.beginPath();
+                    ctx.roundRect(cardX, transCardY, cardW, transCardH, transRad);
+                    ctx.fillStyle = '#0a0d14';
+                    ctx.fill();
+                    ctx.restore();
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.roundRect(cardX, transCardY, cardW, transCardH, transRad);
+                    ctx.clip();
+
+                    const trGrad = ctx.createLinearGradient(cardX, transCardY, cardX + cardW, transCardY + transCardH);
+                    trGrad.addColorStop(0, 'rgba(16, 22, 34, 0.94)');
+                    trGrad.addColorStop(1, 'rgba(8, 12, 18, 0.98)');
+                    ctx.fillStyle = trGrad;
+                    ctx.fillRect(cardX, transCardY, cardW, transCardH);
+
+                    const trGloss = ctx.createLinearGradient(cardX, transCardY, cardX, transCardY + 40);
+                    trGloss.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
+                    trGloss.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = trGloss;
+                    ctx.fillRect(cardX, transCardY, cardW, 40);
+
+                    const badgeText = '🇫🇷 TRADUCTION FR';
+                    ctx.font = '900 italic 13px "Orbitron", sans-serif';
+                    ctx.fillStyle = '#00f0ff';
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'top';
+                    ctx.shadowColor = 'rgba(0, 240, 255, 0.5)';
+                    ctx.shadowBlur = 10;
+                    ctx.fillText(badgeText, cardX + transPadX, transCardY + 16);
+
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(cardX + transPadX, transCardY + 38);
+                    ctx.lineTo(cardX + cardW - transPadX, transCardY + 38);
+                    ctx.stroke();
+
+                    ctx.font = `600 ${transFontSize}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                    ctx.shadowBlur = 6;
+                    ctx.textBaseline = 'top';
+                    let lineY = transCardY + 50;
+                    for (let i = 0; i < transLines.length; i++) {
+                        const line = transLines[i];
+                        const isFirst = (i === 0);
+                        const isLast = (i === transLines.length - 1);
+                        const displayLine = `${isFirst ? '« ' : ''}${line}${isLast ? ' »' : ''}`;
+                        ctx.fillText(displayLine, cardX + transPadX, lineY);
+                        lineY += transLineH;
+                    }
+                    ctx.restore();
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.roundRect(cardX, transCardY, cardW, transCardH, transRad);
+                    ctx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
+                    ctx.lineWidth = 1.8;
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // 9. Mention Swipe
+                if (showSwipe) {
+                    const swipeY = canvas.height - (isStory ? 80 : 50);
+                    drawAnimatedSwipeIndicator(
+                        canvas.width - (isStory ? 80 : 60),
+                        swipeY,
+                        '#00f0ff',
+                        24
+                    );
+                }
+
             } else if (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) {
                 const isStory = canvas.height > 1500;
                 const trackIdx = Math.max(0, effectiveEditorialSlide - 2);
@@ -7960,7 +8381,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide
     useEffect(() => {
@@ -8018,6 +8439,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         };
         img.src = afficheImage;
     }, [afficheImage]);
+
+    // Pre-charger le screenshot du tweet dès que son URL change
+    useEffect(() => {
+        if (!tweetImage) {
+            tweetImageRef.current = null;
+            generateImage();
+            return;
+        }
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            tweetImageRef.current = img;
+            imageCacheRef.current[tweetImage] = img;
+            generateImage();
+        };
+        img.onerror = () => {
+            console.warn("Erreur de chargement du screenshot tweet:", tweetImage);
+        };
+        img.src = tweetImage;
+    }, [tweetImage]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -8634,25 +9075,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         isVideoRecordingRef.current = true;
         const prevWasCarouselPromoActive = isCarouselPromoActive;
         const prevWasEditorialAfficheActive = isEditorialAfficheActive;
+        const prevWasEditorialTweetActive = isEditorialTweetActive;
         if (combinedMode === 'PLANNING') {
             agendaSlideOverrideRef.current = 1;
             setIsCarouselPromoActive(false);
             setIsEditorialAfficheActive(false);
+            setIsEditorialTweetActive(false);
             promoOutroOverrideRef.current = false;
         } else if (combinedMode === 'EDITORIAL') {
             editorialSlideOverrideRef.current = 1;
             setIsCarouselPromoActive(false);
             setIsEditorialAfficheActive(false);
+            setIsEditorialTweetActive(false);
             promoOutroOverrideRef.current = false;
         } else if (combinedMode === 'PROMO_ONLY') {
             promoOutroOverrideRef.current = true;
             setIsCarouselPromoActive(true);
             setIsEditorialAfficheActive(false);
+            setIsEditorialTweetActive(false);
         } else {
             setArtisteFestivalSlide(1);
             setEventsSlide(1);
             setIsCarouselPromoActive(false);
             setIsEditorialAfficheActive(false);
+            setIsEditorialTweetActive(false);
             promoOutroOverrideRef.current = false;
         }
         transitionProgressRef.current = 0;
@@ -9475,19 +9921,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         // Nettoyage des états promo et overrides UNIQUEMENT après l'arrêt total de l'enregistrement
         promoOutroOverrideRef.current = false;
         editorialAfficheOverrideRef.current = false;
+        editorialTweetOverrideRef.current = false;
         if (combinedMode === 'PLANNING') {
             agendaSlideOverrideRef.current = null;
             setAgendaSlide(prevAgendaSlide);
             setIsCarouselPromoActive(prevWasCarouselPromoActive);
             setIsEditorialAfficheActive(prevWasEditorialAfficheActive);
+            setIsEditorialTweetActive(prevWasEditorialTweetActive);
         } else if (combinedMode === 'EDITORIAL') {
             editorialSlideOverrideRef.current = null;
             setEditorialSlide(prevEditorialSlide);
             setIsCarouselPromoActive(prevWasCarouselPromoActive);
             setIsEditorialAfficheActive(prevWasEditorialAfficheActive);
+            setIsEditorialTweetActive(prevWasEditorialTweetActive);
         } else if (combinedMode === 'PROMO_ONLY') {
             setIsCarouselPromoActive(prevWasCarouselPromoActive);
             setIsEditorialAfficheActive(prevWasEditorialAfficheActive);
+            setIsEditorialTweetActive(prevWasEditorialTweetActive);
         }
     };
 
@@ -13313,6 +13763,305 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         );
     })();
 
+    const tweetEditor = (() => {
+        return (
+            <div className="space-y-4">
+                {/* 1. SCREENSHOT DU TWEET */}
+                <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
+                    <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest flex items-center gap-1.5">
+                            🐦 Screenshot du Tweet / Post 𝕏
+                        </label>
+                        {tweetImage && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setTweetImage('');
+                                    tweetImageRef.current = null;
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                className="text-[9px] font-bold text-red-400 hover:text-red-300 transition-colors uppercase"
+                            >
+                                Retirer
+                            </button>
+                        )}
+                    </div>
+
+                    <input
+                        type="file"
+                        ref={tweetFileInputRef}
+                        onChange={handleTweetImageChange}
+                        accept="image/*"
+                        className="hidden"
+                    />
+
+                    {tweetImage ? (
+                        <div className="relative group rounded-xl overflow-hidden border border-white/20 bg-black/60 max-h-48 mx-auto flex items-center justify-center">
+                            <img src={tweetImage} alt="Tweet Screen" className="w-full h-full object-contain" />
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => tweetFileInputRef.current?.click()}
+                                    className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-white text-[10px] font-black uppercase backdrop-blur-md transition-all"
+                                >
+                                    Changer le screen
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => tweetFileInputRef.current?.click()}
+                            className="w-full py-7 border-2 border-dashed border-white/15 hover:border-neon-cyan/50 hover:bg-neon-cyan/5 rounded-2xl flex flex-col items-center justify-center gap-2 bg-black/20 transition-all group cursor-pointer"
+                        >
+                            <Upload className="w-7 h-7 text-neon-cyan group-hover:scale-110 transition-transform" />
+                            <span className="text-[10px] font-black text-gray-300 uppercase tracking-wider group-hover:text-white transition-colors">
+                                Uploader le screen du Tweet (PNG, JPG)
+                            </span>
+                            <span className="text-[8px] text-gray-500">Cadrage et ratio automatiques parfaits</span>
+                        </button>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                        <button
+                            type="button"
+                            onClick={() => tweetFileInputRef.current?.click()}
+                            className="py-2.5 bg-white/5 border border-white/10 hover:border-neon-cyan/40 hover:bg-white/10 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-98"
+                        >
+                            <Upload className="w-3.5 h-3.5 text-neon-cyan" />
+                            <span>Mon Appareil</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setR2TargetType('affiche');
+                                setIsR2ModalOpen(true);
+                            }}
+                            className="py-2.5 bg-white/5 border border-white/10 hover:border-neon-cyan/40 hover:bg-white/10 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-98"
+                        >
+                            <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" />
+                            <span>Cloud R2</span>
+                        </button>
+                    </div>
+
+                    {/* Direct Image URL input */}
+                    <div className="pt-1">
+                        <input
+                            type="url"
+                            placeholder="OU COLLER LE LIEN DIRECT DE L'IMAGE..."
+                            value={tweetImage.startsWith('blob:') ? '' : tweetImage}
+                            onChange={e => {
+                                const url = e.target.value;
+                                setTweetImage(url);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-medium placeholder-gray-500 outline-none focus:border-neon-cyan/50 transition-all"
+                        />
+                    </div>
+                </div>
+
+                {/* 2. TRADUCTION AUTOMATIQUE EN FRANÇAIS DU TWEET */}
+                <div className="space-y-3 bg-white/5 border border-neon-cyan/30 rounded-2xl p-4 shadow-xl">
+                    <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest flex items-center gap-1.5">
+                            🇫🇷 Traduction Française (Cadre Sous le Tweet)
+                        </label>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setShowTweetTranslation(!showTweetTranslation);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase transition-all ${
+                                showTweetTranslation
+                                    ? 'bg-neon-cyan/20 border border-neon-cyan text-neon-cyan'
+                                    : 'bg-white/5 border border-white/10 text-gray-500'
+                            }`}
+                        >
+                            {showTweetTranslation ? 'CADRE VISIBLE' : 'MASQUÉ'}
+                        </button>
+                    </div>
+
+                    {/* Texte original anglais (optionnel pour déclencher la traduction auto) */}
+                    <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[8.5px] font-bold text-gray-400 uppercase">
+                            <span>Texte original du Tweet (en anglais)</span>
+                            <span className="text-gray-500">Pour traduction auto</span>
+                        </div>
+                        <textarea
+                            rows={2}
+                            placeholder="Collez ici le texte du tweet en anglais..."
+                            value={tweetOriginalText}
+                            onChange={e => setTweetOriginalText(e.target.value)}
+                            className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-medium placeholder-gray-500 outline-none focus:border-neon-cyan/50 transition-all resize-none"
+                        />
+                    </div>
+
+                    {/* Bouton de traduction automatique en 1 clic */}
+                    <button
+                        type="button"
+                        onClick={() => handleAutoTranslateTweet()}
+                        disabled={isTranslatingTweet || !tweetOriginalText.trim()}
+                        className="w-full py-2.5 bg-gradient-to-r from-neon-cyan via-blue-500 to-indigo-600 hover:brightness-110 disabled:opacity-40 text-black font-black text-[9.5px] uppercase rounded-xl transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(0,240,255,0.3)] active:scale-98"
+                    >
+                        {isTranslatingTweet ? (
+                            <><span>⏳</span><span>Traduction en cours...</span></>
+                        ) : (
+                            <><span>⚡</span><span>Traduire automatiquement en Français</span></>
+                        )}
+                    </button>
+
+                    {/* Cadre texte traduit en français (modifiable en direct par l'utilisateur) */}
+                    <div className="space-y-1 pt-1">
+                        <div className="flex items-center justify-between text-[8.5px] font-bold text-gray-400 uppercase">
+                            <span>Texte Traduit en Français (affiché sur le visuel)</span>
+                            <span className="text-neon-cyan">Éditable librement</span>
+                        </div>
+                        <textarea
+                            rows={3}
+                            placeholder="Ex: Le management de Daft Punk a reçu une offre pour un retour final du duo pour la B.O. de GTA VI..."
+                            value={tweetTranslation}
+                            onChange={e => {
+                                setTweetTranslation(e.target.value);
+                                setShowTweetTranslation(true);
+                                setTimeout(() => generateImage(), 40);
+                            }}
+                            className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[10px] font-bold placeholder-gray-500 outline-none focus:border-neon-cyan/50 transition-all resize-none"
+                        />
+                    </div>
+                </div>
+
+                {/* 3. TEXTES & ACCROCHE */}
+                <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
+                    <label className="text-[10px] font-black text-gray-300 uppercase tracking-widest block">
+                        ✍️ Accroche & Badge
+                    </label>
+
+                    <div className="space-y-1">
+                        <span className="text-[8.5px] font-bold text-gray-400 uppercase">Titre / Accroche au-dessus du Tweet (Optionnel)</span>
+                        <input
+                            type="text"
+                            placeholder="EX: RÉVÉLATION : OU LEAK EXCLUSIF :"
+                            value={tweetHeadline}
+                            onChange={e => {
+                                setTweetHeadline(e.target.value);
+                                setTimeout(() => generateImage(), 30);
+                            }}
+                            className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[10px] font-black placeholder-gray-500 outline-none focus:border-neon-cyan/50 transition-all uppercase"
+                        />
+                    </div>
+
+                    <div className="space-y-1">
+                        <span className="text-[8.5px] font-bold text-gray-400 uppercase">Texte du Badge Capsule Supérieur</span>
+                        <input
+                            type="text"
+                            placeholder="SOURCE X"
+                            value={tweetBadge}
+                            onChange={e => {
+                                setTweetBadge(e.target.value);
+                                setTimeout(() => generateImage(), 30);
+                            }}
+                            className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[10px] font-bold placeholder-gray-500 outline-none focus:border-neon-cyan/50 transition-all uppercase"
+                        />
+                    </div>
+                </div>
+
+                {/* 4. TAILLE, POSITION ET HALO */}
+                <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
+                    <label className="text-[10px] font-black text-gray-300 uppercase tracking-widest block">
+                        🎛️ Cadrage & Effets
+                    </label>
+
+                    <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
+                            <span>Taille de la Carte</span>
+                            <span className="text-neon-cyan font-mono">{tweetScale}%</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="60"
+                            max="120"
+                            value={tweetScale}
+                            onChange={(e) => {
+                                setTweetScale(Number(e.target.value));
+                                setTimeout(() => generateImage(), 30);
+                            }}
+                            className="w-full accent-neon-cyan bg-white/10 rounded-lg h-1.5 cursor-pointer"
+                        />
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
+                            <span>Position Verticale</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-gray-300 font-mono text-[8px]">{tweetOffsetY > 0 ? `+${tweetOffsetY}` : tweetOffsetY}px</span>
+                                {(tweetOffsetY !== 0 || tweetScale !== 100) && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setTweetScale(100);
+                                            setTweetOffsetY(0);
+                                            setTimeout(() => generateImage(), 30);
+                                        }}
+                                        className="text-[8px] text-neon-cyan hover:underline cursor-pointer uppercase font-bold"
+                                    >
+                                        Reset
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                        <input
+                            type="range"
+                            min="-150"
+                            max="150"
+                            value={tweetOffsetY}
+                            onChange={(e) => {
+                                setTweetOffsetY(Number(e.target.value));
+                                setTimeout(() => generateImage(), 30);
+                            }}
+                            className="w-full accent-neon-cyan bg-white/10 rounded-lg h-1.5 cursor-pointer"
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                        <div>
+                            <span className="text-[9px] font-black text-white uppercase block">Halo Ambiant Néon</span>
+                            <span className="text-[8px] text-gray-500 font-medium">Lueur cyan autour de la carte</span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setTweetGlow(!tweetGlow);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase transition-all ${tweetGlow ? 'border-neon-cyan/40 text-neon-cyan bg-neon-cyan/20' : 'bg-white/5 text-gray-500 border border-white/10'}`}
+                        >
+                            {tweetGlow ? 'ACTIF' : 'DÉSACTIVÉ'}
+                        </button>
+                    </div>
+                </div>
+
+                {/* 5. SWIPE INDICATOR */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
+                    <div>
+                        <span className="text-[9px] font-black text-white uppercase block">Swipe Studio</span>
+                        <span className="text-[8px] text-gray-500 font-medium">Afficher la mention swipe en bas à droite</span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setShowSwipe(!showSwipe);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase transition-all ${showSwipe ? 'border-neon-cyan/40 text-neon-cyan bg-neon-cyan/20' : 'bg-white/5 text-gray-500 border border-white/10'}`}
+                    >
+                        {showSwipe ? 'ACTIF' : 'MASQUÉ'}
+                    </button>
+                </div>
+            </div>
+        );
+    })();
+
     const musicSlide1VisualEditor = (() => {
         const currentCover = bgImage || afficheImage;
         return (
@@ -14906,6 +15655,35 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         className="px-3 py-1.5 bg-[#ff3700] hover:bg-[#ff4400] text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-sm active:scale-95 flex-shrink-0"
                     >
                         <Sparkles className="w-3 h-3" />
+                        <span>Gérer dans Visuel</span>
+                    </button>
+                </div>
+            )}
+
+            {/* Slide Tweet 𝕏 dédiée (gérée dans l'onglet Visuel) */}
+            {isEditorialTweetActive && (
+                <div className="p-3 bg-white/5 border border-neon-cyan/30 rounded-2xl flex items-center justify-between gap-3 shadow-md">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        {tweetImage ? (
+                            <img src={tweetImage} alt="Tweet" className="w-12 h-10 rounded-lg object-contain bg-black/40 border border-neon-cyan/40 flex-shrink-0" />
+                        ) : (
+                            <div className="w-12 h-10 rounded-lg bg-black/40 border border-dashed border-white/20 flex items-center justify-center flex-shrink-0">
+                                <span className="text-[12px] font-bold text-gray-500">𝕏</span>
+                            </div>
+                        )}
+                        <div className="min-w-0">
+                            <span className="text-[9.5px] font-black text-white uppercase block truncate">Slide Tweet 𝕏 + Traduction</span>
+                            <span className="text-[8px] text-gray-400 block truncate">
+                                {tweetImage ? 'Screen configuré' : 'Gérer le screen et la traduction dans Visuel'}
+                            </span>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setSidebarStep('visual')}
+                        className="px-3 py-1.5 bg-neon-cyan hover:bg-neon-cyan/80 text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-sm active:scale-95 flex-shrink-0"
+                    >
+                        <Sparkles className="w-3 h-3 text-black" />
                         <span>Gérer dans Visuel</span>
                     </button>
                 </div>
@@ -18201,7 +18979,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ══════════════════════════════════════════════ */}
                         {sidebarStep === 'visual' && (
                             <div className="space-y-4 animate-in fade-in duration-150">
-                                {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'PLANNING' && agendaSlide >= 3)) ? (
+                                {isEditorialTweetActive ? (
+                                    tweetEditor
+                                ) : (isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'PLANNING' && agendaSlide >= 3)) ? (
                                     afficheEditor
                                 ) : (
                                     <div className="space-y-3">
@@ -18456,7 +19236,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
 
                     {/* Preview */}
-                    <div className="flex-1 bg-[#020202] flex flex-col items-center justify-center relative overflow-hidden h-full border-l border-white/10">
+                    <div className="flex-1 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-neutral-900/60 via-[#0a0a0f] to-[#020202] flex flex-col items-center justify-center relative overflow-hidden h-full border-l border-white/10">
                         {theme === 'ARTISTE FESTIVAL' && (
                             <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20 flex-wrap justify-center">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
@@ -18686,9 +19466,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
                                 <button
                                     type="button"
-                                    onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(1); }}
+                                    onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(1); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === 1
+                                        !isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 1
                                             ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
@@ -18697,9 +19477,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(2); }}
+                                    onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(2); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === 2
+                                        !isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 2
                                             ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
                                             : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
@@ -18712,9 +19492,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <div key={sNum} className="relative group">
                                             <button
                                                 type="button"
-                                                onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(sNum); }}
+                                                onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(sNum); }}
                                                 className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                                    !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === sNum
+                                                    !isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === sNum
                                                         ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
                                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                                 }`}
@@ -18750,6 +19530,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => {
                                         setIsCarouselPromoActive(false);
+                                        setIsEditorialTweetActive(false);
                                         setIsEditorialAfficheActive(true);
                                         setTimeout(() => generateImage(), 50);
                                     }}
@@ -18762,11 +19543,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     🖼️ Slide AFFICHE
                                 </button>
                                 )}
+                                {theme !== 'HIGHLIGHTS' && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsCarouselPromoActive(false);
+                                        setIsEditorialAfficheActive(false);
+                                        setIsEditorialTweetActive(true);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                        !isCarouselPromoActive && isEditorialTweetActive
+                                            ? 'bg-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.5)]'
+                                            : 'bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan hover:bg-neon-cyan/20'
+                                    }`}
+                                >
+                                    🐦 Slide TWEET
+                                </button>
+                                )}
                                 <button
                                     type="button"
                                     onClick={() => {
                                         setIsCarouselPromoActive(true);
                                         setIsEditorialAfficheActive(false);
+                                        setIsEditorialTweetActive(false);
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
@@ -18780,8 +19580,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {slideTransitionQuickBar}
                             </div>
                         )}
-                        <div className={`relative ${activeTab === 'REEL' ? 'w-full max-w-[280px]' : 'w-full max-w-[450px]'} transition-all duration-300`} style={{ aspectRatio: activeTab === 'REEL' ? '9/16' : '4/5' }}>
-                            <div className="w-full h-full bg-[#111] rounded-[30px] overflow-hidden border border-white/10 shadow-2xl relative">
+                        <div className={`relative ${activeTab === 'REEL' ? 'w-full max-w-[320px] xl:max-w-[360px] 2xl:max-w-[400px] max-h-[82vh]' : 'w-full max-w-[450px]'} transition-all duration-300 flex items-center justify-center`} style={{ aspectRatio: activeTab === 'REEL' ? '9/16' : '4/5' }}>
+                            {/* Halo lumineux ambiant discret autour du mockup */}
+                            <div className="absolute -inset-4 bg-gradient-to-r from-neon-cyan/15 via-purple-500/10 to-pink-500/15 rounded-[40px] blur-2xl opacity-60 pointer-events-none" />
+                            <div className="w-full h-full bg-[#111] rounded-[30px] overflow-hidden border border-white/15 shadow-2xl relative z-10">
                                 <canvas 
                                     ref={canvasRef} 
                                     className={`w-full h-full object-contain ${isRetouchMode ? 'cursor-crosshair' : 'cursor-default'}`} 
@@ -18922,7 +19724,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     {/* Full-screen canvas — click to close any open panel */}
                     <div
-                        className="absolute inset-0 flex items-center justify-center bg-black"
+                        className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-neutral-900/80 via-[#08080c] to-black"
                         onClick={() => { if (activePanel) setActivePanel(null); }}
                     >
                         {theme === 'ARTISTE FESTIVAL' && (
@@ -19121,9 +19923,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(1); }}
+                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(1); }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                        !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === 1 ? 'bg-white text-black shadow-md' : 'text-gray-400'
+                                        !isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 1 ? 'bg-white text-black shadow-md' : 'text-gray-400'
                                     }`}
                                 >
                                     {theme === 'JEU_DJ' ? 'Slide 1 (Silhouette)' : 'Slide 1 (Cover)'}
@@ -19131,9 +19933,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <div className="flex items-center shrink-0 rounded-xl overflow-hidden border border-white/10 bg-white/5">
                                     <button
                                         type="button"
-                                        onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(2); }}
+                                        onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(2); }}
                                         className={`px-2 py-1 text-[8px] font-black uppercase transition-all ${
-                                            !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === 2 ? 'bg-white text-black shadow-md' : 'text-gray-300 hover:text-white'
+                                            !isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 2 ? 'bg-white text-black shadow-md' : 'text-gray-300 hover:text-white'
                                         } ${skipEditorialSlide2 && theme !== 'JEU_DJ' ? 'opacity-50 line-through' : ''}`}
                                     >
                                         {theme === 'JEU_DJ' ? 'Slide 2 (Révélation)' : `Slide 2 ${skipEditorialSlide2 ? '(Masquée)' : '(Détail)'}`}
@@ -19162,9 +19964,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <button
                                             key={sNum}
                                             type="button"
-                                            onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setEditorialSlide(sNum); }}
+                                            onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(sNum); }}
                                             className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                                !isCarouselPromoActive && !isEditorialAfficheActive && editorialSlide === sNum ? 'bg-white text-black shadow-md' : 'text-gray-400'
+                                                !isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === sNum ? 'bg-white text-black shadow-md' : 'text-gray-400'
                                             }`}
                                         >
                                             Slide {sNum}
@@ -19187,6 +19989,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setIsCarouselPromoActive(false);
+                                        setIsEditorialTweetActive(false);
                                         setIsEditorialAfficheActive(true);
                                         setTimeout(() => generateImage(), 50);
                                     }}
@@ -19197,12 +20000,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     🖼️ Affiche
                                 </button>
                                 )}
+                                {theme !== 'HIGHLIGHTS' && (
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsCarouselPromoActive(false);
+                                        setIsEditorialAfficheActive(false);
+                                        setIsEditorialTweetActive(true);
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
+                                        !isCarouselPromoActive && isEditorialTweetActive ? 'bg-neon-cyan text-black shadow-md' : 'text-neon-cyan'
+                                    }`}
+                                >
+                                    🐦 Tweet
+                                </button>
+                                )}
                                 <button
                                     type="button"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setIsCarouselPromoActive(true);
                                         setIsEditorialAfficheActive(false);
+                                        setIsEditorialTweetActive(false);
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
@@ -19511,10 +20332,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 </div>
                                             )}
                                             {theme !== 'MAP' && bgAnimationControl}
-                                            {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'PLANNING' && agendaSlide >= 3)) && afficheEditor}
-                                            {theme === 'MUSIQUE' && (editorialSlide === 1 ? musicSlide1VisualEditor : musicCoverEditor)}
-                                            {(theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) && spotlightVisualEditor}
-                                            {!(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'PLANNING' && agendaSlide >= 3)) && slideVisualEditor}
+                                            {isEditorialTweetActive && tweetEditor}
+                                            {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'PLANNING' && agendaSlide >= 3)) && !isEditorialTweetActive && afficheEditor}
+                                            {theme === 'MUSIQUE' && !isEditorialTweetActive && (editorialSlide === 1 ? musicSlide1VisualEditor : musicCoverEditor)}
+                                            {(theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) && !isEditorialTweetActive && spotlightVisualEditor}
+                                            {!(isEditorialTweetActive || isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'PLANNING' && agendaSlide >= 3)) && slideVisualEditor}
                                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                         </div>
                                     </div>
@@ -19748,7 +20570,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             generateImage();
                         };
                     } else if (r2TargetType === 'affiche') {
-                        if (theme === 'PLANNING' && agendaSlide >= 3) {
+                        if (isEditorialTweetActive) {
+                            const img = new Image();
+                            img.crossOrigin = 'anonymous';
+                            img.onload = () => {
+                                imageCacheRef.current[finalUrl] = img;
+                                tweetImageRef.current = img;
+                                generateImage();
+                            };
+                            img.src = finalUrl;
+                            setTweetImage(finalUrl);
+                        } else if (theme === 'PLANNING' && agendaSlide >= 3) {
                             const affIdx = agendaSlide - 3;
                             updateAgendaAffiche(affIdx, 'image', finalUrl);
                             const img = new Image();
