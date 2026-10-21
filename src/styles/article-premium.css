@@ -1278,3 +1278,104 @@
         justify-content: center;
     }
 }
+
+/* ─────────────────────────────────────────────────────────
+   SOCIAL EMBED WIDGETS  (Instagram · X/Twitter · Facebook)
+   ───────────────────────────────────────────────────────── */
+
+/* Shared wrapper – centres every social embed */
+.social-embed-widget {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100%;
+    padding: 2rem 1rem;
+}
+
+/* ── Instagram ── */
+.instagram-embed-widget {
+    background: radial-gradient(ellipse at 50% 0%, rgba(131,58,180,0.12) 0%, rgba(193,53,132,0.10) 40%, rgba(11,8,20,0.0) 100%);
+    border-radius: 24px;
+    position: relative;
+}
+
+/* Glow ring behind the embed card */
+.instagram-embed-widget::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 26px;
+    background: linear-gradient(135deg, rgba(131,58,180,0.5) 0%, rgba(225,48,108,0.5) 50%, rgba(253,204,97,0.3) 100%);
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.35;
+    filter: blur(8px);
+}
+
+/* The blockquote Instagram generates / replaces with an iframe */
+.instagram-embed-widget blockquote.instagram-media,
+.instagram-embed-widget .instagram-media-rendered {
+    position: relative;
+    z-index: 1;
+    margin: 0 auto !important;
+    border-radius: 18px !important;
+    border: 1px solid rgba(225, 48, 108, 0.35) !important;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(131,58,180,0.2) !important;
+    /* Override Instagram's default white background */
+    background: #12101f !important;
+}
+
+/* Force the generated Instagram iframe to respect max-width */
+.instagram-embed-widget iframe {
+    border-radius: 18px !important;
+    max-width: 540px !important;
+    margin: 0 auto !important;
+    display: block !important;
+}
+
+/* Fallback link – shown before embed.js fires */
+.instagram-embed-widget a[href*="instagram"] {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(131,58,180,0.3) 0%, rgba(225,48,108,0.3) 100%);
+    border: 1px solid rgba(225,48,108,0.45);
+    color: #f0a0c0 !important;
+    font-weight: 800;
+    font-size: 11px;
+    text-decoration: none !important;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.instagram-embed-widget a[href*="instagram"]:hover {
+    background: linear-gradient(135deg, rgba(131,58,180,0.5) 0%, rgba(225,48,108,0.5) 100%);
+    box-shadow: 0 0 20px rgba(225,48,108,0.4);
+}
+
+/* ── X / Twitter ── */
+.twitter-embed-widget {
+    background: radial-gradient(ellipse at 50% 0%, rgba(29,161,242,0.08) 0%, transparent 70%);
+    border-radius: 20px;
+}
+
+.twitter-embed-widget .twitter-tweet {
+    margin: 0 auto !important;
+}
+
+/* ── Facebook ── */
+.facebook-embed-widget {
+    background: radial-gradient(ellipse at 50% 0%, rgba(24,119,242,0.08) 0%, transparent 70%);
+    border-radius: 20px;
+}
+
+.facebook-embed-widget > div {
+    margin: 0 auto;
+}
+

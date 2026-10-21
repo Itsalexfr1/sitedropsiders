@@ -2106,11 +2106,12 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             const isFacebook = lower.includes('facebook.com') || lower.includes('fb.watch');
 
             if (isInstagram) {
-                content = `<div class="social-embed-widget instagram-embed-widget article-section my-10 flex justify-center w-full" data-social-platform="instagram" data-embed-url="${cleanUrl}">
-  <blockquote class="instagram-media" data-instgrm-permalink="${cleanUrl}" data-instgrm-version="14" style="background:#0c0814; border-radius:18px; border:1px solid rgba(225,48,108,0.3); margin:0 auto; max-width:540px; min-width:320px; width:100%; box-shadow:0 12px 35px rgba(0,0,0,0.6);">
-    <div style="padding:16px; text-align:center;">
-      <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" style="color:#e1306c; font-weight:800; text-decoration:none; text-transform:uppercase; font-size:11px; letter-spacing:1px; display:inline-flex; align-items:center; gap:8px;">
-        <span>📸 Voir ce post / Reel sur Instagram</span>
+                content = `<div class="social-embed-widget instagram-embed-widget article-section my-10" data-social-platform="instagram" data-embed-url="${cleanUrl}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;padding:2rem 1rem;background:radial-gradient(ellipse at 50% 0%,rgba(131,58,180,0.13) 0%,rgba(193,53,132,0.10) 45%,transparent 100%);border-radius:24px;position:relative;">
+  <blockquote class="instagram-media" data-instgrm-permalink="${cleanUrl}" data-instgrm-version="14" style="background:#12101f; border-radius:18px; border:1px solid rgba(225,48,108,0.35); margin:0 auto !important; max-width:540px; min-width:320px; width:calc(100% - 2px); box-shadow:0 16px 48px rgba(0,0,0,0.7),0 0 0 1px rgba(131,58,180,0.2); position:relative; z-index:1;">
+    <div style="padding:20px 16px; text-align:center; background:transparent;">
+      <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:10px;padding:12px 24px;border-radius:14px;background:linear-gradient(135deg,rgba(131,58,180,0.35) 0%,rgba(225,48,108,0.35) 100%);border:1px solid rgba(225,48,108,0.5);color:#f0a0c0;font-weight:800;font-size:11px;text-decoration:none;text-transform:uppercase;letter-spacing:1.5px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        <span>Voir ce post / Reel sur Instagram</span>
       </a>
     </div>
   </blockquote>
