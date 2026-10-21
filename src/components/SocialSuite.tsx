@@ -612,6 +612,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [tweetTranslation, setTweetTranslation] = useState<string>('');
     const [showTweetTranslation, setShowTweetTranslation] = useState<boolean>(true);
     const [isTranslatingTweet, setIsTranslatingTweet] = useState<boolean>(false);
+    const [tweetAnimMode, setTweetAnimMode] = useState<'FLOAT' | 'SCANNER' | 'POPUP' | 'TILT' | 'NONE'>('FLOAT');
 
     const handleAutoTranslateTweet = async (textToTranslateParam?: string) => {
         const textToTranslate = textToTranslateParam !== undefined ? textToTranslateParam : tweetOriginalText;
@@ -5680,10 +5681,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillStyle = vig;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // 2. Top Capsule Badge (ex: "• SOURCE X" ou personnalisé)
+                // Couleurs dynamiques synchronisées avec le thème actif
+                const effectiveThemeColor = (typeof themeColor === 'string' ? themeColor : themeColor?.color) || baseThemeData[theme]?.color || '#ff0033';
+                const effectiveThemeGrad = (themeColor && typeof themeColor === 'object' && themeColor.grad) || baseThemeData[theme]?.grad || '255, 0, 51';
+
+                // 2. Top Capsule Badge (ex: "• SOURCE X" ou personnalisé aux couleurs du thème)
                 const badgeLabel = (tweetBadge || 'SOURCE X').toUpperCase();
-                const badgeColor = '#00f0ff';
-                const badgeGrad = '0, 240, 255';
+                const badgeColor = effectiveThemeColor;
+                const badgeGrad = effectiveThemeGrad;
                 drawTopCapsuleBadge(badgeLabel, badgeColor, badgeGrad);
 
                 // 3. Optionnel : Titre / Accroche contextuelle au-dessus du tweet
@@ -5697,7 +5702,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     headlineBottomY = headY + 50;
 
                     ctx.font = '900 italic 38px "Montserrat", sans-serif';
-                    ctx.shadowColor = 'rgba(0, 240, 255, 0.6)';
+                    ctx.shadowColor = `rgba(${effectiveThemeGrad}, 0.65)`;
                     ctx.shadowBlur = 18;
                     ctx.fillStyle = '#ffffff';
                     ctx.fillText(cleanHeadline, canvas.width / 2, headY);
@@ -5786,15 +5791,111 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const transCardY = cardY + finalCardH + gap;
                 const rad = 28;
 
-                // 5. Ombre portée 3D et halo ambiant néon
+                // Calcul du temps d'animation pour les modes vidéo / live
+                const tweetAnimT = animStartTimeRef.current ? Math.max(0, (Date.now() - animStartTimeRef.current) / 1000) : 0;
+                
+                let cardAnimScale = 1;
+                let cardAnimOffsetY = 0;
+                let cardAnimRotate = 0;
+                let cardAnimOpacity = 1;
+                let transAnimSlideY = 0;
+                let transAnimOpacity = 1;
+                let scannerLaserY: number | null = null;
+                let isSweepGlossActive = false;
+                let sweepGlossProgress = 0;
+
+                if (tweetAnimMode === 'FLOAT') {
+                    // 1. Zoom d'entrée fluide 0.55s
+                    const entryT = Math.min(1, tweetAnimT / 0.55);
+                    cardAnimScale = 0.93 + (1 - Math.pow(1 - entryT, 3)) * 0.07;
+                    cardAnimOpacity = Math.min(1, tweetAnimT / 0.35);
+
+                    // 2. Lévitation subtile continue (onde sinusoïdale 6px)
+                    cardAnimOffsetY = Math.sin(tweetAnimT * 2.2) * 6;
+
+                    // 3. Stagger de la carte Traduction FR (+25px slide)
+                    const trT = Math.max(0, Math.min(1, (tweetAnimT - 0.28) / 0.45));
+                    transAnimSlideY = (1 - Math.pow(1 - trT, 3)) * 25;
+                    transAnimOpacity = trT;
+
+                    // 4. Balayage de reflet lumineux oblique périodique (toutes les 2.8s)
+                    const sheenCycle = (tweetAnimT % 2.8) / 2.8;
+                    if (sheenCycle >= 0.12 && sheenCycle <= 0.62) {
+                        isSweepGlossActive = true;
+                        sweepGlossProgress = (sheenCycle - 0.12) / 0.50;
+                    }
+                } else if (tweetAnimMode === 'SCANNER') {
+                    // 1. Faisceau laser qui parcourt la carte de haut en bas en boucle
+                    const scanPeriod = 2.4;
+                    const scanPhase = (tweetAnimT % scanPeriod) / scanPeriod;
+                    scannerLaserY = (scanPhase * finalCardH);
+                    
+                    // 2. Micro pulsation du scale au rythme du scan
+                    cardAnimScale = 1.0 + Math.sin(tweetAnimT * 4) * 0.005;
+
+                    // 3. Traduction FR qui apparaît avec décodage / fondu progressif
+                    const trT = Math.max(0, Math.min(1, (tweetAnimT - 0.4) / 0.5));
+                    transAnimSlideY = (1 - trT) * 15;
+                    transAnimOpacity = trT;
+                } else if (tweetAnimMode === 'POPUP') {
+                    // 1. Rebond élastique notification (spring bounce)
+                    const popT = Math.min(1, tweetAnimT / 0.7);
+                    if (popT < 1) {
+                        cardAnimScale = 1 + Math.sin(popT * Math.PI * 2.2) * Math.exp(-popT * 5.2) * 0.26;
+                        cardAnimOpacity = Math.min(1, popT * 3.5);
+                    } else {
+                        cardAnimScale = 1.0;
+                        cardAnimOpacity = 1.0;
+                    }
+
+                    // 2. Traduction FR qui drop avec un léger rebond après 0.3s
+                    const trPopT = Math.max(0, Math.min(1, (tweetAnimT - 0.3) / 0.6));
+                    if (trPopT < 1) {
+                        transAnimSlideY = (1 - Math.pow(1 - trPopT, 3)) * 30;
+                        transAnimOpacity = trPopT;
+                    } else {
+                        transAnimSlideY = 0;
+                        transAnimOpacity = 1;
+                    }
+                } else if (tweetAnimMode === 'TILT') {
+                    // 1. Inclinaison 3D cinématique (-3.5° à 0°) avec amorti doux
+                    const tiltT = Math.min(1, tweetAnimT / 1.1);
+                    cardAnimRotate = (1 - Math.pow(1 - tiltT, 3)) * (3.5 * Math.PI / 180) - (3.5 * Math.PI / 180);
+                    
+                    // 2. Zoom avant continu caméra cinématique très subtil (1.0 à 1.035)
+                    cardAnimScale = 1.0 + Math.min(0.035, tweetAnimT * 0.007);
+                    cardAnimOpacity = Math.min(1, tweetAnimT / 0.4);
+
+                    // 3. Traduction FR
+                    const trT = Math.max(0, Math.min(1, (tweetAnimT - 0.35) / 0.5));
+                    transAnimSlideY = (1 - Math.pow(1 - trT, 3)) * 20;
+                    transAnimOpacity = trT;
+                }
+
+                const cardCenterX = cardX + cardW / 2;
+                const cardCenterY = cardY + finalCardH / 2 + cardAnimOffsetY;
+
+                // Application des transformations d'animation sur la carte Tweet
+                ctx.save();
+                ctx.translate(cardCenterX, cardCenterY);
+                if (cardAnimScale !== 1) ctx.scale(cardAnimScale, cardAnimScale);
+                if (cardAnimRotate !== 0) ctx.rotate(cardAnimRotate);
+                ctx.translate(-cardCenterX, -cardCenterY);
+                if (cardAnimOpacity < 1) ctx.globalAlpha = Math.max(0, Math.min(1, cardAnimOpacity));
+
+                const currentCardY = cardY + cardAnimOffsetY;
+
+                // 5. Ombre portée 3D et halo ambiant néon aux couleurs du thème
                 ctx.save();
                 if (tweetGlow) {
-                    ctx.shadowColor = 'rgba(0, 240, 255, 0.30)';
+                    ctx.shadowColor = tweetAnimMode === 'SCANNER' 
+                        ? `rgba(${effectiveThemeGrad}, ${0.28 + 0.20 * Math.sin(tweetAnimT * 5)})`
+                        : `rgba(${effectiveThemeGrad}, 0.32)`;
                     ctx.shadowBlur = 55;
                     ctx.shadowOffsetX = 0;
                     ctx.shadowOffsetY = 0;
                     ctx.beginPath();
-                    ctx.roundRect(cardX, cardY, cardW, finalCardH, rad);
+                    ctx.roundRect(cardX, currentCardY, cardW, finalCardH, rad);
                     ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
                     ctx.fill();
                 }
@@ -5804,7 +5905,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.shadowOffsetX = 0;
                 ctx.shadowOffsetY = 24;
                 ctx.beginPath();
-                ctx.roundRect(cardX, cardY, cardW, finalCardH, rad);
+                ctx.roundRect(cardX, currentCardY, cardW, finalCardH, rad);
                 ctx.fillStyle = '#000000';
                 ctx.fill();
                 ctx.restore();
@@ -5812,22 +5913,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // 6. Rendu du screenshot ou du placeholder
                 ctx.save();
                 ctx.beginPath();
-                ctx.roundRect(cardX, cardY, cardW, finalCardH, rad);
+                ctx.roundRect(cardX, currentCardY, cardW, finalCardH, rad);
                 ctx.clip();
 
                 if (tweetImg && tweetImg.complete && tweetImg.naturalWidth > 0) {
                     ctx.fillStyle = '#000000';
-                    ctx.fillRect(cardX, cardY, cardW, finalCardH);
-                    ctx.drawImage(tweetImg, cardX, cardY, cardW, finalCardH);
+                    ctx.fillRect(cardX, currentCardY, cardW, finalCardH);
+                    ctx.drawImage(tweetImg, cardX, currentCardY, cardW, finalCardH);
                 } else {
-                    const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + finalCardH);
+                    const phGrad = ctx.createLinearGradient(cardX, currentCardY, cardX + cardW, currentCardY + finalCardH);
                     phGrad.addColorStop(0, 'rgba(18, 18, 24, 0.96)');
                     phGrad.addColorStop(1, 'rgba(8, 8, 12, 0.98)');
                     ctx.fillStyle = phGrad;
-                    ctx.fillRect(cardX, cardY, cardW, finalCardH);
+                    ctx.fillRect(cardX, currentCardY, cardW, finalCardH);
 
                     const cx = cardX + cardW / 2;
-                    const cy = cardY + finalCardH / 2 - 35;
+                    const cy = currentCardY + finalCardH / 2 - 35;
                     ctx.save();
                     ctx.fillStyle = '#ffffff';
                     ctx.font = '900 64px "Montserrat", sans-serif';
@@ -5836,7 +5937,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText('𝕏', cx, cy);
 
                     ctx.font = '900 italic 26px "Orbitron", sans-serif';
-                    ctx.fillStyle = '#00f0ff';
+                    ctx.fillStyle = effectiveThemeColor;
                     ctx.fillText('SCREENSHOT DU TWEET', cx, cy + 60);
 
                     ctx.font = '600 15px "Montserrat", sans-serif';
@@ -5846,66 +5947,111 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 // Reflet subtil en dégradé sur le haut de la carte
-                const glossGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + Math.min(finalCardH * 0.4, 120));
+                const glossGrad = ctx.createLinearGradient(cardX, currentCardY, cardX, currentCardY + Math.min(finalCardH * 0.4, 120));
                 glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
                 glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
                 ctx.fillStyle = glossGrad;
-                ctx.fillRect(cardX, cardY, cardW, Math.min(finalCardH * 0.4, 120));
+                ctx.fillRect(cardX, currentCardY, cardW, Math.min(finalCardH * 0.4, 120));
+
+                // Balayage lumineux Sheen Gloss (Mode FLOAT)
+                if (isSweepGlossActive) {
+                    const sweepX = cardX - cardW * 0.3 + sweepGlossProgress * (cardW * 1.6);
+                    const swGrad = ctx.createLinearGradient(sweepX - 80, currentCardY, sweepX + 80, currentCardY + finalCardH);
+                    swGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                    swGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.25)');
+                    swGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = swGrad;
+                    ctx.fillRect(cardX, currentCardY, cardW, finalCardH);
+                }
+
+                // Faisceau Laser Cyber Scanner (Mode SCANNER) aux couleurs du thème
+                if (scannerLaserY !== null) {
+                    const lY = currentCardY + scannerLaserY;
+                    ctx.save();
+                    const scanTrailGrad = ctx.createLinearGradient(cardX, lY - 45, cardX, lY);
+                    scanTrailGrad.addColorStop(0, `rgba(${effectiveThemeGrad}, 0)`);
+                    scanTrailGrad.addColorStop(1, `rgba(${effectiveThemeGrad}, 0.20)`);
+                    ctx.fillStyle = scanTrailGrad;
+                    ctx.fillRect(cardX, lY - 45, cardW, 45);
+
+                    ctx.shadowColor = effectiveThemeColor;
+                    ctx.shadowBlur = 18;
+                    ctx.strokeStyle = effectiveThemeColor;
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(cardX, lY);
+                    ctx.lineTo(cardX + cardW, lY);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(cardX + cardW * 0.42, lY - 1.5, cardW * 0.16, 3);
+                    ctx.restore();
+                }
+
                 ctx.restore();
 
                 // 7. Contour bordure élégant
                 ctx.save();
                 ctx.beginPath();
-                ctx.roundRect(cardX, cardY, cardW, finalCardH, rad);
+                ctx.roundRect(cardX, currentCardY, cardW, finalCardH, rad);
                 ctx.strokeStyle = tweetBorderColor || 'rgba(255, 255, 255, 0.16)';
                 ctx.lineWidth = 2;
                 ctx.stroke();
                 ctx.restore();
 
-                // 8. Rendu de la Carte Traduction FR en dessous
+                // Fermeture des transformations de la carte Tweet
+                ctx.restore();
+
+                // 8. Rendu de la Carte Traduction FR en dessous avec animation propre et couleurs du thème
                 if (hasTranslation && transLines.length > 0) {
+                    const currentTransY = transCardY + cardAnimOffsetY + transAnimSlideY;
                     const transRad = 22;
+
                     ctx.save();
+                    if (transAnimOpacity < 1) ctx.globalAlpha = Math.max(0, Math.min(1, transAnimOpacity));
+
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
                     ctx.shadowBlur = 40;
                     ctx.shadowOffsetY = 16;
                     ctx.beginPath();
-                    ctx.roundRect(cardX, transCardY, cardW, transCardH, transRad);
+                    ctx.roundRect(cardX, currentTransY, cardW, transCardH, transRad);
                     ctx.fillStyle = '#0a0d14';
                     ctx.fill();
                     ctx.restore();
 
                     ctx.save();
+                    if (transAnimOpacity < 1) ctx.globalAlpha = Math.max(0, Math.min(1, transAnimOpacity));
                     ctx.beginPath();
-                    ctx.roundRect(cardX, transCardY, cardW, transCardH, transRad);
+                    ctx.roundRect(cardX, currentTransY, cardW, transCardH, transRad);
                     ctx.clip();
 
-                    const trGrad = ctx.createLinearGradient(cardX, transCardY, cardX + cardW, transCardY + transCardH);
+                    const trGrad = ctx.createLinearGradient(cardX, currentTransY, cardX + cardW, currentTransY + transCardH);
                     trGrad.addColorStop(0, 'rgba(16, 22, 34, 0.94)');
                     trGrad.addColorStop(1, 'rgba(8, 12, 18, 0.98)');
                     ctx.fillStyle = trGrad;
-                    ctx.fillRect(cardX, transCardY, cardW, transCardH);
+                    ctx.fillRect(cardX, currentTransY, cardW, transCardH);
 
-                    const trGloss = ctx.createLinearGradient(cardX, transCardY, cardX, transCardY + 40);
+                    const trGloss = ctx.createLinearGradient(cardX, currentTransY, cardX, currentTransY + 40);
                     trGloss.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
                     trGloss.addColorStop(1, 'rgba(255, 255, 255, 0)');
                     ctx.fillStyle = trGloss;
-                    ctx.fillRect(cardX, transCardY, cardW, 40);
+                    ctx.fillRect(cardX, currentTransY, cardW, 40);
 
-                    const badgeText = '🇫🇷 TRADUCTION FR';
-                    ctx.font = '900 italic 13px "Orbitron", sans-serif';
-                    ctx.fillStyle = '#00f0ff';
+                    // Badge Traduction FR avec pastille lumineuse aux couleurs du thème
+                    const badgeText = '• TRADUCTION FR';
+                    ctx.font = '900 italic 14px "Orbitron", sans-serif';
+                    ctx.fillStyle = effectiveThemeColor;
                     ctx.textAlign = 'left';
                     ctx.textBaseline = 'top';
-                    ctx.shadowColor = 'rgba(0, 240, 255, 0.5)';
-                    ctx.shadowBlur = 10;
-                    ctx.fillText(badgeText, cardX + transPadX, transCardY + 16);
+                    ctx.shadowColor = `rgba(${effectiveThemeGrad}, 0.65)`;
+                    ctx.shadowBlur = 12;
+                    ctx.fillText(badgeText, cardX + transPadX, currentTransY + 16);
 
                     ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
                     ctx.lineWidth = 1;
                     ctx.beginPath();
-                    ctx.moveTo(cardX + transPadX, transCardY + 38);
-                    ctx.lineTo(cardX + cardW - transPadX, transCardY + 38);
+                    ctx.moveTo(cardX + transPadX, currentTransY + 38);
+                    ctx.lineTo(cardX + cardW - transPadX, currentTransY + 38);
                     ctx.stroke();
 
                     ctx.font = `600 ${transFontSize}px "Montserrat", sans-serif`;
@@ -5913,7 +6059,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
                     ctx.shadowBlur = 6;
                     ctx.textBaseline = 'top';
-                    let lineY = transCardY + 50;
+                    let lineY = currentTransY + 50;
                     for (let i = 0; i < transLines.length; i++) {
                         const line = transLines[i];
                         const isFirst = (i === 0);
@@ -5925,21 +6071,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
 
                     ctx.save();
+                    if (transAnimOpacity < 1) ctx.globalAlpha = Math.max(0, Math.min(1, transAnimOpacity));
                     ctx.beginPath();
-                    ctx.roundRect(cardX, transCardY, cardW, transCardH, transRad);
-                    ctx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
+                    ctx.roundRect(cardX, currentTransY, cardW, transCardH, transRad);
+                    ctx.strokeStyle = `rgba(${effectiveThemeGrad}, 0.45)`;
                     ctx.lineWidth = 1.8;
                     ctx.stroke();
                     ctx.restore();
                 }
 
-                // 9. Mention Swipe
+                // 9. Mention Swipe aux couleurs du thème
                 if (showSwipe) {
                     const swipeY = canvas.height - (isStory ? 80 : 50);
                     drawAnimatedSwipeIndicator(
                         canvas.width - (isStory ? 80 : 60),
                         swipeY,
-                        '#00f0ff',
+                        effectiveThemeColor,
                         24
                     );
                 }
@@ -8366,7 +8513,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const isBadgeTheme = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'AFFICHE', 'PLANNING', 'HIGHLIGHTS'].includes(theme);
         const shouldAnimateBadge = isBadgeTheme && activeTab === 'REEL';
         const shouldAnimateMap = theme === 'MAP' && isMapAnimPlaying;
-        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS' || shouldAnimateMap) {
+        const shouldAnimateTweet = isEditorialTweetActive && tweetAnimMode !== 'NONE';
+        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS' || shouldAnimateMap || shouldAnimateTweet) {
             let isRendering = false;
             const loop = () => {
                 if (isVideoRecordingRef.current) return;
@@ -8381,7 +8529,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide
     useEffect(() => {
@@ -13966,7 +14114,93 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
 
-                {/* 4. TAILLE, POSITION ET HALO */}
+                {/* 4. ANIMATION DU TWEET (VIDÉO & REELS) */}
+                <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4 shadow-xl">
+                    <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5" style={{ color: activeColor?.color || '#ff0033' }}>
+                            🎬 Animation du Tweet (Vidéo & Reels)
+                        </label>
+                        <span className="text-[8px] font-mono" style={{ color: activeColor?.color || '#ff0033' }}>
+                            {tweetAnimMode === 'FLOAT' && '🪶 Lévitation 3D'}
+                            {tweetAnimMode === 'SCANNER' && '⚡ Scanner Cyber'}
+                            {tweetAnimMode === 'POPUP' && '📱 Pop-Up Push'}
+                            {tweetAnimMode === 'TILT' && '🎬 Tilt Caméra'}
+                            {tweetAnimMode === 'NONE' && '🛑 Fixe'}
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-1.5 pt-1">
+                        <button
+                            type="button"
+                            onClick={() => { setTweetAnimMode('FLOAT'); animStartTimeRef.current = Date.now(); setTimeout(() => generateImage(), 30); }}
+                            className={`p-2.5 rounded-xl border text-left transition-all ${
+                                tweetAnimMode === 'FLOAT'
+                                    ? 'bg-white/10 text-white shadow-md'
+                                    : 'bg-black/30 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                            }`}
+                            style={tweetAnimMode === 'FLOAT' ? { borderColor: activeColor?.color || '#ff0033' } : {}}
+                        >
+                            <span className="text-[9.5px] font-black block uppercase">🪶 Lévitation 3D</span>
+                            <span className="text-[7.5px] text-gray-400 block leading-tight mt-0.5">Flottement doux + Reflet gloss oblique</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => { setTweetAnimMode('SCANNER'); animStartTimeRef.current = Date.now(); setTimeout(() => generateImage(), 30); }}
+                            className={`p-2.5 rounded-xl border text-left transition-all ${
+                                tweetAnimMode === 'SCANNER'
+                                    ? 'bg-white/10 text-white shadow-md'
+                                    : 'bg-black/30 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                            }`}
+                            style={tweetAnimMode === 'SCANNER' ? { borderColor: activeColor?.color || '#ff0033' } : {}}
+                        >
+                            <span className="text-[9.5px] font-black block uppercase">⚡ Scanner Cyber</span>
+                            <span className="text-[7.5px] text-gray-400 block leading-tight mt-0.5">Faisceau laser de détection + bords néon</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => { setTweetAnimMode('POPUP'); animStartTimeRef.current = Date.now(); setTimeout(() => generateImage(), 30); }}
+                            className={`p-2.5 rounded-xl border text-left transition-all ${
+                                tweetAnimMode === 'POPUP'
+                                    ? 'bg-white/10 text-white shadow-md'
+                                    : 'bg-black/30 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                            }`}
+                            style={tweetAnimMode === 'POPUP' ? { borderColor: activeColor?.color || '#ff0033' } : {}}
+                        >
+                            <span className="text-[9.5px] font-black block uppercase">📱 Pop-Up Push</span>
+                            <span className="text-[7.5px] text-gray-400 block leading-tight mt-0.5">Rebond élastique notification TikTok/Reel</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => { setTweetAnimMode('TILT'); animStartTimeRef.current = Date.now(); setTimeout(() => generateImage(), 30); }}
+                            className={`p-2.5 rounded-xl border text-left transition-all ${
+                                tweetAnimMode === 'TILT'
+                                    ? 'bg-white/10 text-white shadow-md'
+                                    : 'bg-black/30 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                            }`}
+                            style={tweetAnimMode === 'TILT' ? { borderColor: activeColor?.color || '#ff0033' } : {}}
+                        >
+                            <span className="text-[9.5px] font-black block uppercase">🎬 Tilt Caméra</span>
+                            <span className="text-[7.5px] text-gray-400 block leading-tight mt-0.5">Inclinaison 3D cinématique + respiration</span>
+                        </button>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={() => { setTweetAnimMode(tweetAnimMode === 'NONE' ? 'FLOAT' : 'NONE'); animStartTimeRef.current = Date.now(); setTimeout(() => generateImage(), 30); }}
+                        className={`w-full py-2 rounded-xl border text-[8.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                            tweetAnimMode === 'NONE'
+                                ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                                : 'bg-black/20 border-white/10 text-gray-400 hover:text-white'
+                        }`}
+                    >
+                        <span>{tweetAnimMode === 'NONE' ? '🛑 Mode Fixe Actif (Pas d\'animation)' : 'Désactiver l\'animation (Mode Fixe)'}</span>
+                    </button>
+                </div>
+
+                {/* 5. TAILLE, POSITION ET HALO */}
                 <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
                     <label className="text-[10px] font-black text-gray-300 uppercase tracking-widest block">
                         🎛️ Cadrage & Effets
@@ -13975,7 +14209,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <div className="space-y-1.5">
                         <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
                             <span>Taille de la Carte</span>
-                            <span className="text-neon-cyan font-mono">{tweetScale}%</span>
+                            <span className="font-mono font-bold" style={{ color: activeColor?.color || '#ff0033' }}>{tweetScale}%</span>
                         </div>
                         <input
                             type="range"
@@ -13986,7 +14220,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 setTweetScale(Number(e.target.value));
                                 setTimeout(() => generateImage(), 30);
                             }}
-                            className="w-full accent-neon-cyan bg-white/10 rounded-lg h-1.5 cursor-pointer"
+                            className="w-full bg-white/10 rounded-lg h-1.5 cursor-pointer accent-white"
                         />
                     </div>
 
@@ -14003,7 +14237,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             setTweetOffsetY(0);
                                             setTimeout(() => generateImage(), 30);
                                         }}
-                                        className="text-[8px] text-neon-cyan hover:underline cursor-pointer uppercase font-bold"
+                                        className="text-[8px] hover:underline cursor-pointer uppercase font-bold"
+                                        style={{ color: activeColor?.color || '#ff0033' }}
                                     >
                                         Reset
                                     </button>
@@ -14019,14 +14254,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 setTweetOffsetY(Number(e.target.value));
                                 setTimeout(() => generateImage(), 30);
                             }}
-                            className="w-full accent-neon-cyan bg-white/10 rounded-lg h-1.5 cursor-pointer"
+                            className="w-full bg-white/10 rounded-lg h-1.5 cursor-pointer accent-white"
                         />
                     </div>
 
                     <div className="flex items-center justify-between pt-1">
                         <div>
                             <span className="text-[9px] font-black text-white uppercase block">Halo Ambiant Néon</span>
-                            <span className="text-[8px] text-gray-500 font-medium">Lueur cyan autour de la carte</span>
+                            <span className="text-[8px] text-gray-500 font-medium">Lueur néon aux couleurs du thème</span>
                         </div>
                         <button
                             type="button"
@@ -14034,7 +14269,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 setTweetGlow(!tweetGlow);
                                 setTimeout(() => generateImage(), 50);
                             }}
-                            className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase transition-all ${tweetGlow ? 'border-neon-cyan/40 text-neon-cyan bg-neon-cyan/20' : 'bg-white/5 text-gray-500 border border-white/10'}`}
+                            className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase transition-all ${
+                                tweetGlow ? 'text-white border' : 'bg-white/5 text-gray-500 border border-white/10'
+                            }`}
+                            style={tweetGlow ? { borderColor: activeColor?.color || '#ff0033', backgroundColor: `rgba(${activeColor?.grad || '255, 0, 51'}, 0.25)` } : {}}
                         >
                             {tweetGlow ? 'ACTIF' : 'DÉSACTIVÉ'}
                         </button>
