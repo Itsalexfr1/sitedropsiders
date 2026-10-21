@@ -321,5 +321,20 @@
       "soundcloud": "https://soundcloud.com/justice-official",
       "beatport": "https://www.beatport.com/fr/artist/justice/2331?srsltid=AU7gw4X1GCMRI0KCjJL8NTeqh9_luxUJLn8g4N4ZFyAct0WrUh5X5OkG"
     }
+  },
+  {
+    "name": "MARTIN GARRIX",
+    "socials": {
+      "website": "https://martingarrix.com",
+      "instagram": "https://instagram.com/martingarrix",
+      "tiktok": "https://www.tiktok.com/@martingarrix",
+      "youtube": "https://youtube.com/martingarrix",
+      "facebook": "https://www.facebook.com/martin.garrix/",
+      "x": "https://twitter.com/martingarrix",
+      "spotify": "https://open.spotify.com/artist/60d24wfXkVzDSfLS6hyCjZ",
+      "soundcloud": "https://soundcloud.com/martingarrix",
+      "beatport": "https://www.beatport.com/fr/artist/martin-garrix/185928?srsltid=AU7gw4Xn49MReF99QWkHSurTfRzupzV1U2sO9Rdh1Xaq3o_Aie_E2Xps",
+      "snapchat": "https://www.snapchat.com/add/martingarrix"
+    }
   }
 ]
