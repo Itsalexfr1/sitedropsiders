@@ -1381,6 +1381,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         venueStartY: number;
     }>>(new Map());
     const earthWorldTextureRef = useRef<HTMLCanvasElement | null>(null);
+    const earthSatelliteImgRef = useRef<HTMLImageElement | null>(null);
+
+    // Pré-chargement automatique et immédiat de la vraie texture satellite de la Terre (0ms, photoréaliste)
+    useEffect(() => {
+        const satImg = new Image();
+        satImg.src = '/assets/earth_satellite.jpg';
+        satImg.onload = () => {
+            earthSatelliteImgRef.current = satImg;
+            if (earthWorldTextureRef.current) {
+                const c = earthWorldTextureRef.current.getContext('2d');
+                if (c) {
+                    c.drawImage(satImg, 0, 0, earthWorldTextureRef.current.width, earthWorldTextureRef.current.height);
+                }
+            }
+        };
+        earthSatelliteImgRef.current = satImg;
+    }, []);
+
     useEffect(() => {
         isMapAnimPlayingRef.current = isMapAnimPlaying;
     }, [isMapAnimPlaying]);
@@ -1615,101 +1633,34 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const getEarthWorldTexture = () => {
         if (!earthWorldTextureRef.current) {
-            const w = 1024;
-            const h = 512;
+            const w = 2048;
+            const h = 1024;
             const cvs = document.createElement('canvas');
             cvs.width = w;
             cvs.height = h;
             const c = cvs.getContext('2d');
             if (c) {
-                // Fond océan profond
-                c.fillStyle = '#06162d';
+                // Fond océan spatial photoréaliste
+                c.fillStyle = '#040b17';
                 c.fillRect(0, 0, w, h);
 
-                // Graticule cosmique
-                c.strokeStyle = 'rgba(0, 240, 255, 0.08)';
-                c.lineWidth = 1;
-                for (let x = 0; x < w; x += w / 12) {
-                    c.beginPath();
-                    c.moveTo(x, 0);
-                    c.lineTo(x, h);
-                    c.stroke();
-                }
-                for (let y = 0; y < h; y += h / 6) {
-                    c.beginPath();
-                    c.moveTo(0, y);
-                    c.lineTo(w, y);
-                    c.stroke();
-                }
-
-                // Continents peints en vectoriel (immédiatement visibles, zéro délai)
-                const drawPoly = (pts: [number, number][], fill: string = '#0c3830') => {
-                    c.fillStyle = fill;
-                    c.strokeStyle = 'rgba(0, 240, 255, 0.6)';
-                    c.lineWidth = 1.5;
-                    c.beginPath();
-                    pts.forEach(([px, py], idx) => {
-                        const sx = (px / 360) * w;
-                        const sy = (py / 180) * h;
-                        if (idx === 0) c.moveTo(sx, sy);
-                        else c.lineTo(sx, sy);
-                    });
-                    c.closePath();
-                    c.fill();
-                    c.stroke();
-                };
-
-                // Amérique du Nord
-                drawPoly([
-                    [20, 20], [60, 20], [90, 35], [110, 50], [95, 75],
-                    [80, 95], [68, 115], [78, 125], [72, 135], [60, 115],
-                    [40, 95], [30, 70], [15, 45], [20, 20]
-                ]);
-
-                // Amérique du Sud
-                drawPoly([
-                    [75, 125], [95, 130], [105, 145], [100, 165], [90, 185],
-                    [80, 205], [75, 215], [70, 195], [72, 160], [70, 140], [75, 125]
-                ]);
-
-                // Europe & Scandinavie
-                drawPoly([
-                    [165, 30], [190, 25], [210, 35], [215, 60], [200, 70],
-                    [175, 75], [160, 65], [155, 45], [165, 30]
-                ]);
-
-                // Afrique
-                drawPoly([
-                    [165, 75], [205, 75], [225, 95], [225, 125], [205, 160],
-                    [190, 185], [180, 160], [165, 130], [150, 105], [165, 75]
-                ]);
-
-                // Asie
-                drawPoly([
-                    [210, 35], [280, 25], [330, 35], [340, 65], [315, 85],
-                    [290, 105], [260, 110], [240, 95], [215, 60], [210, 35]
-                ]);
-
-                // Australie
-                drawPoly([
-                    [295, 145], [325, 140], [335, 160], [325, 180], [300, 175],
-                    [290, 160], [295, 145]
-                ]);
-
-                // 4 tuiles satellites mondiales réelles de zoom 1
-                for (let tx = 0; tx < 2; tx++) {
-                    for (let ty = 0; ty < 2; ty++) {
-                        const tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/1/${ty}/${tx}`;
-                        const tileImg = new Image();
-                        tileImg.crossOrigin = 'anonymous';
-                        tileImg.src = tileUrl;
-                        tileImg.onload = () => {
-                            c.drawImage(tileImg, tx * 512, ty * 256, 512, 256);
-                        };
-                    }
+                if (earthSatelliteImgRef.current && earthSatelliteImgRef.current.complete && earthSatelliteImgRef.current.naturalWidth > 0) {
+                    c.drawImage(earthSatelliteImgRef.current, 0, 0, w, h);
+                } else {
+                    const satImg = new Image();
+                    satImg.src = '/assets/earth_satellite.jpg';
+                    satImg.onload = () => {
+                        earthSatelliteImgRef.current = satImg;
+                        c.drawImage(satImg, 0, 0, w, h);
+                    };
                 }
             }
             earthWorldTextureRef.current = cvs;
+        } else if (earthSatelliteImgRef.current && earthSatelliteImgRef.current.complete && earthSatelliteImgRef.current.naturalWidth > 0) {
+            const c = earthWorldTextureRef.current.getContext('2d');
+            if (c) {
+                c.drawImage(earthSatelliteImgRef.current, 0, 0, earthWorldTextureRef.current.width, earthWorldTextureRef.current.height);
+            }
         }
         return earthWorldTextureRef.current;
     };
@@ -1814,9 +1765,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         height: number,
         dx: number = 0,
         dy: number = 0,
-        renderPinAndLabel: boolean = true
+        renderPinAndLabel: boolean = true,
+        droneAngle: number = 0,
+        droneDriftX: number = 0,
+        droneDriftY: number = 0
     ) => {
-        const clampedZoom = Math.max(13.5, Math.min(18.0, zoom));
+        const clampedZoom = Math.max(13.5, Math.min(19.2, zoom));
         const canvasCenterX = dx + width / 2;
         const canvasCenterY = dy + height / 2;
 
@@ -1837,17 +1791,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const gpsX = (entry.cityCenterX - entry.cityStartX) * 256;
             const gpsY = (entry.cityCenterY - entry.cityStartY) * 256;
             ctx.save();
-            ctx.translate(canvasCenterX, canvasCenterY);
+            ctx.translate(canvasCenterX + droneDriftX, canvasCenterY + droneDriftY);
+            if (droneAngle !== 0) ctx.rotate(droneAngle);
             ctx.scale(scale, scale);
             ctx.drawImage(entry.cityCanvas, -gpsX, -gpsY);
             ctx.restore();
         } else {
-            // Vue Salle / Festival (Zoom 17) avec ultra-haute définition
+            // Vue Salle / Festival (Zoom 17) avec ultra-haute définition et zoom drone jusqu'à 19.2
             const scale = Math.pow(2, clampedZoom - 17.0);
             const gpsX = (entry.venueCenterX - entry.venueStartX) * 256;
             const gpsY = (entry.venueCenterY - entry.venueStartY) * 256;
             ctx.save();
-            ctx.translate(canvasCenterX, canvasCenterY);
+            ctx.translate(canvasCenterX + droneDriftX, canvasCenterY + droneDriftY);
+            if (droneAngle !== 0) ctx.rotate(droneAngle);
             ctx.scale(scale, scale);
             ctx.drawImage(entry.venueCanvas, -gpsX, -gpsY);
             ctx.restore();
@@ -5845,19 +5801,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 };
 
-                // Helper Globe Terrestre 3D réaliste (Texture mondiale pré-chargée, 0ms, 60 FPS garanti)
+                // Helper Globe Terrestre 3D photoréaliste (Texture satellite NASA locale, 0ms, 60 FPS garanti)
                 const drawEarthGlobe = (cx: number, cy: number, radius: number, centerLat: number, centerLon: number, globeAlpha: number = 1.0) => {
                     ctx.save();
                     ctx.globalAlpha = Math.max(0, Math.min(1, globeAlpha));
 
                     // Halo atmosphérique externe néon cyan
-                    const atmoGlow = ctx.createRadialGradient(cx, cy, radius * 0.95, cx, cy, radius * 1.30);
-                    atmoGlow.addColorStop(0, 'rgba(0, 240, 255, 0.55)');
-                    atmoGlow.addColorStop(0.35, 'rgba(0, 160, 255, 0.22)');
+                    const atmoGlow = ctx.createRadialGradient(cx, cy, radius * 0.95, cx, cy, radius * 1.25);
+                    atmoGlow.addColorStop(0, 'rgba(0, 240, 255, 0.45)');
+                    atmoGlow.addColorStop(0.35, 'rgba(0, 160, 255, 0.18)');
                     atmoGlow.addColorStop(1, 'rgba(0, 100, 255, 0)');
                     ctx.fillStyle = atmoGlow;
                     ctx.beginPath();
-                    ctx.arc(cx, cy, radius * 1.30, 0, Math.PI * 2);
+                    ctx.arc(cx, cy, radius * 1.25, 0, Math.PI * 2);
                     ctx.fill();
 
                     // Disque de découpe de la planète Terre
@@ -5867,10 +5823,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.clip();
 
                     // Fond océan profond
-                    ctx.fillStyle = '#06162d';
+                    ctx.fillStyle = '#040b17';
                     ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
 
-                    // Texture mondiale avec rotation longitude instantanée (aucun lag réseau)
+                    // Texture mondiale satellite NASA avec rotation longitude instantanée (aucun lag réseau)
                     const worldTex = getEarthWorldTexture();
                     const texW = radius * 4.0;
                     const texH = radius * 2.0;
@@ -5888,9 +5844,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         cx - radius * 0.35, cy - radius * 0.35, radius * 0.05,
                         cx, cy, radius
                     );
-                    sphere3d.addColorStop(0, 'rgba(255, 255, 255, 0.22)');
+                    sphere3d.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
                     sphere3d.addColorStop(0.45, 'rgba(0, 0, 0, 0.0)');
-                    sphere3d.addColorStop(0.80, 'rgba(2, 6, 18, 0.70)');
+                    sphere3d.addColorStop(0.80, 'rgba(2, 6, 18, 0.65)');
                     sphere3d.addColorStop(1, 'rgba(1, 3, 10, 0.95)');
                     ctx.fillStyle = sphere3d;
                     ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
@@ -5898,8 +5854,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore(); // Fin clip disque
 
                     // Anneau atmosphère fine néon
-                    ctx.strokeStyle = 'rgba(0, 240, 255, 0.7)';
-                    ctx.lineWidth = 3.5;
+                    ctx.strokeStyle = 'rgba(0, 240, 255, 0.6)';
+                    ctx.lineWidth = 2.5;
                     ctx.beginPath();
                     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
                     ctx.stroke();
@@ -5983,6 +5939,143 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // Helper Traînées de vitesse désactivées (retrait des feux d'artifice bleus)
                 const drawSpeedStreaks = (_intensity: number) => {};
+
+                // Helper Overlay HUD Drone FPV Professionnel & Télémétrie Aérienne
+                const drawDroneHudOverlay = (
+                    altitudeM: number,
+                    speedKmh: number = 24,
+                    batteryPct: number = 94,
+                    gimbalDeg: number = -45,
+                    hudAlpha: number = 1.0
+                ) => {
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, Math.min(1, hudAlpha));
+
+                    const margin = 45;
+                    const bLen = 35; // longueur des coins de cadrage FPV
+
+                    // 1. Coins de cadrage FPV drone (┌ ┐ └ ┘)
+                    ctx.strokeStyle = 'rgba(0, 240, 255, 0.7)';
+                    ctx.lineWidth = 2.5;
+
+                    // Haut Gauche
+                    ctx.beginPath();
+                    ctx.moveTo(margin, margin + bLen);
+                    ctx.lineTo(margin, margin);
+                    ctx.lineTo(margin + bLen, margin);
+                    ctx.stroke();
+
+                    // Haut Droite
+                    ctx.beginPath();
+                    ctx.moveTo(canvas.width - margin - bLen, margin);
+                    ctx.lineTo(canvas.width - margin, margin);
+                    ctx.lineTo(canvas.width - margin, margin + bLen);
+                    ctx.stroke();
+
+                    // Bas Gauche
+                    ctx.beginPath();
+                    ctx.moveTo(margin, canvas.height - margin - bLen);
+                    ctx.lineTo(margin, canvas.height - margin);
+                    ctx.lineTo(margin + bLen, canvas.height - margin);
+                    ctx.stroke();
+
+                    // Bas Droite
+                    ctx.beginPath();
+                    ctx.moveTo(canvas.width - margin - bLen, canvas.height - margin);
+                    ctx.lineTo(canvas.width - margin, canvas.height - margin);
+                    ctx.lineTo(canvas.width - margin, canvas.height - margin - bLen);
+                    ctx.stroke();
+
+                    // 2. Viseur Réticule FPV Central [ + ] avec horizon artificiel
+                    const cx = canvas.width / 2;
+                    const cy = canvas.height / 2;
+
+                    ctx.save();
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.65)';
+                    ctx.lineWidth = 1.5;
+
+                    // Brackets centraux [   ]
+                    const retSize = 28;
+                    const retGap = 10;
+                    ctx.beginPath();
+                    ctx.moveTo(cx - retSize, cy - retGap);
+                    ctx.lineTo(cx - retSize, cy + retGap);
+                    ctx.moveTo(cx + retSize, cy - retGap);
+                    ctx.lineTo(cx + retSize, cy + retGap);
+                    ctx.stroke();
+
+                    // Croix centrale (+)
+                    ctx.strokeStyle = '#00f0ff';
+                    ctx.beginPath();
+                    ctx.moveTo(cx - 7, cy);
+                    ctx.lineTo(cx + 7, cy);
+                    ctx.moveTo(cx, cy - 7);
+                    ctx.lineTo(cx, cy + 7);
+                    ctx.stroke();
+
+                    // Graduations d'horizon artificiel (Pitch ladder FPV)
+                    const ladderW = 18;
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+                    ctx.beginPath();
+                    ctx.moveTo(cx - ladderW, cy - 36);
+                    ctx.lineTo(cx + ladderW, cy - 36);
+                    ctx.moveTo(cx - ladderW, cy + 36);
+                    ctx.lineTo(cx + ladderW, cy + 36);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // 3. Status Bar FPV - REC 4K et Télémétrie Drone
+                    const recPulse = 0.5 + 0.5 * Math.sin(animTime * 6);
+                    ctx.save();
+                    ctx.font = '900 13px "Orbitron", sans-serif';
+
+                    // REC Indicator en haut à gauche
+                    const topStatusY = margin + 20;
+                    ctx.fillStyle = `rgba(255, 40, 80, ${0.4 + 0.6 * recPulse})`;
+                    ctx.beginPath();
+                    ctx.arc(margin + 12, topStatusY - 4, 5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'left';
+                    ctx.fillText('REC 4K 60FPS', margin + 24, topStatusY);
+
+                    // FPV Drone mode & Satellite Lock en haut à droite
+                    ctx.fillStyle = 'rgba(0, 240, 255, 0.9)';
+                    ctx.textAlign = 'right';
+                    const rightStatusX = canvas.width - margin - 10;
+                    ctx.fillText(`GPS 18 SATS • BAT ${batteryPct}%`, rightStatusX, topStatusY);
+
+                    // 4. Barre Télémétrie Basse (Altitude drone, vitesse, gimbal)
+                    const bottomHudY = canvas.height - 350;
+
+                    // Capsule altitude drone à gauche
+                    ctx.fillStyle = 'rgba(8, 12, 22, 0.80)';
+                    ctx.strokeStyle = 'rgba(0, 240, 255, 0.45)';
+                    ctx.lineWidth = 1.2;
+                    ctx.beginPath();
+                    ctx.roundRect(margin + 10, bottomHudY, 170, 36, 8);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#00f0ff';
+                    ctx.textAlign = 'left';
+                    ctx.font = '900 13px "Orbitron", sans-serif';
+                    ctx.fillText(`ALT: ${Math.round(altitudeM)}M`, margin + 24, bottomHudY + 23);
+
+                    // Capsule vitesse & gimbal à droite
+                    ctx.beginPath();
+                    ctx.roundRect(canvas.width - margin - 225, bottomHudY, 215, 36, 8);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(`SPD: ${speedKmh} KM/H • GMB: ${gimbalDeg}°`, canvas.width - margin - 22, bottomHudY + 23);
+
+                    ctx.restore();
+                    ctx.restore();
+                };
 
                 // Helper Onde de choc d'impact
                 const drawShockwave = (cx: number, cy: number, shockProgress: number, col: string) => {
@@ -6108,15 +6201,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const distKm = Math.round(6371 * cH);
 
                     if (t < 0.20) {
-                        // Phase 1 (0 à 2.4s) : Event 1 sur le terrain (Escape Halloween)
-                        drawMap(ctx, latA, lonA, 17.2, canvas.width, canvas.height, 0, 0, false);
-                        drawPinDrop(canvas.width / 2, canvas.height / 2, 1.0, mapPinColor);
-                        drawFestivalCard(mapFestivalText, mapVenue, mapCityCountry, 'DÉPART (EVENT 1)', mapPinColor, 1.0);
-                        drawHudTopBar('VOL FESTIVAL HOPPER', 'POINT DE DÉPART');
+                        // Phase 1 (0 à 2.4s) : Mode Drone FPV ultra-rapproché sur la salle (Event 1)
+                        const rel = t / 0.20;
+                        const droneZoom = 18.2 + rel * 0.6; // Zoom très profond de 18.2 à 18.8 sur la scène/salle !
+                        const droneAngle = Math.sin(t * 2.8) * 0.035; // Balancement cinématique doux ~2°
+                        const driftX = Math.sin(t * 3.5) * 22;
+                        const driftY = Math.cos(t * 3.0) * 15;
+                        const altM = Math.round(55 - rel * 20);
+
+                        drawMap(ctx, latA, lonA, droneZoom, canvas.width, canvas.height, 0, 0, false, droneAngle, driftX, driftY);
+                        drawDroneHudOverlay(altM, 24, 98, -55, 1.0);
+                        drawPinDrop(canvas.width / 2 + driftX, canvas.height / 2 + driftY, 1.0, mapPinColor);
+                        drawFestivalCard(mapFestivalText, mapVenue, mapCityCountry, 'DRONE FPV (EVENT 1)', mapPinColor, 1.0);
+                        drawHudTopBar('MODE DRONE FPV', 'POINT DE DÉPART');
                     } else if (t < 0.30) {
                         // Phase 2 (2.4 à 3.6s) : Décollage fluide vers l'orbite
                         const rel = (t - 0.20) / 0.10;
-                        drawMap(ctx, latA, lonA, 17.2 - rel * 1.5, canvas.width, canvas.height, 0, 0, false);
+                        const ease = Math.pow(rel, 1.5);
+                        drawMap(ctx, latA, lonA, 18.8 - ease * 4.8, canvas.width, canvas.height, 0, 0, false);
                         const fadeToSpace = Math.min(1, rel * 1.4);
                         if (fadeToSpace > 0) {
                             drawSpaceBackground(fadeToSpace);
@@ -6425,7 +6527,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         // Phase 4 (7.8 à 9.6s) : Plongeon vers la destination (Dream Nation Paris)
                         const rel = (t - 0.65) / 0.15;
                         const ease = Math.pow(rel, 1.8);
-                        const curZ = 14.0 + ease * 3.5; // 14.0 (métropole) -> 17.5 (salle)
+                        const curZ = 14.0 + ease * 4.2; // 14.0 (métropole) -> 18.2 (salle)
 
                         // Globe terrestre qui s'agrandit pour accueillir le plongeon
                         if (rel < 0.35) {
@@ -6438,13 +6540,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         drawSpeedStreaks(rel * 0.85);
                         drawHudTopBar('DESCENTE SUR DESTINATION', 'APPROCHE FINALE');
                     } else {
-                        // Phase 5 (9.6 à 12.0s) : Touchdown sur la salle Event 2 & Badge final
-                        drawMap(ctx, latB, lonB, 17.5, canvas.width, canvas.height, 0, 0, false);
-                        const shockProg = (t - 0.80) / 0.20;
-                        drawShockwave(canvas.width / 2, canvas.height / 2, shockProg, mapDestPinColor);
-                        drawPinDrop(canvas.width / 2, canvas.height / 2, shockProg * 2, mapDestPinColor);
-                        drawFestivalCard(mapDestFestivalText, mapDestVenue, `${mapDestCity}, ${mapDestCountry}`, 'DESTINATION (EVENT 2)', mapDestPinColor, 1.0);
-                        drawHudTopBar('DESTINATION ATTEINTE', `${distKm.toLocaleString()} KM PARCOURUS`);
+                        // Phase 5 (9.6 à 12.0s) : Mode Drone FPV ultra-rapproché sur la salle Event 2
+                        const rel = (t - 0.80) / 0.20;
+                        const droneZoom = 18.2 + rel * 0.7; // Zoom très profond de 18.2 à 18.9 sur la salle !
+                        const droneAngle = Math.sin(t * 2.5) * 0.03;
+                        const driftX = Math.sin(t * 3.2) * 22;
+                        const driftY = Math.cos(t * 2.6) * 14;
+                        const altM = Math.round(48 - rel * 18);
+
+                        drawMap(ctx, latB, lonB, droneZoom, canvas.width, canvas.height, 0, 0, false, droneAngle, driftX, driftY);
+                        drawDroneHudOverlay(altM, 20, 91, -45, 1.0);
+                        const shockProg = rel;
+                        drawShockwave(canvas.width / 2 + driftX, canvas.height / 2 + driftY, shockProg, mapDestPinColor);
+                        drawPinDrop(canvas.width / 2 + driftX, canvas.height / 2 + driftY, shockProg * 2, mapDestPinColor);
+                        drawFestivalCard(mapDestFestivalText, mapDestVenue, `${mapDestCity}, ${mapDestCountry}`, 'DRONE FPV (EVENT 2)', mapDestPinColor, 1.0);
+                        drawHudTopBar('MODE DRONE FPV', `${distKm.toLocaleString()} KM PARCOURUS`);
                     }
 
                 } else {
@@ -6452,7 +6562,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const t = progress;
 
                     if (t < 0.25) {
-                        // Phase 1 (0 à 3.0s) : Orbite spatiale
+                        // Phase 1 (0 à 3.0s) : Orbite spatiale photoréaliste (Texture NASA Blue Marble)
                         drawSpaceBackground(1.0);
                         const radius = Math.min(canvas.width, canvas.height) * (0.34 + t * 0.15);
                         drawEarthGlobe(canvas.width / 2, canvas.height / 2, radius, mapLatitude, mapLongitude, 1.0);
@@ -6468,23 +6578,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const altKm = Math.round(12500 * (1 - ease));
                         drawHudTopBar('PLONGEON ATMOSPHÉRIQUE', `ALT: ${altKm.toLocaleString()} KM`);
                     } else if (t < 0.80) {
-                        // Phase 3 (5.4 à 9.6s) : Descente vers la salle en continu (14.0 Métropole -> 17.5 Salle)
+                        // Phase 3 (5.4 à 9.6s) : Descente vers la salle en continu (14.0 Métropole -> 18.2 Salle)
                         const rel = (t - 0.45) / 0.35;
                         const ease = Math.pow(rel, 1.8);
-                        const curZoom = 14.0 + ease * 3.5;
+                        const curZoom = 14.0 + ease * 4.2;
 
                         drawMap(ctx, mapLatitude, mapLongitude, curZoom, canvas.width, canvas.height, 0, 0, false);
                         drawSpeedStreaks((1 - rel) * 0.6);
                         const altM = Math.round(2500 * (1 - ease) + 45);
                         drawHudTopBar('APPROCHE DU FESTIVAL', `ALT: ${altM} M`);
                     } else {
-                        // Phase 4 (9.6 à 12.0s) : Atterrissage sur la salle & Festival Card
-                        drawMap(ctx, mapLatitude, mapLongitude, 17.5, canvas.width, canvas.height, 0, 0, false);
-                        const shockProg = (t - 0.80) / 0.20;
-                        drawShockwave(canvas.width / 2, canvas.height / 2, shockProg, mapPinColor);
-                        drawPinDrop(canvas.width / 2, canvas.height / 2, shockProg * 2, mapPinColor);
-                        drawFestivalCard(mapFestivalText, mapVenue, mapCityCountry, 'LIVE FROM', mapPinColor, 1.0);
-                        drawHudTopBar('ATTERRISSAGE RÉUSSI', 'ALT: 45 M');
+                        // Phase 4 (9.6 à 12.0s) : Mode Drone FPV ultra-rapproché sur la salle & Festival Card
+                        const rel = (t - 0.80) / 0.20;
+                        const droneZoom = 18.2 + rel * 0.7; // Zoom 18.2 à 18.9 au cœur du lieu !
+                        const droneAngle = Math.sin(t * 2.5) * 0.03;
+                        const driftX = Math.sin(t * 3.2) * 22;
+                        const driftY = Math.cos(t * 2.6) * 14;
+                        const altM = Math.round(45 - rel * 15);
+
+                        drawMap(ctx, mapLatitude, mapLongitude, droneZoom, canvas.width, canvas.height, 0, 0, false, droneAngle, driftX, driftY);
+                        drawDroneHudOverlay(altM, 22, 94, -50, 1.0);
+                        const shockProg = rel;
+                        drawShockwave(canvas.width / 2 + driftX, canvas.height / 2 + driftY, shockProg, mapPinColor);
+                        drawPinDrop(canvas.width / 2 + driftX, canvas.height / 2 + driftY, shockProg * 2, mapPinColor);
+                        drawFestivalCard(mapFestivalText, mapVenue, mapCityCountry, 'DRONE FPV LIVE', mapPinColor, 1.0);
+                        drawHudTopBar('MODE DRONE FPV', 'ALT: 30 M');
                     }
                 }
 
