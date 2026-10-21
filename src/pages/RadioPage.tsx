@@ -18,6 +18,7 @@ import {
     type RadioHistoryEntry,
     cleanRadioTrackMetadata
 } from '../utils/radioSchedule';
+import { isEscapePsychoCircusActive, ESCAPE_PSYCHO_CIRCUS_BG } from '../utils/radioTheme';
 
 const RADIO_HISTORY_KEY = 'dropsiders_radio_history';
 const RADIO_MESSAGES_ENABLED_KEY = 'dropsiders_radio_messages_enabled';
@@ -1010,24 +1011,43 @@ export function RadioPage() {
         ...(messagesEnabled ? [{ id: 'message' as const, label: 'Message', icon: <MessageSquare className="w-3.5 h-3.5" /> }] : []),
     ];
 
+    const isEscapeTheme = isEscapePsychoCircusActive();
+
     return (
         <div className="min-h-screen bg-[#05050a] relative overflow-x-hidden">
-            <div className="fixed inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-cyan-500/5 rounded-full blur-[100px]" />
-                <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[100px]" />
-                <div className="absolute top-1/2 left-0 w-[300px] h-[300px] bg-red-500/[0.04] rounded-full blur-[80px]" />
-            </div>
+            {/* Ambient background */}
+            {isEscapeTheme ? (
+                <div className="fixed inset-0 pointer-events-none overflow-hidden">
+                    <div 
+                        className="absolute inset-0 bg-cover bg-center opacity-25 filter blur-sm scale-105"
+                        style={{ backgroundImage: `url(${ESCAPE_PSYCHO_CIRCUS_BG})` }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#05050a]/75 via-[#05050a]/90 to-[#05050a]" />
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-red-600/15 rounded-full blur-[120px]" />
+                    <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-amber-600/10 rounded-full blur-[120px]" />
+                </div>
+            ) : (
+                <div className="fixed inset-0 pointer-events-none overflow-hidden">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-cyan-500/5 rounded-full blur-[100px]" />
+                    <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[100px]" />
+                    <div className="absolute top-1/2 left-0 w-[300px] h-[300px] bg-red-500/[0.04] rounded-full blur-[80px]" />
+                </div>
+            )}
 
             <div className="relative z-10 max-w-2xl mx-auto px-4 pb-40 pt-8">
                 {/* Header */}
                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
                     <div className="flex items-center justify-center gap-3 mb-3">
-                        <div className="p-3 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 shadow-[0_0_20px_rgba(0,255,255,0.2)]">
+                        <div className={`p-3 rounded-2xl ${
+                            isEscapeTheme 
+                                ? 'bg-red-600/20 border border-red-500/40 text-red-400 shadow-[0_0_20px_rgba(220,38,38,0.3)]' 
+                                : 'bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 shadow-[0_0_20px_rgba(0,255,255,0.2)]'
+                        }`}>
                             <Radio className="w-6 h-6" />
                         </div>
                         <div className="text-left">
                             <h1 className="text-2xl font-display font-black text-white uppercase italic tracking-tight">
-                                DROPSIDERS <span className="text-cyan-400">RADIO</span>
+                                DROPSIDERS <span className={isEscapeTheme ? 'text-red-400' : 'text-cyan-400'}>RADIO</span>
                             </h1>
                             <p className="text-[9px] font-mono text-gray-500 uppercase tracking-widest">Web Radio Electro 24/7</p>
                         </div>
@@ -1037,6 +1057,11 @@ export function RadioPage() {
                             <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />
                             LIVE
                         </span>
+                        {isEscapeTheme && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-600/30 border border-red-500/60 text-amber-200 text-[9px] font-black uppercase tracking-wider shadow-[0_0_15px_rgba(220,38,38,0.35)]">
+                                🎪 ESCAPE PSYCHO CIRCUS
+                            </span>
+                        )}
                         <span className="text-[10px] font-mono text-gray-500">
                             {formatParisTime(parisDate)} · <span className="capitalize">{formatParisDate(parisDate)}</span>
                         </span>
@@ -1047,9 +1072,38 @@ export function RadioPage() {
                 {currentSet ? (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-                        className="mb-6 rounded-3xl bg-gradient-to-br from-[#0d0d1e] via-[#080810] to-[#05050a] border border-cyan-500/30 p-5 shadow-[0_0_40px_rgba(0,255,255,0.08)] relative overflow-hidden"
+                        className={`mb-6 rounded-3xl ${
+                            isEscapeTheme 
+                                ? 'border border-red-600/50 shadow-[0_0_45px_rgba(220,38,38,0.25)]' 
+                                : 'bg-gradient-to-br from-[#0d0d1e] via-[#080810] to-[#05050a] border border-cyan-500/30 shadow-[0_0_40px_rgba(0,255,255,0.08)]'
+                        } p-5 relative overflow-hidden`}
                     >
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/[0.08] rounded-full blur-3xl pointer-events-none -mr-10 -mt-10" />
+                        {isEscapeTheme ? (
+                            <>
+                                {/* Fond Événementiel Escape Psycho Circus */}
+                                <div 
+                                    className="absolute inset-0 bg-cover bg-center pointer-events-none scale-105"
+                                    style={{ backgroundImage: `url(${ESCAPE_PSYCHO_CIRCUS_BG})` }}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#040408] via-[#080509]/85 to-[#0b050d]/80 pointer-events-none" />
+                                <div className="absolute inset-0 bg-gradient-to-r from-[#040408]/90 via-transparent to-[#040408]/90 pointer-events-none" />
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/20 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
+                            </>
+                        ) : (
+                            <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/[0.08] rounded-full blur-3xl pointer-events-none -mr-10 -mt-10" />
+                        )}
+
+                        {isEscapeTheme && (
+                            <div className="relative z-10 mb-3 flex items-center justify-between gap-2 pb-2.5 border-b border-red-500/25">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-600/30 text-amber-200 border border-red-500/50 text-[8px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(220,38,38,0.4)]">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />
+                                    🎪 ÉDITION HALLOWEEN • ESCAPE PSYCHO CIRCUS
+                                </span>
+                                <span className="text-[7.5px] font-mono text-amber-300/80 uppercase font-semibold">
+                                    Fin 1er nov.
+                                </span>
+                            </div>
+                        )}
                         <div className="flex items-center gap-4 relative">
                             <div className="shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-cyan-500/30 flex items-center justify-center shadow-[0_0_20px_rgba(0,255,255,0.15)]">
                                 <Disc3 className={`w-8 h-8 text-cyan-400 ${radioState.isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />

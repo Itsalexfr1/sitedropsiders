@@ -19,6 +19,7 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePlayer } from '../../context/PlayerContext';
 import { RadioDedicationModal } from './RadioDedicationModal';
+import { isEscapePsychoCircusActive, ESCAPE_PSYCHO_CIRCUS_BG } from '../../utils/radioTheme';
 
 // ─── Modes d'enchaînement radio ──────────────────────────────────────────────
 export type RadioTransitionMode = 'RAPIDE' | 'CROSSFADE' | 'STANDARD';
@@ -2042,6 +2043,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
     const dragRef = useRef<HTMLDivElement>(null);
     const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hasMoved = useRef(false);
+    const isEscapeTheme = isEscapePsychoCircusActive();
 
     // Position initiale depuis localStorage
     const getInitialPos = () => {
@@ -2175,15 +2177,36 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                             style={{ zIndex: 99995, bottom: 0 }}
                             className="fixed left-0 right-0 rounded-t-[2rem] overflow-hidden"
                         >
-                            <div className="relative bg-gradient-to-b from-[#0d0d18] to-[#050508] border-t border-white/10 px-6 pt-5 pb-10">
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-28 bg-neon-cyan/10 rounded-full blur-3xl pointer-events-none" />
-                                <div className="absolute bottom-0 right-0 w-40 h-40 bg-neon-red/8 rounded-full blur-3xl pointer-events-none" />
+                            <div className={`relative ${
+                                isEscapeTheme 
+                                    ? 'bg-[#080407] border-t border-red-600/50' 
+                                    : 'bg-gradient-to-b from-[#0d0d18] to-[#050508] border-t border-white/10'
+                            } px-6 pt-5 pb-10 overflow-hidden`}>
+                                {isEscapeTheme ? (
+                                    <>
+                                        <div 
+                                            className="absolute inset-0 bg-cover bg-center opacity-30 pointer-events-none"
+                                            style={{ backgroundImage: `url(${ESCAPE_PSYCHO_CIRCUS_BG})` }}
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-[#050306] via-[#080407]/80 to-[#0c050a]/75 pointer-events-none" />
+                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-28 bg-red-600/20 rounded-full blur-3xl pointer-events-none" />
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-28 bg-neon-cyan/10 rounded-full blur-3xl pointer-events-none" />
+                                        <div className="absolute bottom-0 right-0 w-40 h-40 bg-neon-red/8 rounded-full blur-3xl pointer-events-none" />
+                                    </>
+                                )}
 
                                 <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-5" />
 
                                 <div className="flex items-center justify-between mb-5 relative z-10">
                                 <div className="flex items-center gap-2.5">
-                                        <div className="p-2 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.25)]">
+                                        <div className={`p-2 rounded-xl ${
+                                            isEscapeTheme 
+                                                ? 'bg-red-600/20 border border-red-500/40 text-red-400 shadow-[0_0_12px_rgba(220,38,38,0.3)]' 
+                                                : 'bg-neon-cyan/15 border border-neon-cyan/30 text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.25)]'
+                                        }`}>
                                             <Radio className="w-4 h-4" />
                                         </div>
                                         <button
@@ -2193,15 +2216,23 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                             title="Ouvrir la page radio"
                                         >
                                             <p className="text-[11px] font-display font-black text-white uppercase italic tracking-tight">
-                                                DROPSIDERS <span className="text-neon-cyan">RADIO</span>
+                                                DROPSIDERS <span className={isEscapeTheme ? 'text-red-400' : 'text-neon-cyan'}>RADIO</span>
                                             </p>
-                                            <p className="text-[8px] text-gray-500 uppercase tracking-widest font-bold">Web Radio Electro 24/7</p>
+                                            <p className="text-[8px] text-gray-500 uppercase tracking-widest font-bold">
+                                                {isEscapeTheme ? '🎪 Escape Psycho Circus' : 'Web Radio Electro 24/7'}
+                                            </p>
                                         </button>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-neon-red/20 text-neon-red border border-neon-red/40 text-[7px] font-black uppercase animate-pulse">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-neon-red" />LIVE
-                                        </span>
+                                        {isEscapeTheme ? (
+                                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-600/30 text-amber-200 border border-red-500/50 text-[7px] font-black uppercase shadow-[0_0_8px_rgba(220,38,38,0.4)]">
+                                                🎪 ESCAPE
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-neon-red/20 text-neon-red border border-neon-red/40 text-[7px] font-black uppercase animate-pulse">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-neon-red" />LIVE
+                                            </span>
+                                        )}
                                         <button onClick={() => setExpanded(false)} title="Fermer" aria-label="Fermer"
                                             className="p-1.5 rounded-xl bg-white/5 text-gray-400 active:bg-white/10 active:scale-90 transition-all hover:text-white">
                                             <X className="w-4 h-4" />
@@ -2437,6 +2468,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
 // PLAYER DESKTOP — Barre pleine largeur en bas de page avec toggle masquer/afficher
 // ═══════════════════════════════════════════════════════════════════════════════
 function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
+    const isEscapeTheme = isEscapePsychoCircusActive();
     const [isHidden, setIsHidden] = useState(() => {
         try { return sessionStorage.getItem('radio_desktop_hidden') === 'true'; } catch { return false; }
     });
@@ -2600,40 +2632,65 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                             <div className="h-full bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-red transition-all duration-1000" style={{ width: `${progress}%` }} />
                         </div>
 
-                        <div className="flex items-center gap-5 px-6 py-3 bg-[#07070f]/98 backdrop-blur-2xl border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.7)]">
+                        <div className={`relative flex items-center gap-5 px-6 py-3 ${
+                            isEscapeTheme 
+                                ? 'bg-[#080407]/95 border-t border-red-600/40 shadow-[0_-10px_40px_rgba(220,38,38,0.22)]' 
+                                : 'bg-[#07070f]/98 border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.7)]'
+                        } backdrop-blur-2xl overflow-hidden`}>
+                            {isEscapeTheme && (
+                                <>
+                                    <div 
+                                        className="absolute inset-0 bg-cover bg-center opacity-25 pointer-events-none"
+                                        style={{ backgroundImage: `url(${ESCAPE_PSYCHO_CIRCUS_BG})` }}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-[#080407]/90 via-[#080407]/70 to-[#080407]/90 pointer-events-none" />
+                                </>
+                            )}
                             {/* Icône + Label Radio — cliquable pour ouvrir la page radio */}
                             <button
                                 type="button"
                                 onClick={() => window.open('/radio', '_blank', 'noopener,noreferrer')}
-                                className="flex items-center gap-2.5 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                                className="flex items-center gap-2.5 shrink-0 cursor-pointer hover:opacity-80 transition-opacity relative z-10"
                                 title="Ouvrir la page radio"
                             >
-                                <div className={`relative p-2 rounded-xl bg-neon-cyan/15 border border-neon-cyan/40 text-neon-cyan ${isPlaying ? 'shadow-[0_0_14px_rgba(0,255,255,0.4)]' : ''}`}>
+                                <div className={`relative p-2 rounded-xl ${
+                                    isEscapeTheme 
+                                        ? 'bg-red-600/20 border border-red-500/40 text-red-400' 
+                                        : 'bg-neon-cyan/15 border border-neon-cyan/40 text-neon-cyan'
+                                } ${isPlaying ? (isEscapeTheme ? 'shadow-[0_0_14px_rgba(220,38,38,0.4)]' : 'shadow-[0_0_14px_rgba(0,255,255,0.4)]') : ''}`}>
                                     <Radio className="w-4 h-4" />
                                     <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red animate-ping" />
                                     <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red" />
                                 </div>
                                 <div className="leading-none text-left">
                                     <div className="flex items-center gap-1.5">
-                                        <span className="text-[11px] font-display font-black text-white uppercase italic tracking-tight">DROPSIDERS <span className="text-neon-cyan">RADIO</span></span>
-                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-neon-red/25 text-neon-red border border-neon-red/50 text-[7px] font-black uppercase animate-pulse">
-                                            <span className="w-1 h-1 rounded-full bg-neon-red" />LIVE
-                                        </span>
+                                        <span className="text-[11px] font-display font-black text-white uppercase italic tracking-tight">DROPSIDERS <span className={isEscapeTheme ? 'text-red-400' : 'text-neon-cyan'}>RADIO</span></span>
+                                        {isEscapeTheme ? (
+                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-600/30 text-amber-200 border border-red-500/50 text-[7px] font-black uppercase shadow-[0_0_8px_rgba(220,38,38,0.4)]">
+                                                🎪 ESCAPE
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-neon-red/25 text-neon-red border border-neon-red/50 text-[7px] font-black uppercase animate-pulse">
+                                                <span className="w-1 h-1 rounded-full bg-neon-red" />LIVE
+                                            </span>
+                                        )}
                                         {audio.isDucking && (
                                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/50 text-[8px] font-black uppercase tracking-wider animate-pulse">
                                                 🎙️ TALK-OVER EN DIRECT
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">Web Radio Electro 24/7</p>
+                                    <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">
+                                        {isEscapeTheme ? '🎪 Escape Psycho Circus' : 'Web Radio Electro 24/7'}
+                                    </p>
                                 </div>
                             </button>
 
                             {/* Divider */}
-                            <div className="h-8 w-px bg-white/10 shrink-0" />
+                            <div className="h-8 w-px bg-white/10 shrink-0 relative z-10" />
 
                             {/* Track en cours + Nom émission + Animateur + Bouton Like */}
-                            <div className="flex-1 min-w-0 flex items-center justify-between gap-4">
+                            <div className="flex-1 min-w-0 flex items-center justify-between gap-4 relative z-10">
                                 <div className="min-w-0 text-left">
                                     <div className="text-[7.5px] font-black uppercase tracking-widest text-neon-cyan mb-0.5 flex items-center gap-1.5">
                                         <Sparkles className="w-2.5 h-2.5" /><span>EN CE MOMENT</span>

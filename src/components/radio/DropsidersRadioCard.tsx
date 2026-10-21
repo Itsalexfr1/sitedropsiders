@@ -20,6 +20,7 @@ import {
     DEFAULT_RADIO_BLOCKS, 
     type ComputedRadioScheduleItem
 } from '../../utils/radioSchedule';
+import { isEscapePsychoCircusActive, ESCAPE_PSYCHO_CIRCUS_BG } from '../../utils/radioTheme';
 
 export function DropsidersRadioCard({ className = '' }: { className?: string }) {
     const [isEnabled, setIsEnabled] = useState<boolean>(() => {
@@ -110,21 +111,45 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
         ? Math.min(100, Math.max(0, (uiOffset / currentSet.durationSeconds) * 100))
         : 0;
 
+    const isEscapeTheme = isEscapePsychoCircusActive();
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.35 }}
-            className={`w-full relative overflow-hidden rounded-3xl bg-gradient-to-b from-[#0e0f18] via-[#090a12] to-[#04040a] border border-neon-cyan/35 hover:border-neon-cyan/70 p-4 sm:p-5 shadow-[0_10px_35px_rgba(0,0,0,0.8),0_0_30px_rgba(0,255,255,0.12)] transition-all duration-300 ${className}`}
+            className={`w-full relative overflow-hidden rounded-3xl ${
+                isEscapeTheme 
+                    ? 'bg-[#090508] border border-red-600/50 hover:border-red-500 shadow-[0_10px_35px_rgba(0,0,0,0.8),0_0_35px_rgba(220,38,38,0.22)]'
+                    : 'bg-gradient-to-b from-[#0e0f18] via-[#090a12] to-[#04040a] border border-neon-cyan/35 hover:border-neon-cyan/70 shadow-[0_10px_35px_rgba(0,0,0,0.8),0_0_30px_rgba(0,255,255,0.12)]'
+            } p-4 sm:p-5 transition-all duration-300 ${className}`}
         >
-            {/* Lueurs d'ambiance */}
-            <div className="absolute top-0 right-0 w-40 h-40 bg-neon-cyan/15 rounded-full blur-3xl pointer-events-none -mr-12 -mt-12" />
-            <div className="absolute bottom-0 left-0 w-40 h-40 bg-neon-red/12 rounded-full blur-3xl pointer-events-none -ml-12 -mb-12" />
+            {isEscapeTheme ? (
+                <>
+                    <div 
+                        className="absolute inset-0 bg-cover bg-center opacity-30 pointer-events-none"
+                        style={{ backgroundImage: `url(${ESCAPE_PSYCHO_CIRCUS_BG})` }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#04040a] via-[#090508]/85 to-[#0d060c]/75 pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-red-600/20 rounded-full blur-3xl pointer-events-none -mr-12 -mt-12" />
+                    <div className="absolute bottom-0 left-0 w-40 h-40 bg-amber-600/15 rounded-full blur-3xl pointer-events-none -ml-12 -mb-12" />
+                </>
+            ) : (
+                <>
+                    {/* Lueurs d'ambiance */}
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-neon-cyan/15 rounded-full blur-3xl pointer-events-none -mr-12 -mt-12" />
+                    <div className="absolute bottom-0 left-0 w-40 h-40 bg-neon-red/12 rounded-full blur-3xl pointer-events-none -ml-12 -mb-12" />
+                </>
+            )}
 
             {/* Header du player */}
             <div className="flex items-center justify-between relative z-10 mb-3.5">
                 <div className="flex items-center gap-3">
-                    <div className="relative p-2 rounded-2xl bg-neon-cyan/15 border border-neon-cyan/40 text-neon-cyan shadow-[0_0_15px_rgba(0,255,255,0.3)] shrink-0">
+                    <div className={`relative p-2 rounded-2xl ${
+                        isEscapeTheme 
+                            ? 'bg-red-600/20 border border-red-500/40 text-red-400 shadow-[0_0_15px_rgba(220,38,38,0.3)]' 
+                            : 'bg-neon-cyan/15 border border-neon-cyan/40 text-neon-cyan shadow-[0_0_15px_rgba(0,255,255,0.3)]'
+                    } shrink-0`}>
                         <Radio className="w-5 h-5" />
                         <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-neon-red border-2 border-[#090a12] animate-ping" />
                         <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-neon-red" />
@@ -132,15 +157,21 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
                     <div>
                         <div className="flex items-center gap-2">
                             <h3 className="text-sm sm:text-base font-display font-black text-white uppercase italic tracking-tight">
-                                DROPSIDERS <span className="text-neon-cyan">RADIO</span>
+                                DROPSIDERS <span className={isEscapeTheme ? 'text-red-400' : 'text-neon-cyan'}>RADIO</span>
                             </h3>
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-neon-red/20 text-neon-red border border-neon-red/40 text-[8px] font-black uppercase tracking-wider animate-pulse">
-                                <span className="w-1.5 h-1.5 rounded-full bg-neon-red" />
-                                LIVE 24/7
-                            </span>
+                            {isEscapeTheme ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-600/30 text-amber-200 border border-red-500/50 text-[7.5px] font-black uppercase tracking-wider shadow-[0_0_8px_rgba(220,38,38,0.4)]">
+                                    🎪 ESCAPE
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-neon-red/20 text-neon-red border border-neon-red/40 text-[8px] font-black uppercase tracking-wider animate-pulse">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-neon-red" />
+                                    LIVE 24/7
+                                </span>
+                            )}
                         </div>
                         <p className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
-                            Web Radio Non-Stop • Sets &amp; Bass Music
+                            {isEscapeTheme ? '🎪 Escape Psycho Circus • Halloween' : 'Web Radio Non-Stop • Sets & Bass Music'}
                         </p>
                     </div>
                 </div>
