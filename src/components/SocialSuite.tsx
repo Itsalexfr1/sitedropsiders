@@ -1369,8 +1369,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const isMapAnimPlayingRef = useRef<boolean>(isMapAnimPlaying);
     const mapScrubTimeRef = useRef<number | null>(mapScrubTime);
     const venueMapCacheRef = useRef<Map<string, {
+        countryCanvas: HTMLCanvasElement;
         cityCanvas: HTMLCanvasElement;
         venueCanvas: HTMLCanvasElement;
+        countryCenterX: number;
+        countryCenterY: number;
+        countryStartX: number;
+        countryStartY: number;
         cityCenterX: number;
         cityCenterY: number;
         cityStartX: number;
@@ -1669,7 +1674,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const key = `${lat.toFixed(4)}_${lon.toFixed(4)}_${style}`;
         let entry = venueMapCacheRef.current.get(key);
         if (!entry) {
-            // 1. Niveau Métropole / Ville (Zoom 14 : 5x8 tuiles = 1280x2048px)
+            // 1. Niveau Pays / Région (Zoom 9 : 5x8 tuiles = 1280x2048px)
+            const countryCanvas = document.createElement('canvas');
+            countryCanvas.width = 1280;
+            countryCanvas.height = 2048;
+            const countryCtx = countryCanvas.getContext('2d');
+            if (countryCtx) {
+                countryCtx.fillStyle = '#060a14';
+                countryCtx.fillRect(0, 0, countryCanvas.width, countryCanvas.height);
+            }
+            const zCountry = 9;
+            const cXCountry = lon2tile(lon, zCountry);
+            const cYCountry = lat2tile(lat, zCountry);
+            const sXCountry = Math.floor(cXCountry) - 2;
+            const sYCountry = Math.floor(cYCountry) - 4;
+
+            // 2. Niveau Métropole / Ville (Zoom 14 : 5x8 tuiles = 1280x2048px)
             const cityCanvas = document.createElement('canvas');
             cityCanvas.width = 1280;
             cityCanvas.height = 2048;
@@ -1684,7 +1704,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const sXCity = Math.floor(cXCity) - 2;
             const sYCity = Math.floor(cYCity) - 4;
 
-            // 2. Niveau Salle / Festival (Zoom 17 : 5x8 tuiles = 1280x2048px)
+            // 3. Niveau Salle / Scène / Festival (Zoom 18 : 5x8 tuiles = 1280x2048px ultra haute définition)
             const venueCanvas = document.createElement('canvas');
             venueCanvas.width = 1280;
             venueCanvas.height = 2048;
@@ -1693,15 +1713,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 venueCtx.fillStyle = '#060a14';
                 venueCtx.fillRect(0, 0, venueCanvas.width, venueCanvas.height);
             }
-            const zVenue = 17;
+            const zVenue = 18;
             const cXVenue = lon2tile(lon, zVenue);
             const cYVenue = lat2tile(lat, zVenue);
             const sXVenue = Math.floor(cXVenue) - 2;
             const sYVenue = Math.floor(cYVenue) - 4;
 
             entry = {
+                countryCanvas,
                 cityCanvas,
                 venueCanvas,
+                countryCenterX: cXCountry,
+                countryCenterY: cYCountry,
+                countryStartX: sXCountry,
+                countryStartY: sYCountry,
                 cityCenterX: cXCity,
                 cityCenterY: cYCity,
                 cityStartX: sXCity,
@@ -1750,10 +1775,113 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             };
 
+            loadGrid(zCountry, sXCountry, sYCountry, countryCtx);
             loadGrid(zCity, sXCity, sYCity, cityCtx);
             loadGrid(zVenue, sXVenue, sYVenue, venueCtx);
         }
         return entry;
+    };
+
+    const drawSpaceBackgroundGlobal = (ctx: CanvasRenderingContext2D, width: number, height: number, alpha: number = 1.0, animTimeVal: number = 0) => {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+        ctx.fillStyle = '#020208';
+        ctx.fillRect(0, 0, width, height);
+
+        const neb1 = ctx.createRadialGradient(width * 0.35, height * 0.3, 40, width * 0.35, height * 0.3, 700);
+        neb1.addColorStop(0, 'rgba(0, 240, 255, 0.16)');
+        neb1.addColorStop(0.5, 'rgba(189, 0, 255, 0.08)');
+        neb1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = neb1;
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 75; i++) {
+            const sx = ((i * 137.5) % 1) * width;
+            const sy = (((i * 269.3) + 0.15) % 1) * height;
+            const sr = (i % 6 === 0) ? 2.8 : (i % 3 === 0) ? 1.8 : 1.1;
+            const starPulse = 0.5 + 0.5 * Math.sin(animTimeVal * 2.5 + i);
+            ctx.globalAlpha = Math.max(0, Math.min(1, alpha * (0.35 + 0.65 * starPulse)));
+            ctx.beginPath();
+            ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    };
+
+    const drawEarthGlobeGlobal = (
+        ctx: CanvasRenderingContext2D,
+        cx: number,
+        cy: number,
+        radius: number,
+        centerLat: number,
+        centerLon: number,
+        globeAlpha: number = 1.0
+    ) => {
+        if (globeAlpha <= 0 || radius <= 0) return;
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, Math.min(1, globeAlpha));
+
+        // Halo atmosphérique externe néon cyan
+        const atmoGlow = ctx.createRadialGradient(cx, cy, radius * 0.95, cx, cy, radius * 1.25);
+        atmoGlow.addColorStop(0, 'rgba(0, 240, 255, 0.45)');
+        atmoGlow.addColorStop(0.35, 'rgba(0, 160, 255, 0.18)');
+        atmoGlow.addColorStop(1, 'rgba(0, 100, 255, 0)');
+        ctx.fillStyle = atmoGlow;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius * 1.25, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Disque de découpe sphérique de la Terre
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.clip();
+
+        // Fond sombre océan profond
+        ctx.fillStyle = '#040b17';
+        ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+
+        // Texture mondiale satellite NASA avec centrage GPS rigoureux sur (centerLat, centerLon)
+        const worldTex = getEarthWorldTexture();
+        const texW = radius * 2 * Math.PI; // Périmètre exact 2πR ≈ 6.283 R
+        const texH = radius * Math.PI;     // Hauteur exacte πR ≈ 3.1415 R
+
+        // Longitude : centre sur centerLon
+        const normLonPct = (((centerLon + 180) % 360 + 360) % 360) / 360;
+        const drawX = cx - (normLonPct * texW);
+
+        // Latitude : centre sur centerLat (+90° pôle nord en haut = 0, -90° pôle sud en bas = texH)
+        const normLatPct = (90 - centerLat) / 180;
+        const drawY = cy - (normLatPct * texH);
+
+        // Dessin en 3 passes pour bouclage horizontal infini sans coupure
+        ctx.drawImage(worldTex, drawX - texW, drawY, texW, texH);
+        ctx.drawImage(worldTex, drawX, drawY, texW, texH);
+        ctx.drawImage(worldTex, drawX + texW, drawY, texW, texH);
+
+        // Ombrage 3D sphérique photoréaliste (effet boule / éclairage spatial jour & nuit)
+        const sphere3d = ctx.createRadialGradient(
+            cx - radius * 0.35, cy - radius * 0.35, radius * 0.05,
+            cx, cy, radius
+        );
+        sphere3d.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
+        sphere3d.addColorStop(0.45, 'rgba(0, 0, 0, 0.0)');
+        sphere3d.addColorStop(0.80, 'rgba(2, 6, 18, 0.65)');
+        sphere3d.addColorStop(1, 'rgba(1, 3, 10, 0.95)');
+        ctx.fillStyle = sphere3d;
+        ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+
+        ctx.restore(); // Fin clip disque
+
+        // Anneau atmosphère fine néon
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.6)';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.restore();
     };
 
     const drawMap = (
@@ -1768,9 +1896,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         renderPinAndLabel: boolean = true,
         droneAngle: number = 0,
         droneDriftX: number = 0,
-        droneDriftY: number = 0
+        droneDriftY: number = 0,
+        animTimeVal: number = 0
     ) => {
-        const clampedZoom = Math.max(13.5, Math.min(19.2, zoom));
+        const clampedZoom = Math.max(3.0, Math.min(20.5, zoom));
         const canvasCenterX = dx + width / 2;
         const canvasCenterY = dy + height / 2;
 
@@ -1780,28 +1909,70 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         ctx.clip();
 
         // Fond sombre cosmique
-        ctx.fillStyle = '#03050a';
+        ctx.fillStyle = '#020208';
         ctx.fillRect(dx, dy, width, height);
 
         const entry = getVenueCanvas(lat, lon, mapStyle);
 
-        if (clampedZoom < 16.0) {
-            // Vue Métropole / Ville (Zoom 14) avec mise à l'échelle continue
+        // NIVEAU 1 : ESPACE & GLOBE TERRESTRE 3D CENTRÉ (Zoom 3.0 à 7.2)
+        if (clampedZoom < 7.2) {
+            drawSpaceBackgroundGlobal(ctx, width, height, 1.0, animTimeVal);
+            const globeRadius = (256 * Math.pow(2, clampedZoom)) / (2 * Math.PI);
+            const globeAlpha = clampedZoom < 5.8 ? 1.0 : Math.max(0, 1 - (clampedZoom - 5.8) / 1.4);
+            drawEarthGlobeGlobal(ctx, canvasCenterX + droneDriftX, canvasCenterY + droneDriftY, globeRadius, lat, lon, globeAlpha);
+        }
+
+        // NIVEAU 2 : CONTINENT / PAYS (Zoom 5.8 à 12.8 - countryCanvas à zoom 9)
+        if (clampedZoom >= 5.8 && clampedZoom < 12.8) {
+            const countryAlpha = clampedZoom < 7.2
+                ? (clampedZoom - 5.8) / 1.4
+                : clampedZoom > 11.2
+                    ? Math.max(0, 1 - (clampedZoom - 11.2) / 1.6)
+                    : 1.0;
+
+            const scale = Math.pow(2, clampedZoom - 9.0);
+            const gpsX = (entry.countryCenterX - entry.countryStartX) * 256;
+            const gpsY = (entry.countryCenterY - entry.countryStartY) * 256;
+
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, Math.min(1, countryAlpha));
+            ctx.translate(canvasCenterX + droneDriftX, canvasCenterY + droneDriftY);
+            if (droneAngle !== 0) ctx.rotate(droneAngle);
+            ctx.scale(scale, scale);
+            ctx.drawImage(entry.countryCanvas, -gpsX, -gpsY);
+            ctx.restore();
+        }
+
+        // NIVEAU 3 : MÉTROPOLE / VILLE (Zoom 11.2 à 16.8 - cityCanvas à zoom 14)
+        if (clampedZoom >= 11.2 && clampedZoom < 16.8) {
+            const cityAlpha = clampedZoom < 12.8
+                ? (clampedZoom - 11.2) / 1.6
+                : clampedZoom > 15.2
+                    ? Math.max(0, 1 - (clampedZoom - 15.2) / 1.6)
+                    : 1.0;
+
             const scale = Math.pow(2, clampedZoom - 14.0);
             const gpsX = (entry.cityCenterX - entry.cityStartX) * 256;
             const gpsY = (entry.cityCenterY - entry.cityStartY) * 256;
+
             ctx.save();
+            ctx.globalAlpha = Math.max(0, Math.min(1, cityAlpha));
             ctx.translate(canvasCenterX + droneDriftX, canvasCenterY + droneDriftY);
             if (droneAngle !== 0) ctx.rotate(droneAngle);
             ctx.scale(scale, scale);
             ctx.drawImage(entry.cityCanvas, -gpsX, -gpsY);
             ctx.restore();
-        } else {
-            // Vue Salle / Festival (Zoom 17) avec ultra-haute définition et zoom drone jusqu'à 19.2
-            const scale = Math.pow(2, clampedZoom - 17.0);
+        }
+
+        // NIVEAU 4 : SALLE / SCÈNE / FESTIVAL ULTRA RAPPROCHÉ (Zoom 15.2 à 20.5 - venueCanvas à zoom 18)
+        if (clampedZoom >= 15.2) {
+            const venueAlpha = clampedZoom < 16.8 ? (clampedZoom - 15.2) / 1.6 : 1.0;
+            const scale = Math.pow(2, clampedZoom - 18.0);
             const gpsX = (entry.venueCenterX - entry.venueStartX) * 256;
             const gpsY = (entry.venueCenterY - entry.venueStartY) * 256;
+
             ctx.save();
+            ctx.globalAlpha = Math.max(0, Math.min(1, venueAlpha));
             ctx.translate(canvasCenterX + droneDriftX, canvasCenterY + droneDriftY);
             if (droneAngle !== 0) ctx.rotate(droneAngle);
             ctx.scale(scale, scale);
@@ -5773,94 +5944,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const rawProgress = (animTime % duration) / duration;
                 const progress = Math.max(0, Math.min(1, rawProgress));
 
-                // Helper Espace étoilé & nébuleuses cosmiques
+                // Helper Espace étoilé cosmique (délégué au helper global)
                 const drawSpaceBackground = (alpha: number = 1.0) => {
-                    ctx.save();
-                    ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
-                    ctx.fillStyle = '#020208';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    const neb1 = ctx.createRadialGradient(canvas.width * 0.35, canvas.height * 0.3, 40, canvas.width * 0.35, canvas.height * 0.3, 700);
-                    neb1.addColorStop(0, 'rgba(0, 240, 255, 0.16)');
-                    neb1.addColorStop(0.5, 'rgba(189, 0, 255, 0.08)');
-                    neb1.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                    ctx.fillStyle = neb1;
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    ctx.fillStyle = '#ffffff';
-                    for (let i = 0; i < 75; i++) {
-                        const sx = ((i * 137.5) % 1) * canvas.width;
-                        const sy = (((i * 269.3) + 0.15) % 1) * canvas.height;
-                        const sr = (i % 6 === 0) ? 2.8 : (i % 3 === 0) ? 1.8 : 1.1;
-                        const starPulse = 0.5 + 0.5 * Math.sin(animTime * 2.5 + i);
-                        ctx.globalAlpha = Math.max(0, Math.min(1, alpha * (0.35 + 0.65 * starPulse)));
-                        ctx.beginPath();
-                        ctx.arc(sx, sy, sr, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-                    ctx.restore();
+                    drawSpaceBackgroundGlobal(ctx, canvas.width, canvas.height, alpha, animTime);
                 };
 
-                // Helper Globe Terrestre 3D photoréaliste (Texture satellite NASA locale, 0ms, 60 FPS garanti)
+                // Helper Globe Terrestre 3D photoréaliste (délégué au helper global centré sur coordonnées)
                 const drawEarthGlobe = (cx: number, cy: number, radius: number, centerLat: number, centerLon: number, globeAlpha: number = 1.0) => {
-                    ctx.save();
-                    ctx.globalAlpha = Math.max(0, Math.min(1, globeAlpha));
-
-                    // Halo atmosphérique externe néon cyan
-                    const atmoGlow = ctx.createRadialGradient(cx, cy, radius * 0.95, cx, cy, radius * 1.25);
-                    atmoGlow.addColorStop(0, 'rgba(0, 240, 255, 0.45)');
-                    atmoGlow.addColorStop(0.35, 'rgba(0, 160, 255, 0.18)');
-                    atmoGlow.addColorStop(1, 'rgba(0, 100, 255, 0)');
-                    ctx.fillStyle = atmoGlow;
-                    ctx.beginPath();
-                    ctx.arc(cx, cy, radius * 1.25, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    // Disque de découpe de la planète Terre
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-                    ctx.clip();
-
-                    // Fond océan profond
-                    ctx.fillStyle = '#040b17';
-                    ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
-
-                    // Texture mondiale satellite NASA avec rotation longitude instantanée (aucun lag réseau)
-                    const worldTex = getEarthWorldTexture();
-                    const texW = radius * 4.0;
-                    const texH = radius * 2.0;
-                    const normLon = ((centerLon + 180) % 360 + 360) % 360;
-                    const offsetPct = normLon / 360;
-                    const drawX = cx - (offsetPct * texW);
-                    const drawY = cy - radius;
-
-                    ctx.drawImage(worldTex, drawX - texW, drawY, texW, texH);
-                    ctx.drawImage(worldTex, drawX, drawY, texW, texH);
-                    ctx.drawImage(worldTex, drawX + texW, drawY, texW, texH);
-
-                    // Ombrage 3D sphérique photoréaliste (effet boule / éclairage jour & nuit)
-                    const sphere3d = ctx.createRadialGradient(
-                        cx - radius * 0.35, cy - radius * 0.35, radius * 0.05,
-                        cx, cy, radius
-                    );
-                    sphere3d.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
-                    sphere3d.addColorStop(0.45, 'rgba(0, 0, 0, 0.0)');
-                    sphere3d.addColorStop(0.80, 'rgba(2, 6, 18, 0.65)');
-                    sphere3d.addColorStop(1, 'rgba(1, 3, 10, 0.95)');
-                    ctx.fillStyle = sphere3d;
-                    ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
-
-                    ctx.restore(); // Fin clip disque
-
-                    // Anneau atmosphère fine néon
-                    ctx.strokeStyle = 'rgba(0, 240, 255, 0.6)';
-                    ctx.lineWidth = 2.5;
-                    ctx.beginPath();
-                    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-                    ctx.stroke();
-
-                    ctx.restore();
+                    drawEarthGlobeGlobal(ctx, cx, cy, radius, centerLat, centerLon, globeAlpha);
                 };
 
                 // Helper Card Festival Information
@@ -6203,29 +6294,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (t < 0.20) {
                         // Phase 1 (0 à 2.4s) : Mode Drone FPV ultra-rapproché sur la salle (Event 1)
                         const rel = t / 0.20;
-                        const droneZoom = 18.2 + rel * 0.6; // Zoom très profond de 18.2 à 18.8 sur la scène/salle !
+                        const droneZoom = 18.5 + rel * 1.5; // Zoom très profond de 18.5 à 20.0 sur la scène/salle !
                         const droneAngle = Math.sin(t * 2.8) * 0.035; // Balancement cinématique doux ~2°
                         const driftX = Math.sin(t * 3.5) * 22;
                         const driftY = Math.cos(t * 3.0) * 15;
-                        const altM = Math.round(55 - rel * 20);
+                        const altM = Math.round(45 - rel * 20);
 
-                        drawMap(ctx, latA, lonA, droneZoom, canvas.width, canvas.height, 0, 0, false, droneAngle, driftX, driftY);
+                        drawMap(ctx, latA, lonA, droneZoom, canvas.width, canvas.height, 0, 0, false, droneAngle, driftX, driftY, animTime);
                         drawDroneHudOverlay(altM, 24, 98, -55, 1.0);
                         drawPinDrop(canvas.width / 2 + driftX, canvas.height / 2 + driftY, 1.0, mapPinColor);
                         drawFestivalCard(mapFestivalText, mapVenue, mapCityCountry, 'DRONE FPV (EVENT 1)', mapPinColor, 1.0);
                         drawHudTopBar('MODE DRONE FPV', 'POINT DE DÉPART');
                     } else if (t < 0.30) {
-                        // Phase 2 (2.4 à 3.6s) : Décollage fluide vers l'orbite
+                        // Phase 2 (2.4 à 3.6s) : Décollage fluide continu vers l'orbite (Zero Cut)
                         const rel = (t - 0.20) / 0.10;
                         const ease = Math.pow(rel, 1.5);
-                        drawMap(ctx, latA, lonA, 18.8 - ease * 4.8, canvas.width, canvas.height, 0, 0, false);
-                        const fadeToSpace = Math.min(1, rel * 1.4);
-                        if (fadeToSpace > 0) {
-                            drawSpaceBackground(fadeToSpace);
-                            const radius = Math.min(canvas.width, canvas.height) * (0.32 + (1 - rel) * 0.4);
-                            drawEarthGlobe(canvas.width / 2, canvas.height / 2, radius, latA, lonA, fadeToSpace);
-                        }
-                        drawSpeedStreaks(rel * 1.2);
+                        const curZ = 20.0 - ease * 16.4; // Dézoom continu de 20.0 à 3.6 !
+                        drawMap(ctx, latA, lonA, curZ, canvas.width, canvas.height, 0, 0, false, 0, 0, 0, animTime);
                         drawHudTopBar('DÉCOLLAGE ORBITAL', 'ALT: 10 000 KM');
                     } else if (t < 0.65) {
                         // Phase 3 (3.6 à 7.8s) : Vol Orbital A ➔ B avec Trajectoire 3D Réelle & Faisceau Laser Haute Définition
@@ -6524,31 +6609,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const curKm = Math.round(distKm * easeRel);
                         drawHudTopBar(`${(mapFestivalText || 'A').toUpperCase()} ➔ ${(mapDestFestivalText || 'B').toUpperCase()}`, `${curKm.toLocaleString()} / ${distKm.toLocaleString()} KM`);
                     } else if (t < 0.80) {
-                        // Phase 4 (7.8 à 9.6s) : Plongeon vers la destination (Dream Nation Paris)
+                        // Phase 4 (7.8 à 9.6s) : Plongeon continu vers la destination (Event 2) sans coupure
                         const rel = (t - 0.65) / 0.15;
                         const ease = Math.pow(rel, 1.8);
-                        const curZ = 14.0 + ease * 4.2; // 14.0 (métropole) -> 18.2 (salle)
-
-                        // Globe terrestre qui s'agrandit pour accueillir le plongeon
-                        if (rel < 0.35) {
-                            const globeAlpha = Math.max(0, 1 - rel / 0.35);
-                            drawSpaceBackground(globeAlpha);
-                            const radius = Math.min(canvas.width, canvas.height) * (0.36 + ease * 1.2);
-                            drawEarthGlobe(canvas.width / 2, canvas.height / 2, radius, latB, lonB, globeAlpha);
-                        }
-                        drawMap(ctx, latB, lonB, curZ, canvas.width, canvas.height, 0, 0, false);
-                        drawSpeedStreaks(rel * 0.85);
+                        const curZ = 3.6 + ease * 14.9; // 3.6 (orbite) -> 18.5 (salle) continu !
+                        drawMap(ctx, latB, lonB, curZ, canvas.width, canvas.height, 0, 0, false, 0, 0, 0, animTime);
                         drawHudTopBar('DESCENTE SUR DESTINATION', 'APPROCHE FINALE');
                     } else {
                         // Phase 5 (9.6 à 12.0s) : Mode Drone FPV ultra-rapproché sur la salle Event 2
                         const rel = (t - 0.80) / 0.20;
-                        const droneZoom = 18.2 + rel * 0.7; // Zoom très profond de 18.2 à 18.9 sur la salle !
-                        const droneAngle = Math.sin(t * 2.5) * 0.03;
+                        const droneZoom = 18.5 + rel * 1.5; // Zoom très profond de 18.5 à 20.0 sur la scène !
+                        const droneAngle = Math.sin(t * 2.5) * 0.035;
                         const driftX = Math.sin(t * 3.2) * 22;
                         const driftY = Math.cos(t * 2.6) * 14;
-                        const altM = Math.round(48 - rel * 18);
+                        const altM = Math.round(38 - rel * 18);
 
-                        drawMap(ctx, latB, lonB, droneZoom, canvas.width, canvas.height, 0, 0, false, droneAngle, driftX, driftY);
+                        drawMap(ctx, latB, lonB, droneZoom, canvas.width, canvas.height, 0, 0, false, droneAngle, driftX, driftY, animTime);
                         drawDroneHudOverlay(altM, 20, 91, -45, 1.0);
                         const shockProg = rel;
                         drawShockwave(canvas.width / 2 + driftX, canvas.height / 2 + driftY, shockProg, mapDestPinColor);
@@ -6558,51 +6634,47 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                 } else {
-                    // MODE 2 : ZOOM TERRE ➔ LIEU DU FESTIVAL (DEEP_DIVE)
+                    // MODE 2 : ZOOM TERRE ➔ LIEU DU FESTIVAL (DEEP_DIVE) - 100% FLUIDE ET CONTINU SANS AUCUNE COUPURE
                     const t = progress;
 
-                    if (t < 0.25) {
-                        // Phase 1 (0 à 3.0s) : Orbite spatiale photoréaliste (Texture NASA Blue Marble)
-                        drawSpaceBackground(1.0);
-                        const radius = Math.min(canvas.width, canvas.height) * (0.34 + t * 0.15);
-                        drawEarthGlobe(canvas.width / 2, canvas.height / 2, radius, mapLatitude, mapLongitude, 1.0);
-                        drawHudTopBar('ORBITE SPATIALE', 'ALT: 12 500 KM');
-                    } else if (t < 0.45) {
-                        // Phase 2 (3.0 à 5.4s) : Approche atmosphérique
-                        const rel = (t - 0.25) / 0.20;
-                        const ease = Math.pow(rel, 1.6);
-                        drawSpaceBackground(1.0 - rel * 0.4);
-                        const radius = Math.min(canvas.width, canvas.height) * (0.38 + ease * 1.5);
-                        drawEarthGlobe(canvas.width / 2, canvas.height / 2, radius, mapLatitude, mapLongitude, 1.0);
-                        drawSpeedStreaks(rel * 1.1);
-                        const altKm = Math.round(12500 * (1 - ease));
-                        drawHudTopBar('PLONGEON ATMOSPHÉRIQUE', `ALT: ${altKm.toLocaleString()} KM`);
-                    } else if (t < 0.80) {
-                        // Phase 3 (5.4 à 9.6s) : Descente vers la salle en continu (14.0 Métropole -> 18.2 Salle)
-                        const rel = (t - 0.45) / 0.35;
-                        const ease = Math.pow(rel, 1.8);
-                        const curZoom = 14.0 + ease * 4.2;
+                    if (t < 0.18) {
+                        // Phase 1 (0 à 18%) : Orbite spatiale photoréaliste verrouillée sur le festival
+                        const rel = t / 0.18;
+                        const zoom = 3.2 + rel * 0.8; // Zoom de 3.2 à 4.0
+                        drawMap(ctx, mapLatitude, mapLongitude, zoom, canvas.width, canvas.height, 0, 0, false, 0, 0, 0, animTime);
+                        drawHudTopBar('ORBITE SPATIALE', 'CIBLE VERROUILLÉE');
+                    } else if (t < 0.62) {
+                        // Phase 2 (18% à 62%) : Plongeon Hypersonique continu de l'Espace jusqu'à la Salle (ZERO CUT !)
+                        const rel = (t - 0.18) / 0.44;
+                        const ease = rel < 0.5 ? 4 * rel * rel * rel : 1 - Math.pow(-2 * rel + 2, 3) / 2;
+                        const zoom = 4.0 + ease * 14.5; // Zoom continu de 4.0 (globe) -> 18.5 (salle) !
 
-                        drawMap(ctx, mapLatitude, mapLongitude, curZoom, canvas.width, canvas.height, 0, 0, false);
-                        drawSpeedStreaks((1 - rel) * 0.6);
-                        const altM = Math.round(2500 * (1 - ease) + 45);
-                        drawHudTopBar('APPROCHE DU FESTIVAL', `ALT: ${altM} M`);
+                        drawMap(ctx, mapLatitude, mapLongitude, zoom, canvas.width, canvas.height, 0, 0, false, 0, 0, 0, animTime);
+
+                        let altDisplay: string;
+                        if (zoom < 6.0) altDisplay = `${Math.round(12500 - (zoom - 3.2) * 2000).toLocaleString()} KM`;
+                        else if (zoom < 10.0) altDisplay = `${Math.round(2500 - (zoom - 6.0) * 500)} KM`;
+                        else if (zoom < 14.0) altDisplay = `${Math.round(500 - (zoom - 10.0) * 100)} KM`;
+                        else altDisplay = `${Math.round(4000 - (zoom - 14.0) * 850)} M`;
+
+                        drawHudTopBar('PLONGEON CONTINU', `ALT: ${altDisplay}`);
                     } else {
-                        // Phase 4 (9.6 à 12.0s) : Mode Drone FPV ultra-rapproché sur la salle & Festival Card
-                        const rel = (t - 0.80) / 0.20;
-                        const droneZoom = 18.2 + rel * 0.7; // Zoom 18.2 à 18.9 au cœur du lieu !
-                        const droneAngle = Math.sin(t * 2.5) * 0.03;
+                        // Phase 3 (62% à 100%) : Mode Drone FPV ultra-proche au ras de la scène/salle (Zoom 18.5 -> 20.0 !)
+                        const rel = (t - 0.62) / 0.38;
+                        const droneZoom = 18.5 + rel * 1.5; // Zoom ultra-profond de 18.5 à 20.0 au cœur de la salle !
+                        const droneAngle = Math.sin(t * 2.5) * 0.035;
                         const driftX = Math.sin(t * 3.2) * 22;
                         const driftY = Math.cos(t * 2.6) * 14;
-                        const altM = Math.round(45 - rel * 15);
+                        const altM = Math.round(35 - rel * 15); // Descend jusqu'à 20M !
 
-                        drawMap(ctx, mapLatitude, mapLongitude, droneZoom, canvas.width, canvas.height, 0, 0, false, droneAngle, driftX, driftY);
-                        drawDroneHudOverlay(altM, 22, 94, -50, 1.0);
+                        drawMap(ctx, mapLatitude, mapLongitude, droneZoom, canvas.width, canvas.height, 0, 0, false, droneAngle, driftX, driftY, animTime);
+                        drawDroneHudOverlay(altM, 20, 94, -50, 1.0);
+
                         const shockProg = rel;
                         drawShockwave(canvas.width / 2 + driftX, canvas.height / 2 + driftY, shockProg, mapPinColor);
                         drawPinDrop(canvas.width / 2 + driftX, canvas.height / 2 + driftY, shockProg * 2, mapPinColor);
                         drawFestivalCard(mapFestivalText, mapVenue, mapCityCountry, 'DRONE FPV LIVE', mapPinColor, 1.0);
-                        drawHudTopBar('MODE DRONE FPV', 'ALT: 30 M');
+                        drawHudTopBar('MODE DRONE FPV', `ALT: ${altM} M`);
                     }
                 }
 
