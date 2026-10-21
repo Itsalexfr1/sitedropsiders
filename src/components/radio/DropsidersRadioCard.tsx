@@ -233,8 +233,8 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
                     className={`px-4 sm:px-5 py-2.5 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg active:scale-95 ${
                         isEscapeTheme
                             ? (isPlaying
-                                ? 'bg-gradient-to-r from-[#ff5500] via-[#ff3300] to-[#e60026] text-black shadow-[0_0_24px_rgba(255,85,0,0.6)] hover:brightness-110'
-                                : 'bg-gradient-to-r from-[#ff8800] via-[#ff5500] to-[#ff2200] text-black shadow-[0_0_20px_rgba(255,119,0,0.55)] hover:brightness-110')
+                                ? 'bg-gradient-to-r from-[#ff6600] via-[#ff4400] to-[#e60026] text-white border-2 border-orange-400 shadow-[0_0_24px_rgba(255,85,0,0.8)] hover:brightness-110'
+                                : 'bg-gradient-to-r from-[#ff8800] via-[#ff5500] to-[#ff2200] text-white border-2 border-orange-400 shadow-[0_0_20px_rgba(255,119,0,0.75)] hover:brightness-110')
                             : (isPlaying
                                 ? 'bg-neon-cyan text-black shadow-neon-cyan/40 hover:bg-white'
                                 : 'bg-white text-black hover:bg-neon-cyan hover:shadow-neon-cyan/30')
@@ -242,13 +242,13 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
                 >
                     {isPlaying ? (
                         <>
-                            <Pause className="w-4 h-4 fill-current" />
-                            <span>METTRE EN PAUSE</span>
+                            <Pause className={`w-4 h-4 ${isEscapeTheme ? 'fill-white text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]' : 'fill-current'}`} />
+                            <span className={isEscapeTheme ? 'drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] text-white font-black' : ''}>METTRE EN PAUSE</span>
                         </>
                     ) : (
                         <>
-                            <Play className="w-4 h-4 fill-current ml-0.5" />
-                            <span>ÉCOUTER LA RADIO</span>
+                            <Play className={`w-4 h-4 ml-0.5 ${isEscapeTheme ? 'fill-white text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]' : 'fill-current'}`} />
+                            <span className={isEscapeTheme ? 'drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] text-white font-black' : ''}>ÉCOUTER LA RADIO</span>
                         </>
                     )}
                 </button>

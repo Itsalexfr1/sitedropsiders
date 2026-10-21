@@ -1151,14 +1151,18 @@ export function RadioPage() {
                                 className={`shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl transition-all active:scale-90 cursor-pointer ${
                                     isEscapeTheme
                                         ? (radioState.isPlaying
-                                            ? 'bg-gradient-to-r from-[#ff5500] via-[#ff3300] to-[#e60026] text-black shadow-[0_0_30px_rgba(255,85,0,0.7)]'
-                                            : 'bg-gradient-to-r from-[#ff8800] via-[#ff5500] to-[#ff2200] text-black shadow-[0_0_25px_rgba(255,119,0,0.6)] hover:brightness-110')
+                                            ? 'bg-gradient-to-r from-[#ff6600] via-[#ff4400] to-[#e60026] text-white border-2 border-orange-400 shadow-[0_0_30px_rgba(255,85,0,0.85)]'
+                                            : 'bg-gradient-to-r from-[#ff8800] via-[#ff5500] to-[#ff2200] text-white border-2 border-orange-400 shadow-[0_0_25px_rgba(255,119,0,0.8)] hover:brightness-110')
                                         : (radioState.isPlaying
                                             ? 'bg-cyan-400 shadow-[0_0_30px_rgba(0,255,255,0.5)] text-black'
                                             : 'bg-white text-black hover:bg-cyan-400 hover:shadow-[0_0_20px_rgba(0,255,255,0.35)]')
                                 }`}
                             >
-                                {radioState.isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current ml-0.5" />}
+                                {radioState.isPlaying ? (
+                                    <Pause className={`w-6 h-6 ${isEscapeTheme ? 'fill-white text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]' : 'fill-current'}`} />
+                                ) : (
+                                    <Play className={`w-6 h-6 ml-0.5 ${isEscapeTheme ? 'fill-white text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]' : 'fill-current'}`} />
+                                )}
                             </button>
                         </div>
                         <div className="mt-4">
@@ -1171,18 +1175,23 @@ export function RadioPage() {
                                 <span>{currentSet.durationFormatted}</span>
                             </div>
                         </div>
-                        <div className={`flex items-center gap-3 mt-3 px-3 py-2 rounded-xl ${
-                            isEscapeTheme ? 'bg-black/60 border border-orange-500/40 shadow-[0_0_15px_rgba(255,85,0,0.2)]' : 'bg-white/5 border border-white/10'
+                        <div className={`flex items-center gap-3 mt-3 px-3.5 py-2 rounded-xl ${
+                            isEscapeTheme ? 'bg-black/90 border-2 border-orange-500/70 shadow-[0_0_20px_rgba(255,85,0,0.35)]' : 'bg-white/5 border border-white/10'
                         }`}>
                             <button onClick={() => window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_mute'))} className="shrink-0 cursor-pointer">
-                                {radioState.isMuted ? <VolumeX className="w-4 h-4 text-red-500" /> : <Volume2 className={`w-4 h-4 ${isEscapeTheme ? 'text-[#ff7700] drop-shadow-[0_0_6px_rgba(255,119,0,0.6)]' : 'text-cyan-400'}`} />}
+                                {radioState.isMuted ? <VolumeX className="w-4 h-4 text-red-500" /> : <Volume2 className={`w-4 h-4 ${isEscapeTheme ? 'text-[#ff7700] drop-shadow-[0_0_8px_rgba(255,119,0,0.8)]' : 'text-cyan-400'}`} />}
                             </button>
                             <input type="range" min="0" max="100" value={radioState.isMuted ? 0 : radioState.volume}
                                 onChange={e => window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_volume', { detail: Number(e.target.value) }))}
-                                className={`flex-1 h-2 rounded-full appearance-none cursor-pointer ${
-                                    isEscapeTheme ? 'bg-white/25 accent-[#ff5500]' : 'bg-white/10 accent-cyan-400'
+                                style={isEscapeTheme ? {
+                                    background: `linear-gradient(to right, #ff6600 0%, #ff8800 ${radioState.isMuted ? 0 : radioState.volume}%, rgba(255, 255, 255, 0.3) ${radioState.isMuted ? 0 : radioState.volume}%, rgba(255, 255, 255, 0.3) 100%)`
+                                } : undefined}
+                                className={`flex-1 h-2 rounded-full appearance-none cursor-pointer halloween-range ${
+                                    isEscapeTheme ? 'accent-[#ff5500]' : 'bg-white/10 accent-cyan-400'
                                 }`} />
-                            <span className={`text-[10px] font-mono font-bold w-8 text-right ${isEscapeTheme ? 'text-orange-200' : 'text-gray-400'}`}>{radioState.isMuted ? 0 : radioState.volume}%</span>
+                            <span className={`text-[10px] font-mono font-black w-8 text-center rounded px-1.5 py-0.5 ${
+                                isEscapeTheme ? 'text-white bg-orange-600/40 border border-orange-500/50 shadow-[0_0_8px_rgba(255,102,0,0.4)]' : 'text-gray-400'
+                            }`}>{radioState.isMuted ? 0 : radioState.volume}%</span>
                         </div>
                     </motion.div>
                 ) : (

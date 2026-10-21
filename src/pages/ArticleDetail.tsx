@@ -122,6 +122,7 @@ export function ArticleDetail() {
 
     // Priority: live API content > bundled content files > article content field > summary
     const bundledContent = getNewsContent(article.id);
+    const resolvedContent = liveContent || (bundledContent ?? '') || article.content || (article.summary ? `<div class="article-section"><p class="text-base sm:text-lg leading-relaxed text-gray-200">${article.summary}</p></div>` : '');
 
     return (
         <>
@@ -134,7 +135,7 @@ export function ArticleDetail() {
             />
             <ArticlePremiumTemplate
                 article={article}
-                content={liveContent || (bundledContent ?? '')}
+                content={resolvedContent}
                 type="news"
                 relatedArticles={relatedArticles}
                 previousArticle={previousArticle}

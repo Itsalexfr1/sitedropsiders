@@ -2309,13 +2309,17 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                         className={`w-[76px] h-[76px] rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-90 ${
                                             isEscapeTheme
                                                 ? (isPlaying 
-                                                    ? 'bg-gradient-to-tr from-[#ff5500] via-[#ff3300] to-[#e60026] text-black shadow-[0_0_45px_rgba(255,85,0,0.7)]' 
-                                                    : 'bg-gradient-to-tr from-[#ff8800] via-[#ff5500] to-[#ff2200] text-black shadow-[0_0_40px_rgba(255,119,0,0.65)]')
+                                                    ? 'bg-gradient-to-tr from-[#ff6600] via-[#ff4400] to-[#e60026] text-white border-2 border-orange-400 shadow-[0_0_45px_rgba(255,85,0,0.85)]' 
+                                                    : 'bg-gradient-to-tr from-[#ff8800] via-[#ff5500] to-[#ff2200] text-white border-2 border-orange-400 shadow-[0_0_40px_rgba(255,119,0,0.8)]')
                                                 : (isPlaying 
-                                                    ? 'bg-neon-cyan shadow-[0_0_45px_rgba(0,255,255,0.55)]' 
-                                                    : 'bg-white shadow-[0_0_30px_rgba(255,255,255,0.25)]')
+                                                    ? 'bg-neon-cyan shadow-[0_0_45px_rgba(0,255,255,0.55)] text-black' 
+                                                    : 'bg-white shadow-[0_0_30px_rgba(255,255,255,0.25)] text-black')
                                         }`}>
-                                        {isPlaying ? <Pause className="w-9 h-9 text-black fill-black" /> : <Play className="w-9 h-9 text-black fill-black ml-1" />}
+                                        {isPlaying ? (
+                                            <Pause className={`w-9 h-9 ${isEscapeTheme ? 'text-white fill-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]' : 'text-black fill-black'}`} />
+                                        ) : (
+                                            <Play className={`w-9 h-9 ml-1 ${isEscapeTheme ? 'text-white fill-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]' : 'text-black fill-black'}`} />
+                                        )}
                                     </button>
 
                                     <div className="w-12 h-12 flex items-center justify-center">
@@ -2324,25 +2328,30 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                 </div>
 
                                 {/* Volume slider mobile - haute visibilité */}
-                                <div className={`flex items-center gap-3 px-3 py-2.5 mb-5 relative z-10 rounded-xl ${
-                                    isEscapeTheme ? 'bg-black/60 border border-orange-500/40 shadow-[0_0_15px_rgba(255,85,0,0.2)]' : 'bg-white/5 border border-white/10'
+                                <div className={`flex items-center gap-3 px-3.5 py-2.5 mb-5 relative z-10 rounded-xl ${
+                                    isEscapeTheme ? 'bg-black/90 border-2 border-orange-500/70 shadow-[0_0_20px_rgba(255,85,0,0.35)]' : 'bg-white/5 border border-white/10'
                                 }`}>
                                     <button onClick={toggleMute} className="shrink-0 cursor-pointer">
                                         {isMuted ? (
                                             <VolumeX className="w-4 h-4 text-red-500 shrink-0" />
                                         ) : (
-                                            <Volume2 className={`w-4 h-4 shrink-0 ${isEscapeTheme ? 'text-[#ff7700] drop-shadow-[0_0_6px_rgba(255,119,0,0.6)]' : 'text-neon-cyan'}`} />
+                                            <Volume2 className={`w-4 h-4 shrink-0 ${isEscapeTheme ? 'text-[#ff7700] drop-shadow-[0_0_8px_rgba(255,119,0,0.8)]' : 'text-neon-cyan'}`} />
                                         )}
                                     </button>
                                     <input
                                         type="range" min="0" max="100"
                                         value={isMuted ? 0 : audio.volume}
                                         onChange={e => { audio.setVolume(Number(e.target.value)); if (isMuted) audio.setIsMuted(false); }}
-                                        className={`w-full h-2 rounded-full appearance-none cursor-pointer ${
-                                            isEscapeTheme ? 'bg-white/25 accent-[#ff5500]' : 'bg-white/15 accent-neon-cyan'
+                                        style={isEscapeTheme ? {
+                                            background: `linear-gradient(to right, #ff6600 0%, #ff8800 ${isMuted ? 0 : audio.volume}%, rgba(255, 255, 255, 0.3) ${isMuted ? 0 : audio.volume}%, rgba(255, 255, 255, 0.3) 100%)`
+                                        } : undefined}
+                                        className={`w-full h-2 rounded-full appearance-none cursor-pointer halloween-range ${
+                                            isEscapeTheme ? 'accent-[#ff5500]' : 'bg-white/15 accent-neon-cyan'
                                         }`}
                                     />
-                                    <span className={`text-[10px] font-mono font-bold w-7 text-right shrink-0 ${isEscapeTheme ? 'text-orange-200' : 'text-gray-400'}`}>
+                                    <span className={`text-[10px] font-mono font-black w-8 text-center rounded px-1.5 py-0.5 shrink-0 ${
+                                        isEscapeTheme ? 'text-white bg-orange-600/40 border border-orange-500/50 shadow-[0_0_8px_rgba(255,102,0,0.4)]' : 'text-gray-400'
+                                    }`}>
                                         {isMuted ? 0 : audio.volume}%
                                     </span>
                                 </div>
@@ -2767,18 +2776,27 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                             <div className="h-8 w-px bg-white/10 shrink-0" />
 
                             {/* Volume */}
-                            <div className={`flex items-center gap-2.5 shrink-0 px-3 py-1.5 rounded-xl ${
-                                isEscapeTheme ? 'bg-black/60 border border-orange-500/40 shadow-[0_0_15px_rgba(255,85,0,0.2)]' : 'bg-white/5 border border-white/10'
+                            <div className={`flex items-center gap-2.5 shrink-0 px-3.5 py-1.5 rounded-xl transition-all ${
+                                isEscapeTheme 
+                                    ? 'bg-black/90 border-2 border-orange-500/70 shadow-[0_0_20px_rgba(255,85,0,0.35)]' 
+                                    : 'bg-white/5 border border-white/10'
                             }`}>
                                 <button onClick={toggleMute} className="p-1 text-gray-300 hover:text-white transition-colors cursor-pointer shrink-0">
-                                    {isMuted || volume === 0 ? <VolumeX className="w-4 h-4 text-red-500" /> : <Volume2 className={`w-4 h-4 ${isEscapeTheme ? 'text-[#ff7700] drop-shadow-[0_0_6px_rgba(255,119,0,0.6)]' : 'text-neon-cyan'}`} />}
+                                    {isMuted || volume === 0 ? <VolumeX className="w-4 h-4 text-red-500" /> : <Volume2 className={`w-4 h-4 ${isEscapeTheme ? 'text-[#ff7700] drop-shadow-[0_0_8px_rgba(255,119,0,0.8)]' : 'text-neon-cyan'}`} />}
                                 </button>
                                 <input type="range" min="0" max="100" value={isMuted ? 0 : volume}
                                     onChange={e => { setVolume(Number(e.target.value)); if (isMuted) setIsMuted(false); }}
-                                    className={`w-20 sm:w-24 h-2 bg-white/25 rounded-lg appearance-none cursor-pointer ${
-                                        isEscapeTheme ? 'accent-[#ff5500]' : 'accent-neon-cyan'
+                                    style={isEscapeTheme ? {
+                                        background: `linear-gradient(to right, #ff6600 0%, #ff8800 ${isMuted ? 0 : volume}%, rgba(255, 255, 255, 0.3) ${isMuted ? 0 : volume}%, rgba(255, 255, 255, 0.3) 100%)`
+                                    } : undefined}
+                                    className={`w-20 sm:w-28 h-2 rounded-lg appearance-none cursor-pointer halloween-range ${
+                                        isEscapeTheme ? 'accent-[#ff5500]' : 'bg-white/25 accent-neon-cyan'
                                     }`} />
-                                <span className={`text-[9px] font-mono font-bold w-6 text-right ${isEscapeTheme ? 'text-orange-200' : 'text-gray-400'}`}>
+                                <span className={`text-[10px] font-mono font-black w-8 text-center rounded px-1.5 py-0.5 ${
+                                    isEscapeTheme 
+                                        ? 'text-white bg-orange-600/40 border border-orange-500/50 shadow-[0_0_8px_rgba(255,102,0,0.4)]' 
+                                        : 'text-gray-300'
+                                }`}>
                                     {isMuted ? 0 : volume}%
                                 </span>
                             </div>
@@ -2799,16 +2817,26 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
 
                             {/* Bouton Play/Pause */}
                             <button onClick={handlePlay}
-                                className={`shrink-0 px-5 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg active:scale-95 ${
+                                className={`shrink-0 px-5 py-2.5 rounded-xl font-black text-[12px] uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-xl active:scale-95 ${
                                     isEscapeTheme
                                         ? (isPlaying 
-                                            ? 'bg-gradient-to-r from-[#ff5500] via-[#ff3300] to-[#e60026] text-black shadow-[0_0_28px_rgba(255,85,0,0.65)] hover:brightness-110 hover:scale-105'
-                                            : 'bg-gradient-to-r from-[#ff8800] via-[#ff5500] to-[#ff2200] text-black shadow-[0_0_25px_rgba(255,119,0,0.6)] hover:brightness-110 hover:scale-105')
+                                            ? 'bg-gradient-to-r from-[#ff6600] via-[#ff4400] to-[#e60026] text-white border-2 border-orange-400 shadow-[0_0_32px_rgba(255,85,0,0.85)] hover:shadow-[0_0_42px_rgba(255,102,0,1)] hover:brightness-110 hover:scale-105'
+                                            : 'bg-gradient-to-r from-[#ff8800] via-[#ff5500] to-[#ff2200] text-white border-2 border-orange-400 shadow-[0_0_28px_rgba(255,119,0,0.8)] hover:shadow-[0_0_38px_rgba(255,119,0,1)] hover:brightness-110 hover:scale-105')
                                         : (isPlaying 
                                             ? 'bg-neon-cyan text-black shadow-[0_0_20px_rgba(0,255,255,0.4)]' 
                                             : 'bg-white text-black hover:bg-neon-cyan hover:shadow-[0_0_20px_rgba(0,255,255,0.3)]')
                                 }`}>
-                                {isPlaying ? <><Pause className="w-3.5 h-3.5 fill-black" /><span>PAUSE</span></> : <><Play className="w-3.5 h-3.5 fill-black ml-0.5" /><span>ÉCOUTER</span></>}
+                                {isPlaying ? (
+                                    <>
+                                        <Pause className={`w-4 h-4 ${isEscapeTheme ? 'fill-white text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]' : 'fill-black'}`} />
+                                        <span className={isEscapeTheme ? 'drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] text-white font-black' : ''}>PAUSE</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Play className={`w-4 h-4 ml-0.5 ${isEscapeTheme ? 'fill-white text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]' : 'fill-black'}`} />
+                                        <span className={isEscapeTheme ? 'drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] text-white font-black' : ''}>ÉCOUTER</span>
+                                    </>
+                                )}
                             </button>
 
                             {/* Bouton Masquer */}
