@@ -21,6 +21,7 @@ import {
     type ComputedRadioScheduleItem
 } from '../../utils/radioSchedule';
 import { isEscapePsychoCircusActive, ESCAPE_PSYCHO_CIRCUS_BG } from '../../utils/radioTheme';
+import { RadioSeasonalPumpkins } from './RadioSeasonalPumpkins';
 
 export function DropsidersRadioCard({ className = '' }: { className?: string }) {
     const [isEnabled, setIsEnabled] = useState<boolean>(() => {
@@ -133,6 +134,7 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
                     <div className="absolute inset-0 bg-gradient-to-t from-[#04040a] via-[#090508]/85 to-[#0d060c]/75 pointer-events-none" />
                     <div className="absolute top-0 right-0 w-40 h-40 bg-red-600/20 rounded-full blur-3xl pointer-events-none -mr-12 -mt-12" />
                     <div className="absolute bottom-0 left-0 w-40 h-40 bg-amber-600/15 rounded-full blur-3xl pointer-events-none -ml-12 -mb-12" />
+                    <RadioSeasonalPumpkins compact={true} />
                 </>
             ) : (
                 <>

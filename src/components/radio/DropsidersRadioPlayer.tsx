@@ -20,6 +20,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { usePlayer } from '../../context/PlayerContext';
 import { RadioDedicationModal } from './RadioDedicationModal';
 import { isEscapePsychoCircusActive, ESCAPE_PSYCHO_CIRCUS_BG } from '../../utils/radioTheme';
+import { RadioSeasonalPumpkins } from './RadioSeasonalPumpkins';
 
 // ─── Modes d'enchaînement radio ──────────────────────────────────────────────
 export type RadioTransitionMode = 'RAPIDE' | 'CROSSFADE' | 'STANDARD';
@@ -2190,6 +2191,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-[#050306] via-[#080407]/80 to-[#0c050a]/75 pointer-events-none" />
                                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-28 bg-red-600/20 rounded-full blur-3xl pointer-events-none" />
+                                        <RadioSeasonalPumpkins compact={true} />
                                     </>
                                 ) : (
                                     <>
@@ -2681,6 +2683,7 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                                         style={{ backgroundImage: `url(${ESCAPE_PSYCHO_CIRCUS_BG})` }}
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-r from-[#080407]/92 via-[#080407]/75 to-[#080407]/92 pointer-events-none" />
+                                    <RadioSeasonalPumpkins />
                                 </>
                             )}
                             {/* Icône + Label Radio — cliquable pour ouvrir la page radio */}
