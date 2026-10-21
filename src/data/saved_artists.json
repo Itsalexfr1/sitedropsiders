@@ -307,5 +307,19 @@
       "soundcloud": "",
       "beatport": ""
     }
+  },
+  {
+    "name": "JUSTICE",
+    "socials": {
+      "website": "https://justice.church",
+      "instagram": "instagram.com/etjusticepourtous",
+      "tiktok": "tiktok.com/@etjusticepourtous",
+      "youtube": "https://www.youtube.com/channel/UCQ5Ssrs48yJBfOesfDqXUeA",
+      "facebook": "https://www.facebook.com/etjusticepourtous/?locale=fr_FR",
+      "x": "",
+      "spotify": "https://open.spotify.com/intl-fr/artist/1gR0gsQYfi6joyO1dlp76N?si=4GIucnNxQzOxETFHc7K1mg",
+      "soundcloud": "https://soundcloud.com/justice-official",
+      "beatport": "https://www.beatport.com/fr/artist/justice/2331?srsltid=AU7gw4X1GCMRI0KCjJL8NTeqh9_luxUJLn8g4N4ZFyAct0WrUh5X5OkG"
+    }
   }
 ]
