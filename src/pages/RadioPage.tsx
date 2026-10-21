@@ -66,7 +66,7 @@ function useRadioState() {
     return radioState;
 }
 
-function AudioBars({ playing }: { playing: boolean }) {
+function AudioBars({ playing, color }: { playing: boolean; color?: string }) {
     return (
         <div className="flex items-end gap-[2.5px] h-5 shrink-0">
             {[
@@ -79,7 +79,7 @@ function AudioBars({ playing }: { playing: boolean }) {
                     display: 'block', width: '3px',
                     height: playing ? '60%' : '20%',
                     borderRadius: '2px',
-                    backgroundColor: playing ? 'rgb(0,255,255)' : 'rgba(255,255,255,0.2)',
+                    backgroundColor: playing ? (color || 'rgb(0,255,255)') : 'rgba(255,255,255,0.2)',
                     animation: playing ? `${b.anim} ${b.dur} ease-in-out infinite alternate` : 'none',
                     transition: 'background-color 0.3s',
                 }} />
@@ -1040,14 +1040,14 @@ export function RadioPage() {
                     <div className="flex items-center justify-center gap-3 mb-3">
                         <div className={`p-3 rounded-2xl ${
                             isEscapeTheme 
-                                ? 'bg-red-600/20 border border-red-500/40 text-red-400 shadow-[0_0_20px_rgba(220,38,38,0.3)]' 
+                                ? 'bg-gradient-to-br from-red-600/30 to-orange-500/20 border border-orange-500/50 text-[#ff7700] shadow-[0_0_20px_rgba(255,100,0,0.35)]' 
                                 : 'bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 shadow-[0_0_20px_rgba(0,255,255,0.2)]'
                         }`}>
                             <Radio className="w-6 h-6" />
                         </div>
                         <div className="text-left">
                             <h1 className="text-2xl font-display font-black text-white uppercase italic tracking-tight">
-                                DROPSIDERS <span className={isEscapeTheme ? 'text-red-400' : 'text-cyan-400'}>RADIO</span>
+                                DROPSIDERS <span className={isEscapeTheme ? 'text-[#ff5500] drop-shadow-[0_0_10px_rgba(255,85,0,0.6)]' : 'text-cyan-400'}>RADIO</span>
                             </h1>
                             <p className="text-[9px] font-mono text-gray-500 uppercase tracking-widest">Web Radio Electro 24/7</p>
                         </div>
@@ -1057,11 +1057,6 @@ export function RadioPage() {
                             <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />
                             LIVE
                         </span>
-                        {isEscapeTheme && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-600/30 border border-red-500/60 text-amber-200 text-[9px] font-black uppercase tracking-wider shadow-[0_0_15px_rgba(220,38,38,0.35)]">
-                                🎪 ESCAPE PSYCHO CIRCUS
-                            </span>
-                        )}
                         <span className="text-[10px] font-mono text-gray-500">
                             {formatParisTime(parisDate)} · <span className="capitalize">{formatParisDate(parisDate)}</span>
                         </span>
@@ -1093,49 +1088,42 @@ export function RadioPage() {
                             <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/[0.08] rounded-full blur-3xl pointer-events-none -mr-10 -mt-10" />
                         )}
 
-                        {isEscapeTheme && (
-                            <div className="relative z-10 mb-3 flex items-center justify-between gap-2 pb-2.5 border-b border-red-500/25">
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-600/30 text-amber-200 border border-red-500/50 text-[8px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(220,38,38,0.4)]">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />
-                                    🎪 ÉDITION HALLOWEEN • ESCAPE PSYCHO CIRCUS
-                                </span>
-                                <span className="text-[7.5px] font-mono text-amber-300/80 uppercase font-semibold">
-                                    Fin 1er nov.
-                                </span>
-                            </div>
-                        )}
                         <div className="flex items-center gap-4 relative">
-                            <div className="shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-cyan-500/30 flex items-center justify-center shadow-[0_0_20px_rgba(0,255,255,0.15)]">
-                                <Disc3 className={`w-8 h-8 text-cyan-400 ${radioState.isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
+                            <div className={`shrink-0 w-16 h-16 rounded-2xl ${
+                                isEscapeTheme 
+                                    ? 'bg-gradient-to-br from-red-600/20 to-orange-500/20 border border-orange-500/40 shadow-[0_0_20px_rgba(255,100,0,0.25)]' 
+                                    : 'bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-cyan-500/30 shadow-[0_0_20px_rgba(0,255,255,0.15)]'
+                            } flex items-center justify-center`}>
+                                <Disc3 className={`w-8 h-8 ${isEscapeTheme ? 'text-[#ff7700]' : 'text-cyan-400'} ${radioState.isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <Sparkles className="w-3 h-3 text-cyan-400 shrink-0" />
-                                    <span className="text-[9px] font-black uppercase tracking-widest text-cyan-400">EN CE MOMENT</span>
-                                    <AudioBars playing={radioState.isPlaying} />
+                                    <Sparkles className={`w-3 h-3 ${isEscapeTheme ? 'text-[#ff7700]' : 'text-cyan-400'} shrink-0`} />
+                                    <span className={`text-[9px] font-black uppercase tracking-widest ${isEscapeTheme ? 'text-[#ff7700] drop-shadow-[0_0_8px_rgba(255,119,0,0.6)]' : 'text-cyan-400'}`}>EN CE MOMENT</span>
+                                    <AudioBars playing={radioState.isPlaying} color={isEscapeTheme ? '#ff5500' : undefined} />
                                 </div>
                                 {publicCurrentSet ? (
                                     <>
                                         <div className="flex items-center justify-between gap-2">
-                                            <h2 className="text-lg font-black text-white uppercase italic tracking-tight truncate leading-tight">{publicCurrentSet.title || (publicCurrentSet as any).event}</h2>
+                                            <h2 className="text-lg font-black text-white uppercase italic tracking-tight truncate leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">{publicCurrentSet.title || (publicCurrentSet as any).event}</h2>
                                             <button
                                                 type="button"
                                                 onClick={() => handleVoteTrack(`${publicCurrentSet.artist} - ${publicCurrentSet.title}`, publicCurrentSet.youtubeId || publicCurrentSet.audioUrl)}
                                                 disabled={voteLoading}
                                                 className={`flex items-center gap-1 px-2.5 py-1 rounded-xl border text-[10px] font-display font-black uppercase italic tracking-wider transition-all cursor-pointer ${
                                                     votedTracks.includes(`${publicCurrentSet.artist} - ${publicCurrentSet.title}`)
-                                                        ? 'bg-red-500/20 text-red-400 border-red-500/50 shadow-[0_0_10px_rgba(255,0,85,0.3)]'
-                                                        : 'bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 border-white/10'
+                                                        ? (isEscapeTheme ? 'bg-orange-500/20 text-[#ff7700] border-orange-500/60 shadow-[0_0_10px_rgba(255,119,0,0.4)]' : 'bg-red-500/20 text-red-400 border-red-500/50 shadow-[0_0_10px_rgba(255,0,85,0.3)]')
+                                                        : (isEscapeTheme ? 'bg-black/50 hover:bg-orange-500/20 text-orange-200 border-orange-500/30' : 'bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 border-white/10')
                                                 }`}
                                                 title={votedTracks.includes(`${publicCurrentSet.artist} - ${publicCurrentSet.title}`) ? 'Déjà voté pour le Top 5' : 'Voter pour ce son dans le Top 5'}
                                             >
-                                                <Heart className={`w-3.5 h-3.5 ${votedTracks.includes(`${publicCurrentSet.artist} - ${publicCurrentSet.title}`) ? 'fill-current text-red-400' : ''}`} />
+                                                <Heart className={`w-3.5 h-3.5 ${votedTracks.includes(`${publicCurrentSet.artist} - ${publicCurrentSet.title}`) ? (isEscapeTheme ? 'fill-current text-[#ff7700]' : 'fill-current text-red-400') : ''}`} />
                                                 <span className="hidden sm:inline">{votedTracks.includes(`${publicCurrentSet.artist} - ${publicCurrentSet.title}`) ? 'Voté Top 5' : 'Voter Top 5'}</span>
                                             </button>
                                         </div>
-                                        <p className="text-xs text-gray-300 font-bold uppercase tracking-wider truncate mt-0.5">{publicCurrentSet.artist}</p>
+                                        <p className={`text-xs font-bold uppercase tracking-wider truncate mt-0.5 ${isEscapeTheme ? 'text-orange-200/90' : 'text-gray-300'}`}>{publicCurrentSet.artist}</p>
                                         {(publicCurrentSet.blockTitle || publicCurrentSet.blockHost) && (
-                                            <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-wide flex items-center gap-1.5 mt-1.5 truncate">
+                                            <p className={`text-[10px] font-bold uppercase tracking-wide flex items-center gap-1.5 mt-1.5 truncate ${isEscapeTheme ? 'text-[#ff8800]' : 'text-cyan-400'}`}>
                                                 <span>📻 {publicCurrentSet.blockTitle || 'DROPSIDERS RADIO'}</span>
                                                 {publicCurrentSet.blockHost && (
                                                     <span className="text-gray-400 font-normal">· avec <span className="text-white font-bold">{publicCurrentSet.blockHost}</span></span>
@@ -1143,13 +1131,13 @@ export function RadioPage() {
                                             </p>
                                         )}
                                         {voteToast && (
-                                            <p className="text-[10px] text-cyan-400 font-bold mt-1 animate-pulse">
+                                            <p className={`text-[10px] font-bold mt-1 animate-pulse ${isEscapeTheme ? 'text-orange-300' : 'text-cyan-400'}`}>
                                                 {voteToast}
                                             </p>
                                         )}
                                         <div className="flex items-center gap-2 mt-1.5 text-[9px] font-mono text-gray-500">
-                                            <Clock className="w-2.5 h-2.5 text-cyan-500" />
-                                            <span className="text-cyan-400 font-bold">{publicCurrentSet.startTime}</span>
+                                            <Clock className={`w-2.5 h-2.5 ${isEscapeTheme ? 'text-[#ff7700]' : 'text-cyan-500'}`} />
+                                            <span className={`${isEscapeTheme ? 'text-orange-300' : 'text-cyan-400'} font-bold`}>{publicCurrentSet.startTime}</span>
                                             <span>·</span>
                                             <span>{publicCurrentSet.durationFormatted}</span>
                                         </div>
@@ -1160,9 +1148,14 @@ export function RadioPage() {
                             </div>
                             <button
                                 onClick={() => window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_toggle'))}
-                                className={`shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl transition-all active:scale-90 cursor-pointer ${radioState.isPlaying
-                                    ? 'bg-cyan-400 shadow-[0_0_30px_rgba(0,255,255,0.5)] text-black'
-                                    : 'bg-white text-black hover:bg-cyan-400 hover:shadow-[0_0_20px_rgba(0,255,255,0.35)]'
+                                className={`shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl transition-all active:scale-90 cursor-pointer ${
+                                    isEscapeTheme
+                                        ? (radioState.isPlaying
+                                            ? 'bg-gradient-to-r from-[#ff5500] via-[#ff3300] to-[#e60026] text-black shadow-[0_0_30px_rgba(255,85,0,0.7)]'
+                                            : 'bg-gradient-to-r from-[#ff8800] via-[#ff5500] to-[#ff2200] text-black shadow-[0_0_25px_rgba(255,119,0,0.6)] hover:brightness-110')
+                                        : (radioState.isPlaying
+                                            ? 'bg-cyan-400 shadow-[0_0_30px_rgba(0,255,255,0.5)] text-black'
+                                            : 'bg-white text-black hover:bg-cyan-400 hover:shadow-[0_0_20px_rgba(0,255,255,0.35)]')
                                 }`}
                             >
                                 {radioState.isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current ml-0.5" />}
@@ -1170,22 +1163,26 @@ export function RadioPage() {
                         </div>
                         <div className="mt-4">
                             <div className="w-full h-[3px] bg-white/[0.08] rounded-full overflow-hidden">
-                                <div className="h-full bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 rounded-full transition-all duration-1000"
+                                <div className={`h-full ${isEscapeTheme ? 'bg-gradient-to-r from-[#ff7700] via-[#ff3b00] to-[#ff0033]' : 'bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500'} rounded-full transition-all duration-1000`}
                                     style={{ width: `${Math.min(100, ((liveInfo?.offsetSeconds || 0) / (currentSet.durationSeconds || 3600)) * 100)}%` }} />
                             </div>
-                            <div className="flex justify-between mt-1 text-[8px] font-mono text-gray-600">
+                            <div className="flex justify-between mt-1 text-[8px] font-mono text-gray-500">
                                 <span>{formatDurationExact(liveInfo?.offsetSeconds || 0)}</span>
                                 <span>{currentSet.durationFormatted}</span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3 mt-3">
-                            <button onClick={() => window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_mute'))} className="shrink-0 text-gray-400 hover:text-white transition-colors cursor-pointer">
-                                {radioState.isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-cyan-400" />}
+                        <div className={`flex items-center gap-3 mt-3 px-3 py-2 rounded-xl ${
+                            isEscapeTheme ? 'bg-black/60 border border-orange-500/40 shadow-[0_0_15px_rgba(255,85,0,0.2)]' : 'bg-white/5 border border-white/10'
+                        }`}>
+                            <button onClick={() => window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_mute'))} className="shrink-0 cursor-pointer">
+                                {radioState.isMuted ? <VolumeX className="w-4 h-4 text-red-500" /> : <Volume2 className={`w-4 h-4 ${isEscapeTheme ? 'text-[#ff7700] drop-shadow-[0_0_6px_rgba(255,119,0,0.6)]' : 'text-cyan-400'}`} />}
                             </button>
                             <input type="range" min="0" max="100" value={radioState.isMuted ? 0 : radioState.volume}
                                 onChange={e => window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_volume', { detail: Number(e.target.value) }))}
-                                className="flex-1 h-1.5 rounded-full appearance-none accent-cyan-400 bg-white/10 cursor-pointer" />
-                            <span className="text-[9px] font-mono text-gray-500 w-8 text-right">{radioState.isMuted ? 0 : radioState.volume}%</span>
+                                className={`flex-1 h-2 rounded-full appearance-none cursor-pointer ${
+                                    isEscapeTheme ? 'bg-white/25 accent-[#ff5500]' : 'bg-white/10 accent-cyan-400'
+                                }`} />
+                            <span className={`text-[10px] font-mono font-bold w-8 text-right ${isEscapeTheme ? 'text-orange-200' : 'text-gray-400'}`}>{radioState.isMuted ? 0 : radioState.volume}%</span>
                         </div>
                     </motion.div>
                 ) : (

@@ -1023,6 +1023,47 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         return () => clearTimeout(t2);
     }, [displayContent]);
 
+    // ── External Social Embeds initialization (Instagram Reels/Posts, X / Twitter) ──
+    useEffect(() => {
+        if (!displayContent) return;
+
+        const hasTwitter = displayContent.includes('twitter-tweet') || displayContent.includes('twitter-embed-widget');
+        const hasInstagram = displayContent.includes('instagram-media') || displayContent.includes('instagram-embed-widget');
+
+        if (hasTwitter) {
+            const loadTwitter = () => {
+                if ((window as any).twttr?.widgets?.load) {
+                    (window as any).twttr.widgets.load();
+                } else if (!document.getElementById('twitter-wjs')) {
+                    const s = document.createElement('script');
+                    s.id = 'twitter-wjs';
+                    s.src = 'https://platform.twitter.com/widgets.js';
+                    s.async = true;
+                    s.charset = 'utf-8';
+                    s.onload = () => (window as any).twttr?.widgets?.load?.();
+                    document.body.appendChild(s);
+                }
+            };
+            loadTwitter();
+        }
+
+        if (hasInstagram) {
+            const loadInstagram = () => {
+                if ((window as any).instgrm?.Embeds?.process) {
+                    (window as any).instgrm.Embeds.process();
+                } else if (!document.getElementById('instagram-wjs')) {
+                    const s = document.createElement('script');
+                    s.id = 'instagram-wjs';
+                    s.src = '//www.instagram.com/embed.js';
+                    s.async = true;
+                    s.onload = () => (window as any).instgrm?.Embeds?.process?.();
+                    document.body.appendChild(s);
+                }
+            };
+            loadInstagram();
+        }
+    }, [displayContent]);
+
     // Handle seeking in YouTube iframe player when clicking tracklist items, and highlight current active track
     useEffect(() => {
         const parseTimeToSeconds = (timeStr?: string): number => {

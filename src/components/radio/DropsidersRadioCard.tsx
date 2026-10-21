@@ -157,21 +157,15 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
                     <div>
                         <div className="flex items-center gap-2">
                             <h3 className="text-sm sm:text-base font-display font-black text-white uppercase italic tracking-tight">
-                                DROPSIDERS <span className={isEscapeTheme ? 'text-red-400' : 'text-neon-cyan'}>RADIO</span>
+                                DROPSIDERS <span className={isEscapeTheme ? 'text-[#ff5500] drop-shadow-[0_0_10px_rgba(255,85,0,0.6)]' : 'text-neon-cyan'}>RADIO</span>
                             </h3>
-                            {isEscapeTheme ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-600/30 text-amber-200 border border-red-500/50 text-[7.5px] font-black uppercase tracking-wider shadow-[0_0_8px_rgba(220,38,38,0.4)]">
-                                    🎪 ESCAPE
-                                </span>
-                            ) : (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-neon-red/20 text-neon-red border border-neon-red/40 text-[8px] font-black uppercase tracking-wider animate-pulse">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-neon-red" />
-                                    LIVE 24/7
-                                </span>
-                            )}
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-600/25 text-red-300 border border-red-500/50 text-[7.5px] font-black uppercase tracking-wider animate-pulse">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                LIVE 24/7
+                            </span>
                         </div>
                         <p className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
-                            {isEscapeTheme ? '🎪 Escape Psycho Circus • Halloween' : 'Web Radio Non-Stop • Sets & Bass Music'}
+                            Web Radio Non-Stop • Sets &amp; Bass Music
                         </p>
                     </div>
                 </div>
@@ -179,16 +173,16 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
                 {/* Spinning vinyl icon when playing */}
                 <div className="relative hidden sm:flex items-center justify-center">
                     <Disc3 
-                        className={`w-6 h-6 text-neon-cyan/80 ${isPlaying ? 'animate-spin' : 'opacity-60'}`}
+                        className={`w-6 h-6 ${isEscapeTheme ? 'text-[#ff7700]' : 'text-neon-cyan/80'} ${isPlaying ? 'animate-spin' : 'opacity-60'}`}
                         style={{ animationDuration: '4s' }}
                     />
                 </div>
             </div>
 
             {/* Informations du set en cours */}
-            <div className="bg-black/50 border border-white/10 rounded-2xl p-3 sm:p-3.5 relative z-10 mb-3 backdrop-blur-md">
+            <div className={`bg-black/60 border ${isEscapeTheme ? 'border-orange-500/30' : 'border-white/10'} rounded-2xl p-3 sm:p-3.5 relative z-10 mb-3 backdrop-blur-md`}>
                 <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-neon-cyan flex items-center gap-1.5">
+                    <span className={`text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${isEscapeTheme ? 'text-[#ff7700] drop-shadow-[0_0_8px_rgba(255,119,0,0.6)]' : 'text-neon-cyan'} flex items-center gap-1.5`}>
                         <Sparkles className="w-3 h-3" />
                         EN CE MOMENT SUR LES ONDES
                     </span>
@@ -204,12 +198,12 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
                         <h4 className="text-xs sm:text-sm font-display font-black text-white uppercase italic tracking-tight truncate">
                             {currentSet?.artist || 'DROPSIDERS ROTATION'}
                         </h4>
-                        <p className="text-[9px] sm:text-[10px] font-semibold text-gray-400 truncate mt-0.5">
+                        <p className="text-[9px] sm:text-[10px] font-semibold text-gray-300 truncate mt-0.5">
                             {currentSet?.title || currentSet?.event || 'Sélection Electro & Livesets Non-Stop'}
                         </p>
                     </div>
                     {currentSet?.startTime && (
-                        <div className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-[8px] sm:text-[9px] font-mono text-neon-cyan">
+                        <div className={`shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg ${isEscapeTheme ? 'bg-orange-950/40 border-orange-500/40 text-orange-300' : 'bg-white/5 border-white/10 text-neon-cyan'} border text-[8px] sm:text-[9px] font-mono`}>
                             <Clock className="w-2.5 h-2.5" />
                             {currentSet.startTime}
                         </div>
@@ -220,7 +214,7 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
                 <div className="mt-2.5 space-y-1">
                     <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
                         <div
-                            className="h-full bg-gradient-to-r from-neon-cyan via-purple-500 to-neon-red rounded-full transition-all duration-1000"
+                            className={`h-full ${isEscapeTheme ? 'bg-gradient-to-r from-[#ff7700] via-[#ff3b00] to-[#ff0033]' : 'bg-gradient-to-r from-neon-cyan via-purple-500 to-neon-red'} rounded-full transition-all duration-1000`}
                             style={{ width: `${progressPercent}%` }}
                         />
                     </div>
@@ -237,9 +231,13 @@ export function DropsidersRadioCard({ className = '' }: { className?: string }) 
                 <button
                     onClick={handlePlayToggle}
                     className={`px-4 sm:px-5 py-2.5 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg active:scale-95 ${
-                        isPlaying
-                            ? 'bg-neon-cyan text-black shadow-neon-cyan/40 hover:bg-white'
-                            : 'bg-white text-black hover:bg-neon-cyan hover:shadow-neon-cyan/30'
+                        isEscapeTheme
+                            ? (isPlaying
+                                ? 'bg-gradient-to-r from-[#ff5500] via-[#ff3300] to-[#e60026] text-black shadow-[0_0_24px_rgba(255,85,0,0.6)] hover:brightness-110'
+                                : 'bg-gradient-to-r from-[#ff8800] via-[#ff5500] to-[#ff2200] text-black shadow-[0_0_20px_rgba(255,119,0,0.55)] hover:brightness-110')
+                            : (isPlaying
+                                ? 'bg-neon-cyan text-black shadow-neon-cyan/40 hover:bg-white'
+                                : 'bg-white text-black hover:bg-neon-cyan hover:shadow-neon-cyan/30')
                     }`}
                 >
                     {isPlaying ? (

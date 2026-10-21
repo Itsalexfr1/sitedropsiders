@@ -979,14 +979,15 @@ export function NewsCreate() {
     });
     const [mediaModal, setMediaModal] = useState<{
         show: boolean,
-        type: 'image' | 'gallery' | 'video' | 'spotify' | 'beatport',
+        type: 'image' | 'gallery' | 'video' | 'spotify' | 'beatport' | 'social',
         url: string,
         urls: string,
         aspectRatio?: string,
         widgetId?: string,
         cols?: number,
         alignment?: 'left' | 'right' | 'center',
-        width?: number
+        width?: number,
+        socialPlatform?: 'auto' | 'instagram' | 'x' | 'facebook'
     }>({
         show: false,
         type: 'image',
@@ -995,7 +996,8 @@ export function NewsCreate() {
         aspectRatio: 'auto',
         cols: 4,
         alignment: 'center',
-        width: 100
+        width: 100,
+        socialPlatform: 'auto'
     });
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo-image' | 'interview-media' | 'video-article' | 'festival-artist', index?: number, widgetId?: string, interviewBlockId?: string, initialImage?: string, allowMultiple?: boolean }>({ type: 'main' });
@@ -2094,6 +2096,43 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
   <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-[#02FF95]/20 bg-[#121212]">
     <iframe src="https://embed.beatport.com/?id=${bpId}&type=${bpType}" width="100%" height="162" frameBorder="0" scrolling="no" style="border-radius:12px;"></iframe>
   </div>
+</div>`;
+            }
+        } else if (type === 'social' && url) {
+            const cleanUrl = url.trim();
+            const lower = cleanUrl.toLowerCase();
+            const isInstagram = lower.includes('instagram.com');
+            const isTwitter = lower.includes('twitter.com') || lower.includes('x.com');
+            const isFacebook = lower.includes('facebook.com') || lower.includes('fb.watch');
+
+            if (isInstagram) {
+                content = `<div class="social-embed-widget instagram-embed-widget article-section my-10 flex justify-center w-full" data-social-platform="instagram" data-embed-url="${cleanUrl}">
+  <blockquote class="instagram-media" data-instgrm-permalink="${cleanUrl}" data-instgrm-version="14" style="background:#0c0814; border-radius:18px; border:1px solid rgba(225,48,108,0.3); margin:0 auto; max-width:540px; min-width:320px; width:100%; box-shadow:0 12px 35px rgba(0,0,0,0.6);">
+    <div style="padding:16px; text-align:center;">
+      <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" style="color:#e1306c; font-weight:800; text-decoration:none; text-transform:uppercase; font-size:11px; letter-spacing:1px; display:inline-flex; align-items:center; gap:8px;">
+        <span>📸 Voir ce post / Reel sur Instagram</span>
+      </a>
+    </div>
+  </blockquote>
+</div>`;
+            } else if (isTwitter) {
+                content = `<div class="social-embed-widget twitter-embed-widget article-section my-10 flex justify-center w-full" data-social-platform="x" data-embed-url="${cleanUrl}">
+  <blockquote class="twitter-tweet" data-theme="dark" data-align="center" style="margin:0 auto; max-width:550px;">
+    <a href="${cleanUrl}">Voir le post sur X</a>
+  </blockquote>
+</div>`;
+            } else if (isFacebook) {
+                const isFbVideo = lower.includes('/videos/') || lower.includes('/reel/') || lower.includes('fb.watch') || lower.includes('/watch');
+                content = `<div class="social-embed-widget facebook-embed-widget article-section my-10 flex justify-center w-full" data-social-platform="facebook" data-embed-url="${cleanUrl}">
+  <div class="relative rounded-2xl overflow-hidden border border-blue-500/30 shadow-2xl bg-[#0a0d18] max-w-[500px] w-full" style="min-height:${isFbVideo ? '560px' : '500px'};">
+    <iframe src="https://www.facebook.com/plugins/${isFbVideo ? 'video' : 'post'}.php?href=${encodeURIComponent(cleanUrl)}&show_text=true&width=500" width="100%" height="${isFbVideo ? '560' : '500'}" style="border:none;overflow:hidden;border-radius:16px;" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+  </div>
+</div>`;
+            } else {
+                content = `<div class="social-embed-widget article-section my-10 flex justify-center w-full" data-embed-url="${cleanUrl}">
+  <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="p-4 bg-white/5 border border-white/10 rounded-2xl text-neon-cyan hover:underline text-xs font-bold uppercase tracking-widest block text-center max-w-md w-full">
+    🔗 Voir le post : ${cleanUrl}
+  </a>
 </div>`;
             }
         }
@@ -3807,6 +3846,17 @@ ${generateSocialsHtml()}
                                     >
                                         <List className="w-3 h-3" /> Tracklist
                                     </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMediaModal({ show: true, type: 'social', url: '', urls: '', socialPlatform: 'auto' })}
+                                        className="whitespace-nowrap flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-blue-500/20 border border-pink-500/30 text-pink-300 rounded-full hover:brightness-125 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                        title="Intégrer un post ou une vidéo Instagram, X (Twitter) ou Facebook"
+                                    >
+                                        <Instagram className="w-3.5 h-3.5 text-pink-400" />
+                                        <XIcon className="w-3 h-3 text-white" />
+                                        <Facebook className="w-3.5 h-3.5 text-blue-400" />
+                                        <span>Post Réseau</span>
+                                    </button>
                                 </div>
                             </div>
 
@@ -3827,7 +3877,12 @@ ${generateSocialsHtml()}
                                                             (widget.content.includes('duo-photos-premium') || widget.content.includes('grid-photos-premium')) ? 'Duo/Grid Photos' :
                                                                 widget.content.includes('image-premium-wrapper') ? 'Image' :
                                                                     widget.content.includes('gallery-premium-grid') ? 'Galerie' : 
-                                                                        widget.content.includes('spotify-compact-widget') ? 'Spotify' : 'Texte'}
+                                                                        widget.content.includes('spotify-compact-widget') ? 'Spotify' :
+                                                                            widget.content.includes('beatport-compact-widget') ? 'Beatport' :
+                                                                                widget.content.includes('instagram-embed-widget') ? 'Instagram' :
+                                                                                    widget.content.includes('twitter-embed-widget') ? 'X / Twitter' :
+                                                                                        widget.content.includes('facebook-embed-widget') ? 'Facebook' :
+                                                                                            widget.content.includes('social-embed-widget') ? 'Post Réseau' : 'Texte'}
                                                     </span>
 
                                                     <div className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -3888,7 +3943,7 @@ ${generateSocialsHtml()}
                                                     >
                                                         <Link2 className="w-4 h-4" /> <span className="hidden sm:inline">Lien</span>
                                                     </button>
-                                                    {(!widget.content.includes('image-premium-wrapper') && !widget.content.includes('gallery-premium-grid') && !widget.content.includes('youtube-player-widget')) && (
+                                                    {(!widget.content.includes('image-premium-wrapper') && !widget.content.includes('gallery-premium-grid') && !widget.content.includes('youtube-player-widget') && !widget.content.includes('social-embed-widget') && !widget.content.includes('spotify-compact-widget') && !widget.content.includes('beatport-compact-widget')) && (
                                                         <>
                                                             <button
                                                                 type="button"
@@ -4202,7 +4257,10 @@ ${generateSocialsHtml()}
                                                 !widget.content.includes('youtube-player-widget') &&
                                                     !widget.content.includes('image-premium-wrapper') &&
                                                     !widget.content.includes('gallery-premium-grid') &&
-                                                    !widget.content.includes('duo-photos-premium') && !widget.content.includes('grid-photos-premium') ? (
+                                                    !widget.content.includes('duo-photos-premium') && !widget.content.includes('grid-photos-premium') &&
+                                                    !widget.content.includes('social-embed-widget') &&
+                                                    !widget.content.includes('spotify-compact-widget') &&
+                                                    !widget.content.includes('beatport-compact-widget') ? (
                                                     <div className={`admin-editor-container bg-white/[0.02] border transition-all duration-500 ${isMobileEditorActive ? 'min-h-[80vh] border-0 rounded-none bg-black/40' : 'border-white/5 rounded-3xl overflow-hidden shadow-2xl'}`}>
                                                         <VisualEditor
                                                             content={widget.content}
@@ -4317,6 +4375,14 @@ ${generateSocialsHtml()}
                                                     title="Ajouter Beatport ici"
                                                 >
                                                     <BeatportIcon className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setMediaModal({ show: true, type: 'social', url: '', urls: '', widgetIndex: index, socialPlatform: 'auto' } as any)}
+                                                    className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500/20 to-blue-500/20 border border-pink-500/40 text-pink-300 flex items-center justify-center hover:brightness-125 transition-all"
+                                                    title="Ajouter un post Instagram, X ou Facebook ici"
+                                                >
+                                                    <Instagram className="w-4 h-4" />
                                                 </button>
 
 
@@ -4905,6 +4971,17 @@ ${generateSocialsHtml()}
                                     >
                                         <BeatportIcon className="w-3.5 h-3.5" /> Beatport
                                     </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMediaModal({ show: true, type: 'social', url: '', urls: '', socialPlatform: 'auto' })}
+                                        className="whitespace-nowrap flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-blue-500/20 border border-pink-500/30 text-pink-300 rounded-full hover:brightness-125 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                        title="Intégrer un post ou une vidéo Instagram, X (Twitter) ou Facebook"
+                                    >
+                                        <Instagram className="w-3.5 h-3.5 text-pink-400" />
+                                        <XIcon className="w-3 h-3 text-white" />
+                                        <Facebook className="w-3.5 h-3.5 text-blue-400" />
+                                        <span>Post Réseau</span>
+                                    </button>
                                 </div>
                             </div>
 
@@ -4925,7 +5002,12 @@ ${generateSocialsHtml()}
                                                             (widget.content.includes('duo-photos-premium') || widget.content.includes('grid-photos-premium')) ? 'Duo/Grid Photos' :
                                                                 widget.content.includes('image-premium-wrapper') ? 'Image' :
                                                                     widget.content.includes('gallery-premium-grid') ? 'Galerie' : 
-                                                                        widget.content.includes('spotify-compact-widget') ? 'Spotify' : 'Texte'}
+                                                                        widget.content.includes('spotify-compact-widget') ? 'Spotify' :
+                                                                            widget.content.includes('beatport-compact-widget') ? 'Beatport' :
+                                                                                widget.content.includes('instagram-embed-widget') ? 'Instagram' :
+                                                                                    widget.content.includes('twitter-embed-widget') ? 'X / Twitter' :
+                                                                                        widget.content.includes('facebook-embed-widget') ? 'Facebook' :
+                                                                                            widget.content.includes('social-embed-widget') ? 'Post Réseau' : 'Texte'}
                                                     </span>
 
                                                     <div className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -5550,7 +5632,7 @@ ${generateSocialsHtml()}
                             </button>
 
                             <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">
-                                {mediaModal.type === 'image' ? 'Ajouter une photo' : mediaModal.type === 'video' ? 'Ajouter une vidéo' : mediaModal.type === 'gallery' ? 'Ajouter une galerie' : mediaModal.type === 'spotify' ? '🎵 Lecteur Spotify' : '🎶 Lecteur Beatport'}
+                                {mediaModal.type === 'image' ? 'Ajouter une photo' : mediaModal.type === 'video' ? 'Ajouter une vidéo' : mediaModal.type === 'gallery' ? 'Ajouter une galerie' : mediaModal.type === 'spotify' ? '🎵 Lecteur Spotify' : mediaModal.type === 'beatport' ? '🎶 Lecteur Beatport' : '📱 Post Réseau Social (Insta, X, Facebook)'}
                             </h3>
 
                             <div className="space-y-4">
@@ -5648,6 +5730,87 @@ ${generateSocialsHtml()}
                                                 </div>
                                             );
                                         })()}
+                                    </div>
+                                ) : mediaModal.type === 'social' ? (
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-[10px] font-black text-pink-400 uppercase tracking-widest mb-2 flex items-center justify-between">
+                                                <span>Lien du post ou de la vidéo</span>
+                                                <span className="text-gray-500 font-mono text-[9px]">Instagram • X • Facebook</span>
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={mediaModal.url}
+                                                    onChange={e => setMediaModal({ ...mediaModal, url: e.target.value })}
+                                                    className="w-full bg-black/40 border border-pink-500/30 rounded-xl p-3 pr-10 text-white outline-none focus:border-pink-500 transition-all text-xs"
+                                                    placeholder="https://www.instagram.com/p/... ou /reel/... ou https://x.com/... ou https://facebook.com/..."
+                                                    autoFocus
+                                                />
+                                                {mediaModal.url && (
+                                                    <button type="button" onClick={() => setMediaModal({ ...mediaModal, url: '' })} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-red-500">
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Détection automatique ou statut */}
+                                        {mediaModal.url ? (() => {
+                                            const lower = mediaModal.url.toLowerCase();
+                                            const isInsta = lower.includes('instagram.com');
+                                            const isX = lower.includes('x.com') || lower.includes('twitter.com');
+                                            const isFb = lower.includes('facebook.com') || lower.includes('fb.watch');
+
+                                            return (
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-white/10 text-[11px] font-bold">
+                                                        {isInsta ? (
+                                                            <>
+                                                                <Instagram className="w-4 h-4 text-pink-400 shrink-0" />
+                                                                <span className="text-pink-300">Post / Reel Instagram détecté</span>
+                                                            </>
+                                                        ) : isX ? (
+                                                            <>
+                                                                <XIcon className="w-4 h-4 text-white shrink-0" />
+                                                                <span className="text-gray-200">Post / Vidéo X (Twitter) détecté</span>
+                                                            </>
+                                                        ) : isFb ? (
+                                                            <>
+                                                                <Facebook className="w-4 h-4 text-blue-400 shrink-0" />
+                                                                <span className="text-blue-300">Vidéo / Post Facebook détecté</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Link2 className="w-4 h-4 text-neon-cyan shrink-0" />
+                                                                <span className="text-gray-400">Lien web détecté</span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-[9px] text-gray-500">
+                                                        Le post sera automatiquement intégré avec son lecteur interactif et vidéo dans l'article.
+                                                    </p>
+                                                </div>
+                                            );
+                                        })() : (
+                                            <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2 text-[10px] text-gray-400">
+                                                <p className="font-bold text-gray-300 uppercase tracking-wider text-[9px]">Formats compatibles :</p>
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <Instagram className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                                                        <span><strong className="text-white">Instagram :</strong> Publications, Reels, Vidéos</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <XIcon className="w-3.5 h-3.5 text-white shrink-0" />
+                                                        <span><strong className="text-white">X / Twitter :</strong> Posts, Extraits vidéos</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Facebook className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                                                        <span><strong className="text-white">Facebook :</strong> Vidéos, Reels, Publications</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 ) : (
                                     <div>

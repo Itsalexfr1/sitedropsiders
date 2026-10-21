@@ -77,7 +77,7 @@ const EQ_BARS = [
     { anim: 'eq-bar-4', dur: '0.44s' },
 ];
 
-function AudioBars({ playing }: { playing: boolean }) {
+function AudioBars({ playing, color }: { playing: boolean; color?: string }) {
     return (
         <div className="flex items-end gap-[2.5px] h-4 shrink-0">
             {EQ_BARS.map((b, i) => (
@@ -88,7 +88,7 @@ function AudioBars({ playing }: { playing: boolean }) {
                         width: '3px',
                         height: playing ? '60%' : '20%',
                         borderRadius: '2px',
-                        backgroundColor: playing ? 'rgb(0,255,255)' : 'rgba(255,255,255,0.25)',
+                        backgroundColor: playing ? (color || 'rgb(0,255,255)') : 'rgba(255,255,255,0.25)',
                         animation: playing ? `${b.anim} ${b.dur} ease-in-out infinite alternate` : 'none',
                         transition: 'background-color 0.3s',
                     }}
@@ -2201,10 +2201,10 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                 <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-5" />
 
                                 <div className="flex items-center justify-between mb-5 relative z-10">
-                                <div className="flex items-center gap-2.5">
+                                    <div className="flex items-center gap-2.5">
                                         <div className={`p-2 rounded-xl ${
                                             isEscapeTheme 
-                                                ? 'bg-red-600/20 border border-red-500/40 text-red-400 shadow-[0_0_12px_rgba(220,38,38,0.3)]' 
+                                                ? 'bg-gradient-to-br from-red-600/30 to-orange-500/20 border border-orange-500/50 text-[#ff7700] shadow-[0_0_12px_rgba(255,119,0,0.4)]' 
                                                 : 'bg-neon-cyan/15 border border-neon-cyan/30 text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.25)]'
                                         }`}>
                                             <Radio className="w-4 h-4" />
@@ -2216,23 +2216,17 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                             title="Ouvrir la page radio"
                                         >
                                             <p className="text-[11px] font-display font-black text-white uppercase italic tracking-tight">
-                                                DROPSIDERS <span className={isEscapeTheme ? 'text-red-400' : 'text-neon-cyan'}>RADIO</span>
+                                                DROPSIDERS <span className={isEscapeTheme ? 'text-[#ff5500] drop-shadow-[0_0_10px_rgba(255,85,0,0.6)]' : 'text-neon-cyan'}>RADIO</span>
                                             </p>
-                                            <p className="text-[8px] text-gray-500 uppercase tracking-widest font-bold">
-                                                {isEscapeTheme ? '🎪 Escape Psycho Circus' : 'Web Radio Electro 24/7'}
+                                            <p className="text-[8px] text-gray-400 uppercase tracking-widest font-bold">
+                                                Web Radio Electro 24/7
                                             </p>
                                         </button>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        {isEscapeTheme ? (
-                                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-600/30 text-amber-200 border border-red-500/50 text-[7px] font-black uppercase shadow-[0_0_8px_rgba(220,38,38,0.4)]">
-                                                🎪 ESCAPE
-                                            </span>
-                                        ) : (
-                                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-neon-red/20 text-neon-red border border-neon-red/40 text-[7px] font-black uppercase animate-pulse">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-neon-red" />LIVE
-                                            </span>
-                                        )}
+                                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-600/25 text-red-300 border border-red-500/50 text-[7px] font-black uppercase animate-pulse">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-red-500" />LIVE
+                                        </span>
                                         <button onClick={() => setExpanded(false)} title="Fermer" aria-label="Fermer"
                                             className="p-1.5 rounded-xl bg-white/5 text-gray-400 active:bg-white/10 active:scale-90 transition-all hover:text-white">
                                             <X className="w-4 h-4" />
@@ -2240,9 +2234,13 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                     </div>
                                 </div>
 
-                                <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-4 mb-5 relative z-10">
+                                <div className={`border rounded-2xl p-4 mb-5 relative z-10 ${
+                                    isEscapeTheme ? 'bg-black/60 border-orange-500/30' : 'bg-white/[0.04] border-white/10'
+                                }`}>
                                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                                        <p className="text-[8px] font-black uppercase tracking-widest text-neon-cyan flex items-center gap-1">
+                                        <p className={`text-[8px] font-black uppercase tracking-widest ${
+                                            isEscapeTheme ? 'text-[#ff7700] drop-shadow-[0_0_8px_rgba(255,119,0,0.6)]' : 'text-neon-cyan'
+                                        } flex items-center gap-1`}>
                                             <Sparkles className="w-2.5 h-2.5" /> EN CE MOMENT
                                         </p>
                                         {isMusicTrack && (
@@ -2252,23 +2250,23 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                                 disabled={voteLoading}
                                                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
                                                     isCurrentTrackVoted
-                                                        ? 'bg-red-500/20 text-neon-red border-red-500/50 shadow-[0_0_10px_rgba(255,0,85,0.3)]'
-                                                        : 'bg-white/5 hover:bg-red-500/20 text-gray-300 hover:text-neon-red border-white/10'
+                                                        ? (isEscapeTheme ? 'bg-orange-500/20 text-[#ff7700] border-orange-500/60 shadow-[0_0_10px_rgba(255,119,0,0.4)]' : 'bg-red-500/20 text-neon-red border-red-500/50 shadow-[0_0_10px_rgba(255,0,85,0.3)]')
+                                                        : (isEscapeTheme ? 'bg-black/50 hover:bg-orange-500/20 text-orange-200 border-orange-500/30' : 'bg-white/5 hover:bg-red-500/20 text-gray-300 hover:text-neon-red border-white/10')
                                                 }`}
                                             >
-                                                <Heart className={`w-3 h-3 ${isCurrentTrackVoted ? 'fill-current text-neon-red' : ''}`} />
+                                                <Heart className={`w-3 h-3 ${isCurrentTrackVoted ? (isEscapeTheme ? 'fill-current text-[#ff7700]' : 'fill-current text-neon-red') : ''}`} />
                                                 <span>{isCurrentTrackVoted ? 'Voté Top 5' : 'Voter Top 5'}</span>
                                             </button>
                                         )}
                                     </div>
-                                    <h3 className="text-[20px] font-display font-black text-white uppercase italic tracking-tight truncate leading-tight">
+                                    <h3 className="text-[20px] font-display font-black text-white uppercase italic tracking-tight truncate leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
                                         {currentSet.title || (currentSet as any).event}
                                     </h3>
-                                    <p className="text-[12px] text-gray-300 font-bold uppercase tracking-wider truncate mt-0.5">
+                                    <p className={`text-[12px] font-bold ${isEscapeTheme ? 'text-orange-200/90' : 'text-gray-300'} uppercase tracking-wider truncate mt-0.5`}>
                                         {currentSet.artist}
                                     </p>
                                     {(currentSet.blockTitle || currentSet.blockHost) && (
-                                        <p className="text-[10px] font-bold text-neon-cyan/90 uppercase tracking-wide flex items-center gap-1.5 mt-2 truncate">
+                                        <p className={`text-[10px] font-bold ${isEscapeTheme ? 'text-[#ff8800]' : 'text-neon-cyan/90'} uppercase tracking-wide flex items-center gap-1.5 mt-2 truncate`}>
                                             <span>📻 {currentSet.blockTitle || 'DROPSIDERS RADIO'}</span>
                                             {currentSet.blockHost && (
                                                 <span className="text-gray-400 font-normal">· avec <span className="text-white font-bold">{currentSet.blockHost}</span></span>
@@ -2281,8 +2279,8 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                         </p>
                                     )}
                                     <div className="flex items-center gap-2 mt-2.5 text-[9px] font-mono text-gray-500">
-                                        <Clock className="w-3 h-3 text-neon-cyan" />
-                                        <span className="text-neon-cyan font-bold">{currentSet.startTime}</span>
+                                        <Clock className={`w-3 h-3 ${isEscapeTheme ? 'text-[#ff7700]' : 'text-neon-cyan'}`} />
+                                        <span className={`${isEscapeTheme ? 'text-orange-300' : 'text-neon-cyan'} font-bold`}>{currentSet.startTime}</span>
                                         <span className="text-gray-600">·</span>
                                         <span>{currentSet.durationFormatted}</span>
                                     </div>
@@ -2290,7 +2288,7 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
 
                                 <div className="mb-6 relative z-10">
                                     <div className="w-full h-[3px] bg-white/10 rounded-full overflow-hidden">
-                                        <div className="h-full bg-gradient-to-r from-neon-cyan to-neon-red rounded-full transition-all duration-1000"
+                                        <div className={`h-full ${isEscapeTheme ? 'bg-gradient-to-r from-[#ff7700] via-[#ff3b00] to-[#ff0033]' : 'bg-gradient-to-r from-neon-cyan to-neon-red'} rounded-full transition-all duration-1000`}
                                             style={{ width: `${progress}%` }} />
                                     </div>
                                     <div className="flex justify-between mt-1.5 text-[9px] font-mono text-gray-500">
@@ -2299,32 +2297,54 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-center gap-8 relative z-10 mb-4">
+                                <div className="flex items-center justify-center gap-8 relative z-10 mb-5">
                                     <button onClick={toggleMute}
-                                        className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-300 active:scale-90 active:bg-white/10 transition-all">
-                                        {isMuted ? <VolumeX className="w-5 h-5 text-neon-red" /> : <Volume2 className="w-5 h-5" />}
+                                        className={`w-12 h-12 rounded-full border flex items-center justify-center transition-all active:scale-90 ${
+                                            isEscapeTheme ? 'bg-black/60 border-orange-500/40 text-orange-200' : 'bg-white/5 border-white/10 text-gray-300'
+                                        }`}>
+                                        {isMuted ? <VolumeX className="w-5 h-5 text-red-500" /> : <Volume2 className={`w-5 h-5 ${isEscapeTheme ? 'text-[#ff7700]' : ''}`} />}
                                     </button>
 
                                     <button onClick={handlePlay}
-                                        className={`w-[76px] h-[76px] rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-90 ${isPlaying ? 'bg-neon-cyan shadow-[0_0_45px_rgba(0,255,255,0.55)]' : 'bg-white shadow-[0_0_30px_rgba(255,255,255,0.25)]'}`}>
+                                        className={`w-[76px] h-[76px] rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-90 ${
+                                            isEscapeTheme
+                                                ? (isPlaying 
+                                                    ? 'bg-gradient-to-tr from-[#ff5500] via-[#ff3300] to-[#e60026] text-black shadow-[0_0_45px_rgba(255,85,0,0.7)]' 
+                                                    : 'bg-gradient-to-tr from-[#ff8800] via-[#ff5500] to-[#ff2200] text-black shadow-[0_0_40px_rgba(255,119,0,0.65)]')
+                                                : (isPlaying 
+                                                    ? 'bg-neon-cyan shadow-[0_0_45px_rgba(0,255,255,0.55)]' 
+                                                    : 'bg-white shadow-[0_0_30px_rgba(255,255,255,0.25)]')
+                                        }`}>
                                         {isPlaying ? <Pause className="w-9 h-9 text-black fill-black" /> : <Play className="w-9 h-9 text-black fill-black ml-1" />}
                                     </button>
 
                                     <div className="w-12 h-12 flex items-center justify-center">
-                                        <AudioBars playing={isPlaying} />
+                                        <AudioBars playing={isPlaying} color={isEscapeTheme ? '#ff5500' : undefined} />
                                     </div>
                                 </div>
 
-                                {/* Volume slider mobile */}
-                                <div className="flex items-center gap-3 px-2 mb-5 relative z-10">
-                                    <VolumeX className={`w-3.5 h-3.5 shrink-0 ${isMuted ? 'text-neon-red' : 'text-gray-500'}`} />
+                                {/* Volume slider mobile - haute visibilité */}
+                                <div className={`flex items-center gap-3 px-3 py-2.5 mb-5 relative z-10 rounded-xl ${
+                                    isEscapeTheme ? 'bg-black/60 border border-orange-500/40 shadow-[0_0_15px_rgba(255,85,0,0.2)]' : 'bg-white/5 border border-white/10'
+                                }`}>
+                                    <button onClick={toggleMute} className="shrink-0 cursor-pointer">
+                                        {isMuted ? (
+                                            <VolumeX className="w-4 h-4 text-red-500 shrink-0" />
+                                        ) : (
+                                            <Volume2 className={`w-4 h-4 shrink-0 ${isEscapeTheme ? 'text-[#ff7700] drop-shadow-[0_0_6px_rgba(255,119,0,0.6)]' : 'text-neon-cyan'}`} />
+                                        )}
+                                    </button>
                                     <input
                                         type="range" min="0" max="100"
                                         value={isMuted ? 0 : audio.volume}
                                         onChange={e => { audio.setVolume(Number(e.target.value)); if (isMuted) audio.setIsMuted(false); }}
-                                        className="w-full h-1.5 bg-white/15 rounded-full appearance-none accent-neon-cyan"
+                                        className={`w-full h-2 rounded-full appearance-none cursor-pointer ${
+                                            isEscapeTheme ? 'bg-white/25 accent-[#ff5500]' : 'bg-white/15 accent-neon-cyan'
+                                        }`}
                                     />
-                                    <Volume2 className="w-3.5 h-3.5 shrink-0 text-gray-500" />
+                                    <span className={`text-[10px] font-mono font-bold w-7 text-right shrink-0 ${isEscapeTheme ? 'text-orange-200' : 'text-gray-400'}`}>
+                                        {isMuted ? 0 : audio.volume}%
+                                    </span>
                                 </div>
 
                                 {/* Note iOS volume : sur mobile le volume est géré par les boutons physiques */}
@@ -2435,30 +2455,38 @@ function MobileRadioPlayer({ audio }: { audio: AudioState }) {
                         onPointerDown={handlePressStart}
                         onPointerUp={handlePressEnd}
                         onPointerCancel={handlePressEnd}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-2xl bg-[#0d0d18]/95 backdrop-blur-xl border shadow-[0_0_20px_rgba(0,255,255,0.25)] transition-all group select-none ${
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-2xl ${
+                            isEscapeTheme 
+                                ? 'bg-[#090408]/95 border-orange-500/50 shadow-[0_0_20px_rgba(255,100,0,0.35)]' 
+                                : 'bg-[#0d0d18]/95 border-neon-cyan/40 shadow-[0_0_20px_rgba(0,255,255,0.25)]'
+                        } backdrop-blur-xl border transition-all group select-none ${
                             dragMode
-                                ? 'border-neon-cyan/70 shadow-[0_0_25px_rgba(0,255,255,0.45)] cursor-grab active:cursor-grabbing'
-                                : 'border-neon-cyan/40 cursor-pointer'
+                                ? (isEscapeTheme ? 'border-orange-500 shadow-[0_0_25px_rgba(255,100,0,0.6)] cursor-grab active:cursor-grabbing' : 'border-neon-cyan/70 shadow-[0_0_25px_rgba(0,255,255,0.45)] cursor-grab active:cursor-grabbing')
+                                : 'cursor-pointer'
                         }`}
                         style={{ WebkitUserSelect: 'none', userSelect: 'none' }}
                     >
                         <div className="relative shrink-0">
-                            <div className={`w-7 h-7 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center ${isPlaying ? 'shadow-[0_0_12px_rgba(0,255,255,0.4)]' : ''}`}>
-                                <Disc3 className={`w-4 h-4 text-neon-cyan ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
+                            <div className={`w-7 h-7 rounded-xl ${
+                                isEscapeTheme 
+                                    ? 'bg-orange-500/20 border border-orange-500/40 text-[#ff7700]' 
+                                    : 'bg-neon-cyan/15 border border-neon-cyan/30 text-neon-cyan'
+                            } flex items-center justify-center ${isPlaying ? (isEscapeTheme ? 'shadow-[0_0_12px_rgba(255,119,0,0.5)]' : 'shadow-[0_0_12px_rgba(0,255,255,0.4)]') : ''}`}>
+                                <Disc3 className={`w-4 h-4 ${isEscapeTheme ? 'text-[#ff7700]' : 'text-neon-cyan'} ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
                             </div>
-                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red animate-ping" />
-                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red" />
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500" />
                         </div>
                         <div className="flex flex-col items-start leading-none pr-0.5">
                             <span className="text-[9px] font-black text-white tracking-wider uppercase flex items-center gap-1">
-                                RADIO <span className="text-neon-cyan">LIVE</span>
+                                RADIO <span className={isEscapeTheme ? 'text-[#ff5500]' : 'text-neon-cyan'}>LIVE</span>
                             </span>
-                            <span className="text-[7.5px] font-bold uppercase tracking-tight transition-colors" style={{ color: dragMode ? 'rgba(0,255,255,0.7)' : '#9ca3af' }}>
+                            <span className="text-[7.5px] font-bold uppercase tracking-tight transition-colors" style={{ color: dragMode ? (isEscapeTheme ? '#ff7700' : 'rgba(0,255,255,0.7)') : '#9ca3af' }}>
                                 {dragMode ? 'Maintenir & glisser' : 'Écouter en direct'}
                             </span>
                         </div>
-                        <AudioBars playing={isPlaying} />
-                        <ChevronUp className={`w-3.5 h-3.5 transition-colors ${dragMode ? 'text-neon-cyan' : 'text-neon-cyan/70 group-hover:text-neon-cyan'}`} />
+                        <AudioBars playing={isPlaying} color={isEscapeTheme ? '#ff5500' : undefined} />
+                        <ChevronUp className={`w-3.5 h-3.5 transition-colors ${isEscapeTheme ? 'text-[#ff7700]' : (dragMode ? 'text-neon-cyan' : 'text-neon-cyan/70 group-hover:text-neon-cyan')}`} />
                     </motion.button>
                 </motion.div>
             )}
@@ -2629,12 +2657,12 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                     >
                         {/* Progress bar ultra-fine en haut de la barre */}
                         <div className="h-[2px] w-full bg-white/5">
-                            <div className="h-full bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-red transition-all duration-1000" style={{ width: `${progress}%` }} />
+                            <div className={`h-full ${isEscapeTheme ? 'bg-gradient-to-r from-[#ff7700] via-[#ff3b00] to-[#ff0033] shadow-[0_0_12px_rgba(255,119,0,0.8)]' : 'bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-red'} transition-all duration-1000`} style={{ width: `${progress}%` }} />
                         </div>
 
                         <div className={`relative flex items-center gap-5 px-6 py-3 ${
                             isEscapeTheme 
-                                ? 'bg-[#080407]/95 border-t border-red-600/40 shadow-[0_-10px_40px_rgba(220,38,38,0.22)]' 
+                                ? 'bg-[#080407]/95 border-t border-orange-600/40 shadow-[0_-10px_40px_rgba(255,85,0,0.2)]' 
                                 : 'bg-[#07070f]/98 border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.7)]'
                         } backdrop-blur-2xl overflow-hidden`}>
                             {isEscapeTheme && (
@@ -2643,7 +2671,7 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                                         className="absolute inset-0 bg-cover bg-center opacity-25 pointer-events-none"
                                         style={{ backgroundImage: `url(${ESCAPE_PSYCHO_CIRCUS_BG})` }}
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-r from-[#080407]/90 via-[#080407]/70 to-[#080407]/90 pointer-events-none" />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-[#080407]/92 via-[#080407]/75 to-[#080407]/92 pointer-events-none" />
                                 </>
                             )}
                             {/* Icône + Label Radio — cliquable pour ouvrir la page radio */}
@@ -2655,33 +2683,27 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                             >
                                 <div className={`relative p-2 rounded-xl ${
                                     isEscapeTheme 
-                                        ? 'bg-red-600/20 border border-red-500/40 text-red-400' 
+                                        ? 'bg-gradient-to-br from-red-600/30 to-orange-500/20 border border-orange-500/50 text-[#ff7700]' 
                                         : 'bg-neon-cyan/15 border border-neon-cyan/40 text-neon-cyan'
-                                } ${isPlaying ? (isEscapeTheme ? 'shadow-[0_0_14px_rgba(220,38,38,0.4)]' : 'shadow-[0_0_14px_rgba(0,255,255,0.4)]') : ''}`}>
+                                } ${isPlaying ? (isEscapeTheme ? 'shadow-[0_0_18px_rgba(255,119,0,0.5)]' : 'shadow-[0_0_14px_rgba(0,255,255,0.4)]') : ''}`}>
                                     <Radio className="w-4 h-4" />
-                                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red animate-ping" />
-                                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-neon-red" />
+                                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500" />
                                 </div>
                                 <div className="leading-none text-left">
                                     <div className="flex items-center gap-1.5">
-                                        <span className="text-[11px] font-display font-black text-white uppercase italic tracking-tight">DROPSIDERS <span className={isEscapeTheme ? 'text-red-400' : 'text-neon-cyan'}>RADIO</span></span>
-                                        {isEscapeTheme ? (
-                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-600/30 text-amber-200 border border-red-500/50 text-[7px] font-black uppercase shadow-[0_0_8px_rgba(220,38,38,0.4)]">
-                                                🎪 ESCAPE
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-neon-red/25 text-neon-red border border-neon-red/50 text-[7px] font-black uppercase animate-pulse">
-                                                <span className="w-1 h-1 rounded-full bg-neon-red" />LIVE
-                                            </span>
-                                        )}
+                                        <span className="text-[11px] font-display font-black text-white uppercase italic tracking-tight">DROPSIDERS <span className={isEscapeTheme ? 'text-[#ff5500] drop-shadow-[0_0_10px_rgba(255,85,0,0.6)]' : 'text-neon-cyan'}>RADIO</span></span>
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-600/25 text-red-300 border border-red-500/50 text-[7px] font-black uppercase animate-pulse">
+                                            <span className="w-1 h-1 rounded-full bg-red-500" />LIVE
+                                        </span>
                                         {audio.isDucking && (
                                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/50 text-[8px] font-black uppercase tracking-wider animate-pulse">
                                                 🎙️ TALK-OVER EN DIRECT
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">
-                                        {isEscapeTheme ? '🎪 Escape Psycho Circus' : 'Web Radio Electro 24/7'}
+                                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+                                        Web Radio Electro 24/7
                                     </p>
                                 </div>
                             </button>
@@ -2692,17 +2714,17 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                             {/* Track en cours + Nom émission + Animateur + Bouton Like */}
                             <div className="flex-1 min-w-0 flex items-center justify-between gap-4 relative z-10">
                                 <div className="min-w-0 text-left">
-                                    <div className="text-[7.5px] font-black uppercase tracking-widest text-neon-cyan mb-0.5 flex items-center gap-1.5">
+                                    <div className={`text-[7.5px] font-black uppercase tracking-widest ${isEscapeTheme ? 'text-[#ff7700] drop-shadow-[0_0_8px_rgba(255,119,0,0.6)]' : 'text-neon-cyan'} mb-0.5 flex items-center gap-1.5`}>
                                         <Sparkles className="w-2.5 h-2.5" /><span>EN CE MOMENT</span>
                                     </div>
-                                    <h4 className="text-[15px] font-display font-black text-white uppercase italic tracking-tight truncate leading-tight">
+                                    <h4 className="text-[15px] font-display font-black text-white uppercase italic tracking-tight truncate leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
                                         {currentSet.title || (currentSet as any).event}
                                     </h4>
-                                    <p className="text-[11px] font-bold text-gray-300 uppercase tracking-wider truncate mt-0.5">
+                                    <p className={`text-[11px] font-bold ${isEscapeTheme ? 'text-orange-200/90' : 'text-gray-300'} uppercase tracking-wider truncate mt-0.5`}>
                                         {currentSet.artist}
                                     </p>
                                     {(currentSet.blockTitle || currentSet.blockHost) && (
-                                        <p className="text-[9px] font-bold text-neon-cyan/90 uppercase tracking-wide flex items-center gap-1.5 mt-0.5 truncate">
+                                        <p className={`text-[9px] font-bold ${isEscapeTheme ? 'text-[#ff8800]' : 'text-neon-cyan/90'} uppercase tracking-wide flex items-center gap-1.5 mt-0.5 truncate`}>
                                             <span>📻 {currentSet.blockTitle || 'DROPSIDERS RADIO'}</span>
                                             {currentSet.blockHost && (
                                                 <span className="text-gray-400 font-normal">· avec <span className="text-white font-bold">{currentSet.blockHost}</span></span>
@@ -2720,12 +2742,12 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                                             disabled={voteLoading}
                                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[11px] font-display font-black uppercase italic tracking-wider transition-all cursor-pointer shadow-sm active:scale-95 ${
                                                 isCurrentTrackVoted
-                                                    ? 'bg-red-500/20 text-neon-red border-red-500/50 shadow-[0_0_15px_rgba(255,0,85,0.4)]'
-                                                    : 'bg-white/5 hover:bg-red-500/20 text-gray-300 hover:text-neon-red border-white/10 hover:border-red-500/40'
+                                                    ? (isEscapeTheme ? 'bg-orange-500/20 text-[#ff7700] border-orange-500/60 shadow-[0_0_15px_rgba(255,119,0,0.4)]' : 'bg-red-500/20 text-neon-red border-red-500/50 shadow-[0_0_15px_rgba(255,0,85,0.4)]')
+                                                    : (isEscapeTheme ? 'bg-black/50 hover:bg-orange-500/20 text-orange-200 border-orange-500/30 hover:border-orange-500/60 shadow-[0_0_10px_rgba(255,119,0,0.15)]' : 'bg-white/5 hover:bg-red-500/20 text-gray-300 hover:text-neon-red border-white/10 hover:border-red-500/40')
                                             }`}
                                             title={isCurrentTrackVoted ? 'Morceau déjà soutenu dans le Top 5 !' : 'Voter pour ce son dans le Top 5 Dropsiders'}
                                         >
-                                            <Heart className={`w-3.5 h-3.5 ${isCurrentTrackVoted ? 'fill-current text-neon-red' : ''}`} />
+                                            <Heart className={`w-3.5 h-3.5 ${isCurrentTrackVoted ? (isEscapeTheme ? 'fill-current text-[#ff7700]' : 'fill-current text-neon-red') : ''}`} />
                                             <span className="hidden sm:inline">{isCurrentTrackVoted ? 'Voté Top 5' : 'Voter Top 5'}</span>
                                         </button>
                                         {voteToast && (
@@ -2738,20 +2760,27 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
                             </div>
 
                             {/* EQ Bars */}
-                            <AudioBars playing={isPlaying} />
+                            <AudioBars playing={isPlaying} color={isEscapeTheme ? '#ff5500' : undefined} />
 
 
                             {/* Divider */}
                             <div className="h-8 w-px bg-white/10 shrink-0" />
 
                             {/* Volume */}
-                            <div className="flex items-center gap-2 shrink-0 w-32">
+                            <div className={`flex items-center gap-2.5 shrink-0 px-3 py-1.5 rounded-xl ${
+                                isEscapeTheme ? 'bg-black/60 border border-orange-500/40 shadow-[0_0_15px_rgba(255,85,0,0.2)]' : 'bg-white/5 border border-white/10'
+                            }`}>
                                 <button onClick={toggleMute} className="p-1 text-gray-300 hover:text-white transition-colors cursor-pointer shrink-0">
-                                    {isMuted || volume === 0 ? <VolumeX className="w-4 h-4 text-neon-red" /> : <Volume2 className="w-4 h-4 text-neon-cyan" />}
+                                    {isMuted || volume === 0 ? <VolumeX className="w-4 h-4 text-red-500" /> : <Volume2 className={`w-4 h-4 ${isEscapeTheme ? 'text-[#ff7700] drop-shadow-[0_0_6px_rgba(255,119,0,0.6)]' : 'text-neon-cyan'}`} />}
                                 </button>
                                 <input type="range" min="0" max="100" value={isMuted ? 0 : volume}
                                     onChange={e => { setVolume(Number(e.target.value)); if (isMuted) setIsMuted(false); }}
-                                    className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
+                                    className={`w-20 sm:w-24 h-2 bg-white/25 rounded-lg appearance-none cursor-pointer ${
+                                        isEscapeTheme ? 'accent-[#ff5500]' : 'accent-neon-cyan'
+                                    }`} />
+                                <span className={`text-[9px] font-mono font-bold w-6 text-right ${isEscapeTheme ? 'text-orange-200' : 'text-gray-400'}`}>
+                                    {isMuted ? 0 : volume}%
+                                </span>
                             </div>
 
                             {/* Bouton Message / Dédicace à l'animateur */}
@@ -2770,10 +2799,16 @@ function DesktopRadioPlayer({ audio }: { audio: AudioState }) {
 
                             {/* Bouton Play/Pause */}
                             <button onClick={handlePlay}
-                                className={`shrink-0 px-5 py-2 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg active:scale-95 ${
-                                    isPlaying ? 'bg-neon-cyan text-black shadow-[0_0_20px_rgba(0,255,255,0.4)]' : 'bg-white text-black hover:bg-neon-cyan hover:shadow-[0_0_20px_rgba(0,255,255,0.3)]'
+                                className={`shrink-0 px-5 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg active:scale-95 ${
+                                    isEscapeTheme
+                                        ? (isPlaying 
+                                            ? 'bg-gradient-to-r from-[#ff5500] via-[#ff3300] to-[#e60026] text-black shadow-[0_0_28px_rgba(255,85,0,0.65)] hover:brightness-110 hover:scale-105'
+                                            : 'bg-gradient-to-r from-[#ff8800] via-[#ff5500] to-[#ff2200] text-black shadow-[0_0_25px_rgba(255,119,0,0.6)] hover:brightness-110 hover:scale-105')
+                                        : (isPlaying 
+                                            ? 'bg-neon-cyan text-black shadow-[0_0_20px_rgba(0,255,255,0.4)]' 
+                                            : 'bg-white text-black hover:bg-neon-cyan hover:shadow-[0_0_20px_rgba(0,255,255,0.3)]')
                                 }`}>
-                                {isPlaying ? <><Pause className="w-3.5 h-3.5 fill-current" /><span>PAUSE</span></> : <><Play className="w-3.5 h-3.5 fill-current ml-0.5" /><span>ÉCOUTER</span></>}
+                                {isPlaying ? <><Pause className="w-3.5 h-3.5 fill-black" /><span>PAUSE</span></> : <><Play className="w-3.5 h-3.5 fill-black ml-0.5" /><span>ÉCOUTER</span></>}
                             </button>
 
                             {/* Bouton Masquer */}
