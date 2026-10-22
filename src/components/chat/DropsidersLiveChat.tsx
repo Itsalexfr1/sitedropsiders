@@ -243,16 +243,27 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                 (response: any) => {
                     if (response.events.includes('databases.*.collections.*.documents.*.create')) {
                         const payload = response.payload;
+                        let role = (payload.role as ChatUserRole) || 'user';
+                        let cleanMsg = payload.message || '';
+                        if (cleanMsg.startsWith('[ROLE:')) {
+                            const parts = cleanMsg.split(']:');
+                            const roleTag = parts[0].replace('[ROLE:', '');
+                            if (['admin', 'mod', 'artist', 'vip', 'user'].includes(roleTag)) {
+                                role = roleTag as ChatUserRole;
+                            }
+                            cleanMsg = parts.slice(1).join(']:');
+                        }
+
                         const newMsg: ChatMessageItem = {
                             id: payload.$id,
                             pseudo: payload.pseudo || 'Anonyme',
-                            message: payload.message || '',
+                            message: cleanMsg,
                             time: payload.time || new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                            role: (payload.role as ChatUserRole) || 'user',
+                            role: role,
                             color: payload.color || '#ffffff',
                             country: payload.country || 'FR',
                             isPinned: payload.isPinned || false,
-                            isHighlighted: payload.isHighlighted || false
+                            isHighlighted: role === 'artist' || role === 'admin'
                         };
                         setMessages(prev => {
                             if (prev.some(m => m.id === newMsg.id)) return prev;
@@ -323,14 +334,14 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
             try {
                 await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                     pseudo: newMsg.pseudo,
-                    message: newMsg.message,
+                    message: newMsg.role !== 'user' ? `[ROLE:${newMsg.role}]:${newMsg.message}` : newMsg.message,
                     time: newMsg.time,
-                    role: newMsg.role,
-                    color: newMsg.color,
-                    country: newMsg.country,
-                    isHighlighted: newMsg.isHighlighted
+                    color: newMsg.color || '#ffffff',
+                    country: newMsg.country || 'FR'
                 });
-            } catch { }
+            } catch (err) {
+                console.warn("[LiveChat] Appwrite send error (fallback local):", err);
+            }
         }
 
         setTimeout(() => scrollToBottom(true), 50);
