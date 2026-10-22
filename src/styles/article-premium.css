@@ -339,6 +339,7 @@
     border-bottom: none;
     display: inline-block;
     padding-bottom: 0.5rem;
+    margin-top: 2.5rem;
     margin-bottom: 2rem;
     width: 100%;
     text-align: center;
@@ -1290,24 +1291,29 @@
     align-items: center !important;
     justify-content: center !important;
     width: 100%;
-    padding: 2rem 1rem;
+    margin-top: 2.5rem !important;
+    margin-bottom: 4rem !important;
+    padding: 1.5rem 0 3rem 0 !important;
+    clear: both !important;
 }
 
 /* ── Instagram ── */
 .instagram-embed-widget {
-    /* No background, no border — just center the iframe */
+    margin-top: 2rem !important;
+    margin-bottom: 4.5rem !important;
+    padding-bottom: 3rem !important;
 }
 
 /* The blockquote Instagram generates / replaces with an iframe */
 .instagram-embed-widget blockquote.instagram-media,
 .instagram-embed-widget .instagram-media-rendered {
-    margin: 0 auto !important;
+    margin: 0 auto 3rem auto !important;
 }
 
-/* Force the generated Instagram iframe to respect centering */
+/* Force the generated Instagram iframe to respect centering and ensure generous bottom space */
 .instagram-embed-widget iframe {
     max-width: 540px !important;
-    margin: 0 auto !important;
+    margin: 0 auto 3rem auto !important;
     display: block !important;
 }
 
@@ -1328,19 +1334,36 @@
 .twitter-embed-widget {
     background: radial-gradient(ellipse at 50% 0%, rgba(29,161,242,0.08) 0%, transparent 70%);
     border-radius: 20px;
+    margin-top: 2rem !important;
+    margin-bottom: 4rem !important;
+    padding-bottom: 2rem !important;
 }
 
 .twitter-embed-widget .twitter-tweet {
-    margin: 0 auto !important;
+    margin: 0 auto 2.5rem auto !important;
 }
 
 /* ── Facebook ── */
 .facebook-embed-widget {
     background: radial-gradient(ellipse at 50% 0%, rgba(24,119,242,0.08) 0%, transparent 70%);
     border-radius: 20px;
+    margin-top: 2rem !important;
+    margin-bottom: 4rem !important;
+    padding-bottom: 2rem !important;
 }
 
 .facebook-embed-widget > div {
-    margin: 0 auto;
+    margin: 0 auto 2rem auto;
 }
+
+/* Spacing between social embeds and adjacent sections / headings */
+.article-section:has(.social-embed-widget) {
+    margin-bottom: 4rem !important;
+    clear: both !important;
+}
+
+.article-section:has(.social-embed-widget) + .article-section {
+    margin-top: 2.5rem !important;
+}
+
 

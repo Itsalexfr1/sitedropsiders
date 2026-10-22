@@ -979,7 +979,7 @@ export function NewsCreate() {
     });
     const [mediaModal, setMediaModal] = useState<{
         show: boolean,
-        type: 'image' | 'gallery' | 'video' | 'spotify' | 'beatport' | 'social',
+        type: 'image' | 'gallery' | 'video' | 'spotify' | 'beatport' | 'social' | 'tweet',
         url: string,
         urls: string,
         aspectRatio?: string,
@@ -1356,6 +1356,47 @@ export function NewsCreate() {
                 });
         }
     }, [id, editingItem]);
+
+    // Dynamically process Instagram & Twitter/X embeds in live preview
+    useEffect(() => {
+        const hasTwitter = widgets.some(w => w.content && (w.content.includes('twitter-tweet') || w.content.includes('twitter-embed-widget')));
+        const hasInstagram = widgets.some(w => w.content && (w.content.includes('instagram-media') || w.content.includes('instagram-embed-widget')));
+
+        if (hasTwitter) {
+            const loadTwitter = () => {
+                if ((window as any).twttr?.widgets?.load) {
+                    (window as any).twttr.widgets.load();
+                } else if (!document.getElementById('twitter-wjs')) {
+                    const s = document.createElement('script');
+                    s.id = 'twitter-wjs';
+                    s.src = 'https://platform.twitter.com/widgets.js';
+                    s.async = true;
+                    s.charset = 'utf-8';
+                    s.onload = () => (window as any).twttr?.widgets?.load?.();
+                    document.body.appendChild(s);
+                }
+            };
+            const t = setTimeout(loadTwitter, 400);
+            return () => clearTimeout(t);
+        }
+
+        if (hasInstagram) {
+            const loadInstagram = () => {
+                if ((window as any).instgrm?.Embeds?.process) {
+                    (window as any).instgrm.Embeds.process();
+                } else if (!document.getElementById('instagram-wjs')) {
+                    const s = document.createElement('script');
+                    s.id = 'instagram-wjs';
+                    s.src = '//www.instagram.com/embed.js';
+                    s.async = true;
+                    s.onload = () => (window as any).instgrm?.Embeds?.process?.();
+                    document.body.appendChild(s);
+                }
+            };
+            const t = setTimeout(loadInstagram, 400);
+            return () => clearTimeout(t);
+        }
+    }, [widgets]);
 
     const [linkModal, setLinkModal] = useState<{
         show: boolean;
@@ -2098,16 +2139,16 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
   </div>
 </div>`;
             }
-        } else if (type === 'social' && url) {
+        } else if ((type === 'social' || type === 'tweet') && url) {
             const cleanUrl = url.trim();
             const lower = cleanUrl.toLowerCase();
-            const isInstagram = lower.includes('instagram.com');
-            const isTwitter = lower.includes('twitter.com') || lower.includes('x.com');
-            const isFacebook = lower.includes('facebook.com') || lower.includes('fb.watch');
+            const isInstagram = type !== 'tweet' && lower.includes('instagram.com');
+            const isTwitter = type === 'tweet' || lower.includes('twitter.com') || lower.includes('x.com');
+            const isFacebook = type !== 'tweet' && (lower.includes('facebook.com') || lower.includes('fb.watch'));
 
             if (isInstagram) {
-                content = `<div class="social-embed-widget instagram-embed-widget article-section my-10" data-social-platform="instagram" data-embed-url="${cleanUrl}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;padding:1rem 0;">
-  <blockquote class="instagram-media" data-instgrm-permalink="${cleanUrl}" data-instgrm-version="14" style="margin:0 auto !important; max-width:540px; min-width:320px; width:100%;">
+                content = `<div class="social-embed-widget instagram-embed-widget article-section my-12" data-social-platform="instagram" data-embed-url="${cleanUrl}">
+  <blockquote class="instagram-media" data-instgrm-permalink="${cleanUrl}" data-instgrm-version="14" style="margin:0 auto 3rem auto !important; max-width:540px; min-width:320px; width:100%;">
     <div style="padding:16px; text-align:center;">
       <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" style="color:#e1306c; font-weight:800; text-decoration:none; text-transform:uppercase; font-size:11px; letter-spacing:1px; display:inline-flex; align-items:center; gap:8px;">
         <span>📸 Voir ce post / Reel sur Instagram</span>
@@ -2116,20 +2157,20 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
   </blockquote>
 </div>`;
             } else if (isTwitter) {
-                content = `<div class="social-embed-widget twitter-embed-widget article-section my-10 flex justify-center w-full" data-social-platform="x" data-embed-url="${cleanUrl}">
-  <blockquote class="twitter-tweet" data-theme="dark" data-align="center" style="margin:0 auto; max-width:550px;">
+                content = `<div class="social-embed-widget twitter-embed-widget article-section my-12 flex justify-center w-full" data-social-platform="x" data-embed-url="${cleanUrl}">
+  <blockquote class="twitter-tweet" data-theme="dark" data-align="center" style="margin:0 auto 2.5rem auto; max-width:550px;">
     <a href="${cleanUrl}">Voir le post sur X</a>
   </blockquote>
 </div>`;
             } else if (isFacebook) {
                 const isFbVideo = lower.includes('/videos/') || lower.includes('/reel/') || lower.includes('fb.watch') || lower.includes('/watch');
-                content = `<div class="social-embed-widget facebook-embed-widget article-section my-10 flex justify-center w-full" data-social-platform="facebook" data-embed-url="${cleanUrl}">
-  <div class="relative rounded-2xl overflow-hidden border border-blue-500/30 shadow-2xl bg-[#0a0d18] max-w-[500px] w-full" style="min-height:${isFbVideo ? '560px' : '500px'};">
+                content = `<div class="social-embed-widget facebook-embed-widget article-section my-12 flex justify-center w-full" data-social-platform="facebook" data-embed-url="${cleanUrl}">
+  <div class="relative rounded-2xl overflow-hidden border border-blue-500/30 shadow-2xl bg-[#0a0d18] max-w-[500px] w-full" style="min-height:${isFbVideo ? '560px' : '500px'}; margin-bottom: 2rem;">
     <iframe src="https://www.facebook.com/plugins/${isFbVideo ? 'video' : 'post'}.php?href=${encodeURIComponent(cleanUrl)}&show_text=true&width=500" width="100%" height="${isFbVideo ? '560' : '500'}" style="border:none;overflow:hidden;border-radius:16px;" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
   </div>
 </div>`;
             } else {
-                content = `<div class="social-embed-widget article-section my-10 flex justify-center w-full" data-embed-url="${cleanUrl}">
+                content = `<div class="social-embed-widget article-section my-12 flex justify-center w-full" data-embed-url="${cleanUrl}">
   <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="p-4 bg-white/5 border border-white/10 rounded-2xl text-neon-cyan hover:underline text-xs font-bold uppercase tracking-widest block text-center max-w-md w-full">
     🔗 Voir le post : ${cleanUrl}
   </a>
@@ -3848,14 +3889,22 @@ ${generateSocialsHtml()}
                                     </button>
                                     <button
                                         type="button"
+                                        onClick={() => setMediaModal({ show: true, type: 'tweet', url: '', urls: '', socialPlatform: 'x' })}
+                                        className="whitespace-nowrap flex items-center gap-1.5 px-3 py-2 bg-white/10 border border-white/20 text-white rounded-full hover:bg-white/20 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                        title="Intégrer un Tweet / Post X"
+                                    >
+                                        <XIcon className="w-3.5 h-3.5 text-white" />
+                                        <span>Tweet / X</span>
+                                    </button>
+                                    <button
+                                        type="button"
                                         onClick={() => setMediaModal({ show: true, type: 'social', url: '', urls: '', socialPlatform: 'auto' })}
                                         className="whitespace-nowrap flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-blue-500/20 border border-pink-500/30 text-pink-300 rounded-full hover:brightness-125 transition-all font-bold uppercase tracking-widest text-[9px]"
-                                        title="Intégrer un post ou une vidéo Instagram, X (Twitter) ou Facebook"
+                                        title="Intégrer un post ou une vidéo Instagram ou Facebook"
                                     >
                                         <Instagram className="w-3.5 h-3.5 text-pink-400" />
-                                        <XIcon className="w-3 h-3 text-white" />
                                         <Facebook className="w-3.5 h-3.5 text-blue-400" />
-                                        <span>Post Réseau</span>
+                                        <span>Instagram / Réseau</span>
                                     </button>
                                 </div>
                             </div>
@@ -4378,9 +4427,17 @@ ${generateSocialsHtml()}
                                                 </button>
                                                 <button
                                                     type="button"
+                                                    onClick={() => setMediaModal({ show: true, type: 'tweet', url: '', urls: '', widgetIndex: index, socialPlatform: 'x' } as any)}
+                                                    className="w-8 h-8 rounded-full bg-white/10 border border-white/20 text-white flex items-center justify-center hover:bg-white/20 transition-all"
+                                                    title="Ajouter un Tweet (X) ici"
+                                                >
+                                                    <XIcon className="w-3.5 h-3.5 text-white" />
+                                                </button>
+                                                <button
+                                                    type="button"
                                                     onClick={() => setMediaModal({ show: true, type: 'social', url: '', urls: '', widgetIndex: index, socialPlatform: 'auto' } as any)}
                                                     className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500/20 to-blue-500/20 border border-pink-500/40 text-pink-300 flex items-center justify-center hover:brightness-125 transition-all"
-                                                    title="Ajouter un post Instagram, X ou Facebook ici"
+                                                    title="Ajouter un post Instagram ou Facebook ici"
                                                 >
                                                     <Instagram className="w-4 h-4" />
                                                 </button>
@@ -4973,14 +5030,22 @@ ${generateSocialsHtml()}
                                     </button>
                                     <button
                                         type="button"
+                                        onClick={() => setMediaModal({ show: true, type: 'tweet', url: '', urls: '', socialPlatform: 'x' })}
+                                        className="whitespace-nowrap flex items-center gap-1.5 px-3 py-2 bg-white/10 border border-white/20 text-white rounded-full hover:bg-white/20 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                        title="Intégrer un Tweet / Post X"
+                                    >
+                                        <XIcon className="w-3.5 h-3.5 text-white" />
+                                        <span>Tweet / X</span>
+                                    </button>
+                                    <button
+                                        type="button"
                                         onClick={() => setMediaModal({ show: true, type: 'social', url: '', urls: '', socialPlatform: 'auto' })}
                                         className="whitespace-nowrap flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-blue-500/20 border border-pink-500/30 text-pink-300 rounded-full hover:brightness-125 transition-all font-bold uppercase tracking-widest text-[9px]"
-                                        title="Intégrer un post ou une vidéo Instagram, X (Twitter) ou Facebook"
+                                        title="Intégrer un post ou une vidéo Instagram ou Facebook"
                                     >
                                         <Instagram className="w-3.5 h-3.5 text-pink-400" />
-                                        <XIcon className="w-3 h-3 text-white" />
                                         <Facebook className="w-3.5 h-3.5 text-blue-400" />
-                                        <span>Post Réseau</span>
+                                        <span>Instagram / Réseau</span>
                                     </button>
                                 </div>
                             </div>
@@ -5597,6 +5662,14 @@ ${generateSocialsHtml()}
                 .article-section:has(h2), .article-section:has(.premium-section-title), .article-section:has(.grid) {
                     clear: both !important;
                 }
+                .article-section:has(.social-embed-widget),
+                .article-section:has(.instagram-embed-widget) {
+                    margin-bottom: 3.5rem !important;
+                    clear: both !important;
+                }
+                .article-section:has(.premium-section-title) {
+                    margin-top: 2rem !important;
+                }
                 /* Mobile Scroll fix (Request 8) */
                 body, html {
                     overflow-x: hidden;
@@ -5632,7 +5705,7 @@ ${generateSocialsHtml()}
                             </button>
 
                             <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">
-                                {mediaModal.type === 'image' ? 'Ajouter une photo' : mediaModal.type === 'video' ? 'Ajouter une vidéo' : mediaModal.type === 'gallery' ? 'Ajouter une galerie' : mediaModal.type === 'spotify' ? '🎵 Lecteur Spotify' : mediaModal.type === 'beatport' ? '🎶 Lecteur Beatport' : '📱 Post Réseau Social (Insta, X, Facebook)'}
+                                {mediaModal.type === 'image' ? 'Ajouter une photo' : mediaModal.type === 'video' ? 'Ajouter une vidéo' : mediaModal.type === 'gallery' ? 'Ajouter une galerie' : mediaModal.type === 'spotify' ? '🎵 Lecteur Spotify' : mediaModal.type === 'beatport' ? '🎶 Lecteur Beatport' : mediaModal.type === 'tweet' ? '𝕏 Intégrer un Tweet (Post X)' : '📱 Post Réseau Social (Instagram, Facebook)'}
                             </h3>
 
                             <div className="space-y-4">
@@ -5730,6 +5803,42 @@ ${generateSocialsHtml()}
                                                 </div>
                                             );
                                         })()}
+                                    </div>
+                                ) : mediaModal.type === 'tweet' ? (
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-[10px] font-black text-white uppercase tracking-widest mb-2 flex items-center justify-between">
+                                                <span className="flex items-center gap-1.5">
+                                                    <XIcon className="w-3.5 h-3.5 text-white" />
+                                                    Lien du Tweet / Post X
+                                                </span>
+                                                <span className="text-gray-500 font-mono text-[9px]">x.com / twitter.com</span>
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={mediaModal.url}
+                                                    onChange={e => setMediaModal({ ...mediaModal, url: e.target.value })}
+                                                    className="w-full bg-black/40 border border-white/20 rounded-xl p-3 pr-10 text-white outline-none focus:border-white transition-all text-xs"
+                                                    placeholder="https://x.com/username/status/123456789... ou https://twitter.com/..."
+                                                    autoFocus
+                                                />
+                                                {mediaModal.url && (
+                                                    <button type="button" onClick={() => setMediaModal({ ...mediaModal, url: '' })} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-red-500">
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2 text-[10px] text-gray-400">
+                                            <div className="flex items-center gap-2 text-white font-bold text-[11px]">
+                                                <XIcon className="w-4 h-4 text-white" />
+                                                <span>Intégration officielle X (Twitter)</span>
+                                            </div>
+                                            <p className="text-[10px] text-gray-400 leading-relaxed">
+                                                Le tweet sera automatiquement intégré avec le lecteur interactif officiel X en thème sombre au sein de l'article.
+                                            </p>
+                                        </div>
                                     </div>
                                 ) : mediaModal.type === 'social' ? (
                                     <div className="space-y-4">
