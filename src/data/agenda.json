@@ -649,5 +649,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1142,
+    "title": "Hibernation Festival",
+    "date": "2027-03-19",
+    "startDate": "2027-03-19",
+    "endDate": "2027-03-21",
+    "venue": "",
+    "location": "PAS DE LA CASE",
+    "country": "PRINCIPAUTÉ D'ANDORRE",
+    "type": "Festival",
+    "image": "/uploads/uploads/495f6704c7ca74b7-festival_hibernation_2027__1_.jpg",
+    "url": "https://festivalhibernation.com",
+    "genre": "House",
+    "month": "MARS",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
