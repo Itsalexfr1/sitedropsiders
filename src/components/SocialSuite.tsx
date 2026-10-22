@@ -174,7 +174,7 @@ function drawImageZoomPan(
     const ih = img.naturalHeight || img.height;
     if (!iw || !ih) return;
     const base = mode === 'contain' ? Math.min(w / iw, h / ih) : Math.max(w / iw, h / ih);
-    const s = base * Math.max(1, (zoomPct || 100) / 100);
+    const s = base * Math.max(0.1, (zoomPct || 100) / 100);
     const dw = iw * s;
     const dh = ih * s;
     const rangeX = Math.abs(dw - w) / 2;
@@ -588,7 +588,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const afficheImageRef = useRef<HTMLImageElement | null>(null);
     const [afficheGlow, setAfficheGlow] = useState<boolean>(true);
     const [afficheBorderColor, setAfficheBorderColor] = useState<string>('rgba(255, 255, 255, 0.22)');
-    const [afficheMode, setAfficheMode] = useState<'cover' | 'contain'>('cover');
+    const [afficheMode, setAfficheMode] = useState<'cover' | 'contain'>('contain');
     const [afficheScale, setAfficheScale] = useState<number>(100);
     const [afficheOffsetY, setAfficheOffsetY] = useState<number>(0);
     // Recadrage interne de l'image de l'affiche (zoom + déplacement sans bouger le cadre)
@@ -638,21 +638,45 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         accentClass: string = 'accent-[#ff3700]',
         textClass: string = 'text-[#ff3700]'
     ) => (
-        <div className="space-y-2 p-2.5 bg-black/40 border border-white/10 rounded-xl">
+        <div className="space-y-2.5 p-3 bg-black/40 border border-white/10 rounded-xl">
             <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-300">
-                <span>🔍 Recadrer l'image (le cadre reste fixe)</span>
+                <span>🔍 Zoom & Recadrage (le cadre reste fixe)</span>
                 {(zoom !== 100 || panX !== 0 || panY !== 0) && (
                     <button
                         type="button"
                         onClick={() => { onChange('zoom', 100); onChange('panX', 0); onChange('panY', 0); }}
-                        className={`text-[8px] ${textClass} hover:underline uppercase font-bold`}
+                        className={`text-[8px] ${textClass} hover:underline uppercase font-bold cursor-pointer`}
                     >
-                        Reset
+                        Reset (100%)
                     </button>
                 )}
             </div>
+
+            {/* Raccourcis Rapides Zoom / Dézoom */}
+            <div className="grid grid-cols-4 gap-1">
+                {[
+                    { label: '50% (Dézoom)', val: 50 },
+                    { label: '75%', val: 75 },
+                    { label: '100% (Normal)', val: 100 },
+                    { label: '125% (Zoom)', val: 125 }
+                ].map(btn => (
+                    <button
+                        key={btn.val}
+                        type="button"
+                        onClick={() => onChange('zoom', btn.val)}
+                        className={`py-1 rounded-lg text-[7.5px] font-black uppercase border transition-all ${
+                            zoom === btn.val 
+                                ? 'bg-white/20 border-white text-white shadow-sm' 
+                                : 'bg-white/5 border-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                        }`}
+                    >
+                        {btn.label}
+                    </button>
+                ))}
+            </div>
+
             {([
-                { key: 'zoom' as const, label: 'Zoom', value: zoom, min: 100, max: 200, unit: '%' },
+                { key: 'zoom' as const, label: 'Zoom / Échelle', value: zoom, min: 20, max: 200, unit: '%' },
                 { key: 'panX' as const, label: 'Gauche ↔ Droite', value: panX, min: -100, max: 100, unit: '' },
                 { key: 'panY' as const, label: 'Haut ↕ Bas', value: panY, min: -100, max: 100, unit: '' }
             ]).map(ctrl => (
@@ -13770,78 +13794,70 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         />
                     </div>
 
-                    {/* Raccourcis Rapides Affiches Escape */}
-                    <div className="flex gap-2 pt-1">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                const url = '/escape_friday_slide_affiche.png';
-                                setAfficheMode('contain');
-                                if (isPlanningAffiche) {
-                                    updateAgendaAffiche(planningAfficheIdx, 'image', url);
-                                } else {
-                                    setAfficheImage(url);
-                                    if (isEditorialAfficheActive) {
-                                        setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
-                                    }
-                                }
-                                setTimeout(() => generateImage(), 50);
-                            }}
-                            className="flex-1 py-1.5 px-2 bg-neon-red/15 hover:bg-neon-red/30 border border-neon-red/40 rounded-lg text-[8px] font-black uppercase text-neon-red transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
-                            title="Charger l'affiche Escape Psycho Circus Vendredi (Format Slide 4:5)"
-                        >
-                            🎪 Escape Vendredi
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                const url = '/escape_saturday_slide_affiche.png';
-                                setAfficheMode('contain');
-                                if (isPlanningAffiche) {
-                                    updateAgendaAffiche(planningAfficheIdx, 'image', url);
-                                } else {
-                                    setAfficheImage(url);
-                                    if (isEditorialAfficheActive) {
-                                        setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
-                                    }
-                                }
-                                setTimeout(() => generateImage(), 50);
-                            }}
-                            className="flex-1 py-1.5 px-2 bg-purple-500/15 hover:bg-purple-500/30 border border-purple-500/40 rounded-lg text-[8px] font-black uppercase text-purple-300 transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
-                            title="Charger l'affiche Escape Psycho Circus Samedi (Format Slide 4:5)"
-                        >
-                            🎪 Escape Samedi
-                        </button>
-                    </div>
-
-                    {/* Mode Cover vs Contain */}
-                    <div className="grid grid-cols-2 gap-1.5 pt-1">
-                        <button
-                            type="button"
-                            onClick={() => { setAfficheMode('cover'); setTimeout(() => generateImage(), 50); }}
-                            className={`py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${afficheMode === 'cover' ? 'bg-white/15 border-white text-white' : 'bg-black/20 border-white/5 text-gray-500 hover:text-white'}`}
-                        >
-                            Remplir (Cover)
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => { setAfficheMode('contain'); setTimeout(() => generateImage(), 50); }}
-                            className={`py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${afficheMode === 'contain' ? 'bg-white/15 border-white text-white' : 'bg-black/20 border-white/5 text-gray-500 hover:text-white'}`}
-                        >
-                            Entière (Contain)
-                        </button>
+                    {/* Mode Cover vs Contain (Dézoomé / Remplir) */}
+                    <div className="space-y-1.5 pt-1">
+                        <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
+                            <span>Format d'affichage de l'affiche</span>
+                            <span className="text-[8px] font-bold text-neon-cyan uppercase">
+                                {afficheMode === 'contain' ? 'Dézoomé (Entière)' : 'Rempli (Cover)'}
+                            </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5">
+                            <button
+                                type="button"
+                                onClick={() => { setAfficheMode('contain'); setTimeout(() => generateImage(), 50); }}
+                                className={`py-2 px-3 rounded-xl text-[8.5px] font-black uppercase border transition-all flex items-center justify-center gap-1.5 ${afficheMode === 'contain' ? 'bg-neon-cyan/20 border-neon-cyan text-white shadow-[0_0_12px_rgba(0,255,255,0.25)]' : 'bg-black/20 border-white/5 text-gray-400 hover:text-white'}`}
+                            >
+                                <span>🔍 Entière (Dézoomé)</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setAfficheMode('cover'); setTimeout(() => generateImage(), 50); }}
+                                className={`py-2 px-3 rounded-xl text-[8.5px] font-black uppercase border transition-all flex items-center justify-center gap-1.5 ${afficheMode === 'cover' ? 'bg-white/20 border-white text-white' : 'bg-black/20 border-white/5 text-gray-400 hover:text-white'}`}
+                            >
+                                <span>🔎 Remplir (Plein cadre)</span>
+                            </button>
+                        </div>
                     </div>
 
                     {/* Contrôles de taille et position */}
                     <div className="space-y-2.5 pt-2 border-t border-white/5">
                         <div className="space-y-1.5">
                             <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
-                                <span>{isMusicTheme ? 'Taille de la Cover' : 'Taille de l\'affiche'}</span>
-                                <span className={`${accentTextClass} font-mono`}>{afficheScale}%</span>
+                                <span>{isMusicTheme ? 'Taille de la Cover' : 'Taille globale du cadre'}</span>
+                                <div className="flex items-center gap-2">
+                                    <span className={`${accentTextClass} font-mono`}>{afficheScale}%</span>
+                                    {afficheScale !== 100 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => { setAfficheScale(100); setTimeout(() => generateImage(), 30); }}
+                                            className={`text-[8px] ${accentTextClass} hover:underline cursor-pointer uppercase font-bold`}
+                                        >
+                                            Reset
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-4 gap-1 pb-1">
+                                {[
+                                    { label: '70% (Petit)', val: 70 },
+                                    { label: '85%', val: 85 },
+                                    { label: '100%', val: 100 },
+                                    { label: '115%', val: 115 }
+                                ].map(s => (
+                                    <button
+                                        key={s.val}
+                                        type="button"
+                                        onClick={() => { setAfficheScale(s.val); setTimeout(() => generateImage(), 30); }}
+                                        className={`py-1 rounded text-[7.5px] font-black uppercase border transition-all ${afficheScale === s.val ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/5 text-gray-400 hover:text-white'}`}
+                                    >
+                                        {s.label}
+                                    </button>
+                                ))}
                             </div>
                             <input
                                 type="range"
-                                min="60"
+                                min="30"
                                 max="120"
                                 value={afficheScale}
                                 onChange={(e) => {
