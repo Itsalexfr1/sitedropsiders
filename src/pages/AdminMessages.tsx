@@ -2509,7 +2509,7 @@ Alex (Dropsiders)`;
                                                                             <div style={{ marginTop: '4px', fontSize: '8px', fontWeight: 700 }}>
                                                                                 <a href="https://instagram.com/dropsiders.fr" target="_blank" rel="noreferrer" style={{ color: '#ff3b14', textDecoration: 'none', marginRight: '6px', display: 'inline-block' }}>Instagram →</a>
                                                                                 <a href="https://www.tiktok.com/@dropsiders.fr" target="_blank" rel="noreferrer" style={{ color: '#ff3b14', textDecoration: 'none', marginRight: '6px', display: 'inline-block' }}>TikTok →</a>
-                                                                                <a href="https://open.spotify.com/user/dropsiders" target="_blank" rel="noreferrer" style={{ color: '#ff3b14', textDecoration: 'none', display: 'inline-block' }}>Spotify →</a>
+                                                                                <a href="https://open.spotify.com/user/31ahjhl2z36om3nafuggetksj3hy?si=fd2001cc9fd447d0" target="_blank" rel="noreferrer" style={{ color: '#ff3b14', textDecoration: 'none', display: 'inline-block' }}>Spotify →</a>
                                                                             </div>
                                                                         </td>
                                                                         <td style={{ verticalAlign: 'top', textAlign: 'right', paddingLeft: '5px', width: '48px' }}>

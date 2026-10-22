@@ -114,7 +114,7 @@ export function AdminSignatures() {
         website: 'https://dropsiders.fr',
         instagram: OFFICIAL_INSTAGRAM,
         tiktok: OFFICIAL_TIKTOK,
-        spotify: 'https://open.spotify.com/user/dropsiders',
+        spotify: 'https://open.spotify.com/user/31ahjhl2z36om3nafuggetksj3hy?si=fd2001cc9fd447d0',
         youtube: 'https://youtube.com/@dropsiders',
         avatarUrl: 'https://dropsiders.fr/apple-touch-icon.png',
         showAvatar: false,
@@ -157,7 +157,7 @@ export function AdminSignatures() {
                 logoTheme: prev.logoTheme || 'negative',
                 instagram: OFFICIAL_INSTAGRAM,
                 tiktok: OFFICIAL_TIKTOK,
-                spotify: 'https://open.spotify.com/user/dropsiders',
+                spotify: 'https://open.spotify.com/user/31ahjhl2z36om3nafuggetksj3hy?si=fd2001cc9fd447d0',
                 youtube: 'https://youtube.com/@dropsiders',
             }));
             setEmailToSend('contact@dropsiders.fr');

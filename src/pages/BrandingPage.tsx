@@ -490,7 +490,7 @@ export function BrandingPage() {
                     transition={{ duration: 0.5, delay: 0.3 }}
                     className="w-full grid grid-cols-2 gap-3 pt-1"
                 >
-                    <a href="https://open.spotify.com/user/dropsiders" target="_blank" rel="noopener noreferrer" className="p-3.5 bg-gradient-to-r from-emerald-950/40 to-[#0a0a0a] border border-emerald-500/20 hover:border-emerald-500/50 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-400 hover:text-white transition-all shadow-lg group">
+                    <a href="https://open.spotify.com/user/31ahjhl2z36om3nafuggetksj3hy?si=fd2001cc9fd447d0" target="_blank" rel="noopener noreferrer" className="p-3.5 bg-gradient-to-r from-emerald-950/40 to-[#0a0a0a] border border-emerald-500/20 hover:border-emerald-500/50 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-400 hover:text-white transition-all shadow-lg group">
                         <SpotifyIcon className="w-4 h-4 fill-emerald-500 group-hover:scale-110 transition-transform" />
                         Spotify
                     </a>

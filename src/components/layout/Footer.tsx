@@ -117,7 +117,7 @@ export function Footer() {
     const socialLinks = [
         { name: 'Instagram', icon: <Instagram className="w-6 h-6" />, href: getSocialUrl(socials.instagram, 'instagram'), color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
         { name: 'TikTok', icon: <TiktokIcon className="w-5 h-5 fill-current" />, href: getSocialUrl(socials.tiktok, 'tiktok'), color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
-        { name: 'Spotify', icon: <SpotifyIcon className="w-5 h-5 fill-current" />, href: `https://open.spotify.com/user/dropsiders`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
+        { name: 'Spotify', icon: <SpotifyIcon className="w-5 h-5 fill-current" />, href: `https://open.spotify.com/user/31ahjhl2z36om3nafuggetksj3hy?si=fd2001cc9fd447d0`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
         { name: 'YouTube', icon: <Youtube className="w-6 h-6" />, href: `https://www.youtube.com/@dropsiders`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
         { name: 'X', icon: <XIcon className="w-5 h-5" />, href: `https://x.com/dropsidersfr`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
         { name: 'Facebook', icon: <Facebook className="w-6 h-6" />, href: `https://www.facebook.com/dropsidersfr`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' }
