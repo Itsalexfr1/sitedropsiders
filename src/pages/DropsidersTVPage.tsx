@@ -521,6 +521,37 @@ export function DropsidersTVPage() {
         return false;
     });
 
+    // Chat resizable width
+    const [chatWidth, setChatWidth] = useState<number>(() => {
+        try {
+            const saved = localStorage.getItem('dropsiders_chat_width');
+            if (saved) return Number(saved);
+        } catch {}
+        return 360;
+    });
+    const chatResizeRef = useRef<{ dragging: boolean; startX: number; startW: number }>({
+        dragging: false, startX: 0, startW: 360
+    });
+
+    const startChatResize = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        chatResizeRef.current = { dragging: true, startX: e.clientX, startW: chatWidth };
+        const onMove = (ev: MouseEvent) => {
+            if (!chatResizeRef.current.dragging) return;
+            const delta = chatResizeRef.current.startX - ev.clientX;
+            const newW = Math.min(700, Math.max(260, chatResizeRef.current.startW + delta));
+            setChatWidth(newW);
+        };
+        const onUp = () => {
+            chatResizeRef.current.dragging = false;
+            try { localStorage.setItem('dropsiders_chat_width', String(chatWidth)); } catch {}
+            window.removeEventListener('mousemove', onMove);
+            window.removeEventListener('mouseup', onUp);
+        };
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
+    }, [chatWidth]);
+
     const [isMobileScreen, setIsMobileScreen] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
     useEffect(() => {
@@ -1894,25 +1925,36 @@ export function DropsidersTVPage() {
                 )}
             </AnimatePresence>
 
-            {/* Twitch Chat Sidebar (Station @dropsiderstv) */}
+            {/* Chat Sidebar (Dropsiders Live Chat) */}
             <AnimatePresence>
                 {isChatOpen && (
                     <motion.aside
-                        key="twitch-chat-sidebar"
+                        key="dropsiders-chat-sidebar"
                         initial={{ width: 0, opacity: 0, x: 20 }}
                         animate={{ 
-                            width: isMobileScreen ? '100%' : (isFullscreen ? 380 : 360), 
+                            width: isMobileScreen ? '100%' : chatWidth, 
                             opacity: 1, 
                             x: 0 
                         }}
                         exit={{ width: 0, opacity: 0, x: 20 }}
                         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                        style={isMobileScreen ? {} : { width: chatWidth }}
                         className={`${
                             isMobileScreen 
                                 ? 'fixed inset-y-0 right-0 w-[88vw] max-w-[380px] z-[100]' 
                                 : 'relative z-30'
                         } h-full shrink-0 flex flex-col bg-[#0b0c10] border-l border-white/10 shadow-2xl overflow-hidden`}
                     >
+                        {/* Resize handle — drag left/right to resize chat */}
+                        {!isMobileScreen && (
+                            <div
+                                onMouseDown={startChatResize}
+                                className="absolute left-0 top-0 bottom-0 w-1.5 z-50 cursor-col-resize group flex items-center justify-center"
+                                title="Glisser pour redimensionner le chat"
+                            >
+                                <div className="w-0.5 h-12 rounded-full bg-white/10 group-hover:bg-cyan-400/60 group-active:bg-cyan-400 transition-all duration-150" />
+                            </div>
+                        )}
                         <DropsidersLiveChat 
                             channelName="Dropsiders TV" 
                             onClose={toggleChat} 
