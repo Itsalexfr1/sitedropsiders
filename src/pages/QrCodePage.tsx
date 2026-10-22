@@ -8,8 +8,8 @@ export function QrCodePage() {
 
     useEffect(() => {
         qrCode.current = new QRCodeStyling({
-            width: 1024,
-            height: 1024,
+            width: 2000,
+            height: 2000,
             data: "https://dropsiders.fr",
             image: "/Logo.png",
             dotsOptions: {
@@ -80,10 +80,10 @@ export function QrCodePage() {
                         onClick={downloadQR}
                         className="w-full bg-neon-red hover:bg-red-600 text-white font-bold py-4 rounded-xl transition-all shadow-[0_0_15px_rgba(255,0,51,0.4)] hover:shadow-[0_0_25px_rgba(255,0,51,0.6)] flex items-center justify-center gap-3 uppercase tracking-widest text-sm"
                     >
-                        Télécharger en PNG HD
+                        Télécharger en PNG HD (2000×2000)
                     </button>
                     <p className="text-xs text-gray-500">
-                        Version haute définition (1024x1024). Parfait pour l'impression ou les stickers.
+                        Version ultra haute définition (2000×2000). Parfait pour l'impression, affiches ou stickers.
                     </p>
                 </div>
             </div>

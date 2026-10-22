@@ -88,7 +88,7 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
     const getSharePageUrl = () => {
         if (pageUrl) return `https://dropsiders.fr${pageUrl.startsWith('/') ? '' : '/'}${pageUrl}`;
         const base = 'https://dropsiders.fr';
-        if (type === 'clip') return `${base}/clips`;
+        if (type === 'clip') return `${base}/galerie`;
         return `${base}/galerie`;
     };
 

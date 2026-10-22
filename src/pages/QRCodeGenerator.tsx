@@ -33,7 +33,7 @@ export function QRCodeGenerator({ isOpen, onClose }: QRCodeGeneratorProps) {
     const [dotStyle, setDotStyle] = useState<typeof DOT_STYLES[0]['value']>('extra-rounded');
     const [withLogo, setWithLogo] = useState(true);
     const [copied, setCopied] = useState(false);
-    const [size] = useState(300);
+    const [size] = useState(2000);
     const [showSuccess, setShowSuccess] = useState(false);
     const [readyBlob, setReadyBlob] = useState<Blob | null>(null);
     const [readyUrl, setReadyUrl] = useState<string>('');
@@ -81,12 +81,24 @@ export function QRCodeGenerator({ isOpen, onClose }: QRCodeGeneratorProps) {
         });
     }, [url, fgColor, bgColor, dotStyle, withLogo, size]);
 
+    const fitCanvasPreview = () => {
+        if (!qrRef.current) return;
+        const el = qrRef.current.querySelector('canvas') || qrRef.current.querySelector('svg');
+        if (el) {
+            el.style.width = '100%';
+            el.style.maxWidth = '280px';
+            el.style.height = 'auto';
+            el.style.display = 'block';
+        }
+    };
+
     // Initial render
     useEffect(() => {
         if (!isOpen || !qrRef.current) return;
         qrRef.current.innerHTML = '';
         qrInstance.current = buildQR();
         qrInstance.current.append(qrRef.current);
+        fitCanvasPreview();
     }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Update on options change
@@ -95,6 +107,7 @@ export function QRCodeGenerator({ isOpen, onClose }: QRCodeGeneratorProps) {
         qrRef.current.innerHTML = '';
         qrInstance.current = buildQR();
         qrInstance.current.append(qrRef.current);
+        fitCanvasPreview();
     }, [url, fgColor, bgColor, dotStyle, withLogo, buildQR, isOpen]);
 
 
@@ -310,7 +323,7 @@ export function QRCodeGenerator({ isOpen, onClose }: QRCodeGeneratorProps) {
                                     className="rounded-[2rem] overflow-hidden shadow-[0_0_80px_rgba(0,255,243,0.15)] border border-white/10 relative z-10"
                                     style={{ background: bgColor }}
                                 >
-                                    <div ref={qrRef} className="p-1" />
+                                    <div ref={qrRef} className="p-1 max-w-[280px] sm:max-w-[300px] w-full [&>canvas]:max-w-full [&>canvas]:h-auto [&>canvas]:block [&>svg]:max-w-full [&>svg]:h-auto flex items-center justify-center" />
                                 </div>
                                 {/* Glow */}
                                 <div
@@ -332,7 +345,7 @@ export function QRCodeGenerator({ isOpen, onClose }: QRCodeGeneratorProps) {
                                     className="w-full py-4 bg-neon-cyan text-black rounded-2xl font-black text-[11px] uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-lg shadow-neon-cyan/20"
                                 >
                                     <Download className="w-4 h-4" />
-                                    GÉNÉRER PNG
+                                    GÉNÉRER PNG (2000×2000 HD)
                                 </button>
                                 <button
                                     onClick={() => handleExport('svg')}

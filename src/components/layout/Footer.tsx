@@ -134,7 +134,6 @@ export function Footer() {
         { label: navLabels.voyage || t('nav.voyage'), path: '/voyage' },
         { label: navLabels.bus || t('nav.bus'), path: '/voyage/bus' },
         { label: navLabels.galerie || t('nav.galerie'), path: '/galerie' },
-        { label: 'Clips', path: '/clips' },
         { label: navLabels.top_dropsiders || t('nav.top_dropsiders') || 'TOP DROPSIDERS', path: '/top-dropsiders' },
         ...(gtaContestMenuVisible ? [{ label: 'Concours GTA 6', path: '/concours-gta6' }] : []),
         ...(shopEnabled && !shopPasswordProtected ? [{ label: navLabels.shop || t('nav.shop'), path: '/shop' }] : []),

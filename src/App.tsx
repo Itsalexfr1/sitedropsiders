@@ -1,6 +1,6 @@
 import { useEffect, Suspense, useState } from 'react';
 import { AlertCircle, RefreshCw, X, Bell } from 'lucide-react';
-import { createBrowserRouter, RouterProvider, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -36,7 +36,6 @@ const CookiesPolicy = lazyRetry(() => import('./pages/CookiesPolicy').then(m => 
 const MentionsLegales = lazyRetry(() => import('./pages/MentionsLegales').then(m => m.MentionsLegales));
 const Newsletter = lazyRetry(() => import('./pages/Newsletter').then(m => m.Newsletter));
 const Unsubscribe = lazyRetry(() => import('./pages/Unsubscribe').then(m => m.Unsubscribe));
-const ClipsPage = lazyRetry(() => import('./pages/ClipsPage').then(m => m.ClipsPage));
 const RecapCreate = lazyRetry(() => import('./pages/RecapCreate').then(m => m.RecapCreate));
 const AgendaCreate = lazyRetry(() => import('./pages/AgendaCreate').then(m => m.AgendaCreate));
 const GalerieCreate = lazyRetry(() => import('./pages/GalerieCreate').then(m => m.GalerieCreate));
@@ -229,7 +228,7 @@ const router = createBrowserRouter([
       { path: "cgu", element: <TermsOfService /> },
       { path: "cookies", element: <CookiesPolicy /> },
       { path: "kit-media", element: <KitMedia /> },
-      { path: "clips", element: <ClipsPage /> },
+      { path: "clips", element: <Navigate to="/galerie" replace /> },
       { path: "contact", element: <Contact /> },
       { path: "a-propos", element: <About /> },
       { path: "pro/boutique", element: <ProShop /> },
