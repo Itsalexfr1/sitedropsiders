@@ -177,13 +177,21 @@ function drawImageZoomPan(
     const s = base * Math.max(0.1, (zoomPct || 100) / 100);
     const dw = iw * s;
     const dh = ih * s;
-    const rangeX = Math.abs(dw - w) / 2;
-    const rangeY = Math.abs(dh - h) / 2;
+
+    // Amplitude de déplacement garantie et fluide sur toute la carte (au moins 80% du cadre)
+    const maxTravelX = Math.max(Math.abs(dw - w), w * 0.8) / 2;
+    const maxTravelY = Math.max(Math.abs(dh - h), h * 0.8) / 2;
+
     const px = Math.max(-1, Math.min(1, (panXPct || 0) / 100));
     const py = Math.max(-1, Math.min(1, (panYPct || 0) / 100));
-    // pan positif = on montre davantage la droite / le bas de l'image
-    const dx = x + (w - dw) / 2 - rangeX * px * (dw >= w ? 1 : -1);
-    const dy = y + (h - dh) / 2 - rangeY * py * (dh >= h ? 1 : -1);
+
+    // py < 0 (Haut / -100) -> décale vers le HAUT pour afficher le bas
+    // py > 0 (Bas / +100) -> décale vers le BAS pour afficher le haut
+    // px < 0 (Gauche / -100) -> décale vers la GAUCHE
+    // px > 0 (Droite / +100) -> décale vers la DROITE
+    const dx = Math.round(x + (w - dw) / 2 + maxTravelX * px);
+    const dy = Math.round(y + (h - dh) / 2 + maxTravelY * py);
+
     ctx.drawImage(img, dx, dy, dw, dh);
 }
 
@@ -13820,86 +13828,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     </div>
 
-                    {/* Contrôles de taille et position */}
-                    <div className="space-y-2.5 pt-2 border-t border-white/5">
-                        <div className="space-y-1.5">
-                            <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
-                                <span>{isMusicTheme ? 'Taille de la Cover' : 'Taille globale du cadre'}</span>
-                                <div className="flex items-center gap-2">
-                                    <span className={`${accentTextClass} font-mono`}>{afficheScale}%</span>
-                                    {afficheScale !== 100 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => { setAfficheScale(100); setTimeout(() => generateImage(), 30); }}
-                                            className={`text-[8px] ${accentTextClass} hover:underline cursor-pointer uppercase font-bold`}
-                                        >
-                                            Reset
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-4 gap-1 pb-1">
-                                {[
-                                    { label: '70% (Petit)', val: 70 },
-                                    { label: '85%', val: 85 },
-                                    { label: '100%', val: 100 },
-                                    { label: '115%', val: 115 }
-                                ].map(s => (
-                                    <button
-                                        key={s.val}
-                                        type="button"
-                                        onClick={() => { setAfficheScale(s.val); setTimeout(() => generateImage(), 30); }}
-                                        className={`py-1 rounded text-[7.5px] font-black uppercase border transition-all ${afficheScale === s.val ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/5 text-gray-400 hover:text-white'}`}
-                                    >
-                                        {s.label}
-                                    </button>
-                                ))}
-                            </div>
-                            <input
-                                type="range"
-                                min="30"
-                                max="120"
-                                value={afficheScale}
-                                onChange={(e) => {
-                                    setAfficheScale(Number(e.target.value));
-                                    setTimeout(() => generateImage(), 30);
-                                }}
-                                className={`w-full ${accentSlider} bg-white/10 rounded-lg h-1.5 cursor-pointer`}
-                            />
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
-                                <span>Position Verticale</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-gray-300 font-mono text-[8px]">{afficheOffsetY > 0 ? `+${afficheOffsetY}` : afficheOffsetY}px</span>
-                                    {(afficheOffsetY !== 0 || afficheScale !== 100) && (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setAfficheScale(100);
-                                                setAfficheOffsetY(0);
-                                                setTimeout(() => generateImage(), 30);
-                                            }}
-                                            className={`text-[8px] ${accentTextClass} hover:underline cursor-pointer uppercase font-bold`}
-                                        >
-                                            Reset
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                            <input
-                                type="range"
-                                min="-150"
-                                max="150"
-                                value={afficheOffsetY}
-                                onChange={(e) => {
-                                    setAfficheOffsetY(Number(e.target.value));
-                                    setTimeout(() => generateImage(), 30);
-                                }}
-                                className={`w-full ${accentSlider} bg-white/10 rounded-lg h-1.5 cursor-pointer`}
-                            />
-                        </div>
+                    {/* Contrôles de cadrage de l'affiche importée */}
+                    <div className="pt-2 border-t border-white/5">
                         {renderImageCropControls(
                             isPlanningAffiche ? (currentPlanningAffiche?.zoom ?? 100) : afficheImgZoom,
                             isPlanningAffiche ? (currentPlanningAffiche?.panX ?? 0) : afficheImgPanX,
@@ -13912,10 +13842,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     else if (field === 'panX') setAfficheImgPanX(value);
                                     else setAfficheImgPanY(value);
                                 }
+                                setTimeout(() => generateImage(), 30);
                             },
                             accentSlider,
                             accentTextClass
-                        )}
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-white/5">
