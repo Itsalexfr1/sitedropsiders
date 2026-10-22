@@ -13846,6 +13846,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             },
                             accentSlider,
                             accentTextClass
+                        )}
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-white/5">
