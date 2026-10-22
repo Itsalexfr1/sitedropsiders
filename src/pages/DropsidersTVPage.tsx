@@ -8,29 +8,7 @@ import { AdminTVModal } from '../components/admin/modals/AdminTVModal';
 import { TVShareScheduleModal } from '../components/tv/TVShareScheduleModal';
 import type { TVScheduleBlock, TVVideoCategory } from '../utils/tvSchedule';
 
-const DEFAULT_TWITCH_CHANNEL = 'dropsiderstv';
-
-const TwitchIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z" />
-    </svg>
-);
-
-const buildTwitchChatUrl = (channel: string) => {
-    const parents = new Set<string>([
-        'localhost',
-        '127.0.0.1',
-        'dropsiders.com',
-        'www.dropsiders.com',
-        'dropsiders.fr',
-        'www.dropsiders.fr'
-    ]);
-    if (typeof window !== 'undefined' && window.location.hostname) {
-        parents.add(window.location.hostname);
-    }
-    const parentParams = Array.from(parents).map(p => `parent=${encodeURIComponent(p)}`).join('&');
-    return `https://www.twitch.tv/embed/${encodeURIComponent(channel)}/chat?${parentParams}&darkpopout`;
-};
+import { DropsidersLiveChat } from '../components/chat/DropsidersLiveChat';
 import { 
     DEFAULT_TV_BLOCKS, 
     STORAGE_TV_BLOCKS_KEY, 
@@ -562,18 +540,6 @@ export function DropsidersTVPage() {
             return next;
         });
     }, []);
-
-    const openTwitchPopout = useCallback(() => {
-        if (typeof window !== 'undefined') {
-            window.open(
-                'https://www.twitch.tv/popout/dropsiderstv/chat',
-                'TwitchChatPopout',
-                'width=420,height=680,resizable=yes,scrollbars=yes'
-            );
-        }
-    }, []);
-
-    const twitchChatUrl = useMemo(() => buildTwitchChatUrl(DEFAULT_TWITCH_CHANNEL), []);
 
     const [isYtApiReady, setIsYtApiReady] = useState(() => {
         return !!(typeof window !== 'undefined' && window.YT && window.YT.Player);
@@ -1525,19 +1491,19 @@ export function DropsidersTVPage() {
                                 </div>
 
                                 <div className="flex items-center gap-3">
-                                    {/* Bouton Chat Twitch visible par tous les visiteurs */}
+                                    {/* Bouton Chat Live Dropsiders */}
                                     <button
                                         onClick={toggleChat}
                                         className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-[11px] font-black uppercase tracking-wider backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto shadow-lg ${
                                             isChatOpen
-                                                ? 'bg-[#9146FF] hover:bg-[#772ce8] text-white border-[#9146FF] shadow-[#9146FF]/30'
-                                                : 'bg-white/10 hover:bg-[#9146FF]/20 border-white/20 text-white hover:border-[#9146FF]/40'
+                                                ? 'bg-neon-red hover:bg-neon-red/80 text-white border-neon-red shadow-[0_0_15px_rgba(255,0,51,0.4)]'
+                                                : 'bg-white/10 hover:bg-neon-red/20 border-white/20 text-white hover:border-neon-red/40'
                                         }`}
-                                        title={isChatOpen ? "Masquer le chat Twitch (C)" : "Ouvrir le chat Twitch @dropsiderstv (C)"}
+                                        title={isChatOpen ? "Masquer le chat Live (C)" : "Ouvrir le chat Live Dropsiders (C)"}
                                     >
-                                        <TwitchIcon className="w-3.5 h-3.5 text-white" />
-                                        <span className="hidden sm:inline">Chat</span>
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                        <MessageSquare className="w-3.5 h-3.5 text-neon-cyan" />
+                                        <span className="hidden sm:inline">Chat Live</span>
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />
                                     </button>
 
                                     {/* Admin TV Settings Button */}
@@ -1945,65 +1911,12 @@ export function DropsidersTVPage() {
                             isMobileScreen 
                                 ? 'fixed inset-y-0 right-0 w-[88vw] max-w-[380px] z-[100]' 
                                 : 'relative z-30'
-                        } h-full shrink-0 flex flex-col bg-[#0e0e14] border-l border-white/10 shadow-2xl overflow-hidden`}
+                        } h-full shrink-0 flex flex-col bg-[#0b0c10] border-l border-white/10 shadow-2xl overflow-hidden`}
                     >
-                        {/* Chat Header */}
-                        <div className="h-14 px-4 border-b border-white/10 flex items-center justify-between bg-black/90 shrink-0">
-                            <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-xl bg-[#9146FF]/20 border border-[#9146FF]/40 flex items-center justify-center text-[#9146FF] shadow-[0_0_15px_rgba(145,70,255,0.25)]">
-                                    <TwitchIcon className="w-4 h-4" />
-                                </div>
-                                <div className="flex flex-col">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="text-white text-xs font-black uppercase tracking-wider">Chat TV</span>
-                                        <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Salon Twitch actif 24/7" />
-                                    </div>
-                                    <a 
-                                        href="https://www.twitch.tv/dropsiderstv"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-[10px] text-gray-400 hover:text-[#9146FF] font-semibold transition-colors"
-                                    >
-                                        @dropsiderstv
-                                    </a>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <button
-                                    onClick={openTwitchPopout}
-                                    className="p-2 rounded-lg text-gray-400 hover:text-[#9146FF] hover:bg-white/10 transition-colors cursor-pointer"
-                                    title="Détacher le chat (Popout) pour chatter directement avec son compte"
-                                >
-                                    <ExternalLink className="w-4 h-4" />
-                                </button>
-                                <button
-                                    onClick={toggleChat}
-                                    className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                                    title="Masquer le chat (C)"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Twitch Chat Iframe Embed */}
-                        <div className="flex-1 w-full h-full bg-[#18181b] relative overflow-hidden">
-                            <iframe
-                                src={twitchChatUrl}
-                                title="Twitch Chat DropsidersTV"
-                                className="w-full h-full border-0"
-                                allow="encrypted-media"
-                            />
-                        </div>
-
-                        {/* Chat Footer Info */}
-                        <div className="px-3.5 py-2 border-t border-white/10 bg-black/60 flex items-center justify-between text-[10px] text-gray-400 shrink-0">
-                            <span className="flex items-center gap-1.5">
-                                <MessageSquare className="w-3 h-3 text-[#9146FF]" />
-                                <span>Chat officiel Twitch 24/7</span>
-                            </span>
-                            <span className="text-[9px] font-mono opacity-60">Touche [C]</span>
-                        </div>
+                        <DropsidersLiveChat 
+                            channelName="Dropsiders TV" 
+                            onClose={toggleChat} 
+                        />
                     </motion.aside>
                 )}
             </AnimatePresence>

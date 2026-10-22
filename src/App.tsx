@@ -79,6 +79,7 @@ const GTAContestPage = lazyRetry(() => import('./pages/GTAContestPage').then(m =
 const AdminGTAContestPage = lazyRetry(() => import('./pages/AdminGTAContestPage').then(m => m.AdminGTAContestPage));
 const BlindTestPage = lazyRetry(() => import('./pages/BlindTestPage').then(m => m.BlindTestPage));
 const CallGeneratorPage = lazyRetry(() => import('./pages/CallGeneratorPage').then(m => m.CallGeneratorPage));
+const LiveChatPopoutPage = lazyRetry(() => import('./pages/LiveChatPopoutPage').then(m => m.LiveChatPopoutPage));
 
 
 function ErrorFallback() {
@@ -311,6 +312,14 @@ const router = createBrowserRouter([
           </Suspense>
         </PlayerProvider>
       </UserProvider>
+    ),
+  },
+  {
+    path: "/live-chat-popout",
+    element: (
+      <Suspense fallback={<LoadingPage />}>
+        <LiveChatPopoutPage />
+      </Suspense>
     ),
   },
 ]);
