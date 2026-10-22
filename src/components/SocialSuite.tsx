@@ -7992,8 +7992,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 let subHeight = bodyText ? (subLines.length * subLineHeight) : 0;
                 let totalTextHeight = titleHeight + gapBetween + subHeight;
 
-                // Calcul dynamique de l'espace disponible pour éviter TOUT chevauchement avec le bandeau CTA en bas
-                const bottomLimit = shouldDrawDevinetteCta ? (canvas.height - (isReel ? 60 : 44) - 26) : (canvas.height - (isReel ? 40 : 25));
+                // Calcul dynamique de l'espace disponible pour éviter TOUT chevauchement avec les indicateurs en bas (ARTICLE COMPLET / VOTER / CTA Devinette)
+                let bottomLimit = canvas.height - (isReel ? 40 : 25);
+                if (shouldDrawDevinetteCta) {
+                    bottomLimit = canvas.height - (isReel ? 60 : 44) - 26;
+                } else if (showArticleLink || showVoteLink) {
+                    const hasBothLinks = (showArticleLink && showVoteLink);
+                    if (isReel) {
+                        // En Reel/Story, l'indicateur est placé à canvas.height - 230 pour éviter l'interface Instagram
+                        // Marge de sécurité généreuse de 45px au-dessus de l'indicateur
+                        bottomLimit = canvas.height - (hasBothLinks ? 330 : 295);
+                    } else {
+                        // En Publication, l'indicateur est placé à canvas.height - 55
+                        // Marge de sécurité généreuse de 45px au-dessus de l'indicateur
+                        bottomLimit = canvas.height - (hasBothLinks ? 155 : 125);
+                    }
+                }
                 const availableSpace = Math.max(100, bottomLimit - dividerY);
 
                 // Réduction automatique si le texte dépasse en hauteur ou en largeur
@@ -8423,7 +8437,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillStyle = '#ffffff';
                 ctx.shadowColor = 'rgba(0,0,0,0.8)';
                 ctx.shadowBlur = 10;
-                ctx.fillText('ARTICLE COMPLET SUR DROPSIDERS.FR', 40, canvas.height - 10);
+                ctx.fillText('ARTICLE COMPLET SUR DROPSIDERS.FR', 40, canvas.height - 25);
                 ctx.restore();
             }
 
@@ -8435,7 +8449,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillStyle = '#ffffff';
                 ctx.shadowColor = 'rgba(0,0,0,0.8)';
                 ctx.shadowBlur = 10;
-                ctx.fillText('VOTER SUR DROPSIDERS.FR', 40, canvas.height - (showArticleLink ? 45 : 10));
+                ctx.fillText('VOTER SUR DROPSIDERS.FR', 40, canvas.height - (showArticleLink ? 60 : 25));
                 ctx.restore();
             }
 
@@ -13754,6 +13768,50 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }}
                             className={`w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-medium placeholder-gray-500 outline-none ${isMusicTheme ? 'focus:border-[#00ff66]/50' : (isPlanningAffiche ? 'focus:border-[#ff3700]/50' : 'focus:border-neon-red/50')} transition-all`}
                         />
+                    </div>
+
+                    {/* Raccourcis Rapides Affiches Escape */}
+                    <div className="flex gap-2 pt-1">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const url = '/escape_friday_slide_affiche.png';
+                                setAfficheMode('contain');
+                                if (isPlanningAffiche) {
+                                    updateAgendaAffiche(planningAfficheIdx, 'image', url);
+                                } else {
+                                    setAfficheImage(url);
+                                    if (isEditorialAfficheActive) {
+                                        setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
+                                    }
+                                }
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="flex-1 py-1.5 px-2 bg-neon-red/15 hover:bg-neon-red/30 border border-neon-red/40 rounded-lg text-[8px] font-black uppercase text-neon-red transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
+                            title="Charger l'affiche Escape Psycho Circus Vendredi (Format Slide 4:5)"
+                        >
+                            🎪 Escape Vendredi
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const url = '/escape_saturday_slide_affiche.png';
+                                setAfficheMode('contain');
+                                if (isPlanningAffiche) {
+                                    updateAgendaAffiche(planningAfficheIdx, 'image', url);
+                                } else {
+                                    setAfficheImage(url);
+                                    if (isEditorialAfficheActive) {
+                                        setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
+                                    }
+                                }
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="flex-1 py-1.5 px-2 bg-purple-500/15 hover:bg-purple-500/30 border border-purple-500/40 rounded-lg text-[8px] font-black uppercase text-purple-300 transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
+                            title="Charger l'affiche Escape Psycho Circus Samedi (Format Slide 4:5)"
+                        >
+                            🎪 Escape Samedi
+                        </button>
                     </div>
 
                     {/* Mode Cover vs Contain */}

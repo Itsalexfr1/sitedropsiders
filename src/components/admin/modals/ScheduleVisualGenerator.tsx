@@ -1,6 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Sun, Moon, Plus, Trash2, Download, Smartphone, Image as ImageIcon, Sparkles, ChevronRight, Type, Upload, ChevronLeft, Eye, EyeOff } from 'lucide-react';
+import { 
+    X, Calendar, Sun, Moon, Plus, Trash2, Download, Smartphone, 
+    Image as ImageIcon, Sparkles, ChevronLeft, Type, Upload, 
+    EyeOff, Video, Play, RotateCcw, Film, Check, Zap, Wand2
+} from 'lucide-react';
 
 interface ScheduledEvent {
     id: string;
@@ -14,6 +18,8 @@ interface DaySchedule {
     date: string;
     events: ScheduledEvent[];
 }
+
+export type TextAnimationType = 'none' | 'fade' | 'slide' | 'glow' | 'cyber' | 'pop';
 
 export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     const [schedule, setSchedule] = useState<DaySchedule[]>(() => {
@@ -36,21 +42,34 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         }
     });
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordProgress, setRecordProgress] = useState(0);
+
     const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
     const [backgroundVideo, setBackgroundVideo] = useState<string | null>(null);
+    const [videoDuration, setVideoDuration] = useState<number>(8); // In seconds
+    const [textAnimation, setTextAnimation] = useState<TextAnimationType>(() => {
+        return (localStorage.getItem('dropsiders_schedule_animation') as TextAnimationType) || 'none';
+    });
+    const [animationKey, setAnimationKey] = useState(0);
+
     const [logoScale, setLogoScale] = useState(() => parseFloat(localStorage.getItem('dropsiders_schedule_logoScale') || '1.0'));
     const [viewMode, setViewMode] = useState<'planning' | 'timetable'>(() => (localStorage.getItem('dropsiders_schedule_mode') as any) || 'planning');
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const bgInputRef = useRef<HTMLInputElement>(null);
+    const previewVideoRef = useRef<HTMLVideoElement>(null);
+
     // Persistence
-    React.useEffect(() => {
+    useEffect(() => {
         localStorage.setItem('dropsiders_schedule_data', JSON.stringify(schedule));
     }, [schedule]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         localStorage.setItem('dropsiders_schedule_showLogo', String(showLogo));
     }, [showLogo]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         try {
             if (festivalLogo) {
                 localStorage.setItem('dropsiders_schedule_festivalLogo', festivalLogo);
@@ -62,24 +81,25 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         }
     }, [festivalLogo]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         localStorage.setItem('dropsiders_schedule_showWebsite', String(showWebsite));
     }, [showWebsite]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         localStorage.setItem('dropsiders_schedule_title', customTitle);
     }, [customTitle]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         localStorage.setItem('dropsiders_schedule_logoScale', String(logoScale));
     }, [logoScale]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         localStorage.setItem('dropsiders_schedule_mode', viewMode);
     }, [viewMode]);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const bgInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        localStorage.setItem('dropsiders_schedule_animation', textAnimation);
+    }, [textAnimation]);
 
     const addDay = () => {
         if (schedule.length >= 25) return;
@@ -139,88 +159,66 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
     const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const isVideo = file.type.startsWith('video/');
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                if (isVideo) {
-                    setBackgroundVideo(event.target?.result as string);
-                    setBackgroundImage(null);
-                } else {
-                    setBackgroundImage(event.target?.result as string);
-                    setBackgroundVideo(null);
-                }
-            };
-            reader.readAsDataURL(file);
+            const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|webm|m4v|mkv)$/i.test(file.name);
+            if (isVideo) {
+                // Use ObjectURL for instantaneous loading without memory crashes
+                const url = URL.createObjectURL(file);
+                setBackgroundVideo(url);
+                setBackgroundImage(null);
+            } else {
+                const url = URL.createObjectURL(file);
+                setBackgroundImage(url);
+                setBackgroundVideo(null);
+            }
         }
         e.target.value = '';
     };
 
-    const generateImage = async () => {
-        setIsGenerating(true);
-        const width = 1080;
-        const height = 1920;
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d')!;
-
-        // 1. Filter active days to avoid wasting space
-        const activeSchedule = schedule.filter(d => d.date || d.events.some(e => e.artist || e.location));
-        const numDays = activeSchedule.length;
-        if (numDays === 0) {
-            setIsGenerating(false);
-            return;
-        }
-
-        // 2. Wait for fonts to ensure correct metrics and rendering
-        if (document.fonts) {
-            try {
-                await document.fonts.ready;
-            } catch (e) {
-                console.warn("Font loading failed, proceeding with fallbacks", e);
-            }
-        }
+    // Shared layout and rendering logic for both static PNG and video frames
+    const renderSceneToCanvas = (
+        ctx: CanvasRenderingContext2D,
+        width: number,
+        height: number,
+        loadedBg: HTMLImageElement | HTMLVideoElement | null,
+        loadedLogo: HTMLImageElement | null,
+        activeSchedule: DaySchedule[],
+        animProgress: number // 0 to 1
+    ) => {
+        ctx.clearRect(0, 0, width, height);
 
         // 1. Background
-        if (backgroundImage || backgroundVideo) {
-            if (backgroundImage) {
-                const bgImg = new Image();
-                bgImg.src = backgroundImage;
-                await new Promise((resolve) => { bgImg.onload = resolve; bgImg.onerror = resolve; });
-                if (bgImg.complete) {
-                    // Cover logic
-                    const scale = Math.max(width / bgImg.width, height / bgImg.height);
-                    const w = bgImg.width * scale;
-                    const h = bgImg.height * scale;
-                    ctx.drawImage(bgImg, (width - w) / 2, (height - h) / 2, w, h);
-                }
-            } else if (backgroundVideo) {
-                const video = document.createElement('video');
-                video.src = backgroundVideo;
-                await new Promise((resolve) => { 
-                    video.onloadeddata = resolve; 
-                    video.onerror = resolve; 
-                    video.currentTime = 0;
-                });
-                // Cover logic for video
-                const scale = Math.max(width / video.videoWidth, height / video.videoHeight);
-                const w = video.videoWidth * scale;
-                const h = video.videoHeight * scale;
-                ctx.drawImage(video, (width - w) / 2, (height - h) / 2, w, h);
+        if (loadedBg) {
+            let bgW = 0;
+            let bgH = 0;
+            if (loadedBg instanceof HTMLImageElement) {
+                bgW = loadedBg.width;
+                bgH = loadedBg.height;
+            } else if (loadedBg instanceof HTMLVideoElement) {
+                bgW = loadedBg.videoWidth || loadedBg.width;
+                bgH = loadedBg.videoHeight || loadedBg.height;
+            }
+
+            if (bgW > 0 && bgH > 0) {
+                const scale = Math.max(width / bgW, height / bgH);
+                const w = bgW * scale;
+                const h = bgH * scale;
+                ctx.drawImage(loadedBg, (width - w) / 2, (height - h) / 2, w, h);
+            } else {
+                ctx.drawImage(loadedBg, 0, 0, width, height);
             }
 
             // Stylish Dark Overlay (Gradient for depth)
             const overlay = ctx.createLinearGradient(0, 0, 0, height);
-            overlay.addColorStop(0, 'rgba(0, 0, 0, 0.85)');    // Darker top for logo
-            overlay.addColorStop(0.3, 'rgba(0, 0, 0, 0.6)');  // Lighter middle
-            overlay.addColorStop(0.7, 'rgba(0, 0, 0, 0.6)');  // Lighter middle
-            overlay.addColorStop(1, 'rgba(0, 0, 0, 0.9)');    // Darker bottom for website
+            overlay.addColorStop(0, 'rgba(0, 0, 0, 0.88)');    // Darker top for logo
+            overlay.addColorStop(0.3, 'rgba(0, 0, 0, 0.65)');  // Lighter middle
+            overlay.addColorStop(0.7, 'rgba(0, 0, 0, 0.65)');  // Lighter middle
+            overlay.addColorStop(1, 'rgba(0, 0, 0, 0.92)');    // Darker bottom for website
             ctx.fillStyle = overlay;
             ctx.fillRect(0, 0, width, height);
 
-            const vignette = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, height);
+            const vignette = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, height * 0.8);
             vignette.addColorStop(0, 'rgba(0,0,0,0)');
-            vignette.addColorStop(1, 'rgba(0,0,0,0.4)');
+            vignette.addColorStop(1, 'rgba(0,0,0,0.5)');
             ctx.fillStyle = vignette;
             ctx.fillRect(0, 0, width, height);
         } else {
@@ -231,67 +229,73 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             ctx.fillStyle = bgGrad;
             ctx.fillRect(0, 0, width, height);
 
+            // Tech particles
             ctx.globalAlpha = 0.05;
-            for (let i = 0; i < 5000; i++) {
-                ctx.fillStyle = Math.random() > 0.5 ? '#fff' : '#ff1241';
-                ctx.fillRect(Math.random() * width, Math.random() * height, 1, 1);
+            for (let i = 0; i < 3000; i++) {
+                ctx.fillStyle = i % 2 === 0 ? '#fff' : '#ff1241';
+                ctx.fillRect((i * 137) % width, (i * 269) % height, 1.5, 1.5);
             }
             ctx.globalAlpha = 1.0;
         }
 
-        // 3. Logo & Scaling Logic
+        // 2. Logo & Scaling Logic
+        const numDays = activeSchedule.length;
         let currentLogoScale = logoScale;
-        if (numDays > 5) {
-            currentLogoScale = Math.min(logoScale, 1.4 - (numDays - 5) * 0.1);
+        if (numDays > 4) {
+            currentLogoScale = Math.min(logoScale, 1.2 - (numDays - 4) * 0.08);
         }
+        currentLogoScale = Math.max(0.6, currentLogoScale);
 
-        // 4. Header & Vertical Placement
         let logoHeightOffset = 0;
-        if (showLogo) {
-            const logo = new Image();
-            logo.src = festivalLogo || '/Logo.png';
-            await new Promise((resolve) => { logo.onload = resolve; logo.onerror = resolve; });
-            if (logo.complete) {
-                const baseWidth = 350;
-                const logoW = baseWidth * currentLogoScale;
-                const logoH = (logo.height / logo.width) * logoW;
-                ctx.drawImage(logo, width / 2 - logoW / 2, 40, logoW, logoH);
-                logoHeightOffset = logoH + 20;
-            }
+        if (showLogo && loadedLogo) {
+            const baseWidth = 320;
+            const logoW = baseWidth * currentLogoScale;
+            const logoH = (loadedLogo.height / loadedLogo.width) * logoW;
+            ctx.drawImage(loadedLogo, width / 2 - logoW / 2, 45, logoW, logoH);
+            logoHeightOffset = logoH + 20;
         }
 
+        // 3. Header Title (Safe width = 920px)
         ctx.textAlign = 'center';
-        let headerY = showLogo ? 40 + logoHeightOffset + 40 : 140;
-        
+        let headerY = showLogo ? 45 + logoHeightOffset + 35 : 130;
+        const MAX_SAFE_WIDTH = 920; // 80px safe margin left and right
+
         if (customTitle && customTitle.trim()) {
-            ctx.font = '900 italic 45px "Montserrat", sans-serif';
+            const rawTitle = customTitle.toUpperCase();
+            let titleFontSize = 42;
+            ctx.font = `900 italic ${titleFontSize}px "Montserrat", sans-serif`;
+            const titleWidth = ctx.measureText(rawTitle).width;
+            if (titleWidth > MAX_SAFE_WIDTH) {
+                titleFontSize = Math.floor(titleFontSize * (MAX_SAFE_WIDTH / titleWidth));
+                ctx.font = `900 italic ${titleFontSize}px "Montserrat", sans-serif`;
+            }
             ctx.fillStyle = '#ffffff';
-            ctx.fillText(customTitle.toUpperCase(), width / 2, headerY);
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+            ctx.shadowBlur = 10;
+            ctx.fillText(rawTitle, width / 2, headerY);
+            ctx.shadowBlur = 0;
         } else {
-            headerY -= 40;
+            headerY -= 30;
         }
 
-        // 4. Calculate Content Height and determine Scale
-        const baseDateSize = 75;
-        const baseEventSize = 50;
-        const baseSpacing = 70;
-        const baseDayGap = 60; // Increased gap for better day separation
-        
+        // 4. Calculate Content Height and determine Scale so nothing is ever cut off vertically
+        const baseDateSize = 65;
+        const baseEventSize = 46;
+        const baseSpacing = 62;
+        const baseDayGap = 50;
+
         let totalBaseHeight = 0;
         activeSchedule.forEach(day => {
-            if (viewMode === 'planning') {
-                if (day.date) totalBaseHeight += baseDateSize * 1.6;
-                const visibleEvents = day.events.filter(e => e.artist);
-                totalBaseHeight += visibleEvents.length * baseSpacing;
-            } else {
-                const visibleEvents = day.events.filter(e => e.artist || e.location);
-                totalBaseHeight += visibleEvents.length * baseSpacing;
+            if (viewMode === 'planning' && day.date) {
+                totalBaseHeight += baseDateSize * 1.5;
             }
+            const visibleEvents = day.events.filter(e => e.artist || e.location);
+            totalBaseHeight += visibleEvents.length * baseSpacing;
             totalBaseHeight += baseDayGap;
         });
 
-        const footerHeight = 150;
-        const startYOffset = (customTitle?.trim() ? 100 : 20);
+        const footerHeight = 140;
+        const startYOffset = (customTitle?.trim() ? 70 : 20);
         const startY = headerY + startYOffset;
         const availableHeight = height - startY - footerHeight;
 
@@ -299,134 +303,425 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         if (totalBaseHeight > availableHeight) {
             scale = availableHeight / totalBaseHeight;
         }
-        
-        // Minimum scale to keep it legible, maximum to avoid huge text
-        scale = Math.max(0.35, Math.min(1.1, scale));
+        // Adaptive scale: allows down to 0.3 if necessary so large festival lineups NEVER get truncated
+        scale = Math.max(0.28, Math.min(1.15, scale));
 
         const dateFontSize = baseDateSize * scale;
         const eventFontSize = baseEventSize * scale;
         const eventSpacing = baseSpacing * scale;
         const dayGap = baseDayGap * scale;
-        
+
         const finalContentHeight = totalBaseHeight * scale;
-        // Start from startY, and center if there is extra space. If not enough space, start exactly at startY.
         let runningY = startY + Math.max(0, (availableHeight - finalContentHeight) / 2);
 
+        // Animation helper: returns alpha, yOffset, scale for an item index
+        let totalItemsCount = 0;
+        activeSchedule.forEach(d => {
+            if (viewMode === 'planning' && d.date) totalItemsCount++;
+            totalItemsCount += d.events.filter(e => e.artist || e.location).length;
+        });
+
+        let currentItemIndex = 0;
+
+        const getItemAnimState = (index: number) => {
+            if (textAnimation === 'none') {
+                return { opacity: 1, offsetY: 0, scale: 1, glow: 0 };
+            }
+            // Stagger each item across the first 70% of total animation progress
+            const staggerStep = Math.min(0.06, 0.65 / Math.max(1, totalItemsCount));
+            const itemStart = index * staggerStep;
+            const itemDuration = 0.25; // 25% of progress window
+            const localP = Math.max(0, Math.min(1, (animProgress - itemStart) / itemDuration));
+
+            switch (textAnimation) {
+                case 'fade': {
+                    return { opacity: localP, offsetY: (1 - localP) * 15, scale: 1, glow: 0 };
+                }
+                case 'slide': {
+                    const eased = 1 - Math.pow(1 - localP, 3);
+                    return { opacity: eased, offsetY: (1 - eased) * 45, scale: 1, glow: 0 };
+                }
+                case 'glow': {
+                    const pulse = Math.sin(animProgress * Math.PI * 4 + index * 0.4);
+                    return { 
+                        opacity: localP, 
+                        offsetY: 0, 
+                        scale: 1, 
+                        glow: localP > 0.5 ? Math.max(0, pulse * 18 + 12) : 0 
+                    };
+                }
+                case 'pop': {
+                    // Elastic scale pop
+                    let sc = 1;
+                    if (localP < 0.6) {
+                        sc = localP * 1.8;
+                    } else if (localP < 0.85) {
+                        sc = 1.15 - (localP - 0.6) * 0.6;
+                    } else {
+                        sc = 1;
+                    }
+                    return { opacity: Math.min(1, localP * 2), offsetY: 0, scale: sc, glow: 0 };
+                }
+                case 'cyber': {
+                    const eased = Math.floor(localP * 4) / 4; // stepped
+                    return { opacity: eased > 0 ? 1 : 0, offsetY: (1 - localP) * 10, scale: 1, glow: localP > 0 ? 14 : 0 };
+                }
+                default:
+                    return { opacity: 1, offsetY: 0, scale: 1, glow: 0 };
+            }
+        };
+
+        // Render each Day & its Events
         activeSchedule.forEach((day: DaySchedule) => {
             const iconDay = viewMode === 'planning' ? '☀️ ' : '';
             const iconNight = viewMode === 'planning' ? '🌒 ' : '';
 
             // 1. Date Header
             if (viewMode === 'planning' && day.date) {
-                ctx.textAlign = 'center';
-                ctx.font = `900 italic ${dateFontSize}px "Orbitron", sans-serif`;
-                ctx.fillStyle = '#ff1241';
-                ctx.shadowBlur = 15 * scale;
-                ctx.shadowColor = 'rgba(255, 18, 65, 0.5)';
-                ctx.fillText(day.date.toUpperCase(), width / 2, runningY + dateFontSize);
-                ctx.shadowBlur = 0;
-                runningY += dateFontSize * 1.6;
+                const anim = getItemAnimState(currentItemIndex++);
+                if (anim.opacity > 0) {
+                    ctx.save();
+                    ctx.globalAlpha = anim.opacity;
+                    ctx.textAlign = 'center';
+
+                    let curDateSize = dateFontSize * anim.scale;
+                    ctx.font = `900 italic ${curDateSize}px "Orbitron", sans-serif`;
+                    const dateW = ctx.measureText(day.date.toUpperCase()).width;
+                    if (dateW > MAX_SAFE_WIDTH) {
+                        curDateSize = Math.floor(curDateSize * (MAX_SAFE_WIDTH / dateW));
+                        ctx.font = `900 italic ${curDateSize}px "Orbitron", sans-serif`;
+                    }
+
+                    ctx.fillStyle = '#ff1241';
+                    ctx.shadowBlur = Math.max(15 * scale, anim.glow);
+                    ctx.shadowColor = 'rgba(255, 18, 65, 0.7)';
+                    ctx.fillText(day.date.toUpperCase(), width / 2, runningY + curDateSize + anim.offsetY);
+                    ctx.restore();
+                }
+                runningY += dateFontSize * 1.5;
             }
 
-            // 2. Events
+            // 2. Events Rendering with Horizontal Overflow Protection
             if (viewMode === 'timetable') {
                 day.events.forEach((evt) => {
                     const hourText = (evt.artist || '').toUpperCase();
                     const artistText = (evt.location || '').toUpperCase();
-                    const separator = ' - ';
-                    
-                    ctx.font = `900 italic ${eventFontSize}px "Montserrat", sans-serif`;
-                    const hourWidth = hourText ? ctx.measureText(hourText).width : 0;
-                    ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
-                    const sepWidth = ctx.measureText(separator).width;
-                    ctx.font = `900 ${eventFontSize}px "Orbitron", sans-serif`;
-                    const artistWidth = artistText ? ctx.measureText(artistText).width : 0;
-                    
-                    const totalWidth = hourWidth + (hourText && artistText ? sepWidth : 0) + artistWidth;
-                    let currentX = (width - totalWidth) / 2;
-                    const textY = runningY + eventSpacing / 2;
+                    if (!hourText && !artistText) return;
 
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-                    ctx.shadowBlur = 10 * scale;
-                    ctx.shadowOffsetY = 2 * scale;
+                    const anim = getItemAnimState(currentItemIndex++);
+                    if (anim.opacity > 0) {
+                        ctx.save();
+                        ctx.globalAlpha = anim.opacity;
 
-                    if (hourText) {
-                        ctx.textAlign = 'left';
+                        const separator = hourText && artistText ? ' - ' : '';
+
+                        // Measure at baseline eventFontSize
                         ctx.font = `900 italic ${eventFontSize}px "Montserrat", sans-serif`;
-                        ctx.fillStyle = '#ff1241';
-                        ctx.fillText(hourText, currentX, textY);
-                        currentX += hourWidth;
-                    }
-                    if (hourText && artistText) {
-                        ctx.textAlign = 'left';
+                        let hourW = hourText ? ctx.measureText(hourText).width : 0;
+
                         ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillText(separator, currentX, textY);
-                        currentX += sepWidth;
-                    }
-                    if (artistText) {
-                        ctx.textAlign = 'left';
+                        let sepW = separator ? ctx.measureText(separator).width : 0;
+
                         ctx.font = `900 ${eventFontSize}px "Orbitron", sans-serif`;
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillText(artistText, currentX, textY);
+                        let artistW = artistText ? ctx.measureText(artistText).width : 0;
+
+                        let totalRowW = hourW + sepW + artistW;
+                        let lineScale = 1.0;
+                        if (totalRowW > MAX_SAFE_WIDTH) {
+                            lineScale = MAX_SAFE_WIDTH / totalRowW;
+                        }
+
+                        const effEventSize = eventFontSize * lineScale * anim.scale;
+                        // Re-measure with scaled font
+                        ctx.font = `900 italic ${effEventSize}px "Montserrat", sans-serif`;
+                        hourW = hourText ? ctx.measureText(hourText).width : 0;
+                        ctx.font = `900 ${effEventSize}px "Montserrat", sans-serif`;
+                        sepW = separator ? ctx.measureText(separator).width : 0;
+                        ctx.font = `900 ${effEventSize}px "Orbitron", sans-serif`;
+                        artistW = artistText ? ctx.measureText(artistText).width : 0;
+
+                        totalRowW = hourW + sepW + artistW;
+                        let curX = (width - totalRowW) / 2;
+                        const textY = runningY + eventSpacing / 2 + anim.offsetY;
+
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                        ctx.shadowBlur = Math.max(10 * scale, anim.glow);
+                        ctx.shadowOffsetY = 2 * scale;
+
+                        if (hourText) {
+                            ctx.textAlign = 'left';
+                            ctx.font = `900 italic ${effEventSize}px "Montserrat", sans-serif`;
+                            ctx.fillStyle = '#ff1241';
+                            ctx.fillText(hourText, curX, textY);
+                            curX += hourW;
+                        }
+                        if (separator) {
+                            ctx.textAlign = 'left';
+                            ctx.font = `900 ${effEventSize}px "Montserrat", sans-serif`;
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillText(separator, curX, textY);
+                            curX += sepW;
+                        }
+                        if (artistText) {
+                            ctx.textAlign = 'left';
+                            ctx.font = `900 ${effEventSize}px "Orbitron", sans-serif`;
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillText(artistText, curX, textY);
+                        }
+                        ctx.restore();
                     }
-                    ctx.shadowBlur = 0;
-                    ctx.shadowOffsetY = 0;
                     runningY += eventSpacing;
                 });
             } else {
                 day.events.forEach(evt => {
                     if (!evt.artist) return;
-                    const icon = evt.type === 'day' ? iconDay : iconNight;
-                    const artistText = (icon + evt.artist).toUpperCase();
-                    const locText = evt.location ? ` ${evt.location.toUpperCase()}` : '';
-                    
-                    ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
-                    const artistWidth = ctx.measureText(artistText).width;
-                    ctx.font = `500 italic ${eventFontSize * 0.7}px "Montserrat", sans-serif`;
-                    const locWidth = ctx.measureText(locText).width;
-                    
-                    const totalW = artistWidth + (evt.location ? 20 : 0) + locWidth;
-                    let startX = (width - totalW) / 2;
-                    const textY = runningY + eventSpacing / 2;
+                    const anim = getItemAnimState(currentItemIndex++);
+                    if (anim.opacity > 0) {
+                        ctx.save();
+                        ctx.globalAlpha = anim.opacity;
 
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-                    ctx.shadowBlur = 12 * scale;
-                    ctx.shadowOffsetY = 3 * scale;
+                        const icon = evt.type === 'day' ? iconDay : iconNight;
+                        const artistText = (icon + evt.artist).toUpperCase();
+                        const locText = evt.location ? evt.location.toUpperCase() : '';
 
-                    ctx.textAlign = 'left';
-                    ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(artistText, startX, textY);
-                    
-                    if (evt.location) {
-                        ctx.font = `500 italic ${eventFontSize * 0.7}px "Montserrat", sans-serif`;
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                        ctx.fillText(evt.location.toUpperCase(), startX + artistWidth + 20, textY);
+                        // Measure
+                        ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
+                        let artW = ctx.measureText(artistText).width;
+                        ctx.font = `600 italic ${eventFontSize * 0.7}px "Montserrat", sans-serif`;
+                        let locW = locText ? ctx.measureText(locText).width : 0;
+                        const gap = locText ? 18 * scale : 0;
+
+                        let totalRowW = artW + gap + locW;
+                        let lineScale = 1.0;
+                        if (totalRowW > MAX_SAFE_WIDTH) {
+                            lineScale = MAX_SAFE_WIDTH / totalRowW;
+                        }
+
+                        const effEventSize = eventFontSize * lineScale * anim.scale;
+                        const effLocSize = effEventSize * 0.7;
+                        const effGap = locText ? 18 * scale * lineScale : 0;
+
+                        ctx.font = `900 ${effEventSize}px "Montserrat", sans-serif`;
+                        artW = ctx.measureText(artistText).width;
+                        ctx.font = `600 italic ${effLocSize}px "Montserrat", sans-serif`;
+                        locW = locText ? ctx.measureText(locText).width : 0;
+                        totalRowW = artW + effGap + locW;
+
+                        const startX = (width - totalRowW) / 2;
+                        const textY = runningY + eventSpacing / 2 + anim.offsetY;
+
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                        ctx.shadowBlur = Math.max(12 * scale, anim.glow);
+                        ctx.shadowOffsetY = 3 * scale;
+
+                        ctx.textAlign = 'left';
+                        ctx.font = `900 ${effEventSize}px "Montserrat", sans-serif`;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(artistText, startX, textY);
+
+                        if (locText) {
+                            ctx.font = `600 italic ${effLocSize}px "Montserrat", sans-serif`;
+                            ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+                            ctx.fillText(locText, startX + artW + effGap, textY);
+                        }
+                        ctx.restore();
                     }
-                    ctx.shadowBlur = 0;
-                    ctx.shadowOffsetY = 0;
                     runningY += eventSpacing;
                 });
             }
-            
             runningY += dayGap;
         });
 
-        // 5. Footer
+        // 5. Footer (Website Branding)
         if (showWebsite) {
             ctx.textAlign = 'center';
             ctx.font = '900 24px "Orbitron", sans-serif';
             ctx.fillStyle = '#ffffff';
             ctx.letterSpacing = '10px';
-            ctx.fillText('DROPSIDERS.FR', width / 2, height - 100);
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.fillText('DROPSIDERS.FR', width / 2, height - 90);
+            ctx.shadowBlur = 0;
         }
+    };
 
-        const link = document.createElement('a');
-        link.href = canvas.toDataURL('image/png');
-        link.download = `dropsiders-planning-${schedule[0]?.date || 'schedule'}.png`;
-        link.click();
-        setIsGenerating(false);
+    // Load background asset (Image or Video)
+    const loadBackgroundAsset = async (): Promise<HTMLImageElement | HTMLVideoElement | null> => {
+        if (backgroundImage) {
+            const bgImg = new Image();
+            bgImg.crossOrigin = 'anonymous';
+            bgImg.src = backgroundImage;
+            await new Promise((resolve) => { bgImg.onload = resolve; bgImg.onerror = resolve; });
+            return bgImg.complete ? bgImg : null;
+        } else if (backgroundVideo) {
+            const video = document.createElement('video');
+            video.crossOrigin = 'anonymous';
+            video.src = backgroundVideo;
+            video.muted = true;
+            video.playsInline = true;
+            await new Promise((resolve) => {
+                video.onloadeddata = resolve;
+                video.onerror = resolve;
+                video.currentTime = 0.1;
+            });
+            return video;
+        }
+        return null;
+    };
+
+    const loadLogoAsset = async (): Promise<HTMLImageElement | null> => {
+        if (!showLogo) return null;
+        const logo = new Image();
+        logo.crossOrigin = 'anonymous';
+        logo.src = festivalLogo || '/Logo.png';
+        await new Promise((resolve) => { logo.onload = resolve; logo.onerror = resolve; });
+        return logo.complete ? logo : null;
+    };
+
+    // 1. GENERATE STATIC PNG (High Res 1080x1920)
+    const generateImage = async () => {
+        setIsGenerating(true);
+        try {
+            const width = 1080;
+            const height = 1920;
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d')!;
+
+            const activeSchedule = schedule.filter(d => d.date || d.events.some(e => e.artist || e.location));
+            if (activeSchedule.length === 0) {
+                setIsGenerating(false);
+                return;
+            }
+
+            if (document.fonts) {
+                try { await document.fonts.ready; } catch (e) { console.warn(e); }
+            }
+
+            const [loadedBg, loadedLogo] = await Promise.all([
+                loadBackgroundAsset(),
+                loadLogoAsset()
+            ]);
+
+            // animProgress = 1.0 (fully revealed)
+            renderSceneToCanvas(ctx, width, height, loadedBg, loadedLogo, activeSchedule, 1.0);
+
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = `dropsiders-planning-${schedule[0]?.date || 'schedule'}.png`;
+            link.click();
+        } catch (err) {
+            console.error('Error generating image:', err);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    // 2. GENERATE ANIMATED VIDEO STORY (MP4 / WebM)
+    const generateVideo = async () => {
+        setIsRecording(true);
+        setRecordProgress(0);
+
+        try {
+            const width = 1080;
+            const height = 1920;
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d')!;
+
+            const activeSchedule = schedule.filter(d => d.date || d.events.some(e => e.artist || e.location));
+            if (activeSchedule.length === 0) {
+                setIsRecording(false);
+                return;
+            }
+
+            if (document.fonts) {
+                try { await document.fonts.ready; } catch (e) { console.warn(e); }
+            }
+
+            const [loadedBg, loadedLogo] = await Promise.all([
+                loadBackgroundAsset(),
+                loadLogoAsset()
+            ]);
+
+            // Start playing background video if present
+            if (loadedBg instanceof HTMLVideoElement) {
+                loadedBg.currentTime = 0;
+                loadedBg.loop = true;
+                try { await loadedBg.play(); } catch (e) { console.warn(e); }
+            }
+
+            // Setup MediaRecorder
+            const stream = canvas.captureStream(30);
+            let mimeType = 'video/webm';
+            if (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')) {
+                mimeType = 'video/mp4;codecs=avc1';
+            } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+                mimeType = 'video/mp4';
+            } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+                mimeType = 'video/webm;codecs=vp9';
+            }
+
+            const chunks: Blob[] = [];
+            const recorder = new MediaRecorder(stream, {
+                mimeType,
+                videoBitsPerSecond: 8000000 // 8 Mbps high quality
+            });
+
+            recorder.ondataavailable = (e) => {
+                if (e.data && e.data.size > 0) chunks.push(e.data);
+            };
+
+            const recordPromise = new Promise<Blob>((resolve) => {
+                recorder.onstop = () => {
+                    resolve(new Blob(chunks, { type: mimeType.includes('mp4') ? 'video/mp4' : 'video/webm' }));
+                };
+            });
+
+            recorder.start(100);
+
+            const durationMs = videoDuration * 1000;
+            const startTime = performance.now();
+
+            await new Promise<void>((resolve) => {
+                const renderFrame = (now: number) => {
+                    const elapsed = now - startTime;
+                    const progress = Math.min(1.0, elapsed / durationMs);
+
+                    setRecordProgress(Math.round(progress * 100));
+
+                    // Render scene at current progress
+                    renderSceneToCanvas(ctx, width, height, loadedBg, loadedLogo, activeSchedule, progress);
+
+                    if (elapsed < durationMs) {
+                        requestAnimationFrame(renderFrame);
+                    } else {
+                        recorder.stop();
+                        if (loadedBg instanceof HTMLVideoElement) {
+                            loadedBg.pause();
+                        }
+                        resolve();
+                    }
+                };
+                requestAnimationFrame(renderFrame);
+            });
+
+            const blob = await recordPromise;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+            a.download = `dropsiders-planning-story-${schedule[0]?.date || 'story'}.${ext}`;
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+        } catch (err) {
+            console.error('Video generation failed:', err);
+        } finally {
+            setIsRecording(false);
+            setRecordProgress(0);
+        }
     };
 
     if (!isOpen) return null;
@@ -437,6 +732,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/90 backdrop-blur-xl" />
                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-5xl bg-gray-900 border border-white/10 rounded-[2.5rem] flex flex-col max-h-[95vh] overflow-hidden shadow-2xl">
                     
+                    {/* Header */}
                     <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/5">
                         <div className="flex items-center gap-4">
                             <button onClick={onClose} className="p-3 bg-neon-cyan/20 hover:bg-neon-cyan text-white hover:text-black rounded-2xl border border-neon-cyan/30 transition-all flex items-center gap-2 font-black text-[9px] uppercase tracking-widest group">
@@ -448,7 +744,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                             </div>
                             <div>
                                 <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">Planning <span className="text-neon-cyan">Story Generator</span></h2>
-                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Créez des visuels de programmation</p>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Créez des visuels & vidéos de programmation pour Instagram</p>
                             </div>
                         </div>
                         <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-2xl transition-all">
@@ -458,11 +754,13 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
                     <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            
+                            {/* Left Column: Controls & Schedule inputs */}
                             <div className="space-y-6">
                                 <div className="flex flex-col gap-4 mb-6">
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-sm font-black text-white uppercase italic tracking-widest">Options du Visuel</h3>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 flex-wrap">
                                             <button 
                                                 onClick={() => setShowLogo(!showLogo)} 
                                                 className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${
@@ -470,7 +768,6 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                         ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.25)]' 
                                                         : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
                                                 }`}
-                                                title={showLogo ? "Logo activé" : "Logo désactivé (cliquer pour activer)"}
                                             >
                                                 <ImageIcon className={`w-3 h-3 ${showLogo ? 'text-neon-cyan' : 'text-gray-400'}`} /> Logo: {showLogo ? 'OUI' : 'NON'}
                                             </button>
@@ -481,7 +778,6 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                         ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.25)]' 
                                                         : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
                                                 }`}
-                                                title={showWebsite ? "Site activé" : "Site désactivé (cliquer pour activer)"}
                                             >
                                                 <Smartphone className={`w-3 h-3 ${showWebsite ? 'text-neon-cyan' : 'text-gray-400'}`} /> Site: {showWebsite ? 'OUI' : 'NON'}
                                             </button>
@@ -501,13 +797,15 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2 mb-6">
+                                    {/* Title input */}
+                                    <div className="space-y-2">
                                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                             <Type className="w-3 h-3 text-neon-cyan" /> Titre du Planning
                                         </label>
                                         <input type="text" value={customTitle} onChange={(e) => setCustomTitle(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neon-cyan outline-none transition-all font-bold italic" placeholder="PLANNING LIVETAKEOVER" />
                                     </div>
 
+                                    {/* Assets upload: Logo + Background (Image / Video) */}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <div className="flex items-center justify-between">
@@ -520,9 +818,8 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                             type="button"
                                                             onClick={() => setShowLogo(true)}
                                                             className="text-[9px] font-bold text-amber-300 bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 rounded transition-all flex items-center gap-1 cursor-pointer"
-                                                            title="Le logo est masqué, cliquez pour l'activer"
                                                         >
-                                                            <EyeOff className="w-2.5 h-2.5 text-amber-400" /> Masqué (Activer)
+                                                            <EyeOff className="w-2.5 h-2.5 text-amber-400" /> Masqué
                                                         </button>
                                                     )}
                                                     <span className="text-neon-cyan text-[10px] font-bold">{Math.round(logoScale * 100)}%</span>
@@ -543,21 +840,113 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                                             </div>
                                         </div>
+
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                                <ImageIcon className="w-3 h-3 text-neon-cyan" /> Fond (Image/Vidéo)
-                                            </label>
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                                    {backgroundVideo ? <Video className="w-3 h-3 text-neon-red animate-pulse" /> : <ImageIcon className="w-3 h-3 text-neon-cyan" />}
+                                                    Fond (Image ou Vidéo)
+                                                </label>
+                                                {backgroundVideo && (
+                                                    <span className="text-[9px] font-black text-neon-red bg-neon-red/10 border border-neon-red/30 px-2 py-0.5 rounded-full uppercase">
+                                                        Vidéo Active
+                                                    </span>
+                                                )}
+                                            </div>
                                             <div className="flex items-center gap-2">
-                                                <button onClick={() => bgInputRef.current?.click()} className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white hover:bg-white/10 transition-all uppercase ${backgroundImage || backgroundVideo ? 'border-neon-cyan/50' : ''}`}>
-                                                    <Upload className="w-4 h-4 text-neon-cyan" /> {backgroundImage || backgroundVideo ? 'Changer Fond' : 'Upload Fond'}
+                                                <button onClick={() => bgInputRef.current?.click()} className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white hover:bg-white/10 transition-all uppercase ${backgroundImage || backgroundVideo ? 'border-neon-cyan/50 text-neon-cyan' : ''}`}>
+                                                    <Upload className="w-4 h-4 text-neon-cyan" /> {backgroundVideo ? 'Changer Vidéo' : backgroundImage ? 'Changer Image' : 'Upload Image / Vidéo'}
                                                 </button>
-                                                {(backgroundImage || backgroundVideo) && <button onClick={() => { setBackgroundImage(null); setBackgroundVideo(null); }} className="p-3 bg-neon-red/20 border border-neon-red/30 rounded-xl text-neon-red hover:bg-neon-red/30 transition-all"><Trash2 className="w-4 h-4" /></button>}
-                                                <input ref={bgInputRef} type="file" accept="image/*,video/*" onChange={handleBackgroundUpload} className="hidden" />
+                                                {(backgroundImage || backgroundVideo) && (
+                                                    <button onClick={() => { setBackgroundImage(null); setBackgroundVideo(null); }} className="p-3 bg-neon-red/20 border border-neon-red/30 rounded-xl text-neon-red hover:bg-neon-red/30 transition-all" title="Supprimer le fond">
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                                <input ref={bgInputRef} type="file" accept="image/*,video/mp4,video/quicktime,video/webm,video/*" onChange={handleBackgroundUpload} className="hidden" />
                                             </div>
                                         </div>
                                     </div>
+
+                                    {/* Text Animation Choice Section */}
+                                    <div className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <Wand2 className="w-4 h-4 text-neon-cyan" />
+                                                <span className="text-xs font-black text-white uppercase tracking-wider">Animation des Textes</span>
+                                            </div>
+                                            <button 
+                                                onClick={() => setAnimationKey(k => k + 1)}
+                                                className="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 hover:bg-neon-cyan/20 border border-white/10 hover:border-neon-cyan/40 rounded-lg text-[9px] font-black uppercase text-gray-300 hover:text-neon-cyan transition-all"
+                                                title="Rejouer l'animation dans l'aperçu"
+                                            >
+                                                <RotateCcw className="w-3 h-3" /> Rejouer
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {[
+                                                { id: 'none', label: 'Statique', icon: X, desc: 'Pas d\'animation' },
+                                                { id: 'fade', label: 'Cascade Fondu', icon: Sparkles, desc: 'Apparition progressive' },
+                                                { id: 'slide', label: 'Slide Up', icon: Zap, desc: 'Montée fluide' },
+                                                { id: 'glow', label: 'Pulsation Néon', icon: Film, desc: 'Lueur cyber' },
+                                                { id: 'pop', label: 'Zoom Punchy', icon: Play, desc: 'Impact festival' },
+                                                { id: 'cyber', label: 'Cyber Glitch', icon: Wand2, desc: 'Reveal futuriste' },
+                                            ].map((anim) => {
+                                                const isSel = textAnimation === anim.id;
+                                                const IconComp = anim.icon;
+                                                return (
+                                                    <button
+                                                        key={anim.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setTextAnimation(anim.id as TextAnimationType);
+                                                            setAnimationKey(k => k + 1);
+                                                        }}
+                                                        className={`flex flex-col items-start p-2.5 rounded-xl border transition-all text-left ${
+                                                            isSel 
+                                                                ? 'bg-neon-cyan/20 border-neon-cyan text-white shadow-[0_0_15px_rgba(0,255,255,0.2)]' 
+                                                                : 'bg-black/30 border-white/5 text-gray-400 hover:text-white hover:bg-white/5'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center justify-between w-full mb-1">
+                                                            <IconComp className={`w-3.5 h-3.5 ${isSel ? 'text-neon-cyan' : 'text-gray-400'}`} />
+                                                            {isSel && <Check className="w-3 h-3 text-neon-cyan" />}
+                                                        </div>
+                                                        <span className="text-[10px] font-black uppercase tracking-tight">{anim.label}</span>
+                                                        <span className="text-[8px] text-gray-500 font-medium">{anim.desc}</span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+
+                                        {/* Video Duration selector (when video background or animations active) */}
+                                        {(backgroundVideo || textAnimation !== 'none') && (
+                                            <div className="pt-2 flex items-center justify-between border-t border-white/5">
+                                                <span className="text-[9px] font-black uppercase text-gray-400 flex items-center gap-1.5">
+                                                    <Film className="w-3 h-3 text-neon-cyan" /> Durée Export Vidéo
+                                                </span>
+                                                <div className="flex items-center gap-1.5">
+                                                    {[5, 8, 10, 15].map((sec) => (
+                                                        <button
+                                                            key={sec}
+                                                            type="button"
+                                                            onClick={() => setVideoDuration(sec)}
+                                                            className={`px-2 py-0.5 rounded text-[9px] font-black uppercase transition-all ${
+                                                                videoDuration === sec 
+                                                                    ? 'bg-neon-cyan text-black' 
+                                                                    : 'bg-white/5 text-gray-400 hover:text-white'
+                                                            }`}
+                                                        >
+                                                            {sec}s
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
+                                {/* Dates & Events Section */}
                                 <h3 className="text-sm font-black text-white uppercase italic tracking-widest mb-4">Dates & Événements</h3>
                                 <div className="space-y-4">
                                     {schedule.map((day, idx) => (
@@ -589,7 +978,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                                     <input type="text" value={evt.artist} onChange={(e) => updateEvent(day.id, evt.id, 'artist', e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:border-neon-cyan outline-none" />
                                                                 </div>
                                                                 <div className="space-y-1">
-                                                                    <label className="text-[8px] font-black text-gray-400 uppercase ml-1 tracking-widest">{viewMode === 'planning' ? 'Lieu' : 'Artiste / Stage'}</label>
+                                                                    <label className="text-[8px] font-black text-gray-400 uppercase ml-1 tracking-widest">{viewMode === 'planning' ? 'Lieu / Stage' : 'Artiste / Stage'}</label>
                                                                     <input type="text" value={evt.location} onChange={(e) => updateEvent(day.id, evt.id, 'location', e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:border-neon-cyan outline-none" />
                                                                 </div>
                                                             </div>
@@ -606,88 +995,198 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                 </div>
                             </div>
 
+                            {/* Right Column: Live Phone Mockup & Export Buttons */}
                             <div className="relative">
                                 <div className="sticky top-0 space-y-6">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <h3 className="text-sm font-black text-white uppercase italic tracking-widest">Aperçu Layout</h3>
-                                        <div className="px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/30 rounded text-[8px] font-black text-neon-cyan uppercase tracking-widest">Story 9:16</div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="text-sm font-black text-white uppercase italic tracking-widest">Aperçu Story 9:16</h3>
+                                            {backgroundVideo && <span className="px-2 py-0.5 bg-neon-red/10 border border-neon-red/30 rounded text-[8px] font-black text-neon-red uppercase">Vidéo</span>}
+                                            {textAnimation !== 'none' && <span className="px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/30 rounded text-[8px] font-black text-neon-cyan uppercase">{textAnimation}</span>}
+                                        </div>
+                                        <button
+                                            onClick={() => setAnimationKey(k => k + 1)}
+                                            className="text-gray-400 hover:text-white text-[9px] font-bold uppercase flex items-center gap-1 bg-white/5 hover:bg-white/10 px-2 py-1 rounded-lg transition-all"
+                                            title="Rejouer l'animation"
+                                        >
+                                            <RotateCcw className="w-3 h-3" /> Rejouer
+                                        </button>
                                     </div>
 
-                                    <div className="aspect-[9/19.2] w-full max-w-[380px] mx-auto bg-black rounded-[3.5rem] border-[8px] border-[#1a1a1a] shadow-[0_0_50px_rgba(0,0,0,0.8)] relative overflow-hidden flex flex-col p-6 text-white scale-[0.55] origin-top transition-all duration-700 hover:scale-[0.58] group">
+                                    {/* Mockup Phone Frame */}
+                                    <div className="aspect-[9/19.2] w-full max-w-[360px] mx-auto bg-black rounded-[3.2rem] border-[8px] border-[#181818] shadow-[0_0_50px_rgba(0,0,0,0.9)] relative overflow-hidden flex flex-col p-5 text-white scale-[0.62] origin-top transition-all duration-500 hover:scale-[0.64] group">
+                                        
+                                        {/* Background Layer */}
                                         {backgroundImage || backgroundVideo ? (
                                             <div className="absolute inset-0">
-                                                {backgroundImage ? <img src={backgroundImage ?? undefined} alt="Background" className="w-full h-full object-cover" /> : <video src={backgroundVideo ?? undefined} autoPlay muted loop className="w-full h-full object-cover" />}
-                                                <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/60 to-black/90" />
+                                                {backgroundImage ? (
+                                                    <img src={backgroundImage} alt="Background" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <video 
+                                                        ref={previewVideoRef}
+                                                        src={backgroundVideo!} 
+                                                        autoPlay 
+                                                        muted 
+                                                        loop 
+                                                        playsInline 
+                                                        className="w-full h-full object-cover" 
+                                                    />
+                                                )}
+                                                <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/60 to-black/90 pointer-events-none" />
                                             </div>
                                         ) : (
                                             <div className="absolute inset-0 bg-gradient-to-b from-[#0a0b12] via-[#1a0510] to-[#050a0f]" />
                                         )}
-                                        <div className="relative z-10 flex flex-col h-full">
-                                            <div className="w-20 h-6 bg-black rounded-full mx-auto mb-6 flex items-center justify-center border border-white/5 shadow-inner">
-                                                <div className="w-2 h-2 bg-[#1a1a1a] rounded-full mr-2" />
-                                                <div className="w-8 h-1 bg-[#1a1a1a] rounded-full" />
+
+                                        {/* Dynamic Content Container */}
+                                        <div key={animationKey} className="relative z-10 flex flex-col h-full justify-between overflow-hidden">
+                                            
+                                            {/* Dynamic Island / Notch */}
+                                            <div className="w-20 h-5 bg-black rounded-full mx-auto mb-4 flex items-center justify-center border border-white/5 shadow-inner shrink-0">
+                                                <div className="w-2 h-2 bg-[#222] rounded-full mr-2" />
+                                                <div className="w-8 h-1 bg-[#222] rounded-full" />
                                             </div>
-                                            {showLogo ? (
-                                                <div className="flex flex-col items-center justify-center mb-5 transition-all" style={{ minHeight: `${Math.round(44 * logoScale)}px` }}>
+
+                                            {/* Header: Logo */}
+                                            {showLogo && (
+                                                <div className="flex flex-col items-center justify-center mb-3 shrink-0" style={{ minHeight: `${Math.round(38 * logoScale)}px` }}>
                                                     <img
                                                         src={festivalLogo || '/Logo.png'}
                                                         alt="Logo"
                                                         className="object-contain transition-all"
                                                         style={{
-                                                            height: `${Math.round(44 * logoScale)}px`,
+                                                            height: `${Math.round(38 * logoScale)}px`,
                                                             maxWidth: '85%'
                                                         }}
                                                     />
                                                 </div>
-                                            ) : festivalLogo ? (
-                                                <div 
-                                                    onClick={() => setShowLogo(true)}
-                                                    className="flex flex-col items-center mb-4 cursor-pointer group/hiddenlogo"
-                                                    title="Logo masqué - Cliquer pour réactiver"
-                                                >
-                                                    <div className="text-[9px] text-amber-300 bg-amber-400/10 border border-amber-400/30 px-3 py-1 rounded-full flex items-center gap-1.5 hover:bg-amber-400/20 transition-all font-bold">
-                                                        <EyeOff className="w-3 h-3 text-amber-400" /> Logo masqué (cliquer pour afficher)
+                                            )}
+
+                                            {/* Header: Custom Title */}
+                                            {customTitle && customTitle.trim() && (
+                                                <div className="text-center mb-3 px-2 shrink-0">
+                                                    <div className="text-[13px] font-black text-white italic uppercase tracking-wider truncate">
+                                                        {customTitle}
                                                     </div>
                                                 </div>
-                                            ) : null}
-                                            {customTitle && customTitle.trim() && <div className="text-center mb-4 -mt-2"><div className="text-[14px] font-black text-white italic uppercase tracking-widest">{customTitle}</div></div>}
-                                            <div className={`${viewMode === 'timetable' ? 'space-y-1' : 'space-y-4'} text-center ${!showLogo ? 'mt-6' : ''}`}>
-                                                {schedule.map(day => (
-                                                    <div key={day.id} className="space-y-1">
-                                                        {viewMode === 'planning' && <div className="text-[15px] font-black text-neon-red italic uppercase tracking-tighter">{day.date || 'DATE'}</div>}
-                                                        <div className={viewMode === 'planning' ? "space-y-2" : "space-y-1"}>
-                                                            {day.events.map(evt => (
-                                                                <div key={evt.id} className="flex items-center justify-center gap-2">
+                                            )}
+
+                                            {/* Schedule items with auto-fit layout & animations */}
+                                            <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col justify-center space-y-3 py-1 px-1">
+                                                {schedule.map((day, dIdx) => (
+                                                    <motion.div 
+                                                        key={day.id} 
+                                                        initial={
+                                                            textAnimation === 'slide' ? { opacity: 0, y: 15 } :
+                                                            textAnimation === 'fade' ? { opacity: 0 } :
+                                                            textAnimation === 'pop' ? { opacity: 0, scale: 0.8 } :
+                                                            textAnimation === 'cyber' ? { opacity: 0, x: -10 } :
+                                                            { opacity: 1 }
+                                                        }
+                                                        animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
+                                                        transition={{ duration: 0.4, delay: textAnimation !== 'none' ? dIdx * 0.12 : 0 }}
+                                                        className="space-y-1 text-center"
+                                                    >
+                                                        {viewMode === 'planning' && (
+                                                            <div className={`text-[13px] font-black text-neon-red italic uppercase tracking-tight ${textAnimation === 'glow' ? 'animate-pulse' : ''}`}>
+                                                                {day.date || 'DATE'}
+                                                            </div>
+                                                        )}
+                                                        <div className="space-y-1">
+                                                            {day.events.map((evt, eIdx) => (
+                                                                <motion.div 
+                                                                    key={evt.id} 
+                                                                    initial={
+                                                                        textAnimation === 'slide' ? { opacity: 0, y: 10 } :
+                                                                        textAnimation === 'fade' ? { opacity: 0 } :
+                                                                        textAnimation === 'pop' ? { opacity: 0, scale: 0.85 } :
+                                                                        { opacity: 1 }
+                                                                    }
+                                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                                    transition={{ duration: 0.35, delay: textAnimation !== 'none' ? (dIdx * 0.12) + (eIdx * 0.06) : 0 }}
+                                                                    className="flex items-center justify-center flex-wrap gap-1 px-1"
+                                                                >
                                                                     {viewMode === 'planning' ? (
                                                                         <>
-                                                                            <div className="text-[12px] text-white font-bold uppercase tracking-wide">{evt.type === 'day' ? '☀️' : '🌒'} {evt.artist || '...'}</div>
-                                                                            {evt.location && <div className="text-[9px] text-white/40 italic uppercase ml-2">{evt.location}</div>}
+                                                                            <span className={`text-[11px] text-white font-extrabold uppercase tracking-tight ${textAnimation === 'glow' ? 'drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : ''}`}>
+                                                                                {evt.type === 'day' ? '☀️' : '🌒'} {evt.artist || '...'}
+                                                                            </span>
+                                                                            {evt.location && (
+                                                                                <span className="text-[9px] text-white/50 italic uppercase font-semibold">
+                                                                                    {evt.location}
+                                                                                </span>
+                                                                            )}
                                                                         </>
                                                                     ) : (
                                                                         <div className="flex items-center justify-center gap-1 text-[11px] font-bold uppercase tracking-wide">
-                                                                            {evt.artist && <span className="text-neon-red italic">{evt.artist}</span>}
-                                                                            {evt.artist && evt.location && <span className="text-white/20">-</span>}
+                                                                            {evt.artist && <span className="text-neon-red italic font-extrabold">{evt.artist}</span>}
+                                                                            {evt.artist && evt.location && <span className="text-white/30">-</span>}
                                                                             {evt.location && <span className="font-display text-white">{evt.location}</span>}
                                                                         </div>
                                                                     )}
-                                                                </div>
+                                                                </motion.div>
                                                             ))}
                                                         </div>
-                                                    </div>
+                                                    </motion.div>
                                                 ))}
                                             </div>
-                                            <div className="mt-auto pt-8 flex flex-col items-center">
-                                                {showWebsite && <><div className="text-[10px] font-black text-white uppercase tracking-[0.5em]">DROPSIDERS.FR</div><div className="w-16 h-0.5 bg-neon-cyan/40 mt-2" /></>}
-                                            </div>
+
+                                            {/* Footer Branding */}
+                                            {showWebsite && (
+                                                <div className="pt-2 pb-1 shrink-0 flex flex-col items-center">
+                                                    <div className="text-[9px] font-black text-white uppercase tracking-[0.4em]">DROPSIDERS.FR</div>
+                                                    <div className="w-12 h-0.5 bg-neon-cyan/40 mt-1" />
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
-                                    <button onClick={generateImage} disabled={isGenerating} className="w-full h-16 bg-white text-black font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-neon-cyan transition-all flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(255,255,255,0.1)] active:scale-95 disabled:opacity-50">
-                                        {isGenerating ? <Sparkles className="w-6 h-6 animate-spin" /> : <Download className="w-6 h-6" />}
-                                        Générer le Visuel
-                                    </button>
+                                    {/* Action Buttons: Dual Export (Image PNG + Animated Video) */}
+                                    <div className="space-y-3 pt-2">
+                                        {/* Progress indicator during video generation */}
+                                        {isRecording && (
+                                            <div className="p-4 bg-neon-cyan/10 border border-neon-cyan/30 rounded-2xl space-y-2">
+                                                <div className="flex items-center justify-between text-xs font-black uppercase text-neon-cyan">
+                                                    <span className="flex items-center gap-2">
+                                                        <Sparkles className="w-4 h-4 animate-spin" /> Rendu de la vidéo Story...
+                                                    </span>
+                                                    <span>{recordProgress}%</span>
+                                                </div>
+                                                <div className="w-full h-2 bg-black/60 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className="h-full bg-neon-cyan transition-all duration-200" 
+                                                        style={{ width: `${recordProgress}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            {/* PNG Image Download */}
+                                            <button 
+                                                onClick={generateImage} 
+                                                disabled={isGenerating || isRecording} 
+                                                className="h-14 bg-white text-black font-black uppercase tracking-wider text-[11px] rounded-2xl hover:bg-neon-cyan transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.15)] active:scale-95 disabled:opacity-50 cursor-pointer"
+                                            >
+                                                {isGenerating ? <Sparkles className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                                Image (PNG)
+                                            </button>
+
+                                            {/* Animated Video Story Export */}
+                                            <button 
+                                                onClick={generateVideo} 
+                                                disabled={isGenerating || isRecording} 
+                                                className="h-14 bg-gradient-to-r from-neon-red to-neon-purple text-white font-black uppercase tracking-wider text-[11px] rounded-2xl hover:brightness-110 transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,18,65,0.3)] active:scale-95 disabled:opacity-50 cursor-pointer border border-white/20"
+                                            >
+                                                {isRecording ? <Sparkles className="w-4 h-4 animate-spin" /> : <Film className="w-4 h-4 text-neon-cyan" />}
+                                                Story Vidéo ({videoDuration}s)
+                                            </button>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 </motion.div>
