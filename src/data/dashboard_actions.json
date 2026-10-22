@@ -1,26 +1,14 @@
 [
   {
-    "title": "Concours GTA 6",
-    "description": "Paramètres, tirage & menu",
-    "icon": "Gamepad2",
-    "category": "STUDIO",
-    "link": "#GTA_CONTEST_MODAL",
-    "color": "border-[#ff007f]/40 hover:border-[#ff007f]",
-    "bg": "bg-[#ff007f]/10",
-    "permission": "all",
-    "baseColor": "#ff0000",
-    "columns": 1
-  },
-  {
-    "title": "Radio & TV",
-    "description": "TV en direct · Radio En Ligne (239 Sets)",
-    "icon": "Radio",
-    "category": "DROPSIDERS_TV",
-    "link": "#DROPSIDERS_TV_RADIO",
-    "color": "border-neon-cyan/30 hover:border-neon-cyan",
+    "title": "Accueil",
+    "description": "Spotify, Sections & Vues",
+    "icon": "Home",
+    "category": "ALL",
+    "link": "#",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
-    "permission": "tv_schedule",
-    "baseColor": "#aeff00",
+    "permission": "superadmin",
+    "baseColor": "#f6ccff",
     "columns": 1
   },
   {
@@ -48,6 +36,30 @@
     "columns": 1
   },
   {
+    "title": "Radio & TV",
+    "description": "TV en direct · Radio En Ligne (239 Sets)",
+    "icon": "Radio",
+    "category": "DROPSIDERS_TV",
+    "link": "#DROPSIDERS_TV_RADIO",
+    "color": "border-neon-cyan/30 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "tv_schedule",
+    "baseColor": "#aeff00",
+    "columns": 1
+  },
+  {
+    "title": "Concours GTA 6",
+    "description": "Paramètres, tirage & menu",
+    "icon": "Gamepad2",
+    "category": "STUDIO",
+    "link": "#GTA_CONTEST_MODAL",
+    "color": "border-[#ff007f]/40 hover:border-[#ff007f]",
+    "bg": "bg-[#ff007f]/10",
+    "permission": "all",
+    "baseColor": "#ff0000",
+    "columns": 1
+  },
+  {
     "title": "Statistiques",
     "description": "Analyse Audience",
     "icon": "BarChart3",
@@ -57,18 +69,6 @@
     "bg": "bg-neon-cyan/5",
     "permission": "stats_analytics",
     "baseColor": "#00fffb",
-    "columns": 1
-  },
-  {
-    "title": "Accueil",
-    "description": "Spotify, Sections & Vues",
-    "icon": "Home",
-    "category": "ALL",
-    "link": "#",
-    "color": "border-neon-cyan/20 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/5",
-    "permission": "superadmin",
-    "baseColor": "#f6ccff",
     "columns": 1
   },
   {
