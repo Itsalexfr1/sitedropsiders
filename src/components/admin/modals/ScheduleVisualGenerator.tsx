@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Sun, Moon, Plus, Trash2, Download, Smartphone, Image as ImageIcon, Sparkles, ChevronRight, Type, Upload, ChevronLeft } from 'lucide-react';
+import { X, Calendar, Sun, Moon, Plus, Trash2, Download, Smartphone, Image as ImageIcon, Sparkles, ChevronRight, Type, Upload, ChevronLeft, Eye, EyeOff } from 'lucide-react';
 
 interface ScheduledEvent {
     id: string;
@@ -28,7 +28,13 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
     const [showLogo, setShowLogo] = useState(() => localStorage.getItem('dropsiders_schedule_showLogo') !== 'false');
     const [showWebsite, setShowWebsite] = useState(() => localStorage.getItem('dropsiders_schedule_showWebsite') !== 'false');
     const [customTitle, setCustomTitle] = useState(() => localStorage.getItem('dropsiders_schedule_title') || 'PLANNING LIVETAKEOVER');
-    const [festivalLogo, setFestivalLogo] = useState<string | null>(null);
+    const [festivalLogo, setFestivalLogo] = useState<string | null>(() => {
+        try {
+            return localStorage.getItem('dropsiders_schedule_festivalLogo');
+        } catch {
+            return null;
+        }
+    });
     const [isGenerating, setIsGenerating] = useState(false);
     const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
     const [backgroundVideo, setBackgroundVideo] = useState<string | null>(null);
@@ -43,6 +49,18 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
     React.useEffect(() => {
         localStorage.setItem('dropsiders_schedule_showLogo', String(showLogo));
     }, [showLogo]);
+
+    React.useEffect(() => {
+        try {
+            if (festivalLogo) {
+                localStorage.setItem('dropsiders_schedule_festivalLogo', festivalLogo);
+            } else {
+                localStorage.removeItem('dropsiders_schedule_festivalLogo');
+            }
+        } catch (e) {
+            console.warn('LocalStorage error for festival logo:', e);
+        }
+    }, [festivalLogo]);
 
     React.useEffect(() => {
         localStorage.setItem('dropsiders_schedule_showWebsite', String(showWebsite));
@@ -109,10 +127,13 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         if (file) {
             const reader = new FileReader();
             reader.onload = (event) => {
-                setFestivalLogo(event.target?.result as string);
+                const data = event.target?.result as string;
+                setFestivalLogo(data);
+                setShowLogo(true);
             };
             reader.readAsDataURL(file);
         }
+        e.target.value = '';
     };
 
     const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,6 +152,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             };
             reader.readAsDataURL(file);
         }
+        e.target.value = '';
     };
 
     const generateImage = async () => {
@@ -441,14 +463,37 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-sm font-black text-white uppercase italic tracking-widest">Options du Visuel</h3>
                                         <div className="flex items-center gap-2">
-                                            <button onClick={() => setShowLogo(!showLogo)} className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${showLogo ? 'bg-white/10 border-white/20 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}>
-                                                <ImageIcon className={`w-3 h-3 ${showLogo ? 'text-neon-cyan' : ''}`} /> Logo: {showLogo ? 'OUI' : 'NON'}
+                                            <button 
+                                                onClick={() => setShowLogo(!showLogo)} 
+                                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${
+                                                    showLogo 
+                                                        ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.25)]' 
+                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                                }`}
+                                                title={showLogo ? "Logo activé" : "Logo désactivé (cliquer pour activer)"}
+                                            >
+                                                <ImageIcon className={`w-3 h-3 ${showLogo ? 'text-neon-cyan' : 'text-gray-400'}`} /> Logo: {showLogo ? 'OUI' : 'NON'}
                                             </button>
-                                            <button onClick={() => setShowWebsite(!showWebsite)} className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${showWebsite ? 'bg-white/10 border-white/20 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}>
-                                                <Smartphone className={`w-3 h-3 ${showWebsite ? 'text-neon-cyan' : ''}`} /> Site: {showWebsite ? 'OUI' : 'NON'}
+                                            <button 
+                                                onClick={() => setShowWebsite(!showWebsite)} 
+                                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${
+                                                    showWebsite 
+                                                        ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.25)]' 
+                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                                }`}
+                                                title={showWebsite ? "Site activé" : "Site désactivé (cliquer pour activer)"}
+                                            >
+                                                <Smartphone className={`w-3 h-3 ${showWebsite ? 'text-neon-cyan' : 'text-gray-400'}`} /> Site: {showWebsite ? 'OUI' : 'NON'}
                                             </button>
-                                            <button onClick={() => setViewMode(viewMode === 'planning' ? 'timetable' : 'planning')} className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${viewMode === 'planning' ? 'bg-white/10 border-white/20 text-white' : 'bg-neon-cyan border-neon-cyan text-black'}`}>
-                                                <Calendar className={`w-3 h-3 ${viewMode === 'timetable' ? 'text-black' : ''}`} /> Mode: {viewMode === 'planning' ? 'DATE' : 'HEURE'}
+                                            <button 
+                                                onClick={() => setViewMode(viewMode === 'planning' ? 'timetable' : 'planning')} 
+                                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${
+                                                    viewMode === 'planning' 
+                                                        ? 'bg-white/10 border-white/20 text-white' 
+                                                        : 'bg-neon-cyan border-neon-cyan text-black font-extrabold shadow-[0_0_15px_rgba(0,255,255,0.3)]'
+                                                }`}
+                                            >
+                                                <Calendar className={`w-3 h-3 ${viewMode === 'timetable' ? 'text-black' : 'text-neon-cyan'}`} /> Mode: {viewMode === 'planning' ? 'DATE' : 'HEURE'}
                                             </button>
                                             <button onClick={addDay} disabled={schedule.length >= 25} className="flex items-center gap-2 px-3 py-1.5 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-lg hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 shadow-[0_0_15px_rgba(0,255,255,0.3)]">
                                                 <Plus className="w-3 h-3" /> Ajouter ({schedule.length}/25)
@@ -465,16 +510,36 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
-                                                <span className="flex items-center gap-2"><ImageIcon className="w-3 h-3 text-neon-cyan" /> Logo du Festival</span>
-                                                <span className="text-neon-cyan">{Math.round(logoScale * 100)}%</span>
-                                            </label>
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                                    <ImageIcon className="w-3 h-3 text-neon-cyan" /> Logo du Festival
+                                                </label>
+                                                <div className="flex items-center gap-2">
+                                                    {!showLogo && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowLogo(true)}
+                                                            className="text-[9px] font-bold text-amber-300 bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 rounded transition-all flex items-center gap-1 cursor-pointer"
+                                                            title="Le logo est masqué, cliquez pour l'activer"
+                                                        >
+                                                            <EyeOff className="w-2.5 h-2.5 text-amber-400" /> Masqué (Activer)
+                                                        </button>
+                                                    )}
+                                                    <span className="text-neon-cyan text-[10px] font-bold">{Math.round(logoScale * 100)}%</span>
+                                                </div>
+                                            </div>
                                             <div className="flex items-center gap-3">
-                                                <button onClick={() => fileInputRef.current?.click()} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white hover:bg-white/10 transition-all uppercase">
+                                                <button 
+                                                    onClick={() => {
+                                                        setShowLogo(true);
+                                                        fileInputRef.current?.click();
+                                                    }} 
+                                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 hover:border-neon-cyan/40 rounded-xl text-[10px] font-black text-white hover:bg-white/10 transition-all uppercase"
+                                                >
                                                     <Upload className="w-4 h-4 text-neon-cyan" /> {festivalLogo ? 'Changer' : 'Upload'}
                                                 </button>
-                                                <input type="range" min="0.5" max="2.5" step="0.1" value={logoScale} onChange={(e) => setLogoScale(parseFloat(e.target.value))} className="w-24 accent-neon-cyan" />
-                                                {festivalLogo && <button onClick={() => setFestivalLogo(null)} className="p-3 bg-neon-red/20 border border-neon-red/30 rounded-xl text-neon-red hover:bg-neon-red/30 transition-all"><Trash2 className="w-4 h-4" /></button>}
+                                                <input type="range" min="0.5" max="2.5" step="0.1" value={logoScale} onChange={(e) => setLogoScale(parseFloat(e.target.value))} className="w-24 accent-neon-cyan cursor-pointer" />
+                                                {festivalLogo && <button onClick={() => setFestivalLogo(null)} className="p-3 bg-neon-red/20 border border-neon-red/30 rounded-xl text-neon-red hover:bg-neon-red/30 transition-all" title="Supprimer le logo"><Trash2 className="w-4 h-4" /></button>}
                                                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                                             </div>
                                         </div>
@@ -562,11 +627,29 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                 <div className="w-2 h-2 bg-[#1a1a1a] rounded-full mr-2" />
                                                 <div className="w-8 h-1 bg-[#1a1a1a] rounded-full" />
                                             </div>
-                                            {showLogo && (
-                                                <div className="flex flex-col items-center mb-6">
-                                                    {festivalLogo ? <img src={festivalLogo} alt="Logo" className="h-12 object-contain" style={{ transform: `scale(${logoScale})` }} /> : <div className="w-24 h-6 bg-white/10 rounded-lg mb-2" style={{ transform: `scale(${logoScale})` }} />}
+                                            {showLogo ? (
+                                                <div className="flex flex-col items-center justify-center mb-5 transition-all" style={{ minHeight: `${Math.round(44 * logoScale)}px` }}>
+                                                    <img
+                                                        src={festivalLogo || '/Logo.png'}
+                                                        alt="Logo"
+                                                        className="object-contain transition-all"
+                                                        style={{
+                                                            height: `${Math.round(44 * logoScale)}px`,
+                                                            maxWidth: '85%'
+                                                        }}
+                                                    />
                                                 </div>
-                                            )}
+                                            ) : festivalLogo ? (
+                                                <div 
+                                                    onClick={() => setShowLogo(true)}
+                                                    className="flex flex-col items-center mb-4 cursor-pointer group/hiddenlogo"
+                                                    title="Logo masqué - Cliquer pour réactiver"
+                                                >
+                                                    <div className="text-[9px] text-amber-300 bg-amber-400/10 border border-amber-400/30 px-3 py-1 rounded-full flex items-center gap-1.5 hover:bg-amber-400/20 transition-all font-bold">
+                                                        <EyeOff className="w-3 h-3 text-amber-400" /> Logo masqué (cliquer pour afficher)
+                                                    </div>
+                                                </div>
+                                            ) : null}
                                             {customTitle && customTitle.trim() && <div className="text-center mb-4 -mt-2"><div className="text-[14px] font-black text-white italic uppercase tracking-widest">{customTitle}</div></div>}
                                             <div className={`${viewMode === 'timetable' ? 'space-y-1' : 'space-y-4'} text-center ${!showLogo ? 'mt-6' : ''}`}>
                                                 {schedule.map(day => (
