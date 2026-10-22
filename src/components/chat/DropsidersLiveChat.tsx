@@ -212,9 +212,10 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
     const [newRewardDesc, setNewRewardDesc] = useState('');
     const [isNextMessageHighlighted, setIsNextMessageHighlighted] = useState(false);
 
-    // Firebase Firestore State
+    // Cloudflare Edge & Firebase State
     const [firebaseConfig, setFirebaseConfig] = useState<FirebaseChatConfig | null>(() => getFirebaseConfig());
     const [isFirebaseConnected, setIsFirebaseConnected] = useState<boolean>(false);
+    const [isCloudflareConnected, setIsCloudflareConnected] = useState<boolean>(true);
     const [isFirebaseModalOpen, setIsFirebaseModalOpen] = useState<boolean>(false);
     const [fbFormApiKey, setFbFormApiKey] = useState<string>(() => firebaseConfig?.apiKey || '');
     const [fbFormProjectId, setFbFormProjectId] = useState<string>(() => firebaseConfig?.projectId || '');
@@ -386,17 +387,66 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
     }, [showAlert]);
 
     // ======================================================
-    // GLOBAL REALTIME CHAT SYNC (Firebase Realtime Database & Firestore)
+    // GLOBAL REALTIME CHAT SYNC (Cloudflare Edge KV & Firebase)
     // ======================================================
     useEffect(() => {
-        const rtdb = getFirebaseRtdb();
-        const db = getFirebaseDb();
         let isSubscribed = true;
 
-        if (rtdb) {
-            // Mode Firebase Realtime Database (WebSocket haute performance < 30ms)
+        // 1. Moteur Cloudflare Edge KV (100% autonome, sans dépendance externe, synchronisé mondialement)
+        const fetchChatState = async () => {
             try {
-                // 1. Écoute instantanée des messages
+                const res = await fetch('/api/chat/messages');
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!isSubscribed) return;
+                setIsCloudflareConnected(true);
+
+                if (Array.isArray(data.messages)) {
+                    setMessages(prev => {
+                        const map = new Map<string, ChatMessageItem>();
+                        prev.forEach(m => map.set(m.id, m));
+                        data.messages.forEach((m: ChatMessageItem) => {
+                            const senderKey = (m.pseudo || '').toLowerCase();
+                            const finalRole = data.roles?.[senderKey] || m.role || 'user';
+                            map.set(m.id, {
+                                ...m,
+                                role: finalRole,
+                                isHighlighted: finalRole === 'artist' || finalRole === 'admin' || m.isHighlighted
+                            });
+                        });
+                        const merged = Array.from(map.values()).slice(-150);
+                        try { localStorage.setItem('dropsiders_chat_cache', JSON.stringify(merged)); } catch {}
+                        return merged;
+                    });
+                }
+
+                if (data.roles && typeof data.roles === 'object') {
+                    setAssignedRoles(prev => {
+                        const merged = { ...prev, ...data.roles };
+                        try { localStorage.setItem('dropsiders_assigned_roles', JSON.stringify(merged)); } catch {}
+                        return merged;
+                    });
+                }
+
+                if (data.pinned !== undefined) setPinnedMessage(data.pinned);
+                if (data.poll !== undefined) setActivePoll(data.poll);
+                if (data.slowMode !== undefined) setSlowModeSeconds(data.slowMode);
+            } catch (err) {
+                console.warn('[LiveChat] Cloudflare KV fetch error:', err);
+            }
+        };
+
+        fetchChatState();
+        const pollInterval = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                fetchChatState();
+            }
+        }, 1500);
+
+        // 2. Écouteur optionnel Firebase Realtime Database si configuré
+        const rtdb = getFirebaseRtdb();
+        if (rtdb) {
+            try {
                 const msgQuery = rtdbQuery(ref(rtdb, 'dropsiders_live_messages'), rtdbLimitToLast(120));
                 onValue(msgQuery, (snapshot) => {
                     if (!isSubscribed) return;
@@ -427,12 +477,10 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                         setMessages(fetched);
                         try { localStorage.setItem('dropsiders_chat_cache', JSON.stringify(fetched)); } catch {}
                     }
-                }, (err) => {
-                    console.warn('[LiveChat] RTDB onValue error:', err);
+                }, () => {
                     setIsFirebaseConnected(false);
                 });
 
-                // 2. Écoute de l'état global (Message épinglé, Sondage, Rôles, SlowMode)
                 const stateRef = ref(rtdb, 'dropsiders_chat_state');
                 onValue(stateRef, (snapshot) => {
                     if (!isSubscribed) return;
@@ -449,141 +497,16 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                             });
                         }
                     }
-                }, (err) => {
-                    console.warn('[LiveChat] RTDB state onValue error:', err);
-                });
-            } catch (err) {
-                console.warn('[LiveChat] RTDB init error:', err);
+                }, () => {});
+            } catch {
                 setIsFirebaseConnected(false);
             }
-
-            return () => {
-                isSubscribed = false;
-            };
-        } else if (db) {
-            // Mode Firebase Firestore
-            let unsubMessages: (() => void) | null = null;
-            let unsubState: (() => void) | null = null;
-
-            try {
-                const q = query(
-                    collection(db, 'dropsiders_live_messages'),
-                    orderBy('timestamp', 'asc'),
-                    limit(150)
-                );
-                unsubMessages = onSnapshot(q, (snapshot) => {
-                    if (!isSubscribed) return;
-                    setIsFirebaseConnected(true);
-                    const fetched: ChatMessageItem[] = [];
-                    snapshot.forEach((docSnap) => {
-                        const data = docSnap.data();
-                        const senderKey = (data.pseudo || '').toLowerCase();
-                        const finalRole = assignedRoles[senderKey] || (data.role as ChatUserRole) || 'user';
-                        let timeStr = data.time || 'LIVE';
-                        if (!data.time && data.timestamp) {
-                            timeStr = new Date(data.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                        }
-                        fetched.push({
-                            id: docSnap.id,
-                            pseudo: data.pseudo || 'Anonyme',
-                            message: data.message || '',
-                            time: timeStr,
-                            role: finalRole,
-                            color: data.color || '#00e5ff',
-                            country: data.country || 'FR',
-                            avatar: data.avatar,
-                            isPinned: Boolean(data.isPinned),
-                            isHighlighted: Boolean(data.isHighlighted || finalRole === 'admin' || finalRole === 'artist'),
-                            reactions: data.reactions
-                        });
-                    });
-                    if (fetched.length > 0) {
-                        setMessages(fetched);
-                        try { localStorage.setItem('dropsiders_chat_cache', JSON.stringify(fetched)); } catch {}
-                    }
-                }, (err) => {
-                    console.warn('[LiveChat] Firestore onSnapshot error:', err);
-                    setIsFirebaseConnected(false);
-                });
-
-                const stateRef = doc(db, 'dropsiders_chat_state', 'current');
-                unsubState = onSnapshot(stateRef, (docSnap) => {
-                    if (!isSubscribed) return;
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        if (data.pinnedMessage !== undefined) setPinnedMessage(data.pinnedMessage);
-                        if (data.activePoll !== undefined) setActivePoll(data.activePoll);
-                        if (data.slowModeSeconds !== undefined) setSlowModeSeconds(data.slowModeSeconds);
-                        if (data.roles && typeof data.roles === 'object') {
-                            setAssignedRoles(prev => {
-                                const merged = { ...prev, ...data.roles };
-                                try { localStorage.setItem('dropsiders_assigned_roles', JSON.stringify(merged)); } catch {}
-                                return merged;
-                            });
-                        }
-                    }
-                }, (err) => {
-                    console.warn('[LiveChat] Firestore state onSnapshot error:', err);
-                });
-            } catch (err) {
-                console.warn('[LiveChat] Firestore init error:', err);
-                setIsFirebaseConnected(false);
-            }
-
-            return () => {
-                isSubscribed = false;
-                if (unsubMessages) unsubMessages();
-                if (unsubState) unsubState();
-            };
-        } else {
-            // Mode Fallback (si Firebase n'est pas encore configuré)
-            setIsFirebaseConnected(false);
-            const fetchChatState = async () => {
-                try {
-                    const res = await fetch('/api/chat/messages');
-                    if (!res.ok) return;
-                    const data = await res.json();
-                    if (!isSubscribed) return;
-
-                    if (Array.isArray(data.messages)) {
-                        setMessages(prev => {
-                            const map = new Map<string, ChatMessageItem>();
-                            prev.forEach(m => map.set(m.id, m));
-                            data.messages.forEach((m: ChatMessageItem) => {
-                                const senderKey = (m.pseudo || '').toLowerCase();
-                                const finalRole = data.roles?.[senderKey] || m.role || 'user';
-                                map.set(m.id, {
-                                    ...m,
-                                    role: finalRole,
-                                    isHighlighted: finalRole === 'artist' || finalRole === 'admin' || m.isHighlighted
-                                });
-                            });
-                            const merged = Array.from(map.values()).slice(-150);
-                            try { localStorage.setItem('dropsiders_chat_cache', JSON.stringify(merged)); } catch {}
-                            return merged;
-                        });
-                    }
-
-                    if (data.roles && typeof data.roles === 'object') {
-                        setAssignedRoles(prev => {
-                            const merged = { ...prev, ...data.roles };
-                            try { localStorage.setItem('dropsiders_assigned_roles', JSON.stringify(merged)); } catch {}
-                            return merged;
-                        });
-                    }
-
-                    if (data.pinned !== undefined) setPinnedMessage(data.pinned);
-                    if (data.poll !== undefined && data.poll !== null) setActivePoll(data.poll);
-                } catch { }
-            };
-
-            fetchChatState();
-            const interval = setInterval(fetchChatState, 2000);
-            return () => {
-                isSubscribed = false;
-                clearInterval(interval);
-            };
         }
+
+        return () => {
+            isSubscribed = false;
+            clearInterval(pollInterval);
+        };
     }, [firebaseConfig, assignedRoles]);
 
     // Slow mode
@@ -1056,20 +979,10 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                     <div className="flex flex-col">
                         <div className="flex items-center gap-1.5">
                             <span className="text-white text-xs font-black uppercase tracking-wider">Chat Live Dropsiders</span>
-                            {isFirebaseConnected ? (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-[8px] font-black text-emerald-300" title="Connecté à Firebase Firestore en temps réel">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                    <span>Firebase</span>
-                                </span>
-                            ) : (
-                                <button 
-                                    onClick={() => isModOrAdmin && setIsFirebaseModalOpen(true)}
-                                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-[8px] font-black text-amber-300 hover:bg-amber-500/30 transition-all cursor-pointer"
-                                    title={isModOrAdmin ? "Cliquer pour configurer Firebase Firestore" : "Synchronisation en direct"}>
-                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                                    <span>{isModOrAdmin ? 'Config Firebase' : 'Live'}</span>
-                                </button>
-                            )}
+                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-[8px] font-black text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                <span>{isFirebaseConnected ? 'Firebase Live' : 'Cloudflare Live'}</span>
+                            </div>
                         </div>
                         <div className="flex items-center gap-2 text-[10px] text-gray-400 font-medium">
                             <span>{channelName}</span>
@@ -1094,9 +1007,9 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                     </button>
                     {isModOrAdmin && <>
                         <button onClick={() => setIsFirebaseModalOpen(true)}
-                            className={`p-1.5 rounded-lg border transition-all cursor-pointer ${isFirebaseConnected ? 'bg-emerald-500/20 border-emerald-400/40 text-emerald-300 hover:bg-emerald-500/30' : 'bg-amber-500/20 border-amber-400/40 text-amber-300 hover:bg-amber-500/30 animate-pulse'}`}
-                            title="Réglages Firebase Firestore (Temps Réel)">
-                            <Database className="w-3.5 h-3.5" />
+                            className="p-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-all cursor-pointer"
+                            title="Réglages du Chat Live (Cloudflare Edge / Firebase)">
+                            <Database className="w-3.5 h-3.5 text-emerald-400" />
                         </button>
                         <button onClick={() => setIsMockAlertOpen(true)}
                             className="p-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 transition-all cursor-pointer"
@@ -1739,7 +1652,17 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                                     <span className="text-[10px] font-black uppercase text-amber-400">Options Staff</span>
                                     <div className="flex items-center justify-between text-xs">
                                         <span className="text-gray-300">Mode Ralenti (Slow Mode)</span>
-                                        <select value={slowModeSeconds} onChange={e => { const s = Number(e.target.value); setSlowModeSeconds(s); localStorage.setItem('chat_slow_mode', String(s)); broadcastRef.current?.postMessage({ type: 'SLOW_MODE', seconds: s }); }}
+                                        <select value={slowModeSeconds} onChange={e => { 
+                                            const s = Number(e.target.value); 
+                                            setSlowModeSeconds(s); 
+                                            localStorage.setItem('chat_slow_mode', String(s)); 
+                                            broadcastRef.current?.postMessage({ type: 'SLOW_MODE', seconds: s }); 
+                                            fetch('/api/chat/slowmode', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ seconds: s })
+                                            }).catch(() => {});
+                                        }}
                                             className="bg-black/60 border border-white/15 rounded-lg px-2 py-1 text-xs text-white outline-none">
                                             <option value={0}>Désactivé</option>
                                             <option value={3}>3 secondes</option>
@@ -1758,7 +1681,7 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                                             className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500/20 to-red-500/20 hover:from-amber-500/30 hover:to-red-500/30 border border-amber-400/40 text-amber-300 font-black text-xs uppercase flex items-center justify-center gap-2 transition-all cursor-pointer"
                                         >
                                             <Database className="w-3.5 h-3.5" />
-                                            <span>Configuration Firebase Firestore</span>
+                                            <span>Moteur & Base Live Dropsiders</span>
                                         </button>
                                     </div>
                                 </div>
@@ -1779,8 +1702,8 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                     <div className="w-full max-w-lg bg-[#12131a] border border-white/15 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                         <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between bg-black/50">
                             <div className="flex items-center gap-2">
-                                <Database className="w-4 h-4 text-amber-400" />
-                                <h3 className="text-sm font-black text-white uppercase tracking-wider">Réglage Chat Firebase (Firestore)</h3>
+                                <Database className="w-4 h-4 text-emerald-400" />
+                                <h3 className="text-sm font-black text-white uppercase tracking-wider">Moteur & Base Live Dropsiders</h3>
                             </div>
                             <button onClick={() => { setIsFirebaseModalOpen(false); setFbTestStatus(null); }} className="p-1 text-gray-400 hover:text-white">
                                 <X className="w-4 h-4" />
@@ -1788,25 +1711,39 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                         </div>
 
                         <div className="p-5 space-y-4 overflow-y-auto">
-                            {/* Status Card */}
+                            {/* Cloudflare Edge Status */}
+                            <div className="p-3.5 rounded-xl border border-cyan-500/40 bg-cyan-950/30 text-cyan-200 flex items-center gap-3">
+                                <div className="w-3 h-3 rounded-full bg-cyan-400 animate-pulse shrink-0" />
+                                <div className="text-xs flex-1">
+                                    <p className="font-bold flex items-center gap-1.5">
+                                        <span>⚡ Cloudflare Edge KV (Natif & Opérationnel)</span>
+                                        <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 text-[9px] text-cyan-300 font-mono">dropsiders.fr</span>
+                                    </p>
+                                    <p className="text-[10px] text-cyan-300/80 mt-0.5">
+                                        Le chat fonctionne directement sur votre infrastructure Cloudflare sans aucune clé ni compte externe. Tout est automatique.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Status Card Firebase */}
                             <div className={`p-3.5 rounded-xl border flex items-center gap-3 ${
                                 isFirebaseConnected 
                                     ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300' 
-                                    : 'bg-amber-950/40 border-amber-500/40 text-amber-300'
+                                    : 'bg-white/5 border-white/10 text-gray-400'
                             }`}>
                                 <div className={`w-3 h-3 rounded-full shrink-0 ${
-                                    isFirebaseConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+                                    isFirebaseConnected ? 'bg-emerald-400 animate-pulse' : 'bg-gray-500'
                                 }`} />
                                 <div className="text-xs">
-                                    <p className="font-bold">
+                                    <p className="font-bold text-white">
                                         {isFirebaseConnected 
-                                            ? '🟢 Firestore Connecté en Temps Réel' 
-                                            : (firebaseConfig ? '🟡 Firebase configuré, en attente de réponse' : '⚪ Firebase non configuré')}
+                                            ? '🟢 Firebase Realtime Database Connecté' 
+                                            : '⚪ Firebase (Optionnel)'}
                                     </p>
                                     <p className="text-[10px] text-gray-400 mt-0.5">
                                         {isFirebaseConnected 
-                                            ? 'Les messages, sondages et rôles sont synchronisés instantanément par WebSocket sans rechargement.'
-                                            : 'Renseignez vos clés Firebase ci-dessous pour activer la synchronisation mondiale instantanée.'}
+                                            ? 'WebSocket Firebase actif en direct.' 
+                                            : 'Facultatif : activez-le uniquement si vous souhaitez un WebSocket Google Firebase en plus de Cloudflare.'}
                                     </p>
                                 </div>
                             </div>

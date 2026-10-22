@@ -609,19 +609,21 @@ export default {
             }
             if (request.method === 'GET') {
                 try {
-                    const [rawMsgs, rawRoles, rawPinned, rawPoll] = await Promise.all([
+                    const [rawMsgs, rawRoles, rawPinned, rawPoll, rawSlowMode] = await Promise.all([
                         env.CHAT_KV.get('dropsiders_live_messages'),
                         env.CHAT_KV.get('dropsiders_chat_roles'),
                         env.CHAT_KV.get('dropsiders_chat_pinned'),
-                        env.CHAT_KV.get('dropsiders_chat_poll')
+                        env.CHAT_KV.get('dropsiders_chat_poll'),
+                        env.CHAT_KV.get('dropsiders_chat_slowmode')
                     ]);
                     const messages = rawMsgs ? JSON.parse(rawMsgs) : [];
                     const roles = rawRoles ? JSON.parse(rawRoles) : {};
                     const pinned = rawPinned ? JSON.parse(rawPinned) : null;
                     const poll = rawPoll ? JSON.parse(rawPoll) : null;
-                    return new Response(JSON.stringify({ messages, roles, pinned, poll }), { headers });
+                    const slowMode = rawSlowMode ? Number(rawSlowMode) : 0;
+                    return new Response(JSON.stringify({ messages, roles, pinned, poll, slowMode }), { headers });
                 } catch (e: any) {
-                    return new Response(JSON.stringify({ messages: [], roles: {}, pinned: null, poll: null }), { headers });
+                    return new Response(JSON.stringify({ messages: [], roles: {}, pinned: null, poll: null, slowMode: 0 }), { headers });
                 }
             }
             if (request.method === 'POST') {
@@ -716,6 +718,18 @@ export default {
                     await env.CHAT_KV.delete('dropsiders_chat_poll');
                 }
                 return new Response(JSON.stringify({ success: true }), { headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/chat/slowmode' && request.method === 'POST') {
+            if (!env.CHAT_KV) return new Response(JSON.stringify({ error: 'CHAT_KV not bound' }), { status: 503, headers });
+            try {
+                const body = await request.json();
+                const seconds = Math.max(0, Number(body?.seconds) || 0);
+                await env.CHAT_KV.put('dropsiders_chat_slowmode', String(seconds));
+                return new Response(JSON.stringify({ success: true, seconds }), { headers });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
