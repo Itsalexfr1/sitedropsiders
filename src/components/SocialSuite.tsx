@@ -1295,7 +1295,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [promoOutroStyle, setPromoOutroStyle] = useState<'INSTAGRAM' | 'CLASSIC'>('INSTAGRAM');
     const [isPromoAnimPlaying, setIsPromoAnimPlaying] = useState<boolean>(false);
     const [promoAnimKey, setPromoAnimKey] = useState<number>(0);
-    const [showPromoHook, setShowPromoHook] = useState<boolean>(true);
+    const [showPromoHook, setShowPromoHook] = useState<boolean>(false);
     const [showPromoHeadline, setShowPromoHeadline] = useState<boolean>(true);
     const [showPromoLine1, setShowPromoLine1] = useState<boolean>(true);
     const [showPromoLine2, setShowPromoLine2] = useState<boolean>(true);
