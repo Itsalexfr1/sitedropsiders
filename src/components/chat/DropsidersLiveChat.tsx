@@ -3,37 +3,9 @@ import {
     Send, Shield, Crown, Sparkles, Flame,
     Pin, Trash2, Clock, BarChart2, Settings, 
     ExternalLink, X, Check, Radio, Award, Gift,
-    Plus, MessageSquare, Database,
-    Trophy, Bell, AlertCircle, RefreshCw, Key
+    Plus, MessageSquare, Trophy, Bell
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { 
-    getFirebaseDb, 
-    getFirebaseRtdb,
-    getFirebaseConfig, 
-    saveFirebaseConfig, 
-    clearFirebaseConfig,
-    isFirebaseConfigured,
-    testFirebaseConnection,
-    collection,
-    addDoc,
-    query,
-    orderBy,
-    limit,
-    onSnapshot,
-    deleteDoc,
-    doc,
-    setDoc,
-    serverTimestamp,
-    ref,
-    push,
-    set,
-    remove,
-    onValue,
-    rtdbQuery,
-    rtdbLimitToLast,
-    type FirebaseChatConfig
-} from '../../lib/firebase';
 
 // ==========================================
 // TYPES & ROLES
@@ -212,18 +184,8 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
     const [newRewardDesc, setNewRewardDesc] = useState('');
     const [isNextMessageHighlighted, setIsNextMessageHighlighted] = useState(false);
 
-    // Cloudflare Edge & Firebase State
-    const [firebaseConfig, setFirebaseConfig] = useState<FirebaseChatConfig | null>(() => getFirebaseConfig());
-    const [isFirebaseConnected, setIsFirebaseConnected] = useState<boolean>(false);
+    // Cloudflare Edge Sync State
     const [isCloudflareConnected, setIsCloudflareConnected] = useState<boolean>(true);
-    const [isFirebaseModalOpen, setIsFirebaseModalOpen] = useState<boolean>(false);
-    const [fbFormApiKey, setFbFormApiKey] = useState<string>(() => firebaseConfig?.apiKey || '');
-    const [fbFormProjectId, setFbFormProjectId] = useState<string>(() => firebaseConfig?.projectId || '');
-    const [fbFormAuthDomain, setFbFormAuthDomain] = useState<string>(() => firebaseConfig?.authDomain || '');
-    const [fbFormStorageBucket, setFbFormStorageBucket] = useState<string>(() => firebaseConfig?.storageBucket || '');
-    const [fbFormSenderId, setFbFormSenderId] = useState<string>(() => firebaseConfig?.messagingSenderId || '');
-    const [fbFormAppId, setFbFormAppId] = useState<string>(() => firebaseConfig?.appId || '');
-    const [fbTestStatus, setFbTestStatus] = useState<{ testing: boolean; success?: boolean; message?: string } | null>(null);
 
     // Role management
     const [isRoleManagementModalOpen, setIsRoleManagementModalOpen] = useState(false);
@@ -387,7 +349,7 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
     }, [showAlert]);
 
     // ======================================================
-    // GLOBAL REALTIME CHAT SYNC (Cloudflare Edge KV & Firebase)
+    // GLOBAL REALTIME CHAT SYNC (Cloudflare Edge KV Engine)
     // ======================================================
     useEffect(() => {
         let isSubscribed = true;
@@ -443,71 +405,11 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
             }
         }, 1500);
 
-        // 2. Écouteur optionnel Firebase Realtime Database si configuré
-        const rtdb = getFirebaseRtdb();
-        if (rtdb) {
-            try {
-                const msgQuery = rtdbQuery(ref(rtdb, 'dropsiders_live_messages'), rtdbLimitToLast(120));
-                onValue(msgQuery, (snapshot) => {
-                    if (!isSubscribed) return;
-                    setIsFirebaseConnected(true);
-                    const val = snapshot.val();
-                    if (val && typeof val === 'object') {
-                        const fetched: ChatMessageItem[] = Object.entries(val).map(([id, data]: [string, any]) => {
-                            const senderKey = (data.pseudo || '').toLowerCase();
-                            const finalRole = assignedRoles[senderKey] || (data.role as ChatUserRole) || 'user';
-                            let timeStr = data.time || 'LIVE';
-                            if (!data.time && data.timestamp) {
-                                timeStr = new Date(data.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                            }
-                            return {
-                                id,
-                                pseudo: data.pseudo || 'Anonyme',
-                                message: data.message || '',
-                                time: timeStr,
-                                role: finalRole,
-                                color: data.color || '#00e5ff',
-                                country: data.country || 'FR',
-                                avatar: data.avatar,
-                                isPinned: Boolean(data.isPinned),
-                                isHighlighted: Boolean(data.isHighlighted || finalRole === 'admin' || finalRole === 'artist'),
-                                reactions: data.reactions
-                            };
-                        });
-                        setMessages(fetched);
-                        try { localStorage.setItem('dropsiders_chat_cache', JSON.stringify(fetched)); } catch {}
-                    }
-                }, () => {
-                    setIsFirebaseConnected(false);
-                });
-
-                const stateRef = ref(rtdb, 'dropsiders_chat_state');
-                onValue(stateRef, (snapshot) => {
-                    if (!isSubscribed) return;
-                    const data = snapshot.val();
-                    if (data && typeof data === 'object') {
-                        if (data.pinnedMessage !== undefined) setPinnedMessage(data.pinnedMessage);
-                        if (data.activePoll !== undefined) setActivePoll(data.activePoll);
-                        if (data.slowModeSeconds !== undefined) setSlowModeSeconds(data.slowModeSeconds);
-                        if (data.roles && typeof data.roles === 'object') {
-                            setAssignedRoles(prev => {
-                                const merged = { ...prev, ...data.roles };
-                                try { localStorage.setItem('dropsiders_assigned_roles', JSON.stringify(merged)); } catch {}
-                                return merged;
-                            });
-                        }
-                    }
-                }, () => {});
-            } catch {
-                setIsFirebaseConnected(false);
-            }
-        }
-
         return () => {
             isSubscribed = false;
             clearInterval(pollInterval);
         };
-    }, [firebaseConfig, assignedRoles]);
+    }, [assignedRoles]);
 
     // Slow mode
     useEffect(() => {
@@ -544,36 +446,6 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
         if (slowModeSeconds > 0 && !isModOrAdmin && myComputedRole !== 'artist' && myComputedRole !== 'vip') setSlowModeCooldown(slowModeSeconds);
         broadcastRef.current?.postMessage({ type: 'NEW_MESSAGE', message: newMsg });
 
-        // Firebase Realtime Broadcast (RTDB / Firestore)
-        const rtdb = getFirebaseRtdb();
-        const db = getFirebaseDb();
-        if (rtdb) {
-            push(ref(rtdb, 'dropsiders_live_messages'), {
-                pseudo: newMsg.pseudo,
-                message: newMsg.message,
-                time: newMsg.time,
-                role: newMsg.role,
-                color: newMsg.color || '#00e5ff',
-                country: newMsg.country || 'FR',
-                isHighlighted: Boolean(newMsg.isHighlighted),
-                isPinned: Boolean(newMsg.isPinned),
-                timestamp: Date.now()
-            }).catch(err => console.warn("[LiveChat] RTDB message error:", err));
-        } else if (db) {
-            addDoc(collection(db, 'dropsiders_live_messages'), {
-                pseudo: newMsg.pseudo,
-                message: newMsg.message,
-                time: newMsg.time,
-                role: newMsg.role,
-                color: newMsg.color || '#00e5ff',
-                country: newMsg.country || 'FR',
-                isHighlighted: Boolean(newMsg.isHighlighted),
-                isPinned: Boolean(newMsg.isPinned),
-                timestamp: Date.now(),
-                createdAt: serverTimestamp()
-            }).catch(err => console.warn("[LiveChat] Firestore message error:", err));
-        }
-
         // Global Edge KV broadcast
         fetch('/api/chat/messages', {
             method: 'POST',
@@ -600,17 +472,6 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
         localStorage.setItem('dropsiders_assigned_roles', JSON.stringify(next));
         broadcastRef.current?.postMessage({ type: 'ROLE_ASSIGNED', pseudo: targetPseudo, role });
 
-        // Firebase Role sync (RTDB / Firestore)
-        const rtdb = getFirebaseRtdb();
-        const db = getFirebaseDb();
-        if (rtdb) {
-            set(ref(rtdb, 'dropsiders_chat_state/roles'), next)
-                .catch(err => console.warn("[LiveChat] RTDB role error:", err));
-        } else if (db) {
-            setDoc(doc(db, 'dropsiders_chat_state', 'current'), { roles: next }, { merge: true })
-                .catch(err => console.warn("[LiveChat] Firestore role error:", err));
-        }
-
         // Global Edge KV role broadcast
         fetch('/api/chat/role', {
             method: 'POST',
@@ -620,59 +481,6 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
 
         handleSendMessage(`[MODÉRATION] 👑 Le rôle ${ROLE_CONFIG[role].label} a été attribué à @${targetPseudo} !`);
         setSelectedUserForRole(null);
-    };
-
-    // Firebase Settings Handlers
-    const handleTestFirebase = async () => {
-        if (!fbFormApiKey.trim() || !fbFormProjectId.trim()) {
-            setFbTestStatus({ testing: false, success: false, message: 'La Clé API et le Project ID sont obligatoires pour tester.' });
-            return;
-        }
-        setFbTestStatus({ testing: true });
-        const config: FirebaseChatConfig = {
-            apiKey: fbFormApiKey.trim(),
-            projectId: fbFormProjectId.trim(),
-            authDomain: fbFormAuthDomain.trim() || `${fbFormProjectId.trim()}.firebaseapp.com`,
-            storageBucket: fbFormStorageBucket.trim() || `${fbFormProjectId.trim()}.appspot.com`,
-            messagingSenderId: fbFormSenderId.trim(),
-            appId: fbFormAppId.trim(),
-        };
-        const res = await testFirebaseConnection(config);
-        setFbTestStatus({ testing: false, success: res.success, message: res.message });
-    };
-
-    const handleSaveFirebase = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!fbFormApiKey.trim() || !fbFormProjectId.trim()) {
-            alert('Veuillez renseigner au moins la Clé API et le Project ID Firebase.');
-            return;
-        }
-        const config: FirebaseChatConfig = {
-            apiKey: fbFormApiKey.trim(),
-            projectId: fbFormProjectId.trim(),
-            authDomain: fbFormAuthDomain.trim() || `${fbFormProjectId.trim()}.firebaseapp.com`,
-            storageBucket: fbFormStorageBucket.trim() || `${fbFormProjectId.trim()}.appspot.com`,
-            messagingSenderId: fbFormSenderId.trim(),
-            appId: fbFormAppId.trim(),
-        };
-        saveFirebaseConfig(config);
-        setFirebaseConfig(config);
-        setIsFirebaseModalOpen(false);
-        setFbTestStatus(null);
-    };
-
-    const handleClearFirebase = () => {
-        if (!confirm('Voulez-vous réinitialiser la configuration Firebase ?')) return;
-        clearFirebaseConfig();
-        setFirebaseConfig(null);
-        setFbFormApiKey('');
-        setFbFormProjectId('');
-        setFbFormAuthDomain('');
-        setFbFormStorageBucket('');
-        setFbFormSenderId('');
-        setFbFormAppId('');
-        setFbTestStatus(null);
-        setIsFirebaseConnected(false);
     };
 
     const handleRedeemReward = (reward: ChatReward) => {
@@ -718,17 +526,6 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
         setMessages(prev => prev.filter(m => m.id !== id));
         broadcastRef.current?.postMessage({ type: 'DELETE_MESSAGE', id });
 
-        // Firebase Realtime / Firestore delete
-        const rtdb = getFirebaseRtdb();
-        const db = getFirebaseDb();
-        if (rtdb) {
-            remove(ref(rtdb, `dropsiders_live_messages/${id}`))
-                .catch(err => console.warn("[LiveChat] RTDB delete error:", err));
-        } else if (db) {
-            deleteDoc(doc(db, 'dropsiders_live_messages', id))
-                .catch(err => console.warn("[LiveChat] Firestore delete error:", err));
-        }
-
         fetch('/api/chat/messages', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
@@ -741,17 +538,6 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
         setPinnedMessage(msg);
         broadcastRef.current?.postMessage({ type: 'PIN_MESSAGE', message: msg });
 
-        // Firebase Realtime / Firestore pin
-        const rtdb = getFirebaseRtdb();
-        const db = getFirebaseDb();
-        if (rtdb) {
-            set(ref(rtdb, 'dropsiders_chat_state/pinnedMessage'), msg)
-                .catch(err => console.warn("[LiveChat] RTDB pin error:", err));
-        } else if (db) {
-            setDoc(doc(db, 'dropsiders_chat_state', 'current'), { pinnedMessage: msg }, { merge: true })
-                .catch(err => console.warn("[LiveChat] Firestore pin error:", err));
-        }
-
         fetch('/api/chat/pin', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -763,17 +549,6 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
         if (!isModOrAdmin) return;
         setPinnedMessage(null);
         broadcastRef.current?.postMessage({ type: 'UNPIN_MESSAGE' });
-
-        // Firebase Realtime / Firestore unpin
-        const rtdb = getFirebaseRtdb();
-        const db = getFirebaseDb();
-        if (rtdb) {
-            set(ref(rtdb, 'dropsiders_chat_state/pinnedMessage'), null)
-                .catch(err => console.warn("[LiveChat] RTDB unpin error:", err));
-        } else if (db) {
-            setDoc(doc(db, 'dropsiders_chat_state', 'current'), { pinnedMessage: null }, { merge: true })
-                .catch(err => console.warn("[LiveChat] Firestore unpin error:", err));
-        }
 
         fetch('/api/chat/pin', {
             method: 'POST',
@@ -802,17 +577,6 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
         setNewPollQuestion(''); setNewPollOptions(['', '']);
         broadcastRef.current?.postMessage({ type: 'POLL_UPDATE', poll });
 
-        // Firebase Realtime / Firestore poll
-        const rtdb = getFirebaseRtdb();
-        const db = getFirebaseDb();
-        if (rtdb) {
-            set(ref(rtdb, 'dropsiders_chat_state/activePoll'), poll)
-                .catch(err => console.warn("[LiveChat] RTDB poll error:", err));
-        } else if (db) {
-            setDoc(doc(db, 'dropsiders_chat_state', 'current'), { activePoll: poll }, { merge: true })
-                .catch(err => console.warn("[LiveChat] Firestore poll error:", err));
-        }
-
         fetch('/api/chat/poll', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -832,17 +596,6 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
         setActivePoll(updated); setUserVotedPollId(activePoll.id);
         broadcastRef.current?.postMessage({ type: 'POLL_UPDATE', poll: updated });
 
-        // Firebase Realtime / Firestore vote poll
-        const rtdb = getFirebaseRtdb();
-        const db = getFirebaseDb();
-        if (rtdb) {
-            set(ref(rtdb, 'dropsiders_chat_state/activePoll'), updated)
-                .catch(err => console.warn("[LiveChat] RTDB vote error:", err));
-        } else if (db) {
-            setDoc(doc(db, 'dropsiders_chat_state', 'current'), { activePoll: updated }, { merge: true })
-                .catch(err => console.warn("[LiveChat] Firestore vote error:", err));
-        }
-
         fetch('/api/chat/poll', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -854,17 +607,6 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
         if (!isModOrAdmin) return;
         setActivePoll(null);
         broadcastRef.current?.postMessage({ type: 'POLL_UPDATE', poll: null });
-
-        // Firebase Realtime / Firestore close poll
-        const rtdb = getFirebaseRtdb();
-        const db = getFirebaseDb();
-        if (rtdb) {
-            set(ref(rtdb, 'dropsiders_chat_state/activePoll'), null)
-                .catch(err => console.warn("[LiveChat] RTDB close poll error:", err));
-        } else if (db) {
-            setDoc(doc(db, 'dropsiders_chat_state', 'current'), { activePoll: null }, { merge: true })
-                .catch(err => console.warn("[LiveChat] Firestore close poll error:", err));
-        }
 
         fetch('/api/chat/poll', {
             method: 'POST',
@@ -981,7 +723,7 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                             <span className="text-white text-xs font-black uppercase tracking-wider">Chat Live Dropsiders</span>
                             <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-[8px] font-black text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                <span>{isFirebaseConnected ? 'Firebase Live' : 'Cloudflare Live'}</span>
+                                <span>Cloudflare Live</span>
                             </div>
                         </div>
                         <div className="flex items-center gap-2 text-[10px] text-gray-400 font-medium">
@@ -1006,11 +748,6 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                         <Trophy className="w-3.5 h-3.5" />
                     </button>
                     {isModOrAdmin && <>
-                        <button onClick={() => setIsFirebaseModalOpen(true)}
-                            className="p-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-all cursor-pointer"
-                            title="Réglages du Chat Live (Cloudflare Edge / Firebase)">
-                            <Database className="w-3.5 h-3.5 text-emerald-400" />
-                        </button>
                         <button onClick={() => setIsMockAlertOpen(true)}
                             className="p-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 transition-all cursor-pointer"
                             title="Alertes Live"><Bell className="w-3.5 h-3.5" /></button>
@@ -1671,239 +1408,11 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                                             <option value={30}>30 secondes</option>
                                         </select>
                                     </div>
-                                    <div className="pt-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setIsProfileModalOpen(false);
-                                                setIsFirebaseModalOpen(true);
-                                            }}
-                                            className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500/20 to-red-500/20 hover:from-amber-500/30 hover:to-red-500/30 border border-amber-400/40 text-amber-300 font-black text-xs uppercase flex items-center justify-center gap-2 transition-all cursor-pointer"
-                                        >
-                                            <Database className="w-3.5 h-3.5" />
-                                            <span>Moteur & Base Live Dropsiders</span>
-                                        </button>
-                                    </div>
                                 </div>
                             )}
                         </div>
                         <div className="p-4 border-t border-white/10 bg-black/40 flex justify-end">
                             <button onClick={() => setIsProfileModalOpen(false)} className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase cursor-pointer">Fermer</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* ======================================================== */}
-            {/* MODAL : CONFIGURATION FIREBASE FIRESTORE                  */}
-            {/* ======================================================== */}
-            {isFirebaseModalOpen && (
-                <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[130] flex items-center justify-center p-4 animate-in fade-in duration-200">
-                    <div className="w-full max-w-lg bg-[#12131a] border border-white/15 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between bg-black/50">
-                            <div className="flex items-center gap-2">
-                                <Database className="w-4 h-4 text-emerald-400" />
-                                <h3 className="text-sm font-black text-white uppercase tracking-wider">Moteur & Base Live Dropsiders</h3>
-                            </div>
-                            <button onClick={() => { setIsFirebaseModalOpen(false); setFbTestStatus(null); }} className="p-1 text-gray-400 hover:text-white">
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
-
-                        <div className="p-5 space-y-4 overflow-y-auto">
-                            {/* Cloudflare Edge Status */}
-                            <div className="p-3.5 rounded-xl border border-cyan-500/40 bg-cyan-950/30 text-cyan-200 flex items-center gap-3">
-                                <div className="w-3 h-3 rounded-full bg-cyan-400 animate-pulse shrink-0" />
-                                <div className="text-xs flex-1">
-                                    <p className="font-bold flex items-center gap-1.5">
-                                        <span>⚡ Cloudflare Edge KV (Natif & Opérationnel)</span>
-                                        <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 text-[9px] text-cyan-300 font-mono">dropsiders.fr</span>
-                                    </p>
-                                    <p className="text-[10px] text-cyan-300/80 mt-0.5">
-                                        Le chat fonctionne directement sur votre infrastructure Cloudflare sans aucune clé ni compte externe. Tout est automatique.
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Status Card Firebase */}
-                            <div className={`p-3.5 rounded-xl border flex items-center gap-3 ${
-                                isFirebaseConnected 
-                                    ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300' 
-                                    : 'bg-white/5 border-white/10 text-gray-400'
-                            }`}>
-                                <div className={`w-3 h-3 rounded-full shrink-0 ${
-                                    isFirebaseConnected ? 'bg-emerald-400 animate-pulse' : 'bg-gray-500'
-                                }`} />
-                                <div className="text-xs">
-                                    <p className="font-bold text-white">
-                                        {isFirebaseConnected 
-                                            ? '🟢 Firebase Realtime Database Connecté' 
-                                            : '⚪ Firebase (Optionnel)'}
-                                    </p>
-                                    <p className="text-[10px] text-gray-400 mt-0.5">
-                                        {isFirebaseConnected 
-                                            ? 'WebSocket Firebase actif en direct.' 
-                                            : 'Facultatif : activez-le uniquement si vous souhaitez un WebSocket Google Firebase en plus de Cloudflare.'}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Form */}
-                            <form onSubmit={handleSaveFirebase} className="space-y-3">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase text-gray-400 flex items-center gap-1">
-                                        <Key className="w-3 h-3 text-amber-400" /> Clé API Firebase (apiKey) *
-                                    </label>
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        placeholder="ex: AIzaSyD..." 
-                                        value={fbFormApiKey} 
-                                        onChange={e => setFbFormApiKey(e.target.value)}
-                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-amber-400 font-mono" 
-                                    />
-                                </div>
-
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase text-gray-400">
-                                        Project ID (projectId) *
-                                    </label>
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        placeholder="ex: dropsiders-tv-chat" 
-                                        value={fbFormProjectId} 
-                                        onChange={e => {
-                                            const val = e.target.value;
-                                            setFbFormProjectId(val);
-                                            if (!fbFormAuthDomain && val) setFbFormAuthDomain(`${val}.firebaseapp.com`);
-                                            if (!fbFormStorageBucket && val) setFbFormStorageBucket(`${val}.appspot.com`);
-                                        }}
-                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-amber-400 font-mono" 
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase text-gray-400">Auth Domain</label>
-                                        <input 
-                                            type="text" 
-                                            placeholder="nom-projet.firebaseapp.com" 
-                                            value={fbFormAuthDomain} 
-                                            onChange={e => setFbFormAuthDomain(e.target.value)}
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-amber-400 font-mono" 
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase text-gray-400">App ID</label>
-                                        <input 
-                                            type="text" 
-                                            placeholder="1:123456789:web:..." 
-                                            value={fbFormAppId} 
-                                            onChange={e => setFbFormAppId(e.target.value)}
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-amber-400 font-mono" 
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase text-gray-400">Storage Bucket (Optionnel)</label>
-                                        <input 
-                                            type="text" 
-                                            placeholder="nom-projet.appspot.com" 
-                                            value={fbFormStorageBucket} 
-                                            onChange={e => setFbFormStorageBucket(e.target.value)}
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-amber-400 font-mono" 
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase text-gray-400">Sender ID (Optionnel)</label>
-                                        <input 
-                                            type="text" 
-                                            placeholder="1234567890" 
-                                            value={fbFormSenderId} 
-                                            onChange={e => setFbFormSenderId(e.target.value)}
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-amber-400 font-mono" 
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Test Status Banner */}
-                                {fbTestStatus && (
-                                    <div className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${
-                                        fbTestStatus.testing 
-                                            ? 'bg-blue-950/40 border-blue-500/40 text-blue-300' 
-                                            : (fbTestStatus.success 
-                                                ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300' 
-                                                : 'bg-red-950/40 border-red-500/40 text-red-300')
-                                    }`}>
-                                        {fbTestStatus.testing && <RefreshCw className="w-4 h-4 animate-spin shrink-0" />}
-                                        {fbTestStatus.success && <Check className="w-4 h-4 shrink-0 text-emerald-400" />}
-                                        {!fbTestStatus.testing && !fbTestStatus.success && <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />}
-                                        <span className="flex-1">
-                                            {fbTestStatus.testing ? 'Test de connexion à Firestore en cours...' : fbTestStatus.message}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {/* Buttons */}
-                                <div className="pt-2 flex items-center gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={handleTestFirebase}
-                                        disabled={fbTestStatus?.testing}
-                                        className="flex-1 py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                                    >
-                                        <RefreshCw className={`w-3.5 h-3.5 ${fbTestStatus?.testing ? 'animate-spin' : ''}`} />
-                                        <span>Tester la connexion</span>
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-red-500 hover:from-amber-400 hover:to-red-400 text-black font-black text-xs uppercase flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
-                                    >
-                                        <Check className="w-3.5 h-3.5" />
-                                        <span>Sauvegarder & Connecter</span>
-                                    </button>
-                                </div>
-                            </form>
-
-                            {/* Snippet .env Helper */}
-                            <div className="pt-3 border-t border-white/10 space-y-2">
-                                <span className="text-[10px] font-black uppercase text-gray-400">Variables .env correspondantes :</span>
-                                <pre className="p-3 bg-black/60 border border-white/10 rounded-xl text-[10px] text-cyan-300 font-mono overflow-x-auto leading-relaxed select-all">
-{`VITE_FIREBASE_API_KEY=${fbFormApiKey || 'VOTRE_API_KEY'}
-VITE_FIREBASE_PROJECT_ID=${fbFormProjectId || 'VOTRE_PROJECT_ID'}
-VITE_FIREBASE_AUTH_DOMAIN=${fbFormAuthDomain || (fbFormProjectId ? `${fbFormProjectId}.firebaseapp.com` : 'VOTRE_AUTH_DOMAIN')}
-VITE_FIREBASE_STORAGE_BUCKET=${fbFormStorageBucket || (fbFormProjectId ? `${fbFormProjectId}.appspot.com` : '')}
-VITE_FIREBASE_MESSAGING_SENDER_ID=${fbFormSenderId || ''}
-VITE_FIREBASE_APP_ID=${fbFormAppId || ''}`}
-                                </pre>
-                                <p className="text-[9px] text-gray-400">
-                                    💡 Vous pouvez soit sauvegarder ici directement (stocké dans votre navigateur), soit copier ces lignes dans votre fichier <code className="text-white">.env</code>.
-                                </p>
-                            </div>
-
-                            {firebaseConfig && (
-                                <div className="pt-2 flex justify-start">
-                                    <button
-                                        type="button"
-                                        onClick={handleClearFirebase}
-                                        className="text-[10px] text-red-400 hover:text-red-300 font-bold underline cursor-pointer"
-                                    >
-                                        Réinitialiser la configuration locale
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="p-4 border-t border-white/10 bg-black/40 flex justify-end">
-                            <button
-                                onClick={() => { setIsFirebaseModalOpen(false); setFbTestStatus(null); }}
-                                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase cursor-pointer"
-                            >
-                                Fermer
-                            </button>
                         </div>
                     </div>
                 </div>
