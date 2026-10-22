@@ -602,6 +602,125 @@ export default {
             return new Response(JSON.stringify({ country }), { headers });
         }
 
+        // ─── DROPSIDERS LIVE CHAT ENDPOINTS (Global Edge Sync via Cloudflare KV) ───
+        if (path === '/api/chat/messages') {
+            if (!env.CHAT_KV) {
+                return new Response(JSON.stringify({ error: 'CHAT_KV not bound' }), { status: 503, headers });
+            }
+            if (request.method === 'GET') {
+                try {
+                    const [rawMsgs, rawRoles, rawPinned, rawPoll] = await Promise.all([
+                        env.CHAT_KV.get('dropsiders_live_messages'),
+                        env.CHAT_KV.get('dropsiders_chat_roles'),
+                        env.CHAT_KV.get('dropsiders_chat_pinned'),
+                        env.CHAT_KV.get('dropsiders_chat_poll')
+                    ]);
+                    const messages = rawMsgs ? JSON.parse(rawMsgs) : [];
+                    const roles = rawRoles ? JSON.parse(rawRoles) : {};
+                    const pinned = rawPinned ? JSON.parse(rawPinned) : null;
+                    const poll = rawPoll ? JSON.parse(rawPoll) : null;
+                    return new Response(JSON.stringify({ messages, roles, pinned, poll }), { headers });
+                } catch (e: any) {
+                    return new Response(JSON.stringify({ messages: [], roles: {}, pinned: null, poll: null }), { headers });
+                }
+            }
+            if (request.method === 'POST') {
+                try {
+                    const body = await request.json();
+                    if (!body || !body.message) {
+                        return new Response(JSON.stringify({ error: 'Message cannot be empty' }), { status: 400, headers });
+                    }
+                    const rawMsgs = await env.CHAT_KV.get('dropsiders_live_messages');
+                    const messages = rawMsgs ? JSON.parse(rawMsgs) : [];
+                    const newMsg = {
+                        id: body.id || 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+                        pseudo: (body.pseudo || 'Anonyme').trim(),
+                        message: (body.message || '').trim(),
+                        time: body.time || new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                        role: body.role || 'user',
+                        color: body.color || '#00e5ff',
+                        country: body.country || request.cf?.country || request.headers.get('cf-ipcountry') || 'FR',
+                        isPinned: Boolean(body.isPinned),
+                        isHighlighted: Boolean(body.isHighlighted)
+                    };
+                    const updated = [...messages, newMsg].slice(-120);
+                    await env.CHAT_KV.put('dropsiders_live_messages', JSON.stringify(updated), { expirationTtl: 86400 * 7 });
+                    return new Response(JSON.stringify({ success: true, message: newMsg }), { headers });
+                } catch (e: any) {
+                    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+                }
+            }
+            if (request.method === 'DELETE') {
+                try {
+                    const body = await request.json();
+                    if (body?.id) {
+                        const rawMsgs = await env.CHAT_KV.get('dropsiders_live_messages');
+                        let messages = rawMsgs ? JSON.parse(rawMsgs) : [];
+                        messages = messages.filter((m: any) => m.id !== body.id);
+                        await env.CHAT_KV.put('dropsiders_live_messages', JSON.stringify(messages), { expirationTtl: 86400 * 7 });
+                    }
+                    return new Response(JSON.stringify({ success: true }), { headers });
+                } catch (e: any) {
+                    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+                }
+            }
+        }
+
+        if (path === '/api/chat/role' && request.method === 'POST') {
+            if (!env.CHAT_KV) return new Response(JSON.stringify({ error: 'CHAT_KV not bound' }), { status: 503, headers });
+            try {
+                const body = await request.json();
+                const { pseudo, role } = body || {};
+                if (!pseudo || !role) {
+                    return new Response(JSON.stringify({ error: 'Pseudo and role required' }), { status: 400, headers });
+                }
+                const rawRoles = await env.CHAT_KV.get('dropsiders_chat_roles');
+                const roles = rawRoles ? JSON.parse(rawRoles) : {};
+                const clean = pseudo.trim().toLowerCase();
+                if (role === 'user') {
+                    delete roles[clean];
+                } else {
+                    roles[clean] = role;
+                }
+                await env.CHAT_KV.put('dropsiders_chat_roles', JSON.stringify(roles));
+                return new Response(JSON.stringify({ success: true, roles }), { headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/chat/pin' && request.method === 'POST') {
+            if (!env.CHAT_KV) return new Response(JSON.stringify({ error: 'CHAT_KV not bound' }), { status: 503, headers });
+            try {
+                const body = await request.json();
+                const message = body?.message || null;
+                if (message) {
+                    await env.CHAT_KV.put('dropsiders_chat_pinned', JSON.stringify(message));
+                } else {
+                    await env.CHAT_KV.delete('dropsiders_chat_pinned');
+                }
+                return new Response(JSON.stringify({ success: true }), { headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/chat/poll' && request.method === 'POST') {
+            if (!env.CHAT_KV) return new Response(JSON.stringify({ error: 'CHAT_KV not bound' }), { status: 503, headers });
+            try {
+                const body = await request.json();
+                const poll = body?.poll || null;
+                if (poll) {
+                    await env.CHAT_KV.put('dropsiders_chat_poll', JSON.stringify(poll), { expirationTtl: 3600 });
+                } else {
+                    await env.CHAT_KV.delete('dropsiders_chat_poll');
+                }
+                return new Response(JSON.stringify({ success: true }), { headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         // Deezer Proxy for Blind Test (Bypasses browser CORS restrictions)
         if (path.startsWith('/api/deezer/')) {
             const deezerSubPath = path.replace('/api/deezer/', '');
