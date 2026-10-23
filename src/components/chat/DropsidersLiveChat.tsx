@@ -748,6 +748,11 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                         <Trophy className="w-3.5 h-3.5" />
                     </button>
                     {isModOrAdmin && <>
+                        <a href="/moderation" target="_blank" rel="noreferrer"
+                            className="px-2 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-300 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                            title="Ouvrir la Vue Modérateur Twitch complète">
+                            <Shield className="w-3.5 h-3.5" /><span className="hidden xl:inline">Vue Modo</span>
+                        </a>
                         <button onClick={() => setIsMockAlertOpen(true)}
                             className="p-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 transition-all cursor-pointer"
                             title="Alertes Live"><Bell className="w-3.5 h-3.5" /></button>

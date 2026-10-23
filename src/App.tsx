@@ -80,6 +80,7 @@ const AdminGTAContestPage = lazyRetry(() => import('./pages/AdminGTAContestPage'
 const BlindTestPage = lazyRetry(() => import('./pages/BlindTestPage').then(m => m.BlindTestPage));
 const CallGeneratorPage = lazyRetry(() => import('./pages/CallGeneratorPage').then(m => m.CallGeneratorPage));
 const LiveChatPopoutPage = lazyRetry(() => import('./pages/LiveChatPopoutPage').then(m => m.LiveChatPopoutPage));
+const ModViewPage = lazyRetry(() => import('./pages/ModViewPage').then(m => m.ModViewPage));
 
 
 function ErrorFallback() {
@@ -319,6 +320,38 @@ const router = createBrowserRouter([
     element: (
       <Suspense fallback={<LoadingPage />}>
         <LiveChatPopoutPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/moderation",
+    element: (
+      <Suspense fallback={<LoadingPage />}>
+        <ModViewPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/modo",
+    element: (
+      <Suspense fallback={<LoadingPage />}>
+        <ModViewPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/mod-view",
+    element: (
+      <Suspense fallback={<LoadingPage />}>
+        <ModViewPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/moderator",
+    element: (
+      <Suspense fallback={<LoadingPage />}>
+        <ModViewPage />
       </Suspense>
     ),
   },

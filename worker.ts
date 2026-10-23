@@ -609,21 +609,23 @@ export default {
             }
             if (request.method === 'GET') {
                 try {
-                    const [rawMsgs, rawRoles, rawPinned, rawPoll, rawSlowMode] = await Promise.all([
+                    const [rawMsgs, rawRoles, rawPinned, rawPoll, rawSlowMode, rawBans] = await Promise.all([
                         env.CHAT_KV.get('dropsiders_live_messages'),
                         env.CHAT_KV.get('dropsiders_chat_roles'),
                         env.CHAT_KV.get('dropsiders_chat_pinned'),
                         env.CHAT_KV.get('dropsiders_chat_poll'),
-                        env.CHAT_KV.get('dropsiders_chat_slowmode')
+                        env.CHAT_KV.get('dropsiders_chat_slowmode'),
+                        env.CHAT_KV.get('dropsiders_chat_banned')
                     ]);
                     const messages = rawMsgs ? JSON.parse(rawMsgs) : [];
                     const roles = rawRoles ? JSON.parse(rawRoles) : {};
                     const pinned = rawPinned ? JSON.parse(rawPinned) : null;
                     const poll = rawPoll ? JSON.parse(rawPoll) : null;
                     const slowMode = rawSlowMode ? Number(rawSlowMode) : 0;
-                    return new Response(JSON.stringify({ messages, roles, pinned, poll, slowMode }), { headers });
+                    const banned = rawBans ? JSON.parse(rawBans) : [];
+                    return new Response(JSON.stringify({ messages, roles, pinned, poll, slowMode, banned }), { headers });
                 } catch (e: any) {
-                    return new Response(JSON.stringify({ messages: [], roles: {}, pinned: null, poll: null, slowMode: 0 }), { headers });
+                    return new Response(JSON.stringify({ messages: [], roles: {}, pinned: null, poll: null, slowMode: 0, banned: [] }), { headers });
                 }
             }
             if (request.method === 'POST') {
@@ -632,11 +634,17 @@ export default {
                     if (!body || !body.message) {
                         return new Response(JSON.stringify({ error: 'Message cannot be empty' }), { status: 400, headers });
                     }
+                    const pseudo = (body.pseudo || 'Anonyme').trim();
+                    const rawBans = await env.CHAT_KV.get('dropsiders_chat_banned');
+                    const bannedList: string[] = rawBans ? JSON.parse(rawBans) : [];
+                    if (bannedList.some(b => b.toUpperCase() === pseudo.toUpperCase())) {
+                        return new Response(JSON.stringify({ error: 'Vous êtes banni du chat.' }), { status: 403, headers });
+                    }
                     const rawMsgs = await env.CHAT_KV.get('dropsiders_live_messages');
                     const messages = rawMsgs ? JSON.parse(rawMsgs) : [];
                     const newMsg = {
                         id: body.id || 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
-                        pseudo: (body.pseudo || 'Anonyme').trim(),
+                        pseudo: pseudo,
                         message: (body.message || '').trim(),
                         time: body.time || new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                         role: body.role || 'user',
@@ -730,6 +738,65 @@ export default {
                 const seconds = Math.max(0, Number(body?.seconds) || 0);
                 await env.CHAT_KV.put('dropsiders_chat_slowmode', String(seconds));
                 return new Response(JSON.stringify({ success: true, seconds }), { headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/chat/ban' && request.method === 'POST') {
+            if (!env.CHAT_KV) return new Response(JSON.stringify({ error: 'CHAT_KV not bound' }), { status: 503, headers });
+            try {
+                const body = await request.json();
+                const pseudo = (body?.pseudo || '').trim();
+                if (!pseudo) return new Response(JSON.stringify({ error: 'Pseudo required' }), { status: 400, headers });
+                const rawBans = await env.CHAT_KV.get('dropsiders_chat_banned');
+                const bannedList: string[] = rawBans ? JSON.parse(rawBans) : [];
+                if (!bannedList.some(b => b.toUpperCase() === pseudo.toUpperCase())) {
+                    bannedList.push(pseudo);
+                    await env.CHAT_KV.put('dropsiders_chat_banned', JSON.stringify(bannedList));
+                }
+                // Purge messages of banned user from live messages
+                const rawMsgs = await env.CHAT_KV.get('dropsiders_live_messages');
+                let messages = rawMsgs ? JSON.parse(rawMsgs) : [];
+                messages = messages.filter((m: any) => (m.pseudo || '').toUpperCase() !== pseudo.toUpperCase());
+                await env.CHAT_KV.put('dropsiders_live_messages', JSON.stringify(messages));
+                return new Response(JSON.stringify({ success: true, banned: bannedList }), { headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/chat/unban' && request.method === 'POST') {
+            if (!env.CHAT_KV) return new Response(JSON.stringify({ error: 'CHAT_KV not bound' }), { status: 503, headers });
+            try {
+                const body = await request.json();
+                const pseudo = (body?.pseudo || '').trim();
+                const rawBans = await env.CHAT_KV.get('dropsiders_chat_banned');
+                let bannedList: string[] = rawBans ? JSON.parse(rawBans) : [];
+                bannedList = bannedList.filter(b => b.toUpperCase() !== pseudo.toUpperCase());
+                await env.CHAT_KV.put('dropsiders_chat_banned', JSON.stringify(bannedList));
+                return new Response(JSON.stringify({ success: true, banned: bannedList }), { headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/chat/banned' && request.method === 'GET') {
+            if (!env.CHAT_KV) return new Response(JSON.stringify({ error: 'CHAT_KV not bound' }), { status: 503, headers });
+            try {
+                const rawBans = await env.CHAT_KV.get('dropsiders_chat_banned');
+                const bannedList: string[] = rawBans ? JSON.parse(rawBans) : [];
+                return new Response(JSON.stringify(bannedList), { headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/chat/clear' && request.method === 'POST') {
+            if (!env.CHAT_KV) return new Response(JSON.stringify({ error: 'CHAT_KV not bound' }), { status: 503, headers });
+            try {
+                await env.CHAT_KV.put('dropsiders_live_messages', JSON.stringify([]));
+                return new Response(JSON.stringify({ success: true }), { headers });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
