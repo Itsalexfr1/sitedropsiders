@@ -6,14 +6,20 @@ import {
     UserX, UserCheck, Flame, BarChart2, Bell, BellOff,
     ExternalLink, Eye, ChevronRight, MessageSquare, Sparkles,
     Radio, Play, Pause, ArrowLeft, MoreHorizontal, Settings,
-    Tv, ChevronDown, Info, Pencil, Zap, Target, Bot
+    Tv, ChevronDown, Info, Pencil, Zap, Target
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { SEO } from '../components/utils/SEO';
 import {
     DEFAULT_TV_BLOCKS,
     STORAGE_TV_BLOCKS_KEY,
+    STORAGE_PROMOS_KEY,
+    STORAGE_DURATIONS_KEY,
+    DEFAULT_DURATIONS,
     getActiveTVBlock,
+    getOrderedBlockVideos,
+    buildBlockSegments,
+    calculateBlockLivePosition,
     getElapsedSecondsInBlock
 } from '../utils/tvSchedule';
 
@@ -170,34 +176,78 @@ export const ModViewPage: React.FC = () => {
         try { return localStorage.getItem('dropsiders_live_video_id') || ''; } catch { return ''; }
     });
 
-    // ── TV schedule video for fallback ──
-    const tvVideoId = useMemo(() => {
+    // ── TV schedule video + start position for synchronized playback ──
+    const [tvRefreshTrigger, setTvRefreshTrigger] = useState(0);
+    const [rightTab, setRightTab] = useState<'chat' | 'users'>('chat');
+
+    const tvPlayerInfo = useMemo(() => {
         try {
+            const now = new Date();
             const saved = localStorage.getItem(STORAGE_TV_BLOCKS_KEY);
             const blocks = saved ? JSON.parse(saved) : DEFAULT_TV_BLOCKS;
-            const block = getActiveTVBlock(blocks);
-            const videos = block?.videos || [];
-            if (videos.length === 0) return 'hSq5aGvBJ04';
-            const elapsed = getElapsedSecondsInBlock(block);
-            const totalDur = videos.reduce((s: number, v: any) => s + (v.duration || 3600), 0);
-            const pos = totalDur > 0 ? elapsed % totalDur : 0;
-            let acc = 0;
-            for (const v of videos) {
-                acc += (v.duration || 3600);
-                if (pos < acc) return v.youtubeId;
-            }
-            return videos[0]?.youtubeId || 'hSq5aGvBJ04';
-        } catch { return 'hSq5aGvBJ04'; }
+            const curBlk = getActiveTVBlock(blocks, now.getHours(), now.getDay());
+            const rawVids = curBlk.videos && curBlk.videos.length > 0 ? curBlk.videos : [];
+            const todayStr = now.toISOString().slice(0, 10);
+            const vids = getOrderedBlockVideos({ ...curBlk, videos: rawVids }, `${todayStr}_${curBlk.id}`);
+
+            const savedPr = localStorage.getItem(STORAGE_PROMOS_KEY);
+            const pr = savedPr ? JSON.parse(savedPr) : [];
+            const savedDur = localStorage.getItem(STORAGE_DURATIONS_KEY);
+            const dur = savedDur ? { ...DEFAULT_DURATIONS, ...JSON.parse(savedDur) } : DEFAULT_DURATIONS;
+
+            const segs = buildBlockSegments(vids, pr, dur);
+            const elapsed = getElapsedSecondsInBlock(curBlk, now);
+            const livePos = calculateBlockLivePosition(segs, elapsed);
+
+            const curSeg = segs[livePos.index];
+            const curVid = curSeg?.video;
+            const nextSeg = segs[(livePos.index + 1) % (segs.length || 1)];
+
+            return {
+                videoId: curVid?.youtubeId || 'hSq5aGvBJ04',
+                start: Math.max(0, Math.floor(livePos.startSeconds || 0)),
+                title: curVid?.title || 'Programme Dropsiders TV',
+                description: (curVid && 'description' in curVid && curVid.description) || 'DJ Sets & Festivals • Music',
+                blockName: curBlk.name || 'Dropsiders TV',
+                blockTitle: curBlk.title || 'Programme 24/7',
+                timeSlot: curBlk.timeSlot || '24/7',
+                blockEmoji: curBlk.emoji || '📺',
+                blockColor: curBlk.color || '#06b6d4',
+                nextTitle: nextSeg?.video?.title || null,
+                isPromo: livePos.isPromo
+            };
+        } catch {
+            return {
+                videoId: 'hSq5aGvBJ04',
+                start: 0,
+                title: 'Dropsiders TV — 24/7 Live Music',
+                description: 'DJ Sets & Festivals • Music',
+                blockName: 'Dropsiders TV',
+                blockTitle: 'Programme 24/7',
+                timeSlot: '24/7',
+                blockEmoji: '📺',
+                blockColor: '#06b6d4',
+                nextTitle: null,
+                isPromo: false
+            };
+        }
+    }, [tvRefreshTrigger]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTvRefreshTrigger(p => p + 1);
+        }, 30000);
+        return () => clearInterval(interval);
     }, []);
 
-    const playerVideoId = isLive && liveVideoId ? liveVideoId : tvVideoId;
+    const playerVideoId = isLive && liveVideoId ? liveVideoId : tvPlayerInfo.videoId;
+    const playerStart = isLive ? 0 : tvPlayerInfo.start;
     const liveStatus = isLive ? '🔴 EN DIRECT' : '📺 DROPSIDERS TV (24/7)';
     const liveStatusColor = isLive ? 'text-red-400 bg-red-500/10 border-red-500/30' : 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30';
 
     // ── Communauté panel collapsibles ──
     const [expandDiffuseur, setExpandDiffuseur] = useState(true);
     const [expandMods, setExpandMods] = useState(true);
-    const [expandBots, setExpandBots] = useState(true);
     const [expandViewers, setExpandViewers] = useState(true);
     const [communauteSearch, setCommunauteSearch] = useState('');
 
@@ -694,13 +744,8 @@ export const ModViewPage: React.FC = () => {
         };
     }, [selectedUser, messages, roles, bannedList]);
 
-    // ── Moderators / Bots derived from messages ──
+    // ── Moderators derived from messages ──
     const mods = useMemo(() => uniqueChatters.filter(u => u.role === 'mod' || u.role === 'admin'), [uniqueChatters]);
-    const bots = useMemo(() => [
-        { pseudo: 'Dropsiders_Bot', role: 'bot' as const },
-        { pseudo: 'AutoMod', role: 'bot' as const },
-        { pseudo: 'Wizebot', role: 'bot' as const },
-    ], []);
     const viewers = useMemo(() => uniqueChatters.filter(u => u.role === 'user' || u.role === 'vip' || u.role === 'artist'), [uniqueChatters]);
 
     const filteredViewers = useMemo(() => {
@@ -851,549 +896,552 @@ export const ModViewPage: React.FC = () => {
                 <div className="flex-1 flex overflow-hidden">
 
                     {/* ════════════════════════════════════
-                        COLUMN 1 – FLUX + BOTTOM SPLIT
+                        COLUMN 1 (LEFT, 320px) – MODÉRATION & AUTOMOD
                     ════════════════════════════════════ */}
-                    <div className="flex flex-col border-r border-[#26262c] bg-[#18181b] shrink-0" style={{ width: 380 }}>
+                    <div className="flex flex-col border-r border-[#26262c] bg-[#18181b] shrink-0" style={{ width: 320 }}>
 
-                        {/* ── FLUX panel ── */}
-                        <div className="flex flex-col border-b border-[#26262c]">
-                            {/* Flux header */}
-                            <div className="h-9 px-3 flex items-center justify-between shrink-0">
-                                <span className="text-xs font-black uppercase tracking-wider text-gray-200">Flux</span>
-                                <div className="flex items-center gap-1">
-                                    <button
-                                        onClick={() => setIsPlayerMuted(!isPlayerMuted)}
-                                        className="p-1 rounded hover:bg-white/10 text-gray-400 hover:text-white cursor-pointer transition-colors"
-                                        title={isPlayerMuted ? 'Activer le son' : 'Couper'}
-                                    >
-                                        {isPlayerMuted ? <VolumeX className="w-3.5 h-3.5 text-red-400" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-400" />}
-                                    </button>
-                                    <a href="/tv" target="_blank" rel="noreferrer"
-                                        className="p-1 rounded hover:bg-white/10 text-gray-400 hover:text-white cursor-pointer transition-colors"
-                                        title="Ouvrir en plein écran"
-                                    >
-                                        <ExternalLink className="w-3.5 h-3.5" />
-                                    </a>
-                                    <button className="p-1 rounded hover:bg-white/10 text-gray-400 hover:text-white cursor-pointer">
-                                        <MoreHorizontal className="w-3.5 h-3.5" />
-                                    </button>
+                        {/* ── File D'attente AutoMod ── */}
+                        <div className="flex flex-col border-b border-[#26262c]" style={{ maxHeight: '42%' }}>
+                            <div className="h-9 px-3 flex items-center justify-between shrink-0 border-b border-[#26262c] bg-[#1b1b1f]">
+                                <div className="flex items-center gap-1.5">
+                                    <Target className="w-3.5 h-3.5 text-amber-400" />
+                                    <span className="text-[11px] font-black uppercase tracking-wider text-gray-200">File AutoMod</span>
                                 </div>
+                                {autoModQueue.length > 0 && (
+                                    <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-black text-[10px] font-black">
+                                        {autoModQueue.length}
+                                    </span>
+                                )}
                             </div>
-
-                            {/* Stream info row (like Twitch: avatar, title, game) */}
-                            <div className="px-3 pb-2 flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#9146FF] to-[#00e5ff] flex items-center justify-center text-[10px] font-black text-white shrink-0">
-                                    DS
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="text-[11px] font-black text-white truncate">
-                                        {isLive ? '🔴 Dropsiders TV — Live en cours' : '📺 Dropsiders TV — Programme continu 24/7'}
-                                    </div>
-                                    <div className="text-[10px] text-gray-400 truncate">DJ Sets & Festivals • Music</div>
-                                </div>
-                                <div className={`px-2 py-0.5 rounded border text-[9px] font-black uppercase tracking-widest shrink-0 ${isLive ? 'bg-red-500/20 border-red-500/40 text-red-400' : 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'}`}>
-                                    {isLive ? 'LIVE' : 'TV'}
-                                </div>
-                            </div>
-
-                            {/* Video Player */}
-                            <div className="px-3 pb-3">
-                                <div className="relative aspect-video rounded-lg overflow-hidden bg-black border border-white/10">
-                                    {!isLive ? (
-                                        /* TV fallback: YouTube iframe with seek to current position */
-                                        <iframe
-                                            key={playerVideoId + '_tv'}
-                                            src={`https://www.youtube-nocookie.com/embed/${playerVideoId}?autoplay=1&mute=${isPlayerMuted ? 1 : 0}&controls=1&modestbranding=1&rel=0&cc_load_policy=0`}
-                                            className="w-full h-full border-0"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            title="Dropsiders TV"
-                                        />
-                                    ) : (
-                                        /* Live stream iframe */
-                                        <iframe
-                                            key={playerVideoId + '_live'}
-                                            src={`https://www.youtube-nocookie.com/embed/${playerVideoId}?autoplay=1&mute=${isPlayerMuted ? 1 : 0}&controls=1&modestbranding=1&rel=0`}
-                                            className="w-full h-full border-0"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            title="Live Stream"
-                                        />
-                                    )}
-                                    {/* TV badge overlay */}
-                                    {!isLive && (
-                                        <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/70 border border-cyan-500/40 rounded px-2 py-0.5">
-                                            <Tv className="w-3 h-3 text-cyan-400" />
-                                            <span className="text-[9px] font-black text-cyan-400 uppercase tracking-wider">TV 24/7</span>
+                            <div className="flex-1 overflow-y-auto p-2 space-y-2">
+                                {autoModQueue.length === 0 ? (
+                                    <div className="py-6 flex flex-col items-center justify-center text-center px-3">
+                                        <div className="w-9 h-9 rounded-full bg-[#1f1f23] border border-white/5 flex items-center justify-center mb-1.5">
+                                            <Shield className="w-4 h-4 text-gray-600" />
                                         </div>
-                                    )}
-                                </div>
+                                        <div className="text-[11px] text-gray-500 font-bold">AutoMod au repos</div>
+                                        <div className="text-[10px] text-gray-600 mt-0.5 leading-tight">
+                                            Aucun message suspect retenu pour le moment.
+                                        </div>
+                                    </div>
+                                ) : autoModQueue.map(item => (
+                                    <div key={item.id} className="bg-[#1f1f23] border border-amber-500/30 rounded-lg p-2.5 space-y-2">
+                                        <div className="flex items-center justify-between text-[11px]">
+                                            <button
+                                                onClick={() => setSelectedUser(item.messageItem.pseudo)}
+                                                className="font-bold text-amber-300 hover:underline cursor-pointer"
+                                            >
+                                                @{item.messageItem.pseudo}
+                                            </button>
+                                            <span className={`text-[9px] px-1.5 py-0.5 rounded font-black uppercase ${
+                                                item.severity === 'high' ? 'bg-red-500/20 text-red-400' :
+                                                item.severity === 'medium' ? 'bg-amber-500/20 text-amber-400' :
+                                                'bg-gray-500/20 text-gray-400'
+                                            }`}>{item.severity}</span>
+                                        </div>
+                                        <div className="text-[10px] text-amber-400 font-medium bg-amber-500/10 px-2 py-0.5 rounded">{item.reason}</div>
+                                        <p className="text-[11px] text-white bg-black/40 p-1.5 rounded border border-white/5 break-words font-mono">"{item.messageItem.message}"</p>
+                                        <div className="grid grid-cols-2 gap-1">
+                                            <button onClick={() => handleAutoModAccept(item)} className="py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer">
+                                                <Check className="w-3 h-3" /> Autoriser
+                                            </button>
+                                            <button onClick={() => handleAutoModReject(item)} className="py-1 bg-red-600 hover:bg-red-500 text-white rounded text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer">
+                                                <X className="w-3 h-3" /> Refuser
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
-                        {/* ── BOTTOM SPLIT: Actions De Modérateur + File AutoMod ── */}
-                        <div className="flex-1 flex overflow-hidden">
+                        {/* ── Actions De Modérateur (Journal) ── */}
+                        <div className="flex-1 flex flex-col overflow-hidden">
+                            <div className="h-9 px-3 flex items-center justify-between shrink-0 border-b border-[#26262c] bg-[#1b1b1f]">
+                                <div className="flex items-center gap-1.5">
+                                    <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                                    <span className="text-[11px] font-black uppercase tracking-wider text-gray-200">Actions De Modérateur</span>
+                                </div>
+                                <span className="text-[10px] text-gray-500 font-bold">{actionLogs.length} action{actionLogs.length !== 1 ? 's' : ''}</span>
+                            </div>
+                            <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
+                                {actionLogs.length === 0 ? (
+                                    <div className="h-full flex items-center justify-center text-gray-600 text-[11px]">Aucune action enregistrée</div>
+                                ) : actionLogs.map(log => {
+                                    const icons: Record<string, string> = {
+                                        DELETE: '🗑️', BAN: '🚫', UNBAN: '✅', TIMEOUT: '⏱️',
+                                        SLOWMODE: '🐢', PIN: '📌', UNPIN: '📌', CLEAR: '🧹',
+                                        ROLE_CHANGE: '👑', AUTOMOD_ACCEPT: '✅', AUTOMOD_REJECT: '❌'
+                                    };
+                                    return (
+                                        <div key={log.id} className="flex gap-2 items-start p-1.5 rounded hover:bg-white/5 transition-colors">
+                                            <div className="w-6 h-6 rounded-full bg-[#1f1f23] border border-white/5 flex items-center justify-center text-xs shrink-0">
+                                                {icons[log.actionType] || '🛡️'}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                {log.targetPseudo && (
+                                                    <div className="text-[11px] font-bold text-amber-300 truncate">@{log.targetPseudo}</div>
+                                                )}
+                                                <div className="text-[10px] text-gray-400 leading-tight truncate">{log.detail}</div>
+                                                <div className="text-[9px] text-gray-600 font-mono mt-0.5">{log.modPseudo} · {log.timestamp}</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
 
-                            {/* Actions De Modérateur (left) */}
-                            <div className="flex-1 flex flex-col border-r border-[#26262c] overflow-hidden">
-                                <div className="h-9 px-2.5 flex items-center justify-between shrink-0 border-b border-[#26262c]">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="text-[11px] font-black uppercase tracking-wider text-gray-200">Actions De Modérateur</span>
+                            {/* Actions rapides en bas de colonne */}
+                            {showQuickActions && (
+                                <div className="p-2 border-t border-[#26262c] bg-[#141417] space-y-1.5 shrink-0">
+                                    <div className="text-[9px] font-black uppercase tracking-wider text-gray-500">Mode Ralenti</div>
+                                    <div className="grid grid-cols-5 gap-1">
+                                        {[0, 3, 10, 30, 60].map(s => (
+                                            <button
+                                                key={s}
+                                                onClick={() => handleSetSlowMode(s)}
+                                                className={`py-1 text-[10px] font-black rounded border transition-all cursor-pointer ${
+                                                    slowMode === s
+                                                        ? 'bg-amber-500 text-black border-amber-400'
+                                                        : 'bg-[#1f1f23] text-gray-300 border-white/5 hover:border-white/20'
+                                                }`}
+                                            >
+                                                {s === 0 ? 'OFF' : `${s}s`}
+                                            </button>
+                                        ))}
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                        <button className="px-1.5 py-0.5 rounded text-[10px] text-gray-400 hover:text-white hover:bg-white/5 border border-white/10 cursor-pointer transition-colors">
-                                            Filtre
+                                    <div className="grid grid-cols-2 gap-1 pt-0.5">
+                                        <button
+                                            onClick={() => setIsPollModalOpen(true)}
+                                            className="py-1.5 text-[10px] font-bold rounded bg-[#9146FF]/20 hover:bg-[#9146FF]/30 border border-[#9146FF]/40 text-[#bf94ff] cursor-pointer flex items-center justify-center gap-1"
+                                        >
+                                            <BarChart2 className="w-3 h-3" /> Sondage
                                         </button>
-                                        <button className="p-1 rounded hover:bg-white/5 text-gray-500 cursor-pointer">
-                                            <MoreHorizontal className="w-3.5 h-3.5" />
+                                        <button
+                                            onClick={handleClearChat}
+                                            className="py-1.5 text-[10px] font-bold rounded bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 cursor-pointer flex items-center justify-center gap-1"
+                                        >
+                                            <Trash2 className="w-3 h-3" /> Purger
                                         </button>
                                     </div>
                                 </div>
-                                <div className="px-2.5 py-1.5 border-b border-[#26262c]">
-                                    <span className="text-[10px] text-gray-400 font-bold">{actionLogs.length} action{actionLogs.length !== 1 ? 's' : ''}</span>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* ════════════════════════════════════
+                        COLUMN 2 (CENTER, flex-1) – LE VRAI LIVE TV
+                    ════════════════════════════════════ */}
+                    <div className="flex-1 flex flex-col bg-[#0b0b0e] overflow-hidden min-w-[420px]">
+
+                        {/* ── Régie Header Bar ── */}
+                        <div className="h-11 px-4 bg-[#141417] border-b border-[#26262c] flex items-center justify-between shrink-0">
+                            {/* Left: TV Title & Block info */}
+                            <div className="flex items-center gap-2.5 min-w-0">
+                                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#9146FF] to-[#00e5ff] flex items-center justify-center text-[10px] font-black text-white shrink-0">
+                                    DS
                                 </div>
-                                <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
-                                    {actionLogs.length === 0 ? (
-                                        <div className="h-full flex items-center justify-center text-gray-600 text-[11px]">Aucune action</div>
-                                    ) : actionLogs.map(log => {
-                                        const icons: Record<string, string> = {
-                                            DELETE: '🗑️', BAN: '🚫', UNBAN: '✅', TIMEOUT: '⏱️',
-                                            SLOWMODE: '🐢', PIN: '📌', UNPIN: '📌', CLEAR: '🧹',
-                                            ROLE_CHANGE: '👑', AUTOMOD_ACCEPT: '✅', AUTOMOD_REJECT: '❌'
-                                        };
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <span className="text-xs font-black text-white tracking-wide truncate">
+                                        {isLive ? '🔴 LIVE DIRECT' : `${tvPlayerInfo.blockEmoji} ${tvPlayerInfo.blockTitle}`}
+                                    </span>
+                                    <span className="text-[10px] text-gray-400 hidden sm:inline px-2 py-0.5 rounded bg-white/5 border border-white/10 font-mono">
+                                        {isLive ? 'Live Stream' : tvPlayerInfo.timeSlot}
+                                    </span>
+                                </div>
+                                <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded border text-[9px] font-black uppercase tracking-wider ${liveStatusColor}`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-red-500 animate-pulse' : 'bg-cyan-400'}`} />
+                                    {liveStatus}
+                                </div>
+                            </div>
+
+                            {/* Right: Controls régie TV */}
+                            <div className="flex items-center gap-2 shrink-0">
+                                <button
+                                    onClick={() => setIsPlayerMuted(!isPlayerMuted)}
+                                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold border transition-all cursor-pointer ${
+                                        isPlayerMuted
+                                            ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20'
+                                            : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
+                                    }`}
+                                    title={isPlayerMuted ? 'Activer le son' : 'Couper le son'}
+                                >
+                                    {isPlayerMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                                    <span>{isPlayerMuted ? 'Muet' : 'Son Actif'}</span>
+                                </button>
+
+                                <button
+                                    onClick={() => setTvRefreshTrigger(p => p + 1)}
+                                    className="p-1.5 rounded bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                                    title="Resynchroniser le lecteur TV"
+                                >
+                                    <RefreshCw className="w-3.5 h-3.5" />
+                                </button>
+
+                                <a
+                                    href="/tv"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex items-center gap-1 px-2.5 py-1 rounded bg-[#9146FF]/20 hover:bg-[#9146FF]/30 text-[#bf94ff] border border-[#9146FF]/40 text-[11px] font-bold transition-all cursor-pointer"
+                                    title="Ouvrir la TV en grand écran"
+                                >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                    <span className="hidden md:inline">Ouvrir TV</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        {/* ── Grand Écran Live TV au centre ── */}
+                        <div className="flex-1 flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#0a0a0d] via-[#101014] to-[#0a0a0d] overflow-hidden">
+                            <div className="relative w-full max-w-5xl aspect-video rounded-xl overflow-hidden bg-black border border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.85)] flex items-center justify-center">
+                                {!isLive ? (
+                                    /* Vrai Live TV 24/7 synchronisé */
+                                    <iframe
+                                        key={playerVideoId + '_tv_' + playerStart}
+                                        src={`https://www.youtube-nocookie.com/embed/${playerVideoId}?autoplay=1&mute=${isPlayerMuted ? 1 : 0}&controls=1&modestbranding=1&rel=0&cc_load_policy=0&start=${playerStart}`}
+                                        className="w-full h-full border-0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        title="Dropsiders TV"
+                                    />
+                                ) : (
+                                    /* Live stream direct */
+                                    <iframe
+                                        key={playerVideoId + '_live'}
+                                        src={`https://www.youtube-nocookie.com/embed/${playerVideoId}?autoplay=1&mute=${isPlayerMuted ? 1 : 0}&controls=1&modestbranding=1&rel=0`}
+                                        className="w-full h-full border-0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        title="Live Stream"
+                                    />
+                                )}
+
+                                {/* TV 24/7 Watermark overlay */}
+                                {!isLive && (
+                                    <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md border border-cyan-500/40 rounded-lg px-2.5 py-1 pointer-events-none shadow-lg">
+                                        <Tv className="w-3.5 h-3.5 text-cyan-400" />
+                                        <span className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Direct TV 24/7</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* ── Bandeau d'infos Programme TV sous le lecteur ── */}
+                        <div className="h-14 px-4 bg-[#141417] border-t border-[#26262c] flex items-center justify-between gap-4 shrink-0">
+                            {/* Titre en cours */}
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="px-2 py-1 rounded bg-cyan-500/10 border border-cyan-500/30 text-[9px] font-black uppercase tracking-wider text-cyan-400 shrink-0">
+                                    EN COURS
+                                </div>
+                                <div className="min-w-0">
+                                    <div className="text-xs font-bold text-white truncate">
+                                        {isLive ? 'Live Stream en direct Dropsiders' : tvPlayerInfo.title}
+                                    </div>
+                                    <div className="text-[10px] text-gray-400 truncate">
+                                        {isLive ? 'Diffusion studio' : `${tvPlayerInfo.blockName} • ${tvPlayerInfo.description || 'DJ Sets & Festivals'}`}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Titre à suivre */}
+                            {tvPlayerInfo.nextTitle && !isLive && (
+                                <div className="hidden lg:flex items-center gap-2 min-w-0 max-w-xs shrink-0 text-right">
+                                    <span className="text-[9px] font-black uppercase text-gray-500 shrink-0">À SUIVRE :</span>
+                                    <span className="text-[11px] text-gray-300 truncate font-medium">
+                                        {tvPlayerInfo.nextTitle}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* ════════════════════════════════════
+                        COLUMN 3 (RIGHT, 340px) – CHAT & MEMBRES
+                    ════════════════════════════════════ */}
+                    <div className="flex flex-col border-l border-[#26262c] bg-[#18181b] shrink-0 overflow-hidden" style={{ width: 340 }}>
+
+                        {/* Onglets Chat / Membres */}
+                        <div className="h-10 bg-[#141417] border-b border-[#26262c] flex items-center px-2 shrink-0 gap-1">
+                            <button
+                                onClick={() => setRightTab('chat')}
+                                className={`flex-1 py-1.5 px-3 rounded-md text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                                    rightTab === 'chat'
+                                        ? 'bg-[#1f1f23] text-white shadow-sm border border-white/10'
+                                        : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+                                }`}
+                            >
+                                <MessageSquare className="w-3.5 h-3.5 text-[#9146FF]" />
+                                <span>Chat</span>
+                                <span className="text-[10px] text-gray-500">({filteredMessages.length})</span>
+                            </button>
+
+                            <button
+                                onClick={() => setRightTab('users')}
+                                className={`flex-1 py-1.5 px-3 rounded-md text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                                    rightTab === 'users'
+                                        ? 'bg-[#1f1f23] text-white shadow-sm border border-white/10'
+                                        : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+                                }`}
+                            >
+                                <Eye className="w-3.5 h-3.5 text-cyan-400" />
+                                <span>Membres</span>
+                                <span className="text-[10px] text-gray-500">({uniqueChatters.length})</span>
+                            </button>
+                        </div>
+
+                        {rightTab === 'chat' ? (
+                            /* ── ONGLET CHAT ── */
+                            <div className="flex-1 flex flex-col bg-[#0e0e10] overflow-hidden">
+                                {/* Chat sub-header : Search + Auto-scroll toggle */}
+                                <div className="h-9 bg-[#18181b] border-b border-[#26262c] px-3 flex items-center justify-between shrink-0">
+                                    <div className="relative flex-1 mr-2">
+                                        <Search className="w-3 h-3 text-gray-500 absolute left-2 top-1/2 -translate-y-1/2" />
+                                        <input
+                                            type="text"
+                                            value={searchFilter}
+                                            onChange={e => setSearchFilter(e.target.value)}
+                                            placeholder="Filtrer messages..."
+                                            className="w-full pl-6 pr-2 py-0.5 bg-[#0e0e10] border border-white/10 rounded text-[11px] text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 transition-all"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={() => setAutoScroll(!autoScroll)}
+                                        className={`px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer transition-colors ${
+                                            autoScroll ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-white/5 text-gray-400'
+                                        }`}
+                                    >
+                                        {autoScroll ? '↓ Auto' : '⏸ Pause'}
+                                    </button>
+                                </div>
+
+                                {/* Objectif / Goal progress bar */}
+                                <div className="px-3 py-1.5 bg-[#18181b] border-b border-[#26262c] shrink-0">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="text-[10px] text-gray-300 font-bold">Objectif Drops</span>
+                                        <span className="text-[10px] text-gray-400">{messages.length} / 500 messages</span>
+                                    </div>
+                                    <div className="h-1.5 bg-[#26262c] rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-gradient-to-r from-[#9146FF] to-[#00e5ff] rounded-full transition-all"
+                                            style={{ width: `${Math.min(100, (messages.length / 500) * 100)}%` }}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Pinned message */}
+                                {pinnedMessage && (
+                                    <div className="bg-[#1f1f23] border-b border-amber-500/40 px-3 py-2 flex items-center justify-between gap-3 shrink-0">
+                                        <div className="flex items-center gap-2 overflow-hidden">
+                                            <Pin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                                            <span className="text-[11px] font-bold text-amber-300">@{pinnedMessage.pseudo}:</span>
+                                            <span className="text-[11px] text-gray-200 truncate">{pinnedMessage.message}</span>
+                                        </div>
+                                        <button onClick={() => handlePinMessage(null)} className="text-gray-400 hover:text-white cursor-pointer shrink-0">
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Messages area */}
+                                <div ref={chatScrollRef} className="flex-1 overflow-y-auto py-2 space-y-0.5">
+                                    {filteredMessages.length === 0 ? (
+                                        <div className="h-full flex flex-col items-center justify-center text-gray-600 text-xs">
+                                            <MessageSquare className="w-8 h-8 mb-2 opacity-20" />
+                                            <span>Bienvenue sur le chat de Dropsiders TV !</span>
+                                        </div>
+                                    ) : filteredMessages.map(msg => {
+                                        const cleanPseudo = (msg.pseudo || '').toLowerCase();
+                                        const userRole = roles[cleanPseudo] || msg.role || 'user';
+                                        const roleInfo = ROLE_META[userRole] || ROLE_META.user;
+                                        const isBanned = bannedList.some(b => b.toUpperCase() === (msg.pseudo || '').toUpperCase());
+
                                         return (
-                                            <div key={log.id} className="flex gap-2 items-start">
-                                                <div className="w-7 h-7 rounded-full bg-[#1f1f23] border border-white/5 flex items-center justify-center text-sm shrink-0">
-                                                    {icons[log.actionType] || '🛡️'}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    {log.targetPseudo && (
-                                                        <div className="text-[11px] font-bold text-amber-300 truncate">{log.targetPseudo}</div>
-                                                    )}
-                                                    <div className="text-[10px] text-gray-400 leading-tight truncate">{log.detail}</div>
-                                                    <div className="text-[9px] text-gray-600 font-mono mt-0.5">{log.modPseudo} · {log.timestamp}</div>
+                                            <div
+                                                key={msg.id}
+                                                className={`group relative flex items-start gap-2 py-1.5 px-3 hover:bg-white/[0.03] transition-colors ${
+                                                    msg.isHighlighted ? 'bg-amber-500/10 border-l-2 border-amber-400' : ''
+                                                }`}
+                                            >
+                                                {/* Timestamp */}
+                                                <span className="text-[10px] text-gray-600 font-mono shrink-0 pt-px">{msg.time}</span>
+
+                                                {/* Flag */}
+                                                {msg.country && (
+                                                    <span className="text-[11px] shrink-0 pt-px">
+                                                        {msg.country === 'FR' ? '🇫🇷' : msg.country === 'BE' ? '🇧🇪' : msg.country === 'CH' ? '🇨🇭' : '🌐'}
+                                                    </span>
+                                                )}
+
+                                                {/* Role badge */}
+                                                {userRole !== 'user' && (
+                                                    <span className={`px-1 py-0.5 rounded text-[9px] font-black border uppercase tracking-wider shrink-0 ${roleInfo.badge}`}>
+                                                        {roleInfo.icon} {roleInfo.label}
+                                                    </span>
+                                                )}
+
+                                                {/* Pseudo */}
+                                                <button
+                                                    onClick={() => setSelectedUser(msg.pseudo)}
+                                                    style={{ color: msg.color || '#00e5ff' }}
+                                                    className="font-bold text-xs hover:underline cursor-pointer shrink-0 pt-px"
+                                                >
+                                                    {msg.pseudo}:
+                                                </button>
+
+                                                {/* Message */}
+                                                <span className={`text-xs text-gray-200 break-words flex-1 leading-relaxed pt-px ${isBanned ? 'line-through opacity-40' : ''}`}>
+                                                    {msg.message}
+                                                </span>
+
+                                                {/* Hover actions */}
+                                                <div className="hidden group-hover:flex items-center gap-0.5 bg-[#1f1f23] border border-white/10 rounded px-1 py-0.5 shadow-lg shrink-0 z-10">
+                                                    <button onClick={() => handleTimeoutUser(msg.pseudo, 1, '1s')} className="p-1 text-gray-400 hover:text-amber-400 cursor-pointer text-[10px]" title="Purge">1s</button>
+                                                    <button onClick={() => handleTimeoutUser(msg.pseudo, 600, '10m')} className="p-1 text-gray-400 hover:text-amber-400 cursor-pointer text-[10px]" title="Timeout 10m">10m</button>
+                                                    <button onClick={() => handleDeleteMessage(msg.id, msg.pseudo)} className="p-1 text-gray-400 hover:text-red-400 cursor-pointer" title="Supprimer"><Trash2 className="w-3 h-3" /></button>
+                                                    <button onClick={() => handleBanUser(msg.pseudo)} className="p-1 text-gray-400 hover:text-red-400 cursor-pointer" title="Bannir"><UserX className="w-3 h-3" /></button>
+                                                    <button onClick={() => handlePinMessage(msg)} className="p-1 text-gray-400 hover:text-amber-400 cursor-pointer" title="Épingler"><Pin className="w-3 h-3" /></button>
+                                                    <button onClick={() => setSelectedUser(msg.pseudo)} className="p-1 text-gray-400 hover:text-cyan-400 cursor-pointer" title="Fiche"><Eye className="w-3 h-3" /></button>
                                                 </div>
                                             </div>
                                         );
                                     })}
                                 </div>
 
-                                {/* Quick actions bottom */}
-                                {showQuickActions && (
-                                    <div className="p-2 border-t border-[#26262c] space-y-1.5">
-                                        <div className="text-[9px] font-black uppercase tracking-wider text-gray-500 mb-1">Mode Ralenti</div>
-                                        <div className="grid grid-cols-5 gap-1">
-                                            {[0, 3, 10, 30, 60].map(s => (
-                                                <button
-                                                    key={s}
-                                                    onClick={() => handleSetSlowMode(s)}
-                                                    className={`py-1 text-[10px] font-black rounded border transition-all cursor-pointer ${
-                                                        slowMode === s
-                                                            ? 'bg-amber-500 text-black border-amber-400'
-                                                            : 'bg-[#1f1f23] text-gray-300 border-white/5 hover:border-white/20'
-                                                    }`}
-                                                >
-                                                    {s === 0 ? 'OFF' : `${s}s`}
-                                                </button>
-                                            ))}
+                                {/* Chat input bar */}
+                                <div className="p-2.5 bg-[#18181b] border-t border-[#26262c] shrink-0">
+                                    {isAnnouncement && (
+                                        <div className="mb-2 px-2 py-1 bg-amber-500/20 border border-amber-500/40 rounded text-[11px] text-amber-300 font-bold flex items-center justify-between">
+                                            <span>📢 Mode Annonce activé</span>
+                                            <button onClick={() => setIsAnnouncement(false)} className="cursor-pointer"><X className="w-3 h-3" /></button>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-1">
-                                            <button
-                                                onClick={() => setIsPollModalOpen(true)}
-                                                className="py-1.5 text-[10px] font-bold rounded bg-[#9146FF]/20 hover:bg-[#9146FF]/30 border border-[#9146FF]/40 text-[#bf94ff] cursor-pointer flex items-center justify-center gap-1"
-                                            >
-                                                <BarChart2 className="w-3 h-3" /> Sondage
-                                            </button>
-                                            <button
-                                                onClick={handleClearChat}
-                                                className="py-1.5 text-[10px] font-bold rounded bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 cursor-pointer flex items-center justify-center gap-1"
-                                            >
-                                                <Trash2 className="w-3 h-3" /> Purger
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* File D'attente De L'AutoMod (right) */}
-                            <div className="flex-1 flex flex-col overflow-hidden">
-                                <div className="h-9 px-2.5 flex items-center justify-between shrink-0 border-b border-[#26262c]">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="text-[11px] font-black uppercase tracking-wider text-gray-200">File D'attente De L'AutoMod</span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <button className="px-1.5 py-0.5 rounded text-[10px] text-gray-400 hover:text-white hover:bg-white/5 border border-white/10 cursor-pointer">
-                                            Filtre
+                                    )}
+                                    <form onSubmit={e => { e.preventDefault(); handleSendChatMessage(); }} className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsAnnouncement(!isAnnouncement)}
+                                            className={`px-2 py-2 rounded text-xs font-black transition-all cursor-pointer ${isAnnouncement ? 'bg-amber-500 text-black' : 'bg-white/5 hover:bg-white/10 text-gray-300'}`}
+                                            title="Annonce officielle"
+                                        >📢</button>
+                                        <input
+                                            type="text"
+                                            value={inputMessage}
+                                            onChange={e => setInputMessage(e.target.value)}
+                                            placeholder="Envoyer un message..."
+                                            className="flex-1 px-3 py-2 bg-[#0e0e10] border border-white/10 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#9146FF] transition-colors"
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={!inputMessage.trim()}
+                                            className="px-3.5 py-2 bg-[#9146FF] hover:bg-[#772ce8] disabled:opacity-30 disabled:pointer-events-none text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
+                                        >
+                                            Chat
                                         </button>
-                                        <button className="p-1 rounded hover:bg-white/5 text-gray-500 cursor-pointer">
-                                            <MoreHorizontal className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="flex-1 overflow-y-auto p-2 space-y-2">
-                                    {autoModQueue.length === 0 ? (
-                                        <div className="h-full flex flex-col items-center justify-center text-center p-4">
-                                            <div className="w-12 h-12 rounded-full bg-[#1f1f23] border border-white/5 flex items-center justify-center mb-3">
-                                                <Shield className="w-6 h-6 text-gray-600" />
-                                            </div>
-                                            <div className="text-[11px] text-gray-500 font-bold">L'AutoMod est désactivé</div>
-                                            <div className="text-[10px] text-gray-600 mt-1 leading-relaxed">
-                                                L'AutoMod retient automatiquement les messages risqués afin que les modérateurs puissent les vérifier.
-                                            </div>
-                                        </div>
-                                    ) : autoModQueue.map(item => (
-                                        <div key={item.id} className="bg-[#1f1f23] border border-amber-500/30 rounded-lg p-2.5 space-y-2">
-                                            <div className="flex items-center justify-between text-[11px]">
-                                                <button
-                                                    onClick={() => setSelectedUser(item.messageItem.pseudo)}
-                                                    className="font-bold text-amber-300 hover:underline cursor-pointer"
-                                                >
-                                                    @{item.messageItem.pseudo}
-                                                </button>
-                                                <span className={`text-[9px] px-1.5 py-0.5 rounded font-black uppercase ${
-                                                    item.severity === 'high' ? 'bg-red-500/20 text-red-400' :
-                                                    item.severity === 'medium' ? 'bg-amber-500/20 text-amber-400' :
-                                                    'bg-gray-500/20 text-gray-400'
-                                                }`}>{item.severity}</span>
-                                            </div>
-                                            <div className="text-[10px] text-amber-400 font-medium bg-amber-500/10 px-2 py-1 rounded">{item.reason}</div>
-                                            <p className="text-[11px] text-white bg-black/40 p-2 rounded border border-white/5 break-words font-mono">"{item.messageItem.message}"</p>
-                                            <div className="grid grid-cols-2 gap-1">
-                                                <button onClick={() => handleAutoModAccept(item)} className="py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer">
-                                                    <Check className="w-3.5 h-3.5" /> Autoriser
-                                                </button>
-                                                <button onClick={() => handleAutoModReject(item)} className="py-1.5 bg-red-600 hover:bg-red-500 text-white rounded text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer">
-                                                    <X className="w-3.5 h-3.5" /> Refuser
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
+                                    </form>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    {/* ════════════════════════════════════
-                        COLUMN 2 – CHAT
-                    ════════════════════════════════════ */}
-                    <div className="flex-1 flex flex-col bg-[#0e0e10] overflow-hidden min-w-[300px]">
-
-                        {/* Chat header */}
-                        <div className="h-9 bg-[#18181b] border-b border-[#26262c] px-3 flex items-center justify-between shrink-0">
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs font-black uppercase tracking-wider text-gray-200">Chat</span>
-                                <span className="text-[10px] text-gray-500">({filteredMessages.length})</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                {/* Modes dropdown */}
-                                <button className="flex items-center gap-1 px-2 py-0.5 rounded hover:bg-white/5 text-[11px] text-gray-300 border border-white/10 cursor-pointer">
-                                    Modes <ChevronDown className="w-3 h-3" />
-                                </button>
+                        ) : (
+                            /* ── ONGLET MEMBRES ÉPURÉ (ZÉRO BOT) ── */
+                            <div className="flex-1 flex flex-col bg-[#18181b] overflow-hidden">
                                 {/* Search */}
-                                <div className="relative">
-                                    <Search className="w-3 h-3 text-gray-500 absolute left-2 top-1/2 -translate-y-1/2" />
-                                    <input
-                                        type="text"
-                                        value={searchFilter}
-                                        onChange={e => setSearchFilter(e.target.value)}
-                                        placeholder="Filtrer..."
-                                        className="pl-6 pr-2 py-0.5 bg-[#0e0e10] border border-white/10 rounded text-[11px] text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 w-28 transition-all"
-                                    />
+                                <div className="px-3 py-2 border-b border-[#26262c]">
+                                    <div className="relative">
+                                        <Search className="w-3 h-3 text-gray-500 absolute left-2 top-1/2 -translate-y-1/2" />
+                                        <input
+                                            type="text"
+                                            value={communauteSearch}
+                                            onChange={e => setCommunauteSearch(e.target.value)}
+                                            placeholder="Filtrer membres..."
+                                            className="w-full pl-6 pr-2 py-1 bg-[#0e0e10] border border-white/10 rounded text-[11px] text-white placeholder-gray-500 focus:outline-none"
+                                        />
+                                    </div>
                                 </div>
-                                <button
-                                    onClick={() => setAutoScroll(!autoScroll)}
-                                    className={`px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer transition-colors ${
-                                        autoScroll ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-white/5 text-gray-400'
-                                    }`}
-                                >
-                                    {autoScroll ? '↓ Auto' : '⏸ Pause'}
-                                </button>
-                            </div>
-                        </div>
 
-                        {/* Objectif / Goal progress bar */}
-                        <div className="px-3 py-1.5 bg-[#18181b] border-b border-[#26262c] shrink-0">
-                            <div className="flex items-center justify-between mb-1">
-                                <span className="text-[10px] text-gray-300 font-bold">Objectif Drops</span>
-                                <span className="text-[10px] text-gray-400">{messages.length} / 500 messages</span>
-                            </div>
-                            <div className="h-1.5 bg-[#26262c] rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-gradient-to-r from-[#9146FF] to-[#00e5ff] rounded-full transition-all"
-                                    style={{ width: `${Math.min(100, (messages.length / 500) * 100)}%` }}
-                                />
-                            </div>
-                        </div>
+                                <div className="flex-1 overflow-y-auto">
+                                    {/* Diffuseur */}
+                                    <div className="border-b border-[#26262c]">
+                                        <button
+                                            onClick={() => setExpandDiffuseur(!expandDiffuseur)}
+                                            className="w-full px-3 py-2 flex items-center justify-between hover:bg-white/5 cursor-pointer transition-colors"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                                                <span className="text-[11px] font-black text-gray-200">Diffuseur</span>
+                                            </div>
+                                            <ChevronDown className={`w-3.5 h-3.5 text-gray-500 transition-transform ${expandDiffuseur ? '' : '-rotate-90'}`} />
+                                        </button>
+                                        {expandDiffuseur && (
+                                            <div className="px-3 pb-2">
+                                                <div className="flex items-center gap-2 py-1">
+                                                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#9146FF] to-[#00e5ff] flex items-center justify-center text-[9px] font-black text-white">DS</div>
+                                                    <span className="text-[11px] font-bold text-white">Dropsiders TV</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
 
-                        {/* Pinned message */}
-                        {pinnedMessage && (
-                            <div className="bg-[#1f1f23] border-b border-amber-500/40 px-3 py-2 flex items-center justify-between gap-3 shrink-0">
-                                <div className="flex items-center gap-2 overflow-hidden">
-                                    <Pin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                                    <span className="text-[11px] font-bold text-amber-300">@{pinnedMessage.pseudo}:</span>
-                                    <span className="text-[11px] text-gray-200 truncate">{pinnedMessage.message}</span>
+                                    {/* Modérateurs réels */}
+                                    <div className="border-b border-[#26262c]">
+                                        <button
+                                            onClick={() => setExpandMods(!expandMods)}
+                                            className="w-full px-3 py-2 flex items-center justify-between hover:bg-white/5 cursor-pointer transition-colors"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                                                <span className="text-[11px] font-black text-gray-200">Modérateurs</span>
+                                                <span className="text-[10px] text-gray-500">({mods.length})</span>
+                                            </div>
+                                            <ChevronDown className={`w-3.5 h-3.5 text-gray-500 transition-transform ${expandMods ? '' : '-rotate-90'}`} />
+                                        </button>
+                                        {expandMods && (
+                                            <div className="px-3 pb-2 space-y-1">
+                                                {mods.length === 0 ? (
+                                                    <div className="text-[10px] text-gray-600">Aucun modérateur actif dans le chat</div>
+                                                ) : mods.map(u => (
+                                                    <div key={u.pseudo} className="flex items-center justify-between py-0.5">
+                                                        <button onClick={() => setSelectedUser(u.pseudo)} className="flex items-center gap-1.5 hover:text-white cursor-pointer">
+                                                            <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-[8px] font-black text-emerald-400">{u.pseudo.slice(0,2).toUpperCase()}</div>
+                                                            <span className="text-[11px] text-emerald-300 font-bold">{u.pseudo}</span>
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Spectateurs réels */}
+                                    <div>
+                                        <button
+                                            onClick={() => setExpandViewers(!expandViewers)}
+                                            className="w-full px-3 py-2 flex items-center justify-between hover:bg-white/5 cursor-pointer transition-colors"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <Eye className="w-3.5 h-3.5 text-gray-400" />
+                                                <span className="text-[11px] font-black text-gray-200">Spectateurs</span>
+                                                <span className="text-[10px] text-gray-500">({filteredViewers.length})</span>
+                                            </div>
+                                            <ChevronDown className={`w-3.5 h-3.5 text-gray-500 transition-transform ${expandViewers ? '' : '-rotate-90'}`} />
+                                        </button>
+                                        {expandViewers && (
+                                            <div className="px-3 pb-3 space-y-1">
+                                                {filteredViewers.length === 0 ? (
+                                                    <div className="text-[10px] text-gray-600">Aucun spectateur actif</div>
+                                                ) : filteredViewers.map(u => (
+                                                    <div key={u.pseudo} className="flex items-center justify-between py-0.5 group">
+                                                        <button onClick={() => setSelectedUser(u.pseudo)} className="flex items-center gap-1.5 cursor-pointer hover:text-white">
+                                                            <span className="text-[10px]">{u.country === 'FR' ? '🇫🇷' : '🌐'}</span>
+                                                            <span className="text-[11px] font-bold" style={{ color: u.color }}>{u.pseudo}</span>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setSelectedUser(u.pseudo)}
+                                                            className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-gray-500 hover:text-white"
+                                                        >
+                                                            <Info className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                                <button onClick={() => handlePinMessage(null)} className="text-gray-400 hover:text-white cursor-pointer shrink-0">
-                                    <X className="w-3.5 h-3.5" />
-                                </button>
                             </div>
                         )}
-
-                        {/* Messages area */}
-                        <div ref={chatScrollRef} className="flex-1 overflow-y-auto py-2 space-y-0.5">
-                            {filteredMessages.length === 0 ? (
-                                <div className="h-full flex flex-col items-center justify-center text-gray-600 text-xs">
-                                    <MessageSquare className="w-8 h-8 mb-2 opacity-20" />
-                                    <span>Bienvenue sur le chat de Dropsiders TV !</span>
-                                </div>
-                            ) : filteredMessages.map(msg => {
-                                const cleanPseudo = (msg.pseudo || '').toLowerCase();
-                                const userRole = roles[cleanPseudo] || msg.role || 'user';
-                                const roleInfo = ROLE_META[userRole] || ROLE_META.user;
-                                const isBanned = bannedList.some(b => b.toUpperCase() === (msg.pseudo || '').toUpperCase());
-
-                                return (
-                                    <div
-                                        key={msg.id}
-                                        className={`group relative flex items-start gap-2 py-1.5 px-3 hover:bg-white/[0.03] transition-colors ${
-                                            msg.isHighlighted ? 'bg-amber-500/10 border-l-2 border-amber-400' : ''
-                                        }`}
-                                    >
-                                        {/* Timestamp */}
-                                        <span className="text-[10px] text-gray-600 font-mono shrink-0 pt-px">{msg.time}</span>
-
-                                        {/* Flag */}
-                                        {msg.country && (
-                                            <span className="text-[11px] shrink-0 pt-px">
-                                                {msg.country === 'FR' ? '🇫🇷' : msg.country === 'BE' ? '🇧🇪' : msg.country === 'CH' ? '🇨🇭' : '🌐'}
-                                            </span>
-                                        )}
-
-                                        {/* Role badge */}
-                                        {userRole !== 'user' && (
-                                            <span className={`px-1 py-0.5 rounded text-[9px] font-black border uppercase tracking-wider shrink-0 ${roleInfo.badge}`}>
-                                                {roleInfo.icon} {roleInfo.label}
-                                            </span>
-                                        )}
-
-                                        {/* Pseudo */}
-                                        <button
-                                            onClick={() => setSelectedUser(msg.pseudo)}
-                                            style={{ color: msg.color || '#00e5ff' }}
-                                            className="font-bold text-xs hover:underline cursor-pointer shrink-0 pt-px"
-                                        >
-                                            {msg.pseudo}:
-                                        </button>
-
-                                        {/* Message */}
-                                        <span className={`text-xs text-gray-200 break-words flex-1 leading-relaxed pt-px ${isBanned ? 'line-through opacity-40' : ''}`}>
-                                            {msg.message}
-                                        </span>
-
-                                        {/* Hover actions */}
-                                        <div className="hidden group-hover:flex items-center gap-0.5 bg-[#1f1f23] border border-white/10 rounded px-1 py-0.5 shadow-lg shrink-0 z-10">
-                                            <button onClick={() => handleTimeoutUser(msg.pseudo, 1, '1s')} className="p-1 text-gray-400 hover:text-amber-400 cursor-pointer text-[10px]" title="Purge">1s</button>
-                                            <button onClick={() => handleTimeoutUser(msg.pseudo, 600, '10m')} className="p-1 text-gray-400 hover:text-amber-400 cursor-pointer text-[10px]" title="Timeout 10m">10m</button>
-                                            <button onClick={() => handleDeleteMessage(msg.id, msg.pseudo)} className="p-1 text-gray-400 hover:text-red-400 cursor-pointer" title="Supprimer"><Trash2 className="w-3 h-3" /></button>
-                                            <button onClick={() => handleBanUser(msg.pseudo)} className="p-1 text-gray-400 hover:text-red-400 cursor-pointer" title="Bannir"><UserX className="w-3 h-3" /></button>
-                                            <button onClick={() => handlePinMessage(msg)} className="p-1 text-gray-400 hover:text-amber-400 cursor-pointer" title="Épingler"><Pin className="w-3 h-3" /></button>
-                                            <button onClick={() => setSelectedUser(msg.pseudo)} className="p-1 text-gray-400 hover:text-cyan-400 cursor-pointer" title="Fiche"><Eye className="w-3 h-3" /></button>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        {/* Chat input bar */}
-                        <div className="p-2.5 bg-[#18181b] border-t border-[#26262c] shrink-0">
-                            {isAnnouncement && (
-                                <div className="mb-2 px-2 py-1 bg-amber-500/20 border border-amber-500/40 rounded text-[11px] text-amber-300 font-bold flex items-center justify-between">
-                                    <span>📢 Mode Annonce activé</span>
-                                    <button onClick={() => setIsAnnouncement(false)} className="cursor-pointer"><X className="w-3 h-3" /></button>
-                                </div>
-                            )}
-                            <form onSubmit={e => { e.preventDefault(); handleSendChatMessage(); }} className="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsAnnouncement(!isAnnouncement)}
-                                    className={`px-2 py-2 rounded text-xs font-black transition-all cursor-pointer ${isAnnouncement ? 'bg-amber-500 text-black' : 'bg-white/5 hover:bg-white/10 text-gray-300'}`}
-                                    title="Annonce officielle"
-                                >📢</button>
-                                <input
-                                    type="text"
-                                    value={inputMessage}
-                                    onChange={e => setInputMessage(e.target.value)}
-                                    placeholder="Envoyer un message"
-                                    className="flex-1 px-3 py-2 bg-[#0e0e10] border border-white/10 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#9146FF] transition-colors"
-                                />
-                                {/* Bits icon */}
-                                <button type="button" className="p-1.5 rounded text-gray-400 hover:text-white hover:bg-white/5 cursor-pointer" title="Drops">
-                                    <Sparkles className="w-4 h-4" />
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={!inputMessage.trim()}
-                                    className="px-4 py-2 bg-[#9146FF] hover:bg-[#772ce8] disabled:opacity-30 disabled:pointer-events-none text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
-                                >
-                                    Chat
-                                </button>
-                            </form>
-                        </div>
                     </div>
-
-                    {/* ════════════════════════════════════
-                        COLUMN 3 – COMMUNAUTÉ
-                    ════════════════════════════════════ */}
-                    {showUsersPanel && (
-                        <div className="flex flex-col border-l border-[#26262c] bg-[#18181b] shrink-0 overflow-hidden" style={{ width: 240 }}>
-                            {/* Header */}
-                            <div className="h-9 px-3 flex items-center justify-between shrink-0 border-b border-[#26262c]">
-                                <span className="text-xs font-black uppercase tracking-wider text-gray-200">Communauté</span>
-                                <button onClick={() => fetchModState()} className="p-1 rounded hover:bg-white/5 text-gray-500 hover:text-white cursor-pointer">
-                                    <RefreshCw className="w-3.5 h-3.5" />
-                                </button>
-                            </div>
-
-                            {/* Search */}
-                            <div className="px-3 py-2 border-b border-[#26262c]">
-                                <div className="relative">
-                                    <Search className="w-3 h-3 text-gray-500 absolute left-2 top-1/2 -translate-y-1/2" />
-                                    <input
-                                        type="text"
-                                        value={communauteSearch}
-                                        onChange={e => setCommunauteSearch(e.target.value)}
-                                        placeholder="Filtre"
-                                        className="w-full pl-6 pr-2 py-1 bg-[#0e0e10] border border-white/10 rounded text-[11px] text-white placeholder-gray-500 focus:outline-none"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex-1 overflow-y-auto">
-
-                                {/* Diffuseur */}
-                                <div className="border-b border-[#26262c]">
-                                    <button
-                                        onClick={() => setExpandDiffuseur(!expandDiffuseur)}
-                                        className="w-full px-3 py-2 flex items-center justify-between hover:bg-white/5 cursor-pointer transition-colors"
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                                            <span className="text-[11px] font-black text-gray-200">Diffuseur</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <Info className="w-3.5 h-3.5 text-gray-500" />
-                                            <ChevronDown className={`w-3.5 h-3.5 text-gray-500 transition-transform ${expandDiffuseur ? '' : '-rotate-90'}`} />
-                                        </div>
-                                    </button>
-                                    {expandDiffuseur && (
-                                        <div className="px-3 pb-2">
-                                            <div className="flex items-center gap-2 py-1">
-                                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#9146FF] to-[#00e5ff] flex items-center justify-center text-[9px] font-black text-white">DS</div>
-                                                <span className="text-[11px] font-bold text-white">Dropsiders TV</span>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Modérateurs */}
-                                <div className="border-b border-[#26262c]">
-                                    <button
-                                        onClick={() => setExpandMods(!expandMods)}
-                                        className="w-full px-3 py-2 flex items-center justify-between hover:bg-white/5 cursor-pointer transition-colors"
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <Shield className="w-3.5 h-3.5 text-emerald-400" />
-                                            <span className="text-[11px] font-black text-gray-200">Modérateurs</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <Info className="w-3.5 h-3.5 text-gray-500" />
-                                            <ChevronDown className={`w-3.5 h-3.5 text-gray-500 transition-transform ${expandMods ? '' : '-rotate-90'}`} />
-                                        </div>
-                                    </button>
-                                    {expandMods && (
-                                        <div className="px-3 pb-2 space-y-1">
-                                            {mods.length === 0 ? (
-                                                <div className="text-[10px] text-gray-600">Aucun modérateur actif</div>
-                                            ) : mods.map(u => (
-                                                <div key={u.pseudo} className="flex items-center justify-between py-0.5">
-                                                    <button onClick={() => setSelectedUser(u.pseudo)} className="flex items-center gap-1.5 hover:text-white cursor-pointer">
-                                                        <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-[8px] font-black text-emerald-400">{u.pseudo.slice(0,2).toUpperCase()}</div>
-                                                        <span className="text-[11px] text-emerald-300 font-bold">{u.pseudo}</span>
-                                                    </button>
-                                                    <Info className="w-3 h-3 text-gray-600 cursor-pointer hover:text-gray-400" />
-                                                </div>
-                                            ))}
-                                            {/* Default mods always shown */}
-                                            {['Alex_Dropsiders', 'Wizebot'].filter(m => !mods.some(u => u.pseudo.toLowerCase() === m.toLowerCase())).map(m => (
-                                                <div key={m} className="flex items-center justify-between py-0.5">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-[8px] font-black text-emerald-400">{m.slice(0,2).toUpperCase()}</div>
-                                                        <span className="text-[11px] text-gray-400">{m}</span>
-                                                    </div>
-                                                    <Info className="w-3 h-3 text-gray-600 cursor-pointer hover:text-gray-400" />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Bots de chat */}
-                                <div className="border-b border-[#26262c]">
-                                    <button
-                                        onClick={() => setExpandBots(!expandBots)}
-                                        className="w-full px-3 py-2 flex items-center justify-between hover:bg-white/5 cursor-pointer transition-colors"
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <Bot className="w-3.5 h-3.5 text-cyan-400" />
-                                            <span className="text-[11px] font-black text-gray-200">Bots de chat</span>
-                                        </div>
-                                        <ChevronDown className={`w-3.5 h-3.5 text-gray-500 transition-transform ${expandBots ? '' : '-rotate-90'}`} />
-                                    </button>
-                                    {expandBots && (
-                                        <div className="px-3 pb-2 space-y-1">
-                                            {bots.map(b => (
-                                                <div key={b.pseudo} className="text-[11px] text-gray-400 py-0.5">{b.pseudo}</div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Spectateurs */}
-                                <div>
-                                    <button
-                                        onClick={() => setExpandViewers(!expandViewers)}
-                                        className="w-full px-3 py-2 flex items-center justify-between hover:bg-white/5 cursor-pointer transition-colors"
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <Eye className="w-3.5 h-3.5 text-gray-400" />
-                                            <span className="text-[11px] font-black text-gray-200">Spectateurs</span>
-                                            <span className="text-[10px] text-gray-500">({filteredViewers.length})</span>
-                                        </div>
-                                        <ChevronDown className={`w-3.5 h-3.5 text-gray-500 transition-transform ${expandViewers ? '' : '-rotate-90'}`} />
-                                    </button>
-                                    {expandViewers && (
-                                        <div className="px-3 pb-3 space-y-1">
-                                            {filteredViewers.length === 0 ? (
-                                                <div className="text-[10px] text-gray-600">Aucun spectateur actif</div>
-                                            ) : filteredViewers.map(u => (
-                                                <div key={u.pseudo} className="flex items-center justify-between py-0.5 group">
-                                                    <button onClick={() => setSelectedUser(u.pseudo)} className="flex items-center gap-1.5 cursor-pointer hover:text-white">
-                                                        <span className="text-[10px]">{u.country === 'FR' ? '🇫🇷' : '🌐'}</span>
-                                                        <span className="text-[11px] font-bold" style={{ color: u.color }}>{u.pseudo}</span>
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setSelectedUser(u.pseudo)}
-                                                        className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-gray-500 hover:text-white"
-                                                    >
-                                                        <Info className="w-3 h-3" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
 
