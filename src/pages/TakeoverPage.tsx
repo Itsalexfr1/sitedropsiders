@@ -15,7 +15,7 @@ import { useUser } from '../context/UserContext';
 import { UserAuthModal } from '../components/auth/UserAuthModal';
 import Tesseract from 'tesseract.js';
 import confetti from 'canvas-confetti';
-import { Client, Databases, ID, Query } from 'appwrite';
+
 import { FlagIcon } from '../components/ui/FlagIcon';
 import { ModerationModal } from '../components/admin/ModerationModal';
 import { ImageCropper } from '../components/ImageCropper';
@@ -45,14 +45,6 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         handleGlobalSave 
     } = takeover;
 
-    // Appwrite Config
-    const client = new Client()
-        .setEndpoint('https://fra.cloud.appwrite.io/v1')
-        .setProject('69adc19b0027cb3b46d4');
-    const databases = new Databases(client);
-    const DATABASE_ID = 'live_chat';
-    const COLLECTION_CHAT = 'live_messages';
-    const COLLECTION_BANS = 'bans';
 
     const isAdmin = localStorage.getItem('admin_auth_v2') === 'true';
     const adminUser = localStorage.getItem('admin_user');
@@ -1144,7 +1136,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
 
         const item = { 
             ...newLineupItem, 
-            id: editingLineupId || ID.unique(),
+            id: editingLineupId || `item-${Date.now()}`,
             day: startConverted.newDate,
             startTime: startConverted.newTime,
             endTime: endConverted.newTime
@@ -1200,251 +1192,122 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         };
         init();
 
-        // Appwrite Realtime Subscription
-        const unsubscribe = client.subscribe(
-            `databases.${DATABASE_ID}.collections.${COLLECTION_CHAT}.documents`,
-            (response: any) => {
-                if (response.events.includes('databases.*.collections.*.documents.*.create')) {
-                    const msgText = response.payload.message;
-                    if (msgText.startsWith('[SYSTEM]:')) {
-                        // Handle System Commands
-                        if (msgText.startsWith('[SYSTEM]:REACTION:')) {
-                            const parts = msgText.replace('[SYSTEM]:REACTION:', '').split(':');
-                            const msgId = parts[0];
-                            const emoji = parts[1];
-                            setChatMessages((prev: any) => prev.map((m: any) =>
-                                m.id === msgId ? { ...m, reactions: { ...(m.reactions || {}), [emoji]: (m.reactions?.[emoji] || 0) + 1 } } : m
-                            ));
-                        }
-                    } else {
-                        setChatMessages((prev: any) => {
-                            if (prev.find((m: any) => m.id === response.payload.$id)) return prev;
-                            return [...prev, {
-                                id: response.payload.$id,
-                                pseudo: response.payload.pseudo,
-                                message: response.payload.message,
-                                color: response.payload.color,
-                                time: response.payload.time,
-                                country: response.payload.country,
-                                bgColor: response.payload.bgColor,
-                                xp: response.payload.xp || 0,
-                                stage: response.payload.stage || 'stage1',
-                                isModOnly: response.payload.isModOnly || false,
-                                geo: response.payload.geo || '',
-                                isPrems: response.payload.isPrems || false,
-                                isHolo: response.payload.isHolo || false,
-                                userTitle: response.payload.userTitle || '',
-                                profileBorder: response.payload.profileBorder || 'none',
-                                pseudoColor: response.payload.pseudoColor || '#ffffff',
-                                specialFontStyle: response.payload.specialFontStyle || 'normal',
-                                instagram: response.payload.instagram || '',
-                                avatar: response.payload.avatar || ''
-                            }];
-                        });
-                    }
+        // Cloudflare Edge KV polling (remplace Appwrite Realtime)
+        let lastMessageIds = new Set<string>();
 
-                    // Update Hype Train
-                    setHypeTrain((prev: any) => {
-                        let boost = 2; // Default per message
-                        if (msgText.includes('donné') && msgText.includes('DROPS')) boost = 25; // Donation boost
+        const processSystemMsg = (msgText: string) => {
+            const cmd = msgText.replace('[SYSTEM]:', '');
+            if (cmd === 'SLOW_ON') setSlowModeEnabled(true);
+            if (cmd === 'SLOW_OFF') setSlowModeEnabled(false);
+            if (cmd === 'CLEAR_QUIZ') { setActiveQuiz(null); }
+            else if (cmd.startsWith('POLL:')) {
+                const pollData = JSON.parse(cmd.replace('POLL:', ''));
+                setActivePoll(pollData);
+                const lastVotedPoll = localStorage.getItem('last_voted_poll');
+                setUserVoted(lastVotedPoll === pollData.question);
+            } else if (cmd.startsWith('VOTE:')) {
+                const voteIdx = parseInt(cmd.replace('VOTE:', ''));
+                setActivePoll((prev: any) => {
+                    if (!prev) return prev;
+                    const next = JSON.parse(JSON.stringify(prev));
+                    if (next.options[voteIdx]) next.options[voteIdx].votes = (next.options[voteIdx].votes || 0) + 1;
+                    return next;
+                });
+            } else if (cmd.startsWith('QUIZ_VOTE:')) {
+                const choiceIdx = parseInt(cmd.replace('QUIZ_VOTE:', ''));
+                setActiveQuiz((prev: any) => {
+                    if (!prev) return prev;
+                    const newVotes = [...(prev.votes || [0,0,0,0])];
+                    if (choiceIdx >= 0 && choiceIdx < 4) newVotes[choiceIdx] = (newVotes[choiceIdx] || 0) + 1;
+                    return { ...prev, votes: newVotes };
+                });
+            } else if (cmd === 'CLEAR_POLL') { setActivePoll(null); }
+            else if (cmd === 'CONFETTI') { triggerConfetti(); }
+            else if (cmd === 'FIREWORKS') { triggerFireworks(); }
+            else if (cmd === 'RATE_SET') { setShowRatingPrompt(true); }
+            else if (cmd.startsWith('ARRIVAL:')) { const pseudo = cmd.replace('ARRIVAL:', ''); setNewArrival(pseudo); setTimeout(() => setNewArrival(null), 5000); }
+            else if (cmd === 'MATRIX') { triggerMatrix(); }
+            else if (cmd.startsWith('FLASH:')) { triggerFlash(cmd.replace('FLASH:', ''), 'warn'); }
+            else if (cmd.startsWith('BOSS_SPAWN')) { setActiveBoss({ hp: 1000, maxHp: 1000, name: 'MEGABOT 3000' }); setTimeout(() => setActiveBoss((prev: any) => { if (prev && prev.hp > 0) showNotification("LE BOSS S'EST ÉCHAPPÉ ! 🚨", 'error'); return null; }), 60000); }
+            else if (cmd.startsWith('BOSS_HIT:')) { const dmg = parseInt(cmd.replace('BOSS_HIT:', '')); setActiveBoss((prev: any) => { if (!prev) return null; const nextHp = Math.max(0, prev.hp - dmg); if (nextHp === 0 && prev.hp > 0) { showNotification("VICTOIRE ! PLUIE DE DROPS (+500) ! 🏆", 'success'); triggerFireworks(); setUserDrops((d: number) => d + 500); } return { ...prev, hp: nextHp }; }); }
+            else if (cmd === 'QTE_SPAWN') { setQteActive(true); setTimeout(() => setQteActive(false), 5000); }
+            else if (cmd.startsWith('MUTE_USER:')) { const target = cmd.replace('MUTE_USER:', ''); const myPs = localStorage.getItem('chat_pseudo') || ''; if (target === myPs && !isMod && !vipsList.includes(myPs)) { setIsMuted(true); setMuteTimeLeft(60); showNotification("🚫 TU AS ÉTÉ MUTE PENDANT 60S !", 'error'); } }
+            else if (cmd.startsWith('HEIST_START')) { setActiveHeist({ participants: [], timeLeft: 30 }); setShowHeistOverlay(true); }
+            else if (cmd.startsWith('HEIST_JOIN:')) { const data = JSON.parse(cmd.replace('HEIST_JOIN:', '')); setActiveHeist((prev: any) => prev ? { ...prev, participants: [...prev.participants, data] } : null); }
+            else if (cmd.startsWith('TTS:')) { const [v, ...t] = cmd.replace('TTS:', '').split(':'); const voice = ['robot','monster','echo'].includes(v) ? v as any : 'normal'; const finalMsg = voice === 'normal' ? cmd.replace('TTS:', '') : t.join(':'); speakMessage(finalMsg, voice); }
+            else if (cmd.startsWith('QTE_SPAWN:')) { const data = JSON.parse(cmd.replace('QTE_SPAWN:', '')); setActiveQTE(data); setTimeout(() => setActiveQTE(null), 10000); }
+            else if (cmd.startsWith('REACTION:')) { const [msgId, emoji] = cmd.replace('REACTION:', '').split(':'); setChatMessages((prev: any) => prev.map((m: any) => m.id === msgId ? { ...m, reactions: { ...(m.reactions || {}), [emoji]: (m.reactions?.[emoji] || 0) + 1 } } : m)); }
+            else if (cmd.startsWith('PURGE:')) { const target = cmd.replace('PURGE:', ''); setChatMessages((prev: any) => prev.filter((m: any) => m.pseudo !== target)); }
+            else if (cmd.startsWith('TAKEOVER_ALERT:')) { const text = cmd.replace('TAKEOVER_ALERT:', ''); setTakeoverAlert({ text, type: 'alert' }); setTimeout(() => setTakeoverAlert(null), 5000); }
+            else if (cmd.startsWith('WINNER:')) { const text = cmd.replace('WINNER:', ''); setTakeoverAlert({ text, type: 'alert' }); triggerFireworks(); setTimeout(() => setTakeoverAlert(null), 10000); }
+            else if (cmd.startsWith('JACKPOT_SPAWN')) { setActiveSlots({ id: Math.random().toString(), participants: [], timeLeft: 60 }); }
+            else if (cmd.startsWith('JACKPOT_JOIN:')) { const joiner = cmd.replace('JACKPOT_JOIN:', ''); setActiveSlots((prev: any) => prev ? { ...prev, participants: Array.from(new Set([...prev.participants, joiner])) } : null); }
+            else if (cmd.startsWith('CLASH_START:')) { const data = JSON.parse(cmd.replace('CLASH_START:', '')); setClashPoll({ active: true, teamA: data.teamA, teamB: data.teamB, votesA: [], votesB: [] }); }
+            else if (cmd.startsWith('CLASH_VOTE:')) { const [team, ps] = cmd.replace('CLASH_VOTE:', '').split(':'); setClashPoll((prev: any) => { if (!prev) return null; const next = { ...prev }; if (team === 'A') next.votesA = Array.from(new Set([...next.votesA, ps])); else next.votesB = Array.from(new Set([...next.votesB, ps])); return next; }); }
+            else if (cmd.startsWith('TRACKLIST_SET_NEW:')) { try { const nextSet = JSON.parse(cmd.replace('TRACKLIST_SET_NEW:', '')); setTracklist((prev: any) => [nextSet, ...prev]); } catch (e) {} }
+            else if (cmd.startsWith('TRACKLIST_TRACK_NEW:')) { try { const { setId, track } = JSON.parse(cmd.replace('TRACKLIST_TRACK_NEW:', '')); setTracklist((prev: any) => prev.map((s: any) => s.id === setId ? { ...s, tracks: [...s.tracks, track] } : s)); } catch (e) {} }
+            else if (cmd === 'LEGENDS_WALL') { setShowLegendsWall(true); setTimeout(() => setShowLegendsWall(false), 15000); }
+            else if (cmd.startsWith('MARQUEE_UPDATE:')) { try { const parsed = JSON.parse(cmd.replace('MARQUEE_UPDATE:', '')); setMarqueeItems(parsed); setEditMarqueeItems(parsed); } catch (e) {} }
+        };
 
-                        const newProgress = prev.progress + boost;
-                        if (newProgress >= 100) {
-                            showNotification(`🔥 TRAIN DE LA HYPE NIVEAU ${prev.level + 1} ! 🥳`, 'success');
-                            triggerFireworks();
-                            return { active: true, level: prev.level + 1, progress: 0 };
-                        }
-                        return { ...prev, active: true, progress: newProgress };
+        const pollMessages = async () => {
+            try {
+                const res = await fetch('/api/chat/messages');
+                if (!res.ok) return;
+                const data = await res.json();
+                const messages: any[] = Array.isArray(data.messages) ? data.messages : [];
+
+                const newMessages = messages.filter(m => !lastMessageIds.has(m.id));
+                newMessages.forEach(m => lastMessageIds.add(m.id));
+
+                if (newMessages.length > 0) {
+                    setChatMessages((prev: any) => {
+                        const map = new Map();
+                        prev.forEach((m: any) => map.set(m.id, m));
+                        newMessages.forEach((m: any) => map.set(m.id, m));
+                        return Array.from(map.values()).slice(-150);
                     });
 
-                    if (msgText.startsWith('[SYSTEM]:')) {
-                        const cmd = msgText.replace('[SYSTEM]:', '');
-                        if (cmd === 'SLOW_ON') setSlowModeEnabled(true);
-                        if (cmd === 'SLOW_OFF') setSlowModeEnabled(false);
-                        if (cmd === 'CLEAR_QUIZ') {
-                            setActiveQuiz(null);
-                        } else if (cmd.startsWith('POLL:')) {
-                            const pollData = JSON.parse(cmd.replace('POLL:', ''));
-                            setActivePoll(pollData);
-                            // If we already voted in a previous session of the same poll (question), keep userVoted
-                            const lastVotedPoll = localStorage.getItem('last_voted_poll');
-                            if (lastVotedPoll === pollData.question) {
-                                setUserVoted(true);
-                            } else {
-                                setUserVoted(false);
-                            }
-                        } else if (cmd.startsWith('VOTE:')) {
-                            const voteIdx = parseInt(cmd.replace('VOTE:', ''));
-                            setActivePoll((prev: any) => {
-                                if (!prev) return prev;
-                                const next = JSON.parse(JSON.stringify(prev)); // Deep clone
-                                if (next.options[voteIdx]) {
-                                    next.options[voteIdx].votes = (next.options[voteIdx] || 0) + 1;
-                                }
-                                return next;
-                            });
-                        } else if (cmd.startsWith('QUIZ_VOTE:')) {
-                            const choiceIdx = parseInt(cmd.replace('QUIZ_VOTE:', ''));
-                            setActiveQuiz((prev: any) => {
-                                if (!prev) return prev;
-                                const next = { ...prev };
-                                const newVotes = [...(prev.votes || [0, 0, 0, 0])];
-                                if (choiceIdx >= 0 && choiceIdx < 4) {
-                                    newVotes[choiceIdx] = (newVotes[choiceIdx] || 0) + 1;
-                                }
-                                next.votes = newVotes;
-                                return next;
-                            });
-                        } else if (cmd === 'CLEAR_POLL') {
-                            setActivePoll(null);
-                        } else if (cmd === 'CONFETTI') {
-                            triggerConfetti();
-                        } else if (cmd === 'FIREWORKS') {
-                            triggerFireworks();
-                        } else if (cmd === 'RATE_SET') {
-                            setShowRatingPrompt(true);
-                        } else if (cmd.startsWith('ARRIVAL:')) {
-                            const pseudo = cmd.replace('ARRIVAL:', '');
-                            setNewArrival(pseudo);
-                            setTimeout(() => setNewArrival(null), 5000);
-                        } else if (cmd.startsWith('NEWS:')) {
-                            // kept for backwards compat
-                        } else if (cmd.startsWith('MARQUEE_UPDATE:')) {
-                            try {
-                                const parsed = JSON.parse(cmd.replace('MARQUEE_UPDATE:', ''));
-                                setMarqueeItems(parsed);
-                                setEditMarqueeItems(parsed);
-                            } catch (e) { }
-                        } else if (cmd === 'MATRIX') {
-                            triggerMatrix();
-                        } else if (cmd.startsWith('FLASH:')) {
-                            triggerFlash(cmd.replace('FLASH:', ''), 'warn');
-                        } else if (cmd.startsWith('BOSS_SPAWN')) {
-                            setActiveBoss({ hp: 1000, maxHp: 1000, name: 'MEGABOT 3000' });
-                            setTimeout(() => setActiveBoss((prev: any) => {
-                                if (prev && prev.hp > 0) showNotification("LE BOSS S'EST ÉCHAPPÉ ! 🚨", 'error');
-                                return null;
-                            }), 60000);
-                        } else if (cmd.startsWith('BOSS_HIT:')) {
-                            const dmg = parseInt(cmd.replace('BOSS_HIT:', ''));
-                            setActiveBoss((prev: any) => {
-                                if (!prev) return null;
-                                const nextHp = Math.max(0, prev.hp - dmg);
-                                if (nextHp === 0 && prev.hp > 0) {
-                                    showNotification("VICTOIRE ! PLUIE DE DROPS (+500) ! 🏆", 'success');
-                                    triggerFireworks();
-                                    setUserDrops((d: number) => d + 500);
-                                }
-                                return { ...prev, hp: nextHp };
-                            });
-                        } else if (cmd === 'QTE_SPAWN') {
-                            setQteActive(true);
-                            setTimeout(() => setQteActive(false), 5000);
-                        } else if (cmd.startsWith('MUTE_USER:')) {
-                            const target = cmd.replace('MUTE_USER:', '');
-                            const myPs = localStorage.getItem('chat_pseudo') || '';
-                            if (target === myPs && !isMod && !vipsList.includes(myPs)) {
-                                setIsMuted(true);
-                                setMuteTimeLeft(60);
-                                showNotification("🚫 TU AS ÉTÉ MUTE PENDANT 60S !", 'error');
-                            }
-                        } else if (cmd.startsWith('HEIST_START')) {
-                            setActiveHeist({ participants: [], timeLeft: 30 });
-                            setShowHeistOverlay(true);
-                        } else if (cmd.startsWith('HEIST_JOIN:')) {
-                            const data = JSON.parse(cmd.replace('HEIST_JOIN:', ''));
-                            setActiveHeist((prev: any) => prev ? { ...prev, participants: [...prev.participants, data] } : null);
-                        } else if (cmd.startsWith('TTS:')) {
-                            const [v, ...t] = cmd.replace('TTS:', '').split(':');
-                            const voice = ['robot', 'monster', 'echo'].includes(v) ? v as any : 'normal';
-                            const finalMsg = voice === 'normal' ? cmd.replace('TTS:', '') : t.join(':');
-                            speakMessage(finalMsg, voice);
-                        } else if (cmd.startsWith('QTE_SPAWN:')) {
-                            const data = JSON.parse(cmd.replace('QTE_SPAWN:', ''));
-                            setActiveQTE(data);
-                            setTimeout(() => setActiveQTE(null), 10000);
-                        } else if (cmd.startsWith('REACTION:')) {
-                            const [msgId, emoji] = cmd.replace('REACTION:', '').split(':');
-                            setChatMessages((prev: any) => prev.map((m: any) => m.id === msgId ? { ...m, reactions: { ...(m.reactions || {}), [emoji]: (m.reactions?.[emoji] || 0) + 1 } } : m));
-                        } else if (cmd.startsWith('PURGE:')) {
-                            const target = cmd.replace('PURGE:', '');
-                            setChatMessages((prev: any) => prev.filter((m: any) => m.pseudo !== target));
-                        } else if (cmd.startsWith('TAKEOVER_ALERT:')) {
-                            const text = cmd.replace('TAKEOVER_ALERT:', '');
-                            setTakeoverAlert({ text, type: 'alert' });
-                            setTimeout(() => setTakeoverAlert(null), 5000);
-                        } else if (cmd.startsWith('WINNER:')) {
-                            const text = cmd.replace('WINNER:', '');
-                            setTakeoverAlert({ text, type: 'alert' });
-                            triggerFireworks();
-                            setTimeout(() => setTakeoverAlert(null), 10000);
-                        } else if (cmd.startsWith('JACKPOT_SPAWN')) {
-                            setActiveSlots({ id: Math.random().toString(), participants: [], timeLeft: 60 });
-                        } else if (cmd.startsWith('JACKPOT_JOIN:')) {
-                            const joiner = cmd.replace('JACKPOT_JOIN:', '');
-                            setActiveSlots((prev: any) => prev ? { ...prev, participants: Array.from(new Set([...prev.participants, joiner])) } : null);
-                        } else if (cmd.startsWith('CLASH_START:')) {
-                            const data = JSON.parse(cmd.replace('CLASH_START:', ''));
-                            setClashPoll({ active: true, teamA: data.teamA, teamB: data.teamB, votesA: [], votesB: [] });
-                        } else if (cmd.startsWith('CLASH_VOTE:')) {
-                            const [team, ps] = cmd.replace('CLASH_VOTE:', '').split(':');
-                            setClashPoll((prev: any) => {
-                                if (!prev) return null;
-                                const next = { ...prev };
-                                if (team === 'A') next.votesA = Array.from(new Set([...next.votesA, ps]));
-                                else next.votesB = Array.from(new Set([...next.votesB, ps]));
-                                return next;
-                            });
-                        } else if (cmd.startsWith('TRACKLIST_SET_NEW:')) {
-                            try {
-                                const nextSet = JSON.parse(cmd.replace('TRACKLIST_SET_NEW:', ''));
-                                setTracklist((prev: any) => [nextSet, ...prev]);
-                            } catch (e) { }
-                        } else if (cmd.startsWith('TRACKLIST_TRACK_NEW:')) {
-                            try {
-                                const { setId, track } = JSON.parse(cmd.replace('TRACKLIST_TRACK_NEW:', ''));
-                                setTracklist((prev: any) => prev.map((s: any) => s.id === setId ? { ...s, tracks: [...s.tracks, track] } : s));
-                            } catch (e) { }
+                    newMessages.forEach((m: any) => {
+                        const msgText = m.message || '';
+                        if (msgText.startsWith('[SYSTEM]:')) {
+                            processSystemMsg(msgText);
+                        } else if (msgText.startsWith('[QUIZ_START]:')) {
+                            const content = msgText.replace('[QUIZ_START]:', '');
+                            const parts = content.split('|').map((p: string) => p.trim());
+                            if (parts.length >= 6) { setActiveQuiz({ question: parts[0], options: [parts[1],parts[2],parts[3],parts[4]], correct: parts[5], votes: [0,0,0,0] }); setUserHasAnswered(false); setQuizTimeLeft(30); }
                         }
-                        else if (cmd === 'LEGENDS_WALL') {
-                            setShowLegendsWall(true);
-                            setTimeout(() => setShowLegendsWall(false), 15000);
+                        const myPseudo = localStorage.getItem('chat_pseudo');
+                        if (myPseudo && msgText.toLowerCase().includes(`@${myPseudo.toLowerCase()}`)) {
+                            setMentionNotify(true);
+                            pingAudio.play().catch(() => {});
+                            setTimeout(() => setMentionNotify(false), 5000);
                         }
-                    } else if (msgText.startsWith('[QUIZ_START]:')) {
-                        const content = msgText.replace('[QUIZ_START]:', '');
-                        const parts = content.split('|').map((p: string) => p.trim());
-                        if (parts.length >= 6) {
-                            setActiveQuiz({
-                                question: parts[0],
-                                options: [parts[1], parts[2], parts[3], parts[4]],
-                                correct: parts[5],
-                                votes: [0, 0, 0, 0]
-                            });
-                            setUserHasAnswered(false);
-                            setQuizTimeLeft(30);
-                        }
-                    }
-
-                    // Mention detection
-                    const myPseudo = localStorage.getItem('chat_pseudo');
-                    if (myPseudo && msgText.toLowerCase().includes(`@${myPseudo.toLowerCase()}`)) {
-                        setMentionNotify(true);
-                        pingAudio.play().catch(() => { });
-                        setTimeout(() => setMentionNotify(false), 5000);
-                    }
+                        setHypeTrain((prev: any) => {
+                            let boost = 2;
+                            if (msgText.includes('donné') && msgText.includes('DROPS')) boost = 25;
+                            const newProgress = prev.progress + boost;
+                            if (newProgress >= 100) { showNotification(`🔥 TRAIN DE LA HYPE NIVEAU ${prev.level + 1} ! 🥳`, 'success'); triggerFireworks(); return { active: true, level: prev.level + 1, progress: 0 }; }
+                            return { ...prev, active: true, progress: newProgress };
+                        });
+                    });
                 }
+            } catch (e) { console.warn('[TakeoverPage] poll error', e); }
+        };
 
-                if (response.events.includes('databases.*.collections.*.documents.*.delete')) {
-                    setChatMessages((prev: any) => prev.filter((m: any) => m.id !== response.payload.$id));
-                }
-            }
-        );
+        // Init: charge les messages existants sans les re-traiter comme nouveaux
+        fetch('/api/chat/messages').then(r => r.json()).then(data => {
+            if (Array.isArray(data.messages)) data.messages.forEach((m: any) => lastMessageIds.add(m.id));
+            setChatMessages(data.messages || []);
+        }).catch(() => {});
 
-        return () => unsubscribe();
+        const pollInterval = setInterval(() => { if (document.visibilityState === 'visible') pollMessages(); }, 1500);
+        return () => clearInterval(pollInterval);
     }, []);
 
     // 🟣 Twitch Chat Bridge
     useEffect(() => {
+
         // Find twitch channel from settings or active stream
         const streamIdx = parseInt(activeStage.replace('stage', '')) - 1;
         const activeStream = (settings.streams && !isNaN(streamIdx)) ? settings.streams[streamIdx] : settings.streams?.find(s => s.id === settings.activeStreamId);
@@ -1553,41 +1416,21 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         const pseudo = localStorage.getItem('chat_pseudo');
         if (!pseudo) return;
         try {
-            const res = await databases.listDocuments(DATABASE_ID, COLLECTION_BANS, [
-                Query.equal('pseudo', pseudo)
-            ]);
-            if (res.documents.length > 0) setIsBanned(true);
-        } catch (e) { console.error("Ban check failed", e); }
+            const res = await fetch('/api/chat/messages');
+            if (!res.ok) return;
+            const data = await res.json();
+            const bans: string[] = Array.isArray(data.bannedPseudos) ? data.bannedPseudos : [];
+            if (bans.map((b: string) => b.toLowerCase()).includes(pseudo.toLowerCase())) setIsBanned(true);
+        } catch (e) { console.error('Ban check failed', e); }
     };
 
     const fetchInitialMessages = async () => {
         try {
-            const res = await databases.listDocuments(DATABASE_ID, COLLECTION_CHAT, [
-                Query.orderDesc('$createdAt'),
-                Query.limit(50)
-            ]);
-            const msgs = res.documents
-                .filter(doc => !doc.message?.startsWith('[SYSTEM]:'))
-                .reverse()
-                .map(doc => ({
-                    id: doc.$id,
-                    pseudo: doc.pseudo,
-                    message: doc.message,
-                    color: doc.color,
-                    time: doc.time,
-                    country: doc.country,
-                    bgColor: doc.bgColor,
-                    stage: doc.stage || 'stage1',
-                    isModOnly: doc.isModOnly || false,
-                    isPrems: doc.isPrems || false,
-                    isHolo: doc.isHolo || false,
-                    profileBorder: doc.profileBorder || 'none',
-                    pseudoColor: doc.pseudoColor || '#ffffff',
-                    specialFontStyle: doc.specialFontStyle || 'normal',
-                    instagram: doc.instagram || ''
-                }));
-            setChatMessages(msgs);
-        } catch (e) { console.error("Error fetching initial chat messages:", e); }
+            const res = await fetch('/api/chat/messages');
+            if (!res.ok) return;
+            const data = await res.json();
+            setChatMessages(Array.isArray(data.messages) ? data.messages : []);
+        } catch (e) { console.error('Error fetching initial chat messages:', e); }
     };
 
     const fetchPredefinedQuizzes = async () => {
@@ -1802,15 +1645,19 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             }
         }
 
-        // Broadcast
-        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-            pseudo: "BOT_SYSTEM",
-            message: `[SYSTEM]:TRACKLIST_SET_NEW:${JSON.stringify(nextSet)}`,
-            color: "text-neon-cyan",
-            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-            country: "FR"
+        // Broadcast via Cloudflare Edge KV
+        await fetch('/api/chat/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                pseudo: 'BOT_SYSTEM',
+                message: `[SYSTEM]:TRACKLIST_SET_NEW:${JSON.stringify(nextSet)}`,
+                color: 'text-neon-cyan',
+                country: 'FR',
+                role: 'admin',
+            })
         });
-        showNotification("Nouveau set ajouté !", "success");
+        showNotification('Nouveau set ajouté !', 'success');
     };
 
     const handleSuggestTrack = async (setId: string) => {
@@ -1827,18 +1674,21 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         setTracklist(newList);
         setTrackSuggestion('');
 
-        // 1. Broadcast Realtime via Appwrite (Chat)
+        // 1. Broadcast via Cloudflare Edge KV
         try {
-            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                pseudo: "BOT_SYSTEM",
-                message: `[SYSTEM]:TRACKLIST_TRACK_NEW:${JSON.stringify({ setId, track: newTrack })}`,
-                color: "text-neon-cyan",
-                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                stage: activeStage,
-                country: "FR"
+            await fetch('/api/chat/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pseudo: 'BOT_SYSTEM',
+                    message: `[SYSTEM]:TRACKLIST_TRACK_NEW:${JSON.stringify({ setId, track: newTrack })}`,
+                    color: 'text-neon-cyan',
+                    country: 'FR',
+                    role: 'admin',
+                })
             });
         } catch (e) {
-            console.error("Broadcast failed", e);
+            console.error('Broadcast failed', e);
         }
 
         // 2. Persist to Backend JSON (Proxy) - NO isMod check to allow all viewers
@@ -1868,14 +1718,15 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             text: 'Voulez-vous vraiment supprimer définitivement tous les messages du chat ?',
             onConfirm: async () => {
                 try {
-                    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_CHAT, [Query.limit(100)]);
-                    for (const doc of res.documents) {
-                        await databases.deleteDocument(DATABASE_ID, COLLECTION_CHAT, doc.$id);
-                    }
+                    await fetch('/api/chat/messages', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ pseudo: 'BOT_SYSTEM', message: 'CLEAR', color: 'text-red-500', country: 'FR', role: 'admin' })
+                    });
                     setChatMessages([]);
                     showNotification('Chat vidé avec succès !', 'success');
                 } catch (e) {
-                    console.error("Clear chat error:", e);
+                    console.error('Clear chat error:', e);
                     showNotification('Erreur lors du nettoyage', 'error');
                 }
                 setConfirmModal(null);
@@ -2302,17 +2153,19 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 earnPoints(10, 0);
             }
 
-            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                pseudo: pseudo,
-                message: messageText,
-                color: isHighlightChecked ? highlightColor : (isMod ? "text-neon-red" : pseudoColor),
-                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                country: userCountry || "FR",
-                stage: activeStage,
-                isModOnly: isModChat,
-                avatar: localStorage.getItem('chat_avatar') || ''
+            await fetch('/api/chat/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pseudo,
+                    message: messageText,
+                    color: isHighlightChecked ? highlightColor : (isMod ? 'text-neon-red' : pseudoColor),
+                    country: userCountry || 'FR',
+                    stage: activeStage,
+                    isModOnly: isModChat,
+                    avatar: localStorage.getItem('chat_avatar') || '',
+                })
             });
-
 
 
             setNewMessage('');
@@ -2320,7 +2173,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             setLastMessageTime(Date.now());
 
         } catch (e: any) {
-            console.error("Appwrite send error details:", e);
+            console.error('Send error details:', e);
             showNotification(`Erreur d'envoi: ${e.message || 'Problème serveur'}`, 'error');
         }
     };
@@ -2328,7 +2181,11 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     const handleBanUser = async (pseudo: string) => {
         if (!isAdmin) return;
         try {
-            await databases.createDocument(DATABASE_ID, COLLECTION_BANS, ID.unique(), { pseudo });
+            await fetch('/api/chat/ban', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pseudo })
+            });
             showNotification(`Utilisateur ${pseudo} banni !`, 'success');
         } catch (e) {
             showNotification('Erreur bannissement', 'error');
@@ -2338,7 +2195,8 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     const deleteMessage = async (id: string) => {
         if (!isMod) return;
         try {
-            await databases.deleteDocument(DATABASE_ID, COLLECTION_CHAT, id);
+            await fetch(`/api/chat/messages/${id}`, { method: 'DELETE' });
+            setChatMessages((prev: any) => prev.filter((m: any) => m.id !== id));
         } catch (e) {
             showNotification('Erreur suppression', 'error');
         }
@@ -3564,14 +3422,17 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                     setShowRatingPrompt(false);
                                                     showNotification(`VOTE ENREGISTRÉ : ${star}/5 ⭐`, 'success');
 
-                                                    // Broadcast rating via Appwrite
-                                                    await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                        pseudo: "BOT_SYSTEM",
-                                                        message: `[SYSTEM]:RATING:${activeLiveItem.artist}:${star}`,
-                                                        color: "text-neon-cyan",
-                                                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                        country: "FR",
-                                                        stage: activeStage
+                                                    // Broadcast rating via Cloudflare Edge KV
+                                                    await fetch('/api/chat/messages', {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({
+                                                            pseudo: 'BOT_SYSTEM',
+                                                            message: `[SYSTEM]:RATING:${activeLiveItem.artist}:${star}`,
+                                                            color: 'text-neon-cyan',
+                                                            country: 'FR',
+                                                            role: 'admin',
+                                                        })
                                                     });
                                                 }}
                                                 className="group relative"

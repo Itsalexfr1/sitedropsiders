@@ -10,7 +10,7 @@ import { useTakeover } from '../../context/TakeoverContext';
 import type { StreamItem, LineupItem, TakeoverSettings } from '../../context/TakeoverContext';
 import { resolveImageUrl } from '../../utils/image';
 import { PlanningTab } from './PlanningTab';
-import { ID, Query } from 'appwrite';
+
 import { uploadFile } from '../../utils/uploadService';
 import { ConfirmationModal } from '../ConfirmationModal';
 
@@ -25,9 +25,6 @@ export function AdminPanel() {
     const isAdmin = takeover?.isAdmin;
     const activeStage = takeover?.activeStage;
     const setActiveStage = takeover?.setActiveStage;
-    const databases = takeover?.databases;
-    const DATABASE_ID = takeover?.DATABASE_ID;
-    const COLLECTION_CHAT = takeover?.COLLECTION_CHAT;
     const showNotification = takeover?.showNotification;
     const triggerConfetti = takeover?.triggerConfetti;
 

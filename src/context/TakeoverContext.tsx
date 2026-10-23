@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
-import { Client, Databases, ID, Query } from 'appwrite';
+
 import { useUser } from './UserContext';
 
 
@@ -153,11 +153,7 @@ interface TakeoverContextType {
     userDrops: number;
     setUserDrops: React.Dispatch<React.SetStateAction<number>>;
     
-    // Appwrite helpers
-    databases: Databases;
-    DATABASE_ID: string;
-    COLLECTION_CHAT: string;
-    
+
     // Data
     wikiDjs: any[];
     wikiClubs: any[];
@@ -172,15 +168,6 @@ interface TakeoverContextType {
 export const TakeoverContext = createContext<TakeoverContextType | undefined>(undefined);
 
 export const TakeoverProvider: React.FC<{ children: React.ReactNode, initialSettings?: any }> = ({ children, initialSettings }) => {
-    // Appwrite Config
-    const client = useMemo(() => new Client()
-        .setEndpoint('https://fra.cloud.appwrite.io/v1')
-        .setProject('69adc19b0027cb3b46d4'), []);
-        
-    const databases = useMemo(() => new Databases(client), [client]);
-    const DATABASE_ID = 'live_chat';
-    const COLLECTION_CHAT = 'live_messages';
-    const COLLECTION_BANS = 'bans';
 
     const localIsAdmin = localStorage.getItem('admin_auth_v2') === 'true';
     const adminUser = localStorage.getItem('admin_user');
@@ -361,9 +348,6 @@ export const TakeoverProvider: React.FC<{ children: React.ReactNode, initialSett
         wikiClubs,
         wikiFestivals,
         fetchWikiData,
-        databases,
-        DATABASE_ID,
-        COLLECTION_CHAT,
         handleGlobalSave,
         triggerConfetti,
         notification,

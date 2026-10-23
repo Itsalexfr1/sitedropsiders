@@ -5,7 +5,7 @@ import {
     CheckCircle2, AlertCircle, RefreshCcw, Users,
     Crown, Star, Sparkles, Wand2, Megaphone
 } from 'lucide-react';
-import { Client, Databases, ID, Query } from 'appwrite';
+
 
 interface LiveInteractivityModalProps {
     isOpen: boolean;
@@ -13,15 +13,6 @@ interface LiveInteractivityModalProps {
 }
 
 export function LiveInteractivityModal({ isOpen, onClose }: LiveInteractivityModalProps) {
-    // Appwrite Config (Standalone for Admin Dashboard)
-    const client = useMemo(() => new Client()
-        .setEndpoint('https://fra.cloud.appwrite.io/v1')
-        .setProject('69adc19b0027cb3b46d4'), []);
-        
-    const databases = useMemo(() => new Databases(client), [client]);
-    const DATABASE_ID = 'live_chat';
-    const COLLECTION_CHAT = 'live_messages';
-
     // Form States
     const [takeoverInput, setTakeoverInput] = useState('');
     const [pollInput, setPollInput] = useState('');
@@ -44,19 +35,25 @@ export function LiveInteractivityModal({ isOpen, onClose }: LiveInteractivityMod
         setTimeout(() => setNotification(null), 3000);
     };
 
+    // Envoie un message système via l'API Cloudflare Edge KV
     const sendSystemMessage = async (message: string) => {
         setIsSending(true);
         try {
-            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                pseudo: "BOT_SYSTEM",
-                message: message,
-                color: "text-neon-cyan",
-                time: "SYSTEM",
-                country: "FR"
+            const res = await fetch('/api/chat/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pseudo: 'BOT_SYSTEM',
+                    message,
+                    color: 'text-neon-cyan',
+                    country: 'FR',
+                    role: 'admin',
+                })
             });
-            showNotify("Action diffusée sur le live !", "success");
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            showNotify('Action diffusée sur le live !', 'success');
         } catch (err: any) {
-            showNotify(err.message, "error");
+            showNotify(err.message, 'error');
         } finally {
             setIsSending(false);
         }
@@ -66,45 +63,42 @@ export function LiveInteractivityModal({ isOpen, onClose }: LiveInteractivityMod
         setIsDrawing(true);
         setWinner(null);
         try {
-            // Fetch last 100 messages to get active participants
-            const res = await databases.listDocuments(DATABASE_ID, COLLECTION_CHAT, [
-                Query.limit(100),
-                Query.orderDesc('$createdAt')
-            ]);
-            
+            // Récupère les messages récents via l'API Cloudflare Edge KV
+            const res = await fetch('/api/chat/messages');
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            const messages: any[] = Array.isArray(data.messages) ? data.messages : [];
+
             const participants = Array.from(new Set(
-                res.documents
+                messages
                     .filter(m => m.pseudo && !m.pseudo.startsWith('BOT_'))
                     .map(m => m.pseudo)
             )) as string[];
 
             if (participants.length === 0) {
-                showNotify("Aucun participant trouvé dans le chat récent.", "error");
+                showNotify('Aucun participant trouvé dans le chat récent.', 'error');
                 setIsDrawing(false);
                 return;
             }
 
-            // Simulate drawing animation
             setTimeout(() => {
                 const luckyWinner = participants[Math.floor(Math.random() * participants.length)];
                 setWinner(luckyWinner);
                 setIsDrawing(false);
-                
-                // Add to history
-                const newEntry = { 
+
+                const newEntry = {
                     pseudo: luckyWinner,
-                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) 
+                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
                 };
                 const nextHistory = [newEntry, ...drawHistory].slice(0, 50);
                 setDrawHistory(nextHistory);
                 localStorage.setItem('live_draw_history_winners', JSON.stringify(nextHistory));
 
-                // Broadcast to chat
                 sendSystemMessage(`[SYSTEM]:WINNER:🎉 LE GAGNANT DU TIRAGE EST : ${luckyWinner} ! 🎉`);
             }, 2000);
 
         } catch (err: any) {
-            showNotify(err.message, "error");
+            showNotify(err.message, 'error');
             setIsDrawing(false);
         }
     };
@@ -375,7 +369,7 @@ export function LiveInteractivityModal({ isOpen, onClose }: LiveInteractivityMod
                     {/* Footer */}
                     <div className="p-6 bg-white/5 border-t border-white/5 flex items-center justify-center gap-4 text-gray-600 text-[8px] font-black uppercase tracking-[0.3em]">
                         <BarChart3 className="w-3 h-3" />
-                        <span>Système de Diffusion Appwrite Real-time v2.1</span>
+                        <span>Cloudflare Edge KV — 100% Souverain</span>
                     </div>
                 </motion.div>
             </div>
