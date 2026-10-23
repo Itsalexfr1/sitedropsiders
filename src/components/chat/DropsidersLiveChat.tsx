@@ -3,7 +3,7 @@ import {
     Send, Shield, Crown, Sparkles, Flame,
     Pin, Trash2, Clock, BarChart2, Settings, 
     ExternalLink, X, Check, Radio, Award, Gift,
-    Plus, MessageSquare, Trophy, Bell, Lock
+    Plus, MessageSquare, Trophy, Bell, Lock, ChevronDown
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useUser } from '../../context/UserContext';
@@ -225,6 +225,12 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
     const [isMuted] = useState(false);
     const [hypeCount, setHypeCount] = useState<number>(42);
     const [isHypeActive, setIsHypeActive] = useState(false);
+    const [isModMenuOpen, setIsModMenuOpen] = useState(false);
+
+    const handleSetSlowMode = (seconds: number) => {
+        setSlowModeSeconds(seconds);
+        try { localStorage.setItem('chat_slow_mode', String(seconds)); } catch {}
+    };
 
     // ===== LEADERBOARD =====
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => {
@@ -688,6 +694,13 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                     from { width: 100%; }
                     to   { width: 0%; }
                 }
+                .no-scrollbar::-webkit-scrollbar {
+                    display: none;
+                }
+                .no-scrollbar {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
             `}</style>
 
             {/* ======================================================== */}
@@ -736,67 +749,158 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
             {/* ======================================================== */}
             {/* HEADER                                                      */}
             {/* ======================================================== */}
-            <header className="h-14 px-3.5 border-b border-white/10 flex items-center justify-between bg-black/90 shrink-0 backdrop-blur-md">
-                <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-red-500/20 border border-red-500/40 flex items-center justify-center shadow-[0_0_15px_rgba(255,0,51,0.3)]">
-                        <Flame className="w-4 h-4 text-red-400 animate-pulse" />
+            <header className="h-13 px-3 border-b border-white/10 flex items-center justify-between bg-[#0e0f17]/95 shrink-0 backdrop-blur-md relative z-30">
+                {/* Left info */}
+                <div className="flex items-center gap-2 min-w-0 pr-1">
+                    <div className="w-7 h-7 rounded-lg bg-red-500/15 border border-red-500/30 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(255,0,51,0.25)]">
+                        <Flame className="w-3.5 h-3.5 text-red-400 animate-pulse" />
                     </div>
-                    <div className="flex flex-col">
-                        <div className="flex items-center gap-1.5">
-                            <span className="text-white text-xs font-black uppercase tracking-wider">Chat Live Dropsiders</span>
-                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-[8px] font-black text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                <span>Cloudflare Live</span>
-                            </div>
+                    <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-white text-xs font-black uppercase tracking-wider truncate">Chat du Live</span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" title="Connecté au Cloudflare Edge" />
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] text-gray-400 font-medium">
-                            <span>{channelName}</span>
-                            <span>•</span>
-                            <span className="text-amber-400 font-bold">🪙 {userDrops}</span>
-                            <span>•</span>
-                            <span className="font-bold" style={{ color: myLoyaltyBadge.color }}>{myLoyaltyBadge.icon} {myLoyaltyBadge.label}</span>
-                        </div>
+                        <span className="text-[10px] text-gray-400 font-medium truncate">
+                            {channelName}
+                        </span>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-1">
-                    <button onClick={() => setIsRewardsModalOpen(true)}
-                        className="px-2 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-[10px] font-black text-amber-300 flex items-center gap-1 cursor-pointer active:scale-95 transition-all"
-                        title="Boutique Drops">
-                        <Gift className="w-3.5 h-3.5" /><span className="hidden sm:inline">Drops</span>
+                {/* Right actions */}
+                <div className="flex items-center gap-1 shrink-0">
+                    {/* Drops Pill */}
+                    <button 
+                        type="button"
+                        onClick={() => setIsRewardsModalOpen(true)}
+                        className="px-2 py-1 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-[10px] font-black text-amber-300 flex items-center gap-1 cursor-pointer active:scale-95 transition-all shadow-[0_0_10px_rgba(251,191,36,0.15)]"
+                        title="Boutique & Récompenses Drops"
+                    >
+                        <span>🪙</span>
+                        <span>{userDrops}</span>
                     </button>
-                    <button onClick={() => setActiveTab(t => t === 'leaderboard' ? 'chat' : 'leaderboard')}
-                        className={`p-1.5 rounded-lg border transition-all cursor-pointer ${activeTab === 'leaderboard' ? 'bg-amber-500/30 border-amber-400/60 text-amber-300' : 'bg-white/5 border-white/10 text-gray-400 hover:text-amber-300'}`}
-                        title="Classement">
+
+                    {/* Leaderboard Toggle */}
+                    <button 
+                        type="button"
+                        onClick={() => setActiveTab(t => t === 'leaderboard' ? 'chat' : 'leaderboard')}
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${
+                            activeTab === 'leaderboard' 
+                                ? 'bg-amber-500/25 border-amber-400/60 text-amber-300' 
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                        }`}
+                        title="Classement des spectateurs"
+                    >
                         <Trophy className="w-3.5 h-3.5" />
                     </button>
-                    {isModOrAdmin && <>
-                        <a href="/moderation" target="_blank" rel="noreferrer"
-                            className="px-2 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-300 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer shadow-[0_0_10px_rgba(16,185,129,0.3)]"
-                            title="Ouvrir la Vue Modérateur Twitch complète">
-                            <Shield className="w-3.5 h-3.5" /><span className="hidden xl:inline">Vue Modo</span>
-                        </a>
-                        <button onClick={() => setIsMockAlertOpen(true)}
-                            className="p-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 transition-all cursor-pointer"
-                            title="Alertes Live"><Bell className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => setIsPollCreatorOpen(true)}
-                            className="p-1.5 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/40 text-purple-300 transition-all cursor-pointer"
-                            title="Créer un sondage"><BarChart2 className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => setIsRoleManagementModalOpen(true)}
-                            className="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-300 transition-all cursor-pointer"
-                            title="Gérer les rôles"><Shield className="w-3.5 h-3.5" /></button>
-                    </>}
-                    <button onClick={() => setIsProfileModalOpen(true)}
-                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-all cursor-pointer"
-                        title="Mon profil"><Settings className="w-3.5 h-3.5 text-cyan-400" /></button>
+
+                    {/* Mod Menu Dropdown (if Mod/Admin) */}
+                    {isModOrAdmin && (
+                        <div className="relative">
+                            <button
+                                type="button"
+                                onClick={() => setIsModMenuOpen(prev => !prev)}
+                                className={`w-7 h-7 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${
+                                    isModMenuOpen 
+                                        ? 'bg-emerald-500/30 border-emerald-400/60 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.3)]' 
+                                        : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25'
+                                }`}
+                                title="Menu Modérateur"
+                            >
+                                <Shield className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Dropdown Menu */}
+                            {isModMenuOpen && (
+                                <div className="absolute right-0 top-9 w-52 bg-[#12131d] border border-white/15 rounded-xl shadow-2xl p-1.5 z-[210] animate-in fade-in zoom-in-95 duration-150">
+                                    <div className="px-2 py-1 border-b border-white/10 mb-1 flex items-center justify-between">
+                                        <span className="text-[10px] font-black uppercase text-emerald-400 tracking-wider">Modération</span>
+                                        <span className="text-[9px] text-gray-500 font-mono">STAFF</span>
+                                    </div>
+                                    <a 
+                                        href="/moderation" 
+                                        target="_blank" 
+                                        rel="noreferrer"
+                                        onClick={() => setIsModMenuOpen(false)}
+                                        className="w-full px-2 py-1.5 rounded-lg hover:bg-emerald-500/20 text-emerald-300 text-xs font-bold flex items-center gap-2 transition-colors"
+                                    >
+                                        <ExternalLink className="w-3.5 h-3.5 text-emerald-400" />
+                                        <span>Vue Modérateur Twitch</span>
+                                    </a>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setIsPollCreatorOpen(true); setIsModMenuOpen(false); }}
+                                        className="w-full px-2 py-1.5 rounded-lg hover:bg-white/10 text-gray-200 text-xs font-bold flex items-center gap-2 transition-colors text-left cursor-pointer"
+                                    >
+                                        <BarChart2 className="w-3.5 h-3.5 text-purple-400" />
+                                        <span>Lancer un Sondage</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setIsRoleManagementModalOpen(true); setIsModMenuOpen(false); }}
+                                        className="w-full px-2 py-1.5 rounded-lg hover:bg-white/10 text-gray-200 text-xs font-bold flex items-center gap-2 transition-colors text-left cursor-pointer"
+                                    >
+                                        <Crown className="w-3.5 h-3.5 text-amber-400" />
+                                        <span>Gérer les Rôles</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setIsMockAlertOpen(true); setIsModMenuOpen(false); }}
+                                        className="w-full px-2 py-1.5 rounded-lg hover:bg-white/10 text-gray-200 text-xs font-bold flex items-center gap-2 transition-colors text-left cursor-pointer"
+                                    >
+                                        <Bell className="w-3.5 h-3.5 text-cyan-400" />
+                                        <span>Tester une Alerte</span>
+                                    </button>
+                                    <div className="mt-1 pt-1 border-t border-white/10 px-2 py-1">
+                                        <span className="text-[9px] font-bold text-gray-400 uppercase block mb-1">Slow Mode :</span>
+                                        <div className="flex gap-1">
+                                            {[0, 3, 5, 10, 30].map(sec => (
+                                                <button
+                                                    key={sec}
+                                                    type="button"
+                                                    onClick={() => handleSetSlowMode(sec)}
+                                                    className={`flex-1 py-0.5 text-[9px] font-mono rounded cursor-pointer ${slowModeSeconds === sec ? 'bg-amber-500 text-black font-black' : 'bg-white/5 text-gray-400 hover:text-white'}`}
+                                                >
+                                                    {sec === 0 ? 'OFF' : `${sec}s`}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Profil / Paramètres */}
+                    <button 
+                        type="button"
+                        onClick={() => { if (!isLoggedIn) setIsAuthModalOpen(true); else setIsProfileModalOpen(true); }}
+                        className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+                        title="Mon Profil"
+                    >
+                        <Settings className="w-3.5 h-3.5 text-cyan-400" />
+                    </button>
+
+                    {/* Popout */}
                     {!isPopout && (
-                        <button onClick={handleOpenPopout} className="p-2 rounded-lg text-gray-400 hover:text-cyan-400 hover:bg-white/10 transition-colors cursor-pointer" title="Popout">
-                            <ExternalLink className="w-4 h-4" />
+                        <button 
+                            type="button"
+                            onClick={handleOpenPopout} 
+                            className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-cyan-400 flex items-center justify-center transition-all cursor-pointer" 
+                            title="Détacher le chat"
+                        >
+                            <ExternalLink className="w-3.5 h-3.5" />
                         </button>
                     )}
+
+                    {/* Close */}
                     {onClose && (
-                        <button onClick={onClose} className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer">
-                            <X className="w-4 h-4" />
+                        <button 
+                            type="button"
+                            onClick={onClose} 
+                            className="w-7 h-7 rounded-lg bg-white/5 hover:bg-red-500/20 hover:border-red-500/40 border border-white/10 text-gray-400 hover:text-red-400 flex items-center justify-center transition-all cursor-pointer ml-0.5"
+                            title="Fermer le chat"
+                        >
+                            <X className="w-3.5 h-3.5" />
                         </button>
                     )}
                 </div>
@@ -861,16 +965,32 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                 </div>
             )}
 
-            {/* TABS */}
-            <div className="flex border-b border-white/5 shrink-0">
-                <button onClick={() => setActiveTab('chat')}
-                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${activeTab === 'chat' ? 'text-white border-b-2 border-cyan-400/70 bg-white/[0.03]' : 'text-gray-500 hover:text-gray-300'}`}>
-                    <MessageSquare className="w-3 h-3" />Chat
-                </button>
-                <button onClick={() => setActiveTab('leaderboard')}
-                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${activeTab === 'leaderboard' ? 'text-amber-300 border-b-2 border-amber-400/70 bg-amber-500/[0.05]' : 'text-gray-500 hover:text-gray-300'}`}>
-                    <Trophy className="w-3 h-3" />Classement
-                </button>
+            {/* TABS SUB-BAR */}
+            <div className="px-3 py-1.5 bg-[#090a10] border-b border-white/5 flex items-center justify-between text-[10px] shrink-0">
+                <div className="flex items-center gap-1 bg-white/[0.04] p-0.5 rounded-lg border border-white/5">
+                    <button 
+                        type="button"
+                        onClick={() => setActiveTab('chat')}
+                        className={`px-2.5 py-0.5 rounded-md font-bold transition-all cursor-pointer flex items-center gap-1 ${activeTab === 'chat' ? 'bg-white/15 text-white shadow-sm' : 'text-gray-400 hover:text-gray-200'}`}
+                    >
+                        <MessageSquare className="w-3 h-3" />
+                        <span>Chat</span>
+                    </button>
+                    <button 
+                        type="button"
+                        onClick={() => setActiveTab('leaderboard')}
+                        className={`px-2.5 py-0.5 rounded-md font-bold transition-all cursor-pointer flex items-center gap-1 ${activeTab === 'leaderboard' ? 'bg-amber-500/20 text-amber-300 shadow-sm' : 'text-gray-400 hover:text-gray-200'}`}
+                    >
+                        <Trophy className="w-3 h-3" />
+                        <span>Classement</span>
+                    </button>
+                </div>
+                
+                {/* User loyalty badge preview */}
+                <div className="flex items-center gap-1 text-[9px] font-semibold" style={{ color: myLoyaltyBadge.color }}>
+                    <span>{myLoyaltyBadge.icon}</span>
+                    <span className="truncate max-w-[90px]">{myLoyaltyBadge.label}</span>
+                </div>
             </div>
 
             {/* ======================================================== */}
@@ -970,7 +1090,7 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
             {/* CHAT TAB                                                    */}
             {/* ======================================================== */}
             {activeTab === 'chat' && (
-                <div className="flex-1 overflow-y-auto p-3 space-y-2.5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                <div className="flex-1 overflow-y-auto px-2.5 py-2 space-y-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                     {messages.map((msg) => {
                         const effectiveRole = assignedRoles[msg.pseudo.toLowerCase()] || msg.role || 'user';
                         const roleCfg = ROLE_CONFIG[effectiveRole];
@@ -980,53 +1100,73 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                         const isOwnMsg = msg.pseudo.toLowerCase() === cleanCurrentPseudo;
                         return (
                             <div key={msg.id}
-                                className={`group relative p-2 rounded-xl transition-all ${
-                                    isHighlighted ? 'bg-amber-950/20 border border-amber-500/40 shadow-[0_0_15px_rgba(251,191,36,0.2)]' :
-                                    isArtist ? 'bg-purple-950/20 border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.15)]' :
+                                className={`group relative px-2.5 py-1 rounded-md transition-colors text-[12px] leading-relaxed break-words ${
+                                    isHighlighted ? 'bg-amber-500/10 border-l-2 border-amber-400 pl-2 rounded-r-md shadow-[inset_0_0_12px_rgba(251,191,36,0.06)]' :
+                                    isArtist ? 'bg-purple-500/10 border-l-2 border-purple-400 pl-2 rounded-r-md' :
                                     'hover:bg-white/[0.04]'
                                 }`}>
-                                <div className="flex items-start gap-2">
+                                {/* Floating Mod Bar on Hover */}
+                                {isModOrAdmin && (
+                                    <div className="absolute right-2 -top-2 opacity-0 group-hover:opacity-100 flex items-center gap-0.5 bg-[#12131d]/95 backdrop-blur-md border border-white/15 rounded-lg p-0.5 shadow-xl transition-all z-10">
+                                        <button onClick={() => setSelectedUserForRole(msg.pseudo)} className="p-1 text-gray-400 hover:text-amber-400 rounded hover:bg-white/10 cursor-pointer" title="Rôle"><Crown className="w-3 h-3" /></button>
+                                        <button onClick={() => handlePinMessage(msg)} className="p-1 text-gray-400 hover:text-cyan-400 rounded hover:bg-white/10 cursor-pointer" title="Épingler"><Pin className="w-3 h-3" /></button>
+                                        <button onClick={() => handleTimeoutUser(msg.pseudo)} className="p-1 text-gray-400 hover:text-amber-400 rounded hover:bg-white/10 cursor-pointer" title="Timeout 5m"><Clock className="w-3 h-3" /></button>
+                                        <button onClick={() => handleDeleteMessage(msg.id)} className="p-1 text-gray-400 hover:text-red-400 rounded hover:bg-white/10 cursor-pointer" title="Supprimer"><Trash2 className="w-3 h-3" /></button>
+                                    </div>
+                                )}
+
+                                {/* Inline Stream Layout */}
+                                <span className="inline items-baseline gap-1 mr-1 align-baseline">
+                                    {/* Timestamp */}
+                                    {msg.time && (
+                                        <span className="text-[10px] font-mono text-gray-500 mr-1.5 select-none opacity-60">
+                                            {msg.time}
+                                        </span>
+                                    )}
+
+                                    {/* Country Flag */}
                                     {msg.country && (
-                                        <span className="text-xs shrink-0 opacity-80">
+                                        <span className="text-[11px] mr-1 select-none">
                                             {msg.country === 'FR' ? '🇫🇷' : msg.country === 'BE' ? '🇧🇪' : msg.country === 'NL' ? '🇳🇱' : msg.country === 'US' ? '🇺🇸' : msg.country === 'GB' ? '🇬🇧' : '🌍'}
                                         </span>
                                     )}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                            {effectiveRole !== 'user' && (
-                                                <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${roleCfg.badgeBg} ${roleCfg.badgeBorder} ${roleCfg.badgeText} ${roleCfg.glow}`}>
-                                                    <RoleIcon className="w-2.5 h-2.5" /><span>{roleCfg.label}</span>
-                                                </span>
-                                            )}
-                                            {/* Loyalty badge on own messages */}
-                                            {isOwnMsg && myLoyaltyBadge.id !== 'newcomer' && (
-                                                <span className="text-xs" title={myLoyaltyBadge.label}
-                                                    style={{ filter: `drop-shadow(0 0 4px ${myLoyaltyBadge.color})` }}>
-                                                    {myLoyaltyBadge.icon}
-                                                </span>
-                                            )}
-                                            <button type="button"
-                                                onClick={() => { if (isModOrAdmin) setSelectedUserForRole(msg.pseudo); }}
-                                                className="font-bold text-xs truncate hover:underline text-left cursor-pointer"
-                                                style={{ color: msg.color || '#00e5ff' }}
-                                                title={isModOrAdmin ? `Gérer @${msg.pseudo}` : undefined}>
-                                                {msg.pseudo}
-                                            </button>
-                                            <span className="text-[9px] font-mono text-gray-500 ml-auto shrink-0">{msg.time}</span>
-                                        </div>
-                                        <p className={`text-xs mt-1 break-words leading-relaxed ${isArtist ? 'text-purple-100 font-semibold' : isHighlighted ? 'text-amber-100 font-bold' : 'text-gray-200'}`}>
-                                            {msg.message}
-                                        </p>
-                                    </div>
-                                    {isModOrAdmin && (
-                                        <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 bg-black/80 border border-white/10 rounded-lg p-0.5 transition-opacity shrink-0">
-                                            <button onClick={() => setSelectedUserForRole(msg.pseudo)} className="p-1 text-gray-400 hover:text-amber-400 rounded" title="Rôle"><Crown className="w-3 h-3" /></button>
-                                            <button onClick={() => handlePinMessage(msg)} className="p-1 text-gray-400 hover:text-cyan-400 rounded" title="Épingler"><Pin className="w-3 h-3" /></button>
-                                            <button onClick={() => handleTimeoutUser(msg.pseudo)} className="p-1 text-gray-400 hover:text-amber-400 rounded" title="Timeout"><Clock className="w-3 h-3" /></button>
-                                            <button onClick={() => handleDeleteMessage(msg.id)} className="p-1 text-gray-400 hover:text-red-400 rounded" title="Supprimer"><Trash2 className="w-3 h-3" /></button>
-                                        </div>
+
+                                    {/* Role Badge */}
+                                    {effectiveRole !== 'user' && (
+                                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[8px] font-black uppercase tracking-wider border mr-1 select-none align-middle ${roleCfg.badgeBg} ${roleCfg.badgeBorder} ${roleCfg.badgeText} ${roleCfg.glow}`}>
+                                            <RoleIcon className="w-2.5 h-2.5" />
+                                            <span>{roleCfg.label}</span>
+                                        </span>
                                     )}
-                                </div>
+
+                                    {/* Loyalty badge on own messages */}
+                                    {isOwnMsg && myLoyaltyBadge.id !== 'newcomer' && (
+                                        <span className="text-[11px] mr-1 select-none align-middle" title={myLoyaltyBadge.label}>
+                                            {myLoyaltyBadge.icon}
+                                        </span>
+                                    )}
+
+                                    {/* Username */}
+                                    <button 
+                                        type="button"
+                                        onClick={() => { if (isModOrAdmin) setSelectedUserForRole(msg.pseudo); }}
+                                        className="font-black text-[12px] hover:underline text-left cursor-pointer align-baseline"
+                                        style={{ color: msg.color || '#00e5ff' }}
+                                        title={isModOrAdmin ? `Gérer @${msg.pseudo}` : undefined}
+                                    >
+                                        {msg.pseudo}
+                                    </button>
+                                    <span className="text-gray-400 font-bold ml-0.5 mr-1.5 select-none">:</span>
+                                </span>
+
+                                {/* Message text */}
+                                <span className={`break-words align-baseline ${
+                                    isArtist ? 'text-purple-200 font-semibold' :
+                                    isHighlighted ? 'text-amber-100 font-bold' :
+                                    'text-gray-200'
+                                }`}>
+                                    {msg.message}
+                                </span>
                             </div>
                         );
                     })}
@@ -1036,76 +1176,103 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
 
             {/* Emotes + Hype */}
             {activeTab === 'chat' && (
-                <div className="px-3 py-1.5 border-t border-white/5 bg-black/60 flex items-center justify-between gap-1 shrink-0">
-                    <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-0.5">
+                <div className="px-2.5 py-1.5 border-t border-white/5 bg-[#090a10] flex items-center justify-between gap-1.5 shrink-0">
+                    <div 
+                        className="flex items-center gap-1 overflow-x-auto py-0.5 no-scrollbar flex-1 min-w-0"
+                        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    >
                         {QUICK_EMOTES.map((emoji) => (
-                            <button key={emoji} type="button" onClick={() => handleSendMessage(emoji)}
-                                className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 text-sm flex items-center justify-center transition-transform hover:scale-115 active:scale-95 cursor-pointer shrink-0">
+                            <button 
+                                key={emoji} 
+                                type="button" 
+                                onClick={() => handleSendMessage(emoji)}
+                                className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 text-sm flex items-center justify-center transition-all hover:scale-115 active:scale-95 cursor-pointer shrink-0"
+                            >
                                 {emoji}
                             </button>
                         ))}
                     </div>
-                    <button type="button" onClick={triggerHypeBoost}
-                        className={`px-2.5 py-1 rounded-xl text-[10px] font-black uppercase flex items-center gap-1 transition-all cursor-pointer shadow-md shrink-0 ${
-                            isHypeActive ? 'bg-red-500 text-white scale-105 shadow-[0_0_20px_rgba(255,0,51,0.6)]' : 'bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30'
-                        }`}>
-                        <Flame className="w-3.5 h-3.5" /><span>Hype ({hypeCount})</span>
+                    <button 
+                        type="button" 
+                        onClick={triggerHypeBoost}
+                        className={`px-2.5 py-1 rounded-xl text-[10px] font-black uppercase flex items-center gap-1 transition-all cursor-pointer shadow-md shrink-0 active:scale-95 ${
+                            isHypeActive 
+                                ? 'bg-red-500 text-white scale-105 shadow-[0_0_20px_rgba(255,0,51,0.6)] animate-pulse' 
+                                : 'bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30'
+                        }`}
+                    >
+                        <Flame className="w-3.5 h-3.5" />
+                        <span>Hype ({hypeCount})</span>
                     </button>
                 </div>
             )}
 
             {/* Input */}
             {activeTab === 'chat' && (
-                <div className="p-3 border-t border-white/10 bg-[#0e0e14] shrink-0">
+                <div className="p-2.5 border-t border-white/10 bg-[#0a0b12] shrink-0">
                     {!isLoggedIn ? (
                         <button
                             type="button"
                             onClick={() => setIsAuthModalOpen(true)}
-                            className="w-full py-3 px-3.5 bg-gradient-to-r from-red-500/20 via-purple-500/15 to-cyan-500/15 hover:from-red-500/30 hover:to-cyan-500/25 border border-white/15 hover:border-white/30 rounded-2xl flex items-center justify-between cursor-pointer transition-all duration-300 group shadow-[0_0_20px_rgba(255,0,51,0.12)] active:scale-[0.99] text-left"
+                            className="w-full py-2.5 px-3 bg-gradient-to-r from-red-500/15 via-purple-500/10 to-cyan-500/15 hover:from-red-500/25 hover:to-cyan-500/25 border border-white/15 hover:border-white/30 rounded-xl flex items-center justify-between cursor-pointer transition-all duration-200 group shadow-[0_0_20px_rgba(255,0,51,0.1)] active:scale-[0.99] text-left"
                         >
                             <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                                <div className="w-8 h-8 rounded-xl bg-red-500/25 border border-red-500/40 flex items-center justify-center text-red-400 group-hover:scale-110 group-hover:bg-red-500/35 transition-all shadow-[0_0_12px_rgba(255,0,51,0.3)] shrink-0">
-                                    <Lock className="w-4 h-4" />
+                                <div className="w-7 h-7 rounded-lg bg-red-500/25 border border-red-500/40 flex items-center justify-center text-red-400 group-hover:scale-105 transition-all shrink-0">
+                                    <Lock className="w-3.5 h-3.5" />
                                 </div>
                                 <div className="flex flex-col min-w-0">
-                                    <span className="text-xs font-black text-white uppercase tracking-wider truncate">
+                                    <span className="text-[11px] font-black text-white uppercase tracking-wider truncate">
                                         Compte requis pour écrire
                                     </span>
-                                    <span className="text-[10px] text-gray-400 truncate">
-                                        Clique pour créer ton compte en 10s et chatter
+                                    <span className="text-[9px] text-gray-400 truncate">
+                                        Création express en 10s • Gratuit
                                     </span>
                                 </div>
                             </div>
-                            <span className="px-3.5 py-1.5 bg-gradient-to-r from-red-600 to-red-500 group-hover:from-red-500 group-hover:to-red-400 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(255,0,51,0.4)] shrink-0">
+                            <span className="px-3 py-1 bg-red-600 group-hover:bg-red-500 text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition-all shadow-[0_0_12px_rgba(255,0,51,0.4)] shrink-0">
                                 Rejoindre
                             </span>
                         </button>
                     ) : (
-                        <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex items-center gap-2">
-                            <div className="flex-1">
-                                <input type="text" value={inputMessage} onChange={(e) => setInputMessage(e.target.value)}
+                        <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex items-center gap-1.5">
+                            <div className="relative flex-1">
+                                <input 
+                                    type="text" 
+                                    value={inputMessage} 
+                                    onChange={(e) => setInputMessage(e.target.value)}
                                     placeholder={
                                         slowModeCooldown > 0 ? `Slow mode : ${slowModeCooldown}s...` :
                                         isNextMessageHighlighted ? `🌟 Prochain message surligné...` :
                                         `Discuter en tant que ${myPseudo}...`
                                     }
                                     disabled={slowModeCooldown > 0 && !isModOrAdmin && myComputedRole !== 'artist' && myComputedRole !== 'vip'}
-                                    className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-gray-500 outline-none transition-all disabled:opacity-50 ${isNextMessageHighlighted ? 'border-amber-400 bg-amber-500/10' : 'border-white/10 focus:border-cyan-400/50'}`}
+                                    className={`w-full bg-white/[0.06] border rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 outline-none transition-all disabled:opacity-50 ${
+                                        isNextMessageHighlighted 
+                                            ? 'border-amber-400 bg-amber-500/10' 
+                                            : 'border-white/10 focus:border-cyan-400/50 focus:bg-white/[0.08]'
+                                    }`}
                                 />
                             </div>
-                            <button type="submit"
+                            <button 
+                                type="submit"
                                 disabled={!inputMessage.trim() || (slowModeCooldown > 0 && !isModOrAdmin && myComputedRole !== 'artist' && myComputedRole !== 'vip')}
-                                className="p-2.5 bg-cyan-400 hover:bg-cyan-300 disabled:opacity-30 disabled:cursor-not-allowed rounded-xl text-black transition-all cursor-pointer font-bold shrink-0">
-                                <Send className="w-4 h-4" />
+                                className="w-8 h-8 flex items-center justify-center bg-cyan-400 hover:bg-cyan-300 disabled:opacity-30 disabled:cursor-not-allowed rounded-xl text-black transition-all cursor-pointer font-bold shrink-0 shadow-[0_0_12px_rgba(34,211,238,0.3)] active:scale-95"
+                                title="Envoyer"
+                            >
+                                <Send className="w-3.5 h-3.5" />
                             </button>
                         </form>
                     )}
-                    <div className="mt-2 flex items-center justify-between text-[9px] text-gray-500">
+                    <div className="mt-1.5 flex items-center justify-between text-[9px] text-gray-500">
                         <span className="flex items-center gap-1 font-mono">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                             +10 Drops dans {Math.max(0, Math.floor((180 - watchSeconds) / 60))}m {Math.max(0, (180 - watchSeconds) % 60)}s
                         </span>
-                        <button onClick={() => { if (!isLoggedIn) setIsAuthModalOpen(true); else setIsProfileModalOpen(true); }} className="hover:text-cyan-400 transition-colors uppercase font-bold cursor-pointer">
+                        <button 
+                            type="button"
+                            onClick={() => { if (!isLoggedIn) setIsAuthModalOpen(true); else setIsProfileModalOpen(true); }} 
+                            className="hover:text-cyan-400 transition-colors uppercase font-bold cursor-pointer"
+                        >
                             {isLoggedIn ? 'Mon profil' : 'Créer un compte'}
                         </button>
                     </div>
