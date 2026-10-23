@@ -29,6 +29,7 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
 
     const handleGoogleLogin = () => {
         setIsSocialLoading(true);
+        localStorage.setItem('auth_redirect_path', window.location.pathname + window.location.search);
         const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "160350942941-s68rjkhbs57l04jool8lbj1a0qdcblge.apps.googleusercontent.com";
         const redirectUri = window.location.origin; // ex: https://dropsiders.fr
         const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile`;
@@ -41,6 +42,7 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
         const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         
         if (isMobile) {
+            localStorage.setItem('auth_redirect_path', window.location.pathname + window.location.search);
             window.location.href = '/auth/discord';
             return;
         }

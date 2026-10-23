@@ -220,12 +220,17 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     const userLevel = useMemo(() => Math.floor(Math.sqrt(userXP / 100)) + 1, [userXP]);
     const [userDrops, setUserDropsLocal] = useState(() => Number(localStorage.getItem('user_drops')) || 0);
 
-    // Synchronize local drops with global user drops when logged in
+    // Synchronize local drops & chat identity with global user when logged in
     useEffect(() => {
         if (isGlobalLoggedIn && globalUser) {
             setUserDropsLocal(globalUser.drops);
+            setIsConnected(true);
+            setLoginPseudo(globalUser.username);
+            localStorage.setItem('chat_pseudo', globalUser.username);
+            if (globalUser.email) localStorage.setItem('chat_email', globalUser.email);
+            if (globalUser.avatar) localStorage.setItem('chat_avatar', globalUser.avatar);
         }
-    }, [isGlobalLoggedIn, globalUser?.drops]);
+    }, [isGlobalLoggedIn, globalUser]);
 
     const setUserDrops = useCallback((val: number | ((prev: number) => number)) => {
         const nextValue = typeof val === 'function' ? val(userDrops) : val;

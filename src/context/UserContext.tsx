@@ -351,8 +351,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                         provider: 'google'
                     });
                     setTimeout(() => {
-                        showNotification(`SuccÃ¨s! Vous Ãªtes connectÃ© via Google en tant que ${googleUser.name}.`, 'success');
-                        setTimeout(() => window.location.reload(), 2000); // Laisse le temps de voir le message
+                        showNotification(`Succès ! Vous êtes connecté via Google en tant que ${googleUser.name}.`, 'success');
+                        const returnPath = localStorage.getItem('auth_redirect_path');
+                        if (returnPath) {
+                            localStorage.removeItem('auth_redirect_path');
+                            setTimeout(() => { window.location.href = returnPath; }, 1200);
+                        } else {
+                            setTimeout(() => window.location.reload(), 1500);
+                        }
                     }, 500);
                 }
             })
@@ -549,6 +555,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setUser(newUser);
         saveToRegisteredUsers(newUser);
         localStorage.removeItem('dropsiders_guest_cards');
+        localStorage.setItem('chat_pseudo', newUser.username);
+        localStorage.setItem('chat_email', newUser.email);
+        if (newUser.avatar) localStorage.setItem('chat_avatar', newUser.avatar);
+        localStorage.setItem('user_drops', String(newUser.drops || 0));
+        window.dispatchEvent(new Event('dropsiders-user-auth'));
 
         // Sync with central registry
         try {
@@ -592,18 +603,17 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     const logout = () => {
         setUser(null);
-        // Nettoyer uniquement les credentials admin, PAS les données utilisateur locales
-        // (dropsiders_registered_users et dropsiders_user sont conservés pour permettre
-        //  la reconnexion sans traiter l'utilisateur comme "nouveau" au prochain login social)
+        localStorage.removeItem('dropsiders_user');
+        localStorage.removeItem('chat_pseudo');
+        localStorage.removeItem('chat_email');
+        localStorage.removeItem('chat_avatar');
         localStorage.removeItem('admin_auth_v2');
         localStorage.removeItem('admin_user');
         localStorage.removeItem('admin_permissions');
         localStorage.removeItem('admin_session_id');
         localStorage.removeItem('admin_provider');
         localStorage.removeItem('admin_password');
-        // Note: On ne supprime PAS dropsiders_registered_users ici car loginSocial l'utilise
-        // pour déterminer si l'utilisateur est nouveau (et déclencher triggerBooster).
-        // Le supprimer forcerait un faux triggerBooster à chaque reconnexion = bug déconnexion mobile.
+        window.dispatchEvent(new Event('dropsiders-user-auth'));
     };
 
     const deleteAccount = async (): Promise<boolean> => {
