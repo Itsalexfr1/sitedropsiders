@@ -2051,13 +2051,17 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 // We let the user's message go through, then the bot replies
                 setTimeout(async () => {
                     try {
-                        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                            pseudo: "BOT_SYSTEM",
-                            message: `🤖 @${pseudo} : ${customCmd.response}`,
-                            color: "text-neon-cyan",
-                            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                            country: "FR",
-                            stage: activeStage
+                        await fetch('/api/chat/messages', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                pseudo: "BOT_SYSTEM",
+                                message: `🤖 @${pseudo} : ${customCmd.response}`,
+                                color: "text-neon-cyan",
+                                country: "FR",
+                                role: "admin",
+                                stage: activeStage
+                            })
                         });
                     } catch (e) {
                         console.error("Bot reply failed:", e);
@@ -2081,13 +2085,17 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                     botReply = "Bip Boup... Je t'écoute ! Dis-moi tout. 💬";
                 }
 
-                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                    pseudo: "DROPS_BOT_4",
-                    message: botReply,
-                    color: "text-neon-cyan",
-                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                    country: "FR",
-                    stage: activeStage
+                await fetch('/api/chat/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pseudo: "DROPS_BOT_4",
+                        message: botReply,
+                        color: "text-neon-cyan",
+                        country: "FR",
+                        role: "admin",
+                        stage: activeStage
+                    })
                 });
             }, 1000);
         }
@@ -2118,13 +2126,17 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         if (activeQuiz && !isMod && !userHasAnswered && /^[1-4]$/.test(messageText)) {
             const choiceIdx = parseInt(messageText) - 1;
             setUserHasAnswered(true);
-            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                pseudo: "BOT_SYSTEM",
-                message: `[SYSTEM]:QUIZ_VOTE:${choiceIdx}`,
-                color: "text-neon-purple",
-                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                country: "FR",
-                stage: activeStage
+            await fetch('/api/chat/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pseudo: "BOT_SYSTEM",
+                    message: `[SYSTEM]:QUIZ_VOTE:${choiceIdx}`,
+                    color: "text-neon-purple",
+                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                    country: "FR",
+                    stage: activeStage
+                })
             });
 
             if (messageText === activeQuiz.correct) {

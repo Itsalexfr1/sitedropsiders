@@ -3,9 +3,11 @@ import {
     Send, Shield, Crown, Sparkles, Flame,
     Pin, Trash2, Clock, BarChart2, Settings, 
     ExternalLink, X, Check, Radio, Award, Gift,
-    Plus, MessageSquare, Trophy, Bell
+    Plus, MessageSquare, Trophy, Bell, Lock
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useUser } from '../../context/UserContext';
+import { UserAuthModal } from '../auth/UserAuthModal';
 
 // ==========================================
 // TYPES & ROLES
@@ -144,8 +146,25 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
 }) => {
     const broadcastRef = useRef<BroadcastChannel | null>(null);
 
+    // Site Authentication
+    const { isLoggedIn, user: authUser, isAuthModalOpen, setIsAuthModalOpen } = useUser();
+
     // Profile
-    const [myPseudo, setMyPseudo] = useState<string>(() => localStorage.getItem('chat_pseudo') || `Fan_${Math.floor(100 + Math.random() * 900)}`);
+    const [myPseudo, setMyPseudo] = useState<string>(() => {
+        const saved = localStorage.getItem('chat_pseudo');
+        if (saved) return saved;
+        return `Fan_${Math.floor(100 + Math.random() * 900)}`;
+    });
+
+    useEffect(() => {
+        if (isLoggedIn && authUser?.username) {
+            setMyPseudo(authUser.username);
+            localStorage.setItem('chat_pseudo', authUser.username);
+            if (authUser.avatar) {
+                localStorage.setItem('chat_avatar', authUser.avatar);
+            }
+        }
+    }, [isLoggedIn, authUser?.username, authUser?.avatar]);
     const [myCountry, setMyCountry] = useState<string>(() => localStorage.getItem('chat_country') || 'FR');
     const [myColor, setMyColor] = useState<string>(() => localStorage.getItem('chat_color') || '#00e5ff');
 
@@ -423,6 +442,10 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
     // HANDLERS
     // ======================================================
     const handleSendMessage = async (customText?: string) => {
+        if (!isLoggedIn) {
+            setIsAuthModalOpen(true);
+            return;
+        }
         let text = (customText || inputMessage).trim();
         if (!text) return;
         if (isMuted) { alert("Vous avez été mis en sourdine."); return; }
@@ -1034,31 +1057,56 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
             {/* Input */}
             {activeTab === 'chat' && (
                 <div className="p-3 border-t border-white/10 bg-[#0e0e14] shrink-0">
-                    <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex items-center gap-2">
-                        <div className="flex-1">
-                            <input type="text" value={inputMessage} onChange={(e) => setInputMessage(e.target.value)}
-                                placeholder={
-                                    slowModeCooldown > 0 ? `Slow mode : ${slowModeCooldown}s...` :
-                                    isNextMessageHighlighted ? `🌟 Prochain message surligné...` :
-                                    `Discuter en tant que ${myPseudo}...`
-                                }
-                                disabled={slowModeCooldown > 0 && !isModOrAdmin && myComputedRole !== 'artist' && myComputedRole !== 'vip'}
-                                className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-gray-500 outline-none transition-all disabled:opacity-50 ${isNextMessageHighlighted ? 'border-amber-400 bg-amber-500/10' : 'border-white/10 focus:border-cyan-400/50'}`}
-                            />
-                        </div>
-                        <button type="submit"
-                            disabled={!inputMessage.trim() || (slowModeCooldown > 0 && !isModOrAdmin && myComputedRole !== 'artist' && myComputedRole !== 'vip')}
-                            className="p-2.5 bg-cyan-400 hover:bg-cyan-300 disabled:opacity-30 disabled:cursor-not-allowed rounded-xl text-black transition-all cursor-pointer font-bold shrink-0">
-                            <Send className="w-4 h-4" />
+                    {!isLoggedIn ? (
+                        <button
+                            type="button"
+                            onClick={() => setIsAuthModalOpen(true)}
+                            className="w-full py-3 px-3.5 bg-gradient-to-r from-red-500/20 via-purple-500/15 to-cyan-500/15 hover:from-red-500/30 hover:to-cyan-500/25 border border-white/15 hover:border-white/30 rounded-2xl flex items-center justify-between cursor-pointer transition-all duration-300 group shadow-[0_0_20px_rgba(255,0,51,0.12)] active:scale-[0.99] text-left"
+                        >
+                            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                <div className="w-8 h-8 rounded-xl bg-red-500/25 border border-red-500/40 flex items-center justify-center text-red-400 group-hover:scale-110 group-hover:bg-red-500/35 transition-all shadow-[0_0_12px_rgba(255,0,51,0.3)] shrink-0">
+                                    <Lock className="w-4 h-4" />
+                                </div>
+                                <div className="flex flex-col min-w-0">
+                                    <span className="text-xs font-black text-white uppercase tracking-wider truncate">
+                                        Compte requis pour écrire
+                                    </span>
+                                    <span className="text-[10px] text-gray-400 truncate">
+                                        Clique pour créer ton compte en 10s et chatter
+                                    </span>
+                                </div>
+                            </div>
+                            <span className="px-3.5 py-1.5 bg-gradient-to-r from-red-600 to-red-500 group-hover:from-red-500 group-hover:to-red-400 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(255,0,51,0.4)] shrink-0">
+                                Rejoindre
+                            </span>
                         </button>
-                    </form>
+                    ) : (
+                        <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex items-center gap-2">
+                            <div className="flex-1">
+                                <input type="text" value={inputMessage} onChange={(e) => setInputMessage(e.target.value)}
+                                    placeholder={
+                                        slowModeCooldown > 0 ? `Slow mode : ${slowModeCooldown}s...` :
+                                        isNextMessageHighlighted ? `🌟 Prochain message surligné...` :
+                                        `Discuter en tant que ${myPseudo}...`
+                                    }
+                                    disabled={slowModeCooldown > 0 && !isModOrAdmin && myComputedRole !== 'artist' && myComputedRole !== 'vip'}
+                                    className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-gray-500 outline-none transition-all disabled:opacity-50 ${isNextMessageHighlighted ? 'border-amber-400 bg-amber-500/10' : 'border-white/10 focus:border-cyan-400/50'}`}
+                                />
+                            </div>
+                            <button type="submit"
+                                disabled={!inputMessage.trim() || (slowModeCooldown > 0 && !isModOrAdmin && myComputedRole !== 'artist' && myComputedRole !== 'vip')}
+                                className="p-2.5 bg-cyan-400 hover:bg-cyan-300 disabled:opacity-30 disabled:cursor-not-allowed rounded-xl text-black transition-all cursor-pointer font-bold shrink-0">
+                                <Send className="w-4 h-4" />
+                            </button>
+                        </form>
+                    )}
                     <div className="mt-2 flex items-center justify-between text-[9px] text-gray-500">
                         <span className="flex items-center gap-1 font-mono">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                             +10 Drops dans {Math.max(0, Math.floor((180 - watchSeconds) / 60))}m {Math.max(0, (180 - watchSeconds) % 60)}s
                         </span>
-                        <button onClick={() => setIsProfileModalOpen(true)} className="hover:text-cyan-400 transition-colors uppercase font-bold cursor-pointer">
-                            Mon profil
+                        <button onClick={() => { if (!isLoggedIn) setIsAuthModalOpen(true); else setIsProfileModalOpen(true); }} className="hover:text-cyan-400 transition-colors uppercase font-bold cursor-pointer">
+                            {isLoggedIn ? 'Mon profil' : 'Créer un compte'}
                         </button>
                     </div>
                 </div>
@@ -1422,6 +1470,12 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                     </div>
                 </div>
             )}
+
+            {/* Auth Modal for In-Place Registration/Login */}
+            <UserAuthModal 
+                isOpen={isAuthModalOpen} 
+                onClose={() => setIsAuthModalOpen(false)} 
+            />
         </div>
     );
 };

@@ -93,15 +93,12 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
-        if (!username || !email) return;
-
-        if (authMode === 'register' && !avatar) {
-            setError('Une photo de profil est obligatoire pour la création de compte.');
+        if (!username.trim() || !email.trim()) {
+            setError('Veuillez remplir le pseudo et l\'email.');
             return;
         }
-
         setIsAuthLoading(true);
-        let finalAvatar = avatar;
+        let finalAvatar = avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username.trim())}`;
 
         try {
             // If there's a new local avatar, upload it to R2 in 'membre' folder
