@@ -122,12 +122,27 @@ export const ModViewPage: React.FC = () => {
     const [myPseudo] = useState<string>(() => localStorage.getItem('chat_pseudo') || 'Modérateur');
     const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
 
-    // ── Layout Toggles (Twitch modular panels) ──
+    // ── Layout Toggles (modular panels) ──
     const [showPlayer, setShowPlayer] = useState<boolean>(true);
     const [showAutoMod, setShowAutoMod] = useState<boolean>(true);
     const [showQuickActions, setShowQuickActions] = useState<boolean>(true);
     const [showModLog, setShowModLog] = useState<boolean>(true);
     const [showUsersPanel, setShowUsersPanel] = useState<boolean>(true);
+
+    // ── Resizable Columns Widths ──
+    const [leftColWidth, setLeftColWidth] = useState<number>(() => {
+        try {
+            const v = localStorage.getItem('mod_view_left_col_w');
+            return v ? Math.max(220, Math.min(650, parseInt(v, 10))) : 310;
+        } catch { return 310; }
+    });
+    const [rightColWidth, setRightColWidth] = useState<number>(() => {
+        try {
+            const v = localStorage.getItem('mod_view_right_col_w');
+            return v ? Math.max(250, Math.min(700, parseInt(v, 10))) : 340;
+        } catch { return 340; }
+    });
+    const [resizingSide, setResizingSide] = useState<'left' | 'right' | null>(null);
 
     // ── Chat State ──
     const [messages, setMessages] = useState<ModChatMessage[]>([]);
@@ -239,6 +254,45 @@ export const ModViewPage: React.FC = () => {
         }, 30000);
         return () => clearInterval(interval);
     }, []);
+
+    // ── Resizable columns mouse handlers ──
+    useEffect(() => {
+        if (!resizingSide) return;
+
+        const handleMouseMove = (e: MouseEvent) => {
+            if (resizingSide === 'left') {
+                const newW = Math.max(220, Math.min(650, e.clientX));
+                setLeftColWidth(newW);
+            } else if (resizingSide === 'right') {
+                const newW = Math.max(250, Math.min(700, window.innerWidth - e.clientX));
+                setRightColWidth(newW);
+            }
+        };
+
+        const handleMouseUp = () => {
+            setResizingSide((currentSide) => {
+                if (currentSide === 'left') {
+                    setLeftColWidth((w) => {
+                        try { localStorage.setItem('mod_view_left_col_w', String(w)); } catch {}
+                        return w;
+                    });
+                } else if (currentSide === 'right') {
+                    setRightColWidth((w) => {
+                        try { localStorage.setItem('mod_view_right_col_w', String(w)); } catch {}
+                        return w;
+                    });
+                }
+                return null;
+            });
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [resizingSide]);
 
     const playerVideoId = isLive && liveVideoId ? liveVideoId : tvPlayerInfo.videoId;
     const playerStart = isLive ? 0 : tvPlayerInfo.start;
@@ -892,13 +946,21 @@ export const ModViewPage: React.FC = () => {
                     </div>
                 </header>
 
-                {/* ── 3-COLUMN WORKSPACE ── */}
-                <div className="flex-1 flex overflow-hidden">
+                {/* ── 3-COLUMN WORKSPACE WITH RESIZABLE COLUMNS ── */}
+                <div className="flex-1 flex overflow-hidden relative">
+
+                    {/* Fullscreen overlay to capture mouse events smoothly over iframe during drag */}
+                    {resizingSide && (
+                        <div className="fixed inset-0 z-50 cursor-col-resize select-none" />
+                    )}
 
                     {/* ════════════════════════════════════
-                        COLUMN 1 (LEFT, 320px) – MODÉRATION & AUTOMOD
+                        COLUMN 1 (LEFT) – MODÉRATION & AUTOMOD
                     ════════════════════════════════════ */}
-                    <div className="flex flex-col border-r border-[#26262c] bg-[#18181b] shrink-0" style={{ width: 320 }}>
+                    <div
+                        className="flex flex-col border-r border-[#26262c] bg-[#18181b] shrink-0 overflow-hidden"
+                        style={{ width: leftColWidth }}
+                    >
 
                         {/* ── File D'attente AutoMod ── */}
                         <div className="flex flex-col border-b border-[#26262c]" style={{ maxHeight: '42%' }}>
@@ -1027,23 +1089,38 @@ export const ModViewPage: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* ── Séparateur redimensionnable Gauche / Centre ── */}
+                    <div
+                        onMouseDown={() => setResizingSide('left')}
+                        onDoubleClick={() => {
+                            setLeftColWidth(310);
+                            try { localStorage.setItem('mod_view_left_col_w', '310'); } catch {}
+                        }}
+                        className={`w-1.5 hover:w-2 bg-[#1b1b1f] hover:bg-[#9146FF] cursor-col-resize transition-all shrink-0 relative group flex items-center justify-center z-20 ${
+                            resizingSide === 'left' ? 'bg-[#9146FF] w-2' : ''
+                        }`}
+                        title="Glisser pour redimensionner (Double-clic pour réinitialiser à 310px)"
+                    >
+                        <div className="w-0.5 h-7 bg-white/20 rounded-full group-hover:bg-white" />
+                    </div>
+
                     {/* ════════════════════════════════════
-                        COLUMN 2 (CENTER, flex-1) – LE VRAI LIVE TV
+                        COLUMN 2 (CENTER, flex-1) – LE VRAI LIVE TV (PREND TOUT LE CENTRE)
                     ════════════════════════════════════ */}
-                    <div className="flex-1 flex flex-col bg-[#0b0b0e] overflow-hidden min-w-[420px]">
+                    <div className="flex-1 flex flex-col bg-black overflow-hidden min-w-[280px] relative">
 
                         {/* ── Régie Header Bar ── */}
-                        <div className="h-11 px-4 bg-[#141417] border-b border-[#26262c] flex items-center justify-between shrink-0">
+                        <div className="h-10 px-4 bg-[#141417] border-b border-[#26262c] flex items-center justify-between shrink-0">
                             {/* Left: TV Title & Block info */}
                             <div className="flex items-center gap-2.5 min-w-0">
-                                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#9146FF] to-[#00e5ff] flex items-center justify-center text-[10px] font-black text-white shrink-0">
+                                <div className="w-6 h-6 rounded bg-gradient-to-br from-[#9146FF] to-[#00e5ff] flex items-center justify-center text-[10px] font-black text-white shrink-0">
                                     DS
                                 </div>
                                 <div className="flex items-center gap-2 min-w-0">
                                     <span className="text-xs font-black text-white tracking-wide truncate">
                                         {isLive ? '🔴 LIVE DIRECT' : `${tvPlayerInfo.blockEmoji} ${tvPlayerInfo.blockTitle}`}
                                     </span>
-                                    <span className="text-[10px] text-gray-400 hidden sm:inline px-2 py-0.5 rounded bg-white/5 border border-white/10 font-mono">
+                                    <span className="text-[10px] text-gray-400 hidden sm:inline px-1.5 py-0.5 rounded bg-white/5 border border-white/10 font-mono">
                                         {isLive ? 'Live Stream' : tvPlayerInfo.timeSlot}
                                     </span>
                                 </div>
@@ -1057,7 +1134,7 @@ export const ModViewPage: React.FC = () => {
                             <div className="flex items-center gap-2 shrink-0">
                                 <button
                                     onClick={() => setIsPlayerMuted(!isPlayerMuted)}
-                                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold border transition-all cursor-pointer ${
+                                    className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold border transition-all cursor-pointer ${
                                         isPlayerMuted
                                             ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20'
                                             : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
@@ -1065,12 +1142,12 @@ export const ModViewPage: React.FC = () => {
                                     title={isPlayerMuted ? 'Activer le son' : 'Couper le son'}
                                 >
                                     {isPlayerMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-                                    <span>{isPlayerMuted ? 'Muet' : 'Son Actif'}</span>
+                                    <span className="hidden sm:inline">{isPlayerMuted ? 'Muet' : 'Son Actif'}</span>
                                 </button>
 
                                 <button
                                     onClick={() => setTvRefreshTrigger(p => p + 1)}
-                                    className="p-1.5 rounded bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                                    className="p-1 rounded bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
                                     title="Resynchroniser le lecteur TV"
                                 >
                                     <RefreshCw className="w-3.5 h-3.5" />
@@ -1080,7 +1157,7 @@ export const ModViewPage: React.FC = () => {
                                     href="/tv"
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="flex items-center gap-1 px-2.5 py-1 rounded bg-[#9146FF]/20 hover:bg-[#9146FF]/30 text-[#bf94ff] border border-[#9146FF]/40 text-[11px] font-bold transition-all cursor-pointer"
+                                    className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#9146FF]/20 hover:bg-[#9146FF]/30 text-[#bf94ff] border border-[#9146FF]/40 text-[11px] font-bold transition-all cursor-pointer"
                                     title="Ouvrir la TV en grand écran"
                                 >
                                     <ExternalLink className="w-3.5 h-3.5" />
@@ -1089,44 +1166,42 @@ export const ModViewPage: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* ── Grand Écran Live TV au centre ── */}
-                        <div className="flex-1 flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#0a0a0d] via-[#101014] to-[#0a0a0d] overflow-hidden">
-                            <div className="relative w-full max-w-5xl aspect-video rounded-xl overflow-hidden bg-black border border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.85)] flex items-center justify-center">
-                                {!isLive ? (
-                                    /* Vrai Live TV 24/7 synchronisé */
-                                    <iframe
-                                        key={playerVideoId + '_tv_' + playerStart}
-                                        src={`https://www.youtube-nocookie.com/embed/${playerVideoId}?autoplay=1&mute=${isPlayerMuted ? 1 : 0}&controls=1&modestbranding=1&rel=0&cc_load_policy=0&start=${playerStart}`}
-                                        className="w-full h-full border-0"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        title="Dropsiders TV"
-                                    />
-                                ) : (
-                                    /* Live stream direct */
-                                    <iframe
-                                        key={playerVideoId + '_live'}
-                                        src={`https://www.youtube-nocookie.com/embed/${playerVideoId}?autoplay=1&mute=${isPlayerMuted ? 1 : 0}&controls=1&modestbranding=1&rel=0`}
-                                        className="w-full h-full border-0"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        title="Live Stream"
-                                    />
-                                )}
+                        {/* ── Grand Écran Live TV au centre – PREND TOUT LE CENTRE ── */}
+                        <div className="flex-1 relative w-full h-full bg-black overflow-hidden flex items-center justify-center">
+                            {!isLive ? (
+                                /* Vrai Live TV 24/7 synchronisé */
+                                <iframe
+                                    key={playerVideoId + '_tv_' + playerStart}
+                                    src={`https://www.youtube-nocookie.com/embed/${playerVideoId}?autoplay=1&mute=${isPlayerMuted ? 1 : 0}&controls=1&modestbranding=1&rel=0&cc_load_policy=0&start=${playerStart}`}
+                                    className="w-full h-full border-0 absolute inset-0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    title="Dropsiders TV"
+                                />
+                            ) : (
+                                /* Live stream direct */
+                                <iframe
+                                    key={playerVideoId + '_live'}
+                                    src={`https://www.youtube-nocookie.com/embed/${playerVideoId}?autoplay=1&mute=${isPlayerMuted ? 1 : 0}&controls=1&modestbranding=1&rel=0`}
+                                    className="w-full h-full border-0 absolute inset-0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    title="Live Stream"
+                                />
+                            )}
 
-                                {/* TV 24/7 Watermark overlay */}
-                                {!isLive && (
-                                    <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md border border-cyan-500/40 rounded-lg px-2.5 py-1 pointer-events-none shadow-lg">
-                                        <Tv className="w-3.5 h-3.5 text-cyan-400" />
-                                        <span className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Direct TV 24/7</span>
-                                    </div>
-                                )}
-                            </div>
+                            {/* TV 24/7 Watermark overlay */}
+                            {!isLive && (
+                                <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md border border-cyan-500/40 rounded-lg px-2.5 py-1 pointer-events-none shadow-lg z-10">
+                                    <Tv className="w-3.5 h-3.5 text-cyan-400" />
+                                    <span className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">Direct TV 24/7</span>
+                                </div>
+                            )}
                         </div>
 
                         {/* ── Bandeau d'infos Programme TV sous le lecteur ── */}
-                        <div className="h-14 px-4 bg-[#141417] border-t border-[#26262c] flex items-center justify-between gap-4 shrink-0">
+                        <div className="h-12 px-4 bg-[#141417] border-t border-[#26262c] flex items-center justify-between gap-4 shrink-0">
                             {/* Titre en cours */}
                             <div className="flex items-center gap-3 min-w-0">
-                                <div className="px-2 py-1 rounded bg-cyan-500/10 border border-cyan-500/30 text-[9px] font-black uppercase tracking-wider text-cyan-400 shrink-0">
+                                <div className="px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/30 text-[9px] font-black uppercase tracking-wider text-cyan-400 shrink-0">
                                     EN COURS
                                 </div>
                                 <div className="min-w-0">
@@ -1151,10 +1226,28 @@ export const ModViewPage: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* ── Séparateur redimensionnable Centre / Droite ── */}
+                    <div
+                        onMouseDown={() => setResizingSide('right')}
+                        onDoubleClick={() => {
+                            setRightColWidth(340);
+                            try { localStorage.setItem('mod_view_right_col_w', '340'); } catch {}
+                        }}
+                        className={`w-1.5 hover:w-2 bg-[#1b1b1f] hover:bg-[#9146FF] cursor-col-resize transition-all shrink-0 relative group flex items-center justify-center z-20 ${
+                            resizingSide === 'right' ? 'bg-[#9146FF] w-2' : ''
+                        }`}
+                        title="Glisser pour redimensionner le Chat (Double-clic pour réinitialiser à 340px)"
+                    >
+                        <div className="w-0.5 h-7 bg-white/20 rounded-full group-hover:bg-white" />
+                    </div>
+
                     {/* ════════════════════════════════════
-                        COLUMN 3 (RIGHT, 340px) – CHAT & MEMBRES
+                        COLUMN 3 (RIGHT) – CHAT & MEMBRES
                     ════════════════════════════════════ */}
-                    <div className="flex flex-col border-l border-[#26262c] bg-[#18181b] shrink-0 overflow-hidden" style={{ width: 340 }}>
+                    <div
+                        className="flex flex-col border-l border-[#26262c] bg-[#18181b] shrink-0 overflow-hidden"
+                        style={{ width: rightColWidth }}
+                    >
 
                         {/* Onglets Chat / Membres */}
                         <div className="h-10 bg-[#141417] border-b border-[#26262c] flex items-center px-2 shrink-0 gap-1">

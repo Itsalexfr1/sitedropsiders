@@ -824,7 +824,7 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                                         className="w-full px-2 py-1.5 rounded-lg hover:bg-emerald-500/20 text-emerald-300 text-xs font-bold flex items-center gap-2 transition-colors"
                                     >
                                         <ExternalLink className="w-3.5 h-3.5 text-emerald-400" />
-                                        <span>Vue Modérateur Twitch</span>
+                                        <span>Vue Modérateur</span>
                                     </a>
                                     <button
                                         type="button"
