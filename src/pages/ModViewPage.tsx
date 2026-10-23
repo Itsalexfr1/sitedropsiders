@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
     Shield, Crown, Clock, Trash2, Pin, Volume2, VolumeX,
@@ -713,11 +713,11 @@ export const ModViewPage: React.FC = () => {
         <div className="w-screen h-screen bg-[#0e0e10] text-[#efeff1] font-sans flex overflow-hidden select-none">
             <SEO 
                 title="Vue Modérateur | Dropsiders TV" 
-                description="Espace de contrôle et de modération officiel Dropsiders TV avec outils Twitch Pro."
+                description="Espace de contrôle et de modération officiel Dropsiders TV."
             />
 
             {/* ══════════════════════════════════════════════════
-                FAR-LEFT VERTICAL ICON RAIL (Twitch nav rail)
+                FAR-LEFT VERTICAL ICON RAIL
             ══════════════════════════════════════════════════ */}
             <nav className="w-12 bg-[#0e0e10] border-r border-[#26262c] flex flex-col items-center py-3 gap-4 shrink-0 z-50">
                 {/* Dropsiders logo */}
