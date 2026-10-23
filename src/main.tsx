@@ -12,7 +12,7 @@ const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "160350942941-s68rjkhb
 
 import { ThemeProvider } from './context/ThemeContext'
 
-// --- MOBILE OAUTH INTERCEPTOR ---
+// --- OAUTH POPUP & MOBILE INTERCEPTOR ---
 // Execute immediately before React or Router boots up to guarantee the hash is not lost
 if (window.location.hash.includes('access_token=')) {
     try {
@@ -20,7 +20,14 @@ if (window.location.hash.includes('access_token=')) {
         const accessToken = hashParams.get('access_token');
         if (accessToken) {
             localStorage.setItem('dropsiders_google_mobile_token', accessToken);
-            window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+            if (window.opener && window.opener !== window) {
+                try {
+                    window.opener.postMessage({ type: 'GOOGLE_AUTH_SUCCESS', accessToken }, '*');
+                } catch (e) {}
+                setTimeout(() => { window.close(); }, 50);
+            } else {
+                window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+            }
         }
     } catch(e) {}
 }

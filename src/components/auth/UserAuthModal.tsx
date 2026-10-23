@@ -33,7 +33,69 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
         const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "160350942941-s68rjkhbs57l04jool8lbj1a0qdcblge.apps.googleusercontent.com";
         const redirectUri = window.location.origin; // ex: https://dropsiders.fr
         const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile`;
-        window.location.href = url;
+
+        const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+            window.location.href = url;
+            return;
+        }
+
+        const popup = window.open(
+            url,
+            'google-oauth',
+            'width=500,height=650,scrollbars=yes,resizable=yes,status=yes'
+        );
+
+        const applyGoogleToken = async (accessToken: string) => {
+            try {
+                const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                });
+                const googleUser = await res.json();
+                if (googleUser && (googleUser.sub || googleUser.email)) {
+                    loginSocial({
+                        username: googleUser.name || googleUser.email?.split('@')[0] || 'Utilisateur',
+                        email: googleUser.email,
+                        avatar: googleUser.picture,
+                        id: googleUser.sub,
+                        provider: 'google'
+                    });
+                    onClose();
+                }
+            } catch (e) {
+                console.error('Google profile fetch failed', e);
+            } finally {
+                setIsSocialLoading(false);
+            }
+        };
+
+        const handleMessage = (event: MessageEvent) => {
+            if (event.data?.type === 'GOOGLE_AUTH_SUCCESS' && event.data.accessToken) {
+                window.removeEventListener('message', handleMessage);
+                applyGoogleToken(event.data.accessToken);
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+
+        const checkInterval = setInterval(() => {
+            // LocalStorage fallback if postMessage is blocked by cross-origin security
+            const token = localStorage.getItem('dropsiders_google_mobile_token');
+            if (token) {
+                localStorage.removeItem('dropsiders_google_mobile_token');
+                clearInterval(checkInterval);
+                window.removeEventListener('message', handleMessage);
+                if (popup && !popup.closed) popup.close();
+                applyGoogleToken(token);
+                return;
+            }
+
+            if (popup?.closed) {
+                clearInterval(checkInterval);
+                window.removeEventListener('message', handleMessage);
+                setIsSocialLoading(false);
+            }
+        }, 500);
     };
 
     const handleDiscordLogin = () => {
