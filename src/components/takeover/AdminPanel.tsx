@@ -873,13 +873,17 @@ export function AdminPanel() {
                                         setSettings({...settings, tracklist: JSON.stringify(newList)});
                                         handleGlobalSave();
                                         
-                                        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                            pseudo: "BOT_SYSTEM",
-                                            message: `[SYSTEM]:TRACKLIST_SET_NEW:${JSON.stringify(nextSet)}`,
-                                            color: "text-neon-cyan",
-                                            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                            country: "FR"
-                                        });
+                                        await fetch('/api/chat/messages', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                pseudo: "BOT_SYSTEM",
+                                                message: `[SYSTEM]:TRACKLIST_SET_NEW:${JSON.stringify(nextSet)}`,
+                                                color: "text-neon-cyan",
+                                                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                country: "FR"
+                                            })
+                                        }).catch(err => console.warn('[AdminPanel] Send message error:', err));
                                         setNewSetArtist('');
                                         setNewSetTime('');
                                         showNotification('Set activé et diffusé !', 'success');

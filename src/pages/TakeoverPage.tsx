@@ -379,26 +379,36 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 }
 
                 if (isMod) {
-                    databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                        pseudo: "BOT_SYSTEM",
-                        message: `💰 BRAQUAGE RÉUSSI ! Le gang se partage ${totalPrize} DROPS ! 💰`,
-                        color: "text-amber-500",
-                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                        country: "FR"
-                    });
+                    fetch('/api/chat/messages', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            pseudo: "BOT_SYSTEM",
+                            message: `💰 BRAQUAGE RÉUSSI ! Le gang se partage ${totalPrize} DROPS ! 💰`,
+                            color: "text-amber-500",
+                            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                            country: "FR",
+                            stage: activeStage
+                        })
+                    }).catch(err => console.warn('[Takeover] Send message error:', err));
                 }
             } else {
                 if (activeHeist.participants.some(p => p?.pseudo === myPseudo)) {
                     showNotification(`👮 ALERTE POLICE : Le braquage a échoué !`, 'error');
                 }
                 if (isMod) {
-                    databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                        pseudo: "BOT_SYSTEM",
-                        message: `👮 ÉCHEC DU BRAQUAGE : Tout le monde a été arrêté !`,
-                        color: "text-red-500",
-                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                        country: "FR"
-                    });
+                    fetch('/api/chat/messages', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            pseudo: "BOT_SYSTEM",
+                            message: `👮 ÉCHEC DU BRAQUAGE : Tout le monde a été arrêté !`,
+                            color: "text-red-500",
+                            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                            country: "FR",
+                            stage: activeStage
+                        })
+                    }).catch(err => console.warn('[Takeover] Send message error:', err));
                 }
             }
             setActiveHeist(null);
@@ -457,13 +467,18 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                     setUserDrops((prev: any) => prev + prize);
                     showNotification(`🎰 TU AS GAGNÉ LE JACKPOT : +${prize} DROPS !`, 'success');
                 }
-                databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                    pseudo: "BOT_SYSTEM",
-                    message: `🎰 JACKPOT : @${winner} a gagné le gros lot de ${prize} DROPS ! 🥳`,
-                    color: "text-amber-500",
-                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                    country: "FR"
-                });
+                fetch('/api/chat/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pseudo: "BOT_SYSTEM",
+                        message: `🎰 JACKPOT : @${winner} a gagné le gros lot de ${prize} DROPS ! 🥳`,
+                        color: "text-amber-500",
+                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                        country: "FR",
+                        stage: activeStage
+                    })
+                }).catch(err => console.warn('[Takeover] Send message error:', err));
             }
             setActiveSlots(null);
         }
@@ -558,14 +573,18 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     const [editBannedWords] = useState(settings.bannedWords || '');
 
     const handleAdminCommand = async (cmd: string) => {
-        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-            pseudo: "BOT_SYSTEM",
-            message: `[SYSTEM]:COMMAND:${cmd}`,
-            color: "text-neon-red",
-            time: new Date().toLocaleTimeString(),
-            country: "FR",
-            stage: activeStage
-        });
+        await fetch('/api/chat/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                pseudo: "BOT_SYSTEM",
+                message: `[SYSTEM]:COMMAND:${cmd}`,
+                color: "text-neon-red",
+                time: new Date().toLocaleTimeString(),
+                country: "FR",
+                stage: activeStage
+            })
+        }).catch(err => console.warn('[Takeover] Send admin command error:', err));
         showNotification(`Commande ${cmd} envoyée`, 'success');
     };
 
@@ -929,7 +948,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             const endConv = applyOff(bulkDate, adjEndH, rawEndM, eventTimezoneOffset, isNextDay || (rawEndH < sh));
 
             return {
-                id: ID.unique(),
+                id: `item-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
                 day: startConv.nd,
                 startTime: startConv.nt,
                 endTime: endConv.nt,
@@ -2111,14 +2130,18 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             setTimeout(async () => {
                 const nextArtist = lineupItems[0]?.artist || "Bientôt annoncé";
                 const botReply = `🤖 [FAQ]: @${pseudo}, consulte l'onglet PLANNING pour voir toute la programmation. Prochainement : ${nextArtist} !`;
-                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                    pseudo: "BOT_FAQ",
-                    message: botReply,
-                    color: "text-amber-500",
-                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                    country: "FR",
-                    stage: activeStage
-                });
+                await fetch('/api/chat/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pseudo: "BOT_FAQ",
+                        message: botReply,
+                        color: "text-amber-500",
+                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                        country: "FR",
+                        stage: activeStage
+                    })
+                }).catch(err => console.warn('[Takeover] Send BOT_FAQ error:', err));
             }, 2000);
         }
 
@@ -2313,13 +2336,18 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         if (!isMod) return;
         setChatMessages((prev: any) => prev.filter((m: any) => m.pseudo !== target));
         try {
-            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                pseudo: "BOT_SYSTEM",
-                message: `[SYSTEM]:PURGE:${target}`,
-                color: "text-red-500",
-                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                country: "FR"
-            });
+            await fetch('/api/chat/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pseudo: "BOT_SYSTEM",
+                    message: `[SYSTEM]:PURGE:${target}`,
+                    color: "text-red-500",
+                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                    country: "FR",
+                    stage: activeStage
+                })
+            }).catch(err => console.warn('[Takeover] Send PURGE message error:', err));
             showNotification(`Chat nettoyé pour @${target}`, 'success');
         } catch (e) {
             console.error(e);
@@ -3234,13 +3262,18 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                             showNotification("TU AS GAGNÉ LE QTE ! ⚡ (+500 DROPS)", 'success');
                                             triggerConfetti();
                                             setUserDrops((prev: number) => prev + 500);
-                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                pseudo: "BOT_SYSTEM",
-                                                message: `[SYSTEM]:QTE_WINNER:${myPseudo}`,
-                                                color: "text-neon-cyan",
-                                                time: new Date().toLocaleTimeString(),
-                                                country: "FR"
-                                            });
+                                            await fetch('/api/chat/messages', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({
+                                                    pseudo: "BOT_SYSTEM",
+                                                    message: `[SYSTEM]:QTE_WINNER:${myPseudo}`,
+                                                    color: "text-neon-cyan",
+                                                    time: new Date().toLocaleTimeString(),
+                                                    country: "FR",
+                                                    stage: activeStage
+                                                })
+                                            }).catch(err => console.warn('[Takeover] Send QTE error:', err));
                                         }}
                                         className="w-32 h-32 bg-neon-cyan rounded-full border-8 border-white animate-bounce shadow-[0_0_50px_#00ffff] flex items-center justify-center group"
                                     >
@@ -3269,13 +3302,18 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                             setUserVoted(true);
                                                             localStorage.setItem('last_voted_poll', activePoll.question);
                                                             // Send vote to system
-                                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                pseudo: "BOT_SYSTEM",
-                                                                message: `[SYSTEM]:VOTE:${idx}`,
-                                                                color: "text-neon-purple",
-                                                                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                country: "FR"
-                                                            });
+                                                            await fetch('/api/chat/messages', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({
+                                                                    pseudo: "BOT_SYSTEM",
+                                                                    message: `[SYSTEM]:VOTE:${idx}`,
+                                                                    color: "text-neon-purple",
+                                                                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                                    country: "FR",
+                                                                    stage: activeStage
+                                                                })
+                                                            }).catch(err => console.warn('[Takeover] Send VOTE error:', err));
                                                         }
                                                     }}
                                                     className={`w-full relative h-10 bg-white/5 border border-white/10 rounded-xl overflow-hidden group transition-all ${userVoted ? 'cursor-default' : 'hover:border-neon-cyan/50 hover:bg-white/10'}`}
@@ -3320,13 +3358,18 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                             showNotification("TU AS GAGNÉ LE QTE ! ⚡ (+500 DROPS)", 'success');
                                             triggerConfetti();
                                             setUserDrops((prev: number) => prev + 500);
-                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                pseudo: "BOT_SYSTEM",
-                                                message: `[SYSTEM]:QTE_WINNER:${myPseudo}`,
-                                                color: "text-neon-cyan",
-                                                time: new Date().toLocaleTimeString(),
-                                                country: "FR"
-                                            });
+                                            await fetch('/api/chat/messages', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({
+                                                    pseudo: "BOT_SYSTEM",
+                                                    message: `[SYSTEM]:QTE_WINNER:${myPseudo}`,
+                                                    color: "text-neon-cyan",
+                                                    time: new Date().toLocaleTimeString(),
+                                                    country: "FR",
+                                                    stage: activeStage
+                                                })
+                                            }).catch(err => console.warn('[Takeover] Send QTE error:', err));
                                         }}
                                         className="w-32 h-32 bg-neon-cyan rounded-full border-8 border-white animate-bounce shadow-[0_0_50px_#00ffff] flex items-center justify-center group"
                                     >
@@ -3675,13 +3718,18 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                                         key={emoji}
                                                                         onClick={async (e) => {
                                                                             e.stopPropagation();
-                                                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                                pseudo: "BOT_SYSTEM",
-                                                                                message: `[SYSTEM]:REACTION:${msg.id}:${emoji}`,
-                                                                                color: "text-neon-purple",
-                                                                                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                                country: "FR"
-                                                                            });
+                                                                            await fetch('/api/chat/messages', {
+                                                                                method: 'POST',
+                                                                                headers: { 'Content-Type': 'application/json' },
+                                                                                body: JSON.stringify({
+                                                                                    pseudo: "BOT_SYSTEM",
+                                                                                    message: `[SYSTEM]:REACTION:${msg.id}:${emoji}`,
+                                                                                    color: "text-neon-purple",
+                                                                                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                                                    country: "FR",
+                                                                                    stage: activeStage
+                                                                                })
+                                                                            }).catch(err => console.warn('[Takeover] Send REACTION error:', err));
                                                                         }}
                                                                         className="px-1 py-0 bg-white/5 border border-white/5 rounded-md text-[8px] hover:bg-white/20 transition-all flex items-center gap-1"
                                                                     >
