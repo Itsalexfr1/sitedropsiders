@@ -96,25 +96,6 @@
     "additionalDates": []
   },
   {
-    "id": 296,
-    "title": "Amsterdam Music Festival (AMF)",
-    "date": "2026-10-24",
-    "startDate": "2026-10-24",
-    "endDate": "2026-10-24",
-    "venue": "Johan Cruijff Arena",
-    "location": "AMSTERDAM",
-    "country": "PAYS-BAS",
-    "type": "Festival",
-    "image": "/uploads/f36e76bd7157e96e-amf26_lineup___1080x1080_insom.png",
-    "url": "https://amf-festival.com",
-    "genre": "Multi Styles",
-    "month": "OCTOBRE",
-    "isWeekly": false,
-    "isSoldOut": false,
-    "isLiveDropsiders": false,
-    "additionalDates": []
-  },
-  {
     "id": 561,
     "title": "Ultra Music Festival Miami 2027",
     "date": "2027-03-26",
