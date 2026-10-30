@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     X, Calendar, Sun, Moon, Plus, Trash2, Download, Smartphone, 
     Image as ImageIcon, Sparkles, ChevronLeft, Type, Upload, 
-    EyeOff, Video, Play, RotateCcw, Film, Check, Zap, Wand2
+    EyeOff, Video, Play, RotateCcw, Film, Check, Zap, Wand2, Sliders
 } from 'lucide-react';
+import { ExportSuccessModal } from '../../ExportSuccessModal';
+import { fixWebmDuration } from '../../../utils/fixWebm';
 
 interface ScheduledEvent {
     id: string;
@@ -19,7 +21,69 @@ interface DaySchedule {
     events: ScheduledEvent[];
 }
 
+interface TrimmedBounds {
+    sx: number;
+    sy: number;
+    sw: number;
+    sh: number;
+}
+
 export type TextAnimationType = 'none' | 'fade' | 'slide' | 'glow' | 'cyber' | 'pop';
+
+const DEFAULT_NO_VIDEO_DURATION = 15; // 15s par défaut sans vidéo en fond
+
+function computeTrimmedBounds(img: HTMLImageElement): TrimmedBounds {
+    const natW = img.naturalWidth || img.width;
+    const natH = img.naturalHeight || img.height;
+    if (!natW || !natH) {
+        return { sx: 0, sy: 0, sw: 1, sh: 1 };
+    }
+    try {
+        const sampleMax = 512;
+        const ratio = Math.min(1, sampleMax / Math.max(natW, natH));
+        const sw = Math.max(1, Math.round(natW * ratio));
+        const sh = Math.max(1, Math.round(natH * ratio));
+        const off = document.createElement('canvas');
+        off.width = sw;
+        off.height = sh;
+        const octx = off.getContext('2d');
+        if (!octx) return { sx: 0, sy: 0, sw: natW, sh: natH };
+        octx.drawImage(img, 0, 0, sw, sh);
+        const { data } = octx.getImageData(0, 0, sw, sh);
+
+        let minX = sw, minY = sh, maxX = -1, maxY = -1;
+        for (let y = 0; y < sh; y++) {
+            for (let x = 0; x < sw; x++) {
+                const alpha = data[(y * sw + x) * 4 + 3];
+                if (alpha > 12) {
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+                    if (y < minY) minY = y;
+                    if (y > maxY) maxY = y;
+                }
+            }
+        }
+
+        if (maxX < minX || maxY < minY) {
+            return { sx: 0, sy: 0, sw: natW, sh: natH };
+        }
+
+        const inv = 1 / ratio;
+        const trimX = Math.max(0, Math.floor(minX * inv));
+        const trimY = Math.max(0, Math.floor(minY * inv));
+        const trimW = Math.min(natW - trimX, Math.ceil((maxX - minX + 1) * inv));
+        const trimH = Math.min(natH - trimY, Math.ceil((maxY - minY + 1) * inv));
+
+        return {
+            sx: trimX,
+            sy: trimY,
+            sw: Math.max(1, trimW),
+            sh: Math.max(1, trimH)
+        };
+    } catch {
+        return { sx: 0, sy: 0, sw: natW, sh: natH };
+    }
+}
 
 export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     const [schedule, setSchedule] = useState<DaySchedule[]>(() => {
@@ -47,7 +111,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
     const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
     const [backgroundVideo, setBackgroundVideo] = useState<string | null>(null);
-    const [videoDuration, setVideoDuration] = useState<number>(8); // In seconds
+    const [bgVideoDuration, setBgVideoDuration] = useState<number | null>(null);
     const [textAnimation, setTextAnimation] = useState<TextAnimationType>(() => {
         return (localStorage.getItem('dropsiders_schedule_animation') as TextAnimationType) || 'none';
     });
@@ -55,10 +119,23 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
     const [logoScale, setLogoScale] = useState(() => parseFloat(localStorage.getItem('dropsiders_schedule_logoScale') || '1.0'));
     const [viewMode, setViewMode] = useState<'planning' | 'timetable'>(() => (localStorage.getItem('dropsiders_schedule_mode') as any) || 'planning');
+    const [mobileTab, setMobileTab] = useState<'edit' | 'preview'>('edit');
+
+    // Mobile ExportSuccessModal state
+    const [readyBlob, setReadyBlob] = useState<Blob | null>(null);
+    const [readyUrl, setReadyUrl] = useState<string>('');
+    const [readyFilename, setReadyFilename] = useState<string>('');
+    const [readyType, setReadyType] = useState<'image' | 'video'>('image');
+    const [showExportModal, setShowExportModal] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const bgInputRef = useRef<HTMLInputElement>(null);
     const previewVideoRef = useRef<HTMLVideoElement>(null);
+
+    // Effective export duration: exact background video duration when present, otherwise 15s
+    const effectiveVideoDurationSec = backgroundVideo && bgVideoDuration && isFinite(bgVideoDuration) && bgVideoDuration > 0
+        ? Math.max(1, Math.round(bgVideoDuration))
+        : DEFAULT_NO_VIDEO_DURATION;
 
     // Persistence
     useEffect(() => {
@@ -165,10 +242,25 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                 const url = URL.createObjectURL(file);
                 setBackgroundVideo(url);
                 setBackgroundImage(null);
+                setBgVideoDuration(null);
+
+                // Probe video metadata immediately so duration is accurate even on mobile edit tab
+                const probe = document.createElement('video');
+                probe.preload = 'metadata';
+                probe.muted = true;
+                probe.playsInline = true;
+                probe.onloadedmetadata = () => {
+                    if (probe.duration && isFinite(probe.duration) && probe.duration > 0) {
+                        setBgVideoDuration(Math.min(600, probe.duration));
+                    }
+                };
+                probe.src = url;
+                probe.load();
             } else {
                 const url = URL.createObjectURL(file);
                 setBackgroundImage(url);
                 setBackgroundVideo(null);
+                setBgVideoDuration(null);
             }
         }
         e.target.value = '';
@@ -181,8 +273,10 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         height: number,
         loadedBg: HTMLImageElement | HTMLVideoElement | null,
         loadedLogo: HTMLImageElement | null,
+        logoBounds: TrimmedBounds | null,
         activeSchedule: DaySchedule[],
-        animProgress: number // 0 to 1
+        revealProgress: number, // 0 to 1 for entrance stagger
+        elapsedSec: number      // continuous time in seconds for looping glow
     ) => {
         ctx.clearRect(0, 0, width, height);
 
@@ -191,8 +285,8 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             let bgW = 0;
             let bgH = 0;
             if (loadedBg instanceof HTMLImageElement) {
-                bgW = loadedBg.width;
-                bgH = loadedBg.height;
+                bgW = loadedBg.naturalWidth || loadedBg.width;
+                bgH = loadedBg.naturalHeight || loadedBg.height;
             } else if (loadedBg instanceof HTMLVideoElement) {
                 bgW = loadedBg.videoWidth || loadedBg.width;
                 bgH = loadedBg.videoHeight || loadedBg.height;
@@ -216,7 +310,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             ctx.fillStyle = overlay;
             ctx.fillRect(0, 0, width, height);
 
-            const vignette = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, height * 0.8);
+            const vignette = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, height * 0.8);
             vignette.addColorStop(0, 'rgba(0,0,0,0)');
             vignette.addColorStop(1, 'rgba(0,0,0,0.5)');
             ctx.fillStyle = vignette;
@@ -238,7 +332,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             ctx.globalAlpha = 1.0;
         }
 
-        // 2. Logo & Scaling Logic
+        // 2. Logo & Scaling Logic (trimmed transparent margins + positioned higher)
         const numDays = activeSchedule.length;
         let currentLogoScale = logoScale;
         if (numDays > 4) {
@@ -246,22 +340,47 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         }
         currentLogoScale = Math.max(0.6, currentLogoScale);
 
-        let logoHeightOffset = 0;
+        const logoTopY = 22;
+        let logoBottomY = logoTopY;
         if (showLogo && loadedLogo) {
+            const bounds = logoBounds || {
+                sx: 0,
+                sy: 0,
+                sw: loadedLogo.naturalWidth || loadedLogo.width || 1,
+                sh: loadedLogo.naturalHeight || loadedLogo.height || 1
+            };
             const baseWidth = 320;
-            const logoW = baseWidth * currentLogoScale;
-            const logoH = (loadedLogo.height / loadedLogo.width) * logoW;
-            ctx.drawImage(loadedLogo, width / 2 - logoW / 2, 45, logoW, logoH);
-            logoHeightOffset = logoH + 20;
+            let logoW = baseWidth * currentLogoScale;
+            const maxLogoW = width - 120;
+            const maxLogoH = 230 * Math.min(currentLogoScale, 1.5);
+            if (logoW > maxLogoW) logoW = maxLogoW;
+            let logoH = (bounds.sh / bounds.sw) * logoW;
+            if (logoH > maxLogoH) {
+                logoH = maxLogoH;
+                logoW = (bounds.sw / bounds.sh) * logoH;
+            }
+            ctx.drawImage(
+                loadedLogo,
+                bounds.sx,
+                bounds.sy,
+                bounds.sw,
+                bounds.sh,
+                width / 2 - logoW / 2,
+                logoTopY,
+                logoW,
+                logoH
+            );
+            logoBottomY = logoTopY + logoH;
         }
 
         // 3. Header Title (Safe width = 920px)
         ctx.textAlign = 'center';
-        let headerY = showLogo ? 45 + logoHeightOffset + 35 : 130;
         const MAX_SAFE_WIDTH = 920; // 80px safe margin left and right
+        const hasTitle = Boolean(customTitle && customTitle.trim());
+        const headerY = (showLogo && loadedLogo) ? logoBottomY + 48 : 92;
 
-        if (customTitle && customTitle.trim()) {
-            const rawTitle = customTitle.toUpperCase();
+        if (hasTitle) {
+            const rawTitle = customTitle.trim().toUpperCase();
             let titleFontSize = 42;
             ctx.font = `900 italic ${titleFontSize}px "Montserrat", sans-serif`;
             const titleWidth = ctx.measureText(rawTitle).width;
@@ -274,51 +393,67 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             ctx.shadowBlur = 10;
             ctx.fillText(rawTitle, width / 2, headerY);
             ctx.shadowBlur = 0;
-        } else {
-            headerY -= 30;
         }
 
         // 4. Calculate Content Height and determine Scale so nothing is ever cut off vertically
         const baseDateSize = 65;
+        const baseDateBottomGap = 88; // Generous breathing room between JOUR/date title and artists/events
         const baseEventSize = 46;
-        const baseSpacing = 62;
-        const baseDayGap = 50;
+        const baseSpacing = 64;
+        const baseDayGap = 56;
 
         let totalBaseHeight = 0;
-        activeSchedule.forEach(day => {
+        activeSchedule.forEach((day, idx) => {
             if (viewMode === 'planning' && day.date) {
-                totalBaseHeight += baseDateSize * 1.5;
+                totalBaseHeight += baseDateSize + baseDateBottomGap;
             }
-            const visibleEvents = day.events.filter(e => e.artist || e.location);
+            const visibleEvents = day.events.filter(e =>
+                viewMode === 'timetable' ? Boolean(e.artist || e.location) : Boolean(e.artist)
+            );
             totalBaseHeight += visibleEvents.length * baseSpacing;
-            totalBaseHeight += baseDayGap;
+            if (idx < activeSchedule.length - 1) {
+                totalBaseHeight += baseDayGap;
+            }
         });
 
-        const footerHeight = 140;
-        const startYOffset = (customTitle?.trim() ? 70 : 20);
-        const startY = headerY + startYOffset;
-        const availableHeight = height - startY - footerHeight;
+        const footerHeight = showWebsite ? 135 : 65;
+        const firstDayHasDate = viewMode === 'planning' && Boolean(activeSchedule[0]?.date);
+
+        // Keep JOUR close under logo/header, while keeping clear space above direct events
+        let startY: number;
+        if (hasTitle) {
+            startY = headerY + (firstDayHasDate ? 32 : 98);
+        } else if (showLogo && loadedLogo) {
+            startY = logoBottomY + (firstDayHasDate ? 24 : 84);
+        } else {
+            startY = firstDayHasDate ? 95 : 140;
+        }
+
+        const availableHeight = Math.max(200, height - startY - footerHeight);
 
         let scale = 1.0;
         if (totalBaseHeight > availableHeight) {
             scale = availableHeight / totalBaseHeight;
         }
-        // Adaptive scale: allows down to 0.3 if necessary so large festival lineups NEVER get truncated
-        scale = Math.max(0.28, Math.min(1.15, scale));
+        // Adaptive scale: allows down to 0.28 if necessary so large festival lineups NEVER get truncated
+        scale = Math.max(0.28, Math.min(1.08, scale));
 
         const dateFontSize = baseDateSize * scale;
+        const dateBottomGap = baseDateBottomGap * scale;
         const eventFontSize = baseEventSize * scale;
         const eventSpacing = baseSpacing * scale;
         const dayGap = baseDayGap * scale;
 
-        const finalContentHeight = totalBaseHeight * scale;
-        let runningY = startY + Math.max(0, (availableHeight - finalContentHeight) / 2);
+        // Top-aligned under logo/header (no vertical centering pushing JOUR into the middle of the screen)
+        let runningY = startY;
 
         // Animation helper: returns alpha, yOffset, scale for an item index
         let totalItemsCount = 0;
         activeSchedule.forEach(d => {
             if (viewMode === 'planning' && d.date) totalItemsCount++;
-            totalItemsCount += d.events.filter(e => e.artist || e.location).length;
+            totalItemsCount += d.events.filter(e =>
+                viewMode === 'timetable' ? Boolean(e.artist || e.location) : Boolean(e.artist)
+            ).length;
         });
 
         let currentItemIndex = 0;
@@ -327,11 +462,11 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             if (textAnimation === 'none') {
                 return { opacity: 1, offsetY: 0, scale: 1, glow: 0 };
             }
-            // Stagger each item across the first 70% of total animation progress
+            // Stagger each item across the first 70% of revealProgress window
             const staggerStep = Math.min(0.06, 0.65 / Math.max(1, totalItemsCount));
             const itemStart = index * staggerStep;
-            const itemDuration = 0.25; // 25% of progress window
-            const localP = Math.max(0, Math.min(1, (animProgress - itemStart) / itemDuration));
+            const itemDuration = 0.25;
+            const localP = Math.max(0, Math.min(1, (revealProgress - itemStart) / itemDuration));
 
             switch (textAnimation) {
                 case 'fade': {
@@ -342,16 +477,15 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                     return { opacity: eased, offsetY: (1 - eased) * 45, scale: 1, glow: 0 };
                 }
                 case 'glow': {
-                    const pulse = Math.sin(animProgress * Math.PI * 4 + index * 0.4);
+                    const pulse = Math.sin(elapsedSec * Math.PI * 2.5 + index * 0.45);
                     return { 
                         opacity: localP, 
                         offsetY: 0, 
                         scale: 1, 
-                        glow: localP > 0.5 ? Math.max(0, pulse * 18 + 12) : 0 
+                        glow: localP > 0.5 ? Math.max(0, pulse * 18 + 14) : 0 
                     };
                 }
                 case 'pop': {
-                    // Elastic scale pop
                     let sc = 1;
                     if (localP < 0.6) {
                         sc = localP * 1.8;
@@ -363,7 +497,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                     return { opacity: Math.min(1, localP * 2), offsetY: 0, scale: sc, glow: 0 };
                 }
                 case 'cyber': {
-                    const eased = Math.floor(localP * 4) / 4; // stepped
+                    const eased = Math.floor(localP * 4) / 4;
                     return { opacity: eased > 0 ? 1 : 0, offsetY: (1 - localP) * 10, scale: 1, glow: localP > 0 ? 14 : 0 };
                 }
                 default:
@@ -372,11 +506,11 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         };
 
         // Render each Day & its Events
-        activeSchedule.forEach((day: DaySchedule) => {
+        activeSchedule.forEach((day: DaySchedule, dayIdx: number) => {
             const iconDay = viewMode === 'planning' ? '☀️ ' : '';
             const iconNight = viewMode === 'planning' ? '🌒 ' : '';
 
-            // 1. Date Header
+            // 1. Date / JOUR Header
             if (viewMode === 'planning' && day.date) {
                 const anim = getItemAnimState(currentItemIndex++);
                 if (anim.opacity > 0) {
@@ -398,7 +532,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                     ctx.fillText(day.date.toUpperCase(), width / 2, runningY + curDateSize + anim.offsetY);
                     ctx.restore();
                 }
-                runningY += dateFontSize * 1.5;
+                runningY += dateFontSize + dateBottomGap;
             }
 
             // 2. Events Rendering with Horizontal Overflow Protection
@@ -415,7 +549,6 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
                         const separator = hourText && artistText ? ' - ' : '';
 
-                        // Measure at baseline eventFontSize
                         ctx.font = `900 italic ${eventFontSize}px "Montserrat", sans-serif`;
                         let hourW = hourText ? ctx.measureText(hourText).width : 0;
 
@@ -432,7 +565,6 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                         }
 
                         const effEventSize = eventFontSize * lineScale * anim.scale;
-                        // Re-measure with scaled font
                         ctx.font = `900 italic ${effEventSize}px "Montserrat", sans-serif`;
                         hourW = hourText ? ctx.measureText(hourText).width : 0;
                         ctx.font = `900 ${effEventSize}px "Montserrat", sans-serif`;
@@ -484,7 +616,6 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                         const artistText = (icon + evt.artist).toUpperCase();
                         const locText = evt.location ? evt.location.toUpperCase() : '';
 
-                        // Measure
                         ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
                         let artW = ctx.measureText(artistText).width;
                         ctx.font = `600 italic ${eventFontSize * 0.7}px "Montserrat", sans-serif`;
@@ -529,7 +660,9 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                     runningY += eventSpacing;
                 });
             }
-            runningY += dayGap;
+            if (dayIdx < activeSchedule.length - 1) {
+                runningY += dayGap;
+            }
         });
 
         // 5. Footer (Website Branding)
@@ -545,25 +678,62 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         }
     };
 
-    // Load background asset (Image or Video)
-    const loadBackgroundAsset = async (): Promise<HTMLImageElement | HTMLVideoElement | null> => {
+    // Load background asset (Image or Video) — mobile-safe (iOS Safari / Android Chrome)
+    const loadBackgroundAsset = async (seekForStaticFrame: boolean = false): Promise<HTMLImageElement | HTMLVideoElement | null> => {
         if (backgroundImage) {
             const bgImg = new Image();
-            bgImg.crossOrigin = 'anonymous';
+            if (!backgroundImage.startsWith('blob:') && !backgroundImage.startsWith('data:')) {
+                bgImg.crossOrigin = 'anonymous';
+            }
             bgImg.src = backgroundImage;
             await new Promise((resolve) => { bgImg.onload = resolve; bgImg.onerror = resolve; });
-            return bgImg.complete ? bgImg : null;
+            return bgImg.complete && (bgImg.naturalWidth > 0 || bgImg.width > 0) ? bgImg : null;
         } else if (backgroundVideo) {
             const video = document.createElement('video');
-            video.crossOrigin = 'anonymous';
-            video.src = backgroundVideo;
+            if (!backgroundVideo.startsWith('blob:') && !backgroundVideo.startsWith('data:')) {
+                video.crossOrigin = 'anonymous';
+            }
             video.muted = true;
             video.playsInline = true;
-            await new Promise((resolve) => {
-                video.onloadeddata = resolve;
-                video.onerror = resolve;
-                video.currentTime = 0.1;
+            video.setAttribute('playsinline', 'true');
+            video.setAttribute('webkit-playsinline', 'true');
+            video.preload = 'auto';
+            video.src = backgroundVideo;
+            video.load();
+
+            await new Promise<void>((resolve) => {
+                let settled = false;
+                const done = () => {
+                    if (!settled) {
+                        settled = true;
+                        resolve();
+                    }
+                };
+                video.onloadeddata = done;
+                video.oncanplay = done;
+                video.onerror = done;
+                setTimeout(done, 4500);
             });
+
+            if (seekForStaticFrame && video.readyState >= 1) {
+                await new Promise<void>((resolve) => {
+                    let settled = false;
+                    const done = () => {
+                        if (!settled) {
+                            settled = true;
+                            resolve();
+                        }
+                    };
+                    video.onseeked = done;
+                    setTimeout(done, 500);
+                    try {
+                        video.currentTime = Math.min(0.1, (video.duration || 1) * 0.05);
+                    } catch {
+                        done();
+                    }
+                });
+            }
+
             return video;
         }
         return null;
@@ -571,11 +741,20 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
     const loadLogoAsset = async (): Promise<HTMLImageElement | null> => {
         if (!showLogo) return null;
+        const src = festivalLogo || '/Logo.png';
         const logo = new Image();
-        logo.crossOrigin = 'anonymous';
-        logo.src = festivalLogo || '/Logo.png';
+        if (!src.startsWith('blob:') && !src.startsWith('data:')) {
+            logo.crossOrigin = 'anonymous';
+        }
+        logo.src = src;
         await new Promise((resolve) => { logo.onload = resolve; logo.onerror = resolve; });
-        return logo.complete ? logo : null;
+        return logo.complete && (logo.naturalWidth > 0 || logo.width > 0) ? logo : null;
+    };
+
+    const isMobileBrowser = () => {
+        if (typeof navigator === 'undefined') return false;
+        return /iPad|iPhone|iPod|Android/i.test(navigator.userAgent) ||
+            (navigator.maxTouchPoints > 1 && window.innerWidth < 1024);
     };
 
     // 1. GENERATE STATIC PNG (High Res 1080x1920)
@@ -600,17 +779,43 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             }
 
             const [loadedBg, loadedLogo] = await Promise.all([
-                loadBackgroundAsset(),
+                loadBackgroundAsset(true),
                 loadLogoAsset()
             ]);
 
-            // animProgress = 1.0 (fully revealed)
-            renderSceneToCanvas(ctx, width, height, loadedBg, loadedLogo, activeSchedule, 1.0);
+            const logoBounds = loadedLogo ? computeTrimmedBounds(loadedLogo) : null;
 
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png');
-            link.download = `dropsiders-planning-${schedule[0]?.date || 'schedule'}.png`;
-            link.click();
+            // revealProgress = 1.0 (fully revealed)
+            renderSceneToCanvas(ctx, width, height, loadedBg, loadedLogo, logoBounds, activeSchedule, 1.0, 0);
+
+            const filename = `dropsiders-planning-${(schedule[0]?.date || 'schedule').replace(/\s+/g, '-').toLowerCase()}.png`;
+            const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
+
+            if (blob && isMobileBrowser()) {
+                if (readyUrl) URL.revokeObjectURL(readyUrl);
+                const url = URL.createObjectURL(blob);
+                setReadyBlob(blob);
+                setReadyUrl(url);
+                setReadyFilename(filename);
+                setReadyType('image');
+                setShowExportModal(true);
+            } else if (blob) {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(url), 3000);
+            } else {
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
         } catch (err) {
             console.error('Error generating image:', err);
         } finally {
@@ -618,10 +823,11 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         }
     };
 
-    // 2. GENERATE ANIMATED VIDEO STORY (MP4 / WebM)
+    // 2. GENERATE ANIMATED VIDEO STORY (MP4 / MOV / WebM — Mobile & Desktop)
     const generateVideo = async () => {
         setIsRecording(true);
         setRecordProgress(0);
+        let audioCtx: AudioContext | null = null;
 
         try {
             const width = 1080;
@@ -642,32 +848,110 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             }
 
             const [loadedBg, loadedLogo] = await Promise.all([
-                loadBackgroundAsset(),
+                loadBackgroundAsset(false),
                 loadLogoAsset()
             ]);
 
-            // Start playing background video if present
+            const logoBounds = loadedLogo ? computeTrimmedBounds(loadedLogo) : null;
+
+            // Determine exact export duration:
+            // - With background video: limit strictly to the video's natural duration
+            // - Without background video: 15 seconds
+            let durationMs = DEFAULT_NO_VIDEO_DURATION * 1000;
             if (loadedBg instanceof HTMLVideoElement) {
+                const detectedDur = (loadedBg.duration && isFinite(loadedBg.duration) && loadedBg.duration > 0)
+                    ? loadedBg.duration
+                    : (bgVideoDuration && isFinite(bgVideoDuration) && bgVideoDuration > 0 ? bgVideoDuration : DEFAULT_NO_VIDEO_DURATION);
+                durationMs = Math.min(600000, Math.max(1000, Math.round(detectedDur * 1000)));
+            }
+
+            // Setup Canvas Video Stream (30 FPS)
+            const canvasStream: MediaStream | null = (canvas as any).captureStream
+                ? canvas.captureStream(30)
+                : (canvas as any).mozCaptureStream
+                    ? (canvas as any).mozCaptureStream(30)
+                    : null;
+
+            if (!canvasStream) {
+                throw new Error('captureStream non supporté sur ce navigateur');
+            }
+
+            let combinedStream: MediaStream = canvasStream;
+            let hasAudioTrack = false;
+
+            // Start playing background video & capture its audio track if present (mobile + desktop)
+            if (loadedBg instanceof HTMLVideoElement) {
+                loadedBg.pause();
                 loadedBg.currentTime = 0;
-                loadedBg.loop = true;
-                try { await loadedBg.play(); } catch (e) { console.warn(e); }
+                loadedBg.loop = false;
+
+                try {
+                    const AudioCtxClass = (window as any).AudioContext || (window as any).webkitAudioContext;
+                    if (AudioCtxClass) {
+                        const actx: AudioContext = new AudioCtxClass();
+                        audioCtx = actx;
+                        if (actx.state === 'suspended') {
+                            await actx.resume().catch(() => {});
+                        }
+                        const dest = actx.createMediaStreamDestination();
+                        const source = actx.createMediaElementSource(loadedBg);
+                        source.connect(dest);
+                        const audioTracks = dest.stream.getAudioTracks();
+                        if (audioTracks.length > 0) {
+                            hasAudioTrack = true;
+                            combinedStream = new MediaStream([
+                                ...canvasStream.getVideoTracks(),
+                                audioTracks[0]
+                            ]);
+                        }
+                    }
+                } catch (audioErr) {
+                    console.warn('Audio capture fallback:', audioErr);
+                }
+
+                if (!hasAudioTrack) {
+                    const vidStream = (loadedBg as any).captureStream?.() ?? (loadedBg as any).mozCaptureStream?.() ?? null;
+                    if (vidStream?.getAudioTracks?.().length > 0) {
+                        hasAudioTrack = true;
+                        combinedStream = new MediaStream([
+                            ...canvasStream.getVideoTracks(),
+                            vidStream.getAudioTracks()[0]
+                        ]);
+                    }
+                }
+
+                loadedBg.muted = false;
+                loadedBg.volume = 1;
+                try {
+                    await loadedBg.play();
+                } catch {
+                    loadedBg.muted = true;
+                    await loadedBg.play().catch(() => {});
+                }
             }
 
-            // Setup MediaRecorder
-            const stream = canvas.captureStream(30);
-            let mimeType = 'video/webm';
-            if (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')) {
-                mimeType = 'video/mp4;codecs=avc1';
-            } else if (MediaRecorder.isTypeSupported('video/mp4')) {
-                mimeType = 'video/mp4';
-            } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
-                mimeType = 'video/webm;codecs=vp9';
-            }
+            // Prioritize MP4 / MOV H.264+AAC (native iOS Safari & modern mobile/desktop), fallback WebM
+            const candidateMimeTypes = [
+                'video/mp4;codecs=avc1,mp4a.40.2',
+                'video/mp4;codecs=avc1',
+                'video/mp4;codecs=h264',
+                'video/mp4',
+                'video/quicktime',
+                'video/webm;codecs=vp9,opus',
+                'video/webm;codecs=vp8,opus',
+                'video/webm;codecs=vp9',
+                'video/webm'
+            ];
+            const mimeType = candidateMimeTypes.find((t) => {
+                try { return MediaRecorder.isTypeSupported(t); } catch { return false; }
+            }) || 'video/webm';
 
+            const isMobile = isMobileBrowser();
             const chunks: Blob[] = [];
-            const recorder = new MediaRecorder(stream, {
+            const recorder = new MediaRecorder(combinedStream, {
                 mimeType,
-                videoBitsPerSecond: 8000000 // 8 Mbps high quality
+                videoBitsPerSecond: isMobile ? 6000000 : 8000000,
+                ...(hasAudioTrack ? { audioBitsPerSecond: 192000 } : {})
             });
 
             recorder.ondataavailable = (e) => {
@@ -676,29 +960,53 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
             const recordPromise = new Promise<Blob>((resolve) => {
                 recorder.onstop = () => {
-                    resolve(new Blob(chunks, { type: mimeType.includes('mp4') ? 'video/mp4' : 'video/webm' }));
+                    const outType = mimeType.includes('mp4')
+                        ? 'video/mp4'
+                        : mimeType.includes('quicktime')
+                            ? 'video/quicktime'
+                            : 'video/webm';
+                    resolve(new Blob(chunks, { type: outType }));
                 };
             });
 
+            // Draw initial frame before starting recorder so frame 0 is never blank on mobile
+            renderSceneToCanvas(ctx, width, height, loadedBg, loadedLogo, logoBounds, activeSchedule, textAnimation === 'none' ? 1 : 0, 0);
             recorder.start(100);
 
-            const durationMs = videoDuration * 1000;
             const startTime = performance.now();
+            const revealWindowMs = Math.min(durationMs * 0.8, 3500);
+            let actualElapsedMs = durationMs;
 
             await new Promise<void>((resolve) => {
                 const renderFrame = (now: number) => {
                     const elapsed = now - startTime;
                     const progress = Math.min(1.0, elapsed / durationMs);
+                    const revealProgress = textAnimation === 'none'
+                        ? 1.0
+                        : Math.min(1.0, elapsed / Math.max(400, revealWindowMs));
 
                     setRecordProgress(Math.round(progress * 100));
 
-                    // Render scene at current progress
-                    renderSceneToCanvas(ctx, width, height, loadedBg, loadedLogo, activeSchedule, progress);
+                    renderSceneToCanvas(
+                        ctx,
+                        width,
+                        height,
+                        loadedBg,
+                        loadedLogo,
+                        logoBounds,
+                        activeSchedule,
+                        revealProgress,
+                        elapsed / 1000
+                    );
 
-                    if (elapsed < durationMs) {
+                    const videoEnded = loadedBg instanceof HTMLVideoElement && loadedBg.ended;
+                    if (elapsed < durationMs && !videoEnded) {
                         requestAnimationFrame(renderFrame);
                     } else {
-                        recorder.stop();
+                        actualElapsedMs = Math.min(durationMs, Math.max(500, Math.round(elapsed)));
+                        if (recorder.state !== 'inactive') {
+                            recorder.stop();
+                        }
                         if (loadedBg instanceof HTMLVideoElement) {
                             loadedBg.pause();
                         }
@@ -708,17 +1016,42 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                 requestAnimationFrame(renderFrame);
             });
 
-            const blob = await recordPromise;
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
-            a.download = `dropsiders-planning-story-${schedule[0]?.date || 'story'}.${ext}`;
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(url), 5000);
+            let finalBlob = await recordPromise;
+            if (finalBlob.type.includes('webm')) {
+                finalBlob = await fixWebmDuration(finalBlob, actualElapsedMs);
+            }
+
+            const ext = finalBlob.type.includes('mp4')
+                ? 'mp4'
+                : finalBlob.type.includes('quicktime')
+                    ? 'mov'
+                    : 'webm';
+            const filename = `dropsiders-planning-story-${(schedule[0]?.date || 'story').replace(/\s+/g, '-').toLowerCase()}.${ext}`;
+
+            if (isMobile) {
+                if (readyUrl) URL.revokeObjectURL(readyUrl);
+                const url = URL.createObjectURL(finalBlob);
+                setReadyBlob(finalBlob);
+                setReadyUrl(url);
+                setReadyFilename(filename);
+                setReadyType('video');
+                setShowExportModal(true);
+            } else {
+                const url = URL.createObjectURL(finalBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+            }
         } catch (err) {
             console.error('Video generation failed:', err);
         } finally {
+            if (audioCtx) {
+                audioCtx.close().catch(() => {});
+            }
             setIsRecording(false);
             setRecordProgress(0);
         }
@@ -728,42 +1061,72 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/90 backdrop-blur-xl" />
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-5xl bg-gray-900 border border-white/10 rounded-[2.5rem] flex flex-col max-h-[95vh] overflow-hidden shadow-2xl">
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-5xl bg-gray-900 border border-white/10 rounded-3xl md:rounded-[2.5rem] flex flex-col max-h-[96vh] overflow-hidden shadow-2xl">
                     
                     {/* Header */}
-                    <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/5">
-                        <div className="flex items-center gap-4">
-                            <button onClick={onClose} className="p-3 bg-neon-cyan/20 hover:bg-neon-cyan text-white hover:text-black rounded-2xl border border-neon-cyan/30 transition-all flex items-center gap-2 font-black text-[9px] uppercase tracking-widest group">
+                    <div className="p-4 sm:p-6 md:p-8 border-b border-white/5 flex items-center justify-between gap-2 bg-white/5 shrink-0">
+                        <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
+                            <button onClick={onClose} className="px-2.5 py-2 sm:p-3 bg-neon-cyan/20 hover:bg-neon-cyan text-white hover:text-black rounded-xl sm:rounded-2xl border border-neon-cyan/30 transition-all flex items-center gap-1.5 sm:gap-2 font-black text-[9px] uppercase tracking-widest group shrink-0">
                                 <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                                RETOUR
+                                <span className="hidden xs:inline sm:inline">RETOUR</span>
                             </button>
-                            <div className="p-3 bg-neon-cyan/10 rounded-2xl border border-neon-cyan/20">
+                            <div className="hidden sm:flex p-3 bg-neon-cyan/10 rounded-2xl border border-neon-cyan/20 shrink-0">
                                 <Calendar className="w-6 h-6 text-neon-cyan" />
                             </div>
-                            <div>
-                                <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">Planning <span className="text-neon-cyan">Story Generator</span></h2>
-                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Créez des visuels & vidéos de programmation pour Instagram</p>
+                            <div className="min-w-0">
+                                <h2 className="text-base sm:text-2xl font-display font-black text-white uppercase italic tracking-tighter truncate">
+                                    Planning <span className="text-neon-cyan">Story Generator</span>
+                                </h2>
+                                <p className="text-[9px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5 truncate">
+                                    Visuels & vidéos 9:16 pour Instagram
+                                </p>
                             </div>
                         </div>
-                        <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-2xl transition-all">
+                        <button onClick={onClose} className="p-2.5 sm:p-3 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-xl sm:rounded-2xl transition-all shrink-0">
                             <X className="w-5 h-5" />
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    {/* Mobile Switcher Tabs (Édition / Aperçu Story) */}
+                    <div className="md:hidden grid grid-cols-2 gap-2 px-4 py-2.5 bg-black/40 border-b border-white/5 shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => setMobileTab('edit')}
+                            className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${
+                                mobileTab === 'edit'
+                                    ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,255,255,0.25)]'
+                                    : 'bg-white/5 text-gray-400'
+                            }`}
+                        >
+                            <Sliders className="w-3.5 h-3.5" /> Édition
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setMobileTab('preview')}
+                            className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${
+                                mobileTab === 'preview'
+                                    ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,255,255,0.25)]'
+                                    : 'bg-white/5 text-gray-400'
+                            }`}
+                        >
+                            <Smartphone className="w-3.5 h-3.5" /> Aperçu Story
+                        </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 custom-scrollbar">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                             
                             {/* Left Column: Controls & Schedule inputs */}
-                            <div className="space-y-6">
+                            <div className={`space-y-6 ${mobileTab === 'preview' ? 'hidden md:block' : 'block'}`}>
                                 <div className="flex flex-col gap-4 mb-6">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                                         <h3 className="text-sm font-black text-white uppercase italic tracking-widest">Options du Visuel</h3>
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <button 
                                                 onClick={() => setShowLogo(!showLogo)} 
-                                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${
+                                                className={`flex items-center gap-1.5 px-2.5 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${
                                                     showLogo 
                                                         ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.25)]' 
                                                         : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
@@ -773,7 +1136,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                             </button>
                                             <button 
                                                 onClick={() => setShowWebsite(!showWebsite)} 
-                                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${
+                                                className={`flex items-center gap-1.5 px-2.5 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${
                                                     showWebsite 
                                                         ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.25)]' 
                                                         : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
@@ -783,7 +1146,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                             </button>
                                             <button 
                                                 onClick={() => setViewMode(viewMode === 'planning' ? 'timetable' : 'planning')} 
-                                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${
+                                                className={`flex items-center gap-1.5 px-2.5 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${
                                                     viewMode === 'planning' 
                                                         ? 'bg-white/10 border-white/20 text-white' 
                                                         : 'bg-neon-cyan border-neon-cyan text-black font-extrabold shadow-[0_0_15px_rgba(0,255,255,0.3)]'
@@ -791,7 +1154,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                             >
                                                 <Calendar className={`w-3 h-3 ${viewMode === 'timetable' ? 'text-black' : 'text-neon-cyan'}`} /> Mode: {viewMode === 'planning' ? 'DATE' : 'HEURE'}
                                             </button>
-                                            <button onClick={addDay} disabled={schedule.length >= 25} className="flex items-center gap-2 px-3 py-1.5 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-lg hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 shadow-[0_0_15px_rgba(0,255,255,0.3)]">
+                                            <button onClick={addDay} disabled={schedule.length >= 25} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-lg hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 shadow-[0_0_15px_rgba(0,255,255,0.3)]">
                                                 <Plus className="w-3 h-3" /> Ajouter ({schedule.length}/25)
                                             </button>
                                         </div>
@@ -825,17 +1188,17 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                     <span className="text-neon-cyan text-[10px] font-bold">{Math.round(logoScale * 100)}%</span>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-2.5">
                                                 <button 
                                                     onClick={() => {
                                                         setShowLogo(true);
                                                         fileInputRef.current?.click();
                                                     }} 
-                                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 hover:border-neon-cyan/40 rounded-xl text-[10px] font-black text-white hover:bg-white/10 transition-all uppercase"
+                                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-3 bg-white/5 border border-white/10 hover:border-neon-cyan/40 rounded-xl text-[10px] font-black text-white hover:bg-white/10 transition-all uppercase"
                                                 >
                                                     <Upload className="w-4 h-4 text-neon-cyan" /> {festivalLogo ? 'Changer' : 'Upload'}
                                                 </button>
-                                                <input type="range" min="0.5" max="2.5" step="0.1" value={logoScale} onChange={(e) => setLogoScale(parseFloat(e.target.value))} className="w-24 accent-neon-cyan cursor-pointer" />
+                                                <input type="range" min="0.5" max="2.5" step="0.1" value={logoScale} onChange={(e) => setLogoScale(parseFloat(e.target.value))} className="w-20 sm:w-24 accent-neon-cyan cursor-pointer" />
                                                 {festivalLogo && <button onClick={() => setFestivalLogo(null)} className="p-3 bg-neon-red/20 border border-neon-red/30 rounded-xl text-neon-red hover:bg-neon-red/30 transition-all" title="Supprimer le logo"><Trash2 className="w-4 h-4" /></button>}
                                                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                                             </div>
@@ -849,16 +1212,16 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                 </label>
                                                 {backgroundVideo && (
                                                     <span className="text-[9px] font-black text-neon-red bg-neon-red/10 border border-neon-red/30 px-2 py-0.5 rounded-full uppercase">
-                                                        Vidéo Active
+                                                        Vidéo {bgVideoDuration ? `${Math.round(bgVideoDuration)}s` : 'Active'}
                                                     </span>
                                                 )}
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <button onClick={() => bgInputRef.current?.click()} className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white hover:bg-white/10 transition-all uppercase ${backgroundImage || backgroundVideo ? 'border-neon-cyan/50 text-neon-cyan' : ''}`}>
+                                                <button onClick={() => bgInputRef.current?.click()} className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white hover:bg-white/10 transition-all uppercase ${backgroundImage || backgroundVideo ? 'border-neon-cyan/50 text-neon-cyan' : ''}`}>
                                                     <Upload className="w-4 h-4 text-neon-cyan" /> {backgroundVideo ? 'Changer Vidéo' : backgroundImage ? 'Changer Image' : 'Upload Image / Vidéo'}
                                                 </button>
                                                 {(backgroundImage || backgroundVideo) && (
-                                                    <button onClick={() => { setBackgroundImage(null); setBackgroundVideo(null); }} className="p-3 bg-neon-red/20 border border-neon-red/30 rounded-xl text-neon-red hover:bg-neon-red/30 transition-all" title="Supprimer le fond">
+                                                    <button onClick={() => { setBackgroundImage(null); setBackgroundVideo(null); setBgVideoDuration(null); }} className="p-3 bg-neon-red/20 border border-neon-red/30 rounded-xl text-neon-red hover:bg-neon-red/30 transition-all" title="Supprimer le fond">
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 )}
@@ -868,7 +1231,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                     </div>
 
                                     {/* Text Animation Choice Section */}
-                                    <div className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-3">
+                                    <div className="p-3.5 sm:p-4 bg-white/5 border border-white/10 rounded-2xl space-y-3">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <Wand2 className="w-4 h-4 text-neon-cyan" />
@@ -883,7 +1246,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                             </button>
                                         </div>
 
-                                        <div className="grid grid-cols-3 gap-2">
+                                        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                                             {[
                                                 { id: 'none', label: 'Statique', icon: X, desc: 'Pas d\'animation' },
                                                 { id: 'fade', label: 'Cascade Fondu', icon: Sparkles, desc: 'Apparition progressive' },
@@ -902,7 +1265,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                             setTextAnimation(anim.id as TextAnimationType);
                                                             setAnimationKey(k => k + 1);
                                                         }}
-                                                        className={`flex flex-col items-start p-2.5 rounded-xl border transition-all text-left ${
+                                                        className={`flex flex-col items-start p-2 sm:p-2.5 rounded-xl border transition-all text-left ${
                                                             isSel 
                                                                 ? 'bg-neon-cyan/20 border-neon-cyan text-white shadow-[0_0_15px_rgba(0,255,255,0.2)]' 
                                                                 : 'bg-black/30 border-white/5 text-gray-400 hover:text-white hover:bg-white/5'
@@ -912,37 +1275,24 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                             <IconComp className={`w-3.5 h-3.5 ${isSel ? 'text-neon-cyan' : 'text-gray-400'}`} />
                                                             {isSel && <Check className="w-3 h-3 text-neon-cyan" />}
                                                         </div>
-                                                        <span className="text-[10px] font-black uppercase tracking-tight">{anim.label}</span>
-                                                        <span className="text-[8px] text-gray-500 font-medium">{anim.desc}</span>
+                                                        <span className="text-[10px] font-black uppercase tracking-tight leading-tight">{anim.label}</span>
+                                                        <span className="text-[8px] text-gray-500 font-medium leading-tight mt-0.5">{anim.desc}</span>
                                                     </button>
                                                 );
                                             })}
                                         </div>
 
-                                        {/* Video Duration selector (when video background or animations active) */}
-                                        {(backgroundVideo || textAnimation !== 'none') && (
-                                            <div className="pt-2 flex items-center justify-between border-t border-white/5">
-                                                <span className="text-[9px] font-black uppercase text-gray-400 flex items-center gap-1.5">
-                                                    <Film className="w-3 h-3 text-neon-cyan" /> Durée Export Vidéo
-                                                </span>
-                                                <div className="flex items-center gap-1.5">
-                                                    {[5, 8, 10, 15].map((sec) => (
-                                                        <button
-                                                            key={sec}
-                                                            type="button"
-                                                            onClick={() => setVideoDuration(sec)}
-                                                            className={`px-2 py-0.5 rounded text-[9px] font-black uppercase transition-all ${
-                                                                videoDuration === sec 
-                                                                    ? 'bg-neon-cyan text-black' 
-                                                                    : 'bg-white/5 text-gray-400 hover:text-white'
-                                                            }`}
-                                                        >
-                                                            {sec}s
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
+                                        {/* Automatic Video Duration info: Background Video length or 15s default */}
+                                        <div className="pt-2 flex items-center justify-between border-t border-white/5">
+                                            <span className="text-[9px] font-black uppercase text-gray-400 flex items-center gap-1.5">
+                                                <Film className="w-3 h-3 text-neon-cyan" /> Durée Export Vidéo
+                                            </span>
+                                            <span className="px-2.5 py-0.5 rounded bg-neon-cyan/15 border border-neon-cyan/30 text-neon-cyan text-[9px] font-black uppercase">
+                                                {backgroundVideo
+                                                    ? `${effectiveVideoDurationSec}s (durée de la vidéo)`
+                                                    : `${DEFAULT_NO_VIDEO_DURATION}s (sans vidéo)`}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -950,41 +1300,41 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                 <h3 className="text-sm font-black text-white uppercase italic tracking-widest mb-4">Dates & Événements</h3>
                                 <div className="space-y-4">
                                     {schedule.map((day, idx) => (
-                                        <motion.div layout key={day.id} className="bg-white/5 border border-white/10 rounded-3xl p-6 relative group">
-                                            <button onClick={() => removeDay(day.id)} className="absolute -top-2 -right-2 w-8 h-8 bg-neon-red text-white flex items-center justify-center rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:scale-110 shadow-lg">
+                                        <motion.div layout key={day.id} className="bg-white/5 border border-white/10 rounded-3xl p-4 sm:p-6 relative group">
+                                            <button onClick={() => removeDay(day.id)} className="absolute -top-2 -right-2 w-8 h-8 bg-neon-red text-white flex items-center justify-center rounded-xl opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all hover:scale-110 shadow-lg">
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                             <div className="grid grid-cols-1 gap-4">
                                                 {viewMode === 'planning' && (
                                                     <div className="space-y-1">
-                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">Jour {idx + 1} - Date (ex: 13 Mai)</label>
+                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">Jour {idx + 1} - Date (ex: JOUR 1 / 13 Mai)</label>
                                                         <input type="text" value={day.date} onChange={(e) => updateDayDate(day.id, e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neon-cyan outline-none transition-all italic font-bold" />
                                                     </div>
                                                 )}
-                                                <div className="space-y-4">
+                                                <div className="space-y-3 sm:space-y-4">
                                                     {day.events.map((evt) => (
-                                                        <div key={evt.id} className="flex flex-col gap-3 p-4 bg-white/5 border border-white/5 rounded-2xl relative group/evt">
-                                                            <button onClick={() => removeEventFromDay(day.id, evt.id)} className="absolute -top-2 -right-2 w-6 h-6 bg-red-500/20 text-red-500 rounded-lg opacity-0 group-hover/evt:opacity-100 transition-all hover:bg-red-500 hover:text-white"><X className="w-3 h-3" /></button>
-                                                            <div className="flex items-center gap-3 mb-1">
+                                                        <div key={evt.id} className="flex flex-col gap-3 p-3.5 sm:p-4 bg-white/5 border border-white/5 rounded-2xl relative group/evt">
+                                                            <button onClick={() => removeEventFromDay(day.id, evt.id)} className="absolute -top-2 -right-2 w-6 h-6 bg-red-500/20 text-red-500 rounded-lg opacity-100 md:opacity-0 md:group-hover/evt:opacity-100 transition-all hover:bg-red-500 hover:text-white flex items-center justify-center"><X className="w-3 h-3" /></button>
+                                                            <div className="flex items-center gap-3 mb-0.5">
                                                                 <div className={`px-2 py-1 rounded text-[7px] font-black uppercase tracking-widest ${evt.type === 'day' ? 'bg-amber-400/10 text-amber-400' : 'bg-indigo-400/10 text-indigo-400'}`}>
                                                                     {evt.type === 'day' ? <Sun className="w-2 h-2 inline mr-1" /> : <Moon className="w-2 h-2 inline mr-1" />}
                                                                     {evt.type === 'day' ? 'JOUR' : 'NUIT'}
                                                                 </div>
                                                                 <span className="text-[7px] font-bold text-gray-500 uppercase tracking-widest">Événement</span>
                                                             </div>
-                                                            <div className="grid grid-cols-2 gap-4">
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                                                 <div className="space-y-1">
                                                                     <label className="text-[8px] font-black text-gray-400 uppercase ml-1 tracking-widest">{viewMode === 'planning' ? 'Artiste' : 'Heure'}</label>
-                                                                    <input type="text" value={evt.artist} onChange={(e) => updateEvent(day.id, evt.id, 'artist', e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:border-neon-cyan outline-none" />
+                                                                    <input type="text" value={evt.artist} onChange={(e) => updateEvent(day.id, evt.id, 'artist', e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-neon-cyan outline-none" />
                                                                 </div>
                                                                 <div className="space-y-1">
                                                                     <label className="text-[8px] font-black text-gray-400 uppercase ml-1 tracking-widest">{viewMode === 'planning' ? 'Lieu / Stage' : 'Artiste / Stage'}</label>
-                                                                    <input type="text" value={evt.location} onChange={(e) => updateEvent(day.id, evt.id, 'location', e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:border-neon-cyan outline-none" />
+                                                                    <input type="text" value={evt.location} onChange={(e) => updateEvent(day.id, evt.id, 'location', e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-neon-cyan outline-none" />
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     ))}
-                                                    <div className="flex gap-3 pt-2">
+                                                    <div className="flex gap-3 pt-1">
                                                         <button onClick={() => addEventToDay(day.id, 'day')} className="flex-1 py-3 bg-amber-400/5 border border-amber-400/20 rounded-xl text-amber-400 text-[8px] font-black uppercase tracking-widest hover:bg-amber-400/10 transition-all flex items-center justify-center gap-2"><Plus className="w-3 h-3" /> Event Jour</button>
                                                         <button onClick={() => addEventToDay(day.id, 'night')} className="flex-1 py-3 bg-indigo-400/5 border border-indigo-400/20 rounded-xl text-indigo-400 text-[8px] font-black uppercase tracking-widest hover:bg-indigo-400/10 transition-all flex items-center justify-center gap-2"><Plus className="w-3 h-3" /> Event Nuit</button>
                                                     </div>
@@ -995,10 +1345,10 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                 </div>
                             </div>
 
-                            {/* Right Column: Live Phone Mockup & Export Buttons */}
-                            <div className="relative">
-                                <div className="sticky top-0 space-y-6">
-                                    <div className="flex items-center justify-between mb-2">
+                            {/* Right Column: Live Phone Mockup & Desktop Export Buttons */}
+                            <div className={`relative ${mobileTab === 'edit' ? 'hidden md:block' : 'block'}`}>
+                                <div className="sticky top-0 space-y-5">
+                                    <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
                                             <h3 className="text-sm font-black text-white uppercase italic tracking-widest">Aperçu Story 9:16</h3>
                                             {backgroundVideo && <span className="px-2 py-0.5 bg-neon-red/10 border border-neon-red/30 rounded text-[8px] font-black text-neon-red uppercase">Vidéo</span>}
@@ -1013,8 +1363,8 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                         </button>
                                     </div>
 
-                                    {/* Mockup Phone Frame */}
-                                    <div className="aspect-[9/19.2] w-full max-w-[360px] mx-auto bg-black rounded-[3.2rem] border-[8px] border-[#181818] shadow-[0_0_50px_rgba(0,0,0,0.9)] relative overflow-hidden flex flex-col p-5 text-white scale-[0.62] origin-top transition-all duration-500 hover:scale-[0.64] group">
+                                    {/* Mockup Phone Frame — crisp responsive dimensions without transform-scale dead gap */}
+                                    <div className="aspect-[9/16] w-[240px] sm:w-[265px] mx-auto bg-black rounded-[2.4rem] border-[6px] border-[#181818] shadow-[0_0_50px_rgba(0,0,0,0.9)] relative overflow-hidden flex flex-col px-3.5 pt-2 pb-3 text-white transition-all duration-300 group">
                                         
                                         {/* Background Layer */}
                                         {backgroundImage || backgroundVideo ? (
@@ -1029,6 +1379,12 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                         muted 
                                                         loop 
                                                         playsInline 
+                                                        onLoadedMetadata={(e) => {
+                                                            const d = e.currentTarget.duration;
+                                                            if (d && isFinite(d) && d > 0) {
+                                                                setBgVideoDuration(Math.min(600, d));
+                                                            }
+                                                        }}
                                                         className="w-full h-full object-cover" 
                                                     />
                                                 )}
@@ -1038,112 +1394,109 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                             <div className="absolute inset-0 bg-gradient-to-b from-[#0a0b12] via-[#1a0510] to-[#050a0f]" />
                                         )}
 
-                                        {/* Dynamic Content Container */}
+                                        {/* Dynamic Content Container (matches canvas layout: high logo, JOUR close to logo, spaced events) */}
                                         <div key={animationKey} className="relative z-10 flex flex-col h-full justify-between overflow-hidden">
                                             
-                                            {/* Dynamic Island / Notch */}
-                                            <div className="w-20 h-5 bg-black rounded-full mx-auto mb-4 flex items-center justify-center border border-white/5 shadow-inner shrink-0">
-                                                <div className="w-2 h-2 bg-[#222] rounded-full mr-2" />
-                                                <div className="w-8 h-1 bg-[#222] rounded-full" />
-                                            </div>
-
-                                            {/* Header: Logo */}
-                                            {showLogo && (
-                                                <div className="flex flex-col items-center justify-center mb-3 shrink-0" style={{ minHeight: `${Math.round(38 * logoScale)}px` }}>
-                                                    <img
-                                                        src={festivalLogo || '/Logo.png'}
-                                                        alt="Logo"
-                                                        className="object-contain transition-all"
-                                                        style={{
-                                                            height: `${Math.round(38 * logoScale)}px`,
-                                                            maxWidth: '85%'
-                                                        }}
-                                                    />
-                                                </div>
-                                            )}
-
-                                            {/* Header: Custom Title */}
-                                            {customTitle && customTitle.trim() && (
-                                                <div className="text-center mb-3 px-2 shrink-0">
-                                                    <div className="text-[13px] font-black text-white italic uppercase tracking-wider truncate">
-                                                        {customTitle}
+                                            {/* Top Header Block: Logo + Title + Schedule */}
+                                            <div className="flex-1 flex flex-col justify-start overflow-y-auto no-scrollbar pt-0.5">
+                                                {/* Header: Logo (positioned high) */}
+                                                {showLogo && (
+                                                    <div className="flex flex-col items-center justify-center mb-1.5 shrink-0">
+                                                        <img
+                                                            src={festivalLogo || '/Logo.png'}
+                                                            alt="Logo"
+                                                            className="object-contain transition-all"
+                                                            style={{
+                                                                height: `${Math.round(30 * logoScale)}px`,
+                                                                maxHeight: '58px',
+                                                                maxWidth: '85%'
+                                                            }}
+                                                        />
                                                     </div>
-                                                </div>
-                                            )}
+                                                )}
 
-                                            {/* Schedule items with auto-fit layout & animations */}
-                                            <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col justify-center space-y-3 py-1 px-1">
-                                                {schedule.map((day, dIdx) => (
-                                                    <motion.div 
-                                                        key={day.id} 
-                                                        initial={
-                                                            textAnimation === 'slide' ? { opacity: 0, y: 15 } :
-                                                            textAnimation === 'fade' ? { opacity: 0 } :
-                                                            textAnimation === 'pop' ? { opacity: 0, scale: 0.8 } :
-                                                            textAnimation === 'cyber' ? { opacity: 0, x: -10 } :
-                                                            { opacity: 1 }
-                                                        }
-                                                        animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
-                                                        transition={{ duration: 0.4, delay: textAnimation !== 'none' ? dIdx * 0.12 : 0 }}
-                                                        className="space-y-1 text-center"
-                                                    >
-                                                        {viewMode === 'planning' && (
-                                                            <div className={`text-[13px] font-black text-neon-red italic uppercase tracking-tight ${textAnimation === 'glow' ? 'animate-pulse' : ''}`}>
-                                                                {day.date || 'DATE'}
-                                                            </div>
-                                                        )}
-                                                        <div className="space-y-1">
-                                                            {day.events.map((evt, eIdx) => (
-                                                                <motion.div 
-                                                                    key={evt.id} 
-                                                                    initial={
-                                                                        textAnimation === 'slide' ? { opacity: 0, y: 10 } :
-                                                                        textAnimation === 'fade' ? { opacity: 0 } :
-                                                                        textAnimation === 'pop' ? { opacity: 0, scale: 0.85 } :
-                                                                        { opacity: 1 }
-                                                                    }
-                                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                                    transition={{ duration: 0.35, delay: textAnimation !== 'none' ? (dIdx * 0.12) + (eIdx * 0.06) : 0 }}
-                                                                    className="flex items-center justify-center flex-wrap gap-1 px-1"
-                                                                >
-                                                                    {viewMode === 'planning' ? (
-                                                                        <>
-                                                                            <span className={`text-[11px] text-white font-extrabold uppercase tracking-tight ${textAnimation === 'glow' ? 'drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : ''}`}>
-                                                                                {evt.type === 'day' ? '☀️' : '🌒'} {evt.artist || '...'}
-                                                                            </span>
-                                                                            {evt.location && (
-                                                                                <span className="text-[9px] text-white/50 italic uppercase font-semibold">
-                                                                                    {evt.location}
-                                                                                </span>
-                                                                            )}
-                                                                        </>
-                                                                    ) : (
-                                                                        <div className="flex items-center justify-center gap-1 text-[11px] font-bold uppercase tracking-wide">
-                                                                            {evt.artist && <span className="text-neon-red italic font-extrabold">{evt.artist}</span>}
-                                                                            {evt.artist && evt.location && <span className="text-white/30">-</span>}
-                                                                            {evt.location && <span className="font-display text-white">{evt.location}</span>}
-                                                                        </div>
-                                                                    )}
-                                                                </motion.div>
-                                                            ))}
+                                                {/* Header: Custom Title */}
+                                                {customTitle && customTitle.trim() && (
+                                                    <div className="text-center mb-1.5 px-1.5 shrink-0">
+                                                        <div className="text-[10px] font-black text-white italic uppercase tracking-wider truncate">
+                                                            {customTitle}
                                                         </div>
-                                                    </motion.div>
-                                                ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Schedule items — top-aligned near logo, with clear gap between JOUR title & artists */}
+                                                <div className={`flex flex-col justify-start space-y-3 px-1 ${customTitle?.trim() && !(viewMode === 'planning' && schedule[0]?.date) ? 'pt-3' : 'pt-1'}`}>
+                                                    {schedule.map((day, dIdx) => (
+                                                        <motion.div 
+                                                            key={day.id} 
+                                                            initial={
+                                                                textAnimation === 'slide' ? { opacity: 0, y: 15 } :
+                                                                textAnimation === 'fade' ? { opacity: 0 } :
+                                                                textAnimation === 'pop' ? { opacity: 0, scale: 0.8 } :
+                                                                textAnimation === 'cyber' ? { opacity: 0, x: -10 } :
+                                                                { opacity: 1 }
+                                                            }
+                                                            animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
+                                                            transition={{ duration: 0.4, delay: textAnimation !== 'none' ? dIdx * 0.12 : 0 }}
+                                                            className="text-center"
+                                                        >
+                                                            {viewMode === 'planning' && (
+                                                                <div className={`text-[12px] font-black text-neon-red italic uppercase tracking-tight mb-2.5 ${textAnimation === 'glow' ? 'animate-pulse' : ''}`}>
+                                                                    {day.date || 'DATE'}
+                                                                </div>
+                                                            )}
+                                                            <div className="space-y-1.5">
+                                                                {day.events.map((evt, eIdx) => (
+                                                                    <motion.div 
+                                                                        key={evt.id} 
+                                                                        initial={
+                                                                            textAnimation === 'slide' ? { opacity: 0, y: 10 } :
+                                                                            textAnimation === 'fade' ? { opacity: 0 } :
+                                                                            textAnimation === 'pop' ? { opacity: 0, scale: 0.85 } :
+                                                                            { opacity: 1 }
+                                                                        }
+                                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                                        transition={{ duration: 0.35, delay: textAnimation !== 'none' ? (dIdx * 0.12) + (eIdx * 0.06) : 0 }}
+                                                                        className="flex items-center justify-center flex-wrap gap-1 px-1"
+                                                                    >
+                                                                        {viewMode === 'planning' ? (
+                                                                            <>
+                                                                                <span className={`text-[10px] text-white font-extrabold uppercase tracking-tight ${textAnimation === 'glow' ? 'drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : ''}`}>
+                                                                                    {evt.type === 'day' ? '☀️' : '🌒'} {evt.artist || '...'}
+                                                                                </span>
+                                                                                {evt.location && (
+                                                                                    <span className="text-[8px] text-white/50 italic uppercase font-semibold">
+                                                                                        {evt.location}
+                                                                                    </span>
+                                                                                )}
+                                                                            </>
+                                                                        ) : (
+                                                                            <div className="flex items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-wide">
+                                                                                {evt.artist && <span className="text-neon-red italic font-extrabold">{evt.artist}</span>}
+                                                                                {evt.artist && evt.location && <span className="text-white/30">-</span>}
+                                                                                {evt.location && <span className="font-display text-white">{evt.location}</span>}
+                                                                            </div>
+                                                                        )}
+                                                                    </motion.div>
+                                                                ))}
+                                                            </div>
+                                                        </motion.div>
+                                                    ))}
+                                                </div>
                                             </div>
 
                                             {/* Footer Branding */}
                                             {showWebsite && (
-                                                <div className="pt-2 pb-1 shrink-0 flex flex-col items-center">
-                                                    <div className="text-[9px] font-black text-white uppercase tracking-[0.4em]">DROPSIDERS.FR</div>
-                                                    <div className="w-12 h-0.5 bg-neon-cyan/40 mt-1" />
+                                                <div className="pt-2 pb-0.5 shrink-0 flex flex-col items-center">
+                                                    <div className="text-[8px] font-black text-white uppercase tracking-[0.35em]">DROPSIDERS.FR</div>
+                                                    <div className="w-10 h-0.5 bg-neon-cyan/40 mt-1" />
                                                 </div>
                                             )}
                                         </div>
                                     </div>
 
-                                    {/* Action Buttons: Dual Export (Image PNG + Animated Video) */}
-                                    <div className="space-y-3 pt-2">
-                                        {/* Progress indicator during video generation */}
+                                    {/* Desktop Action Buttons */}
+                                    <div className="hidden md:block space-y-3 pt-1">
                                         {isRecording && (
                                             <div className="p-4 bg-neon-cyan/10 border border-neon-cyan/30 rounded-2xl space-y-2">
                                                 <div className="flex items-center justify-between text-xs font-black uppercase text-neon-cyan">
@@ -1161,8 +1514,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                             </div>
                                         )}
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                            {/* PNG Image Download */}
+                                        <div className="grid grid-cols-2 gap-3">
                                             <button 
                                                 onClick={generateImage} 
                                                 disabled={isGenerating || isRecording} 
@@ -1172,14 +1524,13 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                 Image (PNG)
                                             </button>
 
-                                            {/* Animated Video Story Export */}
                                             <button 
                                                 onClick={generateVideo} 
                                                 disabled={isGenerating || isRecording} 
                                                 className="h-14 bg-gradient-to-r from-neon-red to-neon-purple text-white font-black uppercase tracking-wider text-[11px] rounded-2xl hover:brightness-110 transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,18,65,0.3)] active:scale-95 disabled:opacity-50 cursor-pointer border border-white/20"
                                             >
                                                 {isRecording ? <Sparkles className="w-4 h-4 animate-spin" /> : <Film className="w-4 h-4 text-neon-cyan" />}
-                                                Story Vidéo ({videoDuration}s)
+                                                Story Vidéo ({effectiveVideoDurationSec}s)
                                             </button>
                                         </div>
                                     </div>
@@ -1189,7 +1540,64 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
                         </div>
                     </div>
+
+                    {/* Sticky Mobile Export Footer — always accessible on phone from both Édition & Aperçu */}
+                    <div className="md:hidden p-3.5 bg-black/80 backdrop-blur-xl border-t border-white/10 space-y-2.5 shrink-0">
+                        {isRecording && (
+                            <div className="px-3 py-2 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl space-y-1.5">
+                                <div className="flex items-center justify-between text-[10px] font-black uppercase text-neon-cyan">
+                                    <span className="flex items-center gap-1.5">
+                                        <Sparkles className="w-3.5 h-3.5 animate-spin" /> Rendu vidéo...
+                                    </span>
+                                    <span>{recordProgress}%</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-black/60 rounded-full overflow-hidden">
+                                    <div 
+                                        className="h-full bg-neon-cyan transition-all duration-200" 
+                                        style={{ width: `${recordProgress}%` }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                        <div className="grid grid-cols-2 gap-2.5">
+                            <button 
+                                onClick={generateImage} 
+                                disabled={isGenerating || isRecording} 
+                                className="h-12 bg-white text-black font-black uppercase tracking-wider text-[10px] rounded-xl active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-lg"
+                            >
+                                {isGenerating ? <Sparkles className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                                Image (PNG)
+                            </button>
+                            <button 
+                                onClick={generateVideo} 
+                                disabled={isGenerating || isRecording} 
+                                className="h-12 bg-gradient-to-r from-neon-red to-neon-purple text-white font-black uppercase tracking-wider text-[10px] rounded-xl active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5 border border-white/20 shadow-lg"
+                            >
+                                {isRecording ? <Sparkles className="w-3.5 h-3.5 animate-spin" /> : <Film className="w-3.5 h-3.5 text-neon-cyan" />}
+                                Vidéo ({effectiveVideoDurationSec}s)
+                            </button>
+                        </div>
+                    </div>
                 </motion.div>
+
+                {/* Native Mobile Export Modal (Save to Photos / Share to Instagram Story) */}
+                <ExportSuccessModal
+                    isOpen={showExportModal && !!readyBlob}
+                    onClose={() => {
+                        setShowExportModal(false);
+                        setReadyBlob(null);
+                        if (readyUrl) {
+                            URL.revokeObjectURL(readyUrl);
+                            setReadyUrl('');
+                        }
+                    }}
+                    readyBlob={readyBlob}
+                    readyUrl={readyUrl}
+                    filename={readyFilename}
+                    type={readyType}
+                    title={readyType === 'video' ? 'STORY VIDÉO PRÊTE !' : 'STORY IMAGE PRÊTE !'}
+                    subtitle="Enregistrez-la dans votre pellicule ou sur Instagram"
+                />
             </div>
         </AnimatePresence>
     );
